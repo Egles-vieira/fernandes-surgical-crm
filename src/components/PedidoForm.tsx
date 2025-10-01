@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Card } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface ItemPedido {
   codigo: string;
@@ -25,6 +26,7 @@ interface LogEntry {
   id: string;
   timestamp: string;
   usuario: string;
+  usuarioAvatar?: string;
   acao: string;
   descricao: string;
 }
@@ -181,6 +183,7 @@ export default function PedidoForm({ selectedPedido, onBack }: PedidoFormProps) 
       id: "1",
       timestamp: new Date().toLocaleString("pt-BR"),
       usuario: "Sistema",
+      usuarioAvatar: "",
       acao: "Criação",
       descricao: "Pedido criado"
     }
@@ -190,7 +193,8 @@ export default function PedidoForm({ selectedPedido, onBack }: PedidoFormProps) 
     const novoLog: LogEntry = {
       id: Date.now().toString(),
       timestamp: new Date().toLocaleString("pt-BR"),
-      usuario: "Usuário Atual",
+      usuario: "Égles Vieira",
+      usuarioAvatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=EglesVieira",
       acao,
       descricao
     };
@@ -860,7 +864,7 @@ export default function PedidoForm({ selectedPedido, onBack }: PedidoFormProps) 
         {/* Painel de Logs Lateral */}
         {showLogs && (
           <div className="fixed right-0 top-[73px] h-[calc(100vh-73px)] w-96 bg-background border-l shadow-lg z-20 flex flex-col">
-            <div className="p-4 border-b flex items-center justify-between">
+            <div className="p-4 border-b flex items-center justify-between bg-muted/30">
               <div className="flex items-center gap-2">
                 <History size={20} className="text-primary" />
                 <h3 className="font-semibold text-primary">Histórico de Ações</h3>
@@ -875,27 +879,46 @@ export default function PedidoForm({ selectedPedido, onBack }: PedidoFormProps) 
               </Button>
             </div>
             
-            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            <div className="flex-1 overflow-y-auto p-4 space-y-2">
               {logs.map((log) => (
-                <Card key={log.id} className="p-3 hover:bg-muted/50 transition-colors">
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-between">
-                      <Badge variant="outline" className="text-xs">
-                        {log.acao}
-                      </Badge>
-                      <span className="text-xs text-muted-foreground">
-                        {log.timestamp}
-                      </span>
+                <div 
+                  key={log.id} 
+                  className="p-3 rounded-lg hover:bg-muted/50 transition-colors border border-border/50"
+                >
+                  <div className="flex gap-3">
+                    <Avatar className="h-9 w-9 flex-shrink-0">
+                      <AvatarImage src={log.usuarioAvatar} alt={log.usuario} />
+                      <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                        {log.usuario.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                      </AvatarFallback>
+                    </Avatar>
+                    
+                    <div className="flex-1 min-w-0 space-y-1">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1">
+                          <p className="text-sm font-semibold text-foreground">
+                            {log.usuario}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {log.timestamp}
+                          </p>
+                        </div>
+                        <Badge variant="outline" className="text-xs flex-shrink-0">
+                          {log.acao}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-foreground/90">
+                        {log.descricao}
+                      </p>
                     </div>
-                    <p className="text-sm font-medium">{log.descricao}</p>
-                    <p className="text-xs text-muted-foreground">por {log.usuario}</p>
                   </div>
-                </Card>
+                </div>
               ))}
               
               {logs.length === 0 && (
                 <div className="text-center py-8 text-muted-foreground">
-                  Nenhuma ação registrada ainda
+                  <History size={48} className="mx-auto mb-3 opacity-20" />
+                  <p>Nenhuma ação registrada ainda</p>
                 </div>
               )}
             </div>
