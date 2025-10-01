@@ -11,6 +11,7 @@ import {
   X
 } from "lucide-react";
 import logo from "@/assets/logo-cfernandes.webp";
+import Header from "./Header";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -80,9 +81,12 @@ export default function Layout({ children }: LayoutProps) {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-auto">
-        {children}
-      </main>
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <Header />
+        <main className="flex-1 overflow-auto">
+          {children}
+        </main>
+      </div>
     </div>
   );
 }

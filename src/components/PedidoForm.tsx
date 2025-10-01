@@ -7,6 +7,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Card } from "@/components/ui/card";
+import { toast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
 
 interface ItemPedido {
   codigo: string;
@@ -98,6 +100,7 @@ export default function PedidoForm({ selectedPedido, onBack }: PedidoFormProps) 
 
   const [showProdutoModal, setShowProdutoModal] = useState(false);
   const [searchProduto, setSearchProduto] = useState("");
+  const [faseCotacao, setFaseCotacao] = useState<string>("COTACAO");
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {
@@ -160,18 +163,125 @@ export default function PedidoForm({ selectedPedido, onBack }: PedidoFormProps) 
       p.fabricante.toLowerCase().includes(searchProduto.toLowerCase())
   );
 
+  const handleSalvar = () => {
+    if (!formData.cliente || !formData.cnpj) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Preencha Cliente e CNPJ antes de salvar.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (formData.itens.length === 0) {
+      toast({
+        title: "Pedido vazio",
+        description: "Adicione pelo menos um produto ao pedido.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "Pedido salvo!",
+      description: `Pedido #${formData.numero} salvo com sucesso.`,
+    });
+
+    console.log("Pedido salvo:", formData);
+  };
+
+  const handleEfetivar = () => {
+    handleSalvar();
+    setFaseCotacao("EFETIVADO");
+    toast({
+      title: "Pedido efetivado!",
+      description: `Pedido #${formData.numero} foi efetivado.`,
+    });
+  };
+
+  const handleDiretoria = () => {
+    handleSalvar();
+    setFaseCotacao("DIRETORIA");
+    toast({
+      title: "Enviado para diretoria",
+      description: `Pedido #${formData.numero} enviado para aprovação da diretoria.`,
+    });
+  };
+
+  const getFaseColor = () => {
+    switch (faseCotacao) {
+      case "COTACAO":
+        return "bg-secondary/10 text-secondary border-secondary/20";
+      case "EFETIVADO":
+        return "bg-success/10 text-success border-success/20";
+      case "DIRETORIA":
+        return "bg-primary/10 text-primary border-primary/20";
+      default:
+        return "bg-muted";
+    }
+  };
+
   return (
-    <div className="p-8 space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-4">
-        <Button variant="outline" onClick={onBack}>
-          <ChevronLeft size={16} className="mr-1" />
-          Voltar
-        </Button>
-        <h1 className="text-3xl font-bold text-primary">
-          {selectedPedido ? `Editar Pedido #${formData.numero}` : `Novo Pedido #${formData.numero}`}
-        </h1>
+    <div className="flex flex-col h-full">
+      {/* Barra de Ações Fixa */}
+      <div className="sticky top-16 z-30 bg-background border-b shadow-sm">
+        <div className="px-8 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Button variant="outline" onClick={onBack} size="sm">
+                <ChevronLeft size={16} className="mr-1" />
+                Voltar
+              </Button>
+              <div>
+                <h2 className="text-lg font-bold text-primary">
+                  {selectedPedido ? `Editar Pedido #${formData.numero}` : `Novo Pedido #${formData.numero}`}
+                </h2>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              <Badge className={getFaseColor()}>
+                {faseCotacao}
+              </Badge>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={onBack}
+                size="sm"
+              >
+                CANCELAR
+              </Button>
+              <Button 
+                type="button" 
+                onClick={handleSalvar}
+                className="bg-success hover:bg-success/90 text-white"
+                size="sm"
+              >
+                SALVAR
+              </Button>
+              <Button 
+                type="button"
+                onClick={handleEfetivar}
+                className="bg-primary hover:bg-primary/90"
+                size="sm"
+              >
+                EFETIVAR
+              </Button>
+              <Button 
+                type="button"
+                onClick={handleDiretoria}
+                className="bg-accent hover:bg-accent/90"
+                size="sm"
+              >
+                DIRETORIA
+              </Button>
+            </div>
+          </div>
+        </div>
       </div>
+
+      {/* Conteúdo do Formulário */}
+      <div className="flex-1 overflow-auto p-8">
 
       <Card className="p-6">
         <form className="space-y-6">
@@ -447,23 +557,8 @@ export default function PedidoForm({ selectedPedido, onBack }: PedidoFormProps) 
             )}
           </div>
 
-          {/* Rodapé com Total e Botões */}
-          <div className="flex items-center justify-between pt-6 border-t">
-            <div className="flex gap-3">
-              <Button type="button" variant="outline" onClick={onBack}>
-                CANCELAR
-              </Button>
-              <Button type="button" className="bg-success hover:bg-success/90">
-                SALVAR
-              </Button>
-              <Button type="button" className="bg-primary hover:bg-primary/90">
-                EFETIVAR
-              </Button>
-              <Button type="button" className="bg-accent hover:bg-accent/90">
-                DIRETORIA
-              </Button>
-            </div>
-
+          {/* Rodapé com Total */}
+          <div className="flex items-center justify-end pt-6 border-t">
             <div className="text-right">
               <p className="text-sm text-muted-foreground mb-1">Valor Total do Pedido</p>
               <p className="text-3xl font-bold text-success">{formatCurrency(calcularTotal())}</p>
@@ -532,6 +627,7 @@ export default function PedidoForm({ selectedPedido, onBack }: PedidoFormProps) 
           </div>
         </DialogContent>
       </Dialog>
+      </div>
     </div>
   );
 }
