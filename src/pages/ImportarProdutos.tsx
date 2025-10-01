@@ -83,6 +83,15 @@ export default function ImportarProdutos() {
           return value.split(',').map(v => v.trim()).filter(Boolean);
         };
 
+        // Helper to convert Brazilian date format (DD/MM/YYYY) to ISO (YYYY-MM-DD)
+        const parseDate = (value: string) => {
+          if (!value || value === '') return null;
+          const match = value.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+          if (!match) return null;
+          const [, day, month, year] = match;
+          return `${year}-${month}-${day}`;
+        };
+
         const produtosFormatted = batch.map(p => ({
           referencia_interna: p.referencia_interna || p.codigo,
           nome: p.nome,
@@ -102,7 +111,7 @@ export default function ImportarProdutos() {
           lote_multiplo: parseDecimal(p.lote_multiplo || '1'),
           icms_sp_percent: parseDecimal(p.icms_sp_percent || '0'),
           responsavel: p.responsavel || null,
-          previsao_chegada: p.previsao_chegada || null,
+          previsao_chegada: parseDate(p.previsao_chegada),
         }));
 
         const { data, error } = await supabase
