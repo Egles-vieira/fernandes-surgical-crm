@@ -1,8 +1,17 @@
-import { useLocation } from "react-router-dom";
-import { Search, Bell, User, ChevronRight, Menu } from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { Search, Bell, User, ChevronRight, Menu, LogOut } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 interface HeaderProps {
   collapsed: boolean;
   onToggle: () => void;
@@ -12,6 +21,13 @@ export default function Header({
   onToggle
 }: HeaderProps) {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, signOut } = useAuth();
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate("/auth");
+  };
   const getPageInfo = () => {
     switch (location.pathname) {
       case "/":
@@ -92,17 +108,29 @@ export default function Header({
 
           <div className="h-8 w-px bg-border"></div>
 
-          <div className="flex items-center gap-3">
-            <Avatar className="h-8 w-8">
-              <AvatarFallback className="bg-primary text-primary-foreground text-xs font-semibold">
-                CF
-              </AvatarFallback>
-            </Avatar>
-            <div className="text-sm leading-tight">
-              <p className="font-semibold text-foreground">Cirúrgica Fernandes</p>
-              <p className="text-xs text-muted-foreground">admin@cfernandes.com.br</p>
-            </div>
-          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="flex items-center gap-3">
+                <Avatar className="h-8 w-8">
+                  <AvatarFallback className="bg-primary text-primary-foreground text-xs font-semibold">
+                    {user?.email?.substring(0, 2).toUpperCase() || "CF"}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="text-sm leading-tight text-left">
+                  <p className="font-semibold text-foreground">Cirúrgica Fernandes</p>
+                  <p className="text-xs text-muted-foreground">{user?.email || "admin@cfernandes.com.br"}</p>
+                </div>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleLogout}>
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Sair</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </header>;

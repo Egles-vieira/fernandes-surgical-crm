@@ -7,6 +7,7 @@ import {
   Users,
   FileText,
   Gavel,
+  Upload,
 } from "lucide-react";
 import logo from "@/assets/logo-cfernandes.webp";
 import favicon from "@/assets/favicon-cfernandes.png";
@@ -23,6 +24,7 @@ const menuItems = [
   { path: "/licitacoes", icon: Gavel, label: "Licitações" },
   { path: "/clientes", icon: Users, label: "Clientes" },
   { path: "/produtos", icon: Package, label: "Produtos" },
+  { path: "/importar-produtos", icon: Upload, label: "Importar Produtos" },
 ];
 
 export default function Layout({ children }: LayoutProps) {
