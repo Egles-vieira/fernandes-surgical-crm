@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import PedidoForm from "@/components/PedidoForm";
 
 interface ItemPedido {
   codigo: string;
@@ -267,26 +268,7 @@ export default function Vendas() {
   }
 
   if (view === "edit") {
-    // This would be the full edit form - placeholder for now
-    return (
-      <div className="p-8 space-y-6">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" onClick={() => setView("list")}>
-            <ChevronLeft size={16} className="mr-1" />
-            Voltar
-          </Button>
-          <h1 className="text-3xl font-bold text-primary">
-            {selectedPedido ? `Editar Pedido #${selectedPedido.numero}` : "Novo Pedido"}
-          </h1>
-        </div>
-
-        <Card className="p-8">
-          <p className="text-center text-muted-foreground">
-            Formulário de edição/criação de pedidos em desenvolvimento...
-          </p>
-        </Card>
-      </div>
-    );
+    return <PedidoForm selectedPedido={selectedPedido} onBack={() => setView("list")} />;
   }
 
   // List View
