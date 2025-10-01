@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, Plus, Edit, Eye, Trash2 } from "lucide-react";
+import { Search, Plus, Eye, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -15,6 +15,7 @@ export default function Produtos() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedProduto, setSelectedProduto] = useState<Produto | null>(null);
   const [showDetails, setShowDetails] = useState(false);
+  const [itemsToShow, setItemsToShow] = useState(12);
 
   const filteredProdutos = produtos.filter(
     (p) =>
@@ -22,6 +23,13 @@ export default function Produtos() {
       p.referencia_interna.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (p.narrativa && p.narrativa.toLowerCase().includes(searchTerm.toLowerCase()))
   );
+
+  const displayedProdutos = filteredProdutos.slice(0, itemsToShow);
+  const hasMore = filteredProdutos.length > itemsToShow;
+
+  const loadMore = () => {
+    setItemsToShow((prev) => prev + 12);
+  };
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {
@@ -48,7 +56,8 @@ export default function Produtos() {
         <div>
           <h1 className="text-3xl font-bold text-primary">Produtos</h1>
           <p className="text-muted-foreground">
-            {produtos.length} produtos cadastrados
+            Exibindo {displayedProdutos.length} de {filteredProdutos.length} produtos
+            {searchTerm && ` (${produtos.length} total)`}
           </p>
         </div>
       </div>
@@ -59,7 +68,10 @@ export default function Produtos() {
         <Input
           placeholder="Buscar por nome, código ou descrição..."
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+            setItemsToShow(12); // Reset pagination on search
+          }}
           className="pl-10"
         />
       </div>
@@ -84,78 +96,94 @@ export default function Produtos() {
           )}
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredProdutos.map((produto) => (
-            <Card key={produto.id} className="p-6 shadow-elegant hover:shadow-lg transition-all">
-              <div className="space-y-4">
-                <div>
-                  <div className="flex items-start justify-between mb-2">
-                    <h3 className="font-semibold text-sm leading-tight pr-2">{produto.nome}</h3>
-                    <Badge variant="outline" className="bg-success/10 text-success border-success/20 flex-shrink-0">
-                      {produto.referencia_interna}
-                    </Badge>
-                  </div>
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    {produto.marcadores_produto && produto.marcadores_produto.map((marcador, idx) => (
-                      <Badge key={idx} className="text-xs bg-secondary/10 text-secondary border-secondary/20">
-                        {marcador}
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {displayedProdutos.map((produto) => (
+              <Card key={produto.id} className="p-6 shadow-elegant hover:shadow-lg transition-all">
+                <div className="space-y-4">
+                  <div>
+                    <div className="flex items-start justify-between mb-2">
+                      <h3 className="font-semibold text-sm leading-tight pr-2">{produto.nome}</h3>
+                      <Badge variant="outline" className="bg-success/10 text-success border-success/20 flex-shrink-0">
+                        {produto.referencia_interna}
                       </Badge>
-                    ))}
+                    </div>
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {produto.marcadores_produto && produto.marcadores_produto.map((marcador, idx) => (
+                        <Badge key={idx} className="text-xs bg-secondary/10 text-secondary border-secondary/20">
+                          {marcador}
+                        </Badge>
+                      ))}
+                    </div>
                   </div>
-                </div>
 
-                <div className="space-y-1 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">NCM:</span>
-                    <span className="font-mono text-xs">{produto.ncm}</span>
+                  <div className="space-y-1 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">NCM:</span>
+                      <span className="font-mono text-xs">{produto.ncm}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Unidade:</span>
+                      <span className="font-medium">{produto.unidade_medida}</span>
+                    </div>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Unidade:</span>
-                    <span className="font-medium">{produto.unidade_medida}</span>
-                  </div>
-                </div>
 
-                <div className="pt-4 border-t space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Preço Venda:</span>
-                    <span className="font-bold text-success">{formatCurrency(produto.preco_venda)}</span>
+                  <div className="pt-4 border-t space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Preço Venda:</span>
+                      <span className="font-bold text-success">{formatCurrency(produto.preco_venda)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Preço Custo:</span>
+                      <span className="font-medium">{formatCurrency(produto.custo)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Estoque:</span>
+                      <span
+                        className={`font-semibold ${
+                          produto.quantidade_em_maos <= produto.dtr
+                            ? "text-destructive"
+                            : "text-foreground"
+                        }`}
+                      >
+                        {produto.quantidade_em_maos} {produto.unidade_medida}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Preço Custo:</span>
-                    <span className="font-medium">{formatCurrency(produto.custo)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Estoque:</span>
-                    <span
-                      className={`font-semibold ${
-                        produto.quantidade_em_maos <= produto.dtr
-                          ? "text-destructive"
-                          : "text-foreground"
-                      }`}
+
+                  <div className="flex gap-2 pt-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
+                      onClick={() => {
+                        setSelectedProduto(produto);
+                        setShowDetails(true);
+                      }}
                     >
-                      {produto.quantidade_em_maos} {produto.unidade_medida}
-                    </span>
+                      <Eye size={14} className="mr-1" />
+                      Ver Detalhes
+                    </Button>
                   </div>
                 </div>
+              </Card>
+            ))}
+          </div>
 
-                <div className="flex gap-2 pt-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex-1"
-                    onClick={() => {
-                      setSelectedProduto(produto);
-                      setShowDetails(true);
-                    }}
-                  >
-                    <Eye size={14} className="mr-1" />
-                    Ver Detalhes
-                  </Button>
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
+          {hasMore && (
+            <div className="flex justify-center pt-4">
+              <Button 
+                onClick={loadMore} 
+                variant="outline" 
+                size="lg"
+                className="group hover-scale"
+              >
+                <ChevronDown size={20} className="mr-2 group-hover:animate-bounce" />
+                Carregar mais produtos ({filteredProdutos.length - itemsToShow} restantes)
+              </Button>
+            </div>
+          )}
+        </>
       )}
 
       {/* Details Dialog */}
