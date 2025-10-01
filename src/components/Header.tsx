@@ -1,37 +1,84 @@
 import { useLocation } from "react-router-dom";
+import { Search, Bell, User, ChevronRight } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 
 export default function Header() {
   const location = useLocation();
 
-  const getPageTitle = () => {
+  const getPageInfo = () => {
     switch (location.pathname) {
       case "/":
-        return "Dashboard";
+        return { title: "Dashboard", breadcrumb: "Cirúrgica Fernandes / Dashboard" };
       case "/vendas":
-        return "Vendas";
+        return { title: "Vendas", breadcrumb: "Cirúrgica Fernandes / Vendas" };
       case "/plataformas":
-        return "Plataformas";
+        return { title: "Plataformas", breadcrumb: "Cirúrgica Fernandes / Plataformas" };
       case "/licitacoes":
-        return "Licitações";
+        return { title: "Licitações", breadcrumb: "Cirúrgica Fernandes / Licitações" };
       case "/clientes":
-        return "Clientes";
+        return { title: "Clientes", breadcrumb: "Cirúrgica Fernandes / Clientes" };
       case "/produtos":
-        return "Produtos";
+        return { title: "Produtos", breadcrumb: "Cirúrgica Fernandes / Produtos" };
       default:
-        return "CRM";
+        return { title: "CRM", breadcrumb: "Cirúrgica Fernandes" };
     }
   };
 
+  const pageInfo = getPageInfo();
+
   return (
-    <header className="h-16 border-b bg-card flex items-center px-8 sticky top-0 z-40 shadow-sm">
-      <div className="flex items-center justify-between w-full">
-        <div>
-          <h2 className="text-xl font-bold text-primary">{getPageTitle()}</h2>
+    <header className="h-16 border-b bg-card flex items-center px-6 sticky top-0 z-40 shadow-sm">
+      <div className="flex items-center gap-6 w-full">
+        {/* Título e Breadcrumb */}
+        <div className="min-w-[200px]">
+          <h2 className="text-lg font-bold text-foreground">{pageInfo.title}</h2>
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1">
+              {pageInfo.breadcrumb.split(" / ").map((item, index, arr) => (
+                <span key={index} className="flex items-center gap-1">
+                  {item}
+                  {index < arr.length - 1 && <ChevronRight size={12} />}
+                </span>
+              ))}
+            </span>
+          </div>
         </div>
-        <div className="flex items-center gap-4">
-          <span className="text-sm text-muted-foreground">
-            Sistema CRM - Cirúrgica Fernandes
-          </span>
+
+        {/* Barra de Pesquisa Global */}
+        <div className="flex-1 max-w-md">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+            <Input
+              placeholder="Pesquisar no sistema..."
+              className="pl-10 bg-muted/50 border-0 h-9"
+            />
+          </div>
+        </div>
+
+        {/* Ações e Usuário */}
+        <div className="flex items-center gap-4 ml-auto">
+          <Button variant="ghost" size="sm" className="relative">
+            <Bell size={18} />
+            <span className="absolute -top-1 -right-1 h-4 w-4 bg-destructive rounded-full text-[10px] text-white flex items-center justify-center">
+              3
+            </span>
+          </Button>
+
+          <div className="h-8 w-px bg-border"></div>
+
+          <div className="flex items-center gap-3">
+            <Avatar className="h-8 w-8">
+              <AvatarFallback className="bg-primary text-primary-foreground text-xs font-semibold">
+                CF
+              </AvatarFallback>
+            </Avatar>
+            <div className="text-sm leading-tight">
+              <p className="font-semibold text-foreground">Cirúrgica Fernandes</p>
+              <p className="text-xs text-muted-foreground">admin@cfernandes.com.br</p>
+            </div>
+          </div>
         </div>
       </div>
     </header>
