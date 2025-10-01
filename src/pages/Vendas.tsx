@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Search, Plus, Eye, Trash2, ShoppingCart, Save } from "lucide-react";
+import { Search, Plus, Eye, Trash2, ShoppingCart, Save, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -10,10 +10,12 @@ import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useVendas } from "@/hooks/useVendas";
 import { ProdutoSearchDialog } from "@/components/ProdutoSearchDialog";
+import { ClienteSearchDialog } from "@/components/ClienteSearchDialog";
 import { Tables } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
 
 type Produto = Tables<"produtos">;
+type Cliente = Tables<"clientes">;
 
 interface ItemCarrinho {
   produto: Produto;
@@ -28,9 +30,11 @@ export default function Vendas() {
   const [searchTerm, setSearchTerm] = useState("");
   const [view, setView] = useState<"list" | "nova">("list");
   const [showProdutoSearch, setShowProdutoSearch] = useState(false);
+  const [showClienteSearch, setShowClienteSearch] = useState(false);
   
   // Nova venda state
   const [numeroVenda, setNumeroVenda] = useState("");
+  const [clienteSelecionado, setClienteSelecionado] = useState<Cliente | null>(null);
   const [clienteNome, setClienteNome] = useState("");
   const [clienteCnpj, setClienteCnpj] = useState("");
   const [status, setStatus] = useState<"rascunho" | "aprovada" | "cancelada">("rascunho");
@@ -136,11 +140,17 @@ export default function Vendas() {
     return carrinho.reduce((sum, item) => sum + item.valor_total, 0);
   };
 
+  const handleSelectCliente = (cliente: Cliente) => {
+    setClienteSelecionado(cliente);
+    setClienteNome(cliente.nome_emit);
+    setClienteCnpj(cliente.cgc);
+  };
+
   const handleSalvarVenda = async () => {
     if (!clienteNome.trim()) {
       toast({
         title: "Erro",
-        description: "Informe o nome do cliente",
+        description: "Selecione ou informe o cliente",
         variant: "destructive",
       });
       return;
@@ -183,6 +193,7 @@ export default function Vendas() {
 
       // Limpar formulário
       setNumeroVenda("");
+      setClienteSelecionado(null);
       setClienteNome("");
       setClienteCnpj("");
       setStatus("rascunho");
@@ -258,23 +269,45 @@ export default function Vendas() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div>
-                  <Label htmlFor="cliente">Nome do Cliente *</Label>
-                  <Input
-                    id="cliente"
-                    value={clienteNome}
-                    onChange={(e) => setClienteNome(e.target.value)}
-                    placeholder="Nome do cliente"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="cnpj">CNPJ/CPF</Label>
-                  <Input
-                    id="cnpj"
-                    value={clienteCnpj}
-                    onChange={(e) => setClienteCnpj(e.target.value)}
-                    placeholder="00.000.000/0000-00"
-                  />
+                <div className="col-span-2">
+                  <Label>Cliente *</Label>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full justify-start"
+                      onClick={() => setShowClienteSearch(true)}
+                    >
+                      <Users size={16} className="mr-2" />
+                      {clienteSelecionado ? clienteSelecionado.nome_emit : "Selecionar Cliente"}
+                    </Button>
+                  </div>
+                  {clienteSelecionado && (
+                    <div className="mt-2 p-3 bg-muted rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-1">
+                          <p className="font-medium">{clienteSelecionado.nome_emit}</p>
+                          <p className="text-sm text-muted-foreground">
+                            CNPJ/CPF: {clienteSelecionado.cgc}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            Código: {clienteSelecionado.cod_emitente}
+                          </p>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setClienteSelecionado(null);
+                            setClienteNome("");
+                            setClienteCnpj("");
+                          }}
+                        >
+                          Remover
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <div className="col-span-2">
                   <Label htmlFor="obs">Observações</Label>
@@ -397,6 +430,12 @@ export default function Vendas() {
           open={showProdutoSearch}
           onOpenChange={setShowProdutoSearch}
           onSelectProduto={handleAddProduto}
+        />
+        
+        <ClienteSearchDialog
+          open={showClienteSearch}
+          onOpenChange={setShowClienteSearch}
+          onSelectCliente={handleSelectCliente}
         />
       </div>
     );
