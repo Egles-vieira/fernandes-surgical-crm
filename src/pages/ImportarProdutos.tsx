@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { parse } from 'csv-parse/sync';
 
 interface ImportResult {
   success: number;
@@ -38,47 +39,25 @@ export default function ImportarProdutos() {
 
     try {
       const text = await file.text();
-      const lines = text.split('\n').filter(line => line.trim());
       
-      // Detect separator (tab or comma)
-      const separator = lines[0].includes('\t') ? '\t' : ',';
+      // Detect separator (tab or semicolon)
+      const firstLine = text.split('\n')[0];
+      const delimiter = firstLine.includes('\t') ? '\t' : ';';
       
-      // Parse CSV with proper handling of quoted fields
-      const parseCSVLine = (line: string) => {
-        const values: string[] = [];
-        let current = '';
-        let inQuotes = false;
-        
-        for (let i = 0; i < line.length; i++) {
-          const char = line[i];
-          
-          if (char === '"') {
-            inQuotes = !inQuotes;
-          } else if (char === separator && !inQuotes) {
-            values.push(current.trim());
-            current = '';
-          } else {
-            current += char;
-          }
-        }
-        values.push(current.trim());
-        return values;
-      };
-      
-      const headers = parseCSVLine(lines[0]);
-      
-      const produtos = lines.slice(1).map(line => {
-        const values = parseCSVLine(line);
-        const obj: any = {};
-        headers.forEach((header, index) => {
-          // Remove quotes from values
-          let value = values[index] || '';
-          if (value.startsWith('"') && value.endsWith('"')) {
-            value = value.slice(1, -1);
-          }
-          obj[header] = value;
-        });
-        return obj;
+      // Parse CSV with csv-parse/sync
+      const produtos = parse(text, {
+        bom: true,
+        columns: (header: string[]) => header.map(h =>
+          h.replace(/^\uFEFF/, '') // Remove BOM
+           .trim()
+           .toLowerCase()
+           .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // Remove accents
+           .replace(/[^\w]+/g, '_') // Replace non-word chars with underscore
+        ),
+        delimiter,
+        skip_empty_lines: true,
+        relax_quotes: true,
+        relax_column_count: true,
       });
 
       const total = produtos.length;
@@ -202,14 +181,16 @@ export default function ImportarProdutos() {
               O arquivo deve conter as seguintes colunas:
             </p>
             <div className="bg-muted/50 p-4 rounded-lg text-left max-w-2xl mx-auto">
-              <p className="text-xs mb-2 font-semibold">Aceita separadores: vírgula ou tabulação (TAB)</p>
+              <p className="text-xs mb-2 font-semibold">Aceita separadores: ponto-e-vírgula (;) ou tabulação (TAB)</p>
               <code className="text-xs block mb-2">
-                referencia_interna,nome,unidade_medida,ncm,preco_venda,custo,quantidade_em_maos,dtr,marcadores_produto,narrativa,cod_trib_icms,aliquota_ipi,qtd_cr,icms_sp_percent,grupo_estoque,quantidade_prevista,lote_multiplo,responsavel,previsao_chegada
+                referencia_interna;nome;unidade_medida;ncm;preco_venda;custo;quantidade_em_maos;dtr;marcadores_produto;narrativa;cod_trib_icms;aliquota_ipi;qtd_cr;icms_sp_percent;grupo_estoque;quantidade_prevista;lote_multiplo;responsavel;previsao_chegada
               </code>
               <p className="text-xs text-muted-foreground mt-2">
                 ✅ Decimais com vírgula (formato BR: 1.234,56)<br/>
                 ✅ Campos vazios são permitidos<br/>
-                ✅ Texto entre aspas preservado
+                ✅ Texto entre aspas preservado<br/>
+                ✅ Remove BOM automaticamente<br/>
+                ✅ Normaliza acentos nos nomes das colunas
               </p>
             </div>
           </div>
