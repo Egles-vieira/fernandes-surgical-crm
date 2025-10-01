@@ -74,7 +74,9 @@ export default function ImportarProdutos() {
           if (!value || value === '') return 0;
           // Remove thousand separators (dots) and replace comma with dot
           const cleaned = value.replace(/\./g, '').replace(',', '.');
-          return parseFloat(cleaned) || 0;
+          const parsed = parseFloat(cleaned);
+          // Return 0 for invalid numbers (NaN) or negative values
+          return isNaN(parsed) || parsed < 0 ? 0 : parsed;
         };
 
         // Helper to parse array field
