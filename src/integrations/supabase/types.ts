@@ -14,6 +14,164 @@ export type Database = {
   }
   public: {
     Tables: {
+      clientes: {
+        Row: {
+          atividade: string | null
+          cgc: string
+          cod_cond_pag: number | null
+          cod_emitente: number
+          cod_gr_cli: number | null
+          cod_rep: number | null
+          cod_suframa: string | null
+          coligada: string | null
+          cond_pag_fixa: Database["public"]["Enums"]["yes_no"] | null
+          created_at: string
+          e_mail: string | null
+          email_financeiro: string | null
+          email_xml: string | null
+          equipevendas: string | null
+          id: string
+          identific: Database["public"]["Enums"]["identificacao_tipo"]
+          ind_cre_cli: string | null
+          ins_estadual: string | null
+          lim_credito: number | null
+          limite_disponivel: number | null
+          nat_operacao: string | null
+          natureza: Database["public"]["Enums"]["natureza_tipo"]
+          nome_abrev: string
+          nome_emit: string
+          observacoes: string | null
+          telefone1: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          atividade?: string | null
+          cgc: string
+          cod_cond_pag?: number | null
+          cod_emitente: number
+          cod_gr_cli?: number | null
+          cod_rep?: number | null
+          cod_suframa?: string | null
+          coligada?: string | null
+          cond_pag_fixa?: Database["public"]["Enums"]["yes_no"] | null
+          created_at?: string
+          e_mail?: string | null
+          email_financeiro?: string | null
+          email_xml?: string | null
+          equipevendas?: string | null
+          id?: string
+          identific?: Database["public"]["Enums"]["identificacao_tipo"]
+          ind_cre_cli?: string | null
+          ins_estadual?: string | null
+          lim_credito?: number | null
+          limite_disponivel?: number | null
+          nat_operacao?: string | null
+          natureza?: Database["public"]["Enums"]["natureza_tipo"]
+          nome_abrev: string
+          nome_emit: string
+          observacoes?: string | null
+          telefone1?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          atividade?: string | null
+          cgc?: string
+          cod_cond_pag?: number | null
+          cod_emitente?: number
+          cod_gr_cli?: number | null
+          cod_rep?: number | null
+          cod_suframa?: string | null
+          coligada?: string | null
+          cond_pag_fixa?: Database["public"]["Enums"]["yes_no"] | null
+          created_at?: string
+          e_mail?: string | null
+          email_financeiro?: string | null
+          email_xml?: string | null
+          equipevendas?: string | null
+          id?: string
+          identific?: Database["public"]["Enums"]["identificacao_tipo"]
+          ind_cre_cli?: string | null
+          ins_estadual?: string | null
+          lim_credito?: number | null
+          limite_disponivel?: number | null
+          nat_operacao?: string | null
+          natureza?: Database["public"]["Enums"]["natureza_tipo"]
+          nome_abrev?: string
+          nome_emit?: string
+          observacoes?: string | null
+          telefone1?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      enderecos_clientes: {
+        Row: {
+          bairro: string | null
+          cep: string
+          cidade: string
+          cliente_id: string
+          cod_entrega: string | null
+          created_at: string
+          endereco: string
+          estado: string
+          hora_entrega: string | null
+          ibge: string | null
+          id: string
+          ins_estadual: string | null
+          is_principal: boolean | null
+          pais: string | null
+          tipo: Database["public"]["Enums"]["tipo_endereco"]
+          updated_at: string
+        }
+        Insert: {
+          bairro?: string | null
+          cep: string
+          cidade: string
+          cliente_id: string
+          cod_entrega?: string | null
+          created_at?: string
+          endereco: string
+          estado: string
+          hora_entrega?: string | null
+          ibge?: string | null
+          id?: string
+          ins_estadual?: string | null
+          is_principal?: boolean | null
+          pais?: string | null
+          tipo?: Database["public"]["Enums"]["tipo_endereco"]
+          updated_at?: string
+        }
+        Update: {
+          bairro?: string | null
+          cep?: string
+          cidade?: string
+          cliente_id?: string
+          cod_entrega?: string | null
+          created_at?: string
+          endereco?: string
+          estado?: string
+          hora_entrega?: string | null
+          ibge?: string | null
+          id?: string
+          ins_estadual?: string | null
+          is_principal?: boolean | null
+          pais?: string | null
+          tipo?: Database["public"]["Enums"]["tipo_endereco"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "enderecos_clientes_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       estoque: {
         Row: {
           created_at: string
@@ -246,7 +404,10 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      identificacao_tipo: "Cliente" | "Fornecedor" | "Ambos"
+      natureza_tipo: "Juridica" | "Fisica"
+      tipo_endereco: "principal" | "entrega" | "cobranca"
+      yes_no: "YES" | "NO"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -373,6 +534,11 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      identificacao_tipo: ["Cliente", "Fornecedor", "Ambos"],
+      natureza_tipo: ["Juridica", "Fisica"],
+      tipo_endereco: ["principal", "entrega", "cobranca"],
+      yes_no: ["YES", "NO"],
+    },
   },
 } as const
