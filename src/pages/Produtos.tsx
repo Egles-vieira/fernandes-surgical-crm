@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, Plus, Eye, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
+import { Search, Plus, Eye, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Grid3x3, List } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -10,6 +10,7 @@ import { useProdutos } from "@/hooks/useProdutos";
 import { Tables } from "@/integrations/supabase/types";
 
 type Produto = Tables<"produtos">;
+type ViewMode = "grid" | "list";
 
 export default function Produtos() {
   const { produtos, isLoading } = useProdutos();
@@ -18,6 +19,7 @@ export default function Produtos() {
   const [showDetails, setShowDetails] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(12);
+  const [viewMode, setViewMode] = useState<ViewMode>("grid");
 
   const filteredProdutos = produtos.filter(
     (p) =>
@@ -103,19 +105,39 @@ export default function Produtos() {
             )}
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">Itens por página:</span>
-          <Select value={String(itemsPerPage)} onValueChange={handleItemsPerPageChange}>
-            <SelectTrigger className="w-[100px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="12">12</SelectItem>
-              <SelectItem value="24">24</SelectItem>
-              <SelectItem value="36">36</SelectItem>
-              <SelectItem value="48">48</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 border rounded-lg p-1">
+            <Button
+              variant={viewMode === "grid" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("grid")}
+              className="h-8 w-8 p-0"
+            >
+              <Grid3x3 size={16} />
+            </Button>
+            <Button
+              variant={viewMode === "list" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("list")}
+              className="h-8 w-8 p-0"
+            >
+              <List size={16} />
+            </Button>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Itens:</span>
+            <Select value={String(itemsPerPage)} onValueChange={handleItemsPerPageChange}>
+              <SelectTrigger className="w-[80px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="12">12</SelectItem>
+                <SelectItem value="24">24</SelectItem>
+                <SelectItem value="36">36</SelectItem>
+                <SelectItem value="48">48</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 
@@ -154,78 +176,151 @@ export default function Produtos() {
         </Card>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-fade-in">
-            {displayedProdutos.map((produto) => (
-              <Card key={produto.id} className="p-6 shadow-elegant hover:shadow-lg transition-all hover-scale">
-                <div className="space-y-4">
-                  <div>
-                    <div className="flex items-start justify-between mb-2">
-                      <h3 className="font-semibold text-sm leading-tight pr-2">{produto.nome}</h3>
-                      <Badge variant="outline" className="bg-success/10 text-success border-success/20 flex-shrink-0">
-                        {produto.referencia_interna}
-                      </Badge>
-                    </div>
-                    <div className="flex flex-wrap gap-1 mt-2">
-                      {produto.marcadores_produto && produto.marcadores_produto.map((marcador, idx) => (
-                        <Badge key={idx} className="text-xs bg-secondary/10 text-secondary border-secondary/20">
-                          {marcador}
+          {/* Grid View */}
+          {viewMode === "grid" && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-fade-in">
+              {displayedProdutos.map((produto) => (
+                <Card key={produto.id} className="p-6 shadow-elegant hover:shadow-lg transition-all hover-scale">
+                  <div className="space-y-4">
+                    <div>
+                      <div className="flex items-start justify-between mb-2">
+                        <h3 className="font-semibold text-sm leading-tight pr-2">{produto.nome}</h3>
+                        <Badge variant="outline" className="bg-success/10 text-success border-success/20 flex-shrink-0">
+                          {produto.referencia_interna}
                         </Badge>
-                      ))}
+                      </div>
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {produto.marcadores_produto && produto.marcadores_produto.map((marcador, idx) => (
+                          <Badge key={idx} className="text-xs bg-secondary/10 text-secondary border-secondary/20">
+                            {marcador}
+                          </Badge>
+                        ))}
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="space-y-1 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">NCM:</span>
-                      <span className="font-mono text-xs">{produto.ncm}</span>
+                    <div className="space-y-1 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">NCM:</span>
+                        <span className="font-mono text-xs">{produto.ncm}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Unidade:</span>
+                        <span className="font-medium">{produto.unidade_medida}</span>
+                      </div>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Unidade:</span>
-                      <span className="font-medium">{produto.unidade_medida}</span>
-                    </div>
-                  </div>
 
-                  <div className="pt-4 border-t space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Preço Venda:</span>
-                      <span className="font-bold text-success">{formatCurrency(produto.preco_venda)}</span>
+                    <div className="pt-4 border-t space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Preço Venda:</span>
+                        <span className="font-bold text-success">{formatCurrency(produto.preco_venda)}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Preço Custo:</span>
+                        <span className="font-medium">{formatCurrency(produto.custo)}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Estoque:</span>
+                        <span
+                          className={`font-semibold ${
+                            produto.quantidade_em_maos <= produto.dtr
+                              ? "text-destructive"
+                              : "text-foreground"
+                          }`}
+                        >
+                          {produto.quantidade_em_maos} {produto.unidade_medida}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Preço Custo:</span>
-                      <span className="font-medium">{formatCurrency(produto.custo)}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Estoque:</span>
-                      <span
-                        className={`font-semibold ${
-                          produto.quantidade_em_maos <= produto.dtr
-                            ? "text-destructive"
-                            : "text-foreground"
-                        }`}
+
+                    <div className="flex gap-2 pt-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => {
+                          setSelectedProduto(produto);
+                          setShowDetails(true);
+                        }}
                       >
-                        {produto.quantidade_em_maos} {produto.unidade_medida}
-                      </span>
+                        <Eye size={14} className="mr-1" />
+                        Ver Detalhes
+                      </Button>
                     </div>
                   </div>
+                </Card>
+              ))}
+            </div>
+          )}
 
-                  <div className="flex gap-2 pt-2">
+          {/* List View */}
+          {viewMode === "list" && (
+            <div className="space-y-3 animate-fade-in">
+              {displayedProdutos.map((produto) => (
+                <Card key={produto.id} className="p-4 shadow-elegant hover:shadow-lg transition-all hover-scale">
+                  <div className="flex flex-col md:flex-row md:items-center gap-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="font-semibold text-base truncate">{produto.nome}</h3>
+                        <Badge variant="outline" className="bg-success/10 text-success border-success/20 flex-shrink-0">
+                          {produto.referencia_interna}
+                        </Badge>
+                      </div>
+                      <div className="flex flex-wrap gap-1">
+                        {produto.marcadores_produto && produto.marcadores_produto.map((marcador, idx) => (
+                          <Badge key={idx} className="text-xs bg-secondary/10 text-secondary border-secondary/20">
+                            {marcador}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-6 text-sm">
+                      <div className="text-center">
+                        <p className="text-xs text-muted-foreground">NCM</p>
+                        <p className="font-mono text-xs">{produto.ncm}</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-xs text-muted-foreground">Unidade</p>
+                        <p className="font-medium">{produto.unidade_medida}</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-xs text-muted-foreground">Venda</p>
+                        <p className="font-bold text-success">{formatCurrency(produto.preco_venda)}</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-xs text-muted-foreground">Custo</p>
+                        <p className="font-medium">{formatCurrency(produto.custo)}</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-xs text-muted-foreground">Estoque</p>
+                        <p
+                          className={`font-semibold ${
+                            produto.quantidade_em_maos <= produto.dtr
+                              ? "text-destructive"
+                              : "text-foreground"
+                          }`}
+                        >
+                          {produto.quantidade_em_maos}
+                        </p>
+                      </div>
+                    </div>
+
                     <Button
                       variant="outline"
                       size="sm"
-                      className="flex-1"
                       onClick={() => {
                         setSelectedProduto(produto);
                         setShowDetails(true);
                       }}
                     >
                       <Eye size={14} className="mr-1" />
-                      Ver Detalhes
+                      Detalhes
                     </Button>
                   </div>
-                </div>
-              </Card>
-            ))}
-          </div>
+                </Card>
+              ))}
+            </div>
+          )}
 
           {/* Professional Pagination */}
           {totalPages > 1 && (
