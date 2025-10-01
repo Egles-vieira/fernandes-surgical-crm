@@ -1,10 +1,15 @@
 import { useLocation } from "react-router-dom";
-import { Search, Bell, User, ChevronRight } from "lucide-react";
+import { Search, Bell, User, ChevronRight, Menu } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 
-export default function Header() {
+interface HeaderProps {
+  collapsed: boolean;
+  onToggle: () => void;
+}
+
+export default function Header({ collapsed, onToggle }: HeaderProps) {
   const location = useLocation();
 
   const getPageInfo = () => {
@@ -31,18 +36,28 @@ export default function Header() {
   return (
     <header className="h-16 border-b bg-card flex items-center px-6 shadow-sm">
       <div className="flex items-center gap-6 w-full">
-        {/* Título e Breadcrumb */}
-        <div className="min-w-[200px]">
-          <h2 className="text-lg font-bold text-foreground">{pageInfo.title}</h2>
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <span className="flex items-center gap-1">
-              {pageInfo.breadcrumb.split(" / ").map((item, index, arr) => (
-                <span key={index} className="flex items-center gap-1">
-                  {item}
-                  {index < arr.length - 1 && <ChevronRight size={12} />}
-                </span>
-              ))}
-            </span>
+        {/* Botão de Toggle do Menu + Título e Breadcrumb */}
+        <div className="flex items-center gap-3 min-w-[200px]">
+          <button
+            onClick={onToggle}
+            className="p-2 hover:bg-muted rounded-lg transition-all duration-200 hover:scale-110 group"
+            aria-label={collapsed ? "Expandir menu" : "Recolher menu"}
+          >
+            <Menu size={20} className="text-foreground transition-transform group-hover:rotate-180" />
+          </button>
+          
+          <div>
+            <h2 className="text-lg font-bold text-foreground">{pageInfo.title}</h2>
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <span className="flex items-center gap-1">
+                {pageInfo.breadcrumb.split(" / ").map((item, index, arr) => (
+                  <span key={index} className="flex items-center gap-1">
+                    {item}
+                    {index < arr.length - 1 && <ChevronRight size={12} />}
+                  </span>
+                ))}
+              </span>
+            </div>
           </div>
         </div>
 

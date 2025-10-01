@@ -7,10 +7,9 @@ import {
   Users,
   FileText,
   Gavel,
-  Menu,
-  X
 } from "lucide-react";
 import logo from "@/assets/logo-cfernandes.webp";
+import favicon from "@/assets/favicon-cfernandes.png";
 import Header from "./Header";
 
 interface LayoutProps {
@@ -38,25 +37,20 @@ export default function Layout({ children }: LayoutProps) {
         } gradient-primary text-white transition-all duration-300 ease-in-out flex flex-col fixed left-0 top-0 h-full z-50 shadow-lg`}
       >
         {/* Header with Logo */}
-        <div className="p-4 flex items-center justify-between border-b border-white/10 backdrop-blur-sm">
-          {!collapsed && (
+        <div className="p-4 flex items-center justify-center border-b border-white/10 backdrop-blur-sm">
+          {!collapsed ? (
             <img 
               src={logo} 
               alt="Cirúrgica Fernandes" 
               className="h-10 object-contain animate-fade-in" 
             />
+          ) : (
+            <img 
+              src={favicon} 
+              alt="CF" 
+              className="h-10 w-10 object-contain animate-fade-in rounded-lg" 
+            />
           )}
-          <button
-            onClick={() => setCollapsed(!collapsed)}
-            className="p-2 hover:bg-white/20 rounded-lg transition-all duration-200 hover:scale-110 ml-auto group"
-            aria-label={collapsed ? "Expandir menu" : "Recolher menu"}
-          >
-            {collapsed ? (
-              <Menu size={20} className="transition-transform group-hover:rotate-180" />
-            ) : (
-              <X size={20} className="transition-transform group-hover:rotate-90" />
-            )}
-          </button>
         </div>
 
         {/* Menu Items */}
@@ -110,9 +104,11 @@ export default function Layout({ children }: LayoutProps) {
             </div>
           ) : (
             <div className="p-4 flex justify-center">
-              <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-xs font-bold">
-                CF
-              </div>
+              <img 
+                src={favicon} 
+                alt="CF" 
+                className="w-10 h-10 object-contain rounded-lg opacity-80 hover:opacity-100 transition-opacity" 
+              />
             </div>
           )}
         </div>
@@ -126,7 +122,7 @@ export default function Layout({ children }: LayoutProps) {
       >
         {/* Header - Fixed */}
         <div className="fixed top-0 right-0 left-0 z-40" style={{ marginLeft: collapsed ? '4rem' : '16rem' }}>
-          <Header />
+          <Header collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
         </div>
         
         {/* Content - Scrollable */}
