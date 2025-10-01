@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useProdutos } from "@/hooks/useProdutos";
 import { Tables } from "@/integrations/supabase/types";
 
@@ -252,48 +253,54 @@ export default function Produtos() {
             </div>
           )}
 
-          {/* List View */}
+          {/* List View - Table Format */}
           {viewMode === "list" && (
-            <div className="space-y-3 animate-fade-in">
-              {displayedProdutos.map((produto) => (
-                <Card key={produto.id} className="p-4 shadow-elegant hover:shadow-lg transition-all hover-scale">
-                  <div className="flex flex-col md:flex-row md:items-center gap-4">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="font-semibold text-base truncate">{produto.nome}</h3>
-                        <Badge variant="outline" className="bg-success/10 text-success border-success/20 flex-shrink-0">
+            <Card className="animate-fade-in">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[300px]">Nome do Produto</TableHead>
+                    <TableHead>Referência</TableHead>
+                    <TableHead>Marcadores</TableHead>
+                    <TableHead className="text-right">Preço Venda</TableHead>
+                    <TableHead className="text-right">Custo</TableHead>
+                    <TableHead className="text-right">Estoque</TableHead>
+                    <TableHead className="text-right">Previsto</TableHead>
+                    <TableHead className="text-center">Unidade</TableHead>
+                    <TableHead className="text-center">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {displayedProdutos.map((produto) => (
+                    <TableRow key={produto.id} className="hover:bg-muted/50">
+                      <TableCell className="font-medium">{produto.nome}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="bg-success/10 text-success border-success/20">
                           {produto.referencia_interna}
                         </Badge>
-                      </div>
-                      <div className="flex flex-wrap gap-1">
-                        {produto.marcadores_produto && produto.marcadores_produto.map((marcador, idx) => (
-                          <Badge key={idx} className="text-xs bg-secondary/10 text-secondary border-secondary/20">
-                            {marcador}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-6 text-sm">
-                      <div className="text-center">
-                        <p className="text-xs text-muted-foreground">NCM</p>
-                        <p className="font-mono text-xs">{produto.ncm}</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-xs text-muted-foreground">Unidade</p>
-                        <p className="font-medium">{produto.unidade_medida}</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-xs text-muted-foreground">Venda</p>
-                        <p className="font-bold text-success">{formatCurrency(produto.preco_venda)}</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-xs text-muted-foreground">Custo</p>
-                        <p className="font-medium">{formatCurrency(produto.custo)}</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-xs text-muted-foreground">Estoque</p>
-                        <p
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap gap-1 max-w-[200px]">
+                          {produto.marcadores_produto && produto.marcadores_produto.slice(0, 2).map((marcador, idx) => (
+                            <Badge key={idx} variant="outline" className="text-xs">
+                              {marcador}
+                            </Badge>
+                          ))}
+                          {produto.marcadores_produto && produto.marcadores_produto.length > 2 && (
+                            <Badge variant="outline" className="text-xs">
+                              +{produto.marcadores_produto.length - 2}
+                            </Badge>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right font-bold text-success">
+                        {formatCurrency(produto.preco_venda)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {formatCurrency(produto.custo)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <span
                           className={`font-semibold ${
                             produto.quantidade_em_maos <= produto.dtr
                               ? "text-destructive"
@@ -301,25 +308,31 @@ export default function Produtos() {
                           }`}
                         >
                           {produto.quantidade_em_maos}
-                        </p>
-                      </div>
-                    </div>
-
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setSelectedProduto(produto);
-                        setShowDetails(true);
-                      }}
-                    >
-                      <Eye size={14} className="mr-1" />
-                      Detalhes
-                    </Button>
-                  </div>
-                </Card>
-              ))}
-            </div>
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {produto.quantidade_prevista}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Badge variant="secondary">{produto.unidade_medida}</Badge>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedProduto(produto);
+                            setShowDetails(true);
+                          }}
+                        >
+                          <Eye size={16} />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Card>
           )}
 
           {/* Professional Pagination */}
