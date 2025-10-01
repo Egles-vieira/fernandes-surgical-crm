@@ -142,6 +142,102 @@ export type Database = {
         }
         Relationships: []
       }
+      vendas: {
+        Row: {
+          cliente_cnpj: string | null
+          cliente_nome: string
+          created_at: string
+          data_venda: string
+          desconto: number
+          id: string
+          numero_venda: string
+          observacoes: string | null
+          status: string
+          updated_at: string
+          user_id: string
+          valor_final: number
+          valor_total: number
+        }
+        Insert: {
+          cliente_cnpj?: string | null
+          cliente_nome: string
+          created_at?: string
+          data_venda?: string
+          desconto?: number
+          id?: string
+          numero_venda: string
+          observacoes?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          valor_final?: number
+          valor_total?: number
+        }
+        Update: {
+          cliente_cnpj?: string | null
+          cliente_nome?: string
+          created_at?: string
+          data_venda?: string
+          desconto?: number
+          id?: string
+          numero_venda?: string
+          observacoes?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          valor_final?: number
+          valor_total?: number
+        }
+        Relationships: []
+      }
+      vendas_itens: {
+        Row: {
+          created_at: string
+          desconto: number
+          id: string
+          preco_unitario: number
+          produto_id: string
+          quantidade: number
+          valor_total: number
+          venda_id: string
+        }
+        Insert: {
+          created_at?: string
+          desconto?: number
+          id?: string
+          preco_unitario: number
+          produto_id: string
+          quantidade: number
+          valor_total: number
+          venda_id: string
+        }
+        Update: {
+          created_at?: string
+          desconto?: number
+          id?: string
+          preco_unitario?: number
+          produto_id?: string
+          quantidade?: number
+          valor_total?: number
+          venda_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendas_itens_produto_id_fkey"
+            columns: ["produto_id"]
+            isOneToOne: false
+            referencedRelation: "produtos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendas_itens_venda_id_fkey"
+            columns: ["venda_id"]
+            isOneToOne: false
+            referencedRelation: "vendas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

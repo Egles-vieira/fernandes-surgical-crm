@@ -1,125 +1,55 @@
-import { useState } from "react";
-import { Search, Plus, Eye, Edit, ChevronLeft } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Search, Plus, Eye, Trash2, ShoppingCart, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import PedidoForm from "@/components/PedidoForm";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useVendas } from "@/hooks/useVendas";
+import { ProdutoSearchDialog } from "@/components/ProdutoSearchDialog";
+import { Tables } from "@/integrations/supabase/types";
+import { useToast } from "@/hooks/use-toast";
 
-interface ItemPedido {
-  codigo: string;
-  descricao: string;
+type Produto = Tables<"produtos">;
+
+interface ItemCarrinho {
+  produto: Produto;
   quantidade: number;
-  unidade: string;
-  precoUnitario: number;
   desconto: number;
-  valorTotal: number;
+  valor_total: number;
 }
-
-interface Pedido {
-  id: string;
-  numero: string;
-  cliente: string;
-  clienteCnpj: string;
-  dataCriacao: string;
-  valorTotal: number;
-  status: "Em Aberto" | "Aprovado" | "Faturado";
-  itens: ItemPedido[];
-}
-
-const pedidosMock: Pedido[] = [
-  {
-    id: "1",
-    numero: "S209210",
-    cliente: "H PREMIUM",
-    clienteCnpj: "11.316.220/0001-45",
-    dataCriacao: "31/10/2025",
-    valorTotal: 6783.00,
-    status: "Em Aberto",
-    itens: [
-      {
-        codigo: "NG035",
-        descricao: "CAMPO CIRURGICO 60X50 CM PHARMAPLUS",
-        quantidade: 40,
-        unidade: "PC",
-        precoUnitario: 41.68500,
-        desconto: 0,
-        valorTotal: 6783.00,
-      },
-    ],
-  },
-  {
-    id: "2",
-    numero: "S209209",
-    cliente: "MEDICAL CENTER",
-    clienteCnpj: "12.345.678/0001-90",
-    dataCriacao: "30/10/2025",
-    valorTotal: 25480.50,
-    status: "Aprovado",
-    itens: [
-      {
-        codigo: "LUV001",
-        descricao: "LUVA PROCEDIMENTO LATEX TAM M C/100",
-        quantidade: 50,
-        unidade: "CX",
-        precoUnitario: 35.90,
-        desconto: 0,
-        valorTotal: 1795.00,
-      },
-      {
-        codigo: "MAS001",
-        descricao: "MASCARA CIRURGICA TRIPLA C/ELASTICO",
-        quantidade: 100,
-        unidade: "CX",
-        precoUnitario: 42.00,
-        desconto: 5,
-        valorTotal: 3990.00,
-      },
-    ],
-  },
-  {
-    id: "3",
-    numero: "S209208",
-    cliente: "AYA REPRESENTACOES",
-    clienteCnpj: "98.765.432/0001-10",
-    dataCriacao: "29/10/2025",
-    valorTotal: 45280.00,
-    status: "Faturado",
-    itens: [
-      {
-        codigo: "SER001",
-        descricao: "SERINGA DESCARTAVEL 10ML S/AGULHA",
-        quantidade: 5000,
-        unidade: "UN",
-        precoUnitario: 0.95,
-        desconto: 0,
-        valorTotal: 4750.00,
-      },
-      {
-        codigo: "CAT001",
-        descricao: "CATETER IV PERISEG/AG 22GX25MM",
-        quantidade: 200,
-        unidade: "PC",
-        precoUnitario: 7.30,
-        desconto: 0,
-        valorTotal: 1460.00,
-      },
-    ],
-  },
-];
 
 export default function Vendas() {
-  const [pedidos] = useState<Pedido[]>(pedidosMock);
+  const { vendas, isLoading, createVenda, addItem } = useVendas();
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
-  const [view, setView] = useState<"list" | "view" | "edit">("list");
-  const [selectedPedido, setSelectedPedido] = useState<Pedido | null>(null);
+  const [view, setView] = useState<"list" | "nova">("list");
+  const [showProdutoSearch, setShowProdutoSearch] = useState(false);
+  
+  // Nova venda state
+  const [numeroVenda, setNumeroVenda] = useState("");
+  const [clienteNome, setClienteNome] = useState("");
+  const [clienteCnpj, setClienteCnpj] = useState("");
+  const [status, setStatus] = useState<"rascunho" | "aprovada" | "cancelada">("rascunho");
+  const [observacoes, setObservacoes] = useState("");
+  const [carrinho, setCarrinho] = useState<ItemCarrinho[]>([]);
 
-  const filteredPedidos = pedidos.filter(
-    (p) =>
-      p.numero.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.cliente.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.clienteCnpj.includes(searchTerm) ||
-      p.status.toLowerCase().includes(searchTerm.toLowerCase())
+  useEffect(() => {
+    if (view === "nova" && !numeroVenda) {
+      const nextNumber = `V${Date.now().toString().slice(-8)}`;
+      setNumeroVenda(nextNumber);
+    }
+  }, [view]);
+
+  const filteredVendas = vendas.filter(
+    (v) =>
+      v.numero_venda.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      v.cliente_nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (v.cliente_cnpj && v.cliente_cnpj.includes(searchTerm)) ||
+      v.status.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const formatCurrency = (value: number) => {
@@ -131,144 +61,345 @@ export default function Vendas() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "Em Aberto":
+      case "rascunho":
         return "bg-secondary/10 text-secondary border-secondary/20";
-      case "Aprovado":
+      case "aprovada":
         return "bg-success/10 text-success border-success/20";
-      case "Faturado":
-        return "bg-primary/10 text-primary border-primary/20";
+      case "cancelada":
+        return "bg-destructive/10 text-destructive border-destructive/20";
       default:
         return "bg-muted";
     }
   };
 
-  const viewPedido = (pedido: Pedido) => {
-    setSelectedPedido(pedido);
-    setView("view");
-  };
-
-  const editPedido = (pedido?: Pedido) => {
-    if (pedido) {
-      setSelectedPedido(pedido);
+  const handleAddProduto = (produto: Produto) => {
+    const existingItem = carrinho.find(item => item.produto.id === produto.id);
+    
+    if (existingItem) {
+      setCarrinho(carrinho.map(item => 
+        item.produto.id === produto.id
+          ? { 
+              ...item, 
+              quantidade: item.quantidade + 1,
+              valor_total: (item.quantidade + 1) * item.produto.preco_venda * (1 - item.desconto / 100)
+            }
+          : item
+      ));
     } else {
-      setSelectedPedido(null);
+      setCarrinho([...carrinho, {
+        produto,
+        quantidade: 1,
+        desconto: 0,
+        valor_total: produto.preco_venda
+      }]);
     }
-    setView("edit");
+
+    toast({
+      title: "Produto adicionado!",
+      description: `${produto.nome} foi adicionado ao carrinho.`,
+    });
   };
 
-  if (view === "view" && selectedPedido) {
+  const handleUpdateQuantidade = (index: number, quantidade: number) => {
+    if (quantidade <= 0) return;
+    
+    setCarrinho(carrinho.map((item, i) => 
+      i === index
+        ? { 
+            ...item, 
+            quantidade,
+            valor_total: quantidade * item.produto.preco_venda * (1 - item.desconto / 100)
+          }
+        : item
+    ));
+  };
+
+  const handleUpdateDesconto = (index: number, desconto: number) => {
+    if (desconto < 0 || desconto > 100) return;
+    
+    setCarrinho(carrinho.map((item, i) => 
+      i === index
+        ? { 
+            ...item, 
+            desconto,
+            valor_total: item.quantidade * item.produto.preco_venda * (1 - desconto / 100)
+          }
+        : item
+    ));
+  };
+
+  const handleRemoveItem = (index: number) => {
+    setCarrinho(carrinho.filter((_, i) => i !== index));
+  };
+
+  const calcularTotal = () => {
+    return carrinho.reduce((sum, item) => sum + item.valor_total, 0);
+  };
+
+  const handleSalvarVenda = async () => {
+    if (!clienteNome.trim()) {
+      toast({
+        title: "Erro",
+        description: "Informe o nome do cliente",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (carrinho.length === 0) {
+      toast({
+        title: "Erro",
+        description: "Adicione pelo menos um produto à venda",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const valorTotal = calcularTotal();
+      
+      const venda = await createVenda.mutateAsync({
+        numero_venda: numeroVenda,
+        cliente_nome: clienteNome,
+        cliente_cnpj: clienteCnpj || null,
+        valor_total: valorTotal,
+        desconto: 0,
+        valor_final: valorTotal,
+        status,
+        observacoes: observacoes || null,
+      });
+
+      // Adicionar itens
+      for (const item of carrinho) {
+        await addItem.mutateAsync({
+          venda_id: venda.id,
+          produto_id: item.produto.id,
+          quantidade: item.quantidade,
+          preco_unitario: item.produto.preco_venda,
+          desconto: item.desconto,
+          valor_total: item.valor_total,
+        });
+      }
+
+      // Limpar formulário
+      setNumeroVenda("");
+      setClienteNome("");
+      setClienteCnpj("");
+      setStatus("rascunho");
+      setObservacoes("");
+      setCarrinho([]);
+      setView("list");
+
+      toast({
+        title: "Venda salva!",
+        description: "A venda foi criada com sucesso.",
+      });
+    } catch (error: any) {
+      console.error("Erro ao salvar venda:", error);
+    }
+  };
+
+  if (isLoading) {
     return (
-      <div className="p-8 space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button variant="outline" onClick={() => setView("list")}>
-              <ChevronLeft size={16} className="mr-1" />
-              Voltar
-            </Button>
-            <div>
-              <h1 className="text-3xl font-bold text-primary">Proposta #{selectedPedido.numero}</h1>
-              <Badge className={getStatusColor(selectedPedido.status)}>{selectedPedido.status}</Badge>
-            </div>
-          </div>
-          <Button onClick={() => editPedido(selectedPedido)} className="bg-primary hover:bg-primary/90">
-            <Edit size={16} className="mr-2" />
-            Editar Pedido
-          </Button>
+      <div className="p-8 flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Carregando vendas...</p>
         </div>
-
-        {/* Info Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="p-6">
-            <h3 className="font-semibold text-primary mb-4">Dados do Cliente</h3>
-            <div className="space-y-2 text-sm">
-              <div>
-                <span className="text-muted-foreground">Cliente:</span>
-                <p className="font-medium">{selectedPedido.cliente}</p>
-              </div>
-              <div>
-                <span className="text-muted-foreground">CNPJ:</span>
-                <p className="font-medium">{selectedPedido.clienteCnpj}</p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-6">
-            <h3 className="font-semibold text-primary mb-4">Dados do Pedido</h3>
-            <div className="space-y-2 text-sm">
-              <div>
-                <span className="text-muted-foreground">Número:</span>
-                <p className="font-medium">{selectedPedido.numero}</p>
-              </div>
-              <div>
-                <span className="text-muted-foreground">Data:</span>
-                <p className="font-medium">{selectedPedido.dataCriacao}</p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-6">
-            <h3 className="font-semibold text-primary mb-4">Dados de Entrega</h3>
-            <div className="space-y-2 text-sm">
-              <div>
-                <span className="text-muted-foreground">Status:</span>
-                <p className="font-medium">{selectedPedido.status}</p>
-              </div>
-              <div>
-                <span className="text-muted-foreground">Valor Total:</span>
-                <p className="font-bold text-success text-lg">{formatCurrency(selectedPedido.valorTotal)}</p>
-              </div>
-            </div>
-          </Card>
-        </div>
-
-        {/* Items Table */}
-        <Card className="p-6">
-          <h3 className="font-semibold text-lg mb-4">Itens do Pedido</h3>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left p-3 text-sm font-semibold">Código</th>
-                  <th className="text-left p-3 text-sm font-semibold">Descrição</th>
-                  <th className="text-right p-3 text-sm font-semibold">Qtd</th>
-                  <th className="text-left p-3 text-sm font-semibold">Un</th>
-                  <th className="text-right p-3 text-sm font-semibold">Preço Unit.</th>
-                  <th className="text-right p-3 text-sm font-semibold">Desconto %</th>
-                  <th className="text-right p-3 text-sm font-semibold">Valor Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                {selectedPedido.itens.map((item, index) => (
-                  <tr key={index} className="border-b hover:bg-muted/50">
-                    <td className="p-3 text-sm font-mono text-success font-semibold">{item.codigo}</td>
-                    <td className="p-3 text-sm">{item.descricao}</td>
-                    <td className="p-3 text-sm text-right">{item.quantidade.toFixed(2)}</td>
-                    <td className="p-3 text-sm">{item.unidade}</td>
-                    <td className="p-3 text-sm text-right">{formatCurrency(item.precoUnitario)}</td>
-                    <td className="p-3 text-sm text-right">{item.desconto.toFixed(2)}%</td>
-                    <td className="p-3 text-sm text-right font-semibold">
-                      {formatCurrency(item.valorTotal)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="mt-6 pt-6 border-t flex justify-end">
-            <div className="text-right">
-              <p className="text-sm text-muted-foreground mb-1">Valor Total do Pedido</p>
-              <p className="text-3xl font-bold text-success">{formatCurrency(selectedPedido.valorTotal)}</p>
-            </div>
-          </div>
-        </Card>
       </div>
     );
   }
 
-  if (view === "edit") {
-    return <PedidoForm selectedPedido={selectedPedido} onBack={() => setView("list")} />;
+  if (view === "nova") {
+    return (
+      <div className="p-8 space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-primary">Nova Venda</h1>
+            <p className="text-muted-foreground">Crie uma nova proposta de venda</p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setView("list")}>
+              Cancelar
+            </Button>
+            <Button onClick={handleSalvarVenda} disabled={createVenda.isPending}>
+              <Save size={16} className="mr-2" />
+              Salvar Venda
+            </Button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Formulário */}
+          <Card className="lg:col-span-2 p-6 space-y-6">
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Informações da Venda</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="numero">Número da Venda</Label>
+                  <Input
+                    id="numero"
+                    value={numeroVenda}
+                    onChange={(e) => setNumeroVenda(e.target.value)}
+                    placeholder="V12345"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="status">Status</Label>
+                  <Select value={status} onValueChange={(v: any) => setStatus(v)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="rascunho">Rascunho</SelectItem>
+                      <SelectItem value="aprovada">Aprovada</SelectItem>
+                      <SelectItem value="cancelada">Cancelada</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="cliente">Nome do Cliente *</Label>
+                  <Input
+                    id="cliente"
+                    value={clienteNome}
+                    onChange={(e) => setClienteNome(e.target.value)}
+                    placeholder="Nome do cliente"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="cnpj">CNPJ/CPF</Label>
+                  <Input
+                    id="cnpj"
+                    value={clienteCnpj}
+                    onChange={(e) => setClienteCnpj(e.target.value)}
+                    placeholder="00.000.000/0000-00"
+                  />
+                </div>
+                <div className="col-span-2">
+                  <Label htmlFor="obs">Observações</Label>
+                  <Input
+                    id="obs"
+                    value={observacoes}
+                    onChange={(e) => setObservacoes(e.target.value)}
+                    placeholder="Observações sobre a venda"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Produtos */}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold">Produtos</h3>
+                <Button onClick={() => setShowProdutoSearch(true)}>
+                  <ShoppingCart size={16} className="mr-2" />
+                  Adicionar Produto
+                </Button>
+              </div>
+
+              {carrinho.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  Nenhum produto adicionado ainda
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Código</TableHead>
+                      <TableHead>Produto</TableHead>
+                      <TableHead className="text-center">Qtd</TableHead>
+                      <TableHead className="text-right">Preço Unit.</TableHead>
+                      <TableHead className="text-center">Desc. %</TableHead>
+                      <TableHead className="text-right">Total</TableHead>
+                      <TableHead className="text-center">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {carrinho.map((item, index) => (
+                      <TableRow key={index}>
+                        <TableCell>
+                          <Badge variant="outline" className="font-mono text-xs">
+                            {item.produto.referencia_interna}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="font-medium">{item.produto.nome}</TableCell>
+                        <TableCell>
+                          <Input
+                            type="number"
+                            value={item.quantidade}
+                            onChange={(e) => handleUpdateQuantidade(index, Number(e.target.value))}
+                            className="w-20 text-center"
+                            min="1"
+                          />
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {formatCurrency(item.produto.preco_venda)}
+                        </TableCell>
+                        <TableCell>
+                          <Input
+                            type="number"
+                            value={item.desconto}
+                            onChange={(e) => handleUpdateDesconto(index, Number(e.target.value))}
+                            className="w-20 text-center"
+                            min="0"
+                            max="100"
+                          />
+                        </TableCell>
+                        <TableCell className="text-right font-bold text-success">
+                          {formatCurrency(item.valor_total)}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleRemoveItem(index)}
+                          >
+                            <Trash2 size={16} className="text-destructive" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </div>
+          </Card>
+
+          {/* Resumo */}
+          <Card className="p-6 h-fit">
+            <h3 className="text-lg font-semibold mb-4">Resumo da Venda</h3>
+            <div className="space-y-4">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Itens:</span>
+                <span className="font-medium">{carrinho.length}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Qtd Total:</span>
+                <span className="font-medium">
+                  {carrinho.reduce((sum, item) => sum + item.quantidade, 0)}
+                </span>
+              </div>
+              <Separator />
+              <div className="flex justify-between">
+                <span className="text-lg font-semibold">Valor Total:</span>
+                <span className="text-2xl font-bold text-success">
+                  {formatCurrency(calcularTotal())}
+                </span>
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        <ProdutoSearchDialog
+          open={showProdutoSearch}
+          onOpenChange={setShowProdutoSearch}
+          onSelectProduto={handleAddProduto}
+        />
+      </div>
+    );
   }
 
   // List View
@@ -278,11 +409,11 @@ export default function Vendas() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-primary">Vendas</h1>
-          <p className="text-muted-foreground">Gerencie suas propostas e pedidos</p>
+          <p className="text-muted-foreground">Gerencie suas propostas e vendas</p>
         </div>
-        <Button onClick={() => editPedido()} className="bg-primary hover:bg-primary/90">
+        <Button onClick={() => setView("nova")}>
           <Plus size={16} className="mr-2" />
-          Nova Proposta
+          Nova Venda
         </Button>
       </div>
 
@@ -298,61 +429,62 @@ export default function Vendas() {
           />
         </div>
         <span className="text-sm text-muted-foreground">
-          {filteredPedidos.length} {filteredPedidos.length === 1 ? "pedido encontrado" : "pedidos encontrados"}
+          {filteredVendas.length} {filteredVendas.length === 1 ? "venda" : "vendas"}
         </span>
       </div>
 
       {/* Table */}
-      <Card className="overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-muted/50">
-              <tr>
-                <th className="text-left p-4 font-semibold">Número</th>
-                <th className="text-left p-4 font-semibold">Cliente</th>
-                <th className="text-left p-4 font-semibold">CNPJ</th>
-                <th className="text-left p-4 font-semibold">Data Criação</th>
-                <th className="text-right p-4 font-semibold">Valor Total</th>
-                <th className="text-center p-4 font-semibold">Status</th>
-                <th className="text-center p-4 font-semibold">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredPedidos.map((pedido) => (
-                <tr key={pedido.id} className="border-t hover:bg-muted/30 transition-colors">
-                  <td className="p-4 font-mono text-success font-semibold">{pedido.numero}</td>
-                  <td className="p-4">{pedido.cliente}</td>
-                  <td className="p-4 font-mono text-sm">{pedido.clienteCnpj}</td>
-                  <td className="p-4">{pedido.dataCriacao}</td>
-                  <td className="p-4 text-right font-semibold">{formatCurrency(pedido.valorTotal)}</td>
-                  <td className="p-4 text-center">
-                    <Badge className={getStatusColor(pedido.status)}>{pedido.status}</Badge>
-                  </td>
-                  <td className="p-4">
-                    <div className="flex items-center justify-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => viewPedido(pedido)}
-                      >
-                        <Eye size={14} className="mr-1" />
-                        Ver
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => editPedido(pedido)}
-                      >
-                        <Edit size={14} className="mr-1" />
-                        Editar
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+      <Card>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Número</TableHead>
+              <TableHead>Cliente</TableHead>
+              <TableHead>CNPJ/CPF</TableHead>
+              <TableHead>Data</TableHead>
+              <TableHead className="text-right">Valor Total</TableHead>
+              <TableHead className="text-center">Status</TableHead>
+              <TableHead className="text-center">Itens</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredVendas.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                  Nenhuma venda encontrada
+                </TableCell>
+              </TableRow>
+            ) : (
+              filteredVendas.map((venda) => (
+                <TableRow key={venda.id} className="hover:bg-muted/30">
+                  <TableCell className="font-mono text-success font-semibold">
+                    {venda.numero_venda}
+                  </TableCell>
+                  <TableCell>{venda.cliente_nome}</TableCell>
+                  <TableCell className="font-mono text-sm">
+                    {venda.cliente_cnpj || "-"}
+                  </TableCell>
+                  <TableCell>
+                    {new Date(venda.data_venda).toLocaleDateString("pt-BR")}
+                  </TableCell>
+                  <TableCell className="text-right font-semibold">
+                    {formatCurrency(venda.valor_final)}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <Badge className={getStatusColor(venda.status)}>
+                      {venda.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <Badge variant="outline">
+                      {venda.vendas_itens?.length || 0}
+                    </Badge>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
       </Card>
     </div>
   );
