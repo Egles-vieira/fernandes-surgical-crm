@@ -54,6 +54,70 @@ interface ProdutoCatalogo {
   estoque: number;
 }
 
+interface ClienteInfo {
+  id: string;
+  codigo: string;
+  razaoSocial: string;
+  nomeAbreviado: string;
+  cnpj: string;
+  cidade: string;
+  estado: string;
+  telefone: string;
+  email: string;
+  limiteCredito: number;
+  creditoDisponivel: number;
+  condicaoPagamento: string;
+  endereco: string;
+}
+
+const clientesMock: ClienteInfo[] = [
+  {
+    id: "1",
+    codigo: "32292",
+    razaoSocial: "H PREMIUM REPRESENTACOES LTDA",
+    nomeAbreviado: "H PREMIUM",
+    cnpj: "11.316.220/0001-45",
+    cidade: "Goiânia",
+    estado: "GO",
+    telefone: "(62) 3241-5500",
+    email: "contato@hpremium.com.br",
+    limiteCredito: 50000,
+    creditoDisponivel: 48254.24,
+    condicaoPagamento: "ESPECIAL",
+    endereco: "H PREMIUM. Padrão AVENIDA T-4 1445 QUADRA 168 LOTE 14 S",
+  },
+  {
+    id: "2",
+    codigo: "32293",
+    razaoSocial: "MEDICAL CENTER DISTRIBUIDORA LTDA",
+    nomeAbreviado: "MEDICAL CENTER",
+    cnpj: "12.345.678/0001-90",
+    cidade: "Goiânia",
+    estado: "GO",
+    telefone: "(62) 3333-4444",
+    email: "contato@medicalcenter.com.br",
+    limiteCredito: 30000,
+    creditoDisponivel: 15000,
+    condicaoPagamento: "30 DIAS",
+    endereco: "Rua das Flores, 500, Centro, Goiânia - GO",
+  },
+  {
+    id: "3",
+    codigo: "32294",
+    razaoSocial: "AYA REPRESENTACOES LTDA",
+    nomeAbreviado: "AYA REPRESENTACOES",
+    cnpj: "98.765.432/0001-10",
+    cidade: "Goiânia",
+    estado: "GO",
+    telefone: "(62) 3555-6666",
+    email: "contato@aya.com.br",
+    limiteCredito: 75000,
+    creditoDisponivel: 60000,
+    condicaoPagamento: "45 DIAS",
+    endereco: "Avenida Principal, 1000, Setor Sul, Goiânia - GO",
+  },
+];
+
 const produtosCatalogo: ProdutoCatalogo[] = [
   { codigo: "ABA001", nome: "ABAIXA LINGUA MADEIRA C/100 UNIDADES", fabricante: "MED PLUS", unidade: "CX", precoVenda: 8.50, estoque: 150 },
   { codigo: "LUV001", nome: "LUVA PROCEDIMENTO LATEX TAM M C/100", fabricante: "SUPERMAX", unidade: "CX", precoVenda: 35.90, estoque: 15 },
@@ -101,6 +165,8 @@ export default function PedidoForm({ selectedPedido, onBack }: PedidoFormProps) 
   const [showProdutoModal, setShowProdutoModal] = useState(false);
   const [searchProduto, setSearchProduto] = useState("");
   const [faseCotacao, setFaseCotacao] = useState<string>("COTACAO");
+  const [showClienteModal, setShowClienteModal] = useState(false);
+  const [searchCliente, setSearchCliente] = useState("");
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {
@@ -156,12 +222,40 @@ export default function PedidoForm({ selectedPedido, onBack }: PedidoFormProps) 
     setFormData({ ...formData, itens: novosItens });
   };
 
+  const clientesFiltrados = clientesMock.filter(
+    (c) =>
+      c.nomeAbreviado.toLowerCase().includes(searchCliente.toLowerCase()) ||
+      c.razaoSocial.toLowerCase().includes(searchCliente.toLowerCase()) ||
+      c.cnpj.includes(searchCliente) ||
+      c.codigo.includes(searchCliente)
+  );
+
   const produtosFiltrados = produtosCatalogo.filter(
     (p) =>
       p.codigo.toLowerCase().includes(searchProduto.toLowerCase()) ||
       p.nome.toLowerCase().includes(searchProduto.toLowerCase()) ||
       p.fabricante.toLowerCase().includes(searchProduto.toLowerCase())
   );
+
+  const selecionarCliente = (cliente: ClienteInfo) => {
+    setFormData({
+      ...formData,
+      cliente: cliente.nomeAbreviado,
+      cnpj: cliente.cnpj,
+      codigoCliente: cliente.codigo,
+      enderecoEntrega: cliente.endereco,
+      condicaoPagamento: cliente.condicaoPagamento,
+      creditoDisponivel: cliente.creditoDisponivel,
+      statusCredito: cliente.creditoDisponivel > cliente.limiteCredito * 0.5 ? "Normal" : "Atenção",
+    });
+    setShowClienteModal(false);
+    setSearchCliente("");
+    
+    toast({
+      title: "Cliente selecionado",
+      description: `${cliente.nomeAbreviado} carregado com sucesso.`,
+    });
+  };
 
   const handleSalvar = () => {
     if (!formData.cliente || !formData.cnpj) {
@@ -290,12 +384,24 @@ export default function PedidoForm({ selectedPedido, onBack }: PedidoFormProps) 
             {/* Coluna Esquerda */}
             <div className="space-y-4">
               <div>
-                <Label>Cliente</Label>
-                <Input
-                  value={formData.cliente}
-                  onChange={(e) => setFormData({ ...formData, cliente: e.target.value })}
-                  placeholder="Nome do cliente"
-                />
+                <Label>Cliente *</Label>
+                <div className="flex gap-2">
+                  <Input
+                    value={formData.cliente}
+                    onChange={(e) => setFormData({ ...formData, cliente: e.target.value })}
+                    placeholder="Nome do cliente"
+                    readOnly
+                    className="bg-muted cursor-pointer"
+                    onClick={() => setShowClienteModal(true)}
+                  />
+                  <Button
+                    type="button"
+                    onClick={() => setShowClienteModal(true)}
+                    className="bg-primary hover:bg-primary/90"
+                  >
+                    <Search size={16} />
+                  </Button>
+                </div>
               </div>
 
               <div>
@@ -566,6 +672,78 @@ export default function PedidoForm({ selectedPedido, onBack }: PedidoFormProps) 
           </div>
         </form>
       </Card>
+
+      {/* Modal de Pesquisa de Clientes */}
+      <Dialog open={showClienteModal} onOpenChange={setShowClienteModal}>
+        <DialogContent className="max-w-4xl max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle>Selecionar Cliente</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
+              <Input
+                placeholder="Buscar por nome, razão social, CNPJ ou código..."
+                value={searchCliente}
+                onChange={(e) => setSearchCliente(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+
+            <div className="overflow-y-auto max-h-[50vh] border rounded-lg">
+              <table className="w-full text-sm">
+                <thead className="bg-muted/50 sticky top-0">
+                  <tr>
+                    <th className="text-left p-3 font-semibold">Código</th>
+                    <th className="text-left p-3 font-semibold">Cliente</th>
+                    <th className="text-left p-3 font-semibold">CNPJ</th>
+                    <th className="text-left p-3 font-semibold">Cidade</th>
+                    <th className="text-right p-3 font-semibold">Crédito Disp.</th>
+                    <th className="text-center p-3 font-semibold w-32"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {clientesFiltrados.map((cliente) => (
+                    <tr key={cliente.id} className="border-t hover:bg-muted/30">
+                      <td className="p-3 font-semibold text-success">{cliente.codigo}</td>
+                      <td className="p-3">
+                        <div>
+                          <p className="font-semibold">{cliente.nomeAbreviado}</p>
+                          <p className="text-xs text-muted-foreground">{cliente.razaoSocial}</p>
+                        </div>
+                      </td>
+                      <td className="p-3 font-mono text-xs">{cliente.cnpj}</td>
+                      <td className="p-3">{cliente.cidade}/{cliente.estado}</td>
+                      <td className="p-3 text-right">
+                        <span className={cliente.creditoDisponivel < cliente.limiteCredito * 0.3 ? "text-destructive font-semibold" : "text-success font-semibold"}>
+                          {formatCurrency(cliente.creditoDisponivel)}
+                        </span>
+                      </td>
+                      <td className="p-3 text-center">
+                        <Button
+                          type="button"
+                          size="sm"
+                          onClick={() => selecionarCliente(cliente)}
+                          className="bg-primary hover:bg-primary/90"
+                        >
+                          Selecionar
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              
+              {clientesFiltrados.length === 0 && (
+                <div className="text-center py-8 text-muted-foreground">
+                  Nenhum cliente encontrado
+                </div>
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Modal de Pesquisa de Produtos */}
       <Dialog open={showProdutoModal} onOpenChange={setShowProdutoModal}>
