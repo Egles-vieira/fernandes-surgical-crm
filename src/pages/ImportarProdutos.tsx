@@ -39,13 +39,44 @@ export default function ImportarProdutos() {
     try {
       const text = await file.text();
       const lines = text.split('\n').filter(line => line.trim());
-      const headers = lines[0].split(',').map(h => h.trim());
+      
+      // Detect separator (tab or comma)
+      const separator = lines[0].includes('\t') ? '\t' : ',';
+      
+      // Parse CSV with proper handling of quoted fields
+      const parseCSVLine = (line: string) => {
+        const values: string[] = [];
+        let current = '';
+        let inQuotes = false;
+        
+        for (let i = 0; i < line.length; i++) {
+          const char = line[i];
+          
+          if (char === '"') {
+            inQuotes = !inQuotes;
+          } else if (char === separator && !inQuotes) {
+            values.push(current.trim());
+            current = '';
+          } else {
+            current += char;
+          }
+        }
+        values.push(current.trim());
+        return values;
+      };
+      
+      const headers = parseCSVLine(lines[0]);
       
       const produtos = lines.slice(1).map(line => {
-        const values = line.split(',').map(v => v.trim());
+        const values = parseCSVLine(line);
         const obj: any = {};
         headers.forEach((header, index) => {
-          obj[header] = values[index];
+          // Remove quotes from values
+          let value = values[index] || '';
+          if (value.startsWith('"') && value.endsWith('"')) {
+            value = value.slice(1, -1);
+          }
+          obj[header] = value;
         });
         return obj;
       });
@@ -60,24 +91,40 @@ export default function ImportarProdutos() {
       for (let i = 0; i < produtos.length; i += batchSize) {
         const batch = produtos.slice(i, i + batchSize);
         
+        // Helper to convert Brazilian decimal format (1.234,56) to US format (1234.56)
+        const parseDecimal = (value: string) => {
+          if (!value || value === '') return 0;
+          // Remove thousand separators (dots) and replace comma with dot
+          const cleaned = value.replace(/\./g, '').replace(',', '.');
+          return parseFloat(cleaned) || 0;
+        };
+
+        // Helper to parse array field
+        const parseArray = (value: string) => {
+          if (!value || value === '') return [];
+          return value.split(',').map(v => v.trim()).filter(Boolean);
+        };
+
         const produtosFormatted = batch.map(p => ({
-          referencia_interna: p.codigo || p.referencia_interna,
+          referencia_interna: p.referencia_interna || p.codigo,
           nome: p.nome,
-          unidade_medida: p.unidade || p.unidade_medida || 'UN',
+          unidade_medida: p.unidade_medida || p.unidade || 'UN',
           ncm: p.ncm || '00000000',
-          preco_venda: parseFloat(p.precoVenda || p.preco_venda || '0'),
-          custo: parseFloat(p.precoCusto || p.custo || '0'),
-          quantidade_em_maos: parseFloat(p.estoqueAtual || p.quantidade_em_maos || '0'),
-          dtr: parseFloat(p.estoqueMinimo || p.dtr || '0'),
-          marcadores_produto: [p.grupo, p.familia].filter(Boolean),
-          narrativa: [p.fabricante, p.marca, p.procedencia, p.descricao].filter(Boolean).join(' | '),
-          cod_trib_icms: 'Tributado',
-          aliquota_ipi: 0,
-          qtd_cr: 0,
-          grupo_estoque: 0,
-          quantidade_prevista: 0,
-          lote_multiplo: 1,
-          icms_sp_percent: 0,
+          preco_venda: parseDecimal(p.preco_venda || p.precoVenda || '0'),
+          custo: parseDecimal(p.custo || p.precoCusto || '0'),
+          quantidade_em_maos: parseDecimal(p.quantidade_em_maos || p.estoqueAtual || '0'),
+          dtr: parseDecimal(p.dtr || p.estoqueMinimo || '0'),
+          marcadores_produto: parseArray(p.marcadores_produto),
+          narrativa: p.narrativa || [p.fabricante, p.marca, p.procedencia, p.descricao].filter(Boolean).join(' | '),
+          cod_trib_icms: p.cod_trib_icms || 'Tributado',
+          aliquota_ipi: parseDecimal(p.aliquota_ipi || '0'),
+          qtd_cr: parseDecimal(p.qtd_cr || '0'),
+          grupo_estoque: parseDecimal(p.grupo_estoque || '0'),
+          quantidade_prevista: parseDecimal(p.quantidade_prevista || '0'),
+          lote_multiplo: parseDecimal(p.lote_multiplo || '1'),
+          icms_sp_percent: parseDecimal(p.icms_sp_percent || '0'),
+          responsavel: p.responsavel || null,
+          previsao_chegada: p.previsao_chegada || null,
         }));
 
         const { data, error } = await supabase
@@ -155,9 +202,15 @@ export default function ImportarProdutos() {
               O arquivo deve conter as seguintes colunas:
             </p>
             <div className="bg-muted/50 p-4 rounded-lg text-left max-w-2xl mx-auto">
-              <code className="text-xs">
-                codigo,nome,unidade,ncm,precoVenda,precoCusto,estoqueAtual,estoqueMinimo,grupo,familia,fabricante,marca,procedencia,descricao
+              <p className="text-xs mb-2 font-semibold">Aceita separadores: vírgula ou tabulação (TAB)</p>
+              <code className="text-xs block mb-2">
+                referencia_interna,nome,unidade_medida,ncm,preco_venda,custo,quantidade_em_maos,dtr,marcadores_produto,narrativa,cod_trib_icms,aliquota_ipi,qtd_cr,icms_sp_percent,grupo_estoque,quantidade_prevista,lote_multiplo,responsavel,previsao_chegada
               </code>
+              <p className="text-xs text-muted-foreground mt-2">
+                ✅ Decimais com vírgula (formato BR: 1.234,56)<br/>
+                ✅ Campos vazios são permitidos<br/>
+                ✅ Texto entre aspas preservado
+              </p>
             </div>
           </div>
 
