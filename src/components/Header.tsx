@@ -29,7 +29,7 @@ export default function Header() {
   const pageInfo = getPageInfo();
 
   return (
-    <header className="h-16 border-b bg-card flex items-center px-6 sticky top-0 z-40 shadow-sm">
+    <header className="h-16 border-b bg-card flex items-center px-6 shadow-sm">
       <div className="flex items-center gap-6 w-full">
         {/* Título e Breadcrumb */}
         <div className="min-w-[200px]">

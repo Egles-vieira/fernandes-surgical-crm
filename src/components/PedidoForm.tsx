@@ -222,9 +222,9 @@ export default function PedidoForm({ selectedPedido, onBack }: PedidoFormProps) 
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col">
       {/* Barra de Ações Fixa */}
-      <div className="sticky top-16 z-30 bg-background border-b shadow-sm">
+      <div className="sticky top-0 z-30 bg-background border-b shadow-sm">
         <div className="px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -281,7 +281,7 @@ export default function PedidoForm({ selectedPedido, onBack }: PedidoFormProps) 
       </div>
 
       {/* Conteúdo do Formulário */}
-      <div className="flex-1 overflow-auto p-8">
+      <div className="p-8">
 
       <Card className="p-6">
         <form className="space-y-6">

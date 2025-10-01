@@ -30,12 +30,12 @@ export default function Layout({ children }: LayoutProps) {
   const [collapsed, setCollapsed] = useState(false);
 
   return (
-    <div className="flex min-h-screen w-full">
-      {/* Sidebar */}
+    <div className="flex h-screen w-full overflow-hidden">
+      {/* Sidebar - Fixed */}
       <aside
         className={`${
           collapsed ? "w-16" : "w-64"
-        } gradient-primary text-white transition-all duration-300 flex flex-col`}
+        } gradient-primary text-white transition-all duration-300 flex flex-col fixed left-0 top-0 h-full z-50`}
       >
         {/* Header with Logo */}
         <div className="p-4 flex items-center justify-between border-b border-white/10">
@@ -80,10 +80,19 @@ export default function Layout({ children }: LayoutProps) {
         )}
       </aside>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Header />
-        <main className="flex-1 overflow-auto">
+      {/* Main Content - With margin for sidebar */}
+      <div 
+        className={`${
+          collapsed ? "ml-16" : "ml-64"
+        } flex-1 flex flex-col h-screen overflow-hidden transition-all duration-300`}
+      >
+        {/* Header - Fixed */}
+        <div className="fixed top-0 right-0 left-0 z-40" style={{ marginLeft: collapsed ? '4rem' : '16rem' }}>
+          <Header />
+        </div>
+        
+        {/* Content - Scrollable */}
+        <main className="flex-1 overflow-auto mt-16">
           {children}
         </main>
       </div>
