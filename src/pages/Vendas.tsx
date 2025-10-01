@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Search, Plus, Eye, Trash2, ShoppingCart, Save, Users } from "lucide-react";
+import { Search, Plus, Eye, Trash2, ShoppingCart, Save, Users, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -25,12 +25,13 @@ interface ItemCarrinho {
 }
 
 export default function Vendas() {
-  const { vendas, isLoading, createVenda, addItem } = useVendas();
+  const { vendas, isLoading, createVenda, addItem, updateVenda, updateItem, removeItem } = useVendas();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [view, setView] = useState<"list" | "nova">("list");
   const [showProdutoSearch, setShowProdutoSearch] = useState(false);
   const [showClienteSearch, setShowClienteSearch] = useState(false);
+  const [editandoVendaId, setEditandoVendaId] = useState<string | null>(null);
   
   // Nova venda state
   const [numeroVenda, setNumeroVenda] = useState("");
@@ -146,6 +147,37 @@ export default function Vendas() {
     setClienteCnpj(cliente.cgc);
   };
 
+  const handleEditarVenda = (venda: any) => {
+    setEditandoVendaId(venda.id);
+    setNumeroVenda(venda.numero_venda);
+    setClienteNome(venda.cliente_nome);
+    setClienteCnpj(venda.cliente_cnpj || "");
+    setStatus(venda.status);
+    setObservacoes(venda.observacoes || "");
+    
+    // Carregar itens da venda
+    const itensCarrinho: ItemCarrinho[] = (venda.vendas_itens || []).map((item: any) => ({
+      produto: item.produtos,
+      quantidade: item.quantidade,
+      desconto: item.desconto,
+      valor_total: item.valor_total,
+    }));
+    setCarrinho(itensCarrinho);
+    
+    setView("nova");
+  };
+
+  const limparFormulario = () => {
+    setEditandoVendaId(null);
+    setNumeroVenda("");
+    setClienteSelecionado(null);
+    setClienteNome("");
+    setClienteCnpj("");
+    setStatus("rascunho");
+    setObservacoes("");
+    setCarrinho([]);
+  };
+
   const handleSalvarVenda = async () => {
     if (!clienteNome.trim()) {
       toast({
@@ -168,43 +200,75 @@ export default function Vendas() {
     try {
       const valorTotal = calcularTotal();
       
-      const venda = await createVenda.mutateAsync({
-        numero_venda: numeroVenda,
-        cliente_nome: clienteNome,
-        cliente_cnpj: clienteCnpj || null,
-        valor_total: valorTotal,
-        desconto: 0,
-        valor_final: valorTotal,
-        status,
-        observacoes: observacoes || null,
-      });
+      if (editandoVendaId) {
+        // Atualizar venda existente
+        await updateVenda.mutateAsync({
+          id: editandoVendaId,
+          numero_venda: numeroVenda,
+          cliente_nome: clienteNome,
+          cliente_cnpj: clienteCnpj || null,
+          valor_total: valorTotal,
+          desconto: 0,
+          valor_final: valorTotal,
+          status,
+          observacoes: observacoes || null,
+        });
 
-      // Adicionar itens
-      for (const item of carrinho) {
-        await addItem.mutateAsync({
-          venda_id: venda.id,
-          produto_id: item.produto.id,
-          quantidade: item.quantidade,
-          preco_unitario: item.produto.preco_venda,
-          desconto: item.desconto,
-          valor_total: item.valor_total,
+        // Remover itens antigos e adicionar novos
+        const vendaAtual = vendas.find(v => v.id === editandoVendaId);
+        if (vendaAtual?.vendas_itens) {
+          for (const item of vendaAtual.vendas_itens) {
+            await removeItem.mutateAsync(item.id);
+          }
+        }
+
+        for (const item of carrinho) {
+          await addItem.mutateAsync({
+            venda_id: editandoVendaId,
+            produto_id: item.produto.id,
+            quantidade: item.quantidade,
+            preco_unitario: item.produto.preco_venda,
+            desconto: item.desconto,
+            valor_total: item.valor_total,
+          });
+        }
+
+        toast({
+          title: "Venda atualizada!",
+          description: "A venda foi atualizada com sucesso.",
+        });
+      } else {
+        // Criar nova venda
+        const venda = await createVenda.mutateAsync({
+          numero_venda: numeroVenda,
+          cliente_nome: clienteNome,
+          cliente_cnpj: clienteCnpj || null,
+          valor_total: valorTotal,
+          desconto: 0,
+          valor_final: valorTotal,
+          status,
+          observacoes: observacoes || null,
+        });
+
+        for (const item of carrinho) {
+          await addItem.mutateAsync({
+            venda_id: venda.id,
+            produto_id: item.produto.id,
+            quantidade: item.quantidade,
+            preco_unitario: item.produto.preco_venda,
+            desconto: item.desconto,
+            valor_total: item.valor_total,
+          });
+        }
+
+        toast({
+          title: "Venda salva!",
+          description: "A venda foi criada com sucesso.",
         });
       }
 
-      // Limpar formulário
-      setNumeroVenda("");
-      setClienteSelecionado(null);
-      setClienteNome("");
-      setClienteCnpj("");
-      setStatus("rascunho");
-      setObservacoes("");
-      setCarrinho([]);
+      limparFormulario();
       setView("list");
-
-      toast({
-        title: "Venda salva!",
-        description: "A venda foi criada com sucesso.",
-      });
     } catch (error: any) {
       console.error("Erro ao salvar venda:", error);
     }
@@ -227,16 +291,23 @@ export default function Vendas() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-primary">Nova Venda</h1>
-            <p className="text-muted-foreground">Crie uma nova proposta de venda</p>
+            <h1 className="text-3xl font-bold text-primary">
+              {editandoVendaId ? "Editar Venda" : "Nova Venda"}
+            </h1>
+            <p className="text-muted-foreground">
+              {editandoVendaId ? "Altere os dados da proposta" : "Crie uma nova proposta de venda"}
+            </p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setView("list")}>
+            <Button variant="outline" onClick={() => {
+              limparFormulario();
+              setView("list");
+            }}>
               Cancelar
             </Button>
-            <Button onClick={handleSalvarVenda} disabled={createVenda.isPending}>
+            <Button onClick={handleSalvarVenda} disabled={createVenda.isPending || updateVenda.isPending}>
               <Save size={16} className="mr-2" />
-              Salvar Venda
+              {editandoVendaId ? "Atualizar Venda" : "Salvar Venda"}
             </Button>
           </div>
         </div>
@@ -484,12 +555,13 @@ export default function Vendas() {
               <TableHead className="text-right">Valor Total</TableHead>
               <TableHead className="text-center">Status</TableHead>
               <TableHead className="text-center">Itens</TableHead>
+              <TableHead className="text-center">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredVendas.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                   Nenhuma venda encontrada
                 </TableCell>
               </TableRow>
@@ -518,6 +590,15 @@ export default function Vendas() {
                     <Badge variant="outline">
                       {venda.vendas_itens?.length || 0}
                     </Badge>
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleEditarVenda(venda)}
+                    >
+                      <Edit size={16} />
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))
