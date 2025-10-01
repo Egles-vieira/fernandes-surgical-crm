@@ -14,7 +14,134 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      estoque: {
+        Row: {
+          created_at: string
+          data_movimentacao: string
+          documento: string | null
+          id: string
+          lote: string | null
+          observacao: string | null
+          produto_id: string
+          quantidade: number
+          quantidade_anterior: number
+          quantidade_atual: number
+          responsavel: string | null
+          tipo_movimentacao: string
+        }
+        Insert: {
+          created_at?: string
+          data_movimentacao?: string
+          documento?: string | null
+          id?: string
+          lote?: string | null
+          observacao?: string | null
+          produto_id: string
+          quantidade: number
+          quantidade_anterior: number
+          quantidade_atual: number
+          responsavel?: string | null
+          tipo_movimentacao: string
+        }
+        Update: {
+          created_at?: string
+          data_movimentacao?: string
+          documento?: string | null
+          id?: string
+          lote?: string | null
+          observacao?: string | null
+          produto_id?: string
+          quantidade?: number
+          quantidade_anterior?: number
+          quantidade_atual?: number
+          responsavel?: string | null
+          tipo_movimentacao?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "estoque_produto_id_fkey"
+            columns: ["produto_id"]
+            isOneToOne: false
+            referencedRelation: "produtos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      produtos: {
+        Row: {
+          aliquota_ipi: number
+          cod_trib_icms: string
+          created_at: string
+          custo: number
+          dtr: number
+          grupo_estoque: number
+          icms_sp_percent: number
+          id: string
+          lote_multiplo: number
+          marcadores_produto: string[] | null
+          narrativa: string | null
+          ncm: string
+          nome: string
+          preco_venda: number
+          previsao_chegada: string | null
+          qtd_cr: number
+          quantidade_em_maos: number
+          quantidade_prevista: number
+          referencia_interna: string
+          responsavel: string | null
+          unidade_medida: string
+          updated_at: string
+        }
+        Insert: {
+          aliquota_ipi?: number
+          cod_trib_icms?: string
+          created_at?: string
+          custo?: number
+          dtr?: number
+          grupo_estoque?: number
+          icms_sp_percent?: number
+          id?: string
+          lote_multiplo?: number
+          marcadores_produto?: string[] | null
+          narrativa?: string | null
+          ncm: string
+          nome: string
+          preco_venda?: number
+          previsao_chegada?: string | null
+          qtd_cr?: number
+          quantidade_em_maos?: number
+          quantidade_prevista?: number
+          referencia_interna: string
+          responsavel?: string | null
+          unidade_medida: string
+          updated_at?: string
+        }
+        Update: {
+          aliquota_ipi?: number
+          cod_trib_icms?: string
+          created_at?: string
+          custo?: number
+          dtr?: number
+          grupo_estoque?: number
+          icms_sp_percent?: number
+          id?: string
+          lote_multiplo?: number
+          marcadores_produto?: string[] | null
+          narrativa?: string | null
+          ncm?: string
+          nome?: string
+          preco_venda?: number
+          previsao_chegada?: string | null
+          qtd_cr?: number
+          quantidade_em_maos?: number
+          quantidade_prevista?: number
+          referencia_interna?: string
+          responsavel?: string | null
+          unidade_medida?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
