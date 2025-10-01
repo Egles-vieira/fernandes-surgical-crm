@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { parse } from 'csv-parse/sync';
+import Papa from 'papaparse';
 
 interface ImportResult {
   success: number;
@@ -44,21 +44,20 @@ export default function ImportarProdutos() {
       const firstLine = text.split('\n')[0];
       const delimiter = firstLine.includes('\t') ? '\t' : ';';
       
-      // Parse CSV with csv-parse/sync
-      const produtos = parse(text, {
-        bom: true,
-        columns: (header: string[]) => header.map(h =>
+      // Parse CSV with PapaParse
+      const parseResult = Papa.parse(text, {
+        header: true,
+        delimiter,
+        skipEmptyLines: 'greedy',
+        transformHeader: (h: string) =>
           h.replace(/^\uFEFF/, '') // Remove BOM
            .trim()
            .toLowerCase()
            .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // Remove accents
-           .replace(/[^\w]+/g, '_') // Replace non-word chars with underscore
-        ),
-        delimiter,
-        skip_empty_lines: true,
-        relax_quotes: true,
-        relax_column_count: true,
+           .replace(/[^\w]+/g, '_'), // Replace non-word chars with underscore
       });
+
+      const produtos = parseResult.data as any[];
 
       const total = produtos.length;
       let success = 0;
