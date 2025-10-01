@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Search, Plus, Eye, ChevronDown } from "lucide-react";
+import { Search, Plus, Eye, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useProdutos } from "@/hooks/useProdutos";
 import { Tables } from "@/integrations/supabase/types";
 
@@ -15,7 +16,8 @@ export default function Produtos() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedProduto, setSelectedProduto] = useState<Produto | null>(null);
   const [showDetails, setShowDetails] = useState(false);
-  const [itemsToShow, setItemsToShow] = useState(12);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(12);
 
   const filteredProdutos = produtos.filter(
     (p) =>
@@ -24,11 +26,49 @@ export default function Produtos() {
       (p.narrativa && p.narrativa.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
-  const displayedProdutos = filteredProdutos.slice(0, itemsToShow);
-  const hasMore = filteredProdutos.length > itemsToShow;
+  const totalPages = Math.ceil(filteredProdutos.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const displayedProdutos = filteredProdutos.slice(startIndex, endIndex);
 
-  const loadMore = () => {
-    setItemsToShow((prev) => prev + 12);
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleItemsPerPageChange = (value: string) => {
+    setItemsPerPage(Number(value));
+    setCurrentPage(1);
+  };
+
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisible = 5;
+    
+    if (totalPages <= maxVisible) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      if (currentPage <= 3) {
+        for (let i = 1; i <= 4; i++) pages.push(i);
+        pages.push('...');
+        pages.push(totalPages);
+      } else if (currentPage >= totalPages - 2) {
+        pages.push(1);
+        pages.push('...');
+        for (let i = totalPages - 3; i <= totalPages; i++) pages.push(i);
+      } else {
+        pages.push(1);
+        pages.push('...');
+        pages.push(currentPage - 1);
+        pages.push(currentPage);
+        pages.push(currentPage + 1);
+        pages.push('...');
+        pages.push(totalPages);
+      }
+    }
+    return pages;
   };
 
   const formatCurrency = (value: number) => {
@@ -52,13 +92,30 @@ export default function Produtos() {
   return (
     <div className="p-8 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-primary">Produtos</h1>
           <p className="text-muted-foreground">
-            Exibindo {displayedProdutos.length} de {filteredProdutos.length} produtos
-            {searchTerm && ` (${produtos.length} total)`}
+            {filteredProdutos.length > 0 ? (
+              <>Mostrando {startIndex + 1}-{Math.min(endIndex, filteredProdutos.length)} de {filteredProdutos.length} produtos</>
+            ) : (
+              <>Nenhum produto encontrado</>
+            )}
           </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">Itens por página:</span>
+          <Select value={String(itemsPerPage)} onValueChange={handleItemsPerPageChange}>
+            <SelectTrigger className="w-[100px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="12">12</SelectItem>
+              <SelectItem value="24">24</SelectItem>
+              <SelectItem value="36">36</SelectItem>
+              <SelectItem value="48">48</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -70,7 +127,7 @@ export default function Produtos() {
           value={searchTerm}
           onChange={(e) => {
             setSearchTerm(e.target.value);
-            setItemsToShow(12); // Reset pagination on search
+            setCurrentPage(1);
           }}
           className="pl-10"
         />
@@ -97,9 +154,9 @@ export default function Produtos() {
         </Card>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-fade-in">
             {displayedProdutos.map((produto) => (
-              <Card key={produto.id} className="p-6 shadow-elegant hover:shadow-lg transition-all">
+              <Card key={produto.id} className="p-6 shadow-elegant hover:shadow-lg transition-all hover-scale">
                 <div className="space-y-4">
                   <div>
                     <div className="flex items-start justify-between mb-2">
@@ -170,18 +227,75 @@ export default function Produtos() {
             ))}
           </div>
 
-          {hasMore && (
-            <div className="flex justify-center pt-4">
-              <Button 
-                onClick={loadMore} 
-                variant="outline" 
-                size="lg"
-                className="group hover-scale"
-              >
-                <ChevronDown size={20} className="mr-2 group-hover:animate-bounce" />
-                Carregar mais produtos ({filteredProdutos.length - itemsToShow} restantes)
-              </Button>
-            </div>
+          {/* Professional Pagination */}
+          {totalPages > 1 && (
+            <Card className="p-4 shadow-elegant">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="text-sm text-muted-foreground">
+                  Página {currentPage} de {totalPages}
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePageChange(1)}
+                    disabled={currentPage === 1}
+                  >
+                    <ChevronsLeft size={16} />
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                  >
+                    <ChevronLeft size={16} />
+                  </Button>
+
+                  <div className="flex items-center gap-1">
+                    {getPageNumbers().map((page, idx) => (
+                      page === '...' ? (
+                        <span key={`ellipsis-${idx}`} className="px-2 text-muted-foreground">...</span>
+                      ) : (
+                        <Button
+                          key={page}
+                          variant={currentPage === page ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => handlePageChange(page as number)}
+                          className="min-w-[40px]"
+                        >
+                          {page}
+                        </Button>
+                      )
+                    ))}
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                  >
+                    <ChevronRight size={16} />
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePageChange(totalPages)}
+                    disabled={currentPage === totalPages}
+                  >
+                    <ChevronsRight size={16} />
+                  </Button>
+                </div>
+
+                <div className="text-sm text-muted-foreground">
+                  {filteredProdutos.length} produtos no total
+                </div>
+              </div>
+            </Card>
           )}
         </>
       )}
