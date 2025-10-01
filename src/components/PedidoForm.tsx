@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronLeft, Plus, X, Search } from "lucide-react";
+import { ChevronLeft, Plus, X, Search, History, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,6 +19,14 @@ interface ItemPedido {
   desconto: number;
   valorTotal: number;
   estoque?: number;
+}
+
+interface LogEntry {
+  id: string;
+  timestamp: string;
+  usuario: string;
+  acao: string;
+  descricao: string;
 }
 
 interface PedidoData {
@@ -167,6 +175,27 @@ export default function PedidoForm({ selectedPedido, onBack }: PedidoFormProps) 
   const [faseCotacao, setFaseCotacao] = useState<string>("COTACAO");
   const [showClienteModal, setShowClienteModal] = useState(false);
   const [searchCliente, setSearchCliente] = useState("");
+  const [showLogs, setShowLogs] = useState(false);
+  const [logs, setLogs] = useState<LogEntry[]>([
+    {
+      id: "1",
+      timestamp: new Date().toLocaleString("pt-BR"),
+      usuario: "Sistema",
+      acao: "Criação",
+      descricao: "Pedido criado"
+    }
+  ]);
+
+  const adicionarLog = (acao: string, descricao: string) => {
+    const novoLog: LogEntry = {
+      id: Date.now().toString(),
+      timestamp: new Date().toLocaleString("pt-BR"),
+      usuario: "Usuário Atual",
+      acao,
+      descricao
+    };
+    setLogs(prev => [novoLog, ...prev]);
+  };
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {
@@ -197,11 +226,14 @@ export default function PedidoForm({ selectedPedido, onBack }: PedidoFormProps) 
     });
     setShowProdutoModal(false);
     setSearchProduto("");
+    adicionarLog("Produto Adicionado", `${produto.codigo} - ${produto.nome}`);
   };
 
   const removerItem = (index: number) => {
+    const item = formData.itens[index];
     const novosItens = formData.itens.filter((_, i) => i !== index);
     setFormData({ ...formData, itens: novosItens });
+    adicionarLog("Produto Removido", `${item.codigo} - ${item.descricao}`);
   };
 
   const atualizarItem = (index: number, campo: string, valor: any) => {
@@ -250,6 +282,7 @@ export default function PedidoForm({ selectedPedido, onBack }: PedidoFormProps) 
     });
     setShowClienteModal(false);
     setSearchCliente("");
+    adicionarLog("Cliente Selecionado", `${cliente.codigo} - ${cliente.nomeAbreviado}`);
     
     toast({
       title: "Cliente selecionado",
@@ -276,6 +309,8 @@ export default function PedidoForm({ selectedPedido, onBack }: PedidoFormProps) 
       return;
     }
 
+    adicionarLog("Pedido Salvo", `Pedido #${formData.numero} salvo com ${formData.itens.length} itens`);
+
     toast({
       title: "Pedido salvo!",
       description: `Pedido #${formData.numero} salvo com sucesso.`,
@@ -287,6 +322,7 @@ export default function PedidoForm({ selectedPedido, onBack }: PedidoFormProps) 
   const handleEfetivar = () => {
     handleSalvar();
     setFaseCotacao("EFETIVADO");
+    adicionarLog("Status Alterado", "Pedido efetivado");
     toast({
       title: "Pedido efetivado!",
       description: `Pedido #${formData.numero} foi efetivado.`,
@@ -296,6 +332,7 @@ export default function PedidoForm({ selectedPedido, onBack }: PedidoFormProps) 
   const handleDiretoria = () => {
     handleSalvar();
     setFaseCotacao("DIRETORIA");
+    adicionarLog("Status Alterado", "Enviado para aprovação da diretoria");
     toast({
       title: "Enviado para diretoria",
       description: `Pedido #${formData.numero} enviado para aprovação da diretoria.`,
@@ -316,7 +353,7 @@ export default function PedidoForm({ selectedPedido, onBack }: PedidoFormProps) 
   };
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col h-screen">
       {/* Barra de Ações Fixa */}
       <div className="sticky top-0 z-30 bg-background border-b shadow-sm">
         <div className="px-8 py-4">
@@ -337,6 +374,15 @@ export default function PedidoForm({ selectedPedido, onBack }: PedidoFormProps) 
               <Badge className={getFaseColor()}>
                 {faseCotacao}
               </Badge>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setShowLogs(!showLogs)}
+                size="sm"
+              >
+                <History size={16} className="mr-2" />
+                HISTÓRICO
+              </Button>
               <Button 
                 type="button" 
                 variant="outline" 
@@ -374,8 +420,11 @@ export default function PedidoForm({ selectedPedido, onBack }: PedidoFormProps) 
         </div>
       </div>
 
-      {/* Conteúdo do Formulário */}
-      <div className="p-8">
+      {/* Layout Principal com Logs */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Conteúdo do Formulário */}
+        <div className={`flex-1 overflow-y-auto transition-all duration-300 ${showLogs ? 'mr-96' : ''}`}>
+          <div className="p-8">
 
       <Card className="p-6">
         <form className="space-y-6">
@@ -805,6 +854,53 @@ export default function PedidoForm({ selectedPedido, onBack }: PedidoFormProps) 
           </div>
         </DialogContent>
       </Dialog>
+          </div>
+        </div>
+
+        {/* Painel de Logs Lateral */}
+        {showLogs && (
+          <div className="fixed right-0 top-[73px] h-[calc(100vh-73px)] w-96 bg-background border-l shadow-lg z-20 flex flex-col">
+            <div className="p-4 border-b flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <History size={20} className="text-primary" />
+                <h3 className="font-semibold text-primary">Histórico de Ações</h3>
+              </div>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setShowLogs(false)}
+                className="h-8 w-8 p-0"
+              >
+                <ChevronRight size={20} />
+              </Button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+              {logs.map((log) => (
+                <Card key={log.id} className="p-3 hover:bg-muted/50 transition-colors">
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <Badge variant="outline" className="text-xs">
+                        {log.acao}
+                      </Badge>
+                      <span className="text-xs text-muted-foreground">
+                        {log.timestamp}
+                      </span>
+                    </div>
+                    <p className="text-sm font-medium">{log.descricao}</p>
+                    <p className="text-xs text-muted-foreground">por {log.usuario}</p>
+                  </div>
+                </Card>
+              ))}
+              
+              {logs.length === 0 && (
+                <div className="text-center py-8 text-muted-foreground">
+                  Nenhuma ação registrada ainda
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
