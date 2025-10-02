@@ -13,6 +13,14 @@ import Produtos from "./pages/Produtos";
 import ImportarProdutos from "./pages/ImportarProdutos";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import PedidosVendas from "./pages/vendas/Pedidos";
+import ContratosVendas from "./pages/vendas/Contratos";
+import MinhaCarteira from "./pages/vendas/MinhaCarteira";
+import CotacoesPlataforma from "./pages/plataformas/Cotacoes";
+import PedidosPlataforma from "./pages/plataformas/Pedidos";
+import RelatoriosPlataforma from "./pages/plataformas/Relatorios";
+import SolicitacaoParticipacao from "./pages/licitacoes/SolicitacaoParticipacao";
+import ContratosGoverno from "./pages/licitacoes/ContratosGoverno";
 
 
 const App = () => (
@@ -68,6 +76,62 @@ const App = () => (
           <ProtectedRoute>
             <Layout>
               <ImportarProdutos />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/vendas/pedidos" element={
+          <ProtectedRoute>
+            <Layout>
+              <PedidosVendas />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/vendas/contratos" element={
+          <ProtectedRoute>
+            <Layout>
+              <ContratosVendas />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/vendas/carteira" element={
+          <ProtectedRoute>
+            <Layout>
+              <MinhaCarteira />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/plataformas/cotacoes" element={
+          <ProtectedRoute>
+            <Layout>
+              <CotacoesPlataforma />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/plataformas/pedidos" element={
+          <ProtectedRoute>
+            <Layout>
+              <PedidosPlataforma />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/plataformas/relatorios" element={
+          <ProtectedRoute>
+            <Layout>
+              <RelatoriosPlataforma />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/licitacoes/solicitacao" element={
+          <ProtectedRoute>
+            <Layout>
+              <SolicitacaoParticipacao />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/licitacoes/contratos-governo" element={
+          <ProtectedRoute>
+            <Layout>
+              <ContratosGoverno />
             </Layout>
           </ProtectedRoute>
         } />
