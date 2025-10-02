@@ -351,7 +351,7 @@ export default function Vendas() {
 
   if (view === "nova") {
     return (
-      <div className="p-8 space-y-6">
+      <>
         <VendasActionBar
           status={status}
           onCalcular={handleCalcular}
@@ -360,272 +360,44 @@ export default function Vendas() {
           onEfetivar={handleEfetivar}
         />
         
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-primary">
-              {editandoVendaId ? "Editar Venda" : "Nova Venda"}
-            </h1>
-            <p className="text-muted-foreground">
-              {editandoVendaId ? "Altere os dados da proposta" : "Crie uma nova proposta de venda"}
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => {
-              limparFormulario();
-              setView("list");
-            }}>
-              Cancelar
-            </Button>
-            <Button onClick={handleSalvarVenda} disabled={createVenda.isPending || updateVenda.isPending}>
-              <Save size={16} className="mr-2" />
-              {editandoVendaId ? "Atualizar Venda" : "Salvar Venda"}
-            </Button>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Formulário */}
-          <Card className="lg:col-span-2 p-6 space-y-6">
+        <div className="p-8 space-y-6">
+          {/* Header */}
+          <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-semibold mb-4">Informações da Venda</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="numero">Número da Venda</Label>
-                  <Input
-                    id="numero"
-                    value={numeroVenda}
-                    onChange={(e) => setNumeroVenda(e.target.value)}
-                    placeholder="V12345"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="status">Status</Label>
-                  <Select value={status} onValueChange={(v: any) => setStatus(v)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="rascunho">Rascunho</SelectItem>
-                      <SelectItem value="aprovada">Aprovada</SelectItem>
-                      <SelectItem value="cancelada">Cancelada</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="condicao">Condição de Pagamento</Label>
-                  <Select value={condicaoPagamentoId} onValueChange={setCondicaoPagamentoId}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {condicoes.map((condicao) => (
-                        <SelectItem key={condicao.id} value={condicao.id}>
-                          {condicao.nome}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="frete">Tipo de Frete</Label>
-                  <Select value={tipoFreteId} onValueChange={setTipoFreteId}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {tiposFrete.map((tipo) => (
-                        <SelectItem key={tipo.id} value={tipo.id}>
-                          {tipo.nome}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="tipoPedido">Tipo de Pedido</Label>
-                  <Select value={tipoPedidoId} onValueChange={setTipoPedidoId}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {tiposPedido.map((tipo) => (
-                        <SelectItem key={tipo.id} value={tipo.id}>
-                          {tipo.nome}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="col-span-2">
-                  <Label>Cliente *</Label>
-                  <div className="flex gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="w-full justify-start"
-                      onClick={() => setShowClienteSearch(true)}
-                    >
-                      <Users size={16} className="mr-2" />
-                      {clienteSelecionado ? clienteSelecionado.nome_emit : "Selecionar Cliente"}
-                    </Button>
-                  </div>
-                  {clienteSelecionado && (
-                    <div className="mt-2 p-3 bg-muted rounded-lg">
-                      <div className="flex items-center justify-between">
-                        <div className="space-y-1">
-                          <p className="font-medium">{clienteSelecionado.nome_emit}</p>
-                          <p className="text-sm text-muted-foreground">
-                            CNPJ/CPF: {clienteSelecionado.cgc}
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            Código: {clienteSelecionado.cod_emitente}
-                          </p>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            setClienteSelecionado(null);
-                            setClienteNome("");
-                            setClienteCnpj("");
-                          }}
-                        >
-                          Remover
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-                <div className="col-span-2">
-                  <Label htmlFor="obs">Observações</Label>
-                  <Input
-                    id="obs"
-                    value={observacoes}
-                    onChange={(e) => setObservacoes(e.target.value)}
-                    placeholder="Observações sobre a venda"
-                  />
-                </div>
-              </div>
+              <h1 className="text-3xl font-bold text-primary">
+                {editandoVendaId ? "Editar Venda" : "Nova Venda"}
+              </h1>
+              <p className="text-muted-foreground">
+                {editandoVendaId ? "Altere os dados da proposta" : "Crie uma nova proposta de venda"}
+              </p>
             </div>
-
-            <Separator />
-
-            {/* Produtos */}
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold">Produtos</h3>
-                <Button onClick={() => setShowProdutoSearch(true)}>
-                  <ShoppingCart size={16} className="mr-2" />
-                  Adicionar Produto
-                </Button>
-              </div>
-
-              {carrinho.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  Nenhum produto adicionado ainda
-                </div>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Código</TableHead>
-                      <TableHead>Produto</TableHead>
-                      <TableHead className="text-center">Qtd</TableHead>
-                      <TableHead className="text-right">Preço Unit.</TableHead>
-                      <TableHead className="text-center">Desc. %</TableHead>
-                      <TableHead className="text-right">Total</TableHead>
-                      <TableHead className="text-center">Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {carrinho.map((item, index) => (
-                      <TableRow key={index}>
-                        <TableCell>
-                          <Badge variant="outline" className="font-mono text-xs">
-                            {item.produto.referencia_interna}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="font-medium">{item.produto.nome}</TableCell>
-                        <TableCell>
-                          <Input
-                            type="number"
-                            value={item.quantidade}
-                            onChange={(e) => handleUpdateQuantidade(index, Number(e.target.value))}
-                            className="w-20 text-center"
-                            min="1"
-                          />
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {formatCurrency(item.produto.preco_venda)}
-                        </TableCell>
-                        <TableCell>
-                          <Input
-                            type="number"
-                            value={item.desconto}
-                            onChange={(e) => handleUpdateDesconto(index, Number(e.target.value))}
-                            className="w-20 text-center"
-                            min="0"
-                            max="100"
-                          />
-                        </TableCell>
-                        <TableCell className="text-right font-bold text-success">
-                          {formatCurrency(item.valor_total)}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleRemoveItem(index)}
-                          >
-                            <Trash2 size={16} className="text-destructive" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => {
+                limparFormulario();
+                setView("list");
+              }}>
+                Cancelar
+              </Button>
+              <Button onClick={handleSalvarVenda} disabled={createVenda.isPending || updateVenda.isPending}>
+                <Save size={16} className="mr-2" />
+                {editandoVendaId ? "Atualizar Venda" : "Salvar Venda"}
+              </Button>
             </div>
-          </Card>
-
-          {/* Resumo */}
-          <Card className="p-6 h-fit">
-            <h3 className="text-lg font-semibold mb-4">Resumo da Venda</h3>
-            <div className="space-y-4">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Itens:</span>
-                <span className="font-medium">{carrinho.length}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Qtd Total:</span>
-                <span className="font-medium">
-                  {carrinho.reduce((sum, item) => sum + item.quantidade, 0)}
-                </span>
-              </div>
-              <Separator />
-              <div className="flex justify-between">
-                <span className="text-lg font-semibold">Valor Total:</span>
-                <span className="text-2xl font-bold text-success">
-                  {formatCurrency(calcularTotal())}
-                </span>
-              </div>
-            </div>
-          </Card>
+          </div>
+...
+          <ProdutoSearchDialog
+            open={showProdutoSearch}
+            onOpenChange={setShowProdutoSearch}
+            onSelectProduto={handleAddProduto}
+          />
+          
+          <ClienteSearchDialog
+            open={showClienteSearch}
+            onOpenChange={setShowClienteSearch}
+            onSelectCliente={handleSelectCliente}
+          />
         </div>
-
-        <ProdutoSearchDialog
-          open={showProdutoSearch}
-          onOpenChange={setShowProdutoSearch}
-          onSelectProduto={handleAddProduto}
-        />
-        
-        <ClienteSearchDialog
-          open={showClienteSearch}
-          onOpenChange={setShowClienteSearch}
-          onSelectCliente={handleSelectCliente}
-        />
-      </div>
+      </>
     );
   }
 
