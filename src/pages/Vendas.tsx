@@ -384,7 +384,224 @@ export default function Vendas() {
               </Button>
             </div>
           </div>
-...
+
+          {/* Dados do Cliente */}
+          <Card className="p-6">
+            <h3 className="text-lg font-semibold text-primary mb-4">Dados do Cliente</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label>Cliente *</Label>
+                <div className="flex gap-2">
+                  <Input
+                    value={clienteNome}
+                    onChange={(e) => setClienteNome(e.target.value)}
+                    placeholder="Nome do cliente"
+                    readOnly
+                    className="bg-muted cursor-pointer"
+                    onClick={() => setShowClienteSearch(true)}
+                  />
+                  <Button
+                    type="button"
+                    onClick={() => setShowClienteSearch(true)}
+                  >
+                    <Search size={16} />
+                  </Button>
+                </div>
+              </div>
+
+              <div>
+                <Label>CNPJ/CPF</Label>
+                <Input
+                  value={clienteCnpj}
+                  onChange={(e) => setClienteCnpj(e.target.value)}
+                  placeholder="00.000.000/0000-00"
+                />
+              </div>
+
+              <div>
+                <Label>Condição de Pagamento</Label>
+                <Select value={condicaoPagamentoId} onValueChange={setCondicaoPagamentoId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {isLoadingCondicoes ? (
+                      <SelectItem value="loading" disabled>Carregando...</SelectItem>
+                    ) : (
+                      condicoes.map((cond) => (
+                        <SelectItem key={cond.id} value={cond.id}>
+                          {cond.nome}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>Tipo de Frete</Label>
+                <Select value={tipoFreteId} onValueChange={setTipoFreteId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {isLoadingTiposFrete ? (
+                      <SelectItem value="loading" disabled>Carregando...</SelectItem>
+                    ) : (
+                      tiposFrete.map((tipo) => (
+                        <SelectItem key={tipo.id} value={tipo.id}>
+                          {tipo.nome}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>Tipo de Pedido</Label>
+                <Select value={tipoPedidoId} onValueChange={setTipoPedidoId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {isLoadingTiposPedido ? (
+                      <SelectItem value="loading" disabled>Carregando...</SelectItem>
+                    ) : (
+                      tiposPedido.map((tipo) => (
+                        <SelectItem key={tipo.id} value={tipo.id}>
+                          {tipo.nome}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>Status</Label>
+                <Select value={status} onValueChange={(v: any) => setStatus(v)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="rascunho">Rascunho</SelectItem>
+                    <SelectItem value="aprovada">Aprovada</SelectItem>
+                    <SelectItem value="cancelada">Cancelada</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="mt-4">
+              <Label>Observações</Label>
+              <Input
+                value={observacoes}
+                onChange={(e) => setObservacoes(e.target.value)}
+                placeholder="Observações sobre a venda..."
+              />
+            </div>
+          </Card>
+
+          {/* Produtos no Carrinho */}
+          <Card className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-primary">Produtos</h3>
+              <Button
+                type="button"
+                onClick={() => setShowProdutoSearch(true)}
+              >
+                <Plus size={16} className="mr-2" />
+                Adicionar Produto
+              </Button>
+            </div>
+
+            {carrinho.length > 0 ? (
+              <>
+                <div className="overflow-x-auto border rounded-lg">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Código</TableHead>
+                        <TableHead>Produto</TableHead>
+                        <TableHead className="text-center">Qtd</TableHead>
+                        <TableHead className="text-right">Preço Unit.</TableHead>
+                        <TableHead className="text-center">Desc. %</TableHead>
+                        <TableHead className="text-right">Total</TableHead>
+                        <TableHead className="text-center">Ações</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {carrinho.map((item, index) => (
+                        <TableRow key={index}>
+                          <TableCell className="font-mono">
+                            {item.produto.referencia_interna}
+                          </TableCell>
+                          <TableCell>{item.produto.nome}</TableCell>
+                          <TableCell className="text-center">
+                            <Input
+                              type="number"
+                              value={item.quantidade}
+                              onChange={(e) =>
+                                handleUpdateQuantidade(index, Number(e.target.value))
+                              }
+                              className="w-20 text-center"
+                              min="1"
+                            />
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {formatCurrency(item.produto.preco_venda)}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Input
+                              type="number"
+                              value={item.desconto}
+                              onChange={(e) =>
+                                handleUpdateDesconto(index, Number(e.target.value))
+                              }
+                              className="w-20 text-center"
+                              min="0"
+                              max="100"
+                            />
+                          </TableCell>
+                          <TableCell className="text-right font-semibold">
+                            {formatCurrency(item.valor_total)}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleRemoveItem(index)}
+                            >
+                              <Trash2 size={16} className="text-destructive" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+
+                <Separator className="my-4" />
+
+                <div className="flex items-center justify-end">
+                  <div className="text-right">
+                    <p className="text-sm text-muted-foreground mb-1">
+                      Valor Total
+                    </p>
+                    <p className="text-3xl font-bold text-success">
+                      {formatCurrency(calcularTotal())}
+                    </p>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground border rounded-lg bg-muted/20">
+                Nenhum produto adicionado. Clique em "Adicionar Produto" para começar.
+              </div>
+            )}
+          </Card>
+
           <ProdutoSearchDialog
             open={showProdutoSearch}
             onOpenChange={setShowProdutoSearch}
