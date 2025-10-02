@@ -351,7 +351,7 @@ export default function Vendas() {
 
   if (view === "nova") {
     return (
-      <>
+      <div className="p-8 space-y-6">
         <VendasActionBar
           status={status}
           onCalcular={handleCalcular}
@@ -360,9 +360,8 @@ export default function Vendas() {
           onEfetivar={handleEfetivar}
         />
         
-        <div className="p-8 space-y-6">
-          {/* Header */}
-          <div className="flex items-center justify-between">
+        {/* Header */}
+        <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-primary">
               {editandoVendaId ? "Editar Venda" : "Nova Venda"}
@@ -626,8 +625,7 @@ export default function Vendas() {
           onOpenChange={setShowClienteSearch}
           onSelectCliente={handleSelectCliente}
         />
-        </div>
-      </>
+      </div>
     );
   }
 
