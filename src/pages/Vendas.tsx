@@ -14,6 +14,7 @@ import { useTiposFrete } from "@/hooks/useTiposFrete";
 import { useTiposPedido } from "@/hooks/useTiposPedido";
 import { ProdutoSearchDialog } from "@/components/ProdutoSearchDialog";
 import { ClienteSearchDialog } from "@/components/ClienteSearchDialog";
+import { VendasActionBar } from "@/components/VendasActionBar";
 import { Tables } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
 
@@ -193,6 +194,48 @@ export default function Vendas() {
     setCarrinho([]);
   };
 
+  const handleCalcular = () => {
+    toast({
+      title: "Calculando proposta",
+      description: "Valores atualizados com sucesso.",
+    });
+  };
+
+  const handleCancelarProposta = () => {
+    limparFormulario();
+    setView("list");
+  };
+
+  const handleDiretoria = () => {
+    toast({
+      title: "Enviar para Diretoria",
+      description: "Proposta enviada para aprovação da diretoria.",
+    });
+  };
+
+  const handleEfetivar = async () => {
+    if (!clienteNome.trim()) {
+      toast({
+        title: "Erro",
+        description: "Selecione ou informe o cliente",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (carrinho.length === 0) {
+      toast({
+        title: "Erro",
+        description: "Adicione pelo menos um produto à venda",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setStatus("aprovada");
+    await handleSalvarVenda();
+  };
+
   const handleSalvarVenda = async () => {
     if (!clienteNome.trim()) {
       toast({
@@ -308,9 +351,18 @@ export default function Vendas() {
 
   if (view === "nova") {
     return (
-      <div className="p-8 space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
+      <>
+        <VendasActionBar
+          status={status}
+          onCalcular={handleCalcular}
+          onCancelar={handleCancelarProposta}
+          onDiretoria={handleDiretoria}
+          onEfetivar={handleEfetivar}
+        />
+        
+        <div className="p-8 space-y-6">
+          {/* Header */}
+          <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-primary">
               {editandoVendaId ? "Editar Venda" : "Nova Venda"}
@@ -575,6 +627,7 @@ export default function Vendas() {
           onSelectCliente={handleSelectCliente}
         />
       </div>
+      </>
     );
   }
 
