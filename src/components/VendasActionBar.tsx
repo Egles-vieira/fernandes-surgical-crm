@@ -45,7 +45,7 @@ export function VendasActionBar({
   const statusInfo = getStatusInfo();
 
   return (
-    <div className="sticky top-16 z-30 bg-card border-b shadow-sm">
+    <div className="sticky top-0 z-30 bg-card border-b shadow-sm">
       <div className="flex items-center justify-between px-8 py-3">
         <div className="flex items-center gap-3">
           <span className="text-sm font-medium text-muted-foreground">
