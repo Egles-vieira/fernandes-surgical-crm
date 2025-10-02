@@ -17,9 +17,9 @@ export type Database = {
       clientes: {
         Row: {
           atividade: string | null
-          cgc: string
+          cgc: string | null
           cod_cond_pag: number | null
-          cod_emitente: number
+          cod_emitente: number | null
           cod_gr_cli: number | null
           cod_rep: number | null
           cod_suframa: string | null
@@ -38,8 +38,8 @@ export type Database = {
           limite_disponivel: number | null
           nat_operacao: string | null
           natureza: Database["public"]["Enums"]["natureza_tipo"]
-          nome_abrev: string
-          nome_emit: string
+          nome_abrev: string | null
+          nome_emit: string | null
           observacoes: string | null
           telefone1: string | null
           updated_at: string
@@ -47,9 +47,9 @@ export type Database = {
         }
         Insert: {
           atividade?: string | null
-          cgc: string
+          cgc?: string | null
           cod_cond_pag?: number | null
-          cod_emitente: number
+          cod_emitente?: number | null
           cod_gr_cli?: number | null
           cod_rep?: number | null
           cod_suframa?: string | null
@@ -68,8 +68,8 @@ export type Database = {
           limite_disponivel?: number | null
           nat_operacao?: string | null
           natureza?: Database["public"]["Enums"]["natureza_tipo"]
-          nome_abrev: string
-          nome_emit: string
+          nome_abrev?: string | null
+          nome_emit?: string | null
           observacoes?: string | null
           telefone1?: string | null
           updated_at?: string
@@ -77,9 +77,9 @@ export type Database = {
         }
         Update: {
           atividade?: string | null
-          cgc?: string
+          cgc?: string | null
           cod_cond_pag?: number | null
-          cod_emitente?: number
+          cod_emitente?: number | null
           cod_gr_cli?: number | null
           cod_rep?: number | null
           cod_suframa?: string | null
@@ -98,8 +98,8 @@ export type Database = {
           limite_disponivel?: number | null
           nat_operacao?: string | null
           natureza?: Database["public"]["Enums"]["natureza_tipo"]
-          nome_abrev?: string
-          nome_emit?: string
+          nome_abrev?: string | null
+          nome_emit?: string | null
           observacoes?: string | null
           telefone1?: string | null
           updated_at?: string
