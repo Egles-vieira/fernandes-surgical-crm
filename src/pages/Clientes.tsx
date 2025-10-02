@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Search, Plus, Edit, Eye, MapPin, Phone, CreditCard, X } from "lucide-react";
+import { Search, Plus, Edit, Eye, MapPin, Phone, CreditCard, X, Upload } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -88,6 +89,7 @@ const clientesMock: Cliente[] = [
 ];
 
 export default function Clientes() {
+  const navigate = useNavigate();
   const [clientes] = useState<Cliente[]>(clientesMock);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCliente, setSelectedCliente] = useState<Cliente | null>(null);
@@ -135,10 +137,16 @@ export default function Clientes() {
           <h1 className="text-3xl font-bold text-primary">Clientes</h1>
           <p className="text-muted-foreground">Gerencie seus clientes</p>
         </div>
-        <Button onClick={() => openForm()} className="bg-primary hover:bg-primary/90">
-          <Plus size={16} className="mr-2" />
-          Novo Cliente
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => navigate('/importar-clientes')} variant="outline">
+            <Upload size={16} className="mr-2" />
+            Importar CSV
+          </Button>
+          <Button onClick={() => openForm()} className="bg-primary hover:bg-primary/90">
+            <Plus size={16} className="mr-2" />
+            Novo Cliente
+          </Button>
+        </div>
       </div>
 
       {/* Search */}

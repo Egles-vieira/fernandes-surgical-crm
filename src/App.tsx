@@ -11,6 +11,7 @@ import Licitacoes from "./pages/Licitacoes";
 import Clientes from "./pages/Clientes";
 import Produtos from "./pages/Produtos";
 import ImportarProdutos from "./pages/ImportarProdutos";
+import ImportarClientes from "./pages/ImportarClientes";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import PedidosVendas from "./pages/vendas/Pedidos";
@@ -76,6 +77,13 @@ const App = () => (
           <ProtectedRoute>
             <Layout>
               <ImportarProdutos />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/importar-clientes" element={
+          <ProtectedRoute>
+            <Layout>
+              <ImportarClientes />
             </Layout>
           </ProtectedRoute>
         } />
