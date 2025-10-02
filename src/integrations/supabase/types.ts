@@ -107,6 +107,27 @@ export type Database = {
         }
         Relationships: []
       }
+      condicoes_pagamento: {
+        Row: {
+          codigo_integracao: number
+          created_at: string
+          id: string
+          nome: string
+        }
+        Insert: {
+          codigo_integracao: number
+          created_at?: string
+          id?: string
+          nome: string
+        }
+        Update: {
+          codigo_integracao?: number
+          created_at?: string
+          id?: string
+          nome?: string
+        }
+        Relationships: []
+      }
       enderecos_clientes: {
         Row: {
           bairro: string | null
@@ -300,10 +321,47 @@ export type Database = {
         }
         Relationships: []
       }
+      tipos_frete: {
+        Row: {
+          created_at: string
+          id: string
+          nome: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nome: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nome?: string
+        }
+        Relationships: []
+      }
+      tipos_pedido: {
+        Row: {
+          created_at: string
+          id: string
+          nome: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nome: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nome?: string
+        }
+        Relationships: []
+      }
       vendas: {
         Row: {
           cliente_cnpj: string | null
           cliente_nome: string
+          condicao_pagamento_id: string | null
           created_at: string
           data_venda: string
           desconto: number
@@ -311,6 +369,8 @@ export type Database = {
           numero_venda: string
           observacoes: string | null
           status: string
+          tipo_frete_id: string | null
+          tipo_pedido_id: string | null
           updated_at: string
           user_id: string
           valor_final: number
@@ -319,6 +379,7 @@ export type Database = {
         Insert: {
           cliente_cnpj?: string | null
           cliente_nome: string
+          condicao_pagamento_id?: string | null
           created_at?: string
           data_venda?: string
           desconto?: number
@@ -326,6 +387,8 @@ export type Database = {
           numero_venda: string
           observacoes?: string | null
           status?: string
+          tipo_frete_id?: string | null
+          tipo_pedido_id?: string | null
           updated_at?: string
           user_id: string
           valor_final?: number
@@ -334,6 +397,7 @@ export type Database = {
         Update: {
           cliente_cnpj?: string | null
           cliente_nome?: string
+          condicao_pagamento_id?: string | null
           created_at?: string
           data_venda?: string
           desconto?: number
@@ -341,12 +405,36 @@ export type Database = {
           numero_venda?: string
           observacoes?: string | null
           status?: string
+          tipo_frete_id?: string | null
+          tipo_pedido_id?: string | null
           updated_at?: string
           user_id?: string
           valor_final?: number
           valor_total?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "vendas_condicao_pagamento_id_fkey"
+            columns: ["condicao_pagamento_id"]
+            isOneToOne: false
+            referencedRelation: "condicoes_pagamento"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendas_tipo_frete_id_fkey"
+            columns: ["tipo_frete_id"]
+            isOneToOne: false
+            referencedRelation: "tipos_frete"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendas_tipo_pedido_id_fkey"
+            columns: ["tipo_pedido_id"]
+            isOneToOne: false
+            referencedRelation: "tipos_pedido"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       vendas_itens: {
         Row: {

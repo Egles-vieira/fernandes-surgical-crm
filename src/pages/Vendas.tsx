@@ -9,6 +9,9 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useVendas } from "@/hooks/useVendas";
+import { useCondicoesPagamento } from "@/hooks/useCondicoesPagamento";
+import { useTiposFrete } from "@/hooks/useTiposFrete";
+import { useTiposPedido } from "@/hooks/useTiposPedido";
 import { ProdutoSearchDialog } from "@/components/ProdutoSearchDialog";
 import { ClienteSearchDialog } from "@/components/ClienteSearchDialog";
 import { Tables } from "@/integrations/supabase/types";
@@ -26,6 +29,9 @@ interface ItemCarrinho {
 
 export default function Vendas() {
   const { vendas, isLoading, createVenda, addItem, updateVenda, updateItem, removeItem } = useVendas();
+  const { condicoes, isLoading: isLoadingCondicoes } = useCondicoesPagamento();
+  const { tipos: tiposFrete, isLoading: isLoadingTiposFrete } = useTiposFrete();
+  const { tipos: tiposPedido, isLoading: isLoadingTiposPedido } = useTiposPedido();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [view, setView] = useState<"list" | "nova">("list");
@@ -39,6 +45,9 @@ export default function Vendas() {
   const [clienteNome, setClienteNome] = useState("");
   const [clienteCnpj, setClienteCnpj] = useState("");
   const [status, setStatus] = useState<"rascunho" | "aprovada" | "cancelada">("rascunho");
+  const [condicaoPagamentoId, setCondicaoPagamentoId] = useState<string>("");
+  const [tipoFreteId, setTipoFreteId] = useState<string>("");
+  const [tipoPedidoId, setTipoPedidoId] = useState<string>("");
   const [observacoes, setObservacoes] = useState("");
   const [carrinho, setCarrinho] = useState<ItemCarrinho[]>([]);
 
@@ -153,6 +162,9 @@ export default function Vendas() {
     setClienteNome(venda.cliente_nome);
     setClienteCnpj(venda.cliente_cnpj || "");
     setStatus(venda.status);
+    setCondicaoPagamentoId(venda.condicao_pagamento_id || "");
+    setTipoFreteId(venda.tipo_frete_id || "");
+    setTipoPedidoId(venda.tipo_pedido_id || "");
     setObservacoes(venda.observacoes || "");
     
     // Carregar itens da venda
@@ -174,6 +186,9 @@ export default function Vendas() {
     setClienteNome("");
     setClienteCnpj("");
     setStatus("rascunho");
+    setCondicaoPagamentoId("");
+    setTipoFreteId("");
+    setTipoPedidoId("");
     setObservacoes("");
     setCarrinho([]);
   };
@@ -211,6 +226,9 @@ export default function Vendas() {
           desconto: 0,
           valor_final: valorTotal,
           status,
+          condicao_pagamento_id: condicaoPagamentoId || null,
+          tipo_frete_id: tipoFreteId || null,
+          tipo_pedido_id: tipoPedidoId || null,
           observacoes: observacoes || null,
         });
 
@@ -247,6 +265,9 @@ export default function Vendas() {
           desconto: 0,
           valor_final: valorTotal,
           status,
+          condicao_pagamento_id: condicaoPagamentoId || null,
+          tipo_frete_id: tipoFreteId || null,
+          tipo_pedido_id: tipoPedidoId || null,
           observacoes: observacoes || null,
         });
 
@@ -337,6 +358,51 @@ export default function Vendas() {
                       <SelectItem value="rascunho">Rascunho</SelectItem>
                       <SelectItem value="aprovada">Aprovada</SelectItem>
                       <SelectItem value="cancelada">Cancelada</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="condicao">Condição de Pagamento</Label>
+                  <Select value={condicaoPagamentoId} onValueChange={setCondicaoPagamentoId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {condicoes.map((condicao) => (
+                        <SelectItem key={condicao.id} value={condicao.id}>
+                          {condicao.nome}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="frete">Tipo de Frete</Label>
+                  <Select value={tipoFreteId} onValueChange={setTipoFreteId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {tiposFrete.map((tipo) => (
+                        <SelectItem key={tipo.id} value={tipo.id}>
+                          {tipo.nome}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="tipoPedido">Tipo de Pedido</Label>
+                  <Select value={tipoPedidoId} onValueChange={setTipoPedidoId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {tiposPedido.map((tipo) => (
+                        <SelectItem key={tipo.id} value={tipo.id}>
+                          {tipo.nome}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
