@@ -203,7 +203,7 @@ export default function Layout({ children }: LayoutProps) {
               >
                 {({ isActive }) => (
                   <div
-                    className={`group flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 relative overflow-hidden
+                    className={`group flex items-center ${collapsed ? 'justify-center' : 'gap-3'} px-4 py-3 rounded-xl transition-all duration-200 relative overflow-hidden
                     ${
                       isActive
                         ? "bg-white/20 text-white shadow-lg backdrop-blur-sm"
