@@ -128,6 +128,442 @@ export type Database = {
         }
         Relationships: []
       }
+      contas: {
+        Row: {
+          atualizado_em: string | null
+          atualizado_por: string | null
+          classificacao: string | null
+          cnpj: string | null
+          conta_pai_id: string | null
+          criado_em: string | null
+          criado_por: string | null
+          descricao: string | null
+          endereco_cobranca_id: string | null
+          endereco_entrega_id: string | null
+          esta_ativa: boolean | null
+          estagio_ciclo_vida: string | null
+          excluido_em: string | null
+          id: string
+          nome_conta: string
+          numero_funcionarios: number | null
+          origem_lead: string | null
+          proprietario_id: string | null
+          receita_anual: number | null
+          setor: string | null
+          site: string | null
+          tipo_conta: string | null
+        }
+        Insert: {
+          atualizado_em?: string | null
+          atualizado_por?: string | null
+          classificacao?: string | null
+          cnpj?: string | null
+          conta_pai_id?: string | null
+          criado_em?: string | null
+          criado_por?: string | null
+          descricao?: string | null
+          endereco_cobranca_id?: string | null
+          endereco_entrega_id?: string | null
+          esta_ativa?: boolean | null
+          estagio_ciclo_vida?: string | null
+          excluido_em?: string | null
+          id?: string
+          nome_conta: string
+          numero_funcionarios?: number | null
+          origem_lead?: string | null
+          proprietario_id?: string | null
+          receita_anual?: number | null
+          setor?: string | null
+          site?: string | null
+          tipo_conta?: string | null
+        }
+        Update: {
+          atualizado_em?: string | null
+          atualizado_por?: string | null
+          classificacao?: string | null
+          cnpj?: string | null
+          conta_pai_id?: string | null
+          criado_em?: string | null
+          criado_por?: string | null
+          descricao?: string | null
+          endereco_cobranca_id?: string | null
+          endereco_entrega_id?: string | null
+          esta_ativa?: boolean | null
+          estagio_ciclo_vida?: string | null
+          excluido_em?: string | null
+          id?: string
+          nome_conta?: string
+          numero_funcionarios?: number | null
+          origem_lead?: string | null
+          proprietario_id?: string | null
+          receita_anual?: number | null
+          setor?: string | null
+          site?: string | null
+          tipo_conta?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contas_conta_pai_id_fkey"
+            columns: ["conta_pai_id"]
+            isOneToOne: false
+            referencedRelation: "contas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contas_endereco_cobranca_id_fkey"
+            columns: ["endereco_cobranca_id"]
+            isOneToOne: false
+            referencedRelation: "enderecos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contas_endereco_entrega_id_fkey"
+            columns: ["endereco_entrega_id"]
+            isOneToOne: false
+            referencedRelation: "enderecos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contatos: {
+        Row: {
+          atualizado_em: string | null
+          atualizado_por: string | null
+          cancelou_inscricao_email: boolean | null
+          cargo: string | null
+          celular: string | null
+          conta_id: string | null
+          criado_em: string | null
+          criado_por: string | null
+          data_nascimento: string | null
+          data_ultima_atividade: string | null
+          departamento: string | null
+          descricao: string | null
+          email: string | null
+          email_secundario: string | null
+          endereco_correspondencia_id: string | null
+          esta_ativo: boolean | null
+          estagio_ciclo_vida: string | null
+          excluido_em: string | null
+          id: string
+          nao_enviar_email: boolean | null
+          nao_ligar: boolean | null
+          nome_completo: string | null
+          origem_lead: string | null
+          pontuacao_lead: number | null
+          primeiro_nome: string
+          proprietario_id: string | null
+          reporta_para_id: string | null
+          sobrenome: string
+          status_lead: string | null
+          telefone: string | null
+        }
+        Insert: {
+          atualizado_em?: string | null
+          atualizado_por?: string | null
+          cancelou_inscricao_email?: boolean | null
+          cargo?: string | null
+          celular?: string | null
+          conta_id?: string | null
+          criado_em?: string | null
+          criado_por?: string | null
+          data_nascimento?: string | null
+          data_ultima_atividade?: string | null
+          departamento?: string | null
+          descricao?: string | null
+          email?: string | null
+          email_secundario?: string | null
+          endereco_correspondencia_id?: string | null
+          esta_ativo?: boolean | null
+          estagio_ciclo_vida?: string | null
+          excluido_em?: string | null
+          id?: string
+          nao_enviar_email?: boolean | null
+          nao_ligar?: boolean | null
+          nome_completo?: string | null
+          origem_lead?: string | null
+          pontuacao_lead?: number | null
+          primeiro_nome: string
+          proprietario_id?: string | null
+          reporta_para_id?: string | null
+          sobrenome: string
+          status_lead?: string | null
+          telefone?: string | null
+        }
+        Update: {
+          atualizado_em?: string | null
+          atualizado_por?: string | null
+          cancelou_inscricao_email?: boolean | null
+          cargo?: string | null
+          celular?: string | null
+          conta_id?: string | null
+          criado_em?: string | null
+          criado_por?: string | null
+          data_nascimento?: string | null
+          data_ultima_atividade?: string | null
+          departamento?: string | null
+          descricao?: string | null
+          email?: string | null
+          email_secundario?: string | null
+          endereco_correspondencia_id?: string | null
+          esta_ativo?: boolean | null
+          estagio_ciclo_vida?: string | null
+          excluido_em?: string | null
+          id?: string
+          nao_enviar_email?: boolean | null
+          nao_ligar?: boolean | null
+          nome_completo?: string | null
+          origem_lead?: string | null
+          pontuacao_lead?: number | null
+          primeiro_nome?: string
+          proprietario_id?: string | null
+          reporta_para_id?: string | null
+          sobrenome?: string
+          status_lead?: string | null
+          telefone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contatos_conta_id_fkey"
+            columns: ["conta_id"]
+            isOneToOne: false
+            referencedRelation: "contas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contatos_endereco_correspondencia_id_fkey"
+            columns: ["endereco_correspondencia_id"]
+            isOneToOne: false
+            referencedRelation: "enderecos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contatos_reporta_para_id_fkey"
+            columns: ["reporta_para_id"]
+            isOneToOne: false
+            referencedRelation: "contatos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cotacoes: {
+        Row: {
+          aceita_em: string | null
+          atualizado_em: string | null
+          conta_id: string | null
+          contato_id: string | null
+          cotacao_pai_id: string | null
+          criado_em: string | null
+          criado_por: string | null
+          enviada_em: string | null
+          excluido_em: string | null
+          id: string
+          nome_cotacao: string
+          numero_cotacao: string
+          observacoes: string | null
+          oportunidade_id: string | null
+          proprietario_id: string | null
+          rejeitada_em: string | null
+          status: string | null
+          subtotal: number | null
+          termos_condicoes: string | null
+          total_desconto: number | null
+          total_geral: number | null
+          total_imposto: number | null
+          url_pdf: string | null
+          valida_ate: string | null
+          versao: number | null
+        }
+        Insert: {
+          aceita_em?: string | null
+          atualizado_em?: string | null
+          conta_id?: string | null
+          contato_id?: string | null
+          cotacao_pai_id?: string | null
+          criado_em?: string | null
+          criado_por?: string | null
+          enviada_em?: string | null
+          excluido_em?: string | null
+          id?: string
+          nome_cotacao: string
+          numero_cotacao: string
+          observacoes?: string | null
+          oportunidade_id?: string | null
+          proprietario_id?: string | null
+          rejeitada_em?: string | null
+          status?: string | null
+          subtotal?: number | null
+          termos_condicoes?: string | null
+          total_desconto?: number | null
+          total_geral?: number | null
+          total_imposto?: number | null
+          url_pdf?: string | null
+          valida_ate?: string | null
+          versao?: number | null
+        }
+        Update: {
+          aceita_em?: string | null
+          atualizado_em?: string | null
+          conta_id?: string | null
+          contato_id?: string | null
+          cotacao_pai_id?: string | null
+          criado_em?: string | null
+          criado_por?: string | null
+          enviada_em?: string | null
+          excluido_em?: string | null
+          id?: string
+          nome_cotacao?: string
+          numero_cotacao?: string
+          observacoes?: string | null
+          oportunidade_id?: string | null
+          proprietario_id?: string | null
+          rejeitada_em?: string | null
+          status?: string | null
+          subtotal?: number | null
+          termos_condicoes?: string | null
+          total_desconto?: number | null
+          total_geral?: number | null
+          total_imposto?: number | null
+          url_pdf?: string | null
+          valida_ate?: string | null
+          versao?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cotacoes_conta_id_fkey"
+            columns: ["conta_id"]
+            isOneToOne: false
+            referencedRelation: "contas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cotacoes_contato_id_fkey"
+            columns: ["contato_id"]
+            isOneToOne: false
+            referencedRelation: "contatos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cotacoes_cotacao_pai_id_fkey"
+            columns: ["cotacao_pai_id"]
+            isOneToOne: false
+            referencedRelation: "cotacoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cotacoes_oportunidade_id_fkey"
+            columns: ["oportunidade_id"]
+            isOneToOne: false
+            referencedRelation: "oportunidades"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      empresas: {
+        Row: {
+          atualizado_em: string | null
+          cnpj: string | null
+          cor_primaria: string | null
+          cor_secundaria: string | null
+          criado_em: string | null
+          esta_ativa: boolean | null
+          excluido_em: string | null
+          id: string
+          nome: string
+          razao_social: string | null
+          setor: string | null
+          site: string | null
+          tamanho_empresa: string | null
+          url_logo: string | null
+        }
+        Insert: {
+          atualizado_em?: string | null
+          cnpj?: string | null
+          cor_primaria?: string | null
+          cor_secundaria?: string | null
+          criado_em?: string | null
+          esta_ativa?: boolean | null
+          excluido_em?: string | null
+          id?: string
+          nome: string
+          razao_social?: string | null
+          setor?: string | null
+          site?: string | null
+          tamanho_empresa?: string | null
+          url_logo?: string | null
+        }
+        Update: {
+          atualizado_em?: string | null
+          cnpj?: string | null
+          cor_primaria?: string | null
+          cor_secundaria?: string | null
+          criado_em?: string | null
+          esta_ativa?: boolean | null
+          excluido_em?: string | null
+          id?: string
+          nome?: string
+          razao_social?: string | null
+          setor?: string | null
+          site?: string | null
+          tamanho_empresa?: string | null
+          url_logo?: string | null
+        }
+        Relationships: []
+      }
+      enderecos: {
+        Row: {
+          atualizado_em: string | null
+          bairro: string | null
+          cep: string | null
+          cidade: string | null
+          complemento: string | null
+          criado_em: string | null
+          eh_primario: boolean | null
+          estado: string | null
+          id: string
+          latitude: number | null
+          logradouro: string | null
+          longitude: number | null
+          numero: string | null
+          pais: string | null
+          tipo_endereco: string | null
+        }
+        Insert: {
+          atualizado_em?: string | null
+          bairro?: string | null
+          cep?: string | null
+          cidade?: string | null
+          complemento?: string | null
+          criado_em?: string | null
+          eh_primario?: boolean | null
+          estado?: string | null
+          id?: string
+          latitude?: number | null
+          logradouro?: string | null
+          longitude?: number | null
+          numero?: string | null
+          pais?: string | null
+          tipo_endereco?: string | null
+        }
+        Update: {
+          atualizado_em?: string | null
+          bairro?: string | null
+          cep?: string | null
+          cidade?: string | null
+          complemento?: string | null
+          criado_em?: string | null
+          eh_primario?: boolean | null
+          estado?: string | null
+          id?: string
+          latitude?: number | null
+          logradouro?: string | null
+          longitude?: number | null
+          numero?: string | null
+          pais?: string | null
+          tipo_endereco?: string | null
+        }
+        Relationships: []
+      }
       enderecos_clientes: {
         Row: {
           bairro: string | null
@@ -193,6 +629,95 @@ export type Database = {
           },
         ]
       }
+      equipes: {
+        Row: {
+          atualizado_em: string | null
+          criado_em: string | null
+          descricao: string | null
+          esta_ativa: boolean | null
+          excluido_em: string | null
+          id: string
+          lider_equipe_id: string | null
+          nome: string
+          tipo_equipe: string | null
+        }
+        Insert: {
+          atualizado_em?: string | null
+          criado_em?: string | null
+          descricao?: string | null
+          esta_ativa?: boolean | null
+          excluido_em?: string | null
+          id?: string
+          lider_equipe_id?: string | null
+          nome: string
+          tipo_equipe?: string | null
+        }
+        Update: {
+          atualizado_em?: string | null
+          criado_em?: string | null
+          descricao?: string | null
+          esta_ativa?: boolean | null
+          excluido_em?: string | null
+          id?: string
+          lider_equipe_id?: string | null
+          nome?: string
+          tipo_equipe?: string | null
+        }
+        Relationships: []
+      }
+      estagios_pipeline: {
+        Row: {
+          atualizado_em: string | null
+          cor: string | null
+          criado_em: string | null
+          descricao: string | null
+          duracao_esperada_dias: number | null
+          eh_ganho_fechado: boolean | null
+          eh_perdido_fechado: boolean | null
+          id: string
+          nome_estagio: string
+          ordem_estagio: number
+          percentual_probabilidade: number | null
+          pipeline_id: string | null
+        }
+        Insert: {
+          atualizado_em?: string | null
+          cor?: string | null
+          criado_em?: string | null
+          descricao?: string | null
+          duracao_esperada_dias?: number | null
+          eh_ganho_fechado?: boolean | null
+          eh_perdido_fechado?: boolean | null
+          id?: string
+          nome_estagio: string
+          ordem_estagio: number
+          percentual_probabilidade?: number | null
+          pipeline_id?: string | null
+        }
+        Update: {
+          atualizado_em?: string | null
+          cor?: string | null
+          criado_em?: string | null
+          descricao?: string | null
+          duracao_esperada_dias?: number | null
+          eh_ganho_fechado?: boolean | null
+          eh_perdido_fechado?: boolean | null
+          id?: string
+          nome_estagio?: string
+          ordem_estagio?: number
+          percentual_probabilidade?: number | null
+          pipeline_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "estagios_pipeline_pipeline_id_fkey"
+            columns: ["pipeline_id"]
+            isOneToOne: false
+            referencedRelation: "pipelines"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       estoque: {
         Row: {
           created_at: string
@@ -245,6 +770,610 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      etiquetaveis: {
+        Row: {
+          etiquetado_em: string | null
+          id_etiquetavel: string
+          tag_id: string
+          tipo_etiquetavel: string
+        }
+        Insert: {
+          etiquetado_em?: string | null
+          id_etiquetavel: string
+          tag_id: string
+          tipo_etiquetavel: string
+        }
+        Update: {
+          etiquetado_em?: string | null
+          id_etiquetavel?: string
+          tag_id?: string
+          tipo_etiquetavel?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "etiquetaveis_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      historico_estagio_oportunidade: {
+        Row: {
+          alterado_em: string | null
+          alterado_por: string | null
+          dias_no_estagio_anterior: number | null
+          estagio_anterior_id: string | null
+          estagio_novo_id: string | null
+          id: string
+          observacoes: string | null
+          oportunidade_id: string | null
+        }
+        Insert: {
+          alterado_em?: string | null
+          alterado_por?: string | null
+          dias_no_estagio_anterior?: number | null
+          estagio_anterior_id?: string | null
+          estagio_novo_id?: string | null
+          id?: string
+          observacoes?: string | null
+          oportunidade_id?: string | null
+        }
+        Update: {
+          alterado_em?: string | null
+          alterado_por?: string | null
+          dias_no_estagio_anterior?: number | null
+          estagio_anterior_id?: string | null
+          estagio_novo_id?: string | null
+          id?: string
+          observacoes?: string | null
+          oportunidade_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "historico_estagio_oportunidade_estagio_anterior_id_fkey"
+            columns: ["estagio_anterior_id"]
+            isOneToOne: false
+            referencedRelation: "estagios_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "historico_estagio_oportunidade_estagio_novo_id_fkey"
+            columns: ["estagio_novo_id"]
+            isOneToOne: false
+            referencedRelation: "estagios_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "historico_estagio_oportunidade_oportunidade_id_fkey"
+            columns: ["oportunidade_id"]
+            isOneToOne: false
+            referencedRelation: "oportunidades"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      itens_linha_cotacao: {
+        Row: {
+          cotacao_id: string | null
+          descricao: string | null
+          id: string
+          nome_produto: string | null
+          ordem_linha: number | null
+          percentual_desconto: number | null
+          preco_total: number | null
+          preco_unitario: number
+          produto_id: string | null
+          quantidade: number
+          valor_desconto: number | null
+          valor_imposto: number | null
+        }
+        Insert: {
+          cotacao_id?: string | null
+          descricao?: string | null
+          id?: string
+          nome_produto?: string | null
+          ordem_linha?: number | null
+          percentual_desconto?: number | null
+          preco_total?: number | null
+          preco_unitario: number
+          produto_id?: string | null
+          quantidade?: number
+          valor_desconto?: number | null
+          valor_imposto?: number | null
+        }
+        Update: {
+          cotacao_id?: string | null
+          descricao?: string | null
+          id?: string
+          nome_produto?: string | null
+          ordem_linha?: number | null
+          percentual_desconto?: number | null
+          preco_total?: number | null
+          preco_unitario?: number
+          produto_id?: string | null
+          quantidade?: number
+          valor_desconto?: number | null
+          valor_imposto?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "itens_linha_cotacao_cotacao_id_fkey"
+            columns: ["cotacao_id"]
+            isOneToOne: false
+            referencedRelation: "cotacoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "itens_linha_cotacao_produto_id_fkey"
+            columns: ["produto_id"]
+            isOneToOne: false
+            referencedRelation: "produtos_catalogo"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      itens_linha_oportunidade: {
+        Row: {
+          atualizado_em: string | null
+          criado_em: string | null
+          descricao: string | null
+          id: string
+          nome_produto: string | null
+          oportunidade_id: string | null
+          ordem_linha: number | null
+          percentual_desconto: number | null
+          preco_total: number | null
+          preco_unitario: number
+          produto_id: string | null
+          quantidade: number
+          valor_desconto: number | null
+          valor_imposto: number | null
+        }
+        Insert: {
+          atualizado_em?: string | null
+          criado_em?: string | null
+          descricao?: string | null
+          id?: string
+          nome_produto?: string | null
+          oportunidade_id?: string | null
+          ordem_linha?: number | null
+          percentual_desconto?: number | null
+          preco_total?: number | null
+          preco_unitario: number
+          produto_id?: string | null
+          quantidade?: number
+          valor_desconto?: number | null
+          valor_imposto?: number | null
+        }
+        Update: {
+          atualizado_em?: string | null
+          criado_em?: string | null
+          descricao?: string | null
+          id?: string
+          nome_produto?: string | null
+          oportunidade_id?: string | null
+          ordem_linha?: number | null
+          percentual_desconto?: number | null
+          preco_total?: number | null
+          preco_unitario?: number
+          produto_id?: string | null
+          quantidade?: number
+          valor_desconto?: number | null
+          valor_imposto?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "itens_linha_oportunidade_oportunidade_id_fkey"
+            columns: ["oportunidade_id"]
+            isOneToOne: false
+            referencedRelation: "oportunidades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "itens_linha_oportunidade_produto_id_fkey"
+            columns: ["produto_id"]
+            isOneToOne: false
+            referencedRelation: "produtos_catalogo"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      membros_equipe: {
+        Row: {
+          entrou_em: string | null
+          equipe_id: string
+          usuario_id: string
+        }
+        Insert: {
+          entrou_em?: string | null
+          equipe_id: string
+          usuario_id: string
+        }
+        Update: {
+          entrou_em?: string | null
+          equipe_id?: string
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "membros_equipe_equipe_id_fkey"
+            columns: ["equipe_id"]
+            isOneToOne: false
+            referencedRelation: "equipes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      oportunidades: {
+        Row: {
+          atualizado_em: string | null
+          atualizado_por: string | null
+          concorrentes: string | null
+          conta_id: string | null
+          contato_id: string | null
+          criado_em: string | null
+          criado_por: string | null
+          data_fechamento: string | null
+          descricao: string | null
+          dias_no_estagio: number | null
+          esta_fechada: boolean | null
+          estagio_id: string | null
+          excluido_em: string | null
+          fechada_em: string | null
+          foi_ganha: boolean | null
+          id: string
+          motivo_perda: string | null
+          nome_oportunidade: string
+          origem_lead: string | null
+          percentual_probabilidade: number | null
+          pipeline_id: string | null
+          proprietario_id: string | null
+          proximo_passo: string | null
+          receita_esperada: number | null
+          tipo: string | null
+          ultima_mudanca_estagio_em: string | null
+          valor: number | null
+        }
+        Insert: {
+          atualizado_em?: string | null
+          atualizado_por?: string | null
+          concorrentes?: string | null
+          conta_id?: string | null
+          contato_id?: string | null
+          criado_em?: string | null
+          criado_por?: string | null
+          data_fechamento?: string | null
+          descricao?: string | null
+          dias_no_estagio?: number | null
+          esta_fechada?: boolean | null
+          estagio_id?: string | null
+          excluido_em?: string | null
+          fechada_em?: string | null
+          foi_ganha?: boolean | null
+          id?: string
+          motivo_perda?: string | null
+          nome_oportunidade: string
+          origem_lead?: string | null
+          percentual_probabilidade?: number | null
+          pipeline_id?: string | null
+          proprietario_id?: string | null
+          proximo_passo?: string | null
+          receita_esperada?: number | null
+          tipo?: string | null
+          ultima_mudanca_estagio_em?: string | null
+          valor?: number | null
+        }
+        Update: {
+          atualizado_em?: string | null
+          atualizado_por?: string | null
+          concorrentes?: string | null
+          conta_id?: string | null
+          contato_id?: string | null
+          criado_em?: string | null
+          criado_por?: string | null
+          data_fechamento?: string | null
+          descricao?: string | null
+          dias_no_estagio?: number | null
+          esta_fechada?: boolean | null
+          estagio_id?: string | null
+          excluido_em?: string | null
+          fechada_em?: string | null
+          foi_ganha?: boolean | null
+          id?: string
+          motivo_perda?: string | null
+          nome_oportunidade?: string
+          origem_lead?: string | null
+          percentual_probabilidade?: number | null
+          pipeline_id?: string | null
+          proprietario_id?: string | null
+          proximo_passo?: string | null
+          receita_esperada?: number | null
+          tipo?: string | null
+          ultima_mudanca_estagio_em?: string | null
+          valor?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "oportunidades_conta_id_fkey"
+            columns: ["conta_id"]
+            isOneToOne: false
+            referencedRelation: "contas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "oportunidades_contato_id_fkey"
+            columns: ["contato_id"]
+            isOneToOne: false
+            referencedRelation: "contatos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "oportunidades_estagio_id_fkey"
+            columns: ["estagio_id"]
+            isOneToOne: false
+            referencedRelation: "estagios_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "oportunidades_pipeline_id_fkey"
+            columns: ["pipeline_id"]
+            isOneToOne: false
+            referencedRelation: "pipelines"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      perfis: {
+        Row: {
+          atualizado_em: string | null
+          criado_em: string | null
+          descricao: string | null
+          eh_perfil_sistema: boolean | null
+          excluido_em: string | null
+          id: string
+          nome: string
+        }
+        Insert: {
+          atualizado_em?: string | null
+          criado_em?: string | null
+          descricao?: string | null
+          eh_perfil_sistema?: boolean | null
+          excluido_em?: string | null
+          id?: string
+          nome: string
+        }
+        Update: {
+          atualizado_em?: string | null
+          criado_em?: string | null
+          descricao?: string | null
+          eh_perfil_sistema?: boolean | null
+          excluido_em?: string | null
+          id?: string
+          nome?: string
+        }
+        Relationships: []
+      }
+      perfis_permissoes: {
+        Row: {
+          perfil_id: string
+          permissao_id: string
+        }
+        Insert: {
+          perfil_id: string
+          permissao_id: string
+        }
+        Update: {
+          perfil_id?: string
+          permissao_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "perfis_permissoes_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "perfis_permissoes_permissao_id_fkey"
+            columns: ["permissao_id"]
+            isOneToOne: false
+            referencedRelation: "permissoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      perfis_sociais: {
+        Row: {
+          atualizado_em: string | null
+          conta_id: string | null
+          contato_id: string | null
+          criado_em: string | null
+          id: string
+          nome_usuario: string | null
+          numero_seguidores: number | null
+          plataforma: string
+          ultima_sincronizacao_em: string | null
+          url_perfil: string | null
+        }
+        Insert: {
+          atualizado_em?: string | null
+          conta_id?: string | null
+          contato_id?: string | null
+          criado_em?: string | null
+          id?: string
+          nome_usuario?: string | null
+          numero_seguidores?: number | null
+          plataforma: string
+          ultima_sincronizacao_em?: string | null
+          url_perfil?: string | null
+        }
+        Update: {
+          atualizado_em?: string | null
+          conta_id?: string | null
+          contato_id?: string | null
+          criado_em?: string | null
+          id?: string
+          nome_usuario?: string | null
+          numero_seguidores?: number | null
+          plataforma?: string
+          ultima_sincronizacao_em?: string | null
+          url_perfil?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "perfis_sociais_conta_id_fkey"
+            columns: ["conta_id"]
+            isOneToOne: false
+            referencedRelation: "contas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "perfis_sociais_contato_id_fkey"
+            columns: ["contato_id"]
+            isOneToOne: false
+            referencedRelation: "contatos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      perfis_usuario: {
+        Row: {
+          atualizado_em: string | null
+          cargo: string | null
+          celular: string | null
+          criado_em: string | null
+          departamento: string | null
+          empresa_id: string | null
+          esta_ativo: boolean | null
+          fuso_horario: string | null
+          gerente_id: string | null
+          id: string
+          idioma: string | null
+          nome_completo: string | null
+          perfil_id: string | null
+          primeiro_nome: string | null
+          sobrenome: string | null
+          telefone: string | null
+          ultimo_login_em: string | null
+          url_avatar: string | null
+        }
+        Insert: {
+          atualizado_em?: string | null
+          cargo?: string | null
+          celular?: string | null
+          criado_em?: string | null
+          departamento?: string | null
+          empresa_id?: string | null
+          esta_ativo?: boolean | null
+          fuso_horario?: string | null
+          gerente_id?: string | null
+          id: string
+          idioma?: string | null
+          nome_completo?: string | null
+          perfil_id?: string | null
+          primeiro_nome?: string | null
+          sobrenome?: string | null
+          telefone?: string | null
+          ultimo_login_em?: string | null
+          url_avatar?: string | null
+        }
+        Update: {
+          atualizado_em?: string | null
+          cargo?: string | null
+          celular?: string | null
+          criado_em?: string | null
+          departamento?: string | null
+          empresa_id?: string | null
+          esta_ativo?: boolean | null
+          fuso_horario?: string | null
+          gerente_id?: string | null
+          id?: string
+          idioma?: string | null
+          nome_completo?: string | null
+          perfil_id?: string | null
+          primeiro_nome?: string | null
+          sobrenome?: string | null
+          telefone?: string | null
+          ultimo_login_em?: string | null
+          url_avatar?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "perfis_usuario_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "perfis_usuario_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      permissoes: {
+        Row: {
+          acao: string
+          descricao: string | null
+          id: string
+          modulo: string
+        }
+        Insert: {
+          acao: string
+          descricao?: string | null
+          id?: string
+          modulo: string
+        }
+        Update: {
+          acao?: string
+          descricao?: string | null
+          id?: string
+          modulo?: string
+        }
+        Relationships: []
+      }
+      pipelines: {
+        Row: {
+          atualizado_em: string | null
+          criado_em: string | null
+          descricao: string | null
+          esta_ativo: boolean | null
+          excluido_em: string | null
+          id: string
+          nome: string
+          ordem_exibicao: number | null
+          tipo_pipeline: string | null
+        }
+        Insert: {
+          atualizado_em?: string | null
+          criado_em?: string | null
+          descricao?: string | null
+          esta_ativo?: boolean | null
+          excluido_em?: string | null
+          id?: string
+          nome: string
+          ordem_exibicao?: number | null
+          tipo_pipeline?: string | null
+        }
+        Update: {
+          atualizado_em?: string | null
+          criado_em?: string | null
+          descricao?: string | null
+          esta_ativo?: boolean | null
+          excluido_em?: string | null
+          id?: string
+          nome?: string
+          ordem_exibicao?: number | null
+          tipo_pipeline?: string | null
+        }
+        Relationships: []
       }
       produtos: {
         Row: {
@@ -318,6 +1447,96 @@ export type Database = {
           responsavel?: string | null
           unidade_medida?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      produtos_catalogo: {
+        Row: {
+          atualizado_em: string | null
+          categoria: string | null
+          codigo_produto: string | null
+          criado_em: string | null
+          descricao: string | null
+          eh_recorrente: boolean | null
+          esta_ativo: boolean | null
+          excluido_em: string | null
+          familia_produto: string | null
+          fornecedor: string | null
+          frequencia_cobranca: string | null
+          id: string
+          nivel_reposicao: number | null
+          nome_produto: string
+          preco_custo: number | null
+          preco_unitario: number | null
+          quantidade_disponivel: number | null
+          sku: string | null
+          taxa_imposto: number | null
+        }
+        Insert: {
+          atualizado_em?: string | null
+          categoria?: string | null
+          codigo_produto?: string | null
+          criado_em?: string | null
+          descricao?: string | null
+          eh_recorrente?: boolean | null
+          esta_ativo?: boolean | null
+          excluido_em?: string | null
+          familia_produto?: string | null
+          fornecedor?: string | null
+          frequencia_cobranca?: string | null
+          id?: string
+          nivel_reposicao?: number | null
+          nome_produto: string
+          preco_custo?: number | null
+          preco_unitario?: number | null
+          quantidade_disponivel?: number | null
+          sku?: string | null
+          taxa_imposto?: number | null
+        }
+        Update: {
+          atualizado_em?: string | null
+          categoria?: string | null
+          codigo_produto?: string | null
+          criado_em?: string | null
+          descricao?: string | null
+          eh_recorrente?: boolean | null
+          esta_ativo?: boolean | null
+          excluido_em?: string | null
+          familia_produto?: string | null
+          fornecedor?: string | null
+          frequencia_cobranca?: string | null
+          id?: string
+          nivel_reposicao?: number | null
+          nome_produto?: string
+          preco_custo?: number | null
+          preco_unitario?: number | null
+          quantidade_disponivel?: number | null
+          sku?: string | null
+          taxa_imposto?: number | null
+        }
+        Relationships: []
+      }
+      tags: {
+        Row: {
+          categoria: string | null
+          cor: string | null
+          criado_em: string | null
+          id: string
+          nome: string
+        }
+        Insert: {
+          categoria?: string | null
+          cor?: string | null
+          criado_em?: string | null
+          id?: string
+          nome: string
+        }
+        Update: {
+          categoria?: string | null
+          cor?: string | null
+          criado_em?: string | null
+          id?: string
+          nome?: string
         }
         Relationships: []
       }
@@ -547,6 +1766,26 @@ export type Database = {
           user_id: string
         }[]
       }
+      gtrgm_compress: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      gtrgm_decompress: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      gtrgm_in: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      gtrgm_options: {
+        Args: { "": unknown }
+        Returns: undefined
+      }
+      gtrgm_out: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
       has_any_role: {
         Args: {
           _roles: Database["public"]["Enums"]["app_role"][]
@@ -568,6 +1807,18 @@ export type Database = {
           roles: Database["public"]["Enums"]["app_role"][]
           user_id: string
         }[]
+      }
+      set_limit: {
+        Args: { "": number }
+        Returns: number
+      }
+      show_limit: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
+      show_trgm: {
+        Args: { "": string }
+        Returns: string[]
       }
     }
     Enums: {
