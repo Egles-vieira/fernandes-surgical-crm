@@ -70,7 +70,7 @@ export default function ClienteDetalhes() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto py-6 space-y-6">
+    <div className="px-4 py-6 space-y-6 max-w-full">
         <Skeleton className="h-12 w-64" />
         <Skeleton className="h-96 w-full" />
       </div>
@@ -79,7 +79,7 @@ export default function ClienteDetalhes() {
 
   if (!cliente) {
     return (
-      <div className="container mx-auto py-6">
+      <div className="px-4 py-6">
         <div className="text-center">
           <p className="text-muted-foreground">Cliente não encontrado</p>
           <Button onClick={() => navigate("/clientes")} className="mt-4">
@@ -93,7 +93,7 @@ export default function ClienteDetalhes() {
   const enderecoPrincipal = cliente.enderecos?.find((e: any) => e.is_principal) || cliente.enderecos?.[0];
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className="px-4 py-6 space-y-6 max-w-full">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
