@@ -414,6 +414,42 @@ export default function ClienteDetalhes() {
               </>
             )}
           </CardContent>
+
+          <Separator className="my-0" />
+
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-base font-medium flex items-center gap-2">
+              <MapPin className="h-5 w-5" />
+              Endereços ({cliente.enderecos?.length || 0})
+            </CardTitle>
+            <Button variant="ghost" size="sm" className="text-xs">Ver Todos</Button>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {cliente.enderecos && cliente.enderecos.length > 0 ? (
+              cliente.enderecos.slice(0, 4).map((endereco: any) => (
+                <div key={endereco.id} className="p-3 rounded-lg border space-y-1">
+                  <div className="flex items-center justify-between">
+                    <p className="font-medium text-xs">{endereco.tipo || "principal"}</p>
+                    {endereco.is_principal && (
+                      <Badge variant="secondary" className="text-xs bg-tertiary/10 text-tertiary border-tertiary/20">Principal</Badge>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {endereco.endereco}
+                    {endereco.bairro && `, ${endereco.bairro}`}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {endereco.cidade} - {endereco.estado}, {endereco.cep}
+                  </p>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-6 text-muted-foreground">
+                <MapPin className="h-10 w-10 mx-auto mb-2 opacity-20" />
+                <p className="text-sm">Nenhum endereço cadastrado</p>
+              </div>
+            )}
+          </CardContent>
         </Card>
 
         {/* Middle Column - Contatos */}
@@ -494,7 +530,7 @@ export default function ClienteDetalhes() {
           </CardContent>
         </Card>
 
-        {/* Right Column - Histórico e Endereços */}
+        {/* Right Column - Histórico */}
         <Card>
           <CardHeader>
             <CardTitle className="text-base font-medium flex items-center gap-2">
@@ -507,42 +543,6 @@ export default function ClienteDetalhes() {
               <Calendar className="h-10 w-10 mx-auto mb-2 opacity-20" />
               <p className="text-sm">Nenhuma atividade registrada</p>
             </div>
-          </CardContent>
-
-          <Separator className="my-0" />
-
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-base font-medium flex items-center gap-2">
-              <MapPin className="h-5 w-5" />
-              Endereços ({cliente.enderecos?.length || 0})
-            </CardTitle>
-            <Button variant="ghost" size="sm" className="text-xs">Ver Todos</Button>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {cliente.enderecos && cliente.enderecos.length > 0 ? (
-              cliente.enderecos.slice(0, 4).map((endereco: any) => (
-                <div key={endereco.id} className="p-3 rounded-lg border space-y-1">
-                  <div className="flex items-center justify-between">
-                    <p className="font-medium text-xs">{endereco.tipo || "principal"}</p>
-                    {endereco.is_principal && (
-                      <Badge variant="secondary" className="text-xs bg-tertiary/10 text-tertiary border-tertiary/20">Principal</Badge>
-                    )}
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    {endereco.endereco}
-                    {endereco.bairro && `, ${endereco.bairro}`}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {endereco.cidade} - {endereco.estado}, {endereco.cep}
-                  </p>
-                </div>
-              ))
-            ) : (
-              <div className="text-center py-6 text-muted-foreground">
-                <MapPin className="h-10 w-10 mx-auto mb-2 opacity-20" />
-                <p className="text-sm">Nenhum endereço cadastrado</p>
-              </div>
-            )}
           </CardContent>
         </Card>
       </div>
