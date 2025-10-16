@@ -1,12 +1,18 @@
 import { useState } from "react";
 import { Search, Plus, Edit, Eye, MapPin, Phone, CreditCard, X, Upload } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { clienteSchema, type ClienteInput } from "@/lib/validations/cliente";
+import { toast } from "@/hooks/use-toast";
 
 interface Cliente {
   id: string;
@@ -95,8 +101,21 @@ export default function Clientes() {
   const [selectedCliente, setSelectedCliente] = useState<Cliente | null>(null);
   const [showDetails, setShowDetails] = useState(false);
   const [showForm, setShowForm] = useState(false);
-  const [formData, setFormData] = useState<Partial<Cliente>>({});
   const [isEditing, setIsEditing] = useState(false);
+
+  const form = useForm<ClienteInput>({
+    resolver: zodResolver(clienteSchema),
+    defaultValues: {
+      nome_abrev: "",
+      cgc: "",
+      email: "",
+      email_financeiro: "",
+      email_xml: "",
+      telefone1: "",
+      lim_credito: 0,
+      observacoes: "",
+    },
+  });
 
   const filteredClientes = clientes.filter(
     (c) =>
@@ -114,10 +133,25 @@ export default function Clientes() {
 
   const openForm = (cliente?: Cliente) => {
     if (cliente) {
-      setFormData(cliente);
+      form.reset({
+        nome_abrev: cliente.nomeAbreviado,
+        cgc: cliente.cnpj,
+        email: cliente.email,
+        lim_credito: cliente.limiteCredito,
+        observacoes: "",
+      });
       setIsEditing(true);
     } else {
-      setFormData({});
+      form.reset({
+        nome_abrev: "",
+        cgc: "",
+        email: "",
+        email_financeiro: "",
+        email_xml: "",
+        telefone1: "",
+        lim_credito: 0,
+        observacoes: "",
+      });
       setIsEditing(false);
     }
     setShowForm(true);
@@ -125,8 +159,19 @@ export default function Clientes() {
 
   const closeForm = () => {
     setShowForm(false);
-    setFormData({});
+    form.reset();
     setIsEditing(false);
+  };
+
+  const onSubmit = (data: ClienteInput) => {
+    console.log("Cliente validado:", data);
+    
+    toast({
+      title: isEditing ? "Cliente atualizado!" : "Cliente cadastrado!",
+      description: `${data.nome_abrev} foi ${isEditing ? "atualizado" : "cadastrado"} com sucesso.`,
+    });
+    
+    closeForm();
   };
 
   return (
@@ -300,141 +345,158 @@ export default function Clientes() {
         </DialogContent>
       </Dialog>
 
-      {/* Form Dialog */}
+      {/* Form Dialog com Validação */}
       <Dialog open={showForm} onOpenChange={setShowForm}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{isEditing ? "Editar Cliente" : "Novo Cliente"}</DialogTitle>
           </DialogHeader>
-          <form className="space-y-6">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="col-span-2">
-                <Label>Razão Social *</Label>
-                <Input
-                  value={formData.razaoSocial || ""}
-                  onChange={(e) => setFormData({ ...formData, razaoSocial: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label>Nome Abreviado *</Label>
-                <Input
-                  value={formData.nomeAbreviado || ""}
-                  onChange={(e) => setFormData({ ...formData, nomeAbreviado: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label>Código</Label>
-                <Input
-                  value={formData.codigo || ""}
-                  onChange={(e) => setFormData({ ...formData, codigo: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label>CNPJ *</Label>
-                <Input
-                  value={formData.cnpj || ""}
-                  onChange={(e) => setFormData({ ...formData, cnpj: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label>Inscrição Estadual</Label>
-                <Input
-                  value={formData.inscricaoEstadual || ""}
-                  onChange={(e) => setFormData({ ...formData, inscricaoEstadual: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label>Natureza</Label>
-                <Select
-                  value={formData.natureza || ""}
-                  onValueChange={(value) => setFormData({ ...formData, natureza: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Jurídica">Jurídica</SelectItem>
-                    <SelectItem value="Física">Física</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>CEP</Label>
-                <Input
-                  value={formData.cep || ""}
-                  onChange={(e) => setFormData({ ...formData, cep: e.target.value })}
-                />
-              </div>
-              <div className="col-span-2">
-                <Label>Rua/Endereço</Label>
-                <Input
-                  value={formData.rua || ""}
-                  onChange={(e) => setFormData({ ...formData, rua: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label>Bairro</Label>
-                <Input
-                  value={formData.bairro || ""}
-                  onChange={(e) => setFormData({ ...formData, bairro: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label>Cidade</Label>
-                <Input
-                  value={formData.cidade || ""}
-                  onChange={(e) => setFormData({ ...formData, cidade: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label>Estado</Label>
-                <Input
-                  value={formData.estado || ""}
-                  onChange={(e) => setFormData({ ...formData, estado: e.target.value })}
-                  maxLength={2}
-                />
-              </div>
-              <div>
-                <Label>Telefone</Label>
-                <Input
-                  value={formData.telefone || ""}
-                  onChange={(e) => setFormData({ ...formData, telefone: e.target.value })}
-                />
-              </div>
-              <div className="col-span-2">
-                <Label>E-mail</Label>
-                <Input
-                  type="email"
-                  value={formData.email || ""}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label>Limite de Crédito</Label>
-                <Input
-                  type="number"
-                  value={formData.limiteCredito || ""}
-                  onChange={(e) => setFormData({ ...formData, limiteCredito: Number(e.target.value) })}
-                />
-              </div>
-              <div>
-                <Label>Condição de Pagamento</Label>
-                <Input
-                  value={formData.condicaoPagamento || ""}
-                  onChange={(e) => setFormData({ ...formData, condicaoPagamento: e.target.value })}
-                />
-              </div>
-            </div>
 
-            <div className="flex gap-3 justify-end pt-4 border-t">
-              <Button type="button" variant="outline" onClick={closeForm}>
-                Cancelar
-              </Button>
-              <Button type="button" className="bg-primary hover:bg-primary/90">
-                {isEditing ? "Salvar Alterações" : "Cadastrar Cliente"}
-              </Button>
-            </div>
-          </form>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              {form.formState.errors.root && (
+                <Alert variant="destructive">
+                  <AlertDescription>{form.formState.errors.root.message}</AlertDescription>
+                </Alert>
+              )}
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="nome_abrev"
+                  render={({ field }) => (
+                    <FormItem className="col-span-2">
+                      <FormLabel>Nome do Cliente *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ex: H PREMIUM" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="cgc"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>CNPJ/CPF</FormLabel>
+                      <FormControl>
+                        <Input placeholder="00.000.000/0000-00" {...field} value={field.value || ""} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="telefone1"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Telefone</FormLabel>
+                      <FormControl>
+                        <Input placeholder="(00) 0000-0000" {...field} value={field.value || ""} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>E-mail Principal</FormLabel>
+                      <FormControl>
+                        <Input type="email" placeholder="contato@exemplo.com" {...field} value={field.value || ""} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="email_financeiro"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>E-mail Financeiro</FormLabel>
+                      <FormControl>
+                        <Input type="email" placeholder="financeiro@exemplo.com" {...field} value={field.value || ""} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="email_xml"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>E-mail XML</FormLabel>
+                      <FormControl>
+                        <Input type="email" placeholder="nfe@exemplo.com" {...field} value={field.value || ""} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="lim_credito"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Limite de Crédito (R$)</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          step="0.01" 
+                          placeholder="0.00" 
+                          {...field}
+                          onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="observacoes"
+                  render={({ field }) => (
+                    <FormItem className="col-span-2">
+                      <FormLabel>Observações</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Informações adicionais" {...field} value={field.value || ""} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="flex gap-3 justify-end pt-4 border-t">
+                <Button type="button" variant="outline" onClick={closeForm}>
+                  Cancelar
+                </Button>
+                <Button 
+                  type="submit" 
+                  className="bg-primary hover:bg-primary/90"
+                  disabled={form.formState.isSubmitting}
+                >
+                  {form.formState.isSubmitting 
+                    ? "Salvando..." 
+                    : isEditing ? "Salvar Alterações" : "Cadastrar Cliente"
+                  }
+                </Button>
+              </div>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
     </div>
