@@ -84,9 +84,9 @@ export default function WhatsAppChat({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-full sm:w-[500px] p-0 flex flex-col">
+      <SheetContent side="right" className="w-full sm:w-[600px] lg:w-[700px] p-0 flex flex-col">
         {/* Header */}
-        <SheetHeader className="bg-primary text-primary-foreground p-4 space-y-0">
+        <SheetHeader className="gradient-primary p-4 space-y-0 shadow-elegant">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3 flex-1">
               <Avatar className="h-10 w-10">
@@ -132,7 +132,7 @@ export default function WhatsAppChat({
         </SheetHeader>
 
         {/* Messages Area */}
-        <ScrollArea className="flex-1 bg-muted/30">
+        <ScrollArea className="flex-1 gradient-subtle">
           <div className="p-4 space-y-4">
             {messages.map((msg) => (
               <div
@@ -140,10 +140,10 @@ export default function WhatsAppChat({
                 className={`flex ${msg.sent ? "justify-end" : "justify-start"}`}
               >
                 <div
-                  className={`max-w-[75%] rounded-lg px-4 py-2 ${
+                  className={`max-w-[75%] rounded-lg px-4 py-2 transition-all ${
                     msg.sent
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-background border shadow-sm"
+                      ? "gradient-primary text-primary-foreground shadow-elegant"
+                      : "bg-card border-border shadow-sm"
                   }`}
                 >
                   <p className="text-sm whitespace-pre-wrap break-words">{msg.text}</p>
@@ -168,21 +168,21 @@ export default function WhatsAppChat({
         </ScrollArea>
 
         {/* Input Area */}
-        <div className="border-t bg-background p-4">
+        <div className="border-t border-border bg-card p-4 shadow-elegant">
           <div className="flex items-end gap-2">
             <Button
               size="icon"
               variant="ghost"
-              className="h-10 w-10 shrink-0"
+              className="h-10 w-10 shrink-0 hover:bg-muted"
             >
-              <Smile className="h-5 w-5" />
+              <Smile className="h-5 w-5 text-muted-foreground" />
             </Button>
             <Button
               size="icon"
               variant="ghost"
-              className="h-10 w-10 shrink-0"
+              className="h-10 w-10 shrink-0 hover:bg-muted"
             >
-              <Paperclip className="h-5 w-5" />
+              <Paperclip className="h-5 w-5 text-muted-foreground" />
             </Button>
             <div className="flex-1">
               <Input
@@ -197,7 +197,7 @@ export default function WhatsAppChat({
               size="icon"
               onClick={handleSendMessage}
               disabled={!message.trim()}
-              className="h-10 w-10 shrink-0"
+              className="h-10 w-10 shrink-0 gradient-primary shadow-elegant hover:opacity-90 transition-opacity"
             >
               <Send className="h-5 w-5" />
             </Button>
