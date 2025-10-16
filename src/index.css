@@ -24,6 +24,9 @@ All colors MUST be HSL.
     --secondary: 73 53% 57%; /* #aacb55 - Lime green */
     --secondary-foreground: 176 95% 10%;
 
+    --tertiary: 195 76% 32%; /* #136f9e - Blue teal */
+    --tertiary-foreground: 0 0% 100%;
+
     --success: 102 39% 56%; /* #7ab467 - Green */
     --success-foreground: 0 0% 100%;
 
@@ -44,6 +47,8 @@ All colors MUST be HSL.
 
     /* Gradients */
     --gradient-primary: linear-gradient(135deg, hsl(176 95% 19%), hsl(174 37% 38%));
+    --gradient-secondary: linear-gradient(135deg, hsl(73 53% 57%), hsl(102 39% 56%));
+    --gradient-tertiary: linear-gradient(135deg, hsl(195 76% 32%), hsl(176 95% 19%));
     --gradient-success: linear-gradient(135deg, hsl(102 39% 56%), hsl(73 53% 57%));
     --gradient-subtle: linear-gradient(180deg, hsl(145 43% 98%), hsl(145 43% 93%));
 
@@ -85,6 +90,9 @@ All colors MUST be HSL.
     --secondary: 73 53% 47%;
     --secondary-foreground: 0 0% 100%;
 
+    --tertiary: 195 76% 42%; /* Lighter blue teal for dark mode */
+    --tertiary-foreground: 0 0% 100%;
+
     --muted: 176 40% 20%;
     --muted-foreground: 145 30% 65%;
 
@@ -99,6 +107,8 @@ All colors MUST be HSL.
     --ring: 174 37% 48%;
 
     --gradient-primary: linear-gradient(135deg, hsl(176 80% 20%), hsl(174 37% 38%));
+    --gradient-secondary: linear-gradient(135deg, hsl(73 53% 47%), hsl(102 39% 46%));
+    --gradient-tertiary: linear-gradient(135deg, hsl(195 76% 42%), hsl(176 80% 20%));
     --gradient-success: linear-gradient(135deg, hsl(102 39% 46%), hsl(73 53% 47%));
     --gradient-subtle: linear-gradient(180deg, hsl(176 95% 10%), hsl(176 80% 12%));
     
@@ -125,6 +135,14 @@ All colors MUST be HSL.
 @layer utilities {
   .gradient-primary {
     background: var(--gradient-primary);
+  }
+
+  .gradient-secondary {
+    background: var(--gradient-secondary);
+  }
+
+  .gradient-tertiary {
+    background: var(--gradient-tertiary);
   }
 
   .gradient-success {
