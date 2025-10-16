@@ -25,6 +25,7 @@ export type Database = {
           cod_suframa: string | null
           coligada: string | null
           cond_pag_fixa: Database["public"]["Enums"]["yes_no"] | null
+          conta_id: string | null
           created_at: string
           e_mail: string | null
           email_financeiro: string | null
@@ -55,6 +56,7 @@ export type Database = {
           cod_suframa?: string | null
           coligada?: string | null
           cond_pag_fixa?: Database["public"]["Enums"]["yes_no"] | null
+          conta_id?: string | null
           created_at?: string
           e_mail?: string | null
           email_financeiro?: string | null
@@ -85,6 +87,7 @@ export type Database = {
           cod_suframa?: string | null
           coligada?: string | null
           cond_pag_fixa?: Database["public"]["Enums"]["yes_no"] | null
+          conta_id?: string | null
           created_at?: string
           e_mail?: string | null
           email_financeiro?: string | null
@@ -105,7 +108,22 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "clientes_conta_id_fkey"
+            columns: ["conta_id"]
+            isOneToOne: false
+            referencedRelation: "contas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clientes_conta_id_fkey"
+            columns: ["conta_id"]
+            isOneToOne: false
+            referencedRelation: "vw_clientes_completo"
+            referencedColumns: ["conta_id"]
+          },
+        ]
       }
       condicoes_pagamento: {
         Row: {
@@ -210,6 +228,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "contas_conta_pai_id_fkey"
+            columns: ["conta_pai_id"]
+            isOneToOne: false
+            referencedRelation: "vw_clientes_completo"
+            referencedColumns: ["conta_id"]
+          },
+          {
             foreignKeyName: "contas_endereco_cobranca_id_fkey"
             columns: ["endereco_cobranca_id"]
             isOneToOne: false
@@ -232,6 +257,7 @@ export type Database = {
           cancelou_inscricao_email: boolean | null
           cargo: string | null
           celular: string | null
+          cliente_id: string | null
           conta_id: string | null
           criado_em: string | null
           criado_por: string | null
@@ -264,6 +290,7 @@ export type Database = {
           cancelou_inscricao_email?: boolean | null
           cargo?: string | null
           celular?: string | null
+          cliente_id?: string | null
           conta_id?: string | null
           criado_em?: string | null
           criado_por?: string | null
@@ -296,6 +323,7 @@ export type Database = {
           cancelou_inscricao_email?: boolean | null
           cargo?: string | null
           celular?: string | null
+          cliente_id?: string | null
           conta_id?: string | null
           criado_em?: string | null
           criado_por?: string | null
@@ -324,11 +352,32 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "contatos_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contatos_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "vw_clientes_completo"
+            referencedColumns: ["cliente_id"]
+          },
+          {
             foreignKeyName: "contatos_conta_id_fkey"
             columns: ["conta_id"]
             isOneToOne: false
             referencedRelation: "contas"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contatos_conta_id_fkey"
+            columns: ["conta_id"]
+            isOneToOne: false
+            referencedRelation: "vw_clientes_completo"
+            referencedColumns: ["conta_id"]
           },
           {
             foreignKeyName: "contatos_endereco_correspondencia_id_fkey"
@@ -435,6 +484,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "contas"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cotacoes_conta_id_fkey"
+            columns: ["conta_id"]
+            isOneToOne: false
+            referencedRelation: "vw_clientes_completo"
+            referencedColumns: ["conta_id"]
           },
           {
             foreignKeyName: "cotacoes_contato_id_fkey"
@@ -626,6 +682,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "clientes"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "enderecos_clientes_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "vw_clientes_completo"
+            referencedColumns: ["cliente_id"]
           },
         ]
       }
@@ -1104,6 +1167,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "oportunidades_conta_id_fkey"
+            columns: ["conta_id"]
+            isOneToOne: false
+            referencedRelation: "vw_clientes_completo"
+            referencedColumns: ["conta_id"]
+          },
+          {
             foreignKeyName: "oportunidades_contato_id_fkey"
             columns: ["contato_id"]
             isOneToOne: false
@@ -1230,6 +1300,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "contas"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "perfis_sociais_conta_id_fkey"
+            columns: ["conta_id"]
+            isOneToOne: false
+            referencedRelation: "vw_clientes_completo"
+            referencedColumns: ["conta_id"]
           },
           {
             foreignKeyName: "perfis_sociais_contato_id_fkey"
@@ -1750,7 +1827,33 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      vw_clientes_completo: {
+        Row: {
+          cgc: string | null
+          classificacao: string | null
+          cliente_id: string | null
+          conta_id: string | null
+          contatos: Json | null
+          e_mail: string | null
+          estagio_ciclo_vida: string | null
+          ins_estadual: string | null
+          lim_credito: number | null
+          limite_disponivel: number | null
+          nome_abrev: string | null
+          nome_conta: string | null
+          nome_emit: string | null
+          numero_funcionarios: number | null
+          origem_lead: string | null
+          proprietario_id: string | null
+          receita_anual: number | null
+          setor: string | null
+          site: string | null
+          telefone1: string | null
+          tipo_conta: string | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       get_user_roles: {
