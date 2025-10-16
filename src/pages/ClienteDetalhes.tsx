@@ -31,12 +31,15 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import NovoContatoDialog from "@/components/cliente/NovoContatoDialog";
 import NovaOportunidadeDialog from "@/components/cliente/NovaOportunidadeDialog";
+import WhatsAppChat from "@/components/cliente/WhatsAppChat";
 
 export default function ClienteDetalhes() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [novoContatoOpen, setNovoContatoOpen] = useState(false);
   const [novaOportunidadeOpen, setNovaOportunidadeOpen] = useState(false);
+  const [whatsappChatOpen, setWhatsappChatOpen] = useState(false);
+  const [selectedContact, setSelectedContact] = useState<any>(null);
 
   const { data: cliente, isLoading } = useQuery({
     queryKey: ["cliente", id],
@@ -507,7 +510,10 @@ export default function ClienteDetalhes() {
                         size="sm"
                         variant="outline"
                         className="flex-1 h-8 text-xs"
-                        onClick={() => window.open(`https://wa.me/${contato.celular.replace(/\D/g, '')}`, '_blank')}
+                        onClick={() => {
+                          setSelectedContact(contato);
+                          setWhatsappChatOpen(true);
+                        }}
                       >
                         <MessageSquare className="h-3 w-3 mr-1" />
                         WhatsApp
@@ -556,6 +562,16 @@ export default function ClienteDetalhes() {
         clienteId={id!}
         contaId={cliente.conta_id}
       />
+
+      {selectedContact && (
+        <WhatsAppChat
+          open={whatsappChatOpen}
+          onOpenChange={setWhatsappChatOpen}
+          contactName={selectedContact.nome_completo}
+          contactInitials={`${selectedContact.primeiro_nome?.charAt(0) || ''}${selectedContact.sobrenome?.charAt(0) || ''}`}
+          phoneNumber={selectedContact.celular}
+        />
+      )}
     </div>
   );
 }
