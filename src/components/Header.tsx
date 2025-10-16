@@ -4,14 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 interface HeaderProps {
   collapsed: boolean;
   onToggle: () => void;
@@ -22,8 +15,10 @@ export default function Header({
 }: HeaderProps) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
-
+  const {
+    user,
+    signOut
+  } = useAuth();
   const handleLogout = async () => {
     await signOut();
     navigate("/auth");
@@ -72,9 +67,7 @@ export default function Header({
       <div className="flex items-center gap-6 w-full">
         {/* Botão de Toggle do Menu + Título e Breadcrumb */}
         <div className="flex items-center gap-3 min-w-[200px]">
-          <button onClick={onToggle} className="p-2 hover:bg-muted rounded-lg transition-all duration-200 hover:scale-110 group" aria-label={collapsed ? "Expandir menu" : "Recolher menu"}>
-            <Menu size={20} className="text-foreground transition-transform group-hover:rotate-180" />
-          </button>
+          
           
           <div>
             <h2 className="text-lg font-bold text-foreground">{pageInfo.title}</h2>
