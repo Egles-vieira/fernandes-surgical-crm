@@ -46,6 +46,8 @@ const menuItems: MenuItem[] = [
     label: "Vendas",
     children: [
       { path: "/vendas", icon: FileText, label: "Propostas" },
+      { path: "/vendas/pedidos", icon: ShoppingCart, label: "Pedidos" },
+      { path: "/vendas/contratos", icon: FileText, label: "Relatórios" },
     ],
   },
   {
