@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import ThemeCustomizer from "./ThemeCustomizer";
 interface HeaderProps {
   collapsed: boolean;
   onToggle: () => void;
@@ -92,6 +93,8 @@ export default function Header({
 
         {/* Ações e Usuário */}
         <div className="flex items-center gap-4 ml-auto">
+          <ThemeCustomizer />
+          
           <Button variant="ghost" size="sm" className="relative">
             <Bell size={18} />
             <span className="absolute -top-1 -right-1 h-4 w-4 bg-destructive rounded-full text-[10px] text-white flex items-center justify-center">
