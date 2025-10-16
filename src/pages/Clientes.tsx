@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, Plus, Edit, Eye, MapPin, Phone, CreditCard, X, Upload } from "lucide-react";
+import { Search, Plus, Edit, Eye, MapPin, Phone, Upload, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -8,100 +8,32 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { clienteSchema, type ClienteInput } from "@/lib/validations/cliente";
-import { toast } from "@/hooks/use-toast";
-
-interface Cliente {
-  id: string;
-  codigo: string;
-  razaoSocial: string;
-  nomeAbreviado: string;
-  cnpj: string;
-  inscricaoEstadual: string;
-  natureza: string;
-  rua: string;
-  bairro: string;
-  cep: string;
-  cidade: string;
-  estado: string;
-  telefone: string;
-  email: string;
-  limiteCredito: number;
-  creditoDisponivel: number;
-  condicaoPagamento: string;
-}
-
-const clientesMock: Cliente[] = [
-  {
-    id: "1",
-    codigo: "32292",
-    razaoSocial: "H PREMIUM REPRESENTACOES LTDA",
-    nomeAbreviado: "H PREMIUM",
-    cnpj: "11.316.220/0001-45",
-    inscricaoEstadual: "123456789",
-    natureza: "Jurídica",
-    rua: "Padrão AVENIDA T-4 1445 QUADRA 168 LOTE 14 S",
-    bairro: "Setor Bueno",
-    cep: "74230-030",
-    cidade: "Goiânia",
-    estado: "GO",
-    telefone: "(62) 3241-5500",
-    email: "contato@hpremium.com.br",
-    limiteCredito: 50000,
-    creditoDisponivel: 48254.24,
-    condicaoPagamento: "ESPECIAL",
-  },
-  {
-    id: "2",
-    codigo: "32293",
-    razaoSocial: "MEDICAL CENTER DISTRIBUIDORA LTDA",
-    nomeAbreviado: "MEDICAL CENTER",
-    cnpj: "12.345.678/0001-90",
-    inscricaoEstadual: "987654321",
-    natureza: "Jurídica",
-    rua: "Rua das Flores, 500",
-    bairro: "Centro",
-    cep: "74000-000",
-    cidade: "Goiânia",
-    estado: "GO",
-    telefone: "(62) 3333-4444",
-    email: "contato@medicalcenter.com.br",
-    limiteCredito: 30000,
-    creditoDisponivel: 15000,
-    condicaoPagamento: "30 DIAS",
-  },
-  {
-    id: "3",
-    codigo: "32294",
-    razaoSocial: "AYA REPRESENTACOES LTDA",
-    nomeAbreviado: "AYA REPRESENTACOES",
-    cnpj: "98.765.432/0001-10",
-    inscricaoEstadual: "456789123",
-    natureza: "Jurídica",
-    rua: "Avenida Principal, 1000",
-    bairro: "Setor Sul",
-    cep: "74000-100",
-    cidade: "Goiânia",
-    estado: "GO",
-    telefone: "(62) 3555-6666",
-    email: "contato@aya.com.br",
-    limiteCredito: 75000,
-    creditoDisponivel: 60000,
-    condicaoPagamento: "45 DIAS",
-  },
-];
+import { useClientes } from "@/hooks/useClientes";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function Clientes() {
   const navigate = useNavigate();
-  const [clientes] = useState<Cliente[]>(clientesMock);
+  const { clientes, isLoading, createCliente, updateCliente, deleteCliente } = useClientes();
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCliente, setSelectedCliente] = useState<Cliente | null>(null);
+  const [selectedCliente, setSelectedCliente] = useState<any>(null);
   const [showDetails, setShowDetails] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [clienteToDelete, setClienteToDelete] = useState<string | null>(null);
 
   const form = useForm<ClienteInput>({
     resolver: zodResolver(clienteSchema),
@@ -119,9 +51,9 @@ export default function Clientes() {
 
   const filteredClientes = clientes.filter(
     (c) =>
-      c.nomeAbreviado.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      c.cnpj.includes(searchTerm) ||
-      c.cidade.toLowerCase().includes(searchTerm.toLowerCase())
+      (c.nome_abrev?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
+      (c.cgc || "").includes(searchTerm) ||
+      (c.nome_emit?.toLowerCase() || "").includes(searchTerm.toLowerCase())
   );
 
   const formatCurrency = (value: number) => {
@@ -131,17 +63,25 @@ export default function Clientes() {
     }).format(value);
   };
 
-  const openForm = (cliente?: Cliente) => {
+  const openForm = (cliente?: any) => {
     if (cliente) {
+      setSelectedCliente(cliente);
       form.reset({
-        nome_abrev: cliente.nomeAbreviado,
-        cgc: cliente.cnpj,
-        email: cliente.email,
-        lim_credito: cliente.limiteCredito,
-        observacoes: "",
+        nome_abrev: cliente.nome_abrev || "",
+        cgc: cliente.cgc || "",
+        email: cliente.e_mail || "",
+        email_financeiro: cliente.email_financeiro || "",
+        email_xml: cliente.email_xml || "",
+        telefone1: cliente.telefone1 || "",
+        lim_credito: cliente.lim_credito || 0,
+        observacoes: cliente.observacoes || "",
+        ins_estadual: cliente.ins_estadual || "",
+        atividade: cliente.atividade || "",
+        coligada: cliente.coligada || "",
       });
       setIsEditing(true);
     } else {
+      setSelectedCliente(null);
       form.reset({
         nome_abrev: "",
         cgc: "",
@@ -151,6 +91,9 @@ export default function Clientes() {
         telefone1: "",
         lim_credito: 0,
         observacoes: "",
+        ins_estadual: "",
+        atividade: "",
+        coligada: "",
       });
       setIsEditing(false);
     }
@@ -163,15 +106,32 @@ export default function Clientes() {
     setIsEditing(false);
   };
 
-  const onSubmit = (data: ClienteInput) => {
-    console.log("Cliente validado:", data);
-    
-    toast({
-      title: isEditing ? "Cliente atualizado!" : "Cliente cadastrado!",
-      description: `${data.nome_abrev} foi ${isEditing ? "atualizado" : "cadastrado"} com sucesso.`,
-    });
-    
-    closeForm();
+  const onSubmit = async (data: ClienteInput) => {
+    try {
+      if (isEditing && selectedCliente) {
+        await updateCliente.mutateAsync({
+          id: selectedCliente.id,
+          ...data,
+        });
+      } else {
+        await createCliente.mutateAsync(data);
+      }
+      closeForm();
+    } catch (error) {
+      console.error("Erro ao salvar cliente:", error);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (clienteToDelete) {
+      try {
+        await deleteCliente.mutateAsync(clienteToDelete);
+        setDeleteDialogOpen(false);
+        setClienteToDelete(null);
+      } catch (error) {
+        console.error("Erro ao excluir cliente:", error);
+      }
+    }
   };
 
   return (
@@ -206,74 +166,111 @@ export default function Clientes() {
       </div>
 
       {/* Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredClientes.map((cliente) => (
-          <Card key={cliente.id} className="p-6 shadow-elegant hover:shadow-lg transition-all">
-            <div className="space-y-4">
-              <div>
-                <div className="flex items-start justify-between mb-2">
-                  <h3 className="font-semibold text-lg">{cliente.nomeAbreviado}</h3>
-                  <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
-                    {cliente.codigo}
-                  </span>
+      {isLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3].map((i) => (
+            <Card key={i} className="p-6">
+              <Skeleton className="h-6 w-3/4 mb-4" />
+              <Skeleton className="h-4 w-1/2 mb-2" />
+              <Skeleton className="h-4 w-full mb-2" />
+              <Skeleton className="h-4 w-full" />
+            </Card>
+          ))}
+        </div>
+      ) : filteredClientes.length === 0 ? (
+        <Card className="p-12 text-center">
+          <p className="text-muted-foreground">Nenhum cliente encontrado.</p>
+          <Button onClick={() => openForm()} className="mt-4">
+            Cadastrar primeiro cliente
+          </Button>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredClientes.map((cliente) => (
+            <Card key={cliente.id} className="p-6 shadow-elegant hover:shadow-lg transition-all">
+              <div className="space-y-4">
+                <div>
+                  <div className="flex items-start justify-between mb-2">
+                    <h3 className="font-semibold text-lg">{cliente.nome_abrev}</h3>
+                    {cliente.cod_emitente && (
+                      <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
+                        {cliente.cod_emitente}
+                      </span>
+                    )}
+                  </div>
+                  {cliente.nome_emit && (
+                    <p className="text-sm text-muted-foreground mb-1">{cliente.nome_emit}</p>
+                  )}
+                  {cliente.cgc && (
+                    <p className="text-sm text-muted-foreground">{cliente.cgc}</p>
+                  )}
                 </div>
-                <p className="text-sm text-muted-foreground">{cliente.cnpj}</p>
-              </div>
 
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <MapPin size={14} />
-                  <span>{cliente.cidade}/{cliente.estado}</span>
+                <div className="space-y-2 text-sm">
+                  {cliente.telefone1 && (
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <Phone size={14} />
+                      <span>{cliente.telefone1}</span>
+                    </div>
+                  )}
+                  {cliente.e_mail && (
+                    <div className="flex items-center gap-2 text-muted-foreground truncate">
+                      <span className="truncate">{cliente.e_mail}</span>
+                    </div>
+                  )}
                 </div>
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Phone size={14} />
-                  <span>{cliente.telefone}</span>
-                </div>
-              </div>
 
-              <div className="pt-4 border-t">
-                <div className="flex items-center justify-between text-sm mb-1">
-                  <span className="text-muted-foreground">Limite:</span>
-                  <span className="font-semibold">{formatCurrency(cliente.limiteCredito)}</span>
+                <div className="pt-4 border-t">
+                  <div className="flex items-center justify-between text-sm mb-1">
+                    <span className="text-muted-foreground">Limite:</span>
+                    <span className="font-semibold">{formatCurrency(cliente.lim_credito || 0)}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm mb-2">
+                    <span className="text-muted-foreground">Disponível:</span>
+                    <span className="font-semibold text-success">
+                      {formatCurrency(cliente.limite_disponivel || 0)}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between text-sm mb-2">
-                  <span className="text-muted-foreground">Disponível:</span>
-                  <span className="font-semibold text-success">
-                    {formatCurrency(cliente.creditoDisponivel)}
-                  </span>
-                </div>
-                <div className="text-xs text-center py-1 bg-muted rounded">
-                  {cliente.condicaoPagamento}
-                </div>
-              </div>
 
-              <div className="flex gap-2 pt-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex-1"
-                  onClick={() => {
-                    setSelectedCliente(cliente);
-                    setShowDetails(true);
-                  }}
-                >
-                  <Eye size={14} className="mr-1" />
-                  Ver
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex-1"
-                  onClick={() => openForm(cliente)}
-                >
-                  <Edit size={14} className="mr-1" />
-                  Editar
-                </Button>
+                <div className="flex gap-2 pt-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => {
+                      setSelectedCliente(cliente);
+                      setShowDetails(true);
+                    }}
+                  >
+                    <Eye size={14} className="mr-1" />
+                    Ver
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => openForm(cliente)}
+                  >
+                    <Edit size={14} className="mr-1" />
+                    Editar
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setClienteToDelete(cliente.id);
+                      setDeleteDialogOpen(true);
+                    }}
+                  >
+                    <Trash2 size={14} />
+                  </Button>
+                </div>
               </div>
-            </div>
-          </Card>
-        ))}
-      </div>
+            </Card>
+          ))}
+        </div>
+      )}
 
       {/* Details Dialog */}
       <Dialog open={showDetails} onOpenChange={setShowDetails}>
@@ -285,65 +282,99 @@ export default function Clientes() {
             <div className="space-y-6">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-xs text-muted-foreground">Razão Social</Label>
-                  <p className="font-medium">{selectedCliente.razaoSocial}</p>
-                </div>
-                <div>
                   <Label className="text-xs text-muted-foreground">Nome Abreviado</Label>
-                  <p className="font-medium">{selectedCliente.nomeAbreviado}</p>
+                  <p className="font-medium">{selectedCliente.nome_abrev}</p>
                 </div>
-                <div>
-                  <Label className="text-xs text-muted-foreground">CNPJ</Label>
-                  <p className="font-medium">{selectedCliente.cnpj}</p>
-                </div>
-                <div>
-                  <Label className="text-xs text-muted-foreground">Inscrição Estadual</Label>
-                  <p className="font-medium">{selectedCliente.inscricaoEstadual}</p>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-xs text-muted-foreground">Endereço Completo</Label>
-                <p className="font-medium">
-                  {selectedCliente.rua}, {selectedCliente.bairro}
-                  <br />
-                  CEP: {selectedCliente.cep} - {selectedCliente.cidade}/{selectedCliente.estado}
-                </p>
+                {selectedCliente.nome_emit && (
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Razão Social</Label>
+                    <p className="font-medium">{selectedCliente.nome_emit}</p>
+                  </div>
+                )}
+                {selectedCliente.cgc && (
+                  <div>
+                    <Label className="text-xs text-muted-foreground">CNPJ/CPF</Label>
+                    <p className="font-medium">{selectedCliente.cgc}</p>
+                  </div>
+                )}
+                {selectedCliente.ins_estadual && (
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Inscrição Estadual</Label>
+                    <p className="font-medium">{selectedCliente.ins_estadual}</p>
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-xs text-muted-foreground">Telefone</Label>
-                  <p className="font-medium">{selectedCliente.telefone}</p>
-                </div>
-                <div>
-                  <Label className="text-xs text-muted-foreground">E-mail</Label>
-                  <p className="font-medium">{selectedCliente.email}</p>
-                </div>
+                {selectedCliente.telefone1 && (
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Telefone</Label>
+                    <p className="font-medium">{selectedCliente.telefone1}</p>
+                  </div>
+                )}
+                {selectedCliente.e_mail && (
+                  <div>
+                    <Label className="text-xs text-muted-foreground">E-mail</Label>
+                    <p className="font-medium">{selectedCliente.e_mail}</p>
+                  </div>
+                )}
+                {selectedCliente.email_financeiro && (
+                  <div>
+                    <Label className="text-xs text-muted-foreground">E-mail Financeiro</Label>
+                    <p className="font-medium">{selectedCliente.email_financeiro}</p>
+                  </div>
+                )}
+                {selectedCliente.email_xml && (
+                  <div>
+                    <Label className="text-xs text-muted-foreground">E-mail XML</Label>
+                    <p className="font-medium">{selectedCliente.email_xml}</p>
+                  </div>
+                )}
               </div>
 
-              <div className="grid grid-cols-3 gap-4 pt-4 border-t">
+              {selectedCliente.observacoes && (
+                <div>
+                  <Label className="text-xs text-muted-foreground">Observações</Label>
+                  <p className="font-medium">{selectedCliente.observacoes}</p>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-4 pt-4 border-t">
                 <Card className="p-4 bg-primary/5">
                   <p className="text-xs text-muted-foreground mb-1">Limite de Crédito</p>
                   <p className="text-lg font-bold text-primary">
-                    {formatCurrency(selectedCliente.limiteCredito)}
+                    {formatCurrency(selectedCliente.lim_credito || 0)}
                   </p>
                 </Card>
                 <Card className="p-4 bg-success/5">
                   <p className="text-xs text-muted-foreground mb-1">Crédito Disponível</p>
                   <p className="text-lg font-bold text-success">
-                    {formatCurrency(selectedCliente.creditoDisponivel)}
+                    {formatCurrency(selectedCliente.limite_disponivel || 0)}
                   </p>
-                </Card>
-                <Card className="p-4 bg-muted">
-                  <p className="text-xs text-muted-foreground mb-1">Condição Pagamento</p>
-                  <p className="text-sm font-bold">{selectedCliente.condicaoPagamento}</p>
                 </Card>
               </div>
             </div>
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir este cliente? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Form Dialog com Validação */}
       <Dialog open={showForm} onOpenChange={setShowForm}>
@@ -459,6 +490,48 @@ export default function Clientes() {
                           {...field}
                           onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
                         />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="ins_estadual"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Inscrição Estadual</FormLabel>
+                      <FormControl>
+                        <Input placeholder="000.000.000.000" {...field} value={field.value || ""} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="atividade"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Atividade</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ex: Comércio, Indústria" {...field} value={field.value || ""} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="coligada"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Coligada</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Nome da coligada" {...field} value={field.value || ""} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
