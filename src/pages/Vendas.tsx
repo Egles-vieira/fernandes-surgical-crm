@@ -123,6 +123,7 @@ export default function Vendas() {
     toast({
       title: "Produto adicionado!",
       description: `${produto.nome} foi adicionado ao carrinho.`,
+      variant: "success",
     });
   };
 
