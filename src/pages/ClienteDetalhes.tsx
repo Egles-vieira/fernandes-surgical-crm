@@ -235,7 +235,10 @@ export default function ClienteDetalhes() {
 
       {/* Info Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
+        <Card 
+          className="cursor-pointer hover:shadow-md transition-shadow"
+          onClick={() => navigate(`/vendas?cliente=${cliente.cgc}`)}
+        >
           <CardHeader className="pb-1 pt-3">
             <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-2">
               <TrendingUp className="h-4 w-4" />
@@ -250,7 +253,10 @@ export default function ClienteDetalhes() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card 
+          className="cursor-pointer hover:shadow-md transition-shadow"
+          onClick={() => navigate(`/vendas?cliente=${cliente.cgc}&status=abertas`)}
+        >
           <CardHeader className="pb-1 pt-3">
             <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-2">
               <Clock className="h-4 w-4" />
