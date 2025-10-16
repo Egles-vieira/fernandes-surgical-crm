@@ -16,6 +16,7 @@ import {
   BarChart3,
   ClipboardList,
   Building2,
+  Shield,
 } from "lucide-react";
 import {
   Collapsible,
@@ -25,6 +26,7 @@ import {
 import logo from "@/assets/logo-cfernandes.webp";
 import favicon from "@/assets/favicon-cfernandes.png";
 import Header from "./Header";
+import { useRoles } from "@/hooks/useRoles";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -35,6 +37,7 @@ interface MenuItem {
   icon: any;
   label: string;
   children?: MenuItem[];
+  adminOnly?: boolean;
 }
 
 const menuItems: MenuItem[] = [
@@ -76,12 +79,14 @@ const menuItems: MenuItem[] = [
       { path: "/importar-produtos", icon: Upload, label: "Importar Produtos" },
     ],
   },
+  { path: "/usuarios", icon: Shield, label: "Usuários", adminOnly: true },
 ];
 
 export default function Layout({ children }: LayoutProps) {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
   const [openMenus, setOpenMenus] = useState<string[]>([]);
+  const { isAdmin } = useRoles();
 
   const toggleMenu = (label: string) => {
     setOpenMenus(prev =>
@@ -127,7 +132,7 @@ export default function Layout({ children }: LayoutProps) {
 
         {/* Menu Items */}
         <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-          {menuItems.map((item, index) => {
+          {menuItems.filter(item => !item.adminOnly || isAdmin).map((item, index) => {
             if (item.children) {
               const isOpen = openMenus.includes(item.label) || hasActiveChild(item);
               

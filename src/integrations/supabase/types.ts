@@ -379,22 +379,7 @@ export type Database = {
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "user_roles_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "user_roles_view"
-            referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "user_roles_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_roles_view"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       vendas: {
         Row: {
@@ -525,22 +510,22 @@ export type Database = {
       }
     }
     Views: {
-      user_roles_view: {
-        Row: {
-          email: string | null
-          full_name: string | null
-          is_admin: boolean | null
-          is_manager: boolean | null
-          is_sales: boolean | null
-          is_support: boolean | null
-          is_warehouse: boolean | null
-          roles: Database["public"]["Enums"]["app_role"][] | null
-          user_id: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
+      get_user_roles: {
+        Args: { _user_id: string }
+        Returns: {
+          email: string
+          is_admin: boolean
+          is_manager: boolean
+          is_sales: boolean
+          is_support: boolean
+          is_warehouse: boolean
+          roles: Database["public"]["Enums"]["app_role"][]
+          user_id: string
+        }[]
+      }
       has_any_role: {
         Args: {
           _roles: Database["public"]["Enums"]["app_role"][]
@@ -554,6 +539,14 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      list_users_with_roles: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          email: string
+          roles: Database["public"]["Enums"]["app_role"][]
+          user_id: string
+        }[]
       }
     }
     Enums: {

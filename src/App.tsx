@@ -12,6 +12,7 @@ import Clientes from "./pages/Clientes";
 import Produtos from "./pages/Produtos";
 import ImportarProdutos from "./pages/ImportarProdutos";
 import ImportarClientes from "./pages/ImportarClientes";
+import Usuarios from "./pages/Usuarios";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import PedidosVendas from "./pages/vendas/Pedidos";
@@ -140,6 +141,13 @@ const App = () => (
           <ProtectedRoute>
             <Layout>
               <ContratosGoverno />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/usuarios" element={
+          <ProtectedRoute>
+            <Layout>
+              <Usuarios />
             </Layout>
           </ProtectedRoute>
         } />
