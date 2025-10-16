@@ -26,12 +26,14 @@ import {
   CheckCircle2,
   Clock,
   MessageSquare,
-  Target
+  Target,
+  Package
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import NovoContatoDialog from "@/components/cliente/NovoContatoDialog";
 import NovaOportunidadeDialog from "@/components/cliente/NovaOportunidadeDialog";
 import WhatsAppChat from "@/components/cliente/WhatsAppChat";
+import HistoricoProdutos from "@/components/cliente/HistoricoProdutos";
 
 export default function ClienteDetalhes() {
   const { id } = useParams<{ id: string }>();
@@ -40,6 +42,7 @@ export default function ClienteDetalhes() {
   const [novaOportunidadeOpen, setNovaOportunidadeOpen] = useState(false);
   const [whatsappChatOpen, setWhatsappChatOpen] = useState(false);
   const [selectedContact, setSelectedContact] = useState<any>(null);
+  const [historicoProdutosOpen, setHistoricoProdutosOpen] = useState(false);
 
   const { data: cliente, isLoading } = useQuery({
     queryKey: ["cliente", id],
@@ -214,6 +217,10 @@ export default function ClienteDetalhes() {
         </div>
 
         <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => setHistoricoProdutosOpen(true)}>
+            <Package className="h-4 w-4 mr-2" />
+            Produtos Comprados
+          </Button>
           <Button variant="outline" size="sm" onClick={() => setNovoContatoOpen(true)}>
             <UserPlus className="h-4 w-4 mr-2" />
             Novo Contato
@@ -578,6 +585,13 @@ export default function ClienteDetalhes() {
           phoneNumber={selectedContact.celular}
         />
       )}
+
+      <HistoricoProdutos
+        open={historicoProdutosOpen}
+        onOpenChange={setHistoricoProdutosOpen}
+        clienteCnpj={cliente.cgc}
+        clienteNome={cliente.nome_abrev || cliente.nome_emit}
+      />
     </div>
   );
 }
