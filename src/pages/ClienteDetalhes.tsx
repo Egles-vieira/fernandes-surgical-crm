@@ -77,29 +77,25 @@ export default function ClienteDetalhes() {
     enabled: !!id,
   });
 
-  // Buscar estatísticas de oportunidades
+  // Buscar estatísticas de vendas
   const { data: stats } = useQuery({
     queryKey: ["cliente-stats", id],
     queryFn: async () => {
-      // Total de oportunidades
-      const { data: oportunidades } = await supabase
-        .from("oportunidades")
+      // Buscar vendas pelo CNPJ do cliente
+      const { data: vendas } = await supabase
+        .from("vendas")
         .select("*")
-        .eq("conta_id", cliente?.conta_id);
+        .eq("cliente_cnpj", cliente?.cgc);
 
-      // Oportunidades em aberto
-      const oportunidadesAbertas = oportunidades?.filter(o => !o.esta_fechada) || [];
+      // Vendas em aberto (não concluídas/perdidas)
+      const vendasAbertas = vendas?.filter(v => 
+        v.status !== 'concluida' && v.status !== 'perdida' && v.status !== 'cancelada'
+      ) || [];
       
-      // Última oportunidade
-      const ultimaOportunidade = oportunidades?.sort((a, b) => 
-        new Date(b.criado_em!).getTime() - new Date(a.criado_em!).getTime()
+      // Última venda
+      const ultimaVenda = vendas?.sort((a, b) => 
+        new Date(b.data_venda).getTime() - new Date(a.data_venda).getTime()
       )[0];
-
-      // Última venda (oportunidade ganha)
-      const ultimaVenda = oportunidades?.filter(o => o.foi_ganha)
-        .sort((a, b) => 
-          new Date(b.fechada_em!).getTime() - new Date(a.fechada_em!).getTime()
-        )[0];
 
       // Último contato (usando data de criação dos contatos como proxy)
       const ultimoContato = cliente?.contatos?.sort((a: any, b: any) => 
@@ -107,15 +103,14 @@ export default function ClienteDetalhes() {
       )[0];
 
       return {
-        totalOportunidades: oportunidades?.length || 0,
-        oportunidadesAbertas: oportunidadesAbertas.length,
-        valorTotalOportunidades: oportunidades?.reduce((sum, o) => sum + (o.valor || 0), 0) || 0,
-        ultimaOportunidade,
+        totalOportunidades: vendas?.length || 0,
+        oportunidadesAbertas: vendasAbertas.length,
+        valorTotalOportunidades: vendas?.reduce((sum, v) => sum + (v.valor_total || 0), 0) || 0,
         ultimaVenda,
         ultimoContato,
       };
     },
-    enabled: !!cliente?.conta_id,
+    enabled: !!cliente?.cgc,
   });
 
   if (isLoading) {
