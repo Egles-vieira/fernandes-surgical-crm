@@ -96,7 +96,7 @@ export default function Layout({ children }: LayoutProps) {
       {/* Sidebar - Responsivo com Collapse */}
       <aside
         className={`${
-          collapsed ? "w-20" : "w-64"
+          collapsed ? "w-20" : "w-56"
         } gradient-primary text-white flex flex-col fixed left-0 top-0 h-full z-50 shadow-elegant transition-all duration-300`}
       >
         {/* Logo Header com Toggle */}
@@ -175,7 +175,7 @@ export default function Layout({ children }: LayoutProps) {
                     onOpenChange={() => toggleMenu(item.label)}
                   >
                     <CollapsibleTrigger
-                      className={`group flex items-center gap-3 px-4 py-3 rounded-xl mx-2 transition-all duration-200 relative w-[calc(100%-16px)]
+                      className={`group flex items-center gap-2 px-3 py-2 rounded-xl mx-2 transition-all duration-200 relative w-[calc(100%-16px)]
                       ${
                         isAnyChildActive
                           ? "bg-white/20 text-white"
@@ -196,7 +196,7 @@ export default function Layout({ children }: LayoutProps) {
                       )}
                     </CollapsibleTrigger>
 
-                    <CollapsibleContent className="mt-1 space-y-1 pl-6 pr-2">
+                    <CollapsibleContent className="mt-1 space-y-1 pl-5 pr-2">
                       {item.children.map((child) => (
                         <NavLink
                           key={child.path}
@@ -205,7 +205,7 @@ export default function Layout({ children }: LayoutProps) {
                         >
                           {({ isActive }) => (
                             <div
-                              className={`group flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200 relative
+                              className={`group flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all duration-200 relative
                               ${
                                 isActive
                                   ? "bg-white/15 text-white"
@@ -263,7 +263,7 @@ export default function Layout({ children }: LayoutProps) {
                   to={item.path!}
                   end={item.path === "/"}
                   className={({ isActive }) =>
-                    `group flex items-center gap-3 px-4 py-3 rounded-xl mx-2 transition-all duration-200 relative
+                    `group flex items-center gap-2 px-3 py-2 rounded-xl mx-2 transition-all duration-200 relative
                     ${
                       isActive
                         ? "bg-white/20 text-white"
@@ -304,11 +304,11 @@ export default function Layout({ children }: LayoutProps) {
       {/* Main Content */}
       <div 
         className={`${
-          collapsed ? "ml-20" : "ml-64"
+          collapsed ? "ml-20" : "ml-56"
         } flex-1 flex flex-col h-screen overflow-hidden transition-all duration-300`}
       >
         {/* Header */}
-        <div className="fixed top-0 right-0 left-0 z-40" style={{ marginLeft: collapsed ? '5rem' : '16rem' }}>
+        <div className="fixed top-0 right-0 left-0 z-40" style={{ marginLeft: collapsed ? '5rem' : '14rem' }}>
           <Header collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
         </div>
         
