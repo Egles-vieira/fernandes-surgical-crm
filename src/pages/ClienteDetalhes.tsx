@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Progress } from "@/components/ui/progress";
 import { 
   ArrowLeft, 
   Building2, 
@@ -24,7 +25,8 @@ import {
   TrendingUp,
   CheckCircle2,
   Clock,
-  MessageSquare
+  MessageSquare,
+  Target
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import NovoContatoDialog from "@/components/cliente/NovoContatoDialog";
@@ -140,6 +142,51 @@ export default function ClienteDetalhes() {
 
   const enderecoPrincipal = cliente.enderecos?.find((e: any) => e.is_principal) || cliente.enderecos?.[0];
 
+  // Calcular preenchimento do perfil
+  const calcularPreenchimento = () => {
+    const campos = [
+      { campo: 'nome_abrev', peso: 1 },
+      { campo: 'cgc', peso: 1 },
+      { campo: 'e_mail', peso: 1 },
+      { campo: 'telefone1', peso: 1 },
+      { campo: 'ins_estadual', peso: 1 },
+      { campo: 'lim_credito', peso: 1, validacao: (val: any) => val > 0 },
+      { campo: 'atividade', peso: 1 },
+      { campo: 'enderecos', peso: 1.5, validacao: (val: any) => val && val.length > 0 },
+      { campo: 'contatos', peso: 1.5, validacao: (val: any) => val && val.length > 0 },
+    ];
+
+    let preenchidos = 0;
+    let total = 0;
+
+    campos.forEach(({ campo, peso, validacao }) => {
+      total += peso;
+      const valor = cliente[campo as keyof typeof cliente];
+      
+      if (validacao) {
+        if (validacao(valor)) preenchidos += peso;
+      } else {
+        if (valor && valor !== '' && valor !== 0) preenchidos += peso;
+      }
+    });
+
+    return Math.round((preenchidos / total) * 100);
+  };
+
+  const preenchimento = calcularPreenchimento();
+
+  const getPreenchimentoColor = (percentual: number) => {
+    if (percentual >= 80) return 'text-success';
+    if (percentual >= 50) return 'text-secondary';
+    return 'text-destructive';
+  };
+
+  const getPreenchimentoStatus = (percentual: number) => {
+    if (percentual >= 80) return 'Excelente';
+    if (percentual >= 50) return 'Bom';
+    return 'Incompleto';
+  };
+
   return (
     <div className="px-4 py-6 space-y-6 max-w-full">
       {/* Header */}
@@ -187,6 +234,38 @@ export default function ClienteDetalhes() {
           </Button>
         </div>
       </div>
+
+      {/* Preenchimento do Perfil */}
+      <Card className="border-tertiary/20">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base font-medium flex items-center gap-2">
+              <Target className="h-5 w-5 text-tertiary" />
+              Preenchimento do Perfil
+            </CardTitle>
+            <Badge variant="outline" className={getPreenchimentoColor(preenchimento)}>
+              {getPreenchimentoStatus(preenchimento)}
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-3xl font-bold">{preenchimento}%</span>
+            <span className="text-sm text-muted-foreground">completo</span>
+          </div>
+          <Progress value={preenchimento} className="h-2" />
+          <div className="text-xs text-muted-foreground space-y-1">
+            {!cliente.cgc && <p>• Adicione CNPJ/CPF</p>}
+            {!cliente.e_mail && <p>• Adicione email</p>}
+            {!cliente.telefone1 && <p>• Adicione telefone</p>}
+            {!cliente.ins_estadual && <p>• Adicione inscrição estadual</p>}
+            {(!cliente.lim_credito || cliente.lim_credito <= 0) && <p>• Configure limite de crédito</p>}
+            {!cliente.atividade && <p>• Defina atividade/setor</p>}
+            {(!cliente.enderecos || cliente.enderecos.length === 0) && <p>• Cadastre um endereço</p>}
+            {(!cliente.contatos || cliente.contatos.length === 0) && <p>• Adicione um contato</p>}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
