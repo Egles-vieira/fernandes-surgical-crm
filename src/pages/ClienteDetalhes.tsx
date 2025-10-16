@@ -238,35 +238,35 @@ export default function ClienteDetalhes() {
       {/* Info Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
-          <CardHeader className="pb-2">
+          <CardHeader className="pb-1 pt-3">
             <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-2">
               <TrendingUp className="h-4 w-4" />
               Total de Oportunidades
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pb-3">
             <div className="text-2xl font-bold">{stats?.totalOportunidades || 0}</div>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs text-muted-foreground mt-0.5">
               R$ {(stats?.valorTotalOportunidades || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
             </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="pb-2">
+          <CardHeader className="pb-1 pt-3">
             <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-2">
               <Clock className="h-4 w-4" />
               Em Aberto
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pb-3">
             <div className="text-2xl font-bold text-secondary">{stats?.oportunidadesAbertas || 0}</div>
-            <p className="text-xs text-secondary mt-1">Oportunidades ativas</p>
+            <p className="text-xs text-secondary mt-0.5">Oportunidades ativas</p>
           </CardContent>
         </Card>
 
         <Card className="border-tertiary/20">
-          <CardHeader className="pb-2">
+          <CardHeader className="pb-1 pt-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-2">
                 <Target className="h-4 w-4 text-tertiary" />
@@ -277,21 +277,21 @@ export default function ClienteDetalhes() {
               </Badge>
             </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold mb-2">{preenchimento}%</div>
-            <Progress value={preenchimento} className="h-2 mb-2" />
+          <CardContent className="pb-3">
+            <div className="text-2xl font-bold mb-1">{preenchimento}%</div>
+            <Progress value={preenchimento} className="h-2 mb-1" />
             <p className="text-xs text-muted-foreground">completo</p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="pb-2">
+          <CardHeader className="pb-1 pt-3">
             <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-2">
               <DollarSign className="h-4 w-4" />
               Informações Financeiras
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-1">
+          <CardContent className="space-y-0.5 pb-3">
             <div className="flex justify-between text-xs">
               <span className="text-muted-foreground">Limite Disponível</span>
               <span className="font-medium">R$ {(cliente.limite_disponivel || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
