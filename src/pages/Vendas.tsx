@@ -53,6 +53,15 @@ export default function Vendas() {
   const [tipoPedidoId, setTipoPedidoId] = useState<string>("");
   const [observacoes, setObservacoes] = useState("");
   const [carrinho, setCarrinho] = useState<ItemCarrinho[]>([]);
+  
+  // Novos campos do pipeline
+  const [etapaPipeline, setEtapaPipeline] = useState<EtapaPipeline>("prospeccao");
+  const [valorEstimado, setValorEstimado] = useState<number>(0);
+  const [probabilidade, setProbabilidade] = useState<number>(50);
+  const [dataFechamentoPrevista, setDataFechamentoPrevista] = useState<string>("");
+  const [motivoPerda, setMotivoPerda] = useState<string>("");
+  const [origemLead, setOrigemLead] = useState<string>("");
+  const [responsavelId, setResponsavelId] = useState<string>("");
 
   useEffect(() => {
     if (view === "nova" && !numeroVenda) {
@@ -170,6 +179,15 @@ export default function Vendas() {
     setTipoPedidoId(venda.tipo_pedido_id || "");
     setObservacoes(venda.observacoes || "");
     
+    // Novos campos do pipeline
+    setEtapaPipeline(venda.etapa_pipeline || "prospeccao");
+    setValorEstimado(venda.valor_estimado || 0);
+    setProbabilidade(venda.probabilidade || 50);
+    setDataFechamentoPrevista(venda.data_fechamento_prevista || "");
+    setMotivoPerda(venda.motivo_perda || "");
+    setOrigemLead(venda.origem_lead || "");
+    setResponsavelId(venda.responsavel_id || "");
+    
     // Carregar itens da venda
     const itensCarrinho: ItemCarrinho[] = (venda.vendas_itens || []).map((item: any) => ({
       produto: item.produtos,
@@ -194,6 +212,15 @@ export default function Vendas() {
     setTipoPedidoId("");
     setObservacoes("");
     setCarrinho([]);
+    
+    // Limpar campos do pipeline
+    setEtapaPipeline("prospeccao");
+    setValorEstimado(0);
+    setProbabilidade(50);
+    setDataFechamentoPrevista("");
+    setMotivoPerda("");
+    setOrigemLead("");
+    setResponsavelId("");
   };
 
   const handleCalcular = () => {
@@ -275,6 +302,13 @@ export default function Vendas() {
           tipo_frete_id: tipoFreteId || null,
           tipo_pedido_id: tipoPedidoId || null,
           observacoes: observacoes || null,
+          etapa_pipeline: etapaPipeline,
+          valor_estimado: valorEstimado,
+          probabilidade,
+          data_fechamento_prevista: dataFechamentoPrevista || null,
+          motivo_perda: motivoPerda || null,
+          origem_lead: origemLead || null,
+          responsavel_id: responsavelId || null,
         });
 
         // Remover itens antigos e adicionar novos
@@ -314,6 +348,13 @@ export default function Vendas() {
           tipo_frete_id: tipoFreteId || null,
           tipo_pedido_id: tipoPedidoId || null,
           observacoes: observacoes || null,
+          etapa_pipeline: etapaPipeline,
+          valor_estimado: valorEstimado,
+          probabilidade,
+          data_fechamento_prevista: dataFechamentoPrevista || null,
+          motivo_perda: motivoPerda || null,
+          origem_lead: origemLead || null,
+          responsavel_id: responsavelId || null,
         });
 
         for (const item of carrinho) {
@@ -509,6 +550,83 @@ export default function Vendas() {
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+
+            <Separator className="my-6" />
+
+            {/* Informações do Pipeline */}
+            <h3 className="text-lg font-semibold text-primary mb-4">Informações do Pipeline</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <Label>Etapa do Pipeline *</Label>
+                <Select value={etapaPipeline} onValueChange={(v: any) => setEtapaPipeline(v)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="prospeccao">Prospecção</SelectItem>
+                    <SelectItem value="qualificacao">Qualificação</SelectItem>
+                    <SelectItem value="proposta">Proposta</SelectItem>
+                    <SelectItem value="negociacao">Negociação</SelectItem>
+                    <SelectItem value="fechamento">Fechamento</SelectItem>
+                    <SelectItem value="ganho">Ganho</SelectItem>
+                    <SelectItem value="perdido">Perdido</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>Valor Estimado (R$)</Label>
+                <Input
+                  type="number"
+                  value={valorEstimado}
+                  onChange={(e) => setValorEstimado(Number(e.target.value))}
+                  placeholder="0.00"
+                  step="0.01"
+                  min="0"
+                />
+              </div>
+
+              <div>
+                <Label>Probabilidade (%)</Label>
+                <Input
+                  type="number"
+                  value={probabilidade}
+                  onChange={(e) => setProbabilidade(Number(e.target.value))}
+                  placeholder="50"
+                  min="0"
+                  max="100"
+                />
+              </div>
+
+              <div>
+                <Label>Data Fechamento Prevista</Label>
+                <Input
+                  type="date"
+                  value={dataFechamentoPrevista}
+                  onChange={(e) => setDataFechamentoPrevista(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <Label>Origem do Lead</Label>
+                <Input
+                  value={origemLead}
+                  onChange={(e) => setOrigemLead(e.target.value)}
+                  placeholder="Ex: Indicação, Site, Cold Call"
+                />
+              </div>
+
+              {etapaPipeline === "perdido" && (
+                <div className="md:col-span-3">
+                  <Label>Motivo da Perda</Label>
+                  <Input
+                    value={motivoPerda}
+                    onChange={(e) => setMotivoPerda(e.target.value)}
+                    placeholder="Descreva por que a oportunidade foi perdida..."
+                  />
+                </div>
+              )}
             </div>
 
             <div className="mt-4">
