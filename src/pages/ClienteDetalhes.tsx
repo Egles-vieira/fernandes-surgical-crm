@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,15 +19,22 @@ import {
   FileText,
   DollarSign,
   Users,
-  Globe,
   Calendar,
-  Briefcase
+  Briefcase,
+  TrendingUp,
+  CheckCircle2,
+  Clock,
+  MessageSquare
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import NovoContatoDialog from "@/components/cliente/NovoContatoDialog";
+import NovaOportunidadeDialog from "@/components/cliente/NovaOportunidadeDialog";
 
 export default function ClienteDetalhes() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [novoContatoOpen, setNovoContatoOpen] = useState(false);
+  const [novaOportunidadeOpen, setNovaOportunidadeOpen] = useState(false);
 
   const { data: cliente, isLoading } = useQuery({
     queryKey: ["cliente", id],
@@ -66,6 +73,47 @@ export default function ClienteDetalhes() {
       };
     },
     enabled: !!id,
+  });
+
+  // Buscar estatísticas de oportunidades
+  const { data: stats } = useQuery({
+    queryKey: ["cliente-stats", id],
+    queryFn: async () => {
+      // Total de oportunidades
+      const { data: oportunidades } = await supabase
+        .from("oportunidades")
+        .select("*")
+        .eq("conta_id", cliente?.conta_id);
+
+      // Oportunidades em aberto
+      const oportunidadesAbertas = oportunidades?.filter(o => !o.esta_fechada) || [];
+      
+      // Última oportunidade
+      const ultimaOportunidade = oportunidades?.sort((a, b) => 
+        new Date(b.criado_em!).getTime() - new Date(a.criado_em!).getTime()
+      )[0];
+
+      // Última venda (oportunidade ganha)
+      const ultimaVenda = oportunidades?.filter(o => o.foi_ganha)
+        .sort((a, b) => 
+          new Date(b.fechada_em!).getTime() - new Date(a.fechada_em!).getTime()
+        )[0];
+
+      // Último contato (usando data de criação dos contatos como proxy)
+      const ultimoContato = cliente?.contatos?.sort((a: any, b: any) => 
+        new Date(b.criado_em).getTime() - new Date(a.criado_em).getTime()
+      )[0];
+
+      return {
+        totalOportunidades: oportunidades?.length || 0,
+        oportunidadesAbertas: oportunidadesAbertas.length,
+        valorTotalOportunidades: oportunidades?.reduce((sum, o) => sum + (o.valor || 0), 0) || 0,
+        ultimaOportunidade,
+        ultimaVenda,
+        ultimoContato,
+      };
+    },
+    enabled: !!cliente?.conta_id,
   });
 
   if (isLoading) {
@@ -125,11 +173,11 @@ export default function ClienteDetalhes() {
         </div>
 
         <div className="flex gap-2">
-          <Button variant="outline">
+          <Button variant="outline" onClick={() => setNovoContatoOpen(true)}>
             <UserPlus className="mr-2 h-4 w-4" />
             Novo Contato
           </Button>
-          <Button variant="outline">
+          <Button variant="outline" onClick={() => setNovaOportunidadeOpen(true)}>
             <FileText className="mr-2 h-4 w-4" />
             Nova Oportunidade
           </Button>
@@ -138,6 +186,75 @@ export default function ClienteDetalhes() {
             Editar
           </Button>
         </div>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total de Oportunidades</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats?.totalOportunidades || 0}</div>
+            <p className="text-xs text-muted-foreground">
+              R$ {(stats?.valorTotalOportunidades || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Em Aberto</CardTitle>
+            <Clock className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats?.oportunidadesAbertas || 0}</div>
+            <p className="text-xs text-muted-foreground">Oportunidades ativas</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Última Proposta</CardTitle>
+            <FileText className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            {stats?.ultimaOportunidade ? (
+              <>
+                <div className="text-sm font-medium truncate">
+                  {stats.ultimaOportunidade.nome_oportunidade}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {new Date(stats.ultimaOportunidade.criado_em!).toLocaleDateString('pt-BR')}
+                </p>
+              </>
+            ) : (
+              <p className="text-sm text-muted-foreground">Nenhuma proposta</p>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Última Venda</CardTitle>
+            <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            {stats?.ultimaVenda ? (
+              <>
+                <div className="text-sm font-medium truncate">
+                  R$ {(stats.ultimaVenda.valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {new Date(stats.ultimaVenda.fechada_em!).toLocaleDateString('pt-BR')}
+                </p>
+              </>
+            ) : (
+              <p className="text-sm text-muted-foreground">Nenhuma venda</p>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -316,22 +433,61 @@ export default function ClienteDetalhes() {
             <CardContent className="space-y-4">
               {cliente.contatos && cliente.contatos.length > 0 ? (
                 cliente.contatos.slice(0, 3).map((contato: any) => (
-                  <div key={contato.id} className="flex items-start gap-3 p-3 rounded-lg border">
-                    <Avatar className="h-10 w-10">
-                      <AvatarFallback className="bg-secondary">
-                        {contato.primeiro_nome?.charAt(0)}{contato.sobrenome?.charAt(0)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium truncate">{contato.nome_completo}</p>
-                      {contato.cargo && (
-                        <p className="text-sm text-muted-foreground truncate">{contato.cargo}</p>
+                  <div key={contato.id} className="p-3 rounded-lg border space-y-3">
+                    <div className="flex items-start gap-3">
+                      <Avatar className="h-10 w-10">
+                        <AvatarFallback className="bg-secondary">
+                          {contato.primeiro_nome?.charAt(0)}{contato.sobrenome?.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium truncate">{contato.nome_completo}</p>
+                        {contato.cargo && (
+                          <p className="text-sm text-muted-foreground truncate">{contato.cargo}</p>
+                        )}
+                        {contato.email && (
+                          <p className="text-xs text-muted-foreground truncate">{contato.email}</p>
+                        )}
+                        {contato.telefone && (
+                          <p className="text-xs text-muted-foreground">{contato.telefone}</p>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* Ações de CRM */}
+                    <div className="flex gap-2">
+                      {contato.telefone && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="flex-1"
+                          onClick={() => window.open(`tel:${contato.telefone}`, '_self')}
+                        >
+                          <Phone className="h-3 w-3 mr-1" />
+                          Ligar
+                        </Button>
                       )}
                       {contato.email && (
-                        <p className="text-xs text-muted-foreground truncate">{contato.email}</p>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="flex-1"
+                          onClick={() => window.open(`mailto:${contato.email}`, '_blank')}
+                        >
+                          <Mail className="h-3 w-3 mr-1" />
+                          Email
+                        </Button>
                       )}
-                      {contato.telefone && (
-                        <p className="text-xs text-muted-foreground">{contato.telefone}</p>
+                      {contato.celular && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="flex-1"
+                          onClick={() => window.open(`https://wa.me/${contato.celular.replace(/\D/g, '')}`, '_blank')}
+                        >
+                          <MessageSquare className="h-3 w-3 mr-1" />
+                          WhatsApp
+                        </Button>
                       )}
                     </div>
                   </div>
@@ -402,6 +558,21 @@ export default function ClienteDetalhes() {
           </Card>
         </div>
       </div>
+
+      {/* Dialogs */}
+      <NovoContatoDialog
+        open={novoContatoOpen}
+        onOpenChange={setNovoContatoOpen}
+        clienteId={id!}
+        contaId={cliente.conta_id}
+      />
+
+      <NovaOportunidadeDialog
+        open={novaOportunidadeOpen}
+        onOpenChange={setNovaOportunidadeOpen}
+        clienteId={id!}
+        contaId={cliente.conta_id}
+      />
     </div>
   );
 }
