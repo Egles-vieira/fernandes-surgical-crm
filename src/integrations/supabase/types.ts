@@ -387,16 +387,23 @@ export type Database = {
           cliente_nome: string
           condicao_pagamento_id: string | null
           created_at: string
+          data_fechamento_prevista: string | null
           data_venda: string
           desconto: number
+          etapa_pipeline: Database["public"]["Enums"]["etapa_pipeline"] | null
           id: string
+          motivo_perda: string | null
           numero_venda: string
           observacoes: string | null
+          origem_lead: string | null
+          probabilidade: number | null
+          responsavel_id: string | null
           status: string
           tipo_frete_id: string | null
           tipo_pedido_id: string | null
           updated_at: string
           user_id: string
+          valor_estimado: number | null
           valor_final: number
           valor_total: number
         }
@@ -405,16 +412,23 @@ export type Database = {
           cliente_nome: string
           condicao_pagamento_id?: string | null
           created_at?: string
+          data_fechamento_prevista?: string | null
           data_venda?: string
           desconto?: number
+          etapa_pipeline?: Database["public"]["Enums"]["etapa_pipeline"] | null
           id?: string
+          motivo_perda?: string | null
           numero_venda: string
           observacoes?: string | null
+          origem_lead?: string | null
+          probabilidade?: number | null
+          responsavel_id?: string | null
           status?: string
           tipo_frete_id?: string | null
           tipo_pedido_id?: string | null
           updated_at?: string
           user_id: string
+          valor_estimado?: number | null
           valor_final?: number
           valor_total?: number
         }
@@ -423,16 +437,23 @@ export type Database = {
           cliente_nome?: string
           condicao_pagamento_id?: string | null
           created_at?: string
+          data_fechamento_prevista?: string | null
           data_venda?: string
           desconto?: number
+          etapa_pipeline?: Database["public"]["Enums"]["etapa_pipeline"] | null
           id?: string
+          motivo_perda?: string | null
           numero_venda?: string
           observacoes?: string | null
+          origem_lead?: string | null
+          probabilidade?: number | null
+          responsavel_id?: string | null
           status?: string
           tipo_frete_id?: string | null
           tipo_pedido_id?: string | null
           updated_at?: string
           user_id?: string
+          valor_estimado?: number | null
           valor_final?: number
           valor_total?: number
         }
@@ -551,6 +572,14 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "manager" | "sales" | "warehouse" | "support"
+      etapa_pipeline:
+        | "prospeccao"
+        | "qualificacao"
+        | "proposta"
+        | "negociacao"
+        | "fechamento"
+        | "ganho"
+        | "perdido"
       identificacao_tipo: "Cliente" | "Fornecedor" | "Ambos"
       natureza_tipo: "Juridica" | "Fisica"
       tipo_endereco: "principal" | "entrega" | "cobranca"
@@ -683,6 +712,15 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "manager", "sales", "warehouse", "support"],
+      etapa_pipeline: [
+        "prospeccao",
+        "qualificacao",
+        "proposta",
+        "negociacao",
+        "fechamento",
+        "ganho",
+        "perdido",
+      ],
       identificacao_tipo: ["Cliente", "Fornecedor", "Ambos"],
       natureza_tipo: ["Juridica", "Fisica"],
       tipo_endereco: ["principal", "entrega", "cobranca"],

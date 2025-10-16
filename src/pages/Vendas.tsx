@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import { Search, Plus, Eye, Trash2, ShoppingCart, Save, Users, Edit } from "lucide-react";
+import { Search, Plus, Eye, Trash2, ShoppingCart, Save, Users, Edit, Kanban } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
@@ -15,6 +16,7 @@ import { useTiposPedido } from "@/hooks/useTiposPedido";
 import { ProdutoSearchDialog } from "@/components/ProdutoSearchDialog";
 import { ClienteSearchDialog } from "@/components/ClienteSearchDialog";
 import { VendasActionBar } from "@/components/VendasActionBar";
+import { PipelineKanban, EtapaPipeline } from "@/components/vendas/PipelineKanban";
 import { Tables } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
 
@@ -35,7 +37,7 @@ export default function Vendas() {
   const { tipos: tiposPedido, isLoading: isLoadingTiposPedido } = useTiposPedido();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
-  const [view, setView] = useState<"list" | "nova">("list");
+  const [view, setView] = useState<"pipeline" | "list" | "nova">("pipeline");
   const [showProdutoSearch, setShowProdutoSearch] = useState(false);
   const [showClienteSearch, setShowClienteSearch] = useState(false);
   const [editandoVendaId, setEditandoVendaId] = useState<string | null>(null);
@@ -203,7 +205,7 @@ export default function Vendas() {
 
   const handleCancelarProposta = () => {
     limparFormulario();
-    setView("list");
+    setView("pipeline");
   };
 
   const handleDiretoria = () => {
@@ -332,9 +334,25 @@ export default function Vendas() {
       }
 
       limparFormulario();
-      setView("list");
+      setView("pipeline");
     } catch (error: any) {
       console.error("Erro ao salvar venda:", error);
+    }
+  };
+
+  const handleMoverCard = async (vendaId: string, novaEtapa: EtapaPipeline) => {
+    try {
+      await updateVenda.mutateAsync({
+        id: vendaId,
+        etapa_pipeline: novaEtapa,
+      });
+      
+      toast({
+        title: "Etapa atualizada!",
+        description: `Venda movida para ${novaEtapa}`,
+      });
+    } catch (error: any) {
+      console.error("Erro ao mover card:", error);
     }
   };
 
@@ -374,7 +392,7 @@ export default function Vendas() {
             <div className="flex gap-2">
               <Button variant="outline" onClick={() => {
                 limparFormulario();
-                setView("list");
+                setView("pipeline");
               }}>
                 Cancelar
               </Button>
@@ -618,7 +636,7 @@ export default function Vendas() {
     );
   }
 
-  // List View
+  // Pipeline / List Views
   return (
     <div className="p-8 space-y-6">
       {/* Header */}
@@ -632,6 +650,42 @@ export default function Vendas() {
           Nova Venda
         </Button>
       </div>
+
+      <Tabs value={view} onValueChange={(v) => setView(v as any)} className="w-full">
+        <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsTrigger value="pipeline">
+            <Kanban size={16} className="mr-2" />
+            Pipeline
+          </TabsTrigger>
+          <TabsTrigger value="list">
+            <Search size={16} className="mr-2" />
+            Lista
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="pipeline" className="mt-6">
+          <PipelineKanban
+            vendas={vendas.map(v => ({
+              id: v.id,
+              numero_venda: v.numero_venda,
+              cliente_nome: v.cliente_nome,
+              valor_estimado: (v as any).valor_estimado || 0,
+              valor_total: v.valor_total,
+              probabilidade: (v as any).probabilidade || 50,
+              etapa_pipeline: (v as any).etapa_pipeline || 'prospeccao',
+              data_fechamento_prevista: (v as any).data_fechamento_prevista,
+              responsavel_id: (v as any).responsavel_id,
+            }))}
+            onMoverCard={handleMoverCard}
+            onEditarVenda={(venda) => {
+              const vendaCompleta = vendas.find(v => v.id === venda.id);
+              if (vendaCompleta) handleEditarVenda(vendaCompleta);
+            }}
+            onNovaVenda={() => setView("nova")}
+          />
+        </TabsContent>
+
+        <TabsContent value="list" className="mt-6">
 
       {/* Search */}
       <div className="flex items-center gap-4">
@@ -712,6 +766,8 @@ export default function Vendas() {
           </TableBody>
         </Table>
       </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

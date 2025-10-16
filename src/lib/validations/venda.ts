@@ -88,6 +88,47 @@ export const vendaSchema = z.object({
     .max(50, "Status inválido")
     .optional()
     .default("rascunho"),
+  
+  // Novos campos do pipeline
+  etapa_pipeline: z
+    .enum(["prospeccao", "qualificacao", "proposta", "negociacao", "fechamento", "ganho", "perdido"])
+    .optional()
+    .default("prospeccao"),
+  
+  valor_estimado: z
+    .number()
+    .min(0, "Valor estimado não pode ser negativo")
+    .optional()
+    .default(0),
+  
+  probabilidade: z
+    .number()
+    .min(0, "Probabilidade mínima é 0%")
+    .max(100, "Probabilidade máxima é 100%")
+    .optional()
+    .default(50),
+  
+  data_fechamento_prevista: z
+    .date()
+    .optional()
+    .or(z.string().optional()),
+  
+  motivo_perda: z
+    .string()
+    .max(1000, "Motivo muito longo")
+    .optional()
+    .or(z.literal("")),
+  
+  origem_lead: z
+    .string()
+    .max(200, "Origem muito longa")
+    .optional()
+    .or(z.literal("")),
+  
+  responsavel_id: z
+    .string()
+    .uuid("Responsável inválido")
+    .optional(),
 });
 
 export type VendaInput = z.infer<typeof vendaSchema>;
