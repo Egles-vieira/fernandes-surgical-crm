@@ -96,7 +96,7 @@ export default function Layout({ children }: LayoutProps) {
       {/* Sidebar - Responsivo com Collapse */}
       <aside
         className={`${
-          collapsed ? "w-20" : "w-56"
+          collapsed ? "w-16" : "w-56"
         } gradient-primary text-white flex flex-col fixed left-0 top-0 h-full z-50 shadow-elegant transition-all duration-300`}
       >
         {/* Logo Header com Toggle */}
@@ -141,7 +141,7 @@ export default function Layout({ children }: LayoutProps) {
                       key={item.label}
                       to={item.children[0].path!}
                       className={({ isActive }) =>
-                        `group flex flex-col items-center justify-center py-4 px-2 transition-all duration-200 relative
+                        `group flex flex-col items-center justify-center py-3 px-1 transition-all duration-200 relative
                         ${
                           isActive || isAnyChildActive
                             ? "bg-white/20 text-white"
@@ -231,7 +231,7 @@ export default function Layout({ children }: LayoutProps) {
                     to={item.path!}
                     end={item.path === "/"}
                     className={({ isActive }) =>
-                      `group flex flex-col items-center justify-center py-4 px-2 transition-all duration-200 relative
+                      `group flex flex-col items-center justify-center py-3 px-1 transition-all duration-200 relative
                       ${
                         isActive
                           ? "bg-white/20 text-white"
@@ -304,11 +304,11 @@ export default function Layout({ children }: LayoutProps) {
       {/* Main Content */}
       <div 
         className={`${
-          collapsed ? "ml-20" : "ml-56"
+          collapsed ? "ml-16" : "ml-56"
         } flex-1 flex flex-col h-screen overflow-hidden transition-all duration-300`}
       >
         {/* Header */}
-        <div className="fixed top-0 right-0 left-0 z-40" style={{ marginLeft: collapsed ? '5rem' : '14rem' }}>
+        <div className="fixed top-0 right-0 left-0 z-40" style={{ marginLeft: collapsed ? '4rem' : '14rem' }}>
           <Header collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
         </div>
         
