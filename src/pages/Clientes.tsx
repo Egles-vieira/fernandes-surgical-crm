@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, Plus, Edit, Eye, MapPin, Phone, Upload, Trash2 } from "lucide-react";
+import { Search, Plus, Edit, MapPin, Phone, Upload, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -235,16 +235,11 @@ export default function Clientes() {
 
                 <div className="flex gap-2 pt-2">
                   <Button
-                    variant="outline"
                     size="sm"
                     className="flex-1"
-                    onClick={() => {
-                      setSelectedCliente(cliente);
-                      setShowDetails(true);
-                    }}
+                    onClick={() => navigate(`/clientes/${cliente.id}`)}
                   >
-                    <Eye size={14} className="mr-1" />
-                    Ver
+                    Detalhes
                   </Button>
                   <Button
                     variant="outline"

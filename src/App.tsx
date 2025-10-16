@@ -9,6 +9,7 @@ import Vendas from "./pages/Vendas";
 import Plataformas from "./pages/Plataformas";
 import Licitacoes from "./pages/Licitacoes";
 import Clientes from "./pages/Clientes";
+import ClienteDetalhes from "./pages/ClienteDetalhes";
 import Produtos from "./pages/Produtos";
 import ImportarProdutos from "./pages/ImportarProdutos";
 import ImportarClientes from "./pages/ImportarClientes";
@@ -64,6 +65,13 @@ const App = () => (
           <ProtectedRoute>
             <Layout>
               <Clientes />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/clientes/:id" element={
+          <ProtectedRoute>
+            <Layout>
+              <ClienteDetalhes />
             </Layout>
           </ProtectedRoute>
         } />
