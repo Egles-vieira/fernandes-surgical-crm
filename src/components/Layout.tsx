@@ -17,6 +17,11 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
 import favicon from "@/assets/favicon-cfernandes.png";
 import logo from "@/assets/logo-cfernandes.webp";
 import Header from "./Header";
@@ -135,23 +140,19 @@ export default function Layout({ children }: LayoutProps) {
                 const isOpen = openMenus.includes(item.label) || isAnyChildActive;
                 
                 if (collapsed) {
-                  // Modo compacto: apenas ícone com label
+                  // Modo compacto: mostrar hover card com submenus
                   return (
-                    <NavLink
-                      key={item.label}
-                      to={item.children[0].path!}
-                      className={({ isActive }) =>
-                        `group flex flex-col items-center justify-center py-3 px-1 transition-all duration-200 relative
-                        ${
-                          isActive || isAnyChildActive
-                            ? "bg-white/20 text-white"
-                            : "hover:bg-white/10 text-white/70 hover:text-white"
-                        }`
-                      }
-                    >
-                      {({ isActive }) => (
-                        <>
-                          {(isActive || isAnyChildActive) && (
+                    <HoverCard key={item.label} openDelay={200}>
+                      <HoverCardTrigger asChild>
+                        <div
+                          className={`group flex flex-col items-center justify-center py-3 px-1 transition-all duration-200 relative cursor-pointer
+                          ${
+                            isAnyChildActive
+                              ? "bg-white/20 text-white"
+                              : "hover:bg-white/10 text-white/70 hover:text-white"
+                          }`}
+                        >
+                          {isAnyChildActive && (
                             <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-10 bg-white rounded-r-full" />
                           )}
                           <item.icon 
@@ -161,9 +162,38 @@ export default function Layout({ children }: LayoutProps) {
                           <span className="text-[10px] font-medium text-center leading-tight">
                             {item.label}
                           </span>
-                        </>
-                      )}
-                    </NavLink>
+                        </div>
+                      </HoverCardTrigger>
+                      <HoverCardContent 
+                        side="right" 
+                        align="start"
+                        className="w-48 bg-card border-border p-2 ml-2"
+                      >
+                        <div className="space-y-1">
+                          <p className="text-xs font-semibold text-muted-foreground mb-2 px-2">
+                            {item.label}
+                          </p>
+                          {item.children.map((child) => (
+                            <NavLink
+                              key={child.path}
+                              to={child.path!}
+                              end={child.path === "/"}
+                              className={({ isActive }) =>
+                                `flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200
+                                ${
+                                  isActive
+                                    ? "bg-primary/10 text-primary font-medium"
+                                    : "hover:bg-muted text-foreground"
+                                }`
+                              }
+                            >
+                              <child.icon size={16} className="flex-shrink-0" />
+                              <span className="text-sm">{child.label}</span>
+                            </NavLink>
+                          ))}
+                        </div>
+                      </HoverCardContent>
+                    </HoverCard>
                   );
                 }
                 
