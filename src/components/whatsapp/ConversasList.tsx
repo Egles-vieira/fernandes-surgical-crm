@@ -6,11 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Search, Circle, MessageSquarePlus } from "lucide-react";
+import { Search, Circle, MessageSquarePlus, Users } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import NovaConversaDialog from "./NovaConversaDialog";
+import ClienteConsultaDialog from "./ClienteConsultaDialog";
 
 interface ConversasListProps {
   contaId: string;
@@ -22,6 +23,7 @@ const ConversasList = ({ contaId, conversaSelecionada, onSelectConversa }: Conve
   const [busca, setBusca] = useState("");
   const [filtroStatus, setFiltroStatus] = useState<string>("todas");
   const [dialogNovaConversa, setDialogNovaConversa] = useState(false);
+  const [dialogConsultaCliente, setDialogConsultaCliente] = useState(false);
 
   const { data: conversas, isLoading } = useQuery({
     queryKey: ['whatsapp-conversas', contaId, filtroStatus],
@@ -96,14 +98,25 @@ const ConversasList = ({ contaId, conversaSelecionada, onSelectConversa }: Conve
             </Badge>
           </div>
 
-          <Button 
-            onClick={() => setDialogNovaConversa(true)}
-            className="w-full mb-4"
-            variant="outline"
-          >
-            <MessageSquarePlus className="w-4 h-4 mr-2" />
-            Nova Conversa
-          </Button>
+          <div className="flex gap-2 mb-4">
+            <Button 
+              onClick={() => setDialogConsultaCliente(true)}
+              className="flex-1"
+              variant="outline"
+            >
+              <Users className="w-4 h-4 mr-2" />
+              Clientes
+            </Button>
+            
+            <Button 
+              onClick={() => setDialogNovaConversa(true)}
+              className="flex-1"
+              variant="outline"
+            >
+              <MessageSquarePlus className="w-4 h-4 mr-2" />
+              Nova
+            </Button>
+          </div>
 
         <div className="relative mb-4">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -219,6 +232,12 @@ const ConversasList = ({ contaId, conversaSelecionada, onSelectConversa }: Conve
       onOpenChange={setDialogNovaConversa}
       contaId={contaId}
       onConversaCriada={onSelectConversa}
+    />
+    
+    <ClienteConsultaDialog
+      open={dialogConsultaCliente}
+      onOpenChange={setDialogConsultaCliente}
+      contaId={contaId}
     />
     </>
   );
