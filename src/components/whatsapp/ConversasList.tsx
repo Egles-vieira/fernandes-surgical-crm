@@ -148,7 +148,7 @@ const ConversasList = ({ contaId, conversaSelecionada, onSelectConversa }: Conve
       </div>
 
       {/* Lista de conversas */}
-      <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent hover:scrollbar-thumb-primary/30">{/* Custom scrollbar */}
+      <div className="flex-1 overflow-y-auto custom-scrollbar">
         {isLoading ? (
           <div className="p-4 text-center text-muted-foreground">
             Carregando conversas...
