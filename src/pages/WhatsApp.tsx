@@ -68,7 +68,7 @@ const WhatsApp = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
-      <div className="container mx-auto p-4 h-[calc(100vh-2rem)]">
+      <div className="h-[calc(100vh-2rem)]">
         {!contaAtiva ? (
           <Card className="p-12 text-center">
             <MessageSquare className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
