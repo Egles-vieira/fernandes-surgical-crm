@@ -1825,6 +1825,874 @@ export type Database = {
           },
         ]
       }
+      whatsapp_contas: {
+        Row: {
+          account_sid: string | null
+          atualizado_em: string | null
+          business_account_id: string | null
+          categoria_negocio: string | null
+          conectada_em: string | null
+          criado_em: string | null
+          criado_por: string
+          desconectada_em: string | null
+          descricao_negocio: string | null
+          email_contato: string | null
+          endereco: string | null
+          excluido_em: string | null
+          foto_perfil_url: string | null
+          horario_atendimento: Json | null
+          id: string
+          limite_mensagens_dia: number | null
+          mensagem_fora_horario: string | null
+          nome_conta: string
+          nome_exibicao: string | null
+          numero_whatsapp: string
+          phone_number_id: string | null
+          provider: string
+          qualidade_conta: string | null
+          resposta_automatica_ativa: boolean | null
+          site: string | null
+          status: string | null
+          total_conversas: number | null
+          total_mensagens_enviadas: number | null
+          total_mensagens_recebidas: number | null
+          ultima_sincronizacao_em: string | null
+          verificada: boolean | null
+          webhook_url: string | null
+          webhook_verificado: boolean | null
+        }
+        Insert: {
+          account_sid?: string | null
+          atualizado_em?: string | null
+          business_account_id?: string | null
+          categoria_negocio?: string | null
+          conectada_em?: string | null
+          criado_em?: string | null
+          criado_por: string
+          desconectada_em?: string | null
+          descricao_negocio?: string | null
+          email_contato?: string | null
+          endereco?: string | null
+          excluido_em?: string | null
+          foto_perfil_url?: string | null
+          horario_atendimento?: Json | null
+          id?: string
+          limite_mensagens_dia?: number | null
+          mensagem_fora_horario?: string | null
+          nome_conta: string
+          nome_exibicao?: string | null
+          numero_whatsapp: string
+          phone_number_id?: string | null
+          provider: string
+          qualidade_conta?: string | null
+          resposta_automatica_ativa?: boolean | null
+          site?: string | null
+          status?: string | null
+          total_conversas?: number | null
+          total_mensagens_enviadas?: number | null
+          total_mensagens_recebidas?: number | null
+          ultima_sincronizacao_em?: string | null
+          verificada?: boolean | null
+          webhook_url?: string | null
+          webhook_verificado?: boolean | null
+        }
+        Update: {
+          account_sid?: string | null
+          atualizado_em?: string | null
+          business_account_id?: string | null
+          categoria_negocio?: string | null
+          conectada_em?: string | null
+          criado_em?: string | null
+          criado_por?: string
+          desconectada_em?: string | null
+          descricao_negocio?: string | null
+          email_contato?: string | null
+          endereco?: string | null
+          excluido_em?: string | null
+          foto_perfil_url?: string | null
+          horario_atendimento?: Json | null
+          id?: string
+          limite_mensagens_dia?: number | null
+          mensagem_fora_horario?: string | null
+          nome_conta?: string
+          nome_exibicao?: string | null
+          numero_whatsapp?: string
+          phone_number_id?: string | null
+          provider?: string
+          qualidade_conta?: string | null
+          resposta_automatica_ativa?: boolean | null
+          site?: string | null
+          status?: string | null
+          total_conversas?: number | null
+          total_mensagens_enviadas?: number | null
+          total_mensagens_recebidas?: number | null
+          ultima_sincronizacao_em?: string | null
+          verificada?: boolean | null
+          webhook_url?: string | null
+          webhook_verificado?: boolean | null
+        }
+        Relationships: []
+      }
+      whatsapp_contatos: {
+        Row: {
+          atualizado_em: string | null
+          bloqueado: boolean | null
+          bloqueado_em: string | null
+          categoria_cliente: string | null
+          contato_id: string
+          criado_em: string | null
+          foto_perfil_url: string | null
+          id: string
+          motivo_bloqueio: string | null
+          motivo_opt_out: string | null
+          nome_whatsapp: string | null
+          numero_valido: boolean | null
+          numero_whatsapp: string
+          opt_in: boolean | null
+          opt_in_data: string | null
+          opt_out: boolean | null
+          opt_out_data: string | null
+          sobre: string | null
+          status_whatsapp: string | null
+          tags: string[] | null
+          taxa_resposta: number | null
+          tem_whatsapp: boolean | null
+          tempo_medio_resposta_minutos: number | null
+          total_conversas: number | null
+          total_mensagens_enviadas: number | null
+          total_mensagens_recebidas: number | null
+          ultima_mensagem_em: string | null
+          ultima_mensagem_enviada_em: string | null
+          ultima_mensagem_recebida_em: string | null
+          ultima_verificacao_em: string | null
+          ultima_visualizacao_em: string | null
+          whatsapp_conta_id: string
+          whatsapp_id: string | null
+        }
+        Insert: {
+          atualizado_em?: string | null
+          bloqueado?: boolean | null
+          bloqueado_em?: string | null
+          categoria_cliente?: string | null
+          contato_id: string
+          criado_em?: string | null
+          foto_perfil_url?: string | null
+          id?: string
+          motivo_bloqueio?: string | null
+          motivo_opt_out?: string | null
+          nome_whatsapp?: string | null
+          numero_valido?: boolean | null
+          numero_whatsapp: string
+          opt_in?: boolean | null
+          opt_in_data?: string | null
+          opt_out?: boolean | null
+          opt_out_data?: string | null
+          sobre?: string | null
+          status_whatsapp?: string | null
+          tags?: string[] | null
+          taxa_resposta?: number | null
+          tem_whatsapp?: boolean | null
+          tempo_medio_resposta_minutos?: number | null
+          total_conversas?: number | null
+          total_mensagens_enviadas?: number | null
+          total_mensagens_recebidas?: number | null
+          ultima_mensagem_em?: string | null
+          ultima_mensagem_enviada_em?: string | null
+          ultima_mensagem_recebida_em?: string | null
+          ultima_verificacao_em?: string | null
+          ultima_visualizacao_em?: string | null
+          whatsapp_conta_id: string
+          whatsapp_id?: string | null
+        }
+        Update: {
+          atualizado_em?: string | null
+          bloqueado?: boolean | null
+          bloqueado_em?: string | null
+          categoria_cliente?: string | null
+          contato_id?: string
+          criado_em?: string | null
+          foto_perfil_url?: string | null
+          id?: string
+          motivo_bloqueio?: string | null
+          motivo_opt_out?: string | null
+          nome_whatsapp?: string | null
+          numero_valido?: boolean | null
+          numero_whatsapp?: string
+          opt_in?: boolean | null
+          opt_in_data?: string | null
+          opt_out?: boolean | null
+          opt_out_data?: string | null
+          sobre?: string | null
+          status_whatsapp?: string | null
+          tags?: string[] | null
+          taxa_resposta?: number | null
+          tem_whatsapp?: boolean | null
+          tempo_medio_resposta_minutos?: number | null
+          total_conversas?: number | null
+          total_mensagens_enviadas?: number | null
+          total_mensagens_recebidas?: number | null
+          ultima_mensagem_em?: string | null
+          ultima_mensagem_enviada_em?: string | null
+          ultima_mensagem_recebida_em?: string | null
+          ultima_verificacao_em?: string | null
+          ultima_visualizacao_em?: string | null
+          whatsapp_conta_id?: string
+          whatsapp_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_contatos_contato_id_fkey"
+            columns: ["contato_id"]
+            isOneToOne: false
+            referencedRelation: "contatos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_contatos_whatsapp_conta_id_fkey"
+            columns: ["whatsapp_conta_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_contas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_conversas: {
+        Row: {
+          atribuicao_automatica: boolean | null
+          atribuida_em: string | null
+          atribuida_para_id: string | null
+          atualizado_em: string | null
+          avaliacao_satisfacao: number | null
+          avaliada_em: string | null
+          categoria: string | null
+          comentario_avaliacao: string | null
+          conta_id: string | null
+          contato_id: string | null
+          conversa_externa_id: string | null
+          criado_em: string | null
+          fechada_em: string | null
+          gerenciada_por_bot: boolean | null
+          id: string
+          iniciada_em: string | null
+          janela_24h_ativa: boolean | null
+          janela_aberta_em: string | null
+          janela_fecha_em: string | null
+          oportunidade_id: string | null
+          origem: string | null
+          prioridade: string | null
+          resolvida_em: string | null
+          status: string | null
+          tags: string[] | null
+          tempo_primeira_resposta_minutos: number | null
+          tempo_total_resposta_minutos: number | null
+          tipo_conversa: string | null
+          titulo: string | null
+          total_mensagens: number | null
+          total_mensagens_enviadas: number | null
+          total_mensagens_recebidas: number | null
+          transferida_em: string | null
+          transferida_para_humano: boolean | null
+          ultima_interacao_agente_em: string | null
+          ultima_interacao_cliente_em: string | null
+          ultima_mensagem_em: string | null
+          whatsapp_conta_id: string
+          whatsapp_contato_id: string
+        }
+        Insert: {
+          atribuicao_automatica?: boolean | null
+          atribuida_em?: string | null
+          atribuida_para_id?: string | null
+          atualizado_em?: string | null
+          avaliacao_satisfacao?: number | null
+          avaliada_em?: string | null
+          categoria?: string | null
+          comentario_avaliacao?: string | null
+          conta_id?: string | null
+          contato_id?: string | null
+          conversa_externa_id?: string | null
+          criado_em?: string | null
+          fechada_em?: string | null
+          gerenciada_por_bot?: boolean | null
+          id?: string
+          iniciada_em?: string | null
+          janela_24h_ativa?: boolean | null
+          janela_aberta_em?: string | null
+          janela_fecha_em?: string | null
+          oportunidade_id?: string | null
+          origem?: string | null
+          prioridade?: string | null
+          resolvida_em?: string | null
+          status?: string | null
+          tags?: string[] | null
+          tempo_primeira_resposta_minutos?: number | null
+          tempo_total_resposta_minutos?: number | null
+          tipo_conversa?: string | null
+          titulo?: string | null
+          total_mensagens?: number | null
+          total_mensagens_enviadas?: number | null
+          total_mensagens_recebidas?: number | null
+          transferida_em?: string | null
+          transferida_para_humano?: boolean | null
+          ultima_interacao_agente_em?: string | null
+          ultima_interacao_cliente_em?: string | null
+          ultima_mensagem_em?: string | null
+          whatsapp_conta_id: string
+          whatsapp_contato_id: string
+        }
+        Update: {
+          atribuicao_automatica?: boolean | null
+          atribuida_em?: string | null
+          atribuida_para_id?: string | null
+          atualizado_em?: string | null
+          avaliacao_satisfacao?: number | null
+          avaliada_em?: string | null
+          categoria?: string | null
+          comentario_avaliacao?: string | null
+          conta_id?: string | null
+          contato_id?: string | null
+          conversa_externa_id?: string | null
+          criado_em?: string | null
+          fechada_em?: string | null
+          gerenciada_por_bot?: boolean | null
+          id?: string
+          iniciada_em?: string | null
+          janela_24h_ativa?: boolean | null
+          janela_aberta_em?: string | null
+          janela_fecha_em?: string | null
+          oportunidade_id?: string | null
+          origem?: string | null
+          prioridade?: string | null
+          resolvida_em?: string | null
+          status?: string | null
+          tags?: string[] | null
+          tempo_primeira_resposta_minutos?: number | null
+          tempo_total_resposta_minutos?: number | null
+          tipo_conversa?: string | null
+          titulo?: string | null
+          total_mensagens?: number | null
+          total_mensagens_enviadas?: number | null
+          total_mensagens_recebidas?: number | null
+          transferida_em?: string | null
+          transferida_para_humano?: boolean | null
+          ultima_interacao_agente_em?: string | null
+          ultima_interacao_cliente_em?: string | null
+          ultima_mensagem_em?: string | null
+          whatsapp_conta_id?: string
+          whatsapp_contato_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_conversas_conta_id_fkey"
+            columns: ["conta_id"]
+            isOneToOne: false
+            referencedRelation: "contas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_conversas_conta_id_fkey"
+            columns: ["conta_id"]
+            isOneToOne: false
+            referencedRelation: "vw_clientes_completo"
+            referencedColumns: ["conta_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_conversas_contato_id_fkey"
+            columns: ["contato_id"]
+            isOneToOne: false
+            referencedRelation: "contatos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_conversas_oportunidade_id_fkey"
+            columns: ["oportunidade_id"]
+            isOneToOne: false
+            referencedRelation: "oportunidades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_conversas_whatsapp_conta_id_fkey"
+            columns: ["whatsapp_conta_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_contas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_conversas_whatsapp_contato_id_fkey"
+            columns: ["whatsapp_contato_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_contatos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_mensagens: {
+        Row: {
+          agendada_para: string | null
+          botoes: Json | null
+          confianca_analise: number | null
+          contexto: Json | null
+          conversa_id: string
+          corpo: string | null
+          corpo_original: string | null
+          criado_em: string | null
+          custo_envio: number | null
+          direcao: string
+          duracao_midia_segundos: number | null
+          eh_lista: boolean | null
+          eh_template: boolean | null
+          endereco_localizacao: string | null
+          enviada_automaticamente: boolean | null
+          enviada_em: string | null
+          enviada_por_bot: boolean | null
+          enviada_por_usuario_id: string | null
+          erro_codigo: string | null
+          erro_mensagem: string | null
+          foi_analisada: boolean | null
+          id: string
+          idioma_detectado: string | null
+          intencao: string | null
+          latitude: number | null
+          lista_opcoes: Json | null
+          longitude: number | null
+          mensagem_externa_id: string | null
+          mensagem_referencia_id: string | null
+          metadata: Json | null
+          mime_type: string | null
+          nome_arquivo: string | null
+          nome_remetente: string | null
+          numero_de: string | null
+          numero_para: string | null
+          palavras_chave: string[] | null
+          recebida_em: string | null
+          resposta_botao: string | null
+          resposta_lista: string | null
+          sentimento: string | null
+          status: string | null
+          status_entregue_em: string | null
+          status_enviada_em: string | null
+          status_falhou_em: string | null
+          status_lida_em: string | null
+          tamanho_midia: number | null
+          tem_botoes: boolean | null
+          tem_midia: boolean | null
+          template_id: string | null
+          template_nome: string | null
+          template_parametros: Json | null
+          tentativas_envio: number | null
+          tipo_mensagem: string
+          tipo_midia: string | null
+          url_midia: string | null
+          whatsapp_conta_id: string
+          whatsapp_contato_id: string
+        }
+        Insert: {
+          agendada_para?: string | null
+          botoes?: Json | null
+          confianca_analise?: number | null
+          contexto?: Json | null
+          conversa_id: string
+          corpo?: string | null
+          corpo_original?: string | null
+          criado_em?: string | null
+          custo_envio?: number | null
+          direcao: string
+          duracao_midia_segundos?: number | null
+          eh_lista?: boolean | null
+          eh_template?: boolean | null
+          endereco_localizacao?: string | null
+          enviada_automaticamente?: boolean | null
+          enviada_em?: string | null
+          enviada_por_bot?: boolean | null
+          enviada_por_usuario_id?: string | null
+          erro_codigo?: string | null
+          erro_mensagem?: string | null
+          foi_analisada?: boolean | null
+          id?: string
+          idioma_detectado?: string | null
+          intencao?: string | null
+          latitude?: number | null
+          lista_opcoes?: Json | null
+          longitude?: number | null
+          mensagem_externa_id?: string | null
+          mensagem_referencia_id?: string | null
+          metadata?: Json | null
+          mime_type?: string | null
+          nome_arquivo?: string | null
+          nome_remetente?: string | null
+          numero_de?: string | null
+          numero_para?: string | null
+          palavras_chave?: string[] | null
+          recebida_em?: string | null
+          resposta_botao?: string | null
+          resposta_lista?: string | null
+          sentimento?: string | null
+          status?: string | null
+          status_entregue_em?: string | null
+          status_enviada_em?: string | null
+          status_falhou_em?: string | null
+          status_lida_em?: string | null
+          tamanho_midia?: number | null
+          tem_botoes?: boolean | null
+          tem_midia?: boolean | null
+          template_id?: string | null
+          template_nome?: string | null
+          template_parametros?: Json | null
+          tentativas_envio?: number | null
+          tipo_mensagem?: string
+          tipo_midia?: string | null
+          url_midia?: string | null
+          whatsapp_conta_id: string
+          whatsapp_contato_id: string
+        }
+        Update: {
+          agendada_para?: string | null
+          botoes?: Json | null
+          confianca_analise?: number | null
+          contexto?: Json | null
+          conversa_id?: string
+          corpo?: string | null
+          corpo_original?: string | null
+          criado_em?: string | null
+          custo_envio?: number | null
+          direcao?: string
+          duracao_midia_segundos?: number | null
+          eh_lista?: boolean | null
+          eh_template?: boolean | null
+          endereco_localizacao?: string | null
+          enviada_automaticamente?: boolean | null
+          enviada_em?: string | null
+          enviada_por_bot?: boolean | null
+          enviada_por_usuario_id?: string | null
+          erro_codigo?: string | null
+          erro_mensagem?: string | null
+          foi_analisada?: boolean | null
+          id?: string
+          idioma_detectado?: string | null
+          intencao?: string | null
+          latitude?: number | null
+          lista_opcoes?: Json | null
+          longitude?: number | null
+          mensagem_externa_id?: string | null
+          mensagem_referencia_id?: string | null
+          metadata?: Json | null
+          mime_type?: string | null
+          nome_arquivo?: string | null
+          nome_remetente?: string | null
+          numero_de?: string | null
+          numero_para?: string | null
+          palavras_chave?: string[] | null
+          recebida_em?: string | null
+          resposta_botao?: string | null
+          resposta_lista?: string | null
+          sentimento?: string | null
+          status?: string | null
+          status_entregue_em?: string | null
+          status_enviada_em?: string | null
+          status_falhou_em?: string | null
+          status_lida_em?: string | null
+          tamanho_midia?: number | null
+          tem_botoes?: boolean | null
+          tem_midia?: boolean | null
+          template_id?: string | null
+          template_nome?: string | null
+          template_parametros?: Json | null
+          tentativas_envio?: number | null
+          tipo_mensagem?: string
+          tipo_midia?: string | null
+          url_midia?: string | null
+          whatsapp_conta_id?: string
+          whatsapp_contato_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_mensagens_conversa_id_fkey"
+            columns: ["conversa_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_conversas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_mensagens_whatsapp_conta_id_fkey"
+            columns: ["whatsapp_conta_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_contas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_mensagens_whatsapp_contato_id_fkey"
+            columns: ["whatsapp_contato_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_contatos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_respostas_rapidas: {
+        Row: {
+          atalho: string
+          ativa: boolean | null
+          atualizado_em: string | null
+          categoria: string | null
+          compartilhada_equipe: boolean | null
+          criado_em: string | null
+          criado_por: string
+          excluido_em: string | null
+          id: string
+          mensagem: string
+          privada: boolean | null
+          tags: string[] | null
+          tem_midia: boolean | null
+          tipo_midia: string | null
+          titulo: string
+          total_usos: number | null
+          ultima_utilizacao_em: string | null
+          url_midia: string | null
+          whatsapp_conta_id: string | null
+        }
+        Insert: {
+          atalho: string
+          ativa?: boolean | null
+          atualizado_em?: string | null
+          categoria?: string | null
+          compartilhada_equipe?: boolean | null
+          criado_em?: string | null
+          criado_por: string
+          excluido_em?: string | null
+          id?: string
+          mensagem: string
+          privada?: boolean | null
+          tags?: string[] | null
+          tem_midia?: boolean | null
+          tipo_midia?: string | null
+          titulo: string
+          total_usos?: number | null
+          ultima_utilizacao_em?: string | null
+          url_midia?: string | null
+          whatsapp_conta_id?: string | null
+        }
+        Update: {
+          atalho?: string
+          ativa?: boolean | null
+          atualizado_em?: string | null
+          categoria?: string | null
+          compartilhada_equipe?: boolean | null
+          criado_em?: string | null
+          criado_por?: string
+          excluido_em?: string | null
+          id?: string
+          mensagem?: string
+          privada?: boolean | null
+          tags?: string[] | null
+          tem_midia?: boolean | null
+          tipo_midia?: string | null
+          titulo?: string
+          total_usos?: number | null
+          ultima_utilizacao_em?: string | null
+          url_midia?: string | null
+          whatsapp_conta_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_respostas_rapidas_whatsapp_conta_id_fkey"
+            columns: ["whatsapp_conta_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_contas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_templates: {
+        Row: {
+          aprovado_em: string | null
+          ativo: boolean | null
+          atualizado_em: string | null
+          botoes: Json | null
+          categoria: string
+          corpo: string
+          criado_em: string | null
+          criado_por: string
+          excluido_em: string | null
+          id: string
+          idioma: string | null
+          motivo_rejeicao: string | null
+          nome_template: string
+          numero_parametros: number | null
+          parametros: Json | null
+          permite_personalizar: boolean | null
+          rejeitado_em: string | null
+          requer_aprovacao_envio: boolean | null
+          rodape: string | null
+          status_aprovacao: string | null
+          subcategoria: string | null
+          tags: string[] | null
+          taxa_conversao: number | null
+          tem_botoes: boolean | null
+          template_externo_id: string | null
+          tipo_midia_header: string | null
+          titulo: string | null
+          total_entregues: number | null
+          total_enviados: number | null
+          total_lidos: number | null
+          total_respondidos: number | null
+          ultimo_envio_em: string | null
+          url_midia_exemplo: string | null
+          whatsapp_conta_id: string
+        }
+        Insert: {
+          aprovado_em?: string | null
+          ativo?: boolean | null
+          atualizado_em?: string | null
+          botoes?: Json | null
+          categoria: string
+          corpo: string
+          criado_em?: string | null
+          criado_por: string
+          excluido_em?: string | null
+          id?: string
+          idioma?: string | null
+          motivo_rejeicao?: string | null
+          nome_template: string
+          numero_parametros?: number | null
+          parametros?: Json | null
+          permite_personalizar?: boolean | null
+          rejeitado_em?: string | null
+          requer_aprovacao_envio?: boolean | null
+          rodape?: string | null
+          status_aprovacao?: string | null
+          subcategoria?: string | null
+          tags?: string[] | null
+          taxa_conversao?: number | null
+          tem_botoes?: boolean | null
+          template_externo_id?: string | null
+          tipo_midia_header?: string | null
+          titulo?: string | null
+          total_entregues?: number | null
+          total_enviados?: number | null
+          total_lidos?: number | null
+          total_respondidos?: number | null
+          ultimo_envio_em?: string | null
+          url_midia_exemplo?: string | null
+          whatsapp_conta_id: string
+        }
+        Update: {
+          aprovado_em?: string | null
+          ativo?: boolean | null
+          atualizado_em?: string | null
+          botoes?: Json | null
+          categoria?: string
+          corpo?: string
+          criado_em?: string | null
+          criado_por?: string
+          excluido_em?: string | null
+          id?: string
+          idioma?: string | null
+          motivo_rejeicao?: string | null
+          nome_template?: string
+          numero_parametros?: number | null
+          parametros?: Json | null
+          permite_personalizar?: boolean | null
+          rejeitado_em?: string | null
+          requer_aprovacao_envio?: boolean | null
+          rodape?: string | null
+          status_aprovacao?: string | null
+          subcategoria?: string | null
+          tags?: string[] | null
+          taxa_conversao?: number | null
+          tem_botoes?: boolean | null
+          template_externo_id?: string | null
+          tipo_midia_header?: string | null
+          titulo?: string | null
+          total_entregues?: number | null
+          total_enviados?: number | null
+          total_lidos?: number | null
+          total_respondidos?: number | null
+          ultimo_envio_em?: string | null
+          url_midia_exemplo?: string | null
+          whatsapp_conta_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_templates_whatsapp_conta_id_fkey"
+            columns: ["whatsapp_conta_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_contas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_webhooks_log: {
+        Row: {
+          conversa_id: string | null
+          erro_processamento: string | null
+          evento_externo_id: string | null
+          headers: Json | null
+          id: string
+          mensagem_id: string | null
+          payload: Json
+          processado: boolean | null
+          processado_em: string | null
+          provider: string
+          recebido_em: string | null
+          tentativas_processamento: number | null
+          tipo_evento: string
+          whatsapp_conta_id: string | null
+        }
+        Insert: {
+          conversa_id?: string | null
+          erro_processamento?: string | null
+          evento_externo_id?: string | null
+          headers?: Json | null
+          id?: string
+          mensagem_id?: string | null
+          payload: Json
+          processado?: boolean | null
+          processado_em?: string | null
+          provider: string
+          recebido_em?: string | null
+          tentativas_processamento?: number | null
+          tipo_evento: string
+          whatsapp_conta_id?: string | null
+        }
+        Update: {
+          conversa_id?: string | null
+          erro_processamento?: string | null
+          evento_externo_id?: string | null
+          headers?: Json | null
+          id?: string
+          mensagem_id?: string | null
+          payload?: Json
+          processado?: boolean | null
+          processado_em?: string | null
+          provider?: string
+          recebido_em?: string | null
+          tentativas_processamento?: number | null
+          tipo_evento?: string
+          whatsapp_conta_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_webhooks_log_conversa_id_fkey"
+            columns: ["conversa_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_conversas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_webhooks_log_mensagem_id_fkey"
+            columns: ["mensagem_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_mensagens"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_webhooks_log_whatsapp_conta_id_fkey"
+            columns: ["whatsapp_conta_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_contas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       vw_clientes_completo: {
