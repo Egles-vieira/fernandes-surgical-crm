@@ -86,8 +86,8 @@ const WhatsApp = () => {
           </Card>
         </div>
       ) : (
-        <div className="grid grid-cols-12 h-full">
-          <div className="col-span-4 h-full">
+        <div className="grid grid-cols-12 h-full min-h-0 overflow-hidden">
+          <div className="col-span-4 h-full min-h-0">
             <ConversasList
               contaId={contaAtiva.id}
               conversaSelecionada={conversaSelecionada}
@@ -96,7 +96,7 @@ const WhatsApp = () => {
           </div>
           
           {conversaSelecionada && (
-            <div className="col-span-8 h-full">
+            <div className="col-span-8 h-full min-h-0">
               <ChatArea
                 conversaId={conversaSelecionada}
                 contaId={contaAtiva.id}
@@ -105,7 +105,7 @@ const WhatsApp = () => {
           )}
           
           {!conversaSelecionada && (
-            <div className="col-span-8 flex items-center justify-center h-full">
+            <div className="col-span-8 flex items-center justify-center h-full min-h-0">
               <Card className="p-12 text-center bg-card/30 backdrop-blur">
                 <MessageSquare className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
                 <h3 className="text-lg font-semibold mb-2">Selecione uma conversa</h3>

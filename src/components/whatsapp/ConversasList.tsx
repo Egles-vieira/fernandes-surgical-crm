@@ -91,7 +91,7 @@ const ConversasList = ({ contaId, conversaSelecionada, onSelectConversa }: Conve
 
   return (
     <>
-      <Card className="h-full flex flex-col bg-card/50 backdrop-blur border-muted">
+      <Card className="h-full min-h-0 flex flex-col bg-card/50 backdrop-blur border-muted">
         {/* Header */}
         <div className="p-4 border-b border-border/50 bg-gradient-to-br from-muted/30 to-transparent">
           <div className="flex items-center justify-between mb-4">
@@ -149,7 +149,7 @@ const ConversasList = ({ contaId, conversaSelecionada, onSelectConversa }: Conve
       </div>
 
       {/* Lista de conversas */}
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1 min-h-0">
         {isLoading ? (
           <div className="p-4 text-center text-muted-foreground">
             Carregando conversas...

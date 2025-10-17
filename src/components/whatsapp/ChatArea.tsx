@@ -167,7 +167,7 @@ const ChatArea = ({ conversaId, contaId }: ChatAreaProps) => {
   const iniciais = nomeContato?.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
 
   return (
-    <Card className="h-full flex flex-col bg-card/50 backdrop-blur border-muted">
+    <Card className="h-full min-h-0 flex flex-col bg-card/50 backdrop-blur border-muted">
       {/* Header */}
       <div className="p-4 border-b border-border/50 bg-gradient-to-br from-muted/30 to-transparent">
         <div className="flex items-center justify-between">
@@ -209,7 +209,7 @@ const ChatArea = ({ conversaId, contaId }: ChatAreaProps) => {
       </div>
 
       {/* Mensagens */}
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1 min-h-0">
         <div className="p-4 space-y-4">
           {mensagens?.map((msg) => {
             const isEnviada = msg.direcao === 'enviada';
