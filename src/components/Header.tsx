@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { Search, Bell, User, ChevronRight, Menu, LogOut } from "lucide-react";
+import { Search, Bell, User, ChevronRight, Menu, LogOut, Settings } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -29,36 +29,61 @@ export default function Header({
       case "/":
         return {
           title: "Dashboard",
+          description: "Visão geral do desempenho e métricas",
           breadcrumb: "Cirúrgica Fernandes / Dashboard"
         };
       case "/vendas":
         return {
           title: "Vendas",
+          description: "Gerencie suas oportunidades e pipeline de vendas",
           breadcrumb: "Cirúrgica Fernandes / Vendas"
         };
       case "/plataformas":
         return {
           title: "Plataformas",
+          description: "Integração com plataformas de e-commerce",
           breadcrumb: "Cirúrgica Fernandes / Plataformas"
         };
       case "/licitacoes":
         return {
           title: "Licitações",
+          description: "Acompanhe licitações e contratos governamentais",
           breadcrumb: "Cirúrgica Fernandes / Licitações"
         };
       case "/clientes":
         return {
           title: "Clientes",
+          description: "Gerencie sua base de clientes e contatos",
           breadcrumb: "Cirúrgica Fernandes / Clientes"
         };
       case "/produtos":
         return {
           title: "Produtos",
+          description: "Catálogo de produtos e estoque",
           breadcrumb: "Cirúrgica Fernandes / Produtos"
+        };
+      case "/whatsapp":
+        return {
+          title: "WhatsApp",
+          description: "Gerencie suas conversas e atendimentos",
+          breadcrumb: "Cirúrgica Fernandes / WhatsApp"
+        };
+      case "/whatsapp/configuracoes":
+        return {
+          title: "Configurações WhatsApp",
+          description: "Configure contas, templates e respostas rápidas",
+          breadcrumb: "Cirúrgica Fernandes / WhatsApp / Configurações"
+        };
+      case "/usuarios":
+        return {
+          title: "Usuários",
+          description: "Gerencie usuários e permissões do sistema",
+          breadcrumb: "Cirúrgica Fernandes / Usuários"
         };
       default:
         return {
           title: "CRM",
+          description: "Sistema de gestão empresarial",
           breadcrumb: "Cirúrgica Fernandes"
         };
     }
@@ -67,19 +92,10 @@ export default function Header({
   return <header className="h-16 border-b bg-card flex items-center px-6 shadow-sm">
       <div className="flex items-center gap-6 w-full">
         {/* Botão de Toggle do Menu + Título e Breadcrumb */}
-        <div className="flex items-center gap-3 min-w-[200px]">
-          
-          
+        <div className="flex items-center gap-3 min-w-[300px]">
           <div>
             <h2 className="text-lg font-bold text-foreground">{pageInfo.title}</h2>
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <span className="flex items-center gap-1">
-                {pageInfo.breadcrumb.split(" / ").map((item, index, arr) => <span key={index} className="flex items-center gap-1">
-                    {item}
-                    {index < arr.length - 1 && <ChevronRight size={12} />}
-                  </span>)}
-              </span>
-            </div>
+            <p className="text-xs text-muted-foreground">{pageInfo.description}</p>
           </div>
         </div>
 
@@ -93,6 +109,17 @@ export default function Header({
 
         {/* Ações e Usuário */}
         <div className="flex items-center gap-4 ml-auto">
+          {location.pathname.startsWith('/whatsapp') && (
+            <Button 
+              variant="outline"
+              size="sm"
+              onClick={() => navigate('/whatsapp/configuracoes')}
+            >
+              <Settings className="w-4 h-4 mr-2" />
+              Configurações
+            </Button>
+          )}
+          
           <ThemeCustomizer />
           
           <Button variant="ghost" size="sm" className="relative">

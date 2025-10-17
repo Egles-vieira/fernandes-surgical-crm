@@ -69,29 +69,6 @@ const WhatsApp = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       <div className="container mx-auto p-4 h-[calc(100vh-2rem)]">
-        <div className="mb-6">
-          <div className="flex items-center gap-3">
-            <div className="p-3 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 backdrop-blur">
-              <MessageSquare className="w-6 h-6 text-primary" />
-            </div>
-            <div className="flex-1">
-              <h1 className="text-3xl font-bold bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text text-transparent">
-                WhatsApp
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                Gerencie suas conversas e atendimentos
-              </p>
-            </div>
-            <Button 
-              variant="outline"
-              onClick={() => window.location.href = '/whatsapp/configuracoes'}
-            >
-              <Settings className="w-4 h-4 mr-2" />
-              Configurações
-            </Button>
-          </div>
-        </div>
-
         {!contaAtiva ? (
           <Card className="p-12 text-center">
             <MessageSquare className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
@@ -131,16 +108,9 @@ const WhatsApp = () => {
             <Card className="p-12 text-center bg-card/30 backdrop-blur">
               <MessageSquare className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
               <h3 className="text-lg font-semibold mb-2">Selecione uma conversa</h3>
-              <p className="text-sm text-muted-foreground mb-4">
+              <p className="text-sm text-muted-foreground">
                 Escolha uma conversa na lista para começar a atender
               </p>
-              <Button 
-                variant="outline"
-                onClick={() => window.location.href = '/whatsapp/configuracoes'}
-              >
-                <Settings className="w-4 h-4 mr-2" />
-                Configurações
-              </Button>
             </Card>
           </div>
         )}
