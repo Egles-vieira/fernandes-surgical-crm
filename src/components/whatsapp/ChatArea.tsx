@@ -20,6 +20,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface ChatAreaProps {
   conversaId: string | null;
@@ -208,44 +209,46 @@ const ChatArea = ({ conversaId, contaId }: ChatAreaProps) => {
       </div>
 
       {/* Mensagens */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
-        {mensagens?.map((msg) => {
-          const isEnviada = msg.direcao === 'enviada';
-          
-          return (
-            <div
-              key={msg.id}
-              className={cn(
-                "flex",
-                isEnviada ? "justify-end" : "justify-start"
-              )}
-            >
+      <ScrollArea className="flex-1 h-full">
+        <div className="p-4 space-y-4">
+          {mensagens?.map((msg) => {
+            const isEnviada = msg.direcao === 'enviada';
+            
+            return (
               <div
+                key={msg.id}
                 className={cn(
-                  "max-w-[70%] rounded-2xl px-4 py-2",
-                  isEnviada
-                    ? "bg-gradient-to-br from-primary to-primary/90 text-primary-foreground"
-                    : "bg-muted"
+                  "flex",
+                  isEnviada ? "justify-end" : "justify-start"
                 )}
               >
-                <p className="text-sm whitespace-pre-wrap">{msg.corpo}</p>
-                <div className="flex items-center justify-end gap-1 mt-1">
-                  <span className="text-xs opacity-70">
-                    {format(new Date(msg.criado_em), 'HH:mm', { locale: ptBR })}
-                  </span>
-                  {isEnviada && (
-                    <CheckCheck className={cn(
-                      "w-4 h-4",
-                      msg.status === 'lida' ? "text-blue-400" : "opacity-70"
-                    )} />
+                <div
+                  className={cn(
+                    "max-w-[70%] rounded-2xl px-4 py-2",
+                    isEnviada
+                      ? "bg-gradient-to-br from-primary to-primary/90 text-primary-foreground"
+                      : "bg-muted"
                   )}
+                >
+                  <p className="text-sm whitespace-pre-wrap">{msg.corpo}</p>
+                  <div className="flex items-center justify-end gap-1 mt-1">
+                    <span className="text-xs opacity-70">
+                      {format(new Date(msg.criado_em), 'HH:mm', { locale: ptBR })}
+                    </span>
+                    {isEnviada && (
+                      <CheckCheck className={cn(
+                        "w-4 h-4",
+                        msg.status === 'lida' ? "text-blue-400" : "opacity-70"
+                      )} />
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          );
-        })}
-        <div ref={messagesEndRef} />
-      </div>
+            );
+          })}
+          <div ref={messagesEndRef} />
+        </div>
+      </ScrollArea>
 
       {/* Input */}
       <div className="p-4 border-t border-border/50 bg-gradient-to-br from-muted/20 to-transparent">

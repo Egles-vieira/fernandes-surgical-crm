@@ -10,6 +10,7 @@ import { Search, Circle, MessageSquarePlus, Users } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import NovaConversaDialog from "./NovaConversaDialog";
 import ClienteConsultaDialog from "./ClienteConsultaDialog";
 
@@ -148,96 +149,98 @@ const ConversasList = ({ contaId, conversaSelecionada, onSelectConversa }: Conve
       </div>
 
       {/* Lista de conversas */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar">
-        {isLoading ? (
-          <div className="p-4 text-center text-muted-foreground">
-            Carregando conversas...
-          </div>
-        ) : conversasFiltradas?.length === 0 ? (
-          <div className="p-8 text-center text-muted-foreground">
-            Nenhuma conversa encontrada
-          </div>
-        ) : (
-          conversasFiltradas?.map((conversa) => {
-            const nomeContato = conversa.whatsapp_contatos?.contatos?.nome_completo || 
-                              conversa.whatsapp_contatos?.nome_whatsapp ||
-                              conversa.whatsapp_contatos?.numero_whatsapp;
-            const cargo = conversa.whatsapp_contatos?.contatos?.cargo;
-            const nomeEmpresa = conversa.whatsapp_contatos?.contatos?.clientes?.nome_abrev;
-            
-            // Montar display name: Nome | Cargo | Empresa
-            let displayName = nomeContato;
-            if (cargo) displayName += ` | ${cargo}`;
-            if (nomeEmpresa) displayName += ` | ${nomeEmpresa}`;
-            
-            const iniciais = nomeContato?.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+      <ScrollArea className="flex-1 h-full">
+        <div>
+          {isLoading ? (
+            <div className="p-4 text-center text-muted-foreground">
+              Carregando conversas...
+            </div>
+          ) : conversasFiltradas?.length === 0 ? (
+            <div className="p-8 text-center text-muted-foreground">
+              Nenhuma conversa encontrada
+            </div>
+          ) : (
+            conversasFiltradas?.map((conversa) => {
+              const nomeContato = conversa.whatsapp_contatos?.contatos?.nome_completo || 
+                                conversa.whatsapp_contatos?.nome_whatsapp ||
+                                conversa.whatsapp_contatos?.numero_whatsapp;
+              const cargo = conversa.whatsapp_contatos?.contatos?.cargo;
+              const nomeEmpresa = conversa.whatsapp_contatos?.contatos?.clientes?.nome_abrev;
+              
+              // Montar display name: Nome | Cargo | Empresa
+              let displayName = nomeContato;
+              if (cargo) displayName += ` | ${cargo}`;
+              if (nomeEmpresa) displayName += ` | ${nomeEmpresa}`;
+              
+              const iniciais = nomeContato?.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
 
-            return (
-              <div
-                key={conversa.id}
-                onClick={() => onSelectConversa(conversa.id)}
-                className={cn(
-                  "p-4 border-b border-border/30 cursor-pointer transition-all hover:bg-muted/30",
-                  conversaSelecionada === conversa.id && "bg-primary/10 border-l-4 border-l-primary"
-                )}
-              >
-                <div className="flex gap-3">
-                  <div className="relative">
-                    <Avatar className="w-12 h-12">
-                      <AvatarImage src={conversa.whatsapp_contatos?.foto_perfil_url || ''} />
-                      <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/5">
-                        {iniciais}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className={cn(
-                      "absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-background",
-                      getStatusColor(conversa.status)
-                    )} />
-                  </div>
-
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between mb-1">
-                      <h3 className="font-semibold text-sm truncate">
-                        {displayName}
-                      </h3>
-                      {conversa.ultima_mensagem_em && (
-                        <span className="text-xs text-muted-foreground whitespace-nowrap ml-2">
-                          {formatDistanceToNow(new Date(conversa.ultima_mensagem_em), {
-                            addSuffix: true,
-                            locale: ptBR
-                          })}
-                        </span>
-                      )}
+              return (
+                <div
+                  key={conversa.id}
+                  onClick={() => onSelectConversa(conversa.id)}
+                  className={cn(
+                    "p-4 border-b border-border/30 cursor-pointer transition-all hover:bg-muted/30",
+                    conversaSelecionada === conversa.id && "bg-primary/10 border-l-4 border-l-primary"
+                  )}
+                >
+                  <div className="flex gap-3">
+                    <div className="relative">
+                      <Avatar className="w-12 h-12">
+                        <AvatarImage src={conversa.whatsapp_contatos?.foto_perfil_url || ''} />
+                        <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/5">
+                          {iniciais}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className={cn(
+                        "absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-background",
+                        getStatusColor(conversa.status)
+                      )} />
                     </div>
 
-                    <p className="text-sm text-muted-foreground truncate mb-2">
-                      {conversa.titulo || 'Sem título'}
-                    </p>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between mb-1">
+                        <h3 className="font-semibold text-sm truncate">
+                          {displayName}
+                        </h3>
+                        {conversa.ultima_mensagem_em && (
+                          <span className="text-xs text-muted-foreground whitespace-nowrap ml-2">
+                            {formatDistanceToNow(new Date(conversa.ultima_mensagem_em), {
+                              addSuffix: true,
+                              locale: ptBR
+                            })}
+                          </span>
+                        )}
+                      </div>
 
-                    <div className="flex items-center gap-2 flex-wrap">
-                      {conversa.prioridade !== 'normal' && (
-                        <Badge variant={getPrioridadeColor(conversa.prioridade)} className="text-xs">
-                          {conversa.prioridade}
-                        </Badge>
-                      )}
-                      {conversa.total_mensagens > 0 && (
-                        <Badge variant="outline" className="text-xs">
-                          {conversa.total_mensagens} msgs
-                        </Badge>
-                      )}
-                      {conversa.tags && conversa.tags.length > 0 && (
-                        <Badge variant="outline" className="text-xs">
-                          {conversa.tags[0]}
-                        </Badge>
-                      )}
+                      <p className="text-sm text-muted-foreground truncate mb-2">
+                        {conversa.titulo || 'Sem título'}
+                      </p>
+
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {conversa.prioridade !== 'normal' && (
+                          <Badge variant={getPrioridadeColor(conversa.prioridade)} className="text-xs">
+                            {conversa.prioridade}
+                          </Badge>
+                        )}
+                        {conversa.total_mensagens > 0 && (
+                          <Badge variant="outline" className="text-xs">
+                            {conversa.total_mensagens} msgs
+                          </Badge>
+                        )}
+                        {conversa.tags && conversa.tags.length > 0 && (
+                          <Badge variant="outline" className="text-xs">
+                            {conversa.tags[0]}
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            );
-          })
-        )}
-      </div>
+              );
+            })
+          )}
+        </div>
+      </ScrollArea>
     </Card>
 
     <NovaConversaDialog
