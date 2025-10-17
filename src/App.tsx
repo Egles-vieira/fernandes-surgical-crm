@@ -24,6 +24,7 @@ import PedidosPlataforma from "./pages/plataformas/Pedidos";
 import RelatoriosPlataforma from "./pages/plataformas/Relatorios";
 import SolicitacaoParticipacao from "./pages/licitacoes/SolicitacaoParticipacao";
 import ContratosGoverno from "./pages/licitacoes/ContratosGoverno";
+import WhatsApp from "./pages/WhatsApp";
 
 
 const App = () => (
@@ -149,6 +150,13 @@ const App = () => (
           <ProtectedRoute>
             <Layout>
               <ContratosGoverno />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/whatsapp" element={
+          <ProtectedRoute>
+            <Layout>
+              <WhatsApp />
             </Layout>
           </ProtectedRoute>
         } />

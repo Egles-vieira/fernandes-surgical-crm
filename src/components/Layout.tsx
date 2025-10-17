@@ -11,6 +11,7 @@ import {
   ChevronDown,
   ChevronRight,
   Menu,
+  MessageSquare,
 } from "lucide-react";
 import {
   Collapsible,
@@ -64,6 +65,7 @@ const menuItems: MenuItem[] = [
       { path: "/licitacoes", icon: Gavel, label: "Licitações" },
     ],
   },
+  { path: "/whatsapp", icon: MessageSquare, label: "WhatsApp" },
   { path: "/clientes", icon: Users, label: "Clientes" },
   {
     icon: Package,

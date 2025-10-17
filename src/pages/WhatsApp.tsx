@@ -1,0 +1,79 @@
+import { useState } from "react";
+import { MessageSquare } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import ConversasList from "@/components/whatsapp/ConversasList";
+import ChatArea from "@/components/whatsapp/ChatArea";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+
+const WhatsApp = () => {
+  const [conversaSelecionada, setConversaSelecionada] = useState<string | null>(null);
+
+  const { data: contas } = useQuery({
+    queryKey: ['whatsapp-contas'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('whatsapp_contas')
+        .select('*')
+        .is('excluido_em', null)
+        .eq('status', 'ativo')
+        .order('criado_em', { ascending: false });
+      
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const contaAtiva = contas?.[0];
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+      <div className="container mx-auto p-4 h-[calc(100vh-2rem)]">
+        <div className="mb-6">
+          <div className="flex items-center gap-3">
+            <div className="p-3 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 backdrop-blur">
+              <MessageSquare className="w-6 h-6 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text text-transparent">
+                WhatsApp
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                Gerencie suas conversas e atendimentos
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {!contaAtiva ? (
+          <Card className="p-12 text-center">
+            <MessageSquare className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+            <h2 className="text-2xl font-semibold mb-2">Nenhuma conta conectada</h2>
+            <p className="text-muted-foreground mb-6">
+              Configure uma conta WhatsApp Business para começar a gerenciar conversas
+            </p>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-12 gap-4 h-[calc(100vh-180px)]">
+            <div className="col-span-4">
+              <ConversasList
+                contaId={contaAtiva.id}
+                conversaSelecionada={conversaSelecionada}
+                onSelectConversa={setConversaSelecionada}
+              />
+            </div>
+            
+            <div className="col-span-8">
+              <ChatArea
+                conversaId={conversaSelecionada}
+                contaId={contaAtiva.id}
+              />
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default WhatsApp;
