@@ -209,7 +209,7 @@ const ChatArea = ({ conversaId, contaId }: ChatAreaProps) => {
       </div>
 
       {/* Mensagens */}
-      <ScrollArea className="flex-1 h-full">
+      <ScrollArea className="flex-1">
         <div className="p-4 space-y-4">
           {mensagens?.map((msg) => {
             const isEnviada = msg.direcao === 'enviada';
