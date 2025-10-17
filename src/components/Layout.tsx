@@ -65,7 +65,14 @@ const menuItems: MenuItem[] = [
       { path: "/licitacoes", icon: Gavel, label: "Licitações" },
     ],
   },
-  { path: "/whatsapp", icon: MessageSquare, label: "WhatsApp" },
+  {
+    icon: MessageSquare,
+    label: "WhatsApp",
+    children: [
+      { path: "/whatsapp", icon: MessageSquare, label: "Conversas" },
+      { path: "/whatsapp/configuracoes", icon: Shield, label: "Configurações", adminOnly: true },
+    ],
+  },
   { path: "/clientes", icon: Users, label: "Clientes" },
   {
     icon: Package,
@@ -177,7 +184,9 @@ export default function Layout({ children }: LayoutProps) {
                           <p className="text-xs font-semibold text-muted-foreground mb-2 px-2">
                             {item.label}
                           </p>
-                          {item.children.map((child) => (
+                          {item.children
+                            .filter(child => !child.adminOnly || isAdmin)
+                            .map((child) => (
                             <NavLink
                               key={child.path}
                               to={child.path!}
@@ -231,7 +240,9 @@ export default function Layout({ children }: LayoutProps) {
                     </CollapsibleTrigger>
 
                     <CollapsibleContent className="mt-1 space-y-1 pl-5 pr-2">
-                      {item.children.map((child) => (
+                      {item.children
+                        .filter(child => !child.adminOnly || isAdmin)
+                        .map((child) => (
                         <NavLink
                           key={child.path}
                           to={child.path!}

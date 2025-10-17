@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { MessageSquare } from "lucide-react";
+import { MessageSquare, Settings } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import ConversasList from "@/components/whatsapp/ConversasList";
 import ChatArea from "@/components/whatsapp/ChatArea";
 import { useQuery } from "@tanstack/react-query";
@@ -34,7 +35,7 @@ const WhatsApp = () => {
             <div className="p-3 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 backdrop-blur">
               <MessageSquare className="w-6 h-6 text-primary" />
             </div>
-            <div>
+            <div className="flex-1">
               <h1 className="text-3xl font-bold bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text text-transparent">
                 WhatsApp
               </h1>
@@ -42,6 +43,13 @@ const WhatsApp = () => {
                 Gerencie suas conversas e atendimentos
               </p>
             </div>
+            <Button 
+              variant="outline"
+              onClick={() => window.location.href = '/whatsapp/configuracoes'}
+            >
+              <Settings className="w-4 h-4 mr-2" />
+              Configurações
+            </Button>
           </div>
         </div>
 
@@ -52,6 +60,13 @@ const WhatsApp = () => {
             <p className="text-muted-foreground mb-6">
               Configure uma conta WhatsApp Business para começar a gerenciar conversas
             </p>
+            <Button 
+              onClick={() => window.location.href = '/whatsapp/configuracoes'}
+              className="bg-gradient-to-br from-primary to-primary/90"
+            >
+              <Settings className="w-4 h-4 mr-2" />
+              Configurar Conta
+            </Button>
           </Card>
         ) : (
           <div className="grid grid-cols-12 gap-4 h-[calc(100vh-180px)]">
@@ -63,12 +78,33 @@ const WhatsApp = () => {
               />
             </div>
             
-            <div className="col-span-8">
-              <ChatArea
-                conversaId={conversaSelecionada}
-                contaId={contaAtiva.id}
-              />
-            </div>
+        {conversaSelecionada && (
+          <div className="col-span-8">
+            <ChatArea
+              conversaId={conversaSelecionada}
+              contaId={contaAtiva.id}
+            />
+          </div>
+        )}
+        
+        {!conversaSelecionada && (
+          <div className="col-span-8 flex items-center justify-center">
+            <Card className="p-12 text-center bg-card/30 backdrop-blur">
+              <MessageSquare className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+              <h3 className="text-lg font-semibold mb-2">Selecione uma conversa</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Escolha uma conversa na lista para começar a atender
+              </p>
+              <Button 
+                variant="outline"
+                onClick={() => window.location.href = '/whatsapp/configuracoes'}
+              >
+                <Settings className="w-4 h-4 mr-2" />
+                Configurações
+              </Button>
+            </Card>
+          </div>
+        )}
           </div>
         )}
       </div>
