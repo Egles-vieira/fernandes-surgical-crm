@@ -1828,6 +1828,8 @@ export type Database = {
       whatsapp_contas: {
         Row: {
           account_sid: string | null
+          api_key: string | null
+          app_id: string | null
           atualizado_em: string | null
           business_account_id: string | null
           categoria_negocio: string | null
@@ -1863,6 +1865,8 @@ export type Database = {
         }
         Insert: {
           account_sid?: string | null
+          api_key?: string | null
+          app_id?: string | null
           atualizado_em?: string | null
           business_account_id?: string | null
           categoria_negocio?: string | null
@@ -1898,6 +1902,8 @@ export type Database = {
         }
         Update: {
           account_sid?: string | null
+          api_key?: string | null
+          app_id?: string | null
           atualizado_em?: string | null
           business_account_id?: string | null
           categoria_negocio?: string | null
