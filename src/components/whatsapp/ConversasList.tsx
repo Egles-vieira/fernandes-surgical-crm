@@ -39,7 +39,11 @@ const ConversasList = ({ contaId, conversaSelecionada, onSelectConversa }: Conve
             contato_id,
             contatos (
               nome_completo,
-              primeiro_nome
+              primeiro_nome,
+              cliente_id,
+              clientes (
+                nome_abrev
+              )
             )
           )
         `)
@@ -157,6 +161,8 @@ const ConversasList = ({ contaId, conversaSelecionada, onSelectConversa }: Conve
             const nomeContato = conversa.whatsapp_contatos?.contatos?.nome_completo || 
                               conversa.whatsapp_contatos?.nome_whatsapp ||
                               conversa.whatsapp_contatos?.numero_whatsapp;
+            const nomeEmpresa = conversa.whatsapp_contatos?.contatos?.clientes?.nome_abrev;
+            const displayName = nomeEmpresa ? `${nomeContato} | ${nomeEmpresa}` : nomeContato;
             const iniciais = nomeContato?.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
 
             return (
@@ -185,7 +191,7 @@ const ConversasList = ({ contaId, conversaSelecionada, onSelectConversa }: Conve
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between mb-1">
                       <h3 className="font-semibold text-sm truncate">
-                        {nomeContato}
+                        {displayName}
                       </h3>
                       {conversa.ultima_mensagem_em && (
                         <span className="text-xs text-muted-foreground whitespace-nowrap ml-2">
