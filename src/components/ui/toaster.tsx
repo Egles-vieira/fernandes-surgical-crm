@@ -7,6 +7,8 @@ export function Toaster() {
   return (
     <ToastProvider>
       {toasts.map(function ({ id, title, description, action, ...props }) {
+        // Evita toasts em branco: se não houver título, descrição nem ação, não renderiza
+        if (!title && !description && !action) return null;
         return (
           <Toast key={id} {...props}>
             <div className="grid gap-1">
