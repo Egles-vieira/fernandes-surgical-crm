@@ -36,7 +36,7 @@ const NovoTemplateDialog = ({
   template,
 }: NovoTemplateDialogProps) => {
   const [nomeTemplate, setNomeTemplate] = useState(template?.nome_template || "");
-  const [categoria, setCategoria] = useState(template?.categoria || "MARKETING");
+  const [categoria, setCategoria] = useState(template?.categoria || "marketing");
   const [idioma, setIdioma] = useState(template?.idioma || "pt_BR");
   const [titulo, setTitulo] = useState(template?.titulo || "");
   const [corpo, setCorpo] = useState(template?.corpo || "");
@@ -106,7 +106,7 @@ const NovoTemplateDialog = ({
 
   const limparFormulario = () => {
     setNomeTemplate("");
-    setCategoria("MARKETING");
+    setCategoria("marketing");
     setIdioma("pt_BR");
     setTitulo("");
     setCorpo("");
@@ -164,9 +164,9 @@ const NovoTemplateDialog = ({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="MARKETING">Marketing</SelectItem>
-                  <SelectItem value="UTILITY">Utilitário</SelectItem>
-                  <SelectItem value="AUTHENTICATION">Autenticação</SelectItem>
+                  <SelectItem value="marketing">Marketing</SelectItem>
+                  <SelectItem value="utility">Utilitário</SelectItem>
+                  <SelectItem value="authentication">Autenticação</SelectItem>
                 </SelectContent>
               </Select>
             </div>
