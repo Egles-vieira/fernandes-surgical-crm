@@ -81,6 +81,7 @@ const ChatArea = ({ conversaId, contaId }: ChatAreaProps) => {
     mutationFn: async (corpo: string) => {
       if (!conversaId || !conversa) return;
 
+      // Primeiro, criar a mensagem no banco como pendente
       const { data, error } = await supabase
         .from('whatsapp_mensagens')
         .insert({
@@ -97,6 +98,18 @@ const ChatArea = ({ conversaId, contaId }: ChatAreaProps) => {
         .single();
 
       if (error) throw error;
+
+      // Depois, chamar a edge function para enviar via Gupshup
+      if (data) {
+        const { error: functionError } = await supabase.functions.invoke('gupshup-enviar-mensagem', {
+          body: { mensagemId: data.id }
+        });
+
+        if (functionError) {
+          console.error('Erro ao chamar edge function:', functionError);
+        }
+      }
+
       return data;
     },
     onSuccess: () => {
@@ -105,7 +118,7 @@ const ChatArea = ({ conversaId, contaId }: ChatAreaProps) => {
       setMensagem("");
       toast({
         title: "Mensagem enviada",
-        description: "Sua mensagem foi enviada com sucesso",
+        description: "Sua mensagem está sendo enviada",
       });
     },
     onError: (error) => {
