@@ -9,6 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
+import { Input } from "@/components/ui/input";
 import { 
   ArrowLeft, 
   Building2, 
@@ -27,7 +28,8 @@ import {
   Clock,
   MessageSquare,
   Target,
-  Package
+  Package,
+  Search
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import NovoContatoDialog from "@/components/cliente/NovoContatoDialog";
@@ -43,6 +45,7 @@ export default function ClienteDetalhes() {
   const [whatsappChatOpen, setWhatsappChatOpen] = useState(false);
   const [selectedContact, setSelectedContact] = useState<any>(null);
   const [historicoProdutosOpen, setHistoricoProdutosOpen] = useState(false);
+  const [filtroContatos, setFiltroContatos] = useState("");
 
   const { data: cliente, isLoading } = useQuery({
     queryKey: ["cliente", id],
@@ -470,71 +473,145 @@ export default function ClienteDetalhes() {
               <Users className="h-5 w-5" />
               Contatos ({cliente.contatos?.length || 0})
             </CardTitle>
-            <Button variant="ghost" size="sm" className="text-xs">Ver Todos</Button>
+            <Button variant="ghost" size="sm" className="text-xs" onClick={() => setNovoContatoOpen(true)}>
+              <UserPlus className="h-3 w-3 mr-1" />
+              Novo
+            </Button>
           </CardHeader>
           <CardContent className="space-y-3">
+            {/* Filtro de Contatos */}
+            <div className="relative">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar contatos..."
+                value={filtroContatos}
+                onChange={(e) => setFiltroContatos(e.target.value)}
+                className="pl-8 h-9 text-sm"
+              />
+            </div>
+
             {cliente.contatos && cliente.contatos.length > 0 ? (
-              cliente.contatos.slice(0, 3).map((contato: any) => (
-                <div key={contato.id} className="p-3 rounded-lg border space-y-3">
-                  <div className="flex items-start gap-3">
-                    <div className="h-10 w-10 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center font-medium text-sm">
-                      {contato.primeiro_nome?.charAt(0)}{contato.sobrenome?.charAt(0)}
+              cliente.contatos
+                .filter((contato: any) => {
+                  const searchTerm = filtroContatos.toLowerCase();
+                  return (
+                    contato.nome_completo?.toLowerCase().includes(searchTerm) ||
+                    contato.email?.toLowerCase().includes(searchTerm) ||
+                    contato.cargo?.toLowerCase().includes(searchTerm) ||
+                    contato.departamento?.toLowerCase().includes(searchTerm) ||
+                    contato.telefone?.includes(searchTerm) ||
+                    contato.celular?.includes(searchTerm)
+                  );
+                })
+                .map((contato: any) => (
+                  <div key={contato.id} className="p-3 rounded-lg border space-y-3 hover:bg-accent/50 transition-colors">
+                    <div className="flex items-start gap-3">
+                      <div className="h-10 w-10 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center font-medium text-sm flex-shrink-0">
+                        {contato.primeiro_nome?.charAt(0)}{contato.sobrenome?.charAt(0)}
+                      </div>
+                      <div className="flex-1 min-w-0 space-y-1">
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium text-sm truncate">{contato.nome_completo}</p>
+                          {contato.esta_ativo && (
+                            <Badge variant="outline" className="text-xs bg-success/10 text-success border-success/20">
+                              Ativo
+                            </Badge>
+                          )}
+                        </div>
+                        
+                        {contato.cargo && (
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <Briefcase className="h-3 w-3" />
+                            <span className="truncate">{contato.cargo}</span>
+                          </div>
+                        )}
+                        
+                        {contato.departamento && (
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <Building2 className="h-3 w-3" />
+                            <span className="truncate">{contato.departamento}</span>
+                          </div>
+                        )}
+                        
+                        {contato.email && (
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <Mail className="h-3 w-3" />
+                            <span className="truncate">{contato.email}</span>
+                          </div>
+                        )}
+                        
+                        {contato.telefone && (
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <Phone className="h-3 w-3" />
+                            <span>{contato.telefone}</span>
+                          </div>
+                        )}
+
+                        {contato.celular && (
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <MessageSquare className="h-3 w-3" />
+                            <span>{contato.celular}</span>
+                          </div>
+                        )}
+
+                        {(contato.status_lead || contato.origem_lead) && (
+                          <div className="flex gap-2 pt-1">
+                            {contato.status_lead && (
+                              <Badge variant="secondary" className="text-xs">
+                                {contato.status_lead}
+                              </Badge>
+                            )}
+                            {contato.origem_lead && (
+                              <Badge variant="outline" className="text-xs">
+                                {contato.origem_lead}
+                              </Badge>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm truncate">{contato.nome_completo}</p>
-                      {contato.cargo && (
-                        <p className="text-xs text-muted-foreground truncate">{contato.cargo}</p>
+                    
+                    {/* Ações de CRM */}
+                    <div className="flex gap-2">
+                      {contato.telefone && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="flex-1 h-8 text-xs"
+                          onClick={() => window.open(`tel:${contato.telefone}`, '_self')}
+                        >
+                          <Phone className="h-3 w-3 mr-1" />
+                          Ligar
+                        </Button>
                       )}
                       {contato.email && (
-                        <p className="text-xs text-muted-foreground truncate">{contato.email}</p>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="flex-1 h-8 text-xs"
+                          onClick={() => window.open(`mailto:${contato.email}`, '_blank')}
+                        >
+                          <Mail className="h-3 w-3 mr-1" />
+                          Email
+                        </Button>
                       )}
-                      {contato.telefone && (
-                        <p className="text-xs text-muted-foreground">{contato.telefone}</p>
+                      {contato.celular && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="flex-1 h-8 text-xs"
+                          onClick={() => {
+                            setSelectedContact(contato);
+                            setWhatsappChatOpen(true);
+                          }}
+                        >
+                          <MessageSquare className="h-3 w-3 mr-1" />
+                          WhatsApp
+                        </Button>
                       )}
                     </div>
                   </div>
-                  
-                  {/* Ações de CRM */}
-                  <div className="flex gap-2">
-                    {contato.telefone && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="flex-1 h-8 text-xs"
-                        onClick={() => window.open(`tel:${contato.telefone}`, '_self')}
-                      >
-                        <Phone className="h-3 w-3 mr-1" />
-                        Ligar
-                      </Button>
-                    )}
-                    {contato.email && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="flex-1 h-8 text-xs"
-                        onClick={() => window.open(`mailto:${contato.email}`, '_blank')}
-                      >
-                        <Mail className="h-3 w-3 mr-1" />
-                        Email
-                      </Button>
-                    )}
-                    {contato.celular && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="flex-1 h-8 text-xs"
-                        onClick={() => {
-                          setSelectedContact(contato);
-                          setWhatsappChatOpen(true);
-                        }}
-                      >
-                        <MessageSquare className="h-3 w-3 mr-1" />
-                        WhatsApp
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              ))
+                ))
             ) : (
               <div className="text-center py-8 text-muted-foreground">
                 <Users className="h-12 w-12 mx-auto mb-2 opacity-20" />
