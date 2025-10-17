@@ -5,10 +5,12 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Search, Circle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Search, Circle, MessageSquarePlus } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import NovaConversaDialog from "./NovaConversaDialog";
 
 interface ConversasListProps {
   contaId: string;
@@ -19,6 +21,7 @@ interface ConversasListProps {
 const ConversasList = ({ contaId, conversaSelecionada, onSelectConversa }: ConversasListProps) => {
   const [busca, setBusca] = useState("");
   const [filtroStatus, setFiltroStatus] = useState<string>("todas");
+  const [dialogNovaConversa, setDialogNovaConversa] = useState(false);
 
   const { data: conversas, isLoading } = useQuery({
     queryKey: ['whatsapp-conversas', contaId, filtroStatus],
@@ -79,18 +82,28 @@ const ConversasList = ({ contaId, conversaSelecionada, onSelectConversa }: Conve
   };
 
   return (
-    <Card className="h-full flex flex-col bg-card/50 backdrop-blur border-muted">
-      {/* Header */}
-      <div className="p-4 border-b border-border/50 bg-gradient-to-br from-muted/30 to-transparent">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <Circle className="w-3 h-3 text-green-500 fill-green-500" />
-            <span className="text-sm font-medium">Online</span>
+    <>
+      <Card className="h-full flex flex-col bg-card/50 backdrop-blur border-muted">
+        {/* Header */}
+        <div className="p-4 border-b border-border/50 bg-gradient-to-br from-muted/30 to-transparent">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Circle className="w-3 h-3 text-green-500 fill-green-500" />
+              <span className="text-sm font-medium">Online</span>
+            </div>
+            <Badge variant="outline" className="font-mono">
+              {conversasFiltradas?.length || 0}
+            </Badge>
           </div>
-          <Badge variant="outline" className="font-mono">
-            {conversasFiltradas?.length || 0}
-          </Badge>
-        </div>
+
+          <Button 
+            onClick={() => setDialogNovaConversa(true)}
+            className="w-full mb-4"
+            variant="outline"
+          >
+            <MessageSquarePlus className="w-4 h-4 mr-2" />
+            Nova Conversa
+          </Button>
 
         <div className="relative mb-4">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -200,6 +213,14 @@ const ConversasList = ({ contaId, conversaSelecionada, onSelectConversa }: Conve
         )}
       </div>
     </Card>
+
+    <NovaConversaDialog
+      open={dialogNovaConversa}
+      onOpenChange={setDialogNovaConversa}
+      contaId={contaId}
+      onConversaCriada={onSelectConversa}
+    />
+    </>
   );
 };
 
