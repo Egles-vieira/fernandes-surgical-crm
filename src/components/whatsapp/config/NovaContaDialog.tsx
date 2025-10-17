@@ -44,10 +44,12 @@ const contaSchema = z.object({
     .trim()
     .regex(/^\+?[1-9]\d{1,14}$/, "Número deve estar no formato internacional (ex: +5511999999999)")
     .max(20, "Número muito longo"),
-  provider: z.enum(["twilio", "meta", "360dialog", "messagebird"]),
+  provider: z.enum(["twilio", "meta", "360dialog", "messagebird", "gupshup"]),
   account_sid: z.string().trim().max(255).optional(),
   business_account_id: z.string().trim().max(255).optional(),
   phone_number_id: z.string().trim().max(255).optional(),
+  app_id: z.string().trim().max(255).optional(),
+  api_key: z.string().trim().max(255).optional(),
   nome_exibicao: z.string().trim().max(150).optional(),
   descricao_negocio: z.string().trim().max(1000).optional(),
   categoria_negocio: z.string().trim().max(100).optional(),
@@ -77,10 +79,12 @@ const NovaContaDialog = ({ open, onOpenChange, conta }: NovaContaDialogProps) =>
     defaultValues: {
       nome_conta: conta?.nome_conta || "",
       numero_whatsapp: conta?.numero_whatsapp || "",
-      provider: conta?.provider || "meta",
+      provider: conta?.provider || "gupshup",
       account_sid: conta?.account_sid || "",
       business_account_id: conta?.business_account_id || "",
       phone_number_id: conta?.phone_number_id || "",
+      app_id: conta?.app_id || "",
+      api_key: conta?.api_key || "",
       nome_exibicao: conta?.nome_exibicao || "",
       descricao_negocio: conta?.descricao_negocio || "",
       categoria_negocio: conta?.categoria_negocio || "",
@@ -107,6 +111,8 @@ const NovaContaDialog = ({ open, onOpenChange, conta }: NovaContaDialogProps) =>
             account_sid: data.account_sid || null,
             business_account_id: data.business_account_id || null,
             phone_number_id: data.phone_number_id || null,
+            app_id: data.app_id || null,
+            api_key: data.api_key || null,
             nome_exibicao: data.nome_exibicao || null,
             descricao_negocio: data.descricao_negocio || null,
             categoria_negocio: data.categoria_negocio || null,
@@ -133,6 +139,8 @@ const NovaContaDialog = ({ open, onOpenChange, conta }: NovaContaDialogProps) =>
             account_sid: data.account_sid || null,
             business_account_id: data.business_account_id || null,
             phone_number_id: data.phone_number_id || null,
+            app_id: data.app_id || null,
+            api_key: data.api_key || null,
             nome_exibicao: data.nome_exibicao || null,
             descricao_negocio: data.descricao_negocio || null,
             categoria_negocio: data.categoria_negocio || null,
@@ -242,6 +250,7 @@ const NovaContaDialog = ({ open, onOpenChange, conta }: NovaContaDialogProps) =>
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
+                        <SelectItem value="gupshup">Gupshup</SelectItem>
                         <SelectItem value="meta">Meta (Facebook)</SelectItem>
                         <SelectItem value="twilio">Twilio</SelectItem>
                         <SelectItem value="360dialog">360Dialog</SelectItem>
@@ -258,6 +267,72 @@ const NovaContaDialog = ({ open, onOpenChange, conta }: NovaContaDialogProps) =>
             <div className="space-y-4">
               <h3 className="text-sm font-semibold">Credenciais do Provider</h3>
               
+              {form.watch("provider") === "gupshup" && (
+                <>
+                  <FormField
+                    control={form.control}
+                    name="app_id"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>App ID (Gupshup) *</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Seu App ID do Gupshup" {...field} />
+                        </FormControl>
+                        <FormDescription>
+                          ID da aplicação no painel do Gupshup
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="api_key"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>API Key (Gupshup) *</FormLabel>
+                        <FormControl>
+                          <Input type="password" placeholder="Sua chave de API do Gupshup" {...field} />
+                        </FormControl>
+                        <FormDescription>
+                          Chave de API obtida no painel do Gupshup
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="phone_number_id"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Phone Number ID (Gupshup)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="ID do número no Gupshup" {...field} />
+                        </FormControl>
+                        <FormDescription>
+                          Opcional: ID do número de telefone no Gupshup
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+                    <p className="text-sm text-blue-900">
+                      <strong>URL do Webhook:</strong><br/>
+                      <code className="text-xs bg-blue-100 px-2 py-1 rounded">
+                        https://rzzzfprgnoywmmjwepzm.supabase.co/functions/v1/gupshup-webhook
+                      </code>
+                      <br/><br/>
+                      Configure esta URL no painel do Gupshup para receber mensagens.
+                    </p>
+                  </div>
+                </>
+              )}
+
               {form.watch("provider") === "twilio" && (
                 <FormField
                   control={form.control}
