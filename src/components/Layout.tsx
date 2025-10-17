@@ -108,7 +108,7 @@ export default function Layout({ children }: LayoutProps) {
   };
 
   return (
-    <div className="flex h-screen w-full overflow-hidden">
+    <div className="flex h-screen w-full overflow-hidden" style={{ '--sidebar-width': collapsed ? '4rem' : '14rem' } as React.CSSProperties}>
       {/* Sidebar - Responsivo com Collapse */}
       <aside
         className={`${

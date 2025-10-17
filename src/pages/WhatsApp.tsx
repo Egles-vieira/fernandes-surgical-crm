@@ -67,7 +67,7 @@ const WhatsApp = () => {
   }, [contaAtiva, queryClient]);
 
   return (
-    <div className="fixed top-[64px] left-0 right-0 bottom-0 bg-gradient-to-br from-background via-background to-muted/20 overflow-hidden">
+    <div className="fixed top-[64px] right-0 bottom-0 bg-gradient-to-br from-background via-background to-muted/20 overflow-hidden" style={{ left: 'var(--sidebar-width, 4rem)' }}>
       {!contaAtiva ? (
         <div className="flex items-center justify-center h-full p-4">
           <Card className="p-12 text-center">
