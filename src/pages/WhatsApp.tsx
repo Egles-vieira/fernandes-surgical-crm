@@ -67,9 +67,9 @@ const WhatsApp = () => {
   }, [contaAtiva, queryClient]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
-      <div className="h-[calc(100vh-2rem)]">
-        {!contaAtiva ? (
+    <div className="fixed top-[64px] left-0 right-0 bottom-0 bg-gradient-to-br from-background via-background to-muted/20 overflow-hidden">
+      {!contaAtiva ? (
+        <div className="flex items-center justify-center h-full p-4">
           <Card className="p-12 text-center">
             <MessageSquare className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
             <h2 className="text-2xl font-semibold mb-2">Nenhuma conta conectada</h2>
@@ -84,39 +84,39 @@ const WhatsApp = () => {
               Configurar Conta
             </Button>
           </Card>
-        ) : (
-          <div className="grid grid-cols-12 gap-4 h-[calc(100vh-180px)]">
-            <div className="col-span-4">
-              <ConversasList
-                contaId={contaAtiva.id}
-                conversaSelecionada={conversaSelecionada}
-                onSelectConversa={setConversaSelecionada}
-              />
-            </div>
-            
-        {conversaSelecionada && (
-          <div className="col-span-8">
-            <ChatArea
-              conversaId={conversaSelecionada}
+        </div>
+      ) : (
+        <div className="grid grid-cols-12 h-full">
+          <div className="col-span-4 h-full">
+            <ConversasList
               contaId={contaAtiva.id}
+              conversaSelecionada={conversaSelecionada}
+              onSelectConversa={setConversaSelecionada}
             />
           </div>
-        )}
-        
-        {!conversaSelecionada && (
-          <div className="col-span-8 flex items-center justify-center">
-            <Card className="p-12 text-center bg-card/30 backdrop-blur">
-              <MessageSquare className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-lg font-semibold mb-2">Selecione uma conversa</h3>
-              <p className="text-sm text-muted-foreground">
-                Escolha uma conversa na lista para começar a atender
-              </p>
-            </Card>
-          </div>
-        )}
-          </div>
-        )}
-      </div>
+          
+          {conversaSelecionada && (
+            <div className="col-span-8 h-full">
+              <ChatArea
+                conversaId={conversaSelecionada}
+                contaId={contaAtiva.id}
+              />
+            </div>
+          )}
+          
+          {!conversaSelecionada && (
+            <div className="col-span-8 flex items-center justify-center h-full">
+              <Card className="p-12 text-center bg-card/30 backdrop-blur">
+                <MessageSquare className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+                <h3 className="text-lg font-semibold mb-2">Selecione uma conversa</h3>
+                <p className="text-sm text-muted-foreground">
+                  Escolha uma conversa na lista para começar a atender
+                </p>
+              </Card>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
