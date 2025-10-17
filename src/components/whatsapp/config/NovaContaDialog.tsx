@@ -162,6 +162,7 @@ const NovaContaDialog = ({ open, onOpenChange, conta }: NovaContaDialogProps) =>
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['whatsapp-contas'] });
+      queryClient.invalidateQueries({ queryKey: ['whatsapp-contas-admin'] });
       toast({
         title: conta ? "Conta atualizada" : "Conta criada",
         description: conta 
@@ -243,7 +244,7 @@ const NovaContaDialog = ({ open, onOpenChange, conta }: NovaContaDialogProps) =>
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Provider *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Selecione o provider" />
