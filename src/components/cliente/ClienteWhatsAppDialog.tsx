@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useWhatsApp } from "@/hooks/useWhatsApp";
@@ -12,9 +12,12 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { MessageSquare, Loader2, MessageCircle, Plus } from "lucide-react";
+import { MessageSquare, Loader2, MessageCircle, Plus, Send, ArrowLeft, Check, CheckCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
 
 interface ClienteWhatsAppDialogProps {
   open: boolean;
@@ -30,8 +33,13 @@ interface ClienteWhatsAppDialogProps {
 const ClienteWhatsAppDialog = ({ open, onOpenChange, contato }: ClienteWhatsAppDialogProps) => {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { contas, isLoadingContas } = useWhatsApp();
+  const queryClient = useQueryClient();
+  const { contas, isLoadingContas, useMensagens, enviarMensagem } = useWhatsApp();
   const [selectedConta, setSelectedConta] = useState<string | null>(null);
+  const [conversaSelecionada, setConversaSelecionada] = useState<string | null>(null);
+  const [mensagemTexto, setMensagemTexto] = useState("");
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Buscar contato WhatsApp e conversas existentes
   const { data: whatsappData, isLoading: isLoadingWhatsapp } = useQuery({
@@ -73,6 +81,41 @@ const ClienteWhatsAppDialog = ({ open, onOpenChange, contato }: ClienteWhatsAppD
     },
     enabled: !!contato?.celular && open,
   });
+
+  // Buscar mensagens da conversa selecionada
+  const { data: mensagens, isLoading: isLoadingMensagens } = useMensagens(conversaSelecionada || undefined);
+
+  // Scroll automático para última mensagem
+  useEffect(() => {
+    if (mensagens && messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [mensagens]);
+
+  // Real-time updates para mensagens
+  useEffect(() => {
+    if (!conversaSelecionada) return;
+
+    const channel = supabase
+      .channel('whatsapp-mensagens-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'whatsapp_mensagens',
+          filter: `conversa_id=eq.${conversaSelecionada}`
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['whatsapp-mensagens', conversaSelecionada] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [conversaSelecionada, queryClient]);
 
   // Selecionar primeira conta ativa automaticamente
   useEffect(() => {
@@ -135,10 +178,9 @@ const ClienteWhatsAppDialog = ({ open, onOpenChange, contato }: ClienteWhatsAppD
     onSuccess: (conversaId) => {
       toast({
         title: "Conversa criada",
-        description: "Redirecionando para o WhatsApp...",
+        description: "Abrindo conversa...",
       });
-      onOpenChange(false);
-      navigate(`/whatsapp?conversa=${conversaId}`);
+      setConversaSelecionada(conversaId);
     },
     onError: (error: Error) => {
       toast({
@@ -150,12 +192,43 @@ const ClienteWhatsAppDialog = ({ open, onOpenChange, contato }: ClienteWhatsAppD
   });
 
   const handleAbrirConversa = (conversaId: string) => {
-    onOpenChange(false);
-    navigate(`/whatsapp?conversa=${conversaId}`);
+    setConversaSelecionada(conversaId);
+  };
+
+  const handleVoltarLista = () => {
+    setConversaSelecionada(null);
+    setMensagemTexto("");
   };
 
   const handleNovaConversa = () => {
     criarConversaMutation.mutate();
+  };
+
+  const handleEnviarMensagem = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!mensagemTexto.trim() || !conversaSelecionada || !selectedConta) return;
+
+    const conversaAtual = whatsappData?.conversas.find((c: any) => c.id === conversaSelecionada);
+    if (!conversaAtual) return;
+
+    try {
+      await enviarMensagem.mutateAsync({
+        conversaId: conversaSelecionada,
+        contaId: selectedConta,
+        contatoId: whatsappData?.contato?.id || "",
+        corpo: mensagemTexto,
+      });
+      setMensagemTexto("");
+    } catch (error) {
+      console.error("Erro ao enviar mensagem:", error);
+    }
+  };
+
+  const formatarHora = (data: string) => {
+    return new Date(data).toLocaleTimeString('pt-BR', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   if (!contato) return null;
@@ -163,28 +236,128 @@ const ClienteWhatsAppDialog = ({ open, onOpenChange, contato }: ClienteWhatsAppD
   const isLoading = isLoadingContas || isLoadingWhatsapp;
   const temConversas = whatsappData?.conversas && whatsappData.conversas.length > 0;
 
+  const conversaAtual = whatsappData?.conversas.find((c: any) => c.id === conversaSelecionada);
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-full sm:max-w-[540px] overflow-y-auto">
-        <SheetHeader>
-          <SheetTitle className="flex items-center gap-2">
-            <MessageSquare className="w-5 h-5" />
-            WhatsApp - {contato.nome_completo}
-          </SheetTitle>
-          <SheetDescription>
-            {temConversas 
-              ? "Conversas existentes ou inicie uma nova" 
-              : "Iniciar conversa no WhatsApp"}
-          </SheetDescription>
-        </SheetHeader>
+      <SheetContent side="right" className="w-full sm:max-w-[540px] p-0 flex flex-col">
+        {/* Header */}
+        <div className="p-4 border-b">
+          <SheetHeader>
+            <SheetTitle className="flex items-center gap-2">
+              {conversaSelecionada && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleVoltarLista}
+                  className="h-8 w-8"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                </Button>
+              )}
+              <MessageSquare className="w-5 h-5" />
+              {conversaSelecionada ? conversaAtual?.titulo : `WhatsApp - ${contato.nome_completo}`}
+            </SheetTitle>
+            <SheetDescription>
+              {conversaSelecionada 
+                ? `Conversa com ${contato.nome_completo}`
+                : temConversas 
+                  ? "Conversas existentes ou inicie uma nova" 
+                  : "Iniciar conversa no WhatsApp"}
+            </SheetDescription>
+          </SheetHeader>
+        </div>
 
-        <div className="mt-6">
-          {isLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+        {/* Content */}
+        <div className="flex-1 overflow-hidden">
+          {conversaSelecionada ? (
+            /* ÁREA DE CHAT */
+            <div className="h-full flex flex-col">
+              {/* Mensagens */}
+              <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
+                {isLoadingMensagens ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+                  </div>
+                ) : !mensagens || mensagens.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <MessageCircle className="w-12 h-12 mx-auto mb-2 opacity-20" />
+                    <p className="text-sm">Nenhuma mensagem ainda</p>
+                    <p className="text-xs mt-1">Envie uma mensagem para iniciar a conversa</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {mensagens.map((msg: any) => {
+                      const isEnviada = msg.direcao === 'enviada';
+                      return (
+                        <div
+                          key={msg.id}
+                          className={`flex ${isEnviada ? 'justify-end' : 'justify-start'}`}
+                        >
+                          <div
+                            className={`max-w-[70%] rounded-lg px-4 py-2 ${
+                              isEnviada
+                                ? 'bg-primary text-primary-foreground'
+                                : 'bg-muted'
+                            }`}
+                          >
+                            <p className="text-sm whitespace-pre-wrap break-words">
+                              {msg.corpo}
+                            </p>
+                            <div className={`flex items-center gap-1 mt-1 text-xs ${
+                              isEnviada ? 'text-primary-foreground/70' : 'text-muted-foreground'
+                            }`}>
+                              <span>{formatarHora(msg.criado_em)}</span>
+                              {isEnviada && (
+                                <>
+                                  {msg.status === 'entregue' && <CheckCheck className="w-3 h-3" />}
+                                  {msg.status === 'lida' && <CheckCheck className="w-3 h-3 text-blue-400" />}
+                                  {msg.status === 'enviada' && <Check className="w-3 h-3" />}
+                                  {msg.status === 'pendente' && <Loader2 className="w-3 h-3 animate-spin" />}
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    <div ref={messagesEndRef} />
+                  </div>
+                )}
+              </ScrollArea>
+
+              {/* Input de mensagem */}
+              <div className="p-4 border-t">
+                <form onSubmit={handleEnviarMensagem} className="flex gap-2">
+                  <Input
+                    value={mensagemTexto}
+                    onChange={(e) => setMensagemTexto(e.target.value)}
+                    placeholder="Digite sua mensagem..."
+                    disabled={enviarMensagem.isPending}
+                    className="flex-1"
+                  />
+                  <Button
+                    type="submit"
+                    disabled={!mensagemTexto.trim() || enviarMensagem.isPending}
+                    size="icon"
+                  >
+                    {enviarMensagem.isPending ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Send className="w-4 h-4" />
+                    )}
+                  </Button>
+                </form>
+              </div>
             </div>
           ) : (
-            <div className="space-y-6">
+            /* LISTA DE CONVERSAS */
+            isLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+              </div>
+            ) : (
+              <div className="p-4 space-y-6 overflow-y-auto max-h-[calc(100vh-180px)]">
               {/* Conversas Existentes */}
               {temConversas && (
                 <div className="space-y-3">
@@ -301,7 +474,8 @@ const ClienteWhatsAppDialog = ({ open, onOpenChange, contato }: ClienteWhatsAppD
                   )}
                 </div>
               </div>
-            </div>
+              </div>
+            )
           )}
         </div>
       </SheetContent>
