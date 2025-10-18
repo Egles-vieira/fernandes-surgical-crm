@@ -198,9 +198,19 @@ const ConversasList = ({ contaId, conversaSelecionada, onSelectConversa }: Conve
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between mb-1">
-                      <h3 className="font-semibold text-sm truncate">
-                        {displayName}
-                      </h3>
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-semibold text-sm truncate">
+                          {displayName}
+                        </h3>
+                        {conversa.emoji_sentimento && (
+                          <span 
+                            className="text-lg" 
+                            title={`Cliente está ${conversa.sentimento_cliente || 'neutro'}`}
+                          >
+                            {conversa.emoji_sentimento}
+                          </span>
+                        )}
+                      </div>
                       {conversa.ultima_mensagem_em && (
                         <span className="text-xs text-muted-foreground whitespace-nowrap ml-2">
                           {formatDistanceToNow(new Date(conversa.ultima_mensagem_em), {

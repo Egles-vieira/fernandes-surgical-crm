@@ -1,1 +1,10 @@
 project_id = "rzzzfprgnoywmmjwepzm"
+
+[functions.analisar-sentimento-cliente]
+verify_jwt = true
+
+[functions.gupshup-enviar-mensagem]
+verify_jwt = false
+
+[functions.gupshup-webhook]
+verify_jwt = false

@@ -2076,6 +2076,7 @@ export type Database = {
           contato_id: string | null
           conversa_externa_id: string | null
           criado_em: string | null
+          emoji_sentimento: string | null
           fechada_em: string | null
           gerenciada_por_bot: boolean | null
           id: string
@@ -2083,10 +2084,12 @@ export type Database = {
           janela_24h_ativa: boolean | null
           janela_aberta_em: string | null
           janela_fecha_em: string | null
+          mensagens_analisadas: number | null
           oportunidade_id: string | null
           origem: string | null
           prioridade: string | null
           resolvida_em: string | null
+          sentimento_cliente: string | null
           status: string | null
           tags: string[] | null
           tempo_primeira_resposta_minutos: number | null
@@ -2098,6 +2101,7 @@ export type Database = {
           total_mensagens_recebidas: number | null
           transferida_em: string | null
           transferida_para_humano: boolean | null
+          ultima_analise_sentimento_em: string | null
           ultima_interacao_agente_em: string | null
           ultima_interacao_cliente_em: string | null
           ultima_mensagem_em: string | null
@@ -2117,6 +2121,7 @@ export type Database = {
           contato_id?: string | null
           conversa_externa_id?: string | null
           criado_em?: string | null
+          emoji_sentimento?: string | null
           fechada_em?: string | null
           gerenciada_por_bot?: boolean | null
           id?: string
@@ -2124,10 +2129,12 @@ export type Database = {
           janela_24h_ativa?: boolean | null
           janela_aberta_em?: string | null
           janela_fecha_em?: string | null
+          mensagens_analisadas?: number | null
           oportunidade_id?: string | null
           origem?: string | null
           prioridade?: string | null
           resolvida_em?: string | null
+          sentimento_cliente?: string | null
           status?: string | null
           tags?: string[] | null
           tempo_primeira_resposta_minutos?: number | null
@@ -2139,6 +2146,7 @@ export type Database = {
           total_mensagens_recebidas?: number | null
           transferida_em?: string | null
           transferida_para_humano?: boolean | null
+          ultima_analise_sentimento_em?: string | null
           ultima_interacao_agente_em?: string | null
           ultima_interacao_cliente_em?: string | null
           ultima_mensagem_em?: string | null
@@ -2158,6 +2166,7 @@ export type Database = {
           contato_id?: string | null
           conversa_externa_id?: string | null
           criado_em?: string | null
+          emoji_sentimento?: string | null
           fechada_em?: string | null
           gerenciada_por_bot?: boolean | null
           id?: string
@@ -2165,10 +2174,12 @@ export type Database = {
           janela_24h_ativa?: boolean | null
           janela_aberta_em?: string | null
           janela_fecha_em?: string | null
+          mensagens_analisadas?: number | null
           oportunidade_id?: string | null
           origem?: string | null
           prioridade?: string | null
           resolvida_em?: string | null
+          sentimento_cliente?: string | null
           status?: string | null
           tags?: string[] | null
           tempo_primeira_resposta_minutos?: number | null
@@ -2180,6 +2191,7 @@ export type Database = {
           total_mensagens_recebidas?: number | null
           transferida_em?: string | null
           transferida_para_humano?: boolean | null
+          ultima_analise_sentimento_em?: string | null
           ultima_interacao_agente_em?: string | null
           ultima_interacao_cliente_em?: string | null
           ultima_mensagem_em?: string | null

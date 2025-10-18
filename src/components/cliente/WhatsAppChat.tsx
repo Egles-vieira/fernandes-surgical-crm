@@ -50,6 +50,12 @@ export default function WhatsAppChat({
   const [isLoadingSetup, setIsLoadingSetup] = useState(true);
   const [mensagens, setMensagens] = useState<any[]>([]);
   const [isLoadingMensagens, setIsLoadingMensagens] = useState(false);
+  const [sentimento, setSentimento] = useState<{
+    sentimento: string;
+    emoji: string;
+    confianca?: number;
+  } | null>(null);
+  const [analisandoSentimento, setAnalisandoSentimento] = useState(false);
 
   // Setup inicial: buscar/criar contato e conversa WhatsApp
   useEffect(() => {
@@ -257,12 +263,34 @@ export default function WhatsAppChat({
     }
   };
 
-  // Real-time: escutar novas mensagens
+  // Análise de sentimento
+  const analisarSentimento = async (idConversa: string) => {
+    if (analisandoSentimento) return;
+    
+    setAnalisandoSentimento(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('analisar-sentimento-cliente', {
+        body: { conversaId: idConversa }
+      });
+
+      if (error) throw error;
+      
+      if (data) {
+        setSentimento(data);
+      }
+    } catch (error: any) {
+      console.error('Erro ao analisar sentimento:', error);
+    } finally {
+      setAnalisandoSentimento(false);
+    }
+  };
+
+  // Real-time: escutar novas mensagens e atualização de sentimento
   useEffect(() => {
     if (!conversaId) return;
 
     const channel = supabase
-      .channel(`whatsapp-mensagens-${conversaId}`)
+      .channel(`whatsapp-conversas-${conversaId}`)
       .on(
         'postgres_changes',
         {
@@ -273,9 +301,37 @@ export default function WhatsAppChat({
         },
         (payload) => {
           setMensagens((prev) => [...prev, payload.new]);
+          
+          // Se é mensagem recebida, analisar sentimento após 3 segundos (debounce)
+          if (payload.new.direcao === 'recebida') {
+            setTimeout(() => {
+              analisarSentimento(conversaId);
+            }, 3000);
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'whatsapp_conversas',
+          filter: `id=eq.${conversaId}`,
+        },
+        (payload) => {
+          // Atualizar sentimento local quando atualizado no banco
+          if (payload.new.sentimento_cliente) {
+            setSentimento({
+              sentimento: payload.new.sentimento_cliente,
+              emoji: payload.new.emoji_sentimento,
+            });
+          }
         }
       )
       .subscribe();
+
+    // Análise inicial do sentimento
+    analisarSentimento(conversaId);
 
     return () => {
       supabase.removeChannel(channel);
@@ -348,9 +404,22 @@ export default function WhatsAppChat({
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
-                <SheetTitle className="text-primary-foreground text-base font-medium truncate">
-                  {contactName}
-                </SheetTitle>
+                <div className="flex items-center gap-2">
+                  <SheetTitle className="text-primary-foreground text-base font-medium truncate">
+                    {contactName}
+                  </SheetTitle>
+                  {sentimento && (
+                    <span 
+                      className="text-2xl" 
+                      title={`Cliente está ${sentimento.sentimento}${sentimento.confianca ? ` (${Math.round(sentimento.confianca * 100)}% confiança)` : ''}`}
+                    >
+                      {sentimento.emoji}
+                    </span>
+                  )}
+                  {analisandoSentimento && (
+                    <Loader2 className="h-4 w-4 animate-spin text-primary-foreground/60" />
+                  )}
+                </div>
                 {phoneNumber && (
                   <p className="text-xs text-primary-foreground/80 truncate">
                     {phoneNumber}
