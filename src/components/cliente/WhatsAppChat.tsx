@@ -81,17 +81,35 @@ export default function WhatsAppChat({
 
         console.log('Número formatado:', numeroCompleto);
 
-        // Buscar contato WhatsApp existente
-        let { data: whatsappContato, error: erroConsulta } = await supabase
-          .from('whatsapp_contatos')
-          .select('id')
-          .eq('numero_whatsapp', numeroCompleto)
-          .eq('whatsapp_conta_id', contaAtiva.id)
-          .maybeSingle();
+        // Buscar contato WhatsApp existente (1) por contato_id + conta; (2) por número + conta
+        let whatsappContato: { id: string } | null = null;
 
-        if (erroConsulta) {
-          console.error('Erro ao buscar contato:', erroConsulta);
-          throw erroConsulta;
+        if (contactId) {
+          const { data: byContato, error: errByContato } = await supabase
+            .from('whatsapp_contatos')
+            .select('id, numero_whatsapp')
+            .eq('contato_id', contactId)
+            .eq('whatsapp_conta_id', contaAtiva.id)
+            .maybeSingle();
+          if (errByContato) {
+            console.error('Erro ao buscar por contato_id:', errByContato);
+            throw errByContato;
+          }
+          if (byContato) whatsappContato = { id: byContato.id };
+        }
+
+        if (!whatsappContato) {
+          const { data: byNumero, error: errByNumero } = await supabase
+            .from('whatsapp_contatos')
+            .select('id')
+            .eq('numero_whatsapp', numeroCompleto)
+            .eq('whatsapp_conta_id', contaAtiva.id)
+            .maybeSingle();
+          if (errByNumero) {
+            console.error('Erro ao buscar por número:', errByNumero);
+            throw errByNumero;
+          }
+          if (byNumero) whatsappContato = byNumero;
         }
 
         console.log('Contato WhatsApp encontrado:', whatsappContato);
@@ -112,17 +130,16 @@ export default function WhatsAppChat({
             .single();
 
           if (erroContato) {
-            // Se der erro de duplicação, buscar o contato existente
+            // Se der erro de duplicação, buscar o contato existente por contato_id+conta
             if (erroContato.code === '23505') {
-              console.log('Contato já existe, buscando...');
+              console.log('Contato já existe (unique contato_id+conta). Buscando...');
               const { data: contatoExistente } = await supabase
                 .from('whatsapp_contatos')
                 .select('id')
-                .eq('numero_whatsapp', numeroCompleto)
+                .eq('contato_id', contactId)
                 .eq('whatsapp_conta_id', contaAtiva.id)
-                .single();
-              
-              whatsappContato = contatoExistente;
+                .maybeSingle();
+              whatsappContato = contatoExistente ?? null;
             } else {
               throw erroContato;
             }
@@ -131,7 +148,7 @@ export default function WhatsAppChat({
           }
         }
 
-        // Se ainda não tem contato, tentar buscar apenas por número
+        // Se ainda não tem contato, tentar buscar apenas por número (sem filtrar conta)
         if (!whatsappContato) {
           console.log('Buscando contato apenas por número...');
           const { data: contatoPorNumero } = await supabase
@@ -140,7 +157,7 @@ export default function WhatsAppChat({
             .eq('numero_whatsapp', numeroCompleto)
             .maybeSingle();
           
-          whatsappContato = contatoPorNumero;
+          whatsappContato = contatoPorNumero ?? null;
         }
 
         if (!whatsappContato) {
