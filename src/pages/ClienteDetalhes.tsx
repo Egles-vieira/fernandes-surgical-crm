@@ -14,7 +14,7 @@ import { ArrowLeft, Building2, Mail, Phone, MapPin, Edit, UserPlus, FileText, Do
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import NovoContatoDialog from "@/components/cliente/NovoContatoDialog";
 import NovaOportunidadeDialog from "@/components/cliente/NovaOportunidadeDialog";
-import WhatsAppChat from "@/components/cliente/WhatsAppChat";
+import ClienteWhatsAppDialog from "@/components/cliente/ClienteWhatsAppDialog";
 import HistoricoProdutos from "@/components/cliente/HistoricoProdutos";
 export default function ClienteDetalhes() {
   const {
@@ -508,10 +508,15 @@ export default function ClienteDetalhes() {
                           <Mail className="h-3 w-3 mr-1" />
                           Email
                         </Button>}
-                      {contato.celular && <Button size="sm" variant="outline" className="flex-1 h-8 text-xs" onClick={() => {
-                setSelectedContact(contato);
-                setWhatsappChatOpen(true);
-              }}>
+                      {contato.celular && <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="flex-1 h-8 text-xs" 
+                        onClick={() => {
+                          setSelectedContact(contato);
+                          setWhatsappChatOpen(true);
+                        }}
+                      >
                           <MessageSquare className="h-3 w-3 mr-1" />
                           WhatsApp
                         </Button>}
@@ -545,7 +550,11 @@ export default function ClienteDetalhes() {
 
       <NovaOportunidadeDialog open={novaOportunidadeOpen} onOpenChange={setNovaOportunidadeOpen} clienteId={id!} contaId={cliente.conta_id} />
 
-      {selectedContact && <WhatsAppChat open={whatsappChatOpen} onOpenChange={setWhatsappChatOpen} contactName={selectedContact.nome_completo} contactInitials={`${selectedContact.primeiro_nome?.charAt(0) || ''}${selectedContact.sobrenome?.charAt(0) || ''}`} phoneNumber={selectedContact.celular} />}
+      <ClienteWhatsAppDialog 
+        open={whatsappChatOpen} 
+        onOpenChange={setWhatsappChatOpen} 
+        contato={selectedContact} 
+      />
 
       <HistoricoProdutos open={historicoProdutosOpen} onOpenChange={setHistoricoProdutosOpen} clienteCnpj={cliente.cgc} clienteNome={cliente.nome_abrev || cliente.nome_emit} />
     </div>;
