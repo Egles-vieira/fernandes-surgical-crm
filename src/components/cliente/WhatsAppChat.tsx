@@ -61,15 +61,17 @@ export default function WhatsAppChat({
         // Selecionar primeira conta ativa
         if (!contas || contas.length === 0) {
           toast({
-            title: "Erro",
-            description: "Nenhuma conta WhatsApp configurada",
+            title: "Nenhuma conta WhatsApp",
+            description: "Configure uma conta WhatsApp nas configurações",
             variant: "destructive",
           });
+          setIsLoadingSetup(false);
           return;
         }
 
         const contaAtiva = contas[0];
         setContaId(contaAtiva.id);
+        console.log('Conta WhatsApp ativa:', contaAtiva);
 
         // Formatar número
         const numeroFormatado = phoneNumber.replace(/\D/g, '');
@@ -77,15 +79,27 @@ export default function WhatsAppChat({
           ? `+${numeroFormatado}` 
           : `+55${numeroFormatado}`;
 
-        // Buscar ou criar contato WhatsApp
-        let { data: whatsappContato } = await supabase
+        console.log('Número formatado:', numeroCompleto);
+
+        // Buscar contato WhatsApp existente
+        let { data: whatsappContato, error: erroConsulta } = await supabase
           .from('whatsapp_contatos')
           .select('id')
           .eq('numero_whatsapp', numeroCompleto)
           .eq('whatsapp_conta_id', contaAtiva.id)
           .maybeSingle();
 
+        if (erroConsulta) {
+          console.error('Erro ao buscar contato:', erroConsulta);
+          throw erroConsulta;
+        }
+
+        console.log('Contato WhatsApp encontrado:', whatsappContato);
+
+        // Se não existe e temos o contactId, criar
         if (!whatsappContato && contactId) {
+          console.log('Criando novo contato WhatsApp...');
+          
           const { data: novoContato, error: erroContato } = await supabase
             .from('whatsapp_contatos')
             .insert({
@@ -97,32 +111,73 @@ export default function WhatsAppChat({
             .select('id')
             .single();
 
-          if (erroContato) throw erroContato;
-          whatsappContato = novoContato;
+          if (erroContato) {
+            // Se der erro de duplicação, buscar o contato existente
+            if (erroContato.code === '23505') {
+              console.log('Contato já existe, buscando...');
+              const { data: contatoExistente } = await supabase
+                .from('whatsapp_contatos')
+                .select('id')
+                .eq('numero_whatsapp', numeroCompleto)
+                .eq('whatsapp_conta_id', contaAtiva.id)
+                .single();
+              
+              whatsappContato = contatoExistente;
+            } else {
+              throw erroContato;
+            }
+          } else {
+            whatsappContato = novoContato;
+          }
+        }
+
+        // Se ainda não tem contato, tentar buscar apenas por número
+        if (!whatsappContato) {
+          console.log('Buscando contato apenas por número...');
+          const { data: contatoPorNumero } = await supabase
+            .from('whatsapp_contatos')
+            .select('id')
+            .eq('numero_whatsapp', numeroCompleto)
+            .maybeSingle();
+          
+          whatsappContato = contatoPorNumero;
         }
 
         if (!whatsappContato) {
           toast({
-            title: "Erro",
-            description: "Não foi possível criar o contato WhatsApp",
+            title: "Contato não encontrado",
+            description: "Não foi possível localizar ou criar o contato WhatsApp",
             variant: "destructive",
           });
+          setIsLoadingSetup(false);
           return;
         }
 
+        console.log('Usando contato WhatsApp ID:', whatsappContato.id);
         setWhatsappContatoId(whatsappContato.id);
 
-        // Buscar ou criar conversa
-        let { data: conversa } = await supabase
+        // Buscar conversa existente
+        let { data: conversa, error: erroConsultaConversa } = await supabase
           .from('whatsapp_conversas')
           .select('id')
           .eq('whatsapp_contato_id', whatsappContato.id)
           .eq('whatsapp_conta_id', contaAtiva.id)
           .neq('status', 'fechada')
+          .order('criado_em', { ascending: false })
           .maybeSingle();
 
+        if (erroConsultaConversa) {
+          console.error('Erro ao buscar conversa:', erroConsultaConversa);
+          throw erroConsultaConversa;
+        }
+
+        console.log('Conversa encontrada:', conversa);
+
+        // Se não existe conversa, criar uma nova
         if (!conversa) {
+          console.log('Criando nova conversa...');
           const user = await supabase.auth.getUser();
+          
           const { data: novaConversa, error: erroConversa } = await supabase
             .from('whatsapp_conversas')
             .insert({
@@ -136,19 +191,26 @@ export default function WhatsAppChat({
             .select('id')
             .single();
 
-          if (erroConversa) throw erroConversa;
+          if (erroConversa) {
+            console.error('Erro ao criar conversa:', erroConversa);
+            throw erroConversa;
+          }
+          
           conversa = novaConversa;
+          console.log('Nova conversa criada:', conversa);
         }
 
         setConversaId(conversa.id);
         
         // Buscar mensagens
+        console.log('Buscando mensagens da conversa:', conversa.id);
         await buscarMensagens(conversa.id);
+        
       } catch (error: any) {
         console.error('Erro ao configurar WhatsApp:', error);
         toast({
           title: "Erro ao configurar WhatsApp",
-          description: error.message,
+          description: error.message || "Erro desconhecido",
           variant: "destructive",
         });
       } finally {
