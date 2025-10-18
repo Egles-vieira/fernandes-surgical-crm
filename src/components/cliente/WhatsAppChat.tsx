@@ -1,4 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { useWhatsApp } from "@/hooks/useWhatsApp";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,21 +11,15 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { 
   Send, 
   Paperclip, 
-  Smile, 
   Phone, 
   Video, 
   MoreVertical,
   Check,
-  CheckCheck
+  CheckCheck,
+  Loader2,
+  AlertCircle
 } from "lucide-react";
-
-interface Message {
-  id: string;
-  text: string;
-  timestamp: Date;
-  sent: boolean;
-  read: boolean;
-}
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface WhatsAppChatProps {
   open: boolean;
@@ -29,6 +27,7 @@ interface WhatsAppChatProps {
   contactName: string;
   contactInitials: string;
   phoneNumber?: string;
+  contactId?: string;
 }
 
 export default function WhatsAppChat({
@@ -36,39 +35,196 @@ export default function WhatsAppChat({
   onOpenChange,
   contactName,
   contactInitials,
-  phoneNumber
+  phoneNumber,
+  contactId
 }: WhatsAppChatProps) {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const { contas, enviarMensagem } = useWhatsApp();
+  const scrollRef = useRef<HTMLDivElement>(null);
+  
   const [message, setMessage] = useState("");
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "1",
-      text: "Olá! Como posso ajudar?",
-      timestamp: new Date(Date.now() - 3600000),
-      sent: false,
-      read: true
-    },
-    {
-      id: "2",
-      text: "Oi! Gostaria de saber mais sobre os produtos.",
-      timestamp: new Date(Date.now() - 3500000),
-      sent: true,
-      read: true
-    }
-  ]);
+  const [conversaId, setConversaId] = useState<string | null>(null);
+  const [whatsappContatoId, setWhatsappContatoId] = useState<string | null>(null);
+  const [contaId, setContaId] = useState<string | null>(null);
+  const [isLoadingSetup, setIsLoadingSetup] = useState(true);
+  const [mensagens, setMensagens] = useState<any[]>([]);
+  const [isLoadingMensagens, setIsLoadingMensagens] = useState(false);
 
-  const handleSendMessage = () => {
-    if (!message.trim()) return;
+  // Setup inicial: buscar/criar contato e conversa WhatsApp
+  useEffect(() => {
+    if (!open || !phoneNumber) return;
 
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      text: message,
-      timestamp: new Date(),
-      sent: true,
-      read: false
+    const setupWhatsApp = async () => {
+      setIsLoadingSetup(true);
+      try {
+        // Selecionar primeira conta ativa
+        if (!contas || contas.length === 0) {
+          toast({
+            title: "Erro",
+            description: "Nenhuma conta WhatsApp configurada",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        const contaAtiva = contas[0];
+        setContaId(contaAtiva.id);
+
+        // Formatar número
+        const numeroFormatado = phoneNumber.replace(/\D/g, '');
+        const numeroCompleto = numeroFormatado.startsWith('55') 
+          ? `+${numeroFormatado}` 
+          : `+55${numeroFormatado}`;
+
+        // Buscar ou criar contato WhatsApp
+        let { data: whatsappContato } = await supabase
+          .from('whatsapp_contatos')
+          .select('id')
+          .eq('numero_whatsapp', numeroCompleto)
+          .eq('whatsapp_conta_id', contaAtiva.id)
+          .maybeSingle();
+
+        if (!whatsappContato && contactId) {
+          const { data: novoContato, error: erroContato } = await supabase
+            .from('whatsapp_contatos')
+            .insert({
+              contato_id: contactId,
+              numero_whatsapp: numeroCompleto,
+              nome_whatsapp: contactName,
+              whatsapp_conta_id: contaAtiva.id,
+            })
+            .select('id')
+            .single();
+
+          if (erroContato) throw erroContato;
+          whatsappContato = novoContato;
+        }
+
+        if (!whatsappContato) {
+          toast({
+            title: "Erro",
+            description: "Não foi possível criar o contato WhatsApp",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        setWhatsappContatoId(whatsappContato.id);
+
+        // Buscar ou criar conversa
+        let { data: conversa } = await supabase
+          .from('whatsapp_conversas')
+          .select('id')
+          .eq('whatsapp_contato_id', whatsappContato.id)
+          .eq('whatsapp_conta_id', contaAtiva.id)
+          .neq('status', 'fechada')
+          .maybeSingle();
+
+        if (!conversa) {
+          const user = await supabase.auth.getUser();
+          const { data: novaConversa, error: erroConversa } = await supabase
+            .from('whatsapp_conversas')
+            .insert({
+              whatsapp_conta_id: contaAtiva.id,
+              whatsapp_contato_id: whatsappContato.id,
+              contato_id: contactId,
+              titulo: contactName,
+              status: 'aberta',
+              atribuida_para_id: user.data.user?.id,
+            })
+            .select('id')
+            .single();
+
+          if (erroConversa) throw erroConversa;
+          conversa = novaConversa;
+        }
+
+        setConversaId(conversa.id);
+        
+        // Buscar mensagens
+        await buscarMensagens(conversa.id);
+      } catch (error: any) {
+        console.error('Erro ao configurar WhatsApp:', error);
+        toast({
+          title: "Erro ao configurar WhatsApp",
+          description: error.message,
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoadingSetup(false);
+      }
     };
 
-    setMessages([...messages, newMessage]);
-    setMessage("");
+    setupWhatsApp();
+  }, [open, phoneNumber, contactId, contactName, contas]);
+
+  // Buscar mensagens
+  const buscarMensagens = async (idConversa: string) => {
+    setIsLoadingMensagens(true);
+    try {
+      const { data, error } = await supabase
+        .from('whatsapp_mensagens')
+        .select('*')
+        .eq('conversa_id', idConversa)
+        .order('criado_em', { ascending: true });
+
+      if (error) throw error;
+      setMensagens(data || []);
+    } catch (error: any) {
+      console.error('Erro ao buscar mensagens:', error);
+    } finally {
+      setIsLoadingMensagens(false);
+    }
+  };
+
+  // Real-time: escutar novas mensagens
+  useEffect(() => {
+    if (!conversaId) return;
+
+    const channel = supabase
+      .channel(`whatsapp-mensagens-${conversaId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'whatsapp_mensagens',
+          filter: `conversa_id=eq.${conversaId}`,
+        },
+        (payload) => {
+          setMensagens((prev) => [...prev, payload.new]);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [conversaId]);
+
+  // Auto-scroll para última mensagem
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [mensagens]);
+
+  const handleSendMessage = async () => {
+    if (!message.trim() || !conversaId || !contaId || !whatsappContatoId) return;
+
+    try {
+      await enviarMensagem.mutateAsync({
+        conversaId,
+        contaId,
+        contatoId: whatsappContatoId,
+        corpo: message,
+      });
+
+      setMessage("");
+    } catch (error: any) {
+      console.error('Erro ao enviar mensagem:', error);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -78,8 +234,26 @@ export default function WhatsAppChat({
     }
   };
 
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+  const formatarHora = (data: string) => {
+    return new Date(data).toLocaleTimeString("pt-BR", { 
+      hour: "2-digit", 
+      minute: "2-digit" 
+    });
+  };
+
+  const getStatusIcon = (status: string, direcao: string) => {
+    if (direcao !== 'enviada') return null;
+    
+    switch (status) {
+      case 'lida':
+        return <CheckCheck className="h-3 w-3 text-blue-500" />;
+      case 'entregue':
+        return <CheckCheck className="h-3 w-3" />;
+      case 'enviada':
+        return <Check className="h-3 w-3" />;
+      default:
+        return <Loader2 className="h-3 w-3 animate-spin" />;
+    }
   };
 
   return (
@@ -133,75 +307,101 @@ export default function WhatsAppChat({
 
         {/* Messages Area */}
         <ScrollArea className="flex-1 gradient-subtle">
-          <div className="p-4 space-y-4">
-            {messages.map((msg) => (
-              <div
-                key={msg.id}
-                className={`flex ${msg.sent ? "justify-end" : "justify-start"}`}
-              >
-                <div
-                  className={`max-w-[75%] rounded-lg px-4 py-2 transition-all ${
-                    msg.sent
-                      ? "gradient-primary text-primary-foreground shadow-elegant"
-                      : "bg-card border-border shadow-sm"
-                  }`}
-                >
-                  <p className="text-sm whitespace-pre-wrap break-words">{msg.text}</p>
-                  <div className="flex items-center justify-end gap-1 mt-1">
-                    <span className={`text-xs ${msg.sent ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
-                      {formatTime(msg.timestamp)}
-                    </span>
-                    {msg.sent && (
-                      <span className="text-primary-foreground/70">
-                        {msg.read ? (
-                          <CheckCheck className="h-3 w-3" />
-                        ) : (
-                          <Check className="h-3 w-3" />
-                        )}
-                      </span>
-                    )}
-                  </div>
+          {isLoadingSetup || isLoadingMensagens ? (
+            <div className="flex items-center justify-center h-full">
+              <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : !conversaId ? (
+            <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+              <AlertCircle className="w-12 h-12 text-muted-foreground mb-4" />
+              <p className="text-muted-foreground">
+                Não foi possível iniciar a conversa
+              </p>
+            </div>
+          ) : (
+            <div className="p-4 space-y-4">
+              {mensagens.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full text-center py-8">
+                  <p className="text-sm text-muted-foreground">
+                    Nenhuma mensagem ainda. Inicie a conversa!
+                  </p>
                 </div>
-              </div>
-            ))}
-          </div>
+              ) : (
+                mensagens.map((msg) => (
+                  <div
+                    key={msg.id}
+                    className={`flex ${msg.direcao === 'enviada' ? "justify-end" : "justify-start"}`}
+                  >
+                    <div
+                      className={`max-w-[75%] rounded-lg px-4 py-2 transition-all ${
+                        msg.direcao === 'enviada'
+                          ? "gradient-primary text-primary-foreground shadow-elegant"
+                          : "bg-card border-border shadow-sm"
+                      }`}
+                    >
+                      <p className="text-sm whitespace-pre-wrap break-words">{msg.corpo}</p>
+                      <div className="flex items-center justify-end gap-1 mt-1">
+                        <span className={`text-xs ${msg.direcao === 'enviada' ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
+                          {formatarHora(msg.criado_em)}
+                        </span>
+                        {msg.direcao === 'enviada' && (
+                          <span className="text-primary-foreground/70">
+                            {getStatusIcon(msg.status, msg.direcao)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+              <div ref={scrollRef} />
+            </div>
+          )}
         </ScrollArea>
 
         {/* Input Area */}
         <div className="border-t border-border bg-card p-4 shadow-elegant">
-          <div className="flex items-end gap-2">
-            <Button
-              size="icon"
-              variant="ghost"
-              className="h-10 w-10 shrink-0 hover:bg-muted"
-            >
-              <Smile className="h-5 w-5 text-muted-foreground" />
-            </Button>
-            <Button
-              size="icon"
-              variant="ghost"
-              className="h-10 w-10 shrink-0 hover:bg-muted"
-            >
-              <Paperclip className="h-5 w-5 text-muted-foreground" />
-            </Button>
-            <div className="flex-1">
-              <Input
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Digite uma mensagem"
-                className="resize-none min-h-[40px]"
-              />
+          {!conversaId ? (
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                Configure uma conta WhatsApp para enviar mensagens
+              </AlertDescription>
+            </Alert>
+          ) : (
+            <div className="flex items-end gap-2">
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-10 w-10 shrink-0 hover:bg-muted"
+                disabled
+              >
+                <Paperclip className="h-5 w-5 text-muted-foreground" />
+              </Button>
+              <div className="flex-1">
+                <Input
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  onKeyDown={handleKeyPress}
+                  placeholder="Digite uma mensagem"
+                  className="resize-none min-h-[40px]"
+                  disabled={enviarMensagem.isPending}
+                />
+              </div>
+              <Button
+                size="icon"
+                onClick={handleSendMessage}
+                disabled={!message.trim() || enviarMensagem.isPending}
+                className="h-10 w-10 shrink-0 gradient-primary shadow-elegant hover:opacity-90 transition-opacity"
+              >
+                {enviarMensagem.isPending ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  <Send className="h-5 w-5" />
+                )}
+              </Button>
             </div>
-            <Button
-              size="icon"
-              onClick={handleSendMessage}
-              disabled={!message.trim()}
-              className="h-10 w-10 shrink-0 gradient-primary shadow-elegant hover:opacity-90 transition-opacity"
-            >
-              <Send className="h-5 w-5" />
-            </Button>
-          </div>
+          )}
         </div>
       </SheetContent>
     </Sheet>
