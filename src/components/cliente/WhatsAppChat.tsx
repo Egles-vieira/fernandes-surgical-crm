@@ -265,29 +265,52 @@ export default function WhatsAppChat({
 
   // Análise de sentimento
   const analisarSentimento = async (idConversa: string) => {
-    if (analisandoSentimento) return;
+    if (analisandoSentimento) {
+      console.log('⏳ Análise já em andamento, aguarde...');
+      return;
+    }
     
+    console.log('🔍 Iniciando análise de sentimento para conversa:', idConversa);
     setAnalisandoSentimento(true);
+    
     try {
+      console.log('📡 Chamando edge function analisar-sentimento-cliente...');
       const { data, error } = await supabase.functions.invoke('analisar-sentimento-cliente', {
         body: { conversaId: idConversa }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Erro na edge function:', error);
+        throw error;
+      }
       
       if (data) {
+        console.log('✅ Sentimento analisado:', data);
         setSentimento(data);
+      } else {
+        console.log('⚠️ Nenhum dado retornado da análise');
       }
     } catch (error: any) {
-      console.error('Erro ao analisar sentimento:', error);
+      console.error('❌ Erro ao analisar sentimento:', error);
+      toast({
+        title: "Erro na análise",
+        description: error.message || "Não foi possível analisar o sentimento",
+        variant: "destructive",
+      });
     } finally {
       setAnalisandoSentimento(false);
+      console.log('🏁 Análise de sentimento finalizada');
     }
   };
 
   // Real-time: escutar novas mensagens e atualização de sentimento
   useEffect(() => {
-    if (!conversaId) return;
+    if (!conversaId) {
+      console.log('⚠️ useEffect: conversaId não definido, pulando análise');
+      return;
+    }
+
+    console.log('🎯 useEffect: Configurando realtime para conversa:', conversaId);
 
     const channel = supabase
       .channel(`whatsapp-conversas-${conversaId}`)
@@ -300,10 +323,12 @@ export default function WhatsAppChat({
           filter: `conversa_id=eq.${conversaId}`,
         },
         (payload) => {
+          console.log('📨 Nova mensagem recebida via realtime:', payload.new);
           setMensagens((prev) => [...prev, payload.new]);
           
           // Se é mensagem recebida, analisar sentimento após 3 segundos (debounce)
           if (payload.new.direcao === 'recebida') {
+            console.log('⏰ Agendando análise de sentimento em 3 segundos...');
             setTimeout(() => {
               analisarSentimento(conversaId);
             }, 3000);
@@ -319,8 +344,10 @@ export default function WhatsAppChat({
           filter: `id=eq.${conversaId}`,
         },
         (payload) => {
+          console.log('🔄 Conversa atualizada via realtime:', payload.new);
           // Atualizar sentimento local quando atualizado no banco
           if (payload.new.sentimento_cliente) {
+            console.log('💭 Atualizando sentimento local:', payload.new.sentimento_cliente);
             setSentimento({
               sentimento: payload.new.sentimento_cliente,
               emoji: payload.new.emoji_sentimento,
@@ -331,9 +358,11 @@ export default function WhatsAppChat({
       .subscribe();
 
     // Análise inicial do sentimento
+    console.log('🚀 Disparando análise inicial de sentimento...');
     analisarSentimento(conversaId);
 
     return () => {
+      console.log('🧹 Limpando canal realtime');
       supabase.removeChannel(channel);
     };
   }, [conversaId]);
