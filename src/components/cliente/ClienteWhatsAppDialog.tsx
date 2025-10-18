@@ -5,12 +5,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useWhatsApp } from "@/hooks/useWhatsApp";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { MessageSquare, Loader2, MessageCircle, Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -164,130 +164,148 @@ const ClienteWhatsAppDialog = ({ open, onOpenChange, contato }: ClienteWhatsAppD
   const temConversas = whatsappData?.conversas && whatsappData.conversas.length > 0;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="right" className="w-full sm:max-w-[540px] overflow-y-auto">
+        <SheetHeader>
+          <SheetTitle className="flex items-center gap-2">
             <MessageSquare className="w-5 h-5" />
             WhatsApp - {contato.nome_completo}
-          </DialogTitle>
-          <DialogDescription>
+          </SheetTitle>
+          <SheetDescription>
             {temConversas 
               ? "Conversas existentes ou inicie uma nova" 
               : "Iniciar conversa no WhatsApp"}
-          </DialogDescription>
-        </DialogHeader>
+          </SheetDescription>
+        </SheetHeader>
 
-        {isLoading ? (
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {/* Conversas Existentes */}
-            {temConversas && (
-              <div className="space-y-2">
-                <h4 className="text-sm font-medium">Conversas Ativas</h4>
-                <ScrollArea className="h-[200px] rounded-md border p-2">
+        <div className="mt-6">
+          {isLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {/* Conversas Existentes */}
+              {temConversas && (
+                <div className="space-y-3">
+                  <h4 className="text-sm font-semibold">Conversas Ativas</h4>
                   <div className="space-y-2">
                     {whatsappData.conversas.map((conversa: any) => (
                       <button
                         key={conversa.id}
                         onClick={() => handleAbrirConversa(conversa.id)}
-                        className="w-full p-3 rounded-lg border hover:bg-accent transition-colors text-left"
+                        className="w-full p-4 rounded-lg border hover:bg-accent transition-colors text-left group"
                       >
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-start justify-between gap-3">
                           <div className="flex-1 min-w-0">
-                            <p className="font-medium text-sm truncate">
+                            <p className="font-medium text-sm truncate mb-1">
                               {conversa.titulo}
                             </p>
-                            <p className="text-xs text-muted-foreground">
+                            <p className="text-xs text-muted-foreground mb-2">
                               {conversa.whatsapp_contas?.nome_conta}
                             </p>
+                            {conversa.ultima_mensagem_em && (
+                              <p className="text-xs text-muted-foreground">
+                                Última msg: {new Date(conversa.ultima_mensagem_em).toLocaleString('pt-BR', {
+                                  day: '2-digit',
+                                  month: '2-digit',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </p>
+                            )}
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex flex-col items-end gap-2">
                             <Badge variant="secondary" className="text-xs">
                               {conversa.status}
                             </Badge>
-                            <MessageCircle className="w-4 h-4 text-muted-foreground" />
+                            <MessageCircle className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
                           </div>
                         </div>
-                        {conversa.ultima_mensagem_em && (
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Última msg: {new Date(conversa.ultima_mensagem_em).toLocaleString('pt-BR')}
-                          </p>
-                        )}
                       </button>
                     ))}
                   </div>
-                </ScrollArea>
+                </div>
+              )}
+
+              {/* Nova Conversa */}
+              <div className="space-y-4">
+                {temConversas && (
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <span className="w-full border-t" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-background px-2 text-muted-foreground">ou</span>
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-3">
+                  <h4 className="text-sm font-semibold">
+                    {temConversas ? "Iniciar Nova Conversa" : "Criar Conversa"}
+                  </h4>
+
+                  {!contas || contas.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground border rounded-lg">
+                      <MessageSquare className="w-12 h-12 mx-auto mb-2 opacity-20" />
+                      <p className="text-sm">Nenhuma conta WhatsApp configurada</p>
+                      <p className="text-xs mt-1">Configure uma conta em Configurações</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {/* Info Card */}
+                      <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+                        <div className="flex items-center gap-2 text-sm">
+                          <MessageSquare className="w-4 h-4 text-primary" />
+                          <span className="font-medium">Informações do Contato</span>
+                        </div>
+                        <div className="space-y-1 text-xs text-muted-foreground pl-6">
+                          <p><strong>Nome:</strong> {contato.nome_completo}</p>
+                          <p><strong>Número:</strong> {contato.celular}</p>
+                          {contas && contas.length > 0 && (
+                            <p><strong>Conta WhatsApp:</strong> {contas.find(c => c.id === selectedConta)?.nome_conta}</p>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Ações */}
+                      <div className="flex gap-3">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => onOpenChange(false)}
+                          className="flex-1"
+                        >
+                          Fechar
+                        </Button>
+                        <Button
+                          onClick={handleNovaConversa}
+                          disabled={criarConversaMutation.isPending}
+                          className="flex-1"
+                        >
+                          {criarConversaMutation.isPending ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              Criando...
+                            </>
+                          ) : (
+                            <>
+                              <Plus className="w-4 h-4 mr-2" />
+                              Nova Conversa
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
-            )}
-
-            {/* Nova Conversa */}
-            <div className="space-y-3">
-              {temConversas && (
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t" />
-                  </div>
-                  <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-background px-2 text-muted-foreground">ou</span>
-                  </div>
-                </div>
-              )}
-
-              {!contas || contas.length === 0 ? (
-                <div className="text-center py-6 text-muted-foreground">
-                  <MessageSquare className="w-12 h-12 mx-auto mb-2 opacity-20" />
-                  <p className="text-sm">Nenhuma conta WhatsApp configurada</p>
-                </div>
-              ) : (
-                <div className="flex gap-3">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => onOpenChange(false)}
-                    className="flex-1"
-                  >
-                    Cancelar
-                  </Button>
-                  <Button
-                    onClick={handleNovaConversa}
-                    disabled={criarConversaMutation.isPending}
-                    className="flex-1"
-                  >
-                    {criarConversaMutation.isPending ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Criando...
-                      </>
-                    ) : (
-                      <>
-                        <Plus className="w-4 h-4 mr-2" />
-                        Nova Conversa
-                      </>
-                    )}
-                  </Button>
-                </div>
-              )}
             </div>
-
-            {/* Info */}
-            <div className="bg-muted/50 rounded-lg p-3">
-              <p className="text-xs text-muted-foreground">
-                <strong>Número:</strong> {contato.celular}
-              </p>
-              {contas && contas.length > 0 && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  <strong>Conta:</strong> {contas.find(c => c.id === selectedConta)?.nome_conta}
-                </p>
-              )}
-            </div>
-          </div>
-        )}
-      </DialogContent>
-    </Dialog>
+          )}
+        </div>
+      </SheetContent>
+    </Sheet>
   );
 };
 
