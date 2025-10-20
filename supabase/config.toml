@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.gupshup-webhook]
 verify_jwt = false
+
+[functions.handle-ura-zenvia]
+verify_jwt = false
