@@ -1653,6 +1653,265 @@ export type Database = {
         }
         Relationships: []
       }
+      ura_audios: {
+        Row: {
+          criado_em: string | null
+          criado_por: string | null
+          descricao: string | null
+          duracao_segundos: number | null
+          formato: string | null
+          id: string
+          nome: string
+          tamanho_kb: number | null
+          url_audio: string
+          usado_em_uras: number | null
+        }
+        Insert: {
+          criado_em?: string | null
+          criado_por?: string | null
+          descricao?: string | null
+          duracao_segundos?: number | null
+          formato?: string | null
+          id?: string
+          nome: string
+          tamanho_kb?: number | null
+          url_audio: string
+          usado_em_uras?: number | null
+        }
+        Update: {
+          criado_em?: string | null
+          criado_por?: string | null
+          descricao?: string | null
+          duracao_segundos?: number | null
+          formato?: string | null
+          id?: string
+          nome?: string
+          tamanho_kb?: number | null
+          url_audio?: string
+          usado_em_uras?: number | null
+        }
+        Relationships: []
+      }
+      ura_horarios: {
+        Row: {
+          acao_fora_horario: string | null
+          ativo: boolean | null
+          dia_semana: number
+          horario_fim: string
+          horario_inicio: string
+          id: string
+          mensagem_fora_horario: string | null
+          ura_id: string
+        }
+        Insert: {
+          acao_fora_horario?: string | null
+          ativo?: boolean | null
+          dia_semana: number
+          horario_fim: string
+          horario_inicio: string
+          id?: string
+          mensagem_fora_horario?: string | null
+          ura_id: string
+        }
+        Update: {
+          acao_fora_horario?: string | null
+          ativo?: boolean | null
+          dia_semana?: number
+          horario_fim?: string
+          horario_inicio?: string
+          id?: string
+          mensagem_fora_horario?: string | null
+          ura_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ura_horarios_ura_id_fkey"
+            columns: ["ura_id"]
+            isOneToOne: false
+            referencedRelation: "uras"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ura_logs: {
+        Row: {
+          chamada_id: string | null
+          criado_em: string | null
+          duracao_total: number | null
+          gravacao_url: string | null
+          id: string
+          metadata: Json | null
+          numero_origem: string | null
+          opcoes_selecionadas: Json | null
+          status_final: string | null
+          tentativas_invalidas: number | null
+          transferido_para: string | null
+          ura_id: string | null
+        }
+        Insert: {
+          chamada_id?: string | null
+          criado_em?: string | null
+          duracao_total?: number | null
+          gravacao_url?: string | null
+          id?: string
+          metadata?: Json | null
+          numero_origem?: string | null
+          opcoes_selecionadas?: Json | null
+          status_final?: string | null
+          tentativas_invalidas?: number | null
+          transferido_para?: string | null
+          ura_id?: string | null
+        }
+        Update: {
+          chamada_id?: string | null
+          criado_em?: string | null
+          duracao_total?: number | null
+          gravacao_url?: string | null
+          id?: string
+          metadata?: Json | null
+          numero_origem?: string | null
+          opcoes_selecionadas?: Json | null
+          status_final?: string | null
+          tentativas_invalidas?: number | null
+          transferido_para?: string | null
+          ura_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ura_logs_ura_id_fkey"
+            columns: ["ura_id"]
+            isOneToOne: false
+            referencedRelation: "uras"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ura_opcoes: {
+        Row: {
+          ativo: boolean | null
+          criado_em: string | null
+          horario_disponivel: Json | null
+          id: string
+          mensagem_antes_acao: string | null
+          numero_destino: string | null
+          numero_opcao: number
+          ordem: number | null
+          ramal_destino: string | null
+          tipo_acao: string
+          titulo: string
+          ura_id: string
+          ura_submenu_id: string | null
+          url_audio: string | null
+        }
+        Insert: {
+          ativo?: boolean | null
+          criado_em?: string | null
+          horario_disponivel?: Json | null
+          id?: string
+          mensagem_antes_acao?: string | null
+          numero_destino?: string | null
+          numero_opcao: number
+          ordem?: number | null
+          ramal_destino?: string | null
+          tipo_acao: string
+          titulo: string
+          ura_id: string
+          ura_submenu_id?: string | null
+          url_audio?: string | null
+        }
+        Update: {
+          ativo?: boolean | null
+          criado_em?: string | null
+          horario_disponivel?: Json | null
+          id?: string
+          mensagem_antes_acao?: string | null
+          numero_destino?: string | null
+          numero_opcao?: number
+          ordem?: number | null
+          ramal_destino?: string | null
+          tipo_acao?: string
+          titulo?: string
+          ura_id?: string
+          ura_submenu_id?: string | null
+          url_audio?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ura_opcoes_ura_id_fkey"
+            columns: ["ura_id"]
+            isOneToOne: false
+            referencedRelation: "uras"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ura_opcoes_ura_submenu_id_fkey"
+            columns: ["ura_submenu_id"]
+            isOneToOne: false
+            referencedRelation: "uras"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      uras: {
+        Row: {
+          acao_apos_max_tentativas: string | null
+          ativo: boolean | null
+          atualizado_em: string | null
+          criado_em: string | null
+          criado_por: string | null
+          descricao: string | null
+          id: string
+          max_tentativas_invalidas: number | null
+          mensagem_boas_vindas: string
+          nome: string
+          numero_telefone: string | null
+          opcao_invalida_mensagem: string | null
+          ramal_transferencia_padrao: string | null
+          tempo_espera_digito: number | null
+          tipo_mensagem_boas_vindas: string | null
+          url_audio_boas_vindas: string | null
+          voz_tts: string | null
+        }
+        Insert: {
+          acao_apos_max_tentativas?: string | null
+          ativo?: boolean | null
+          atualizado_em?: string | null
+          criado_em?: string | null
+          criado_por?: string | null
+          descricao?: string | null
+          id?: string
+          max_tentativas_invalidas?: number | null
+          mensagem_boas_vindas: string
+          nome: string
+          numero_telefone?: string | null
+          opcao_invalida_mensagem?: string | null
+          ramal_transferencia_padrao?: string | null
+          tempo_espera_digito?: number | null
+          tipo_mensagem_boas_vindas?: string | null
+          url_audio_boas_vindas?: string | null
+          voz_tts?: string | null
+        }
+        Update: {
+          acao_apos_max_tentativas?: string | null
+          ativo?: boolean | null
+          atualizado_em?: string | null
+          criado_em?: string | null
+          criado_por?: string | null
+          descricao?: string | null
+          id?: string
+          max_tentativas_invalidas?: number | null
+          mensagem_boas_vindas?: string
+          nome?: string
+          numero_telefone?: string | null
+          opcao_invalida_mensagem?: string | null
+          ramal_transferencia_padrao?: string | null
+          tempo_espera_digito?: number | null
+          tipo_mensagem_boas_vindas?: string | null
+          url_audio_boas_vindas?: string | null
+          voz_tts?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
