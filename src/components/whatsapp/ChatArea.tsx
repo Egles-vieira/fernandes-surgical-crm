@@ -58,14 +58,19 @@ const ChatArea = ({ conversaId, contaId }: ChatAreaProps) => {
         .select(`
           *,
           whatsapp_contatos (
+            id,
             numero_whatsapp,
             nome_whatsapp,
             foto_perfil_url,
+            contato_id,
             contatos (
+              id,
               nome_completo,
               primeiro_nome,
               email,
-              celular
+              celular,
+              cargo,
+              conta_id
             )
           )
         `)
@@ -268,35 +273,45 @@ const ChatArea = ({ conversaId, contaId }: ChatAreaProps) => {
                 Informações de Contato
               </h4>
               
-              <div className="space-y-2 text-sm">
+            <div className="space-y-2 text-sm">
+              <div className="flex items-start gap-2">
+                <Phone className="w-4 h-4 mt-0.5 text-muted-foreground" />
+                <div>
+                  <p className="text-muted-foreground text-xs">Telefone</p>
+                  <p>{conversa?.whatsapp_contatos?.numero_whatsapp || '-'}</p>
+                </div>
+              </div>
+
+              {conversa?.whatsapp_contatos?.contatos?.email && (
+                <div className="flex items-start gap-2">
+                  <Mail className="w-4 h-4 mt-0.5 text-muted-foreground" />
+                  <div>
+                    <p className="text-muted-foreground text-xs">Email</p>
+                    <p>{conversa.whatsapp_contatos.contatos.email}</p>
+                  </div>
+                </div>
+              )}
+
+              {conversa?.whatsapp_contatos?.contatos?.celular && (
                 <div className="flex items-start gap-2">
                   <Phone className="w-4 h-4 mt-0.5 text-muted-foreground" />
                   <div>
-                    <p className="text-muted-foreground text-xs">Telefone</p>
-                    <p>{conversa?.whatsapp_contatos?.numero_whatsapp || '-'}</p>
+                    <p className="text-muted-foreground text-xs">Celular</p>
+                    <p>{conversa.whatsapp_contatos.contatos.celular}</p>
                   </div>
                 </div>
+              )}
 
-                {conversa?.whatsapp_contatos?.contatos?.email && (
-                  <div className="flex items-start gap-2">
-                    <Mail className="w-4 h-4 mt-0.5 text-muted-foreground" />
-                    <div>
-                      <p className="text-muted-foreground text-xs">Email</p>
-                      <p>{conversa.whatsapp_contatos.contatos.email}</p>
-                    </div>
+              {conversa?.whatsapp_contatos?.contatos?.cargo && (
+                <div className="flex items-start gap-2">
+                  <Briefcase className="w-4 h-4 mt-0.5 text-muted-foreground" />
+                  <div>
+                    <p className="text-muted-foreground text-xs">Cargo</p>
+                    <p>{conversa.whatsapp_contatos.contatos.cargo}</p>
                   </div>
-                )}
-
-                {conversa?.whatsapp_contatos?.contatos?.celular && (
-                  <div className="flex items-start gap-2">
-                    <Phone className="w-4 h-4 mt-0.5 text-muted-foreground" />
-                    <div>
-                      <p className="text-muted-foreground text-xs">Celular</p>
-                      <p>{conversa.whatsapp_contatos.contatos.celular}</p>
-                    </div>
-                  </div>
-                )}
-              </div>
+                </div>
+              )}
+            </div>
             </div>
 
             <Separator />
@@ -369,9 +384,9 @@ const ChatArea = ({ conversaId, contaId }: ChatAreaProps) => {
                 variant="outline" 
                 className="w-full justify-start"
                 onClick={() => {
-                  // Implementar navegação para detalhes do cliente se houver conta_id
-                  if (conversa?.conta_id) {
-                    window.location.href = `/clientes/${conversa.conta_id}`;
+                  const contaId = conversa?.whatsapp_contatos?.contatos?.conta_id;
+                  if (contaId) {
+                    window.location.href = `/clientes/${contaId}`;
                   } else {
                     toast({
                       title: "Cliente não vinculado",
