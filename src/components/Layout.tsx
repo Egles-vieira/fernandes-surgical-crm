@@ -12,6 +12,7 @@ import {
   ChevronRight,
   Menu,
   MessageSquare,
+  Phone,
 } from "lucide-react";
 import {
   Collapsible,
@@ -67,9 +68,10 @@ const menuItems: MenuItem[] = [
   },
   {
     icon: MessageSquare,
-    label: "WhatsApp",
+    label: "Comunicação",
     children: [
-      { path: "/whatsapp", icon: MessageSquare, label: "Conversas" },
+      { path: "/whatsapp", icon: MessageSquare, label: "WhatsApp" },
+      { path: "/uras", icon: Phone, label: "URAs" },
       { path: "/whatsapp/configuracoes", icon: Shield, label: "Configurações", adminOnly: true },
     ],
   },

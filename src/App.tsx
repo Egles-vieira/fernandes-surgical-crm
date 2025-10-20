@@ -26,6 +26,7 @@ import SolicitacaoParticipacao from "./pages/licitacoes/SolicitacaoParticipacao"
 import ContratosGoverno from "./pages/licitacoes/ContratosGoverno";
 import WhatsApp from "./pages/WhatsApp";
 import ConfiguracoesWhatsApp from "./pages/whatsapp/Configuracoes";
+import URAs from "./pages/URAs";
 
 
 const App = () => (
@@ -165,6 +166,13 @@ const App = () => (
           <ProtectedRoute>
             <Layout>
               <ConfiguracoesWhatsApp />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/uras" element={
+          <ProtectedRoute>
+            <Layout>
+              <URAs />
             </Layout>
           </ProtectedRoute>
         } />
