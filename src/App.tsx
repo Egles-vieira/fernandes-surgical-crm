@@ -27,6 +27,7 @@ import ContratosGoverno from "./pages/licitacoes/ContratosGoverno";
 import WhatsApp from "./pages/WhatsApp";
 import ConfiguracoesWhatsApp from "./pages/whatsapp/Configuracoes";
 import URAs from "./pages/URAs";
+import URAEditor from "./pages/URAEditor";
 
 
 const App = () => (
@@ -174,6 +175,11 @@ const App = () => (
             <Layout>
               <URAs />
             </Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/uras/:id/editor" element={
+          <ProtectedRoute>
+            <URAEditor />
           </ProtectedRoute>
         } />
         <Route path="/usuarios" element={

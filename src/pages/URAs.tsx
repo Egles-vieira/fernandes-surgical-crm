@@ -296,7 +296,11 @@ export default function URAs() {
                           >
                             <Edit className="w-4 h-4" />
                           </Button>
-                          <Button variant="ghost" size="sm">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => window.location.href = `/uras/${ura.id}/editor`}
+                          >
                             <GitBranch className="w-4 h-4" />
                           </Button>
                           <Button variant="ghost" size="sm">
