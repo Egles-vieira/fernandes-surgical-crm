@@ -179,7 +179,9 @@ const App = () => (
         } />
         <Route path="/uras/:id/editor" element={
           <ProtectedRoute>
-            <URAEditor />
+            <Layout>
+              <URAEditor />
+            </Layout>
           </ProtectedRoute>
         } />
         <Route path="/usuarios" element={

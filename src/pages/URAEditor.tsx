@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import Layout from "@/components/Layout";
 import { useURAs } from "@/hooks/useURAs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -305,17 +304,14 @@ export default function URAEditor() {
 
   if (isLoadingURAs || !ura) {
     return (
-      <Layout>
-        <div className="flex items-center justify-center h-full">
-          <p className="text-muted-foreground">Carregando...</p>
-        </div>
-      </Layout>
+      <div className="flex items-center justify-center h-screen">
+        <p className="text-muted-foreground">Carregando...</p>
+      </div>
     );
   }
 
   return (
-    <Layout>
-      <div className="flex h-[calc(100vh-4rem)]">
+    <div className="flex h-screen overflow-hidden">
         {/* Sidebar Esquerda */}
         <div className="w-80 border-r bg-muted/30 flex flex-col overflow-hidden">
           <div className="p-4 border-b bg-background">
@@ -441,6 +437,5 @@ export default function URAEditor() {
           </AlertDialogContent>
         </AlertDialog>
       </div>
-    </Layout>
   );
 }
