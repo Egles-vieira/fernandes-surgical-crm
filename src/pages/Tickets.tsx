@@ -1,9 +1,8 @@
 import { useState } from "react";
-import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Filter, Search, Download, Star, Pause } from "lucide-react";
+import { Plus, Search, Download, Star, Pause } from "lucide-react";
 import { useTickets } from "@/hooks/useTickets";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -13,6 +12,7 @@ import { AvaliacaoDialog } from "@/components/tickets/AvaliacaoDialog";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Tickets() {
   const [novoTicketOpen, setNovoTicketOpen] = useState(false);
@@ -117,158 +117,161 @@ export default function Tickets() {
   };
 
   return (
-    <Layout>
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold">SAC - Tickets</h1>
-            <p className="text-muted-foreground">
-              Gerencie reclamações e solicitações de clientes
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={handleExportar}>
-              <Download className="mr-2 h-4 w-4" />
-              Exportar
-            </Button>
-            <Button onClick={() => setNovoTicketOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" />
-              Novo Ticket
-            </Button>
-          </div>
+    <div className="p-8 space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-primary">SAC - Tickets</h1>
+          <p className="text-muted-foreground">
+            Gerencie reclamações e solicitações de clientes
+          </p>
         </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Filtros</CardTitle>
-            <CardDescription>Refine sua busca de tickets</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar por número, título ou cliente..."
-                  value={busca}
-                  onChange={(e) => setBusca(e.target.value)}
-                  className="pl-9"
-                />
-              </div>
-              <Select value={statusFiltro} onValueChange={setStatusFiltro}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todos">Todos os Status</SelectItem>
-                  <SelectItem value="aberto">Aberto</SelectItem>
-                  <SelectItem value="em_andamento">Em Andamento</SelectItem>
-                  <SelectItem value="aguardando_cliente">Aguardando Cliente</SelectItem>
-                  <SelectItem value="resolvido">Resolvido</SelectItem>
-                  <SelectItem value="fechado">Fechado</SelectItem>
-                  <SelectItem value="cancelado">Cancelado</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={prioridadeFiltro} onValueChange={setPrioridadeFiltro}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Prioridade" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todos">Todas as Prioridades</SelectItem>
-                  <SelectItem value="baixa">Baixa</SelectItem>
-                  <SelectItem value="normal">Normal</SelectItem>
-                  <SelectItem value="alta">Alta</SelectItem>
-                  <SelectItem value="urgente">Urgente</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={tipoFiltro} onValueChange={setTipoFiltro}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todos">Todos os Tipos</SelectItem>
-                  <SelectItem value="reclamacao">Reclamação</SelectItem>
-                  <SelectItem value="duvida">Dúvida</SelectItem>
-                  <SelectItem value="sugestao">Sugestão</SelectItem>
-                  <SelectItem value="elogio">Elogio</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
-
-        {isLoading ? (
-          <div className="text-center py-8">Carregando tickets...</div>
-        ) : ticketsFiltrados.length === 0 ? (
-          <Card>
-            <CardContent className="py-8 text-center">
-              <p className="text-muted-foreground">Nenhum ticket encontrado</p>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid gap-4">
-            {ticketsFiltrados.map((ticket) => (
-              <Card
-                key={ticket.id}
-                className="hover:shadow-md transition-shadow cursor-pointer"
-                onClick={() => handleVerDetalhes(ticket.id)}
-              >
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <span className="font-mono font-bold text-lg">
-                          {ticket.numero_ticket}
-                        </span>
-                        <Badge className={getPrioridadeColor(ticket.prioridade)}>
-                          {formatPrioridade(ticket.prioridade)}
-                        </Badge>
-                        <Badge className={getStatusColor(ticket.status)}>
-                          {formatStatus(ticket.status)}
-                        </Badge>
-                        {ticket.esta_pausado && (
-                          <Badge variant="secondary">
-                            <Pause className="h-3 w-3 mr-1" />
-                            Pausado
-                          </Badge>
-                        )}
-                      </div>
-                      <h3 className="text-xl font-semibold mb-2">{ticket.titulo}</h3>
-                      <p className="text-muted-foreground line-clamp-2 mb-3">
-                        {ticket.descricao}
-                      </p>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <span>Cliente: {ticket.cliente_nome}</span>
-                        <span>•</span>
-                        <span>
-                          Aberto em:{" "}
-                          {format(new Date(ticket.data_abertura), "dd/MM/yyyy HH:mm", {
-                            locale: ptBR,
-                          })}
-                        </span>
-                        {ticket.total_interacoes > 0 && (
-                          <>
-                            <span>•</span>
-                            <span>{ticket.total_interacoes} interações</span>
-                          </>
-                        )}
-                        {ticket.avaliacao && (
-                          <>
-                            <span>•</span>
-                            <div className="flex items-center gap-1">
-                              <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                              <span>{ticket.avaliacao}/5</span>
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={handleExportar}>
+            <Download className="mr-2 h-4 w-4" />
+            Exportar
+          </Button>
+          <Button onClick={() => setNovoTicketOpen(true)} className="bg-primary hover:bg-primary/90">
+            <Plus className="mr-2 h-4 w-4" />
+            Novo Ticket
+          </Button>
+        </div>
       </div>
+
+      {/* Filtros */}
+      <Card className="p-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
+            <Input
+              placeholder="Buscar por número, título ou cliente..."
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <Select value={statusFiltro} onValueChange={setStatusFiltro}>
+            <SelectTrigger>
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos os Status</SelectItem>
+              <SelectItem value="aberto">Aberto</SelectItem>
+              <SelectItem value="em_andamento">Em Andamento</SelectItem>
+              <SelectItem value="aguardando_cliente">Aguardando Cliente</SelectItem>
+              <SelectItem value="resolvido">Resolvido</SelectItem>
+              <SelectItem value="fechado">Fechado</SelectItem>
+              <SelectItem value="cancelado">Cancelado</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={prioridadeFiltro} onValueChange={setPrioridadeFiltro}>
+            <SelectTrigger>
+              <SelectValue placeholder="Prioridade" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todas as Prioridades</SelectItem>
+              <SelectItem value="baixa">Baixa</SelectItem>
+              <SelectItem value="normal">Normal</SelectItem>
+              <SelectItem value="alta">Alta</SelectItem>
+              <SelectItem value="urgente">Urgente</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={tipoFiltro} onValueChange={setTipoFiltro}>
+            <SelectTrigger>
+              <SelectValue placeholder="Tipo" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos os Tipos</SelectItem>
+              <SelectItem value="reclamacao">Reclamação</SelectItem>
+              <SelectItem value="duvida">Dúvida</SelectItem>
+              <SelectItem value="sugestao">Sugestão</SelectItem>
+              <SelectItem value="elogio">Elogio</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </Card>
+
+      {/* Lista de Tickets */}
+      {isLoading ? (
+        <div className="grid gap-4">
+          {[1, 2, 3].map((i) => (
+            <Card key={i} className="p-6">
+              <Skeleton className="h-6 w-1/4 mb-4" />
+              <Skeleton className="h-8 w-3/4 mb-2" />
+              <Skeleton className="h-4 w-full mb-4" />
+              <Skeleton className="h-4 w-2/3" />
+            </Card>
+          ))}
+        </div>
+      ) : ticketsFiltrados.length === 0 ? (
+        <Card className="p-12 text-center">
+          <p className="text-muted-foreground">Nenhum ticket encontrado</p>
+          <Button onClick={() => setNovoTicketOpen(true)} className="mt-4">
+            Criar primeiro ticket
+          </Button>
+        </Card>
+      ) : (
+        <div className="grid gap-4">
+          {ticketsFiltrados.map((ticket) => (
+            <Card
+              key={ticket.id}
+              className="p-6 shadow-elegant hover:shadow-lg transition-all cursor-pointer"
+              onClick={() => handleVerDetalhes(ticket.id)}
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="font-mono font-bold text-lg text-primary">
+                      {ticket.numero_ticket}
+                    </span>
+                    <Badge className={getPrioridadeColor(ticket.prioridade)}>
+                      {formatPrioridade(ticket.prioridade)}
+                    </Badge>
+                    <Badge className={getStatusColor(ticket.status)}>
+                      {formatStatus(ticket.status)}
+                    </Badge>
+                    {ticket.esta_pausado && (
+                      <Badge variant="secondary">
+                        <Pause className="h-3 w-3 mr-1" />
+                        Pausado
+                      </Badge>
+                    )}
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2">{ticket.titulo}</h3>
+                  <p className="text-muted-foreground line-clamp-2 mb-3">
+                    {ticket.descricao}
+                  </p>
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    <span>Cliente: <span className="font-medium text-foreground">{ticket.cliente_nome}</span></span>
+                    <span>•</span>
+                    <span>
+                      Aberto em:{" "}
+                      {format(new Date(ticket.data_abertura), "dd/MM/yyyy HH:mm", {
+                        locale: ptBR,
+                      })}
+                    </span>
+                    {ticket.total_interacoes > 0 && (
+                      <>
+                        <span>•</span>
+                        <span>{ticket.total_interacoes} interações</span>
+                      </>
+                    )}
+                    {ticket.avaliacao && (
+                      <>
+                        <span>•</span>
+                        <div className="flex items-center gap-1">
+                          <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                          <span>{ticket.avaliacao}/5</span>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
 
       <NovoTicketDialog open={novoTicketOpen} onOpenChange={setNovoTicketOpen} />
       
@@ -287,6 +290,6 @@ export default function Tickets() {
           />
         </>
       )}
-    </Layout>
+    </div>
   );
 }
