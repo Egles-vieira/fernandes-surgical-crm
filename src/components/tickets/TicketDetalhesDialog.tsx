@@ -6,11 +6,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { useTickets } from "@/hooks/useTickets";
+import { useTicketActions } from "@/hooks/useTicketActions";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Clock, MessageSquare, User, AlertCircle, CheckCircle, Package, FileText } from "lucide-react";
+import { Clock, MessageSquare, User, AlertCircle, CheckCircle, Package, FileText, Pause, Play, UserPlus } from "lucide-react";
+import { TempoTicket } from "./TempoTicket";
+import { PausarTicketDialog } from "./PausarTicketDialog";
+import { TransferirTicketDialog } from "./TransferirTicketDialog";
 
 interface TicketDetalhesDialogProps {
   open: boolean;
@@ -20,9 +24,12 @@ interface TicketDetalhesDialogProps {
 
 export function TicketDetalhesDialog({ open, onOpenChange, ticketId }: TicketDetalhesDialogProps) {
   const { updateTicket, addInteracao } = useTickets();
+  const { retomarTicket } = useTicketActions();
   const [novaInteracao, setNovaInteracao] = useState("");
   const [novoStatus, setNovoStatus] = useState<"aberto" | "em_andamento" | "aguardando_cliente" | "resolvido" | "fechado" | "cancelado" | "">("");
   const [novaPrioridade, setNovaPrioridade] = useState<"baixa" | "normal" | "alta" | "urgente" | "">("");
+  const [pausarDialogOpen, setPausarDialogOpen] = useState(false);
+  const [transferirDialogOpen, setTransferirDialogOpen] = useState(false);
 
   const { data: ticket } = useQuery({
     queryKey: ["ticket", ticketId],
@@ -84,6 +91,10 @@ export function TicketDetalhesDialog({ open, onOpenChange, ticketId }: TicketDet
     });
   };
 
+  const handleRetomar = async () => {
+    await retomarTicket.mutateAsync(ticketId);
+  };
+
   if (!ticket) return null;
 
   const getStatusColor = (status: string) => {
@@ -132,6 +143,23 @@ export function TicketDetalhesDialog({ open, onOpenChange, ticketId }: TicketDet
               <Badge className={getStatusColor(ticket.status)}>
                 {formatStatus(ticket.status)}
               </Badge>
+            </div>
+            <div className="flex gap-2">
+              {ticket.esta_pausado ? (
+                <Button size="sm" variant="outline" onClick={handleRetomar}>
+                  <Play className="h-4 w-4 mr-2" />
+                  Retomar
+                </Button>
+              ) : (
+                <Button size="sm" variant="outline" onClick={() => setPausarDialogOpen(true)}>
+                  <Pause className="h-4 w-4 mr-2" />
+                  Pausar
+                </Button>
+              )}
+              <Button size="sm" variant="outline" onClick={() => setTransferirDialogOpen(true)}>
+                <UserPlus className="h-4 w-4 mr-2" />
+                Transferir
+              </Button>
             </div>
           </div>
         </DialogHeader>
@@ -225,14 +253,17 @@ export function TicketDetalhesDialog({ open, onOpenChange, ticketId }: TicketDet
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Clock className="h-4 w-4" />
-                <span>
-                  Aberto em{" "}
-                  {format(new Date(ticket.data_abertura), "dd/MM/yyyy 'às' HH:mm", {
-                    locale: ptBR,
-                  })}
-                </span>
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Clock className="h-4 w-4" />
+                  <span>
+                    Aberto em{" "}
+                    {format(new Date(ticket.data_abertura), "dd/MM/yyyy 'às' HH:mm", {
+                      locale: ptBR,
+                    })}
+                  </span>
+                </div>
+                <TempoTicket ticketId={ticketId} estaPausado={ticket.esta_pausado} />
               </div>
             </div>
           </div>
@@ -298,6 +329,20 @@ export function TicketDetalhesDialog({ open, onOpenChange, ticketId }: TicketDet
           </div>
         </div>
       </DialogContent>
+
+      <PausarTicketDialog
+        open={pausarDialogOpen}
+        onOpenChange={setPausarDialogOpen}
+        ticketId={ticketId}
+        ticketNumero={ticket.numero_ticket}
+      />
+
+      <TransferirTicketDialog
+        open={transferirDialogOpen}
+        onOpenChange={setTransferirDialogOpen}
+        ticketId={ticketId}
+        ticketNumero={ticket.numero_ticket}
+      />
     </Dialog>
   );
 }

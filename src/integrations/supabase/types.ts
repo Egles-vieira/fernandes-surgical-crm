@@ -1632,9 +1632,12 @@ export type Database = {
           created_at: string
           data_abertura: string
           descricao: string
+          esta_pausado: boolean | null
           fechado_em: string | null
           id: string
+          motivo_pausa: string | null
           numero_ticket: string
+          pausado_em: string | null
           prazo_resolucao: string | null
           prazo_resposta: string | null
           prioridade: Database["public"]["Enums"]["prioridade_ticket"]
@@ -1642,6 +1645,7 @@ export type Database = {
           resolvido_em: string | null
           status: Database["public"]["Enums"]["status_ticket"]
           tags: string[] | null
+          tempo_pausado_horas: number | null
           tempo_primeira_resposta_horas: number | null
           tempo_resolucao_horas: number | null
           tipo: Database["public"]["Enums"]["tipo_ticket"]
@@ -1664,9 +1668,12 @@ export type Database = {
           created_at?: string
           data_abertura?: string
           descricao: string
+          esta_pausado?: boolean | null
           fechado_em?: string | null
           id?: string
+          motivo_pausa?: string | null
           numero_ticket: string
+          pausado_em?: string | null
           prazo_resolucao?: string | null
           prazo_resposta?: string | null
           prioridade?: Database["public"]["Enums"]["prioridade_ticket"]
@@ -1674,6 +1681,7 @@ export type Database = {
           resolvido_em?: string | null
           status?: Database["public"]["Enums"]["status_ticket"]
           tags?: string[] | null
+          tempo_pausado_horas?: number | null
           tempo_primeira_resposta_horas?: number | null
           tempo_resolucao_horas?: number | null
           tipo?: Database["public"]["Enums"]["tipo_ticket"]
@@ -1696,9 +1704,12 @@ export type Database = {
           created_at?: string
           data_abertura?: string
           descricao?: string
+          esta_pausado?: boolean | null
           fechado_em?: string | null
           id?: string
+          motivo_pausa?: string | null
           numero_ticket?: string
+          pausado_em?: string | null
           prazo_resolucao?: string | null
           prazo_resposta?: string | null
           prioridade?: Database["public"]["Enums"]["prioridade_ticket"]
@@ -1706,6 +1717,7 @@ export type Database = {
           resolvido_em?: string | null
           status?: Database["public"]["Enums"]["status_ticket"]
           tags?: string[] | null
+          tempo_pausado_horas?: number | null
           tempo_primeira_resposta_horas?: number | null
           tempo_resolucao_horas?: number | null
           tipo?: Database["public"]["Enums"]["tipo_ticket"]
@@ -1774,6 +1786,47 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "tickets_interacoes_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tickets_pausas: {
+        Row: {
+          created_at: string
+          duracao_horas: number | null
+          id: string
+          motivo: string | null
+          pausado_em: string
+          pausado_por: string | null
+          retomado_em: string | null
+          ticket_id: string
+        }
+        Insert: {
+          created_at?: string
+          duracao_horas?: number | null
+          id?: string
+          motivo?: string | null
+          pausado_em?: string
+          pausado_por?: string | null
+          retomado_em?: string | null
+          ticket_id: string
+        }
+        Update: {
+          created_at?: string
+          duracao_horas?: number | null
+          id?: string
+          motivo?: string | null
+          pausado_em?: string
+          pausado_por?: string | null
+          retomado_em?: string | null
+          ticket_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tickets_pausas_ticket_id_fkey"
             columns: ["ticket_id"]
             isOneToOne: false
             referencedRelation: "tickets"
@@ -3165,6 +3218,10 @@ export type Database = {
       }
     }
     Functions: {
+      calcular_tempo_efetivo_ticket: {
+        Args: { ticket_id: string }
+        Returns: Json
+      }
       gerar_numero_ticket: {
         Args: Record<PropertyKey, never>
         Returns: string

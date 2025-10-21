@@ -3,7 +3,7 @@ import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Filter, Search, Download, Star } from "lucide-react";
+import { Plus, Filter, Search, Download, Star, Pause } from "lucide-react";
 import { useTickets } from "@/hooks/useTickets";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -225,6 +225,12 @@ export default function Tickets() {
                         <Badge className={getStatusColor(ticket.status)}>
                           {formatStatus(ticket.status)}
                         </Badge>
+                        {ticket.esta_pausado && (
+                          <Badge variant="secondary">
+                            <Pause className="h-3 w-3 mr-1" />
+                            Pausado
+                          </Badge>
+                        )}
                       </div>
                       <h3 className="text-xl font-semibold mb-2">{ticket.titulo}</h3>
                       <p className="text-muted-foreground line-clamp-2 mb-3">
