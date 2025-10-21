@@ -9,6 +9,7 @@ import { useTickets } from "@/hooks/useTickets";
 import { useClientes } from "@/hooks/useClientes";
 import { useProdutos } from "@/hooks/useProdutos";
 import { useVendas } from "@/hooks/useVendas";
+import { useFilasAtendimento } from "@/hooks/useFilasAtendimento";
 import { Tables } from "@/integrations/supabase/types";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -27,6 +28,7 @@ export function NovoTicketDialog({ open, onOpenChange }: NovoTicketDialogProps) 
   const { clientes } = useClientes();
   const { produtos } = useProdutos();
   const { vendas } = useVendas();
+  const { filas } = useFilasAtendimento();
   const { toast } = useToast();
 
   const [isClassificando, setIsClassificando] = useState(false);
@@ -40,6 +42,7 @@ export function NovoTicketDialog({ open, onOpenChange }: NovoTicketDialogProps) 
     cliente_telefone: string;
     venda_id: string;
     produto_id: string;
+    fila_id: string;
   }>({
     titulo: "",
     descricao: "",
@@ -50,6 +53,7 @@ export function NovoTicketDialog({ open, onOpenChange }: NovoTicketDialogProps) 
     cliente_telefone: "",
     venda_id: "",
     produto_id: "",
+    fila_id: "",
   });
 
   const classificarCriticidade = async () => {
@@ -74,17 +78,25 @@ export function NovoTicketDialog({ open, onOpenChange }: NovoTicketDialogProps) 
 
       if (error) throw error;
 
+      // Buscar ID da fila pelo nome
+      const { data: filaData } = await supabase
+        .from('filas_atendimento')
+        .select('id')
+        .eq('nome', data.fila_nome)
+        .single();
+
       setFormData((prev) => ({
         ...prev,
         prioridade: data.prioridade,
+        fila_id: filaData?.id || prev.fila_id,
       }));
 
       toast({
-        title: "Criticidade classificada",
-        description: `Prioridade sugerida: ${data.prioridade.toUpperCase()}`,
+        title: "Ticket classificado automaticamente",
+        description: `Prioridade: ${data.prioridade.toUpperCase()} | Fila: ${data.fila_nome}`,
       });
     } catch (error) {
-      console.error('Erro ao classificar criticidade:', error);
+      console.error('Erro ao classificar:', error);
       toast({
         title: "Erro na classificação",
         description: "Não foi possível classificar automaticamente. Por favor, selecione manualmente.",
@@ -115,6 +127,7 @@ export function NovoTicketDialog({ open, onOpenChange }: NovoTicketDialogProps) 
       cliente_telefone: "",
       venda_id: "",
       produto_id: "",
+      fila_id: "",
     });
   };
 
@@ -284,6 +297,31 @@ export function NovoTicketDialog({ open, onOpenChange }: NovoTicketDialogProps) 
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="fila">Fila de Atendimento</Label>
+            <Select
+              value={formData.fila_id}
+              onValueChange={(value) => setFormData((prev) => ({ ...prev, fila_id: value }))}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione uma fila" />
+              </SelectTrigger>
+              <SelectContent>
+                {filas.map((fila) => (
+                  <SelectItem key={fila.id} value={fila.id}>
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-3 h-3 rounded-full"
+                        style={{ backgroundColor: fila.cor }}
+                      />
+                      {fila.nome}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">

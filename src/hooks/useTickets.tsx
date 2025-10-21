@@ -21,7 +21,10 @@ export function useTickets(filtros?: {
     queryFn: async () => {
       let query = supabase
         .from("tickets")
-        .select("*")
+        .select(`
+          *,
+          fila:filas_atendimento(id, nome, cor)
+        `)
         .order("data_abertura", { ascending: false });
 
       if (filtros?.status) {
@@ -36,7 +39,7 @@ export function useTickets(filtros?: {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data as Ticket[];
+      return data as any[];
     },
   });
 

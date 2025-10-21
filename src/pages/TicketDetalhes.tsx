@@ -34,7 +34,12 @@ export default function TicketDetalhes() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tickets")
-        .select("*, produtos(nome), vendas(numero_venda)")
+        .select(`
+          *, 
+          produtos(nome), 
+          vendas(numero_venda),
+          fila:filas_atendimento(id, nome, cor)
+        `)
         .eq("id", id)
         .single();
 
@@ -171,6 +176,11 @@ export default function TicketDetalhes() {
           </Button>
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-bold text-primary">{ticket.numero_ticket}</h1>
+            {ticket.fila && (
+              <Badge className="text-white" style={{ backgroundColor: ticket.fila.cor }}>
+                {ticket.fila.nome}
+              </Badge>
+            )}
             <Badge className={getStatusColor(ticket.status)}>
               {formatStatus(ticket.status)}
             </Badge>

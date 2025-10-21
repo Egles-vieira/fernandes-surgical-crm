@@ -863,6 +863,39 @@ export type Database = {
           },
         ]
       }
+      filas_atendimento: {
+        Row: {
+          atualizado_em: string
+          cor: string
+          criado_em: string
+          descricao: string | null
+          esta_ativa: boolean
+          id: string
+          nome: string
+          ordem: number
+        }
+        Insert: {
+          atualizado_em?: string
+          cor?: string
+          criado_em?: string
+          descricao?: string | null
+          esta_ativa?: boolean
+          id?: string
+          nome: string
+          ordem?: number
+        }
+        Update: {
+          atualizado_em?: string
+          cor?: string
+          criado_em?: string
+          descricao?: string | null
+          esta_ativa?: boolean
+          id?: string
+          nome?: string
+          ordem?: number
+        }
+        Relationships: []
+      }
       historico_estagio_oportunidade: {
         Row: {
           alterado_em: string | null
@@ -1634,6 +1667,7 @@ export type Database = {
           descricao: string
           esta_pausado: boolean | null
           fechado_em: string | null
+          fila_id: string | null
           id: string
           motivo_pausa: string | null
           numero_ticket: string
@@ -1670,6 +1704,7 @@ export type Database = {
           descricao: string
           esta_pausado?: boolean | null
           fechado_em?: string | null
+          fila_id?: string | null
           id?: string
           motivo_pausa?: string | null
           numero_ticket: string
@@ -1706,6 +1741,7 @@ export type Database = {
           descricao?: string
           esta_pausado?: boolean | null
           fechado_em?: string | null
+          fila_id?: string | null
           id?: string
           motivo_pausa?: string | null
           numero_ticket?: string
@@ -1727,6 +1763,13 @@ export type Database = {
           venda_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "tickets_fila_id_fkey"
+            columns: ["fila_id"]
+            isOneToOne: false
+            referencedRelation: "filas_atendimento"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "tickets_produto_id_fkey"
             columns: ["produto_id"]

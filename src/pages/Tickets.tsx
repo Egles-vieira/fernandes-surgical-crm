@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Search, Download, Star, Pause } from "lucide-react";
 import { useTickets } from "@/hooks/useTickets";
+import { useFilasAtendimento } from "@/hooks/useFilasAtendimento";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { NovoTicketDialog } from "@/components/tickets/NovoTicketDialog";
@@ -22,9 +23,11 @@ export default function Tickets() {
   const [statusFiltro, setStatusFiltro] = useState<string>("todos");
   const [prioridadeFiltro, setPrioridadeFiltro] = useState<string>("todos");
   const [tipoFiltro, setTipoFiltro] = useState<string>("todos");
+  const [filaFiltro, setFilaFiltro] = useState<string>("todos");
   const {
     toast
   } = useToast();
+  const { filas } = useFilasAtendimento();
   const filtros = {
     ...(statusFiltro !== "todos" && {
       status: statusFiltro as any
@@ -37,7 +40,7 @@ export default function Tickets() {
     tickets,
     isLoading
   } = useTickets(filtros);
-  const ticketsFiltrados = tickets.filter(ticket => (ticket.numero_ticket.toLowerCase().includes(busca.toLowerCase()) || ticket.titulo.toLowerCase().includes(busca.toLowerCase()) || ticket.cliente_nome.toLowerCase().includes(busca.toLowerCase())) && (tipoFiltro === "todos" || ticket.tipo === tipoFiltro));
+  const ticketsFiltrados = tickets.filter(ticket => (ticket.numero_ticket.toLowerCase().includes(busca.toLowerCase()) || ticket.titulo.toLowerCase().includes(busca.toLowerCase()) || ticket.cliente_nome.toLowerCase().includes(busca.toLowerCase())) && (tipoFiltro === "todos" || ticket.tipo === tipoFiltro) && (filaFiltro === "todos" || ticket.fila_id === filaFiltro));
   const handleExportar = () => {
     const csvContent = [["Número", "Título", "Status", "Prioridade", "Tipo", "Cliente", "Data Abertura", "Avaliação"].join(";"), ...ticketsFiltrados.map(ticket => [ticket.numero_ticket, ticket.titulo, formatStatus(ticket.status), formatPrioridade(ticket.prioridade), ticket.tipo, ticket.cliente_nome, format(new Date(ticket.data_abertura), "dd/MM/yyyy HH:mm"), ticket.avaliacao || "Sem avaliação"].join(";"))].join("\n");
     const blob = new Blob([csvContent], {
@@ -114,9 +117,8 @@ export default function Tickets() {
         </div>
       </div>
 
-      {/* Filtros */}
-      <Card className="p-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <Card className="p-6">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
             <Input placeholder="Buscar por número, título ou cliente..." value={busca} onChange={e => setBusca(e.target.value)} className="pl-10" />
@@ -159,6 +161,25 @@ export default function Tickets() {
               <SelectItem value="elogio">Elogio</SelectItem>
             </SelectContent>
           </Select>
+          <Select value={filaFiltro} onValueChange={setFilaFiltro}>
+            <SelectTrigger>
+              <SelectValue placeholder="Fila" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todas as Filas</SelectItem>
+              {filas.map((fila) => (
+                <SelectItem key={fila.id} value={fila.id}>
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-3 h-3 rounded-full"
+                      style={{ backgroundColor: fila.cor }}
+                    />
+                    {fila.nome}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </Card>
 
@@ -183,6 +204,12 @@ export default function Tickets() {
                     <span className="font-mono font-bold text-lg text-primary">
                       {ticket.numero_ticket}
                     </span>
+                    {ticket.fila && <Badge 
+                        className="text-white" 
+                        style={{ backgroundColor: ticket.fila.cor }}
+                      >
+                        {ticket.fila.nome}
+                      </Badge>}
                     <Badge className={getPrioridadeColor(ticket.prioridade)}>
                       {formatPrioridade(ticket.prioridade)}
                     </Badge>
