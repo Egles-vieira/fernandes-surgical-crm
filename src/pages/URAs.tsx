@@ -44,6 +44,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { URAFormDialog } from "@/components/ura/URAFormDialog";
+import { LogDetalhesDialog } from "@/components/ura/LogDetalhesDialog";
 import {
   Plus,
   FolderOpen,
@@ -83,6 +84,8 @@ export default function URAs() {
   const [selectedURA, setSelectedURA] = useState<URA | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [uraToDelete, setUraToDelete] = useState<string | null>(null);
+  const [logDetalhesOpen, setLogDetalhesOpen] = useState(false);
+  const [selectedLogId, setSelectedLogId] = useState<string | null>(null);
 
   // Filtrar e ordenar URAs
   const filteredURAs = uras
@@ -323,7 +326,14 @@ export default function URAs() {
                                 <Copy className="w-4 h-4 mr-2" />
                                 Duplicar URA
                               </DropdownMenuItem>
-                              <DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  // Placeholder: na implementação real, você criaria uma página de logs
+                                  // Por enquanto, abre o modal vazio como exemplo
+                                  setSelectedLogId("exemplo");
+                                  setLogDetalhesOpen(true);
+                                }}
+                              >
                                 <FileText className="w-4 h-4 mr-2" />
                                 Ver Logs
                               </DropdownMenuItem>
@@ -383,6 +393,13 @@ export default function URAs() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {/* Modal de Detalhes do Log */}
+        <LogDetalhesDialog
+          open={logDetalhesOpen}
+          onOpenChange={setLogDetalhesOpen}
+          logId={selectedLogId}
+        />
       </div>
     </Layout>
   );
