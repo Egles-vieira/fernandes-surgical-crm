@@ -80,6 +80,12 @@ export default function Header({
           description: "Gerencie usuários e permissões do sistema",
           breadcrumb: "Cirúrgica Fernandes / Usuários"
         };
+      case "/tickets":
+        return {
+          title: "SAC - Tickets",
+          description: "Gerencie reclamações e solicitações de clientes",
+          breadcrumb: "Cirúrgica Fernandes / Tickets"
+        };
       default:
         return {
           title: "CRM",
@@ -91,8 +97,12 @@ export default function Header({
   const pageInfo = getPageInfo();
   return <header className="h-16 border-b bg-card flex items-center px-6 shadow-sm">
       <div className="flex items-center gap-6 w-full">
-        {/* Botão de Toggle do Menu + Título e Breadcrumb */}
-        <div className="flex items-center gap-3 min-w-[300px]">
+        {/* Nome do Módulo + Título da Página */}
+        <div className="flex items-center gap-6 min-w-[400px]">
+          <div className="border-r pr-6">
+            <h1 className="text-base font-bold text-primary">CRM</h1>
+            <p className="text-xs text-muted-foreground">Sistema de gestão empresarial</p>
+          </div>
           <div>
             <h2 className="text-lg font-bold text-foreground">{pageInfo.title}</h2>
             <p className="text-xs text-muted-foreground">{pageInfo.description}</p>
