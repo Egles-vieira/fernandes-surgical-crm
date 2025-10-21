@@ -13,7 +13,6 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
-
 export default function Tickets() {
   const [novoTicketOpen, setNovoTicketOpen] = useState(false);
   const [ticketDetalhesOpen, setTicketDetalhesOpen] = useState(false);
@@ -23,50 +22,36 @@ export default function Tickets() {
   const [statusFiltro, setStatusFiltro] = useState<string>("todos");
   const [prioridadeFiltro, setPrioridadeFiltro] = useState<string>("todos");
   const [tipoFiltro, setTipoFiltro] = useState<string>("todos");
-  const { toast } = useToast();
-
+  const {
+    toast
+  } = useToast();
   const filtros = {
-    ...(statusFiltro !== "todos" && { status: statusFiltro as any }),
-    ...(prioridadeFiltro !== "todos" && { prioridade: prioridadeFiltro as any }),
+    ...(statusFiltro !== "todos" && {
+      status: statusFiltro as any
+    }),
+    ...(prioridadeFiltro !== "todos" && {
+      prioridade: prioridadeFiltro as any
+    })
   };
-
-  const { tickets, isLoading } = useTickets(filtros);
-
-  const ticketsFiltrados = tickets.filter(
-    (ticket) =>
-      (ticket.numero_ticket.toLowerCase().includes(busca.toLowerCase()) ||
-      ticket.titulo.toLowerCase().includes(busca.toLowerCase()) ||
-      ticket.cliente_nome.toLowerCase().includes(busca.toLowerCase())) &&
-      (tipoFiltro === "todos" || ticket.tipo === tipoFiltro)
-  );
-
+  const {
+    tickets,
+    isLoading
+  } = useTickets(filtros);
+  const ticketsFiltrados = tickets.filter(ticket => (ticket.numero_ticket.toLowerCase().includes(busca.toLowerCase()) || ticket.titulo.toLowerCase().includes(busca.toLowerCase()) || ticket.cliente_nome.toLowerCase().includes(busca.toLowerCase())) && (tipoFiltro === "todos" || ticket.tipo === tipoFiltro));
   const handleExportar = () => {
-    const csvContent = [
-      ["Número", "Título", "Status", "Prioridade", "Tipo", "Cliente", "Data Abertura", "Avaliação"].join(";"),
-      ...ticketsFiltrados.map(ticket => [
-        ticket.numero_ticket,
-        ticket.titulo,
-        formatStatus(ticket.status),
-        formatPrioridade(ticket.prioridade),
-        ticket.tipo,
-        ticket.cliente_nome,
-        format(new Date(ticket.data_abertura), "dd/MM/yyyy HH:mm"),
-        ticket.avaliacao || "Sem avaliação"
-      ].join(";"))
-    ].join("\n");
-
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const csvContent = [["Número", "Título", "Status", "Prioridade", "Tipo", "Cliente", "Data Abertura", "Avaliação"].join(";"), ...ticketsFiltrados.map(ticket => [ticket.numero_ticket, ticket.titulo, formatStatus(ticket.status), formatPrioridade(ticket.prioridade), ticket.tipo, ticket.cliente_nome, format(new Date(ticket.data_abertura), "dd/MM/yyyy HH:mm"), ticket.avaliacao || "Sem avaliação"].join(";"))].join("\n");
+    const blob = new Blob([csvContent], {
+      type: "text/csv;charset=utf-8;"
+    });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
     link.download = `tickets_${format(new Date(), "yyyy-MM-dd")}.csv`;
     link.click();
-
     toast({
       title: "Exportação concluída!",
-      description: "Os dados foram exportados com sucesso.",
+      description: "Os dados foram exportados com sucesso."
     });
   };
-
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
       aberto: "bg-blue-500",
@@ -74,21 +59,19 @@ export default function Tickets() {
       aguardando_cliente: "bg-orange-500",
       resolvido: "bg-green-500",
       fechado: "bg-gray-500",
-      cancelado: "bg-red-500",
+      cancelado: "bg-red-500"
     };
     return colors[status] || "bg-gray-500";
   };
-
   const getPrioridadeColor = (prioridade: string) => {
     const colors: Record<string, string> = {
       baixa: "bg-green-100 text-green-800",
       normal: "bg-blue-100 text-blue-800",
       alta: "bg-orange-100 text-orange-800",
-      urgente: "bg-red-100 text-red-800",
+      urgente: "bg-red-100 text-red-800"
     };
     return colors[prioridade] || "bg-gray-100 text-gray-800";
   };
-
   const formatStatus = (status: string) => {
     const labels: Record<string, string> = {
       aberto: "Aberto",
@@ -96,36 +79,27 @@ export default function Tickets() {
       aguardando_cliente: "Aguardando Cliente",
       resolvido: "Resolvido",
       fechado: "Fechado",
-      cancelado: "Cancelado",
+      cancelado: "Cancelado"
     };
     return labels[status] || status;
   };
-
   const formatPrioridade = (prioridade: string) => {
     const labels: Record<string, string> = {
       baixa: "Baixa",
       normal: "Normal",
       alta: "Alta",
-      urgente: "Urgente",
+      urgente: "Urgente"
     };
     return labels[prioridade] || prioridade;
   };
-
   const handleVerDetalhes = (ticketId: string) => {
     setSelectedTicketId(ticketId);
     setTicketDetalhesOpen(true);
   };
-
-  return (
-    <div className="p-8 space-y-6">
+  return <div className="p-8 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-primary">SAC - Tickets</h1>
-          <p className="text-muted-foreground">
-            Gerencie reclamações e solicitações de clientes
-          </p>
-        </div>
+        
         <div className="flex gap-2">
           <Button variant="outline" onClick={handleExportar}>
             <Download className="mr-2 h-4 w-4" />
@@ -143,12 +117,7 @@ export default function Tickets() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
-            <Input
-              placeholder="Buscar por número, título ou cliente..."
-              value={busca}
-              onChange={(e) => setBusca(e.target.value)}
-              className="pl-10"
-            />
+            <Input placeholder="Buscar por número, título ou cliente..." value={busca} onChange={e => setBusca(e.target.value)} className="pl-10" />
           </div>
           <Select value={statusFiltro} onValueChange={setStatusFiltro}>
             <SelectTrigger>
@@ -192,32 +161,20 @@ export default function Tickets() {
       </Card>
 
       {/* Lista de Tickets */}
-      {isLoading ? (
-        <div className="grid gap-4">
-          {[1, 2, 3].map((i) => (
-            <Card key={i} className="p-6">
+      {isLoading ? <div className="grid gap-4">
+          {[1, 2, 3].map(i => <Card key={i} className="p-6">
               <Skeleton className="h-6 w-1/4 mb-4" />
               <Skeleton className="h-8 w-3/4 mb-2" />
               <Skeleton className="h-4 w-full mb-4" />
               <Skeleton className="h-4 w-2/3" />
-            </Card>
-          ))}
-        </div>
-      ) : ticketsFiltrados.length === 0 ? (
-        <Card className="p-12 text-center">
+            </Card>)}
+        </div> : ticketsFiltrados.length === 0 ? <Card className="p-12 text-center">
           <p className="text-muted-foreground">Nenhum ticket encontrado</p>
           <Button onClick={() => setNovoTicketOpen(true)} className="mt-4">
             Criar primeiro ticket
           </Button>
-        </Card>
-      ) : (
-        <div className="grid gap-4">
-          {ticketsFiltrados.map((ticket) => (
-            <Card
-              key={ticket.id}
-              className="p-6 shadow-elegant hover:shadow-lg transition-all cursor-pointer"
-              onClick={() => handleVerDetalhes(ticket.id)}
-            >
+        </Card> : <div className="grid gap-4">
+          {ticketsFiltrados.map(ticket => <Card key={ticket.id} className="p-6 shadow-elegant hover:shadow-lg transition-all cursor-pointer" onClick={() => handleVerDetalhes(ticket.id)}>
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
@@ -230,12 +187,10 @@ export default function Tickets() {
                     <Badge className={getStatusColor(ticket.status)}>
                       {formatStatus(ticket.status)}
                     </Badge>
-                    {ticket.esta_pausado && (
-                      <Badge variant="secondary">
+                    {ticket.esta_pausado && <Badge variant="secondary">
                         <Pause className="h-3 w-3 mr-1" />
                         Pausado
-                      </Badge>
-                    )}
+                      </Badge>}
                   </div>
                   <h3 className="text-xl font-semibold mb-2">{ticket.titulo}</h3>
                   <p className="text-muted-foreground line-clamp-2 mb-3">
@@ -247,49 +202,31 @@ export default function Tickets() {
                     <span>
                       Aberto em:{" "}
                       {format(new Date(ticket.data_abertura), "dd/MM/yyyy HH:mm", {
-                        locale: ptBR,
-                      })}
+                  locale: ptBR
+                })}
                     </span>
-                    {ticket.total_interacoes > 0 && (
-                      <>
+                    {ticket.total_interacoes > 0 && <>
                         <span>•</span>
                         <span>{ticket.total_interacoes} interações</span>
-                      </>
-                    )}
-                    {ticket.avaliacao && (
-                      <>
+                      </>}
+                    {ticket.avaliacao && <>
                         <span>•</span>
                         <div className="flex items-center gap-1">
                           <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
                           <span>{ticket.avaliacao}/5</span>
                         </div>
-                      </>
-                    )}
+                      </>}
                   </div>
                 </div>
               </div>
-            </Card>
-          ))}
-        </div>
-      )}
+            </Card>)}
+        </div>}
 
       <NovoTicketDialog open={novoTicketOpen} onOpenChange={setNovoTicketOpen} />
       
-      {selectedTicketId && (
-        <>
-          <TicketDetalhesDialog
-            open={ticketDetalhesOpen}
-            onOpenChange={setTicketDetalhesOpen}
-            ticketId={selectedTicketId}
-          />
-          <AvaliacaoDialog
-            open={avaliacaoOpen}
-            onOpenChange={setAvaliacaoOpen}
-            ticketId={selectedTicketId}
-            ticketNumero={tickets.find(t => t.id === selectedTicketId)?.numero_ticket || ""}
-          />
-        </>
-      )}
-    </div>
-  );
+      {selectedTicketId && <>
+          <TicketDetalhesDialog open={ticketDetalhesOpen} onOpenChange={setTicketDetalhesOpen} ticketId={selectedTicketId} />
+          <AvaliacaoDialog open={avaliacaoOpen} onOpenChange={setAvaliacaoOpen} ticketId={selectedTicketId} ticketNumero={tickets.find(t => t.id === selectedTicketId)?.numero_ticket || ""} />
+        </>}
+    </div>;
 }
