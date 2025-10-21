@@ -14,6 +14,8 @@ import {
   MessageSquare,
   Phone,
   TicketCheck,
+  BarChart3,
+  BookOpen,
 } from "lucide-react";
 import {
   Collapsible,
@@ -76,7 +78,15 @@ const menuItems: MenuItem[] = [
       { path: "/whatsapp/configuracoes", icon: Shield, label: "Configurações", adminOnly: true },
     ],
   },
-  { path: "/tickets", icon: TicketCheck, label: "Tickets SAC" },
+  {
+    icon: TicketCheck,
+    label: "SAC",
+    children: [
+      { path: "/tickets", icon: TicketCheck, label: "Tickets" },
+      { path: "/tickets/dashboard", icon: BarChart3, label: "Dashboard" },
+      { path: "/base-conhecimento", icon: BookOpen, label: "Base de Conhecimento" },
+    ],
+  },
   { path: "/clientes", icon: Users, label: "Clientes" },
   {
     icon: Package,

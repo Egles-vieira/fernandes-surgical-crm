@@ -3,22 +3,27 @@ import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Filter, Search } from "lucide-react";
+import { Plus, Filter, Search, Download, Star } from "lucide-react";
 import { useTickets } from "@/hooks/useTickets";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { NovoTicketDialog } from "@/components/tickets/NovoTicketDialog";
 import { TicketDetalhesDialog } from "@/components/tickets/TicketDetalhesDialog";
+import { AvaliacaoDialog } from "@/components/tickets/AvaliacaoDialog";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Tickets() {
   const [novoTicketOpen, setNovoTicketOpen] = useState(false);
   const [ticketDetalhesOpen, setTicketDetalhesOpen] = useState(false);
+  const [avaliacaoOpen, setAvaliacaoOpen] = useState(false);
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
   const [busca, setBusca] = useState("");
   const [statusFiltro, setStatusFiltro] = useState<string>("todos");
   const [prioridadeFiltro, setPrioridadeFiltro] = useState<string>("todos");
+  const [tipoFiltro, setTipoFiltro] = useState<string>("todos");
+  const { toast } = useToast();
 
   const filtros = {
     ...(statusFiltro !== "todos" && { status: statusFiltro as any }),
@@ -29,10 +34,38 @@ export default function Tickets() {
 
   const ticketsFiltrados = tickets.filter(
     (ticket) =>
-      ticket.numero_ticket.toLowerCase().includes(busca.toLowerCase()) ||
+      (ticket.numero_ticket.toLowerCase().includes(busca.toLowerCase()) ||
       ticket.titulo.toLowerCase().includes(busca.toLowerCase()) ||
-      ticket.cliente_nome.toLowerCase().includes(busca.toLowerCase())
+      ticket.cliente_nome.toLowerCase().includes(busca.toLowerCase())) &&
+      (tipoFiltro === "todos" || ticket.tipo === tipoFiltro)
   );
+
+  const handleExportar = () => {
+    const csvContent = [
+      ["Número", "Título", "Status", "Prioridade", "Tipo", "Cliente", "Data Abertura", "Avaliação"].join(";"),
+      ...ticketsFiltrados.map(ticket => [
+        ticket.numero_ticket,
+        ticket.titulo,
+        formatStatus(ticket.status),
+        formatPrioridade(ticket.prioridade),
+        ticket.tipo,
+        ticket.cliente_nome,
+        format(new Date(ticket.data_abertura), "dd/MM/yyyy HH:mm"),
+        ticket.avaliacao || "Sem avaliação"
+      ].join(";"))
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `tickets_${format(new Date(), "yyyy-MM-dd")}.csv`;
+    link.click();
+
+    toast({
+      title: "Exportação concluída!",
+      description: "Os dados foram exportados com sucesso.",
+    });
+  };
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
@@ -93,10 +126,16 @@ export default function Tickets() {
               Gerencie reclamações e solicitações de clientes
             </p>
           </div>
-          <Button onClick={() => setNovoTicketOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Novo Ticket
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={handleExportar}>
+              <Download className="mr-2 h-4 w-4" />
+              Exportar
+            </Button>
+            <Button onClick={() => setNovoTicketOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Novo Ticket
+            </Button>
+          </div>
         </div>
 
         <Card>
@@ -105,7 +144,7 @@ export default function Tickets() {
             <CardDescription>Refine sua busca de tickets</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
               <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -139,6 +178,18 @@ export default function Tickets() {
                   <SelectItem value="normal">Normal</SelectItem>
                   <SelectItem value="alta">Alta</SelectItem>
                   <SelectItem value="urgente">Urgente</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={tipoFiltro} onValueChange={setTipoFiltro}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos os Tipos</SelectItem>
+                  <SelectItem value="reclamacao">Reclamação</SelectItem>
+                  <SelectItem value="duvida">Dúvida</SelectItem>
+                  <SelectItem value="sugestao">Sugestão</SelectItem>
+                  <SelectItem value="elogio">Elogio</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -194,6 +245,15 @@ export default function Tickets() {
                             <span>{ticket.total_interacoes} interações</span>
                           </>
                         )}
+                        {ticket.avaliacao && (
+                          <>
+                            <span>•</span>
+                            <div className="flex items-center gap-1">
+                              <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                              <span>{ticket.avaliacao}/5</span>
+                            </div>
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -207,11 +267,19 @@ export default function Tickets() {
       <NovoTicketDialog open={novoTicketOpen} onOpenChange={setNovoTicketOpen} />
       
       {selectedTicketId && (
-        <TicketDetalhesDialog
-          open={ticketDetalhesOpen}
-          onOpenChange={setTicketDetalhesOpen}
-          ticketId={selectedTicketId}
-        />
+        <>
+          <TicketDetalhesDialog
+            open={ticketDetalhesOpen}
+            onOpenChange={setTicketDetalhesOpen}
+            ticketId={selectedTicketId}
+          />
+          <AvaliacaoDialog
+            open={avaliacaoOpen}
+            onOpenChange={setAvaliacaoOpen}
+            ticketId={selectedTicketId}
+            ticketNumero={tickets.find(t => t.id === selectedTicketId)?.numero_ticket || ""}
+          />
+        </>
       )}
     </Layout>
   );
