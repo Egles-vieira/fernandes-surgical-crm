@@ -16,6 +16,7 @@ interface LogDetalhesDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   logId: string | null;
+  logSimulado?: any;
 }
 
 interface EventoTimeline {
@@ -25,14 +26,14 @@ interface EventoTimeline {
   dados_adicionais?: any;
 }
 
-export function LogDetalhesDialog({ open, onOpenChange, logId }: LogDetalhesDialogProps) {
+export function LogDetalhesDialog({ open, onOpenChange, logId, logSimulado }: LogDetalhesDialogProps) {
   const { toast } = useToast();
   const [metadataOpen, setMetadataOpen] = useState(false);
 
-  const { data: log, isLoading } = useQuery({
+  const { data: logFromDB, isLoading } = useQuery({
     queryKey: ["ura-log-detalhes", logId],
     queryFn: async () => {
-      if (!logId) return null;
+      if (!logId || logId.startsWith('simulacao-')) return null;
       
       const { data, error } = await supabase
         .from("ura_logs")
@@ -43,8 +44,11 @@ export function LogDetalhesDialog({ open, onOpenChange, logId }: LogDetalhesDial
       if (error) throw error;
       return data;
     },
-    enabled: !!logId && open,
+    enabled: !!logId && !logId.startsWith('simulacao-') && open,
   });
+
+  // Usar log simulado se fornecido, senão usar do banco
+  const log = logSimulado || logFromDB;
 
   const handleCopyMetadata = () => {
     if (log?.metadata) {

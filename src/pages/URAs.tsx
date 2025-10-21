@@ -62,9 +62,11 @@ import {
   FileText,
   TestTube,
   Trash2,
+  Play,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { toast } from "sonner";
 
 export default function URAs() {
   const {
@@ -145,9 +147,100 @@ export default function URAs() {
     await toggleAtivo.mutateAsync({ id, ativo: !ativo });
   };
 
-  const handleTestarURA = (ura: URA) => {
-    setUraParaTestar(ura);
-    setTestarURAOpen(true);
+  const handleSimularChamada = async (ura: URA) => {
+    // Criar um log simulado com dados de exemplo
+    const logSimulado = {
+      id: 'simulacao-' + Date.now(),
+      ura_id: ura.id,
+      numero_origem: '+55 11 98765-4321',
+      numero_destino: ura.numero_telefone || '+55 11 3000-0000',
+      duracao_segundos: 202, // 3min 22s
+      status: 'transferida',
+      opcoes_selecionadas: [1],
+      transferido_para: '100',
+      tentativas_invalidas: 0,
+      iniciado_em: new Date(Date.now() - 202000).toISOString(),
+      encerrado_em: new Date().toISOString(),
+      metadata: {
+        zenvia_call_id: 'sim-' + Math.random().toString(36).substr(2, 9),
+        eventos: [
+          {
+            timestamp: new Date(Date.now() - 202000).toISOString(),
+            tipo: 'inicio',
+            descricao: 'Chamada iniciada',
+            dados_adicionais: {
+              did: ura.numero_telefone || '+55 11 3000-0000',
+              origem: '+55 11 98765-4321'
+            }
+          },
+          {
+            timestamp: new Date(Date.now() - 197000).toISOString(),
+            tipo: 'menu_reproduzido',
+            descricao: 'Menu principal reproduzido',
+            dados_adicionais: {
+              ura_nome: ura.nome,
+              tipo_mensagem: ura.tipo_mensagem_boas_vindas
+            }
+          },
+          {
+            timestamp: new Date(Date.now() - 190000).toISOString(),
+            tipo: 'opcao_selecionada',
+            descricao: 'Opção 1 selecionada',
+            dados_adicionais: {
+              numero_opcao: 1,
+              tipo_acao: 'transferir_ramal'
+            }
+          },
+          {
+            timestamp: new Date(Date.now() - 187000).toISOString(),
+            tipo: 'mensagem_antes',
+            descricao: 'Mensagem antes de transferir',
+            dados_adicionais: {
+              mensagem: 'Transferindo para o setor de vendas...'
+            }
+          },
+          {
+            timestamp: new Date(Date.now() - 184000).toISOString(),
+            tipo: 'transferencia',
+            descricao: 'Transferido para ramal 100',
+            dados_adicionais: {
+              ramal_destino: '100',
+              tipo: 'ramal'
+            }
+          },
+          {
+            timestamp: new Date(Date.now() - 157000).toISOString(),
+            tipo: 'atendido',
+            descricao: 'Atendido pelo agente',
+            dados_adicionais: {
+              agente_id: '123',
+              agente_nome: 'João Silva'
+            }
+          },
+          {
+            timestamp: new Date().toISOString(),
+            tipo: 'fim',
+            descricao: 'Chamada encerrada',
+            dados_adicionais: {
+              motivo: 'Cliente desligou',
+              duracao_total: 202
+            }
+          }
+        ],
+        agente_atendente: {
+          id: '123',
+          nome: 'João Silva'
+        }
+      }
+    };
+
+    // Inserir temporariamente no estado (em produção, isso seria salvo no banco)
+    setSelectedLogId(logSimulado.id);
+    
+    // Adicionar aos logs se necessário para exibição
+    toast.success('Simulação de chamada criada! Abrindo detalhes...');
+    
+    setLogDetalhesOpen(true);
   };
 
   // Hook para buscar opções da URA sendo testada
@@ -349,9 +442,9 @@ export default function URAs() {
                                 <FileText className="w-4 h-4 mr-2" />
                                 Ver Logs
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleTestarURA(ura)}>
-                                <TestTube className="w-4 h-4 mr-2" />
-                                Testar URA
+                              <DropdownMenuItem onClick={() => handleSimularChamada(ura)}>
+                                <Play className="w-4 h-4 mr-2" />
+                                Simular Chamada
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 className="text-destructive"
@@ -407,11 +500,96 @@ export default function URAs() {
         </AlertDialog>
 
         {/* Modal de Detalhes do Log */}
-        <LogDetalhesDialog
-          open={logDetalhesOpen}
-          onOpenChange={setLogDetalhesOpen}
-          logId={selectedLogId}
-        />
+      <LogDetalhesDialog
+        open={logDetalhesOpen}
+        onOpenChange={setLogDetalhesOpen}
+        logId={selectedLogId}
+        logSimulado={selectedLogId?.startsWith('simulacao-') ? {
+          id: selectedLogId,
+          ura_id: uras?.find(u => u.id)?.id || '',
+          numero_origem: '+55 11 98765-4321',
+          numero_destino: '+55 11 3000-0000',
+          duracao_segundos: 202,
+          status: 'transferida',
+          opcoes_selecionadas: [1],
+          transferido_para: '100',
+          tentativas_invalidas: 0,
+          iniciado_em: new Date(Date.now() - 202000).toISOString(),
+          encerrado_em: new Date().toISOString(),
+          metadata: {
+            zenvia_call_id: 'sim-' + Math.random().toString(36).substr(2, 9),
+            eventos: [
+              {
+                timestamp: new Date(Date.now() - 202000).toISOString(),
+                tipo: 'inicio',
+                descricao: 'Chamada iniciada',
+                dados_adicionais: {
+                  did: '+55 11 3000-0000',
+                  origem: '+55 11 98765-4321'
+                }
+              },
+              {
+                timestamp: new Date(Date.now() - 197000).toISOString(),
+                tipo: 'menu_reproduzido',
+                descricao: 'Menu principal reproduzido',
+                dados_adicionais: {
+                  ura_nome: 'Atendimento Principal',
+                  tipo_mensagem: 'tts'
+                }
+              },
+              {
+                timestamp: new Date(Date.now() - 190000).toISOString(),
+                tipo: 'opcao_selecionada',
+                descricao: 'Opção 1 selecionada',
+                dados_adicionais: {
+                  numero_opcao: 1,
+                  opcao_titulo: 'Vendas',
+                  tipo_acao: 'transferir_ramal'
+                }
+              },
+              {
+                timestamp: new Date(Date.now() - 187000).toISOString(),
+                tipo: 'mensagem_antes',
+                descricao: 'Mensagem antes de transferir',
+                dados_adicionais: {
+                  mensagem: 'Transferindo para o setor de vendas...'
+                }
+              },
+              {
+                timestamp: new Date(Date.now() - 184000).toISOString(),
+                tipo: 'transferencia',
+                descricao: 'Transferido para ramal 100',
+                dados_adicionais: {
+                  ramal_destino: '100',
+                  tipo: 'ramal'
+                }
+              },
+              {
+                timestamp: new Date(Date.now() - 157000).toISOString(),
+                tipo: 'atendido',
+                descricao: 'Atendido pelo agente',
+                dados_adicionais: {
+                  agente_id: '123',
+                  agente_nome: 'João Silva'
+                }
+              },
+              {
+                timestamp: new Date().toISOString(),
+                tipo: 'fim',
+                descricao: 'Chamada encerrada',
+                dados_adicionais: {
+                  motivo: 'Cliente desligou',
+                  duracao_total: 202
+                }
+              }
+            ],
+            agente_atendente: {
+              id: '123',
+              nome: 'João Silva'
+            }
+          }
+        } : undefined}
+      />
 
         {/* Modal de Testar URA */}
         <TestarURADialog
