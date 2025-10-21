@@ -99,7 +99,10 @@ export default function Header({
       <div className="flex items-center gap-6 w-full">
         {/* Nome do Módulo + Título da Página */}
         <div className="flex items-center gap-6 min-w-[400px]">
-          
+          <div className="border-r pr-6">
+            <h1 className="text-base font-bold text-primary">CRM</h1>
+            <p className="text-xs text-muted-foreground">Sistema de gestão empresarial</p>
+          </div>
           <div>
             <h2 className="text-lg font-bold text-foreground">{pageInfo.title}</h2>
             <p className="text-xs text-muted-foreground">{pageInfo.description}</p>
@@ -116,10 +119,16 @@ export default function Header({
 
         {/* Ações e Usuário */}
         <div className="flex items-center gap-4 ml-auto">
-          {location.pathname.startsWith('/whatsapp') && <Button variant="outline" size="sm" onClick={() => navigate('/whatsapp/configuracoes')}>
+          {location.pathname.startsWith('/whatsapp') && (
+            <Button 
+              variant="outline"
+              size="sm"
+              onClick={() => navigate('/whatsapp/configuracoes')}
+            >
               <Settings className="w-4 h-4 mr-2" />
               Configurações
-            </Button>}
+            </Button>
+          )}
           
           <ThemeCustomizer />
           
