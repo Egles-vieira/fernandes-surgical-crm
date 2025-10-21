@@ -88,6 +88,13 @@ export default function Header({ collapsed, onToggle }: HeaderProps) {
           breadcrumb: "Cirúrgica Fernandes / Tickets",
         };
       default:
+        if (location.pathname.startsWith("/tickets/")) {
+          return {
+            title: "Detalhes do Ticket",
+            description: "Visualize e gerencie o ticket",
+            breadcrumb: "Cirúrgica Fernandes / Tickets / Detalhes",
+          };
+        }
         return {
           title: "CRM",
           description: "Sistema de gestão empresarial",

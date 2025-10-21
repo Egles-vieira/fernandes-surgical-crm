@@ -28,6 +28,7 @@ import ConfiguracoesWhatsApp from "./pages/whatsapp/Configuracoes";
 import URAs from "./pages/URAs";
 import URAEditor from "./pages/URAEditor";
 import Tickets from "./pages/Tickets";
+import TicketDetalhes from "./pages/TicketDetalhes";
 import TicketsDashboard from "./pages/TicketsDashboard";
 import BaseConhecimento from "./pages/BaseConhecimento";
 
@@ -196,6 +197,13 @@ const App = () => (
           <ProtectedRoute>
             <Layout>
               <Tickets />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/tickets/:id" element={
+          <ProtectedRoute>
+            <Layout>
+              <TicketDetalhes />
             </Layout>
           </ProtectedRoute>
         } />

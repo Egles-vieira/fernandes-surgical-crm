@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -7,15 +8,14 @@ import { useTickets } from "@/hooks/useTickets";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { NovoTicketDialog } from "@/components/tickets/NovoTicketDialog";
-import { TicketDetalhesDialog } from "@/components/tickets/TicketDetalhesDialog";
 import { AvaliacaoDialog } from "@/components/tickets/AvaliacaoDialog";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 export default function Tickets() {
+  const navigate = useNavigate();
   const [novoTicketOpen, setNovoTicketOpen] = useState(false);
-  const [ticketDetalhesOpen, setTicketDetalhesOpen] = useState(false);
   const [avaliacaoOpen, setAvaliacaoOpen] = useState(false);
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
   const [busca, setBusca] = useState("");
@@ -93,8 +93,7 @@ export default function Tickets() {
     return labels[prioridade] || prioridade;
   };
   const handleVerDetalhes = (ticketId: string) => {
-    setSelectedTicketId(ticketId);
-    setTicketDetalhesOpen(true);
+    navigate(`/tickets/${ticketId}`);
   };
   return <div className="p-8 space-y-6">
       {/* Header */}
@@ -227,9 +226,8 @@ export default function Tickets() {
 
       <NovoTicketDialog open={novoTicketOpen} onOpenChange={setNovoTicketOpen} />
       
-      {selectedTicketId && <>
-          <TicketDetalhesDialog open={ticketDetalhesOpen} onOpenChange={setTicketDetalhesOpen} ticketId={selectedTicketId} />
-          <AvaliacaoDialog open={avaliacaoOpen} onOpenChange={setAvaliacaoOpen} ticketId={selectedTicketId} ticketNumero={tickets.find(t => t.id === selectedTicketId)?.numero_ticket || ""} />
-        </>}
+      {selectedTicketId && (
+        <AvaliacaoDialog open={avaliacaoOpen} onOpenChange={setAvaliacaoOpen} ticketId={selectedTicketId} ticketNumero={tickets.find(t => t.id === selectedTicketId)?.numero_ticket || ""} />
+      )}
     </div>;
 }
