@@ -4,22 +4,23 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import ThemeCustomizer from "./ThemeCustomizer";
 interface HeaderProps {
   collapsed: boolean;
   onToggle: () => void;
 }
-export default function Header({
-  collapsed,
-  onToggle
-}: HeaderProps) {
+export default function Header({ collapsed, onToggle }: HeaderProps) {
   const location = useLocation();
   const navigate = useNavigate();
-  const {
-    user,
-    signOut
-  } = useAuth();
+  const { user, signOut } = useAuth();
   const handleLogout = async () => {
     await signOut();
     navigate("/auth");
@@ -30,72 +31,73 @@ export default function Header({
         return {
           title: "Dashboard",
           description: "Visão geral do desempenho e métricas",
-          breadcrumb: "Cirúrgica Fernandes / Dashboard"
+          breadcrumb: "Cirúrgica Fernandes / Dashboard",
         };
       case "/vendas":
         return {
           title: "Vendas",
           description: "Gerencie suas oportunidades e pipeline de vendas",
-          breadcrumb: "Cirúrgica Fernandes / Vendas"
+          breadcrumb: "Cirúrgica Fernandes / Vendas",
         };
       case "/plataformas":
         return {
           title: "Plataformas",
           description: "Integração com plataformas de e-commerce",
-          breadcrumb: "Cirúrgica Fernandes / Plataformas"
+          breadcrumb: "Cirúrgica Fernandes / Plataformas",
         };
       case "/licitacoes":
         return {
           title: "Licitações",
           description: "Acompanhe licitações e contratos governamentais",
-          breadcrumb: "Cirúrgica Fernandes / Licitações"
+          breadcrumb: "Cirúrgica Fernandes / Licitações",
         };
       case "/clientes":
         return {
           title: "Clientes",
           description: "Gerencie sua base de clientes e contatos",
-          breadcrumb: "Cirúrgica Fernandes / Clientes"
+          breadcrumb: "Cirúrgica Fernandes / Clientes",
         };
       case "/produtos":
         return {
           title: "Produtos",
           description: "Catálogo de produtos e estoque",
-          breadcrumb: "Cirúrgica Fernandes / Produtos"
+          breadcrumb: "Cirúrgica Fernandes / Produtos",
         };
       case "/whatsapp":
         return {
           title: "WhatsApp",
           description: "Gerencie suas conversas e atendimentos",
-          breadcrumb: "Cirúrgica Fernandes / WhatsApp"
+          breadcrumb: "Cirúrgica Fernandes / WhatsApp",
         };
       case "/whatsapp/configuracoes":
         return {
           title: "Configurações WhatsApp",
           description: "Configure contas, templates e respostas rápidas",
-          breadcrumb: "Cirúrgica Fernandes / WhatsApp / Configurações"
+          breadcrumb: "Cirúrgica Fernandes / WhatsApp / Configurações",
         };
       case "/usuarios":
         return {
           title: "Usuários",
           description: "Gerencie usuários e permissões do sistema",
-          breadcrumb: "Cirúrgica Fernandes / Usuários"
+          breadcrumb: "Cirúrgica Fernandes / Usuários",
         };
       case "/tickets":
         return {
-          title: "SAC - Tickets",
+          title: "SAC - Atendimento ao cliente",
           description: "Gerencie reclamações e solicitações de clientes",
-          breadcrumb: "Cirúrgica Fernandes / Tickets"
+          breadcrumb: "Cirúrgica Fernandes / Tickets",
         };
       default:
         return {
           title: "CRM",
           description: "Sistema de gestão empresarial",
-          breadcrumb: "Cirúrgica Fernandes"
+          breadcrumb: "Cirúrgica Fernandes",
         };
     }
   };
   const pageInfo = getPageInfo();
-  return <header className="h-16 border-b bg-card flex items-center px-6 shadow-sm">
+  return (
+    <header className="h-16 border-b bg-card flex items-center px-6 shadow-sm">
       <div className="flex items-center gap-6 w-full">
         {/* Nome do Módulo + Título da Página */}
         <div className="flex items-center gap-6 min-w-[400px]">
@@ -119,19 +121,15 @@ export default function Header({
 
         {/* Ações e Usuário */}
         <div className="flex items-center gap-4 ml-auto">
-          {location.pathname.startsWith('/whatsapp') && (
-            <Button 
-              variant="outline"
-              size="sm"
-              onClick={() => navigate('/whatsapp/configuracoes')}
-            >
+          {location.pathname.startsWith("/whatsapp") && (
+            <Button variant="outline" size="sm" onClick={() => navigate("/whatsapp/configuracoes")}>
               <Settings className="w-4 h-4 mr-2" />
               Configurações
             </Button>
           )}
-          
+
           <ThemeCustomizer />
-          
+
           <Button variant="ghost" size="sm" className="relative">
             <Bell size={18} />
             <span className="absolute -top-1 -right-1 h-4 w-4 bg-destructive rounded-full text-[10px] text-white flex items-center justify-center">
@@ -166,5 +164,6 @@ export default function Header({
           </DropdownMenu>
         </div>
       </div>
-    </header>;
+    </header>
+  );
 }
