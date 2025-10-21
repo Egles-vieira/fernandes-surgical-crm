@@ -99,16 +99,10 @@ export default function Header({ collapsed, onToggle }: HeaderProps) {
   return (
     <header className="h-16 border-b bg-card flex items-center px-6 shadow-sm">
       <div className="flex items-center gap-6 w-full">
-        {/* Nome do Módulo + Título da Página */}
-        <div className="flex items-center gap-6 min-w-[400px]">
-          <div className="border-r pr-6">
-            <h1 className="text-base font-bold text-primary">CRM</h1>
-            <p className="text-xs text-muted-foreground">Sistema de gestão empresarial</p>
-          </div>
-          <div>
-            <h2 className="text-lg font-bold text-foreground">{pageInfo.title}</h2>
-            <p className="text-xs text-muted-foreground">{pageInfo.description}</p>
-          </div>
+        {/* Título da Página */}
+        <div>
+          <h2 className="text-lg font-bold text-foreground">{pageInfo.title}</h2>
+          <p className="text-xs text-muted-foreground">{pageInfo.description}</p>
         </div>
 
         {/* Barra de Pesquisa Global */}
