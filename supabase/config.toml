@@ -3,6 +3,9 @@ project_id = "rzzzfprgnoywmmjwepzm"
 [functions.analisar-sentimento-cliente]
 verify_jwt = true
 
+[functions.classificar-criticidade-ticket]
+verify_jwt = true
+
 [functions.gupshup-enviar-mensagem]
 verify_jwt = false
 

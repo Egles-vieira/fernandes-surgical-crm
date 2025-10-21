@@ -10,6 +10,9 @@ import { useClientes } from "@/hooks/useClientes";
 import { useProdutos } from "@/hooks/useProdutos";
 import { useVendas } from "@/hooks/useVendas";
 import { Tables } from "@/integrations/supabase/types";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { Sparkles } from "lucide-react";
 
 type TipoTicket = Tables<"tickets">["tipo"];
 type PrioridadeTicket = Tables<"tickets">["prioridade"];
@@ -24,7 +27,9 @@ export function NovoTicketDialog({ open, onOpenChange }: NovoTicketDialogProps) 
   const { clientes } = useClientes();
   const { produtos } = useProdutos();
   const { vendas } = useVendas();
+  const { toast } = useToast();
 
+  const [isClassificando, setIsClassificando] = useState(false);
   const [formData, setFormData] = useState<{
     titulo: string;
     descricao: string;
@@ -46,6 +51,49 @@ export function NovoTicketDialog({ open, onOpenChange }: NovoTicketDialogProps) 
     venda_id: "",
     produto_id: "",
   });
+
+  const classificarCriticidade = async () => {
+    if (!formData.titulo || !formData.descricao) {
+      toast({
+        title: "Preencha os campos",
+        description: "Título e descrição são necessários para classificação automática",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsClassificando(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('classificar-criticidade-ticket', {
+        body: {
+          titulo: formData.titulo,
+          descricao: formData.descricao,
+          tipo: formData.tipo,
+        },
+      });
+
+      if (error) throw error;
+
+      setFormData((prev) => ({
+        ...prev,
+        prioridade: data.prioridade,
+      }));
+
+      toast({
+        title: "Criticidade classificada",
+        description: `Prioridade sugerida: ${data.prioridade.toUpperCase()}`,
+      });
+    } catch (error) {
+      console.error('Erro ao classificar criticidade:', error);
+      toast({
+        title: "Erro na classificação",
+        description: "Não foi possível classificar automaticamente. Por favor, selecione manualmente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsClassificando(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -114,7 +162,20 @@ export function NovoTicketDialog({ open, onOpenChange }: NovoTicketDialogProps) 
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="prioridade">Prioridade</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="prioridade">Prioridade</Label>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={classificarCriticidade}
+                  disabled={isClassificando || !formData.titulo || !formData.descricao}
+                  className="h-auto py-1 px-2"
+                >
+                  <Sparkles className="h-3 w-3 mr-1" />
+                  {isClassificando ? "Classificando..." : "Auto"}
+                </Button>
+              </div>
               <Select
                 value={formData.prioridade}
                 onValueChange={(value) => setFormData((prev) => ({ ...prev, prioridade: value as PrioridadeTicket }))}
