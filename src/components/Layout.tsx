@@ -13,6 +13,7 @@ import {
   Menu,
   MessageSquare,
   Phone,
+  TicketCheck,
 } from "lucide-react";
 import {
   Collapsible,
@@ -72,6 +73,7 @@ const menuItems: MenuItem[] = [
     children: [
       { path: "/whatsapp", icon: MessageSquare, label: "WhatsApp" },
       { path: "/uras", icon: Phone, label: "URAs" },
+      { path: "/tickets", icon: TicketCheck, label: "Tickets SAC" },
       { path: "/whatsapp/configuracoes", icon: Shield, label: "Configurações", adminOnly: true },
     ],
   },
