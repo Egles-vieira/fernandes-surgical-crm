@@ -73,10 +73,10 @@ const menuItems: MenuItem[] = [
     children: [
       { path: "/whatsapp", icon: MessageSquare, label: "WhatsApp" },
       { path: "/uras", icon: Phone, label: "URAs" },
-      { path: "/tickets", icon: TicketCheck, label: "Tickets SAC" },
       { path: "/whatsapp/configuracoes", icon: Shield, label: "Configurações", adminOnly: true },
     ],
   },
+  { path: "/tickets", icon: TicketCheck, label: "Tickets SAC" },
   { path: "/clientes", icon: Users, label: "Clientes" },
   {
     icon: Package,
