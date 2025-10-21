@@ -1617,6 +1617,170 @@ export type Database = {
         }
         Relationships: []
       }
+      tickets: {
+        Row: {
+          aberto_por: string | null
+          anexos: Json | null
+          atribuido_em: string | null
+          atribuido_para: string | null
+          avaliacao: number | null
+          avaliado_em: string | null
+          cliente_email: string | null
+          cliente_nome: string
+          cliente_telefone: string | null
+          comentario_avaliacao: string | null
+          created_at: string
+          data_abertura: string
+          descricao: string
+          fechado_em: string | null
+          id: string
+          numero_ticket: string
+          prazo_resolucao: string | null
+          prazo_resposta: string | null
+          prioridade: Database["public"]["Enums"]["prioridade_ticket"]
+          produto_id: string | null
+          resolvido_em: string | null
+          status: Database["public"]["Enums"]["status_ticket"]
+          tags: string[] | null
+          tempo_primeira_resposta_horas: number | null
+          tempo_resolucao_horas: number | null
+          tipo: Database["public"]["Enums"]["tipo_ticket"]
+          titulo: string
+          total_interacoes: number | null
+          updated_at: string
+          venda_id: string | null
+        }
+        Insert: {
+          aberto_por?: string | null
+          anexos?: Json | null
+          atribuido_em?: string | null
+          atribuido_para?: string | null
+          avaliacao?: number | null
+          avaliado_em?: string | null
+          cliente_email?: string | null
+          cliente_nome: string
+          cliente_telefone?: string | null
+          comentario_avaliacao?: string | null
+          created_at?: string
+          data_abertura?: string
+          descricao: string
+          fechado_em?: string | null
+          id?: string
+          numero_ticket: string
+          prazo_resolucao?: string | null
+          prazo_resposta?: string | null
+          prioridade?: Database["public"]["Enums"]["prioridade_ticket"]
+          produto_id?: string | null
+          resolvido_em?: string | null
+          status?: Database["public"]["Enums"]["status_ticket"]
+          tags?: string[] | null
+          tempo_primeira_resposta_horas?: number | null
+          tempo_resolucao_horas?: number | null
+          tipo?: Database["public"]["Enums"]["tipo_ticket"]
+          titulo: string
+          total_interacoes?: number | null
+          updated_at?: string
+          venda_id?: string | null
+        }
+        Update: {
+          aberto_por?: string | null
+          anexos?: Json | null
+          atribuido_em?: string | null
+          atribuido_para?: string | null
+          avaliacao?: number | null
+          avaliado_em?: string | null
+          cliente_email?: string | null
+          cliente_nome?: string
+          cliente_telefone?: string | null
+          comentario_avaliacao?: string | null
+          created_at?: string
+          data_abertura?: string
+          descricao?: string
+          fechado_em?: string | null
+          id?: string
+          numero_ticket?: string
+          prazo_resolucao?: string | null
+          prazo_resposta?: string | null
+          prioridade?: Database["public"]["Enums"]["prioridade_ticket"]
+          produto_id?: string | null
+          resolvido_em?: string | null
+          status?: Database["public"]["Enums"]["status_ticket"]
+          tags?: string[] | null
+          tempo_primeira_resposta_horas?: number | null
+          tempo_resolucao_horas?: number | null
+          tipo?: Database["public"]["Enums"]["tipo_ticket"]
+          titulo?: string
+          total_interacoes?: number | null
+          updated_at?: string
+          venda_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tickets_produto_id_fkey"
+            columns: ["produto_id"]
+            isOneToOne: false
+            referencedRelation: "produtos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tickets_venda_id_fkey"
+            columns: ["venda_id"]
+            isOneToOne: false
+            referencedRelation: "vendas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tickets_interacoes: {
+        Row: {
+          anexos: Json | null
+          created_at: string
+          criado_por: string | null
+          id: string
+          mensagem: string | null
+          mensagem_interna: boolean | null
+          nome_autor: string | null
+          ticket_id: string
+          tipo_interacao: string
+          valor_anterior: string | null
+          valor_novo: string | null
+        }
+        Insert: {
+          anexos?: Json | null
+          created_at?: string
+          criado_por?: string | null
+          id?: string
+          mensagem?: string | null
+          mensagem_interna?: boolean | null
+          nome_autor?: string | null
+          ticket_id: string
+          tipo_interacao: string
+          valor_anterior?: string | null
+          valor_novo?: string | null
+        }
+        Update: {
+          anexos?: Json | null
+          created_at?: string
+          criado_por?: string | null
+          id?: string
+          mensagem?: string | null
+          mensagem_interna?: boolean | null
+          nome_autor?: string | null
+          ticket_id?: string
+          tipo_interacao?: string
+          valor_anterior?: string | null
+          valor_novo?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tickets_interacoes_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tipos_frete: {
         Row: {
           created_at: string
@@ -3001,6 +3165,10 @@ export type Database = {
       }
     }
     Functions: {
+      gerar_numero_ticket: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       get_user_roles: {
         Args: { _user_id: string }
         Returns: {
@@ -3081,7 +3249,23 @@ export type Database = {
         | "perdido"
       identificacao_tipo: "Cliente" | "Fornecedor" | "Ambos"
       natureza_tipo: "Juridica" | "Fisica"
+      prioridade_ticket: "baixa" | "normal" | "alta" | "urgente"
+      status_ticket:
+        | "aberto"
+        | "em_andamento"
+        | "aguardando_cliente"
+        | "resolvido"
+        | "fechado"
+        | "cancelado"
       tipo_endereco: "principal" | "entrega" | "cobranca"
+      tipo_ticket:
+        | "reclamacao"
+        | "duvida"
+        | "sugestao"
+        | "elogio"
+        | "garantia"
+        | "troca"
+        | "devolucao"
       yes_no: "YES" | "NO"
     }
     CompositeTypes: {
@@ -3222,7 +3406,25 @@ export const Constants = {
       ],
       identificacao_tipo: ["Cliente", "Fornecedor", "Ambos"],
       natureza_tipo: ["Juridica", "Fisica"],
+      prioridade_ticket: ["baixa", "normal", "alta", "urgente"],
+      status_ticket: [
+        "aberto",
+        "em_andamento",
+        "aguardando_cliente",
+        "resolvido",
+        "fechado",
+        "cancelado",
+      ],
       tipo_endereco: ["principal", "entrega", "cobranca"],
+      tipo_ticket: [
+        "reclamacao",
+        "duvida",
+        "sugestao",
+        "elogio",
+        "garantia",
+        "troca",
+        "devolucao",
+      ],
       yes_no: ["YES", "NO"],
     },
   },
