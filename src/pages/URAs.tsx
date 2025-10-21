@@ -45,6 +45,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { URAFormDialog } from "@/components/ura/URAFormDialog";
 import { LogDetalhesDialog } from "@/components/ura/LogDetalhesDialog";
+import { TestarURADialog } from "@/components/ura/TestarURADialog";
 import {
   Plus,
   FolderOpen,
@@ -71,6 +72,7 @@ export default function URAs() {
     isLoadingURAs,
     stats,
     isLoadingStats,
+    useOpcoes,
     criarURA,
     atualizarURA,
     excluirURA,
@@ -86,6 +88,8 @@ export default function URAs() {
   const [uraToDelete, setUraToDelete] = useState<string | null>(null);
   const [logDetalhesOpen, setLogDetalhesOpen] = useState(false);
   const [selectedLogId, setSelectedLogId] = useState<string | null>(null);
+  const [testarURAOpen, setTestarURAOpen] = useState(false);
+  const [uraParaTestar, setUraParaTestar] = useState<URA | null>(null);
 
   // Filtrar e ordenar URAs
   const filteredURAs = uras
@@ -140,6 +144,14 @@ export default function URAs() {
   const handleToggleAtivo = async (id: string, ativo: boolean) => {
     await toggleAtivo.mutateAsync({ id, ativo: !ativo });
   };
+
+  const handleTestarURA = (ura: URA) => {
+    setUraParaTestar(ura);
+    setTestarURAOpen(true);
+  };
+
+  // Hook para buscar opções da URA sendo testada
+  const { data: opcoesParaTestar } = useOpcoes(uraParaTestar?.id);
 
   return (
     <Layout>
@@ -337,7 +349,7 @@ export default function URAs() {
                                 <FileText className="w-4 h-4 mr-2" />
                                 Ver Logs
                               </DropdownMenuItem>
-                              <DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleTestarURA(ura)}>
                                 <TestTube className="w-4 h-4 mr-2" />
                                 Testar URA
                               </DropdownMenuItem>
@@ -399,6 +411,14 @@ export default function URAs() {
           open={logDetalhesOpen}
           onOpenChange={setLogDetalhesOpen}
           logId={selectedLogId}
+        />
+
+        {/* Modal de Testar URA */}
+        <TestarURADialog
+          open={testarURAOpen}
+          onOpenChange={setTestarURAOpen}
+          ura={uraParaTestar}
+          opcoes={opcoesParaTestar || []}
         />
       </div>
     </Layout>
