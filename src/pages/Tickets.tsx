@@ -8,7 +8,6 @@ import { useTickets } from "@/hooks/useTickets";
 import { useFilasAtendimento } from "@/hooks/useFilasAtendimento";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { NovoTicketDialog } from "@/components/tickets/NovoTicketDialog";
 import { AvaliacaoDialog } from "@/components/tickets/AvaliacaoDialog";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -16,7 +15,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 export default function Tickets() {
   const navigate = useNavigate();
-  const [novoTicketOpen, setNovoTicketOpen] = useState(false);
   const [avaliacaoOpen, setAvaliacaoOpen] = useState(false);
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
   const [busca, setBusca] = useState("");
@@ -110,7 +108,7 @@ export default function Tickets() {
             <Download className="mr-2 h-4 w-4" />
             Exportar
           </Button>
-          <Button onClick={() => setNovoTicketOpen(true)} className="bg-primary hover:bg-primary/90">
+          <Button onClick={() => navigate("/tickets/novo")} className="bg-primary hover:bg-primary/90">
             <Plus className="mr-2 h-4 w-4" />
             Novo Ticket
           </Button>
@@ -193,7 +191,7 @@ export default function Tickets() {
             </Card>)}
         </div> : ticketsFiltrados.length === 0 ? <Card className="p-12 text-center">
           <p className="text-muted-foreground">Nenhum ticket encontrado</p>
-          <Button onClick={() => setNovoTicketOpen(true)} className="mt-4">
+          <Button onClick={() => navigate("/tickets/novo")} className="mt-4">
             Criar primeiro ticket
           </Button>
         </Card> : <div className="grid gap-4">
@@ -250,8 +248,6 @@ export default function Tickets() {
               </div>
             </Card>)}
         </div>}
-
-      <NovoTicketDialog open={novoTicketOpen} onOpenChange={setNovoTicketOpen} />
       
       {selectedTicketId && (
         <AvaliacaoDialog open={avaliacaoOpen} onOpenChange={setAvaliacaoOpen} ticketId={selectedTicketId} ticketNumero={tickets.find(t => t.id === selectedTicketId)?.numero_ticket || ""} />
