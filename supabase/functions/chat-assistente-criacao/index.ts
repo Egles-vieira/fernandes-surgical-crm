@@ -101,21 +101,37 @@ Responda com: "✅ INFORMAÇÕES COLETADAS:" e forneça:
     // Contar quantas perguntas foram respondidas (aproximação)
     const perguntasRespondidas = messages.filter((m: any) => m.role === 'user').length;
 
-    // Detectar se a IA gerou sugestões finais
-    let sugestoes = {};
+    // Detectar se a IA gerou sugestões finais (detecção robusta)
+    let sugestoes: any = {};
     let perguntasPendentes: string[] | undefined = undefined;
-    
-    if (assistantMessage.includes('✅ INFORMAÇÕES COLETADAS') || assistantMessage.includes('SUGESTÃO')) {
-      // Extrair sugestões do texto (simplificado)
+
+    // Extrair campos de forma ampla
+    const tituloExtraido = extrairCampo(assistantMessage, 'Título') || extrairCampo(assistantMessage, 'Titulo');
+    const descricaoExtraida = extrairCampo(assistantMessage, 'Descrição') || extrairCampo(assistantMessage, 'Descricao') || extrairCampo(assistantMessage, 'Resumo');
+    const prioridadeExtraida = extrairPrioridade(assistantMessage);
+    const filaExtraida = extrairCampo(assistantMessage, 'Fila') || extrairCampo(assistantMessage, 'Fila de Atendimento');
+    const justificativaExtraida = extrairCampo(assistantMessage, 'Justificativa') || extrairCampo(assistantMessage, 'Justificativa Clínica') || extrairCampo(assistantMessage, 'Justificativa Clinica');
+
+    const lower = assistantMessage.toLowerCase();
+    const finalDetect =
+      lower.includes('✅ informações coletadas') ||
+      lower.includes('informações coletadas') ||
+      lower.includes('informacoes coletadas') ||
+      lower.includes('resumo final') ||
+      lower.includes('pronto!') ||
+      // Considerar final quando houver descrição + (prioridade ou fila)
+      (!!descricaoExtraida && (!!prioridadeExtraida || !!filaExtraida));
+
+    if (finalDetect) {
       sugestoes = {
-        titulo_sugerido: extrairCampo(assistantMessage, 'Título'),
-        descricao_completa: extrairCampo(assistantMessage, 'Descrição'),
-        prioridade_sugerida: extrairPrioridade(assistantMessage),
-        fila_sugerida: extrairCampo(assistantMessage, 'Fila'),
-        justificativa: extrairCampo(assistantMessage, 'Justificativa'),
-        perguntas_pendentes: [], // Indica que todas as perguntas foram respondidas
+        titulo_sugerido: tituloExtraido,
+        descricao_completa: descricaoExtraida,
+        prioridade_sugerida: prioridadeExtraida,
+        fila_sugerida: filaExtraida,
+        justificativa: justificativaExtraida,
+        perguntas_pendentes: [],
       };
-      perguntasPendentes = []; // Sinaliza que está pronto para criar o ticket
+      perguntasPendentes = [];
     }
 
     return new Response(
