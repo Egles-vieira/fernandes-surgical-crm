@@ -1875,6 +1875,56 @@ export type Database = {
           },
         ]
       }
+      tickets_anexos_chat: {
+        Row: {
+          criado_em: string | null
+          criado_por: string | null
+          deletado: boolean | null
+          deletado_em: string | null
+          id: string
+          nome_arquivo: string
+          tamanho_bytes: number
+          ticket_id: string | null
+          tipo_anexo: string | null
+          tipo_arquivo: string
+          url_arquivo: string
+        }
+        Insert: {
+          criado_em?: string | null
+          criado_por?: string | null
+          deletado?: boolean | null
+          deletado_em?: string | null
+          id?: string
+          nome_arquivo: string
+          tamanho_bytes: number
+          ticket_id?: string | null
+          tipo_anexo?: string | null
+          tipo_arquivo: string
+          url_arquivo: string
+        }
+        Update: {
+          criado_em?: string | null
+          criado_por?: string | null
+          deletado?: boolean | null
+          deletado_em?: string | null
+          id?: string
+          nome_arquivo?: string
+          tamanho_bytes?: number
+          ticket_id?: string | null
+          tipo_anexo?: string | null
+          tipo_arquivo?: string
+          url_arquivo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tickets_anexos_chat_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tickets_interacoes: {
         Row: {
           anexos: Json | null
