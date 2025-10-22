@@ -631,39 +631,6 @@ export default function NovoTicket() {
               </Card>
             )}
 
-            <div className="flex gap-3 justify-end">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => navigate("/tickets")}
-                disabled={createTicket.isPending || isClassificando}
-              >
-                Cancelar
-              </Button>
-              {(!sugestoesIA?.perguntas_pendentes || sugestoesIA.perguntas_pendentes.length === 0) && (
-                <Button 
-                  type="submit"
-                  disabled={createTicket.isPending || isClassificando}
-                >
-                  {isClassificando ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Classificando com IA...
-                    </>
-                  ) : createTicket.isPending ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Criando...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="w-4 h-4 mr-2" />
-                      Criar Ticket
-                    </>
-                  )}
-                </Button>
-              )}
-            </div>
           </form>
         </div>
 
@@ -671,6 +638,10 @@ export default function NovoTicket() {
         <div className="lg:sticky lg:top-6 h-[calc(100vh-12rem)]">
           <ChatAssistenteCriacao
             contextoInicial={contextoChat}
+            sugestoesIA={sugestoesIA}
+            isClassificando={isClassificando}
+            isCriandoTicket={createTicket.isPending}
+            onCriarTicket={handleSubmit}
             onSugestoesRecebidas={(sugestoes) => {
               setSugestoesIA(sugestoes);
               

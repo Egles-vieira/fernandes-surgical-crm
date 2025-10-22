@@ -31,12 +31,20 @@ interface ChatAssistenteCriacaoProps {
   };
   onSugestoesRecebidas: (sugestoes: SugestaoIA) => void;
   onMensagensChange?: (mensagens: Message[]) => void;
+  sugestoesIA?: SugestaoIA | null;
+  isClassificando?: boolean;
+  isCriandoTicket?: boolean;
+  onCriarTicket?: (e: React.FormEvent) => void;
 }
 
 export default function ChatAssistenteCriacao({ 
   contextoInicial, 
   onSugestoesRecebidas,
-  onMensagensChange
+  onMensagensChange,
+  sugestoesIA,
+  isClassificando,
+  isCriandoTicket,
+  onCriarTicket
 }: ChatAssistenteCriacaoProps) {
   const [mensagens, setMensagens] = useState<Message[]>([
     {
@@ -289,41 +297,66 @@ export default function ChatAssistenteCriacao({
           </div>
         )}
 
-        <div className="flex gap-2">
-          <Input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            multiple
-            onChange={handleFileSelect}
-            className="hidden"
-          />
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={enviando || uploadando}
-            className="h-[60px] w-[60px] shrink-0"
+        {(!sugestoesIA?.perguntas_pendentes || sugestoesIA.perguntas_pendentes.length === 0) && onCriarTicket ? (
+          <Button 
+            onClick={onCriarTicket}
+            disabled={isCriandoTicket || isClassificando}
+            className="w-full h-[60px]"
           >
-            <Paperclip className="h-4 w-4" />
+            {isClassificando ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Classificando com IA...
+              </>
+            ) : isCriandoTicket ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Criando Ticket...
+              </>
+            ) : (
+              <>
+                <Sparkles className="w-4 h-4 mr-2" />
+                Criar Ticket
+              </>
+            )}
           </Button>
-          <Textarea
-            value={inputMensagem}
-            onChange={(e) => setInputMensagem(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Digite sua resposta ou anexe fotos..."
-            className="min-h-[60px] resize-none"
-            disabled={enviando || uploadando}
-          />
-          <Button
-            onClick={enviarMensagem}
-            disabled={enviando || uploadando || (!inputMensagem.trim() && anexosSelecionados.length === 0)}
-            size="icon"
-            className="h-[60px] w-[60px] shrink-0"
-          >
-            {uploadando ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-          </Button>
-        </div>
+        ) : (
+          <div className="flex gap-2">
+            <Input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleFileSelect}
+              className="hidden"
+            />
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={enviando || uploadando}
+              className="h-[60px] w-[60px] shrink-0"
+            >
+              <Paperclip className="h-4 w-4" />
+            </Button>
+            <Textarea
+              value={inputMensagem}
+              onChange={(e) => setInputMensagem(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Digite sua resposta ou anexe fotos..."
+              className="min-h-[60px] resize-none"
+              disabled={enviando || uploadando}
+            />
+            <Button
+              onClick={enviarMensagem}
+              disabled={enviando || uploadando || (!inputMensagem.trim() && anexosSelecionados.length === 0)}
+              size="icon"
+              className="h-[60px] w-[60px] shrink-0"
+            >
+              {uploadando ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+            </Button>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
