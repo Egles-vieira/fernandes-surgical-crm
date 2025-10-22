@@ -74,9 +74,15 @@ export default function ContatoClienteDialog({
 
   // Reset ao abrir
   useEffect(() => {
+    if (open && contatos.length > 0) {
+      setModo("selecionar");
+      setContatoSelecionadoId(contatos.find(c => c.is_principal)?.id || contatos[0]?.id || null);
+    } else if (open && contatos.length === 0) {
+      setModo("novo");
+      setContatoSelecionadoId(null);
+    }
+    
     if (open) {
-      setModo(contatos.length > 0 ? "selecionar" : "novo");
-      setContatoSelecionadoId(contatos.find(c => c.is_principal)?.id || null);
       setNovoContato({
         nome: "",
         cargo: "",
@@ -153,27 +159,39 @@ export default function ContatoClienteDialog({
 
         <div className="space-y-4">
           {/* Toggle entre Selecionar e Novo */}
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              variant={modo === "selecionar" ? "default" : "outline"}
-              onClick={() => setModo("selecionar")}
-              disabled={contatos.length === 0}
-              className="flex-1"
-            >
-              <User className="h-4 w-4 mr-2" />
-              Selecionar Contato {contatos.length > 0 && `(${contatos.length})`}
-            </Button>
-            <Button
-              type="button"
-              variant={modo === "novo" ? "default" : "outline"}
-              onClick={() => setModo("novo")}
-              className="flex-1"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Novo Contato
-            </Button>
-          </div>
+          {contatos.length > 0 && (
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant={modo === "selecionar" ? "default" : "outline"}
+                onClick={() => {
+                  setModo("selecionar");
+                  if (!contatoSelecionadoId && contatos.length > 0) {
+                    setContatoSelecionadoId(contatos[0].id);
+                  }
+                }}
+                className="flex-1"
+              >
+                <User className="h-4 w-4 mr-2" />
+                Contatos Existentes ({contatos.length})
+              </Button>
+              <Button
+                type="button"
+                variant={modo === "novo" ? "default" : "outline"}
+                onClick={() => setModo("novo")}
+                className="flex-1"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Novo Contato
+              </Button>
+            </div>
+          )}
+          
+          {contatos.length === 0 && (
+            <div className="bg-muted p-3 rounded-lg text-center">
+              <p className="text-sm text-muted-foreground">Nenhum contato cadastrado para este cliente</p>
+            </div>
+          )}
 
           <Separator />
 
@@ -182,23 +200,12 @@ export default function ContatoClienteDialog({
             <div className="space-y-2">
               {isLoading ? (
                 <p className="text-center text-muted-foreground py-4">Carregando...</p>
-              ) : contatos.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <p>Nenhum contato cadastrado</p>
-                  <Button
-                    variant="link"
-                    onClick={() => setModo("novo")}
-                    className="mt-2"
-                  >
-                    Criar primeiro contato
-                  </Button>
-                </div>
               ) : (
                 <RadioGroup value={contatoSelecionadoId || ""} onValueChange={setContatoSelecionadoId}>
                   {contatos.map((contato) => (
                     <div
                       key={contato.id}
-                      className="flex items-start space-x-3 p-4 border rounded-lg hover:bg-accent cursor-pointer"
+                      className="flex items-start space-x-3 p-4 border rounded-lg hover:bg-accent cursor-pointer transition-colors"
                     >
                       <RadioGroupItem value={contato.id} id={contato.id} />
                       <label htmlFor={contato.id} className="flex-1 cursor-pointer space-y-1">
