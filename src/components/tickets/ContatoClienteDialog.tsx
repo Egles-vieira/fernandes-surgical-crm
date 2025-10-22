@@ -20,18 +20,21 @@ import { User, Mail, Phone, Briefcase, Plus } from "lucide-react";
 
 interface ContatoCliente {
   id: string;
-  nome: string;
+  primeiro_nome: string;
+  sobrenome: string;
+  nome_completo?: string;
   cargo?: string;
   email?: string;
+  email_secundario?: string;
   telefone?: string;
   celular?: string;
-  is_principal: boolean;
+  conta_id?: string;
 }
 
 interface ContatoClienteDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  clienteId: string;
+  contaId: string; // Mudado de clienteId para contaId
   clienteNome: string;
   onContatoSelecionado: (contato: { nome: string; email: string; telefone: string }) => void;
 }
@@ -39,7 +42,7 @@ interface ContatoClienteDialogProps {
 export default function ContatoClienteDialog({
   open,
   onOpenChange,
-  clienteId,
+  contaId,
   clienteNome,
   onContatoSelecionado,
 }: ContatoClienteDialogProps) {
@@ -47,36 +50,37 @@ export default function ContatoClienteDialog({
   const [modo, setModo] = useState<"selecionar" | "novo">("selecionar");
   const [contatoSelecionadoId, setContatoSelecionadoId] = useState<string | null>(null);
   const [novoContato, setNovoContato] = useState({
-    nome: "",
+    primeiro_nome: "",
+    sobrenome: "",
     cargo: "",
     email: "",
     telefone: "",
     celular: "",
-    is_principal: false,
   });
 
   // Buscar contatos do cliente
   const { data: contatos = [], isLoading } = useQuery({
-    queryKey: ["contatos-cliente", clienteId],
+    queryKey: ["contatos", contaId],
     queryFn: async () => {
+      if (!contaId) return [];
+      
       const { data, error } = await supabase
-        .from("contatos_cliente")
+        .from("contatos")
         .select("*")
-        .eq("cliente_id", clienteId)
-        .order("is_principal", { ascending: false })
-        .order("nome");
+        .eq("conta_id", contaId)
+        .order("primeiro_nome");
 
       if (error) throw error;
       return data as ContatoCliente[];
     },
-    enabled: open && !!clienteId,
+    enabled: open && !!contaId,
   });
 
   // Reset ao abrir
   useEffect(() => {
     if (open && contatos.length > 0) {
       setModo("selecionar");
-      setContatoSelecionadoId(contatos.find(c => c.is_principal)?.id || contatos[0]?.id || null);
+      setContatoSelecionadoId(contatos[0]?.id || null);
     } else if (open && contatos.length === 0) {
       setModo("novo");
       setContatoSelecionadoId(null);
@@ -84,12 +88,12 @@ export default function ContatoClienteDialog({
     
     if (open) {
       setNovoContato({
-        nome: "",
+        primeiro_nome: "",
+        sobrenome: "",
         cargo: "",
         email: "",
         telefone: "",
         celular: "",
-        is_principal: false,
       });
     }
   }, [open, contatos]);
@@ -98,9 +102,10 @@ export default function ContatoClienteDialog({
   const criarContato = useMutation({
     mutationFn: async () => {
       const { data, error } = await supabase
-        .from("contatos_cliente")
+        .from("contatos")
         .insert({
-          cliente_id: clienteId,
+          conta_id: contaId,
+          nome_completo: `${novoContato.primeiro_nome} ${novoContato.sobrenome}`.trim(),
           ...novoContato,
         })
         .select()
@@ -110,11 +115,11 @@ export default function ContatoClienteDialog({
       return data;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["contatos-cliente", clienteId] });
+      queryClient.invalidateQueries({ queryKey: ["contatos", contaId] });
       toast.success("Contato criado com sucesso!");
       
       onContatoSelecionado({
-        nome: data.nome,
+        nome: data.nome_completo || `${data.primeiro_nome} ${data.sobrenome}`,
         email: data.email || "",
         telefone: data.telefone || data.celular || "",
       });
@@ -130,7 +135,7 @@ export default function ContatoClienteDialog({
       const contato = contatos.find((c) => c.id === contatoSelecionadoId);
       if (contato) {
         onContatoSelecionado({
-          nome: contato.nome,
+          nome: contato.nome_completo || `${contato.primeiro_nome} ${contato.sobrenome}`,
           email: contato.email || "",
           telefone: contato.telefone || contato.celular || "",
         });
@@ -139,8 +144,8 @@ export default function ContatoClienteDialog({
         toast.error("Selecione um contato");
       }
     } else {
-      if (!novoContato.nome) {
-        toast.error("Nome é obrigatório");
+      if (!novoContato.primeiro_nome || !novoContato.sobrenome) {
+        toast.error("Nome e sobrenome são obrigatórios");
         return;
       }
       criarContato.mutate();
@@ -210,12 +215,9 @@ export default function ContatoClienteDialog({
                       <RadioGroupItem value={contato.id} id={contato.id} />
                       <label htmlFor={contato.id} className="flex-1 cursor-pointer space-y-1">
                         <div className="flex items-center gap-2">
-                          <p className="font-medium">{contato.nome}</p>
-                          {contato.is_principal && (
-                            <Badge variant="secondary" className="text-xs">
-                              Principal
-                            </Badge>
-                          )}
+                          <p className="font-medium">
+                            {contato.nome_completo || `${contato.primeiro_nome} ${contato.sobrenome}`}
+                          </p>
                         </div>
                         {contato.cargo && (
                           <div className="flex items-center gap-1 text-sm text-muted-foreground">
@@ -248,27 +250,39 @@ export default function ContatoClienteDialog({
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="nome">Nome *</Label>
+                  <Label htmlFor="primeiro_nome">Primeiro Nome *</Label>
                   <Input
-                    id="nome"
-                    value={novoContato.nome}
+                    id="primeiro_nome"
+                    value={novoContato.primeiro_nome}
                     onChange={(e) =>
-                      setNovoContato((prev) => ({ ...prev, nome: e.target.value }))
+                      setNovoContato((prev) => ({ ...prev, primeiro_nome: e.target.value }))
                     }
-                    placeholder="Nome do contato"
+                    placeholder="João"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="cargo">Cargo</Label>
+                  <Label htmlFor="sobrenome">Sobrenome *</Label>
                   <Input
-                    id="cargo"
-                    value={novoContato.cargo}
+                    id="sobrenome"
+                    value={novoContato.sobrenome}
                     onChange={(e) =>
-                      setNovoContato((prev) => ({ ...prev, cargo: e.target.value }))
+                      setNovoContato((prev) => ({ ...prev, sobrenome: e.target.value }))
                     }
-                    placeholder="Ex: Gerente de Compras"
+                    placeholder="Silva"
                   />
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="cargo">Cargo</Label>
+                <Input
+                  id="cargo"
+                  value={novoContato.cargo}
+                  onChange={(e) =>
+                    setNovoContato((prev) => ({ ...prev, cargo: e.target.value }))
+                  }
+                  placeholder="Ex: Gerente de Compras"
+                />
               </div>
 
               <div className="space-y-2">
@@ -307,24 +321,6 @@ export default function ContatoClienteDialog({
                     placeholder="(00) 00000-0000"
                   />
                 </div>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="is_principal"
-                  checked={novoContato.is_principal}
-                  onChange={(e) =>
-                    setNovoContato((prev) => ({
-                      ...prev,
-                      is_principal: e.target.checked,
-                    }))
-                  }
-                  className="h-4 w-4"
-                />
-                <Label htmlFor="is_principal" className="cursor-pointer">
-                  Marcar como contato principal
-                </Label>
               </div>
             </div>
           )}

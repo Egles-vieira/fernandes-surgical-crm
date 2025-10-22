@@ -44,7 +44,7 @@ export default function NovoTicket() {
   const [sugestoesIA, setSugestoesIA] = useState<SugestaoIA | null>(null);
   const [mostrarSugestoes, setMostrarSugestoes] = useState(false);
   const [mensagensCriacao, setMensagensCriacao] = useState<Array<{ role: 'user' | 'assistant'; content: string }>>([]);
-  const [clienteSelecionadoId, setClienteSelecionadoId] = useState<string>("");
+  const [clienteSelecionadoContaId, setClienteSelecionadoContaId] = useState<string>("");
   const [clienteSelecionadoNome, setClienteSelecionadoNome] = useState<string>("");
   const [mostrarContatosDialog, setMostrarContatosDialog] = useState(false);
   
@@ -306,11 +306,21 @@ export default function NovoTicket() {
   const handleClienteChange = (clienteId: string) => {
     const cliente = clientes.find((c) => c.id === clienteId);
     if (cliente) {
-      setClienteSelecionadoId(clienteId);
+      setClienteSelecionadoContaId(cliente.conta_id || "");
       setClienteSelecionadoNome(cliente.nome_emit || cliente.nome_abrev || "");
       
-      // Abrir diálogo de contatos
-      setMostrarContatosDialog(true);
+      // Abrir diálogo de contatos se o cliente tem conta_id
+      if (cliente.conta_id) {
+        setMostrarContatosDialog(true);
+      } else {
+        // Se não tem conta_id, preenche com dados básicos do cliente
+        setFormData((prev) => ({
+          ...prev,
+          cliente_nome: cliente.nome_emit || cliente.nome_abrev || "",
+          cliente_email: cliente.e_mail || "",
+          cliente_telefone: cliente.telefone1 || "",
+        }));
+      }
     }
   };
 
@@ -435,7 +445,7 @@ export default function NovoTicket() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <Label htmlFor="cliente">Cliente Cadastrado</Label>
-                    {clienteSelecionadoId && (
+                    {clienteSelecionadoContaId && (
                       <Button
                         type="button"
                         variant="ghost"
@@ -447,7 +457,7 @@ export default function NovoTicket() {
                       </Button>
                     )}
                   </div>
-                  <Select onValueChange={handleClienteChange} value={clienteSelecionadoId}>
+                  <Select onValueChange={handleClienteChange}>
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione um cliente" />
                     </SelectTrigger>
@@ -675,7 +685,7 @@ export default function NovoTicket() {
       <ContatoClienteDialog
         open={mostrarContatosDialog}
         onOpenChange={setMostrarContatosDialog}
-        clienteId={clienteSelecionadoId}
+        contaId={clienteSelecionadoContaId}
         clienteNome={clienteSelecionadoNome}
         onContatoSelecionado={handleContatoSelecionado}
       />
