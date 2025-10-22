@@ -42,6 +42,7 @@ export default function NovoTicket() {
   const [isClassificando, setIsClassificando] = useState(false);
   const [sugestoesIA, setSugestoesIA] = useState<SugestaoIA | null>(null);
   const [mostrarSugestoes, setMostrarSugestoes] = useState(false);
+  const [mensagensCriacao, setMensagensCriacao] = useState<Array<{ role: 'user' | 'assistant'; content: string }>>([]);
   
   const [formData, setFormData] = useState<{
     titulo: string;
@@ -85,10 +86,12 @@ export default function NovoTicket() {
   const createTicket = useMutation({
     mutationFn: async ({ 
       ticketData, 
-      classificacaoIA 
+      classificacaoIA,
+      mensagens 
     }: { 
       ticketData: any;
       classificacaoIA?: { prioridade: string; fila_nome: string };
+      mensagens?: Array<{ role: 'user' | 'assistant'; content: string }>;
     }) => {
       const { data: userData } = await supabase.auth.getUser();
       
@@ -121,6 +124,23 @@ export default function NovoTicket() {
           criado_por: userData.user?.id,
           mensagem_interna: true,
         });
+      }
+
+      // Salvar histórico do chat de criação, se houver
+      if (mensagens && mensagens.length > 1) { // >1 porque tem a mensagem inicial do assistente
+        const mensagensParaSalvar = mensagens.map(msg => ({
+          ticket_id: data.id,
+          role: msg.role,
+          content: msg.content,
+        }));
+
+        const { error: errorMensagens } = await supabase
+          .from('chat_assistente_mensagens')
+          .insert(mensagensParaSalvar);
+
+        if (errorMensagens) {
+          console.error('Erro ao salvar mensagens do chat:', errorMensagens);
+        }
       }
 
       return data;
@@ -252,6 +272,7 @@ export default function NovoTicket() {
             prioridade: data.prioridade,
             fila_nome: data.fila_nome,
           },
+          mensagens: mensagensCriacao,
         });
       } else {
         await createTicket.mutateAsync({
@@ -260,6 +281,7 @@ export default function NovoTicket() {
             venda_id: formData.venda_id || null,
             produto_id: formData.produto_id || null,
           },
+          mensagens: mensagensCriacao,
         });
       }
     } catch (error) {
@@ -270,6 +292,7 @@ export default function NovoTicket() {
           venda_id: formData.venda_id || null,
           produto_id: formData.produto_id || null,
         },
+        mensagens: mensagensCriacao,
       });
     } finally {
       setIsClassificando(false);
@@ -618,6 +641,7 @@ export default function NovoTicket() {
                 description: "Confira o card de sugestões e clique em 'Aplicar' para preencher o formulário"
               });
             }}
+            onMensagensChange={setMensagensCriacao}
           />
         </div>
       </div>

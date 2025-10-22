@@ -29,11 +29,13 @@ interface ChatAssistenteCriacaoProps {
     cliente?: string;
   };
   onSugestoesRecebidas: (sugestoes: SugestaoIA) => void;
+  onMensagensChange?: (mensagens: Message[]) => void;
 }
 
 export default function ChatAssistenteCriacao({ 
   contextoInicial, 
-  onSugestoesRecebidas 
+  onSugestoesRecebidas,
+  onMensagensChange
 }: ChatAssistenteCriacaoProps) {
   const [mensagens, setMensagens] = useState<Message[]>([
     {
@@ -51,6 +53,13 @@ export default function ChatAssistenteCriacao({
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [mensagens]);
+
+  // Notificar mudanças nas mensagens
+  useEffect(() => {
+    if (onMensagensChange) {
+      onMensagensChange(mensagens);
+    }
+  }, [mensagens, onMensagensChange]);
 
   const enviarMensagem = async () => {
     if (!inputMensagem.trim() || enviando) return;
