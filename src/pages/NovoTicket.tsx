@@ -524,6 +524,8 @@ export default function NovoTicket() {
                     onChange={(e) => setFormData((prev) => ({ ...prev, titulo: e.target.value }))}
                     required
                     placeholder="Descreva resumidamente o problema"
+                    disabled
+                    className="bg-muted cursor-not-allowed"
                   />
                 </div>
 
@@ -536,6 +538,8 @@ export default function NovoTicket() {
                     required
                     rows={6}
                     placeholder="Descreva detalhadamente o problema ou solicitação"
+                    disabled
+                    className="bg-muted cursor-not-allowed"
                   />
                 </div>
               </CardContent>
@@ -636,27 +640,29 @@ export default function NovoTicket() {
               >
                 Cancelar
               </Button>
-              <Button 
-                type="submit"
-                disabled={createTicket.isPending || isClassificando}
-              >
-                {isClassificando ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Classificando com IA...
-                  </>
-                ) : createTicket.isPending ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Criando...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-4 h-4 mr-2" />
-                    Criar Ticket
-                  </>
-                )}
-              </Button>
+              {(!sugestoesIA?.perguntas_pendentes || sugestoesIA.perguntas_pendentes.length === 0) && (
+                <Button 
+                  type="submit"
+                  disabled={createTicket.isPending || isClassificando}
+                >
+                  {isClassificando ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Classificando com IA...
+                    </>
+                  ) : createTicket.isPending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Criando...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      Criar Ticket
+                    </>
+                  )}
+                </Button>
+              )}
             </div>
           </form>
         </div>
