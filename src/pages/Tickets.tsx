@@ -205,9 +205,9 @@ export default function Tickets() {
       ) : (
         <Card>
           {/* Header do Grid */}
-          <div className="grid grid-cols-12 gap-4 p-4 bg-primary text-primary-foreground font-semibold text-sm border-b">
+          <div className="grid grid-cols-12 gap-4 p-4 bg-muted font-semibold text-sm border-b">
             <div className="col-span-1"></div>
-            <div className="col-span-4">CLIENTE / CNPJ</div>
+            <div className="col-span-4">CLIENTE / NÚMERO</div>
             <div className="col-span-2">ORIGEM</div>
             <div className="col-span-3">ATUALIZADO EM</div>
             <div className="col-span-2">STATUS</div>
@@ -218,7 +218,7 @@ export default function Tickets() {
             {ticketsFiltrados.map(ticket => (
               <div
                 key={ticket.id}
-                className="grid grid-cols-12 gap-4 p-4 hover:bg-muted/50 transition-colors cursor-pointer items-center"
+                className="grid grid-cols-12 gap-4 p-4 hover:bg-accent/50 transition-colors cursor-pointer items-center"
                 onClick={() => handleVerDetalhes(ticket.id)}
               >
                 {/* Radio/Checkbox */}
@@ -228,11 +228,11 @@ export default function Tickets() {
                     checked={selectedTickets.has(ticket.id)}
                     onChange={(e) => toggleTicketSelection(ticket.id, e as any)}
                     onClick={(e) => toggleTicketSelection(ticket.id, e)}
-                    className="w-5 h-5 cursor-pointer"
+                    className="w-5 h-5 cursor-pointer accent-primary"
                   />
                 </div>
 
-                {/* Cliente / CNPJ */}
+                {/* Cliente / Número */}
                 <div className="col-span-4">
                   <div className="font-semibold text-foreground">{ticket.cliente_nome}</div>
                   <div className="text-sm text-muted-foreground">{ticket.numero_ticket}</div>
@@ -245,7 +245,7 @@ export default function Tickets() {
 
                 {/* Data/Hora Atualização */}
                 <div className="col-span-3">
-                  <div className="text-sm">
+                  <div className="text-sm text-foreground">
                     {format(new Date(ticket.data_atualizacao || ticket.data_abertura), "dd/MM/yyyy", { locale: ptBR })}
                   </div>
                   <div className="text-xs text-muted-foreground">
@@ -257,7 +257,7 @@ export default function Tickets() {
                 <div className="col-span-2">
                   <Badge 
                     variant="secondary"
-                    className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100"
+                    className={getPrioridadeColor(ticket.status === "aberto" || ticket.status === "em_andamento" ? "alta" : "normal")}
                   >
                     {formatStatus(ticket.status)}
                   </Badge>
@@ -268,7 +268,7 @@ export default function Tickets() {
 
           {/* Rodapé com paginação */}
           <div className="p-4 border-t text-sm text-muted-foreground">
-            Mostrando {ticketsFiltrados.length} ocorrências na pág. 1
+            Mostrando {ticketsFiltrados.length} solicitações na pág. 1
           </div>
         </Card>
       )}
