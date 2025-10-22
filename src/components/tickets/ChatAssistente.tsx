@@ -210,34 +210,59 @@ export function ChatAssistente({ ticketId, ticketContext }: ChatAssistenteProps)
 
       <ScrollArea ref={scrollAreaRef} className="flex-1 p-4">
         <div className="space-y-4">
-          {messages.map((message, index) => (
-            <div
-              key={index}
-              className={`flex gap-3 ${
-                message.role === "user" ? "justify-end" : "justify-start"
-              }`}
-            >
-              {message.role === "assistant" && (
-                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <Bot className="h-4 w-4 text-primary" />
-                </div>
-              )}
+          {messages.map((message, index) => {
+            // Extrair URLs de imagens da mensagem
+            const urlRegex = /(https?:\/\/[^\s]+\.(jpg|jpeg|png|gif|webp))/gi;
+            const imagensUrls = message.content.match(urlRegex) || [];
+            const textoSemUrls = message.content.replace(urlRegex, '').replace(/📎 Anexos enviados:\s*/g, '').replace(/\d+\.\s*/g, '').trim();
+            
+            return (
               <div
-                className={`rounded-lg p-3 max-w-[80%] ${
-                  message.role === "user"
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted"
+                key={index}
+                className={`flex gap-3 ${
+                  message.role === "user" ? "justify-end" : "justify-start"
                 }`}
               >
-                <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-              </div>
-              {message.role === "user" && (
-                <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
-                  <User className="h-4 w-4 text-primary-foreground" />
+                {message.role === "assistant" && (
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <Bot className="h-4 w-4 text-primary" />
+                  </div>
+                )}
+                <div
+                  className={`rounded-lg p-3 max-w-[80%] ${
+                    message.role === "user"
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted"
+                  }`}
+                >
+                  {textoSemUrls && (
+                    <p className="text-sm whitespace-pre-wrap mb-2">{textoSemUrls}</p>
+                  )}
+                  {imagensUrls.length > 0 && (
+                    <div className="flex flex-col gap-2 mt-2">
+                      {imagensUrls.map((url, imgIdx) => (
+                        <div key={imgIdx} className="relative rounded-lg overflow-hidden border border-border">
+                          <img 
+                            src={url} 
+                            alt={`Anexo ${imgIdx + 1}`}
+                            className="max-w-full h-auto max-h-64 object-contain bg-background"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                            }}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          ))}
+                {message.role === "user" && (
+                  <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
+                    <User className="h-4 w-4 text-primary-foreground" />
+                  </div>
+                )}
+              </div>
+            );
+          })}
           {isLoading && (
             <div className="flex gap-3 justify-start">
               <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
