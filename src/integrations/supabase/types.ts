@@ -427,6 +427,63 @@ export type Database = {
           },
         ]
       }
+      contatos_cliente: {
+        Row: {
+          atualizado_em: string | null
+          cargo: string | null
+          celular: string | null
+          cliente_id: string
+          criado_em: string | null
+          email: string | null
+          id: string
+          is_principal: boolean | null
+          nome: string
+          observacoes: string | null
+          telefone: string | null
+        }
+        Insert: {
+          atualizado_em?: string | null
+          cargo?: string | null
+          celular?: string | null
+          cliente_id: string
+          criado_em?: string | null
+          email?: string | null
+          id?: string
+          is_principal?: boolean | null
+          nome: string
+          observacoes?: string | null
+          telefone?: string | null
+        }
+        Update: {
+          atualizado_em?: string | null
+          cargo?: string | null
+          celular?: string | null
+          cliente_id?: string
+          criado_em?: string | null
+          email?: string | null
+          id?: string
+          is_principal?: boolean | null
+          nome?: string
+          observacoes?: string | null
+          telefone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contatos_cliente_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contatos_cliente_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "vw_clientes_completo"
+            referencedColumns: ["cliente_id"]
+          },
+        ]
+      }
       cotacoes: {
         Row: {
           aceita_em: string | null

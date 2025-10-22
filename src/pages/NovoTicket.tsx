@@ -15,8 +15,9 @@ import { useProdutos } from "@/hooks/useProdutos";
 import { useVendas } from "@/hooks/useVendas";
 import { useFilasAtendimento } from "@/hooks/useFilasAtendimento";
 import { Tables } from "@/integrations/supabase/types";
-import { ArrowLeft, Sparkles, Loader2 } from "lucide-react";
+import { ArrowLeft, Sparkles, Loader2, Users } from "lucide-react";
 import ChatAssistenteCriacao from "@/components/tickets/ChatAssistenteCriacao";
+import ContatoClienteDialog from "@/components/tickets/ContatoClienteDialog";
 
 type TipoTicket = Tables<"tickets">["tipo"];
 type PrioridadeTicket = Tables<"tickets">["prioridade"];
@@ -43,6 +44,9 @@ export default function NovoTicket() {
   const [sugestoesIA, setSugestoesIA] = useState<SugestaoIA | null>(null);
   const [mostrarSugestoes, setMostrarSugestoes] = useState(false);
   const [mensagensCriacao, setMensagensCriacao] = useState<Array<{ role: 'user' | 'assistant'; content: string }>>([]);
+  const [clienteSelecionadoId, setClienteSelecionadoId] = useState<string>("");
+  const [clienteSelecionadoNome, setClienteSelecionadoNome] = useState<string>("");
+  const [mostrarContatosDialog, setMostrarContatosDialog] = useState(false);
   
   const [formData, setFormData] = useState<{
     titulo: string;
@@ -302,13 +306,21 @@ export default function NovoTicket() {
   const handleClienteChange = (clienteId: string) => {
     const cliente = clientes.find((c) => c.id === clienteId);
     if (cliente) {
-      setFormData((prev) => ({
-        ...prev,
-        cliente_nome: cliente.nome_emit || cliente.nome_abrev || "",
-        cliente_email: cliente.e_mail || "",
-        cliente_telefone: cliente.telefone1 || "",
-      }));
+      setClienteSelecionadoId(clienteId);
+      setClienteSelecionadoNome(cliente.nome_emit || cliente.nome_abrev || "");
+      
+      // Abrir diálogo de contatos
+      setMostrarContatosDialog(true);
     }
+  };
+
+  const handleContatoSelecionado = (contato: { nome: string; email: string; telefone: string }) => {
+    setFormData((prev) => ({
+      ...prev,
+      cliente_nome: contato.nome,
+      cliente_email: contato.email,
+      cliente_telefone: contato.telefone,
+    }));
   };
 
   return (
@@ -421,8 +433,21 @@ export default function NovoTicket() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="cliente">Cliente Cadastrado</Label>
-                  <Select onValueChange={handleClienteChange}>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="cliente">Cliente Cadastrado</Label>
+                    {clienteSelecionadoId && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setMostrarContatosDialog(true)}
+                      >
+                        <Users className="h-4 w-4 mr-1" />
+                        Ver Contatos
+                      </Button>
+                    )}
+                  </div>
+                  <Select onValueChange={handleClienteChange} value={clienteSelecionadoId}>
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione um cliente" />
                     </SelectTrigger>
@@ -645,6 +670,15 @@ export default function NovoTicket() {
           />
         </div>
       </div>
+
+      {/* Diálogo de Contatos */}
+      <ContatoClienteDialog
+        open={mostrarContatosDialog}
+        onOpenChange={setMostrarContatosDialog}
+        clienteId={clienteSelecionadoId}
+        clienteNome={clienteSelecionadoNome}
+        onContatoSelecionado={handleContatoSelecionado}
+      />
     </div>
   );
 }
