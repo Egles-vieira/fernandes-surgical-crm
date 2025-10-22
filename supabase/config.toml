@@ -6,6 +6,9 @@ verify_jwt = true
 [functions.chat-assistente-ticket]
 verify_jwt = true
 
+[functions.chat-assistente-criacao]
+verify_jwt = true
+
 [functions.classificar-criticidade-ticket]
 verify_jwt = true
 
