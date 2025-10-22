@@ -160,7 +160,7 @@ export default function ChatAssistenteCriacao({
 
       if (response.error) throw response.error;
 
-      const { message, sugestoes, perguntas_respondidas } = response.data;
+      const { message, sugestoes, perguntas_respondidas, perguntas_pendentes } = response.data;
 
       setMensagens(prev => [...prev, { role: 'assistant', content: message }]);
       
@@ -169,7 +169,12 @@ export default function ChatAssistenteCriacao({
       }
 
       if (sugestoes && Object.keys(sugestoes).length > 0) {
-        onSugestoesRecebidas(sugestoes);
+        // Adicionar perguntas_pendentes se vier da API
+        const sugestoesComPendentes = {
+          ...sugestoes,
+          perguntas_pendentes: perguntas_pendentes
+        };
+        onSugestoesRecebidas(sugestoesComPendentes);
       }
     } catch (error: any) {
       console.error('Erro no chat:', error);

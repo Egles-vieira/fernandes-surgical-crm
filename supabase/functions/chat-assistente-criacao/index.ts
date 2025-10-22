@@ -103,6 +103,8 @@ Responda com: "✅ INFORMAÇÕES COLETADAS:" e forneça:
 
     // Detectar se a IA gerou sugestões finais
     let sugestoes = {};
+    let perguntasPendentes: string[] | undefined = undefined;
+    
     if (assistantMessage.includes('✅ INFORMAÇÕES COLETADAS') || assistantMessage.includes('SUGESTÃO')) {
       // Extrair sugestões do texto (simplificado)
       sugestoes = {
@@ -111,7 +113,9 @@ Responda com: "✅ INFORMAÇÕES COLETADAS:" e forneça:
         prioridade_sugerida: extrairPrioridade(assistantMessage),
         fila_sugerida: extrairCampo(assistantMessage, 'Fila'),
         justificativa: extrairCampo(assistantMessage, 'Justificativa'),
+        perguntas_pendentes: [], // Indica que todas as perguntas foram respondidas
       };
+      perguntasPendentes = []; // Sinaliza que está pronto para criar o ticket
     }
 
     return new Response(
@@ -119,6 +123,7 @@ Responda com: "✅ INFORMAÇÕES COLETADAS:" e forneça:
         message: assistantMessage,
         sugestoes,
         perguntas_respondidas: perguntasRespondidas,
+        perguntas_pendentes: perguntasPendentes,
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
