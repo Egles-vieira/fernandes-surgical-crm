@@ -14,6 +14,38 @@ export type Database = {
   }
   public: {
     Tables: {
+      chat_assistente_mensagens: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          role: string
+          ticket_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          role: string
+          ticket_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          role?: string
+          ticket_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_assistente_mensagens_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clientes: {
         Row: {
           atividade: string | null
@@ -3265,10 +3297,7 @@ export type Database = {
         Args: { ticket_id: string }
         Returns: Json
       }
-      gerar_numero_ticket: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      gerar_numero_ticket: { Args: never; Returns: string }
       get_user_roles: {
         Args: { _user_id: string }
         Returns: {
@@ -3281,26 +3310,6 @@ export type Database = {
           roles: Database["public"]["Enums"]["app_role"][]
           user_id: string
         }[]
-      }
-      gtrgm_compress: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      gtrgm_decompress: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      gtrgm_in: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      gtrgm_options: {
-        Args: { "": unknown }
-        Returns: undefined
-      }
-      gtrgm_out: {
-        Args: { "": unknown }
-        Returns: unknown
       }
       has_any_role: {
         Args: {
@@ -3317,25 +3326,15 @@ export type Database = {
         Returns: boolean
       }
       list_users_with_roles: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           email: string
           roles: Database["public"]["Enums"]["app_role"][]
           user_id: string
         }[]
       }
-      set_limit: {
-        Args: { "": number }
-        Returns: number
-      }
-      show_limit: {
-        Args: Record<PropertyKey, never>
-        Returns: number
-      }
-      show_trgm: {
-        Args: { "": string }
-        Returns: string[]
-      }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
     }
     Enums: {
       app_role: "admin" | "manager" | "sales" | "warehouse" | "support"

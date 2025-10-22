@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send, Loader2, Bot, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 interface Message {
   role: "user" | "assistant";
@@ -12,6 +14,7 @@ interface Message {
 }
 
 interface ChatAssistenteProps {
+  ticketId: string;
   ticketContext: {
     numero: string;
     titulo: string;
@@ -24,17 +27,59 @@ interface ChatAssistenteProps {
   };
 }
 
-export function ChatAssistente({ ticketContext }: ChatAssistenteProps) {
+export function ChatAssistente({ ticketId, ticketContext }: ChatAssistenteProps) {
+  const [input, setInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Buscar mensagens salvas
+  const { data: savedMessages = [] } = useQuery({
+    queryKey: ['chat-assistente', ticketId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('chat_assistente_mensagens')
+        .select('*')
+        .eq('ticket_id', ticketId)
+        .order('created_at', { ascending: true });
+      
+      if (error) throw error;
+      return data.map(msg => ({ role: msg.role as "user" | "assistant", content: msg.content }));
+    },
+  });
+
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
       content: "Olá! Sou seu assistente para ajudar a resolver este ticket. Posso te auxiliar com procedimentos, perguntas para o cliente e próximos passos. Como posso ajudar?",
     },
   ]);
-  const [input, setInput] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
-  const { toast } = useToast();
+
+  // Sincronizar mensagens com dados salvos
+  useEffect(() => {
+    if (savedMessages.length > 0) {
+      setMessages(savedMessages);
+    }
+  }, [savedMessages]);
+
+  // Mutation para salvar mensagem
+  const saveMutation = useMutation({
+    mutationFn: async (message: Message) => {
+      const { error } = await supabase
+        .from('chat_assistente_mensagens')
+        .insert({
+          ticket_id: ticketId,
+          role: message.role,
+          content: message.content,
+        });
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['chat-assistente', ticketId] });
+    },
+  });
 
   // Auto-scroll para a última mensagem
   useEffect(() => {
@@ -53,6 +98,9 @@ export function ChatAssistente({ ticketContext }: ChatAssistenteProps) {
     setMessages(prev => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);
+
+    // Salvar mensagem do usuário
+    await saveMutation.mutateAsync(userMessage);
 
     try {
       const response = await fetch(
@@ -120,6 +168,11 @@ export function ChatAssistente({ ticketContext }: ChatAssistenteProps) {
             }
           }
         }
+      }
+
+      // Salvar mensagem final do assistente
+      if (assistantMessage) {
+        await saveMutation.mutateAsync({ role: "assistant", content: assistantMessage });
       }
     } catch (error) {
       console.error("Erro no chat:", error);

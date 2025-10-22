@@ -218,6 +218,7 @@ export default function TicketDetalhes() {
         <div className="space-y-6">
           <div className="h-[calc(100vh-180px)]">
             <ChatAssistente
+              ticketId={id}
               ticketContext={{
                 numero: ticket.numero_ticket,
                 titulo: ticket.titulo,
