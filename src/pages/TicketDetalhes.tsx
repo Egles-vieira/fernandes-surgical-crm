@@ -16,6 +16,7 @@ import { Clock, MessageSquare, User, AlertCircle, CheckCircle, Package, FileText
 import { TempoTicket } from "@/components/tickets/TempoTicket";
 import { PausarTicketDialog } from "@/components/tickets/PausarTicketDialog";
 import { TransferirTicketDialog } from "@/components/tickets/TransferirTicketDialog";
+import { ChatAssistente } from "@/components/tickets/ChatAssistente";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function TicketDetalhes() {
@@ -213,8 +214,26 @@ export default function TicketDetalhes() {
 
       {/* Layout Principal */}
       <div className="grid grid-cols-3 gap-6">
-        {/* Conteúdo Principal - 2/3 */}
-        <div className="col-span-2 space-y-6">
+        {/* Coluna Esquerda - Chat Assistente */}
+        <div className="space-y-6">
+          <div className="h-[calc(100vh-180px)]">
+            <ChatAssistente
+              ticketContext={{
+                numero: ticket.numero_ticket,
+                titulo: ticket.titulo,
+                descricao: ticket.descricao,
+                status: formatStatus(ticket.status),
+                prioridade: ticket.prioridade,
+                cliente: ticket.cliente_nome,
+                produto: ticket.produtos?.nome,
+                venda: ticket.vendas?.numero_venda,
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Conteúdo Principal - Centro */}
+        <div className="space-y-6">
           {/* Informações Principais */}
           <Card className="p-6">
             <h2 className="text-xl font-semibold mb-2">{ticket.titulo}</h2>
@@ -340,7 +359,7 @@ export default function TicketDetalhes() {
           </Card>
         </div>
 
-        {/* Histórico de Atividades - 1/3 */}
+        {/* Coluna Direita - Histórico */}
         <div>
           <Card className="p-6 sticky top-6">
             <h3 className="font-semibold mb-4">Histórico de Atividades ({interacoes.length})</h3>
