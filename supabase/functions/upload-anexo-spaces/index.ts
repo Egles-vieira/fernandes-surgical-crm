@@ -31,9 +31,13 @@ serve(async (req) => {
     }
 
     const { data: { user }, error: authError } = await supabase.auth.getUser(authHeader);
-    if (authError || !user) {
-      throw new Error('Usuário não autenticado');
-    }
+if (authError || !user) {
+  throw new Error('Usuário não autenticado');
+}
+
+// Supabase client com chave de service role para operações no backend (bypassa RLS com segurança)
+const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+const supabaseService = createClient(supabaseUrl, supabaseServiceKey);
 
     // Parse multipart form data
     const formData = await req.formData();
@@ -88,7 +92,7 @@ serve(async (req) => {
     // Se ticket_id for "temp", considerar como null
     const ticketIdToSave = ticketId && ticketId !== 'temp' ? ticketId : null;
     
-    const { data: anexo, error: dbError } = await supabase
+const { data: anexo, error: dbError } = await supabaseService
       .from('tickets_anexos_chat')
       .insert({
         ticket_id: ticketIdToSave,
