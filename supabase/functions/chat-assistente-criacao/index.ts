@@ -12,10 +12,10 @@ serve(async (req) => {
 
   try {
     const { messages, contexto } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    const DEEPSEEK_API_KEY = Deno.env.get('DEEPSEEK_API_KEY');
 
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY não configurada');
+    if (!DEEPSEEK_API_KEY) {
+      throw new Error('DEEPSEEK_API_KEY não configurada');
     }
 
     const systemPrompt = `Você é um assistente especializado em COLETAR INFORMAÇÕES para abertura de tickets SAC.
@@ -55,14 +55,14 @@ Responda com um resumo estruturado começando com "✅ INFORMAÇÕES COLETADAS:"
 - Fila sugerida
 - Justificativa das escolhas`;
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'deepseek-chat',
         messages: [
           { role: 'system', content: systemPrompt },
           ...messages
@@ -72,7 +72,7 @@ Responda com um resumo estruturado começando com "✅ INFORMAÇÕES COLETADAS:"
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Erro na API Lovable:', response.status, errorText);
+      console.error('Erro na API DeepSeek:', response.status, errorText);
       throw new Error(`Erro na API: ${response.status}`);
     }
 
