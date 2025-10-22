@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Download, Star, Pause } from "lucide-react";
+import { Plus, Search, Download } from "lucide-react";
 import { useTickets } from "@/hooks/useTickets";
 import { useFilasAtendimento } from "@/hooks/useFilasAtendimento";
 import { Input } from "@/components/ui/input";
@@ -13,32 +13,34 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 export default function Tickets() {
   const navigate = useNavigate();
   const [avaliacaoOpen, setAvaliacaoOpen] = useState(false);
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
+  const [selectedTickets, setSelectedTickets] = useState<Set<string>>(new Set());
   const [busca, setBusca] = useState("");
-  const [statusFiltro, setStatusFiltro] = useState<string>("todos");
+  const [abaAtiva, setAbaAtiva] = useState<"abertos" | "resolvidos">("abertos");
   const [prioridadeFiltro, setPrioridadeFiltro] = useState<string>("todos");
-  const [tipoFiltro, setTipoFiltro] = useState<string>("todos");
   const [filaFiltro, setFilaFiltro] = useState<string>("todos");
-  const {
-    toast
-  } = useToast();
+  const { toast } = useToast();
   const { filas } = useFilasAtendimento();
-  const filtros = {
-    ...(statusFiltro !== "todos" && {
-      status: statusFiltro as any
-    }),
-    ...(prioridadeFiltro !== "todos" && {
-      prioridade: prioridadeFiltro as any
-    })
-  };
-  const {
-    tickets,
-    isLoading
-  } = useTickets(filtros);
-  const ticketsFiltrados = tickets.filter(ticket => (ticket.numero_ticket.toLowerCase().includes(busca.toLowerCase()) || ticket.titulo.toLowerCase().includes(busca.toLowerCase()) || ticket.cliente_nome.toLowerCase().includes(busca.toLowerCase())) && (tipoFiltro === "todos" || ticket.tipo === tipoFiltro) && (filaFiltro === "todos" || ticket.fila_id === filaFiltro));
+  
+  const statusFiltro = abaAtiva === "abertos" ? ["aberto", "em_andamento", "aguardando_cliente"] : ["resolvido", "fechado"];
+  
+  const { tickets, isLoading } = useTickets();
+  
+  const ticketsFiltrados = tickets.filter(ticket => 
+    statusFiltro.includes(ticket.status) &&
+    (ticket.numero_ticket.toLowerCase().includes(busca.toLowerCase()) || 
+     ticket.titulo.toLowerCase().includes(busca.toLowerCase()) || 
+     ticket.cliente_nome.toLowerCase().includes(busca.toLowerCase())) &&
+    (prioridadeFiltro === "todos" || ticket.prioridade === prioridadeFiltro) &&
+    (filaFiltro === "todos" || ticket.fila_id === filaFiltro)
+  );
+
+  const ticketsAbertos = tickets.filter(t => ["aberto", "em_andamento", "aguardando_cliente"].includes(t.status));
+  const ticketsResolvidos = tickets.filter(t => ["resolvido", "fechado"].includes(t.status));
   const handleExportar = () => {
     const csvContent = [["Número", "Título", "Status", "Prioridade", "Tipo", "Cliente", "Data Abertura", "Avaliação"].join(";"), ...ticketsFiltrados.map(ticket => [ticket.numero_ticket, ticket.titulo, formatStatus(ticket.status), formatPrioridade(ticket.prioridade), ticket.tipo, ticket.cliente_nome, format(new Date(ticket.data_abertura), "dd/MM/yyyy HH:mm"), ticket.avaliacao || "Sem avaliação"].join(";"))].join("\n");
     const blob = new Blob([csvContent], {
@@ -96,12 +98,30 @@ export default function Tickets() {
   const handleVerDetalhes = (ticketId: string) => {
     navigate(`/tickets/${ticketId}`);
   };
-  return <div className="p-8 space-y-6">
+
+  const toggleTicketSelection = (ticketId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const newSelected = new Set(selectedTickets);
+    if (newSelected.has(ticketId)) {
+      newSelected.delete(ticketId);
+    } else {
+      newSelected.add(ticketId);
+    }
+    setSelectedTickets(newSelected);
+  };
+
+  return (
+    <div className="p-8 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          
-          
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
+          <Input 
+            placeholder="Buscar por razão social, CNPJ ou número..." 
+            value={busca} 
+            onChange={e => setBusca(e.target.value)} 
+            className="pl-10" 
+          />
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={handleExportar}>
@@ -115,28 +135,25 @@ export default function Tickets() {
         </div>
       </div>
 
-    <Card className="p-6">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
-            <Input placeholder="Buscar por número, título ou cliente..." value={busca} onChange={e => setBusca(e.target.value)} className="pl-10" />
-          </div>
-          <Select value={statusFiltro} onValueChange={setStatusFiltro}>
-            <SelectTrigger>
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todos os Status</SelectItem>
-              <SelectItem value="aberto">Aberto</SelectItem>
-              <SelectItem value="em_andamento">Em Andamento</SelectItem>
-              <SelectItem value="aguardando_cliente">Aguardando Cliente</SelectItem>
-              <SelectItem value="resolvido">Resolvido</SelectItem>
-              <SelectItem value="fechado">Fechado</SelectItem>
-              <SelectItem value="cancelado">Cancelado</SelectItem>
-            </SelectContent>
-          </Select>
+      {/* Tabs */}
+      <div className="flex items-center gap-4">
+        <Tabs value={abaAtiva} onValueChange={(v) => setAbaAtiva(v as "abertos" | "resolvidos")}>
+          <TabsList>
+            <TabsTrigger value="abertos" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              EM ABERTO <span className="ml-2 font-bold">{ticketsAbertos.length}</span>
+            </TabsTrigger>
+            <TabsTrigger value="resolvidos" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              RESOLVIDAS <span className="ml-2 font-bold">{ticketsResolvidos.length}</span>
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
+
+      {/* Filtros */}
+      <Card className="p-4">
+        <div className="flex gap-4">
           <Select value={prioridadeFiltro} onValueChange={setPrioridadeFiltro}>
-            <SelectTrigger>
+            <SelectTrigger className="w-[200px]">
               <SelectValue placeholder="Prioridade" />
             </SelectTrigger>
             <SelectContent>
@@ -147,20 +164,8 @@ export default function Tickets() {
               <SelectItem value="urgente">Urgente</SelectItem>
             </SelectContent>
           </Select>
-          <Select value={tipoFiltro} onValueChange={setTipoFiltro}>
-            <SelectTrigger>
-              <SelectValue placeholder="Tipo" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todos os Tipos</SelectItem>
-              <SelectItem value="reclamacao">Reclamação</SelectItem>
-              <SelectItem value="duvida">Dúvida</SelectItem>
-              <SelectItem value="sugestao">Sugestão</SelectItem>
-              <SelectItem value="elogio">Elogio</SelectItem>
-            </SelectContent>
-          </Select>
           <Select value={filaFiltro} onValueChange={setFilaFiltro}>
-            <SelectTrigger>
+            <SelectTrigger className="w-[200px]">
               <SelectValue placeholder="Fila" />
             </SelectTrigger>
             <SelectContent>
@@ -182,75 +187,99 @@ export default function Tickets() {
       </Card>
 
       {/* Lista de Tickets */}
-      {isLoading ? <div className="grid gap-4">
-          {[1, 2, 3].map(i => <Card key={i} className="p-6">
-              <Skeleton className="h-6 w-1/4 mb-4" />
-              <Skeleton className="h-8 w-3/4 mb-2" />
-              <Skeleton className="h-4 w-full mb-4" />
-              <Skeleton className="h-4 w-2/3" />
-            </Card>)}
-        </div> : ticketsFiltrados.length === 0 ? <Card className="p-12 text-center">
+      {isLoading ? (
+        <div className="space-y-2">
+          {[1, 2, 3].map(i => (
+            <Card key={i} className="p-4">
+              <Skeleton className="h-16 w-full" />
+            </Card>
+          ))}
+        </div>
+      ) : ticketsFiltrados.length === 0 ? (
+        <Card className="p-12 text-center">
           <p className="text-muted-foreground">Nenhum ticket encontrado</p>
           <Button onClick={() => navigate("/tickets/novo")} className="mt-4">
             Criar primeiro ticket
           </Button>
-        </Card> : <div className="grid gap-4">
-          {ticketsFiltrados.map(ticket => <Card key={ticket.id} className="p-6 shadow-elegant hover:shadow-lg transition-all cursor-pointer" onClick={() => handleVerDetalhes(ticket.id)}>
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className="font-mono font-bold text-lg text-primary">
-                      {ticket.numero_ticket}
-                    </span>
-                    {ticket.fila && <Badge 
-                        className="text-white" 
-                        style={{ backgroundColor: ticket.fila.cor }}
-                      >
-                        {ticket.fila.nome}
-                      </Badge>}
-                    <Badge className={getPrioridadeColor(ticket.prioridade)}>
-                      {formatPrioridade(ticket.prioridade)}
-                    </Badge>
-                    <Badge className={getStatusColor(ticket.status)}>
-                      {formatStatus(ticket.status)}
-                    </Badge>
-                    {ticket.esta_pausado && <Badge variant="secondary">
-                        <Pause className="h-3 w-3 mr-1" />
-                        Pausado
-                      </Badge>}
+        </Card>
+      ) : (
+        <Card>
+          {/* Header do Grid */}
+          <div className="grid grid-cols-12 gap-4 p-4 bg-primary text-primary-foreground font-semibold text-sm border-b">
+            <div className="col-span-1"></div>
+            <div className="col-span-4">CLIENTE / CNPJ</div>
+            <div className="col-span-2">ORIGEM</div>
+            <div className="col-span-3">ATUALIZADO EM</div>
+            <div className="col-span-2">STATUS</div>
+          </div>
+
+          {/* Corpo do Grid */}
+          <div className="divide-y">
+            {ticketsFiltrados.map(ticket => (
+              <div
+                key={ticket.id}
+                className="grid grid-cols-12 gap-4 p-4 hover:bg-muted/50 transition-colors cursor-pointer items-center"
+                onClick={() => handleVerDetalhes(ticket.id)}
+              >
+                {/* Radio/Checkbox */}
+                <div className="col-span-1 flex items-center justify-center">
+                  <input
+                    type="radio"
+                    checked={selectedTickets.has(ticket.id)}
+                    onChange={(e) => toggleTicketSelection(ticket.id, e as any)}
+                    onClick={(e) => toggleTicketSelection(ticket.id, e)}
+                    className="w-5 h-5 cursor-pointer"
+                  />
+                </div>
+
+                {/* Cliente / CNPJ */}
+                <div className="col-span-4">
+                  <div className="font-semibold text-foreground">{ticket.cliente_nome}</div>
+                  <div className="text-sm text-muted-foreground">{ticket.numero_ticket}</div>
+                </div>
+
+                {/* Número do Ticket (Origem) */}
+                <div className="col-span-2">
+                  <div className="font-mono font-bold text-primary">{ticket.numero_ticket.split('-')[0]}</div>
+                </div>
+
+                {/* Data/Hora Atualização */}
+                <div className="col-span-3">
+                  <div className="text-sm">
+                    {format(new Date(ticket.data_atualizacao || ticket.data_abertura), "dd/MM/yyyy", { locale: ptBR })}
                   </div>
-                  <h3 className="text-xl font-semibold mb-2">{ticket.titulo}</h3>
-                  <p className="text-muted-foreground line-clamp-2 mb-3">
-                    {ticket.descricao}
-                  </p>
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <span>Cliente: <span className="font-medium text-foreground">{ticket.cliente_nome}</span></span>
-                    <span>•</span>
-                    <span>
-                      Aberto em:{" "}
-                      {format(new Date(ticket.data_abertura), "dd/MM/yyyy HH:mm", {
-                  locale: ptBR
-                })}
-                    </span>
-                    {ticket.total_interacoes > 0 && <>
-                        <span>•</span>
-                        <span>{ticket.total_interacoes} interações</span>
-                      </>}
-                    {ticket.avaliacao && <>
-                        <span>•</span>
-                        <div className="flex items-center gap-1">
-                          <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                          <span>{ticket.avaliacao}/5</span>
-                        </div>
-                      </>}
+                  <div className="text-xs text-muted-foreground">
+                    {format(new Date(ticket.data_atualizacao || ticket.data_abertura), "HH:mm", { locale: ptBR })}
                   </div>
                 </div>
+
+                {/* Status */}
+                <div className="col-span-2">
+                  <Badge 
+                    variant="secondary"
+                    className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100"
+                  >
+                    {formatStatus(ticket.status)}
+                  </Badge>
+                </div>
               </div>
-            </Card>)}
-        </div>}
-      
-      {selectedTicketId && (
-        <AvaliacaoDialog open={avaliacaoOpen} onOpenChange={setAvaliacaoOpen} ticketId={selectedTicketId} ticketNumero={tickets.find(t => t.id === selectedTicketId)?.numero_ticket || ""} />
+            ))}
+          </div>
+
+          {/* Rodapé com paginação */}
+          <div className="p-4 border-t text-sm text-muted-foreground">
+            Mostrando {ticketsFiltrados.length} ocorrências na pág. 1
+          </div>
+        </Card>
       )}
-    </div>;
+      {selectedTicketId && (
+        <AvaliacaoDialog 
+          open={avaliacaoOpen} 
+          onOpenChange={setAvaliacaoOpen} 
+          ticketId={selectedTicketId} 
+          ticketNumero={tickets.find(t => t.id === selectedTicketId)?.numero_ticket || ""} 
+        />
+      )}
+    </div>
+  );
 }
