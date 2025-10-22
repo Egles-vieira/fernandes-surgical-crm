@@ -85,10 +85,13 @@ serve(async (req) => {
     else if (file.type.startsWith('video/')) tipoAnexo = 'video';
 
     // Salvar registro no banco de dados
+    // Se ticket_id for "temp", considerar como null
+    const ticketIdToSave = ticketId && ticketId !== 'temp' ? ticketId : null;
+    
     const { data: anexo, error: dbError } = await supabase
       .from('tickets_anexos_chat')
       .insert({
-        ticket_id: ticketId || null,
+        ticket_id: ticketIdToSave,
         nome_arquivo: file.name,
         tipo_arquivo: file.type,
         tamanho_bytes: file.size,
