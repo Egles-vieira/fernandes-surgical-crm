@@ -110,11 +110,70 @@ export function NovoTicketDialog({ open, onOpenChange }: NovoTicketDialogProps) 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    await createTicket.mutateAsync({
-      ...formData,
-      venda_id: formData.venda_id || null,
-      produto_id: formData.produto_id || null,
-    });
+    // Classificar automaticamente com IA antes de criar
+    setIsClassificando(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('classificar-criticidade-ticket', {
+        body: {
+          titulo: formData.titulo,
+          descricao: formData.descricao,
+          tipo: formData.tipo,
+        },
+      });
+
+      if (!error && data) {
+        // Buscar ID da fila pelo nome
+        const { data: filaData } = await supabase
+          .from('filas_atendimento')
+          .select('id')
+          .eq('nome', data.fila_nome)
+          .single();
+
+        // Atualizar formData com a classificação
+        const dadosClassificados = {
+          ...formData,
+          prioridade: data.prioridade,
+          fila_id: filaData?.id || formData.fila_id,
+          venda_id: formData.venda_id || null,
+          produto_id: formData.produto_id || null,
+        };
+
+        // Criar ticket com dados classificados
+        await createTicket.mutateAsync({
+          ticketData: dadosClassificados,
+          classificacaoIA: {
+            prioridade: data.prioridade,
+            fila_nome: data.fila_nome,
+          },
+        });
+
+        toast({
+          title: "Ticket criado e classificado!",
+          description: `Classificação IA: ${data.prioridade.toUpperCase()} | Fila: ${data.fila_nome}`,
+        });
+      } else {
+        // Se falhar a classificação, criar com dados manuais
+        await createTicket.mutateAsync({
+          ticketData: {
+            ...formData,
+            venda_id: formData.venda_id || null,
+            produto_id: formData.produto_id || null,
+          },
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao classificar:', error);
+      // Se houver erro, criar ticket sem classificação IA
+      await createTicket.mutateAsync({
+        ticketData: {
+          ...formData,
+          venda_id: formData.venda_id || null,
+          produto_id: formData.produto_id || null,
+        },
+      });
+    } finally {
+      setIsClassificando(false);
+    }
 
     onOpenChange(false);
     setFormData({
@@ -351,8 +410,8 @@ export function NovoTicketDialog({ open, onOpenChange }: NovoTicketDialogProps) 
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={createTicket.isPending}>
-              {createTicket.isPending ? "Criando..." : "Criar Ticket"}
+            <Button type="submit" disabled={createTicket.isPending || isClassificando}>
+              {isClassificando ? "Classificando com IA..." : createTicket.isPending ? "Criando..." : "Criar Ticket"}
             </Button>
           </div>
         </form>

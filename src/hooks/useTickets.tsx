@@ -57,11 +57,17 @@ export function useTickets(filtros?: {
   });
 
   const createTicket = useMutation({
-    mutationFn: async (ticket: Omit<TicketInsert, "aberto_por" | "numero_ticket">) => {
+    mutationFn: async ({ 
+      ticketData, 
+      classificacaoIA 
+    }: { 
+      ticketData: Omit<TicketInsert, "aberto_por" | "numero_ticket">;
+      classificacaoIA?: { prioridade: string; fila_nome: string };
+    }) => {
       const { data: userData } = await supabase.auth.getUser();
       
       const insertData: any = {
-        ...ticket,
+        ...ticketData,
         aberto_por: userData.user?.id,
       };
 
@@ -81,6 +87,17 @@ export function useTickets(filtros?: {
         criado_por: userData.user?.id,
         mensagem_interna: true,
       });
+
+      // Se houver classificação IA, registrar no histórico
+      if (classificacaoIA) {
+        await supabase.from("tickets_interacoes").insert({
+          ticket_id: data.id,
+          tipo_interacao: "alteracao_status",
+          mensagem: `Classificação automática via IA: Prioridade definida como "${classificacaoIA.prioridade}" e atribuído à fila "${classificacaoIA.fila_nome}"`,
+          criado_por: userData.user?.id,
+          mensagem_interna: true,
+        });
+      }
 
       return data;
     },
