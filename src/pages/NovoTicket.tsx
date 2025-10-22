@@ -594,19 +594,20 @@ export default function NovoTicket() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Sparkles className="h-5 w-5 text-primary" />
-                    Sugestões da IA
+                    Informações Coletadas pela IA
                   </CardTitle>
+                  <CardDescription>Campos preenchidos automaticamente</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {sugestoesIA.titulo_sugerido && (
                     <div>
-                      <Label className="text-xs text-muted-foreground">Título Sugerido</Label>
+                      <Label className="text-xs text-muted-foreground">Título</Label>
                       <p className="text-sm font-medium">{sugestoesIA.titulo_sugerido}</p>
                     </div>
                   )}
                   {sugestoesIA.descricao_completa && (
                     <div>
-                      <Label className="text-xs text-muted-foreground">Descrição Completa</Label>
+                      <Label className="text-xs text-muted-foreground">Descrição</Label>
                       <p className="text-sm whitespace-pre-wrap">{sugestoesIA.descricao_completa}</p>
                     </div>
                   )}
@@ -618,14 +619,10 @@ export default function NovoTicket() {
                   )}
                   {sugestoesIA.justificativa && (
                     <div>
-                      <Label className="text-xs text-muted-foreground">Justificativa</Label>
+                      <Label className="text-xs text-muted-foreground">Justificativa Clínica</Label>
                       <p className="text-sm text-muted-foreground">{sugestoesIA.justificativa}</p>
                     </div>
                   )}
-                  <Button onClick={aplicarSugestoesIA} className="w-full">
-                    <Sparkles className="h-4 w-4 mr-2" />
-                    Aplicar Sugestões ao Formulário
-                  </Button>
                 </CardContent>
               </Card>
             )}
@@ -670,10 +667,29 @@ export default function NovoTicket() {
             contextoInicial={contextoChat}
             onSugestoesRecebidas={(sugestoes) => {
               setSugestoesIA(sugestoes);
+              
+              // Aplicar sugestões automaticamente aos campos do formulário
+              setFormData(prev => ({
+                ...prev,
+                titulo: sugestoes.titulo_sugerido || prev.titulo,
+                descricao: sugestoes.descricao_completa || prev.descricao,
+                prioridade: sugestoes.prioridade_sugerida || prev.prioridade,
+              }));
+              
+              // Buscar fila sugerida
+              if (sugestoes.fila_sugerida) {
+                const filaSugerida = filas?.find(f => 
+                  f.nome.toLowerCase().includes(sugestoes.fila_sugerida!.toLowerCase())
+                );
+                if (filaSugerida) {
+                  setFormData(prev => ({ ...prev, fila_id: filaSugerida.id }));
+                }
+              }
+              
               setMostrarSugestoes(true);
               toast({
-                title: "✨ IA gerou sugestões!",
-                description: "Confira o card de sugestões e clique em 'Aplicar' para preencher o formulário"
+                title: "✨ Campos preenchidos pela IA!",
+                description: "A enfermeira técnica coletou as informações e preencheu os campos automaticamente"
               });
             }}
             onMensagensChange={setMensagensCriacao}
