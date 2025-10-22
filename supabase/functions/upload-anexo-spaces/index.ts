@@ -11,7 +11,7 @@ const corsHeaders = {
 const DO_SPACES_ENDPOINT = "sfo3.digitaloceanspaces.com";
 const DO_SPACES_BUCKET = "road-guard-audios";
 const DO_SPACES_REGION = "sfo3";
-const DO_SPACES_ACCESS_KEY = 'DO00ZXEE7XQ68Q2UXAQV';
+const DO_SPACES_ACCESS_KEY = 'DO00ZML66HG76UVJG6ZG';
 const DO_SPACES_SECRET_KEY = Deno.env.get('DO_SPACES_SECRET_KEY');
 
 serve(async (req) => {
