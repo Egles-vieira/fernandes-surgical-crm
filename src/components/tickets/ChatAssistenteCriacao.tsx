@@ -218,22 +218,48 @@ export default function ChatAssistenteCriacao({
       <CardContent className="flex-1 flex flex-col gap-4 min-h-0">
         <ScrollArea className="flex-1 pr-4" ref={scrollRef}>
           <div className="space-y-4">
-            {mensagens.map((msg, idx) => (
-              <div
-                key={idx}
-                className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-              >
+            {mensagens.map((msg, idx) => {
+              // Extrair URLs de imagens da mensagem
+              const urlRegex = /(https?:\/\/[^\s]+\.(jpg|jpeg|png|gif|webp))/gi;
+              const imagensUrls = msg.content.match(urlRegex) || [];
+              const textoSemUrls = msg.content.replace(urlRegex, '').replace(/📎 Anexos enviados:\s*/g, '').replace(/\d+\.\s*/g, '').trim();
+              
+              return (
                 <div
-                  className={`rounded-lg px-4 py-2 max-w-[85%] ${
-                    msg.role === 'user'
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted'
-                  }`}
+                  key={idx}
+                  className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
-                  <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                  <div
+                    className={`rounded-lg px-4 py-2 max-w-[85%] ${
+                      msg.role === 'user'
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-muted'
+                    }`}
+                  >
+                    {textoSemUrls && (
+                      <p className="text-sm whitespace-pre-wrap mb-2">{textoSemUrls}</p>
+                    )}
+                    {imagensUrls.length > 0 && (
+                      <div className="flex flex-col gap-2 mt-2">
+                        {imagensUrls.map((url, imgIdx) => (
+                          <div key={imgIdx} className="relative rounded-lg overflow-hidden border border-border">
+                            <img 
+                              src={url} 
+                              alt={`Anexo ${imgIdx + 1}`}
+                              className="max-w-full h-auto max-h-64 object-contain bg-background"
+                              onError={(e) => {
+                                // Fallback se imagem não carregar
+                                e.currentTarget.style.display = 'none';
+                              }}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
             {enviando && (
               <div className="flex justify-start">
                 <div className="bg-muted rounded-lg px-4 py-2">
