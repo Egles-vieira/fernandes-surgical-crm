@@ -297,30 +297,7 @@ export default function ChatAssistenteCriacao({
           </div>
         )}
 
-        {(!sugestoesIA?.perguntas_pendentes || sugestoesIA.perguntas_pendentes.length === 0) && onCriarTicket ? (
-          <Button 
-            onClick={onCriarTicket}
-            disabled={isCriandoTicket || isClassificando}
-            className="w-full h-[60px]"
-          >
-            {isClassificando ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Classificando com IA...
-              </>
-            ) : isCriandoTicket ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Criando Ticket...
-              </>
-            ) : (
-              <>
-                <Sparkles className="w-4 h-4 mr-2" />
-                Criar Ticket
-              </>
-            )}
-          </Button>
-        ) : (
+        <div className="flex flex-col gap-2">
           <div className="flex gap-2">
             <Input
               ref={fileInputRef}
@@ -356,7 +333,32 @@ export default function ChatAssistenteCriacao({
               {uploadando ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
             </Button>
           </div>
-        )}
+          
+          {sugestoesIA && (!sugestoesIA.perguntas_pendentes || sugestoesIA.perguntas_pendentes.length === 0) && onCriarTicket && (
+            <Button 
+              onClick={onCriarTicket}
+              disabled={isCriandoTicket || isClassificando}
+              className="w-full h-[50px]"
+            >
+              {isClassificando ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Classificando com IA...
+                </>
+              ) : isCriandoTicket ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Criando Ticket...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Criar Ticket
+                </>
+              )}
+            </Button>
+          )}
+        </div>
       </CardContent>
     </Card>
   );
