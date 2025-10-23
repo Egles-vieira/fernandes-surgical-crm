@@ -57,14 +57,14 @@ export default function Tickets() {
   };
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
-      aberto: "bg-blue-500",
-      em_andamento: "bg-yellow-500",
-      aguardando_cliente: "bg-orange-500",
-      resolvido: "bg-green-500",
-      fechado: "bg-gray-500",
-      cancelado: "bg-red-500"
+      aberto: "border-blue-500/50 text-blue-700 dark:text-blue-400",
+      em_andamento: "border-yellow-500/50 text-yellow-700 dark:text-yellow-400",
+      aguardando_cliente: "border-orange-500/50 text-orange-700 dark:text-orange-400",
+      resolvido: "border-green-500/50 text-green-700 dark:text-green-400",
+      fechado: "border-muted-foreground/50 text-muted-foreground",
+      cancelado: "border-red-500/50 text-red-700 dark:text-red-400"
     };
-    return colors[status] || "bg-gray-500";
+    return colors[status] || "border-muted-foreground/50 text-muted-foreground";
   };
   const getPrioridadeColor = (prioridade: string) => {
     const colors: Record<string, string> = {
@@ -203,74 +203,95 @@ export default function Tickets() {
           </Button>
         </Card>
       ) : (
-        <Card>
-          {/* Header do Grid */}
-          <div className="grid grid-cols-12 gap-4 p-4 bg-muted font-semibold text-sm border-b">
-            <div className="col-span-1"></div>
-            <div className="col-span-4">CLIENTE / NÚMERO</div>
-            <div className="col-span-2">ORIGEM</div>
-            <div className="col-span-3">ATUALIZADO EM</div>
-            <div className="col-span-2">STATUS</div>
-          </div>
-
-          {/* Corpo do Grid */}
-          <div className="divide-y">
+        <>
+          <div className="space-y-3">
             {ticketsFiltrados.map(ticket => (
-              <div
+              <Card 
                 key={ticket.id}
-                className="grid grid-cols-12 gap-4 p-4 hover:bg-accent/50 transition-colors cursor-pointer items-center"
+                className="hover:bg-accent/50 transition-colors cursor-pointer"
                 onClick={() => handleVerDetalhes(ticket.id)}
               >
-                {/* Radio/Checkbox */}
-                <div className="col-span-1 flex items-center justify-center">
-                  <input
-                    type="radio"
-                    checked={selectedTickets.has(ticket.id)}
-                    onChange={(e) => toggleTicketSelection(ticket.id, e as any)}
-                    onClick={(e) => toggleTicketSelection(ticket.id, e)}
-                    className="w-5 h-5 cursor-pointer accent-primary"
-                  />
-                </div>
+                <CardContent className="p-4">
+                  <div className="flex items-start gap-4">
+                    {/* Radio Button */}
+                    <div className="pt-1">
+                      <input
+                        type="radio"
+                        checked={selectedTickets.has(ticket.id)}
+                        onChange={(e) => toggleTicketSelection(ticket.id, e as any)}
+                        onClick={(e) => toggleTicketSelection(ticket.id, e)}
+                        className="w-5 h-5 cursor-pointer accent-primary"
+                      />
+                    </div>
 
-                {/* Cliente / Número */}
-                <div className="col-span-4">
-                  <div className="font-semibold text-foreground">{ticket.cliente_nome}</div>
-                  <div className="text-sm text-muted-foreground">{ticket.numero_ticket}</div>
-                </div>
+                    {/* Conteúdo Principal */}
+                    <div className="flex-1 space-y-2">
+                      {/* Linha 1: Número, Cliente e Prioridade */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <span className="font-mono font-bold text-primary">
+                            {ticket.numero_ticket}
+                          </span>
+                          <span className="text-muted-foreground">•</span>
+                          <span className="font-semibold text-foreground">
+                            {ticket.cliente_nome}
+                          </span>
+                        </div>
+                        <Badge 
+                          variant="secondary"
+                          className={getPrioridadeColor(ticket.prioridade)}
+                        >
+                          {formatPrioridade(ticket.prioridade)}
+                        </Badge>
+                      </div>
 
-                {/* Número do Ticket (Origem) */}
-                <div className="col-span-2">
-                  <div className="font-mono font-bold text-primary">{ticket.numero_ticket.split('-')[0]}</div>
-                </div>
+                      {/* Linha 2: Título */}
+                      <div className="font-medium text-foreground">
+                        {ticket.titulo}
+                      </div>
 
-                {/* Data/Hora Atualização */}
-                <div className="col-span-3">
-                  <div className="text-sm text-foreground">
-                    {format(new Date(ticket.data_atualizacao || ticket.data_abertura), "dd/MM/yyyy", { locale: ptBR })}
+                      {/* Linha 3: Descrição (truncada) */}
+                      {ticket.descricao && (
+                        <div className="text-sm text-muted-foreground line-clamp-2">
+                          {ticket.descricao}
+                        </div>
+                      )}
+
+                      {/* Linha 4: Metadados */}
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-1">
+                          <Badge variant="outline" className="text-xs">
+                            {ticket.tipo}
+                          </Badge>
+                        </div>
+                        <span>•</span>
+                        <div>
+                          <Badge 
+                            variant="outline"
+                            className={`text-xs ${getStatusColor(ticket.status)}`}
+                          >
+                            {formatStatus(ticket.status)}
+                          </Badge>
+                        </div>
+                        <span>•</span>
+                        <div>
+                          Atualizado em {format(new Date(ticket.data_atualizacao || ticket.data_abertura), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-xs text-muted-foreground">
-                    {format(new Date(ticket.data_atualizacao || ticket.data_abertura), "HH:mm", { locale: ptBR })}
-                  </div>
-                </div>
-
-                {/* Status */}
-                <div className="col-span-2">
-                  <Badge 
-                    variant="secondary"
-                    className={getPrioridadeColor(ticket.status === "aberto" || ticket.status === "em_andamento" ? "alta" : "normal")}
-                  >
-                    {formatStatus(ticket.status)}
-                  </Badge>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
 
-          {/* Rodapé com paginação */}
-          <div className="p-4 border-t text-sm text-muted-foreground">
-            Mostrando {ticketsFiltrados.length} solicitações na pág. 1
+          {/* Rodapé com contador */}
+          <div className="pt-4">
+            <div className="text-sm text-muted-foreground">
+              Mostrando {ticketsFiltrados.length} solicitações
+            </div>
           </div>
-        </Card>
+        </>
       )}
       {selectedTicketId && (
         <AvaliacaoDialog 
