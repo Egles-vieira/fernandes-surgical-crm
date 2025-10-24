@@ -143,7 +143,7 @@ export default function CotacaoDetalhes() {
             </div>
 
             {/* CAPA - Informações principais */}
-            <Card className="mx-0 my-0 px-0 py-0">
+            <Card className="-mx-8 rounded-none">
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2">
                   <FileText className="h-5 w-5" />
