@@ -10,6 +10,7 @@ import { ptBR } from "date-fns/locale";
 import { Building2, Calendar, MapPin, FileText, Package, DollarSign, Clock, CheckCircle2, XCircle, ArrowLeft, ChevronRight, ChevronLeft } from "lucide-react";
 import { EDICotacao } from "@/hooks/useEDICotacoes";
 import { useToast } from "@/hooks/use-toast";
+import { ItemCotacaoCard } from "@/components/plataformas/ItemCotacaoCard";
 interface ItemCotacao {
   id: string;
   numero_item: number;
@@ -224,60 +225,14 @@ export default function CotacaoDetalhes() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
-                  {itens.map(item => <Card key={item.id} className="border">
-                      <CardContent className="pt-4">
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <Badge variant="outline">Item {item.numero_item}</Badge>
-                              {statusItemBadge(item.status)}
-                            </div>
-                            <h4 className="font-semibold mb-1">
-                              {item.descricao_produto_cliente}
-                            </h4>
-                            {item.codigo_produto_cliente && <p className="text-sm text-muted-foreground">
-                                Código: {item.codigo_produto_cliente}
-                              </p>}
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-4 gap-4 text-sm">
-                          <div>
-                            <p className="text-muted-foreground mb-1">Qtd. Solicitada</p>
-                            <p className="font-medium">
-                              {item.quantidade_solicitada} {item.unidade_medida}
-                            </p>
-                          </div>
-                          {item.quantidade_respondida && <>
-                              <div>
-                                <p className="text-muted-foreground mb-1">Qtd. Respondida</p>
-                                <p className="font-medium">
-                                  {item.quantidade_respondida} {item.unidade_medida}
-                                </p>
-                              </div>
-                              <div>
-                                <p className="text-muted-foreground mb-1">Preço Unitário</p>
-                                <p className="font-medium">
-                                  {new Intl.NumberFormat("pt-BR", {
-                              style: "currency",
-                              currency: "BRL"
-                            }).format(item.preco_unitario_respondido || 0)}
-                                </p>
-                              </div>
-                              <div>
-                                <p className="text-muted-foreground mb-1">Total</p>
-                                <p className="font-bold text-primary">
-                                  {new Intl.NumberFormat("pt-BR", {
-                              style: "currency",
-                              currency: "BRL"
-                            }).format(item.preco_total || 0)}
-                                </p>
-                              </div>
-                            </>}
-                        </div>
-                      </CardContent>
-                    </Card>)}
+                <div className="space-y-4">
+                  {itens.map(item => (
+                    <ItemCotacaoCard 
+                      key={item.id} 
+                      item={item} 
+                      onUpdate={carregarDados}
+                    />
+                  ))}
                 </div>
               </CardContent>
             </Card>
