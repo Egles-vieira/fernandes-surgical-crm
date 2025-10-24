@@ -106,7 +106,7 @@ export default function Cotacoes() {
       <ImportarXMLDialog
         open={importarDialogOpen}
         onOpenChange={setImportarDialogOpen}
-        plataformaId="default-platform-id"
+        plataformaId={null}
         tipoPlataforma="bionexo"
       />
 

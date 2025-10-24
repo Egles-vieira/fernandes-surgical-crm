@@ -18,7 +18,7 @@ import { useQueryClient } from "@tanstack/react-query";
 interface ImportarXMLDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  plataformaId: string;
+  plataformaId: string | null;
   tipoPlataforma?: string;
 }
 
@@ -58,9 +58,45 @@ export default function ImportarXMLDialog({
     setProgresso(10);
 
     try {
+      // Buscar ou criar plataforma se não houver ID
+      let plataformaIdReal = plataformaId;
+      
+      if (!plataformaIdReal) {
+        const { data: plataformas, error: plataformaError } = await supabase
+          .from("plataformas_edi")
+          .select("id")
+          .eq("nome", "Bionexo")
+          .maybeSingle();
+
+        if (plataformaError) throw plataformaError;
+
+        if (plataformas) {
+          plataformaIdReal = plataformas.id;
+        } else {
+          // Criar plataforma se não existir
+          const { data: novaPlataforma, error: criarError } = await supabase
+            .from("plataformas_edi")
+            .insert({
+              nome: "Bionexo",
+              slug: "bionexo",
+              tipo_plataforma: "bionexo",
+              configuracoes: {},
+              mapeamento_campos: {},
+              ativo: true,
+            })
+            .select("id")
+            .single();
+
+          if (criarError) throw criarError;
+          plataformaIdReal = novaPlataforma.id;
+        }
+      }
+
+      setProgresso(20);
+
       // Ler conteúdo do arquivo
       const conteudoXML = await arquivo.text();
-      setProgresso(30);
+      setProgresso(40);
 
       // Chamar edge function
       const { data, error } = await supabase.functions.invoke(
@@ -68,7 +104,7 @@ export default function ImportarXMLDialog({
         {
           body: {
             xml_conteudo: conteudoXML,
-            plataforma_id: plataformaId,
+            plataforma_id: plataformaIdReal,
             tipo_plataforma: tipoPlataforma,
           },
         }
