@@ -143,59 +143,57 @@ export default function Cotacoes() {
           <TabsTrigger value="confirmada">Confirmadas ({estatisticas.confirmadas})</TabsTrigger>
         </TabsList>
 
-        <TabsContent value={stepFiltro} className="space-y-4 mt-4">
-          {cotacoes && cotacoes.length > 0 ? <div className="grid gap-4">
-              {cotacoes.map(cotacao => <Card key={cotacao.id} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between">
-                      <div className="space-y-2 flex-1">
-                        <div className="flex items-center gap-2">
-                          <Badge variant={stepBadgeVariant(cotacao.step_atual)}>{stepLabel(cotacao.step_atual)}</Badge>
-                          {cotacao.plataformas_edi && <Badge variant="outline">{cotacao.plataformas_edi.nome}</Badge>}
+        <TabsContent value={stepFiltro} className="space-y-2 mt-4">
+          {cotacoes && cotacoes.length > 0 ? <div className="space-y-2">
+              {cotacoes.map(cotacao => <Card key={cotacao.id} className="hover:shadow-sm transition-shadow">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-xs text-muted-foreground">
+                            Origem: {cotacao.id_cotacao_externa}
+                          </span>
+                          {cotacao.plataformas_edi && <Badge variant="outline" className="text-xs">{cotacao.plataformas_edi.nome}</Badge>}
+                          <span className="text-xs text-muted-foreground">
+                            {format(new Date(cotacao.data_vencimento_atual), "dd/MM/yyyy | HH:mm", { locale: ptBR })}
+                          </span>
                         </div>
-
-                        <h3 className="font-semibold text-lg">
-                          {cotacao.numero_cotacao || cotacao.id_cotacao_externa}
-                        </h3>
-
-                        <div className="grid grid-cols-2 gap-4 text-sm">
-                          <div>
-                            <span className="text-muted-foreground">Cliente:</span>
-                            <p className="font-medium">{cotacao.nome_cliente}</p>
-                            <p className="text-xs text-muted-foreground">{cotacao.cnpj_cliente}</p>
-                          </div>
-
-                          <div>
-                            <span className="text-muted-foreground">Localização:</span>
-                            <p className="font-medium">
-                              {cotacao.cidade_cliente}, {cotacao.uf_cliente}
-                            </p>
-                          </div>
-
-                          <div>
-                            <span className="text-muted-foreground">Vencimento:</span>
-                            <p className="font-medium">
-                              {format(new Date(cotacao.data_vencimento_atual), "dd/MM/yyyy HH:mm", {
-                          locale: ptBR
-                        })}
-                            </p>
-                          </div>
-
-                          <div>
-                            <span className="text-muted-foreground">Itens:</span>
-                            <p className="font-medium">
-                              {cotacao.total_itens} item(ns)
-                              {cotacao.total_itens_respondidos > 0 && ` • ${cotacao.total_itens_respondidos} respondido(s)`}
-                            </p>
-                          </div>
+                        
+                        <div className="flex items-center gap-4">
+                          <button 
+                            onClick={() => navigate(`/plataformas/cotacoes/${cotacao.id}`)}
+                            className="text-primary hover:underline font-medium text-sm truncate"
+                          >
+                            {cotacao.nome_cliente}
+                          </button>
+                          
+                          <span className="text-xs text-muted-foreground">
+                            {cotacao.total_itens} {cotacao.total_itens === 1 ? 'Item' : 'Itens'}
+                          </span>
+                          
+                          <Badge variant={stepBadgeVariant(cotacao.step_atual)} className="text-xs">
+                            {stepLabel(cotacao.step_atual)}
+                          </Badge>
+                          
+                          <span className="text-xs font-medium">
+                            {cotacao.cidade_cliente}, {cotacao.uf_cliente}
+                          </span>
                         </div>
                       </div>
 
-                      <div className="flex flex-col gap-2">
-                        {!cotacao.resgatada && stepFiltro === "nova" && <Button onClick={() => handleResgatar(cotacao.id)} disabled={resgatarCotacao.isPending}>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        {!cotacao.resgatada && stepFiltro === "nova" && <Button 
+                            size="sm"
+                            onClick={() => handleResgatar(cotacao.id)} 
+                            disabled={resgatarCotacao.isPending}
+                          >
                             Resgatar
                           </Button>}
-                        <Button variant="outline" onClick={() => navigate(`/plataformas/cotacoes/${cotacao.id}`)}>
+                        <Button 
+                          size="sm"
+                          variant="outline" 
+                          onClick={() => navigate(`/plataformas/cotacoes/${cotacao.id}`)}
+                        >
                           Ver Detalhes
                         </Button>
                       </div>
