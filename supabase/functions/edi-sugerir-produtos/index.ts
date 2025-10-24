@@ -7,53 +7,73 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Função para calcular similaridade de cosseno entre dois vetores
-function cosineSimilarity(vecA: number[], vecB: number[]): number {
-  if (vecA.length !== vecB.length) return 0;
-  
-  let dotProduct = 0;
-  let normA = 0;
-  let normB = 0;
-  
-  for (let i = 0; i < vecA.length; i++) {
-    dotProduct += vecA[i] * vecB[i];
-    normA += vecA[i] * vecA[i];
-    normB += vecB[i] * vecB[i];
-  }
-  
-  const denominator = Math.sqrt(normA) * Math.sqrt(normB);
-  return denominator === 0 ? 0 : dotProduct / denominator;
-}
+// Removido: cosineSimilarity não é mais necessário
 
-// Função para gerar embedding usando Lovable AI
-async function generateEmbedding(text: string, lovableApiKey: string): Promise<number[] | null> {
+// Função para fazer matching semântico usando Lovable AI
+async function semanticMatching(descricao: string, produtos: any[], lovableApiKey: string, limite: number): Promise<any[]> {
   try {
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/embeddings", {
+    // Pegar amostra de produtos para análise (max 50 para não exceder token limits)
+    const amostra = produtos.slice(0, 50);
+    
+    const produtosTexto = amostra.map((p, idx) => 
+      `${idx + 1}. ${p.nome} (Ref: ${p.referencia_interna}) - ${p.narrativa || 'sem descrição'}`
+    ).join('\n');
+
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${lovableApiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "text-embedding-3-small",
-        input: text,
+        model: "google/gemini-2.5-flash",
+        messages: [
+          {
+            role: "system",
+            content: "Você é um especialista em matching de produtos médicos e hospitalares. Analise a descrição do cliente e retorne os índices dos produtos mais compatíveis em ordem de relevância."
+          },
+          {
+            role: "user",
+            content: `Descrição do cliente: "${descricao}"\n\nProdutos disponíveis:\n${produtosTexto}\n\nRetorne APENAS um JSON array com os índices (1-${amostra.length}) dos 5 produtos mais compatíveis, do mais para o menos relevante. Formato: [3, 7, 12, 5, 1]`
+          }
+        ],
       }),
     });
 
     if (!response.ok) {
-      console.error("Embedding API error:", response.status, await response.text());
-      return null;
+      console.error("AI matching error:", response.status, await response.text());
+      return [];
     }
 
     const data = await response.json();
-    return data.data?.[0]?.embedding || null;
+    const content = data.choices?.[0]?.message?.content || "[]";
+    
+    // Extrair array JSON da resposta
+    const match = content.match(/\[[\d,\s]+\]/);
+    if (!match) return [];
+    
+    const indices = JSON.parse(match[0]) as number[];
+    
+    return indices.map((idx, position) => {
+      const produto = amostra[idx - 1];
+      if (!produto) return null;
+      
+      const score = 95 - (position * 10); // 95, 85, 75, 65, 55
+      return {
+        produto_id: produto.id,
+        score,
+        motivo: `Compatibilidade semântica (posição ${position + 1})`,
+        metodo: 'ai_semantic'
+      };
+    }).filter(Boolean).slice(0, limite);
+    
   } catch (error) {
-    console.error("Error generating embedding:", error);
-    return null;
+    console.error("Error in semantic matching:", error);
+    return [];
   }
 }
 
-// Fallback: similaridade baseada em tokens
+// Fallback: similaridade baseada em tokens melhorada
 function normalize(str: string) {
   return (str || '')
     .toLowerCase()
@@ -64,39 +84,76 @@ function normalize(str: string) {
     .trim();
 }
 
+function extractNumbers(str: string): string[] {
+  return (str.match(/\d+/g) || []);
+}
+
 function tokenize(str: string) {
-  const stop = new Set(['de','do','da','e','ou','para','com','fr','mm','unidade','peca','peça','im','jl','jr']);
+  // Stopwords MUITO reduzida - manter termos médicos importantes
+  const stop = new Set(['de','do','da','e','ou','para','com','|','-']);
   return normalize(str)
     .split(' ')
     .filter(Boolean)
-    .filter(t => !stop.has(t) && t.length > 2);
+    .filter(t => !stop.has(t) && t.length > 1); // Reduzido para > 1 ao invés de > 2
 }
 
 function tokenBasedSimilarity(queryText: string, produtos: any[], limite: number) {
   const queryTokens = tokenize(queryText);
+  const queryNumbers = extractNumbers(queryText);
   
   return produtos.map(p => {
     const productText = `${p.nome} ${p.referencia_interna} ${p.narrativa || ''}`;
     const productTokens = tokenize(productText);
+    const productNumbers = extractNumbers(productText);
+    
     const setA = new Set(queryTokens);
     const setB = new Set(productTokens);
     
+    // Contar tokens em comum
     let inter = 0;
     for (const t of setA) if (setB.has(t)) inter++;
-    const union = new Set([...setA, ...setB]).size || 1;
-    const jaccard = inter / union;
     
-    const bonus = queryText.toLowerCase().includes(String(p.referencia_interna).toLowerCase()) ? 0.2 : 0;
-    const score = Math.min(1, jaccard + bonus) * 100;
+    const union = new Set([...setA, ...setB]).size || 1;
+    let jaccard = inter / union;
+    
+    // BONUS 1: Números em comum (ex: 500GR)
+    let numberBonus = 0;
+    for (const num of queryNumbers) {
+      if (productNumbers.includes(num)) {
+        numberBonus += 0.15;
+      }
+    }
+    
+    // BONUS 2: Referência exata
+    const refBonus = queryText.toLowerCase().includes(String(p.referencia_interna).toLowerCase()) ? 0.2 : 0;
+    
+    // BONUS 3: Match de sequências (bigrams)
+    const queryBigrams = [];
+    for (let i = 0; i < queryTokens.length - 1; i++) {
+      queryBigrams.push(queryTokens[i] + ' ' + queryTokens[i + 1]);
+    }
+    const productBigrams = [];
+    for (let i = 0; i < productTokens.length - 1; i++) {
+      productBigrams.push(productTokens[i] + ' ' + productTokens[i + 1]);
+    }
+    let bigramMatches = 0;
+    for (const bg of queryBigrams) {
+      if (productBigrams.some(pbg => pbg.includes(bg) || bg.includes(pbg))) {
+        bigramMatches++;
+      }
+    }
+    const bigramBonus = (bigramMatches / Math.max(queryBigrams.length, 1)) * 0.2;
+    
+    const finalScore = Math.min(1, jaccard + numberBonus + refBonus + bigramBonus) * 100;
     
     return { 
       produto_id: p.id, 
-      score: Math.round(score), 
-      motivo: inter ? `${inter} termos em comum` : 'Similaridade baixa',
-      metodo: 'token_fallback'
+      score: Math.round(finalScore), 
+      motivo: inter > 0 ? `${inter} termos + ${queryNumbers.filter(n => productNumbers.includes(n)).length} números` : 'Similaridade baixa',
+      metodo: 'token_enhanced'
     };
   })
-  .filter(s => s.score >= 30)
+  .filter(s => s.score >= 25) // Threshold mais baixo para capturar mais candidatos
   .sort((a, b) => b.score - a.score)
   .slice(0, limite);
 }
@@ -179,52 +236,24 @@ serve(async (req) => {
     }
 
     let sugestoes: any[] = [];
-    let metodo = 'embedding_semantico';
+    let metodo = 'ai_semantic';
 
-    // 3. Tentar embedding semântico com Lovable AI
-    if (lovableApiKey) {
-      console.log("Gerando embedding para descrição do cliente...");
-      const queryEmbedding = await generateEmbedding(descricao_cliente, lovableApiKey);
-
-      if (queryEmbedding) {
-        console.log("Gerando embeddings para produtos...");
-        const produtosComEmbedding = await Promise.all(
-          produtos.map(async (p) => {
-            const productText = `${p.nome} ${p.referencia_interna} ${p.narrativa || ''}`;
-            const embedding = await generateEmbedding(productText, lovableApiKey);
-            return { ...p, embedding };
-          })
-        );
-
-        const scored = produtosComEmbedding
-          .filter(p => p.embedding)
-          .map(p => {
-            const similarity = cosineSimilarity(queryEmbedding, p.embedding!);
-            const score = Math.round(similarity * 100);
-            return {
-              produto_id: p.id,
-              score,
-              motivo: score > 80 ? 'Alta compatibilidade semântica' : 
-                      score > 60 ? 'Boa compatibilidade' : 
-                      'Compatibilidade moderada',
-              metodo: 'embedding_semantico'
-            };
-          })
-          .filter(s => s.score >= 40)
-          .sort((a, b) => b.score - a.score)
-          .slice(0, limite);
-
-        if (scored.length > 0) {
-          sugestoes = scored;
-        }
+    // 3. Tentar matching semântico com Lovable AI (chat-based)
+    if (lovableApiKey && produtos.length > 0) {
+      console.log("Tentando matching semântico com IA...");
+      sugestoes = await semanticMatching(descricao_cliente, produtos, lovableApiKey, limite);
+      
+      if (sugestoes.length > 0) {
+        console.log(`IA encontrou ${sugestoes.length} sugestões`);
       }
     }
 
-    // 4. Fallback: usar similaridade baseada em tokens
+    // 4. Fallback: usar similaridade baseada em tokens MELHORADA
     if (sugestoes.length === 0) {
-      console.log("Usando fallback baseado em tokens...");
-      metodo = 'token_fallback';
+      console.log("Usando algoritmo baseado em tokens melhorado...");
+      metodo = 'token_enhanced';
       sugestoes = tokenBasedSimilarity(descricao_cliente, produtos, limite);
+      console.log(`Token matching encontrou ${sugestoes.length} sugestões`);
     }
 
     // 5. Enriquecer sugestões com dados completos
