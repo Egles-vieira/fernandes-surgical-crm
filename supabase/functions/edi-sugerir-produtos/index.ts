@@ -167,12 +167,57 @@ Encontre os ${limite} produtos mais similares e retorne em JSON.`;
       );
     }
 
-    // 7. Enriquecer sugestões com dados completos dos produtos
-    const sugestoesEnriquecidas = sugestoesIA.sugestoes
+    // 7. Enriquecer sugestões com dados completos dos produtos (com fallback)
+    function normalize(str: string) {
+      return (str || '')
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[|.,/()\-]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    function tokenize(str: string) {
+      const stop = new Set(['de','do','da','e','ou','para','com','fr','mm','cateter','diagnostico','diagnóstico','unidade','peca','peça','im','jl','jr']);
+      return normalize(str)
+        .split(' ')
+        .filter(Boolean)
+        .filter(t => !stop.has(t));
+    }
+
+    let baseSugestoes = Array.isArray(sugestoesIA?.sugestoes) ? sugestoesIA.sugestoes : [];
+
+    // Fallback: se a IA não retornar nada, calcular similaridade simples por tokens
+    if (!baseSugestoes.length && descricao_cliente) {
+      const queryTokens = tokenize(descricao_cliente);
+
+      const scored = (produtos || []).map(p => {
+        const nameTokens = tokenize(`${p.nome} ${p.referencia_interna} ${p.narrativa || ''}`);
+        const setA = new Set(queryTokens);
+        const setB = new Set(nameTokens);
+        let inter = 0;
+        for (const t of setA) if (setB.has(t)) inter++;
+        const union = new Set([...setA, ...setB]).size || 1;
+        const jaccard = inter / union; // 0..1
+
+        // Bônus por ocorrência direta da referência no texto
+        const bonus = descricao_cliente.toLowerCase().includes(String(p.referencia_interna).toLowerCase()) ? 0.2 : 0;
+        const score = Math.min(1, jaccard + bonus) * 100;
+
+        return { produto_id: p.id, score: Math.round(score), motivo: inter ? `Tokens em comum: ${inter}` : 'Similaridade baixa' };
+      })
+      .filter(s => s.score >= 30) // limiar mínimo
+      .sort((a, b) => b.score - a.score)
+      .slice(0, limite);
+
+      baseSugestoes = scored;
+    }
+
+    const sugestoesEnriquecidas = (baseSugestoes || [])
       .map((sug: any) => {
         const produto = produtos?.find(p => p.id === sug.produto_id);
         if (!produto) return null;
-        
         return {
           produto_id: produto.id,
           nome: produto.nome,

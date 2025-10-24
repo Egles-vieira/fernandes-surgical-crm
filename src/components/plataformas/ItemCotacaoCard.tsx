@@ -123,8 +123,8 @@ export function ItemCotacaoCard({ item, cotacao, onUpdate }: ItemCotacaoCardProp
       } else {
         toast({
           title: "Nenhuma sugestão encontrada",
-          description: "A IA não encontrou produtos compatíveis no catálogo.",
-          variant: "destructive",
+          description: "Não encontramos match no catálogo agora. Tente ajustar a descrição ou vincule manualmente.",
+          // usar padrão para garantir contraste
         });
       }
     } catch (error: any) {
