@@ -3,6 +3,9 @@ project_id = "rzzzfprgnoywmmjwepzm"
 [functions.analisar-sentimento-cliente]
 verify_jwt = true
 
+[functions.edi-sugerir-produtos]
+verify_jwt = true
+
 [functions.chat-assistente-ticket]
 verify_jwt = true
 

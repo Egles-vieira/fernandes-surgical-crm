@@ -604,6 +604,719 @@ export type Database = {
           },
         ]
       }
+      edi_cotacoes: {
+        Row: {
+          atualizado_em: string | null
+          baixado_em: string | null
+          cidade_cliente: string | null
+          cnpj_cliente: string
+          criado_em: string | null
+          dados_brutos: string | null
+          dados_originais: Json
+          data_abertura: string
+          data_encerramento: string | null
+          data_vencimento_atual: string
+          data_vencimento_original: string
+          detalhes: Json | null
+          historico_steps: Json | null
+          id: string
+          id_cotacao_externa: string
+          id_resposta_externa: string | null
+          nome_cliente: string | null
+          numero_cotacao: string | null
+          plataforma_id: string | null
+          resgatada: boolean | null
+          resgatada_em: string | null
+          resgatada_por: string | null
+          respondido_em: string | null
+          respondido_por: string | null
+          step_atual: string
+          total_itens: number | null
+          total_itens_confirmados: number | null
+          total_itens_respondidos: number | null
+          uf_cliente: string | null
+          valor_total_confirmado: number | null
+          valor_total_respondido: number | null
+        }
+        Insert: {
+          atualizado_em?: string | null
+          baixado_em?: string | null
+          cidade_cliente?: string | null
+          cnpj_cliente: string
+          criado_em?: string | null
+          dados_brutos?: string | null
+          dados_originais: Json
+          data_abertura: string
+          data_encerramento?: string | null
+          data_vencimento_atual: string
+          data_vencimento_original: string
+          detalhes?: Json | null
+          historico_steps?: Json | null
+          id?: string
+          id_cotacao_externa: string
+          id_resposta_externa?: string | null
+          nome_cliente?: string | null
+          numero_cotacao?: string | null
+          plataforma_id?: string | null
+          resgatada?: boolean | null
+          resgatada_em?: string | null
+          resgatada_por?: string | null
+          respondido_em?: string | null
+          respondido_por?: string | null
+          step_atual?: string
+          total_itens?: number | null
+          total_itens_confirmados?: number | null
+          total_itens_respondidos?: number | null
+          uf_cliente?: string | null
+          valor_total_confirmado?: number | null
+          valor_total_respondido?: number | null
+        }
+        Update: {
+          atualizado_em?: string | null
+          baixado_em?: string | null
+          cidade_cliente?: string | null
+          cnpj_cliente?: string
+          criado_em?: string | null
+          dados_brutos?: string | null
+          dados_originais?: Json
+          data_abertura?: string
+          data_encerramento?: string | null
+          data_vencimento_atual?: string
+          data_vencimento_original?: string
+          detalhes?: Json | null
+          historico_steps?: Json | null
+          id?: string
+          id_cotacao_externa?: string
+          id_resposta_externa?: string | null
+          nome_cliente?: string | null
+          numero_cotacao?: string | null
+          plataforma_id?: string | null
+          resgatada?: boolean | null
+          resgatada_em?: string | null
+          resgatada_por?: string | null
+          respondido_em?: string | null
+          respondido_por?: string | null
+          step_atual?: string
+          total_itens?: number | null
+          total_itens_confirmados?: number | null
+          total_itens_respondidos?: number | null
+          uf_cliente?: string | null
+          valor_total_confirmado?: number | null
+          valor_total_respondido?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "edi_cotacoes_plataforma_id_fkey"
+            columns: ["plataforma_id"]
+            isOneToOne: false
+            referencedRelation: "plataformas_edi"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "edi_cotacoes_resgatada_por_fkey"
+            columns: ["resgatada_por"]
+            isOneToOne: false
+            referencedRelation: "perfis_usuario"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "edi_cotacoes_respondido_por_fkey"
+            columns: ["respondido_por"]
+            isOneToOne: false
+            referencedRelation: "perfis_usuario"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      edi_cotacoes_itens: {
+        Row: {
+          atualizado_em: string | null
+          codigo_produto_cliente: string | null
+          confirmado_em: string | null
+          cotacao_id: string | null
+          criado_em: string | null
+          dados_originais: Json
+          descricao_produto_cliente: string
+          detalhes_resposta: Json | null
+          id: string
+          id_item_externo: string | null
+          numero_item: number | null
+          percentual_desconto: number | null
+          preco_total: number | null
+          preco_unitario_respondido: number | null
+          produto_id: string | null
+          produto_vinculo_id: string | null
+          produtos_sugeridos_ia: Json | null
+          quantidade_confirmada: number | null
+          quantidade_respondida: number | null
+          quantidade_solicitada: number
+          respondido_em: string | null
+          status: string | null
+          unidade_medida: string | null
+          valor_desconto: number | null
+        }
+        Insert: {
+          atualizado_em?: string | null
+          codigo_produto_cliente?: string | null
+          confirmado_em?: string | null
+          cotacao_id?: string | null
+          criado_em?: string | null
+          dados_originais: Json
+          descricao_produto_cliente: string
+          detalhes_resposta?: Json | null
+          id?: string
+          id_item_externo?: string | null
+          numero_item?: number | null
+          percentual_desconto?: number | null
+          preco_total?: number | null
+          preco_unitario_respondido?: number | null
+          produto_id?: string | null
+          produto_vinculo_id?: string | null
+          produtos_sugeridos_ia?: Json | null
+          quantidade_confirmada?: number | null
+          quantidade_respondida?: number | null
+          quantidade_solicitada: number
+          respondido_em?: string | null
+          status?: string | null
+          unidade_medida?: string | null
+          valor_desconto?: number | null
+        }
+        Update: {
+          atualizado_em?: string | null
+          codigo_produto_cliente?: string | null
+          confirmado_em?: string | null
+          cotacao_id?: string | null
+          criado_em?: string | null
+          dados_originais?: Json
+          descricao_produto_cliente?: string
+          detalhes_resposta?: Json | null
+          id?: string
+          id_item_externo?: string | null
+          numero_item?: number | null
+          percentual_desconto?: number | null
+          preco_total?: number | null
+          preco_unitario_respondido?: number | null
+          produto_id?: string | null
+          produto_vinculo_id?: string | null
+          produtos_sugeridos_ia?: Json | null
+          quantidade_confirmada?: number | null
+          quantidade_respondida?: number | null
+          quantidade_solicitada?: number
+          respondido_em?: string | null
+          status?: string | null
+          unidade_medida?: string | null
+          valor_desconto?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "edi_cotacoes_itens_cotacao_id_fkey"
+            columns: ["cotacao_id"]
+            isOneToOne: false
+            referencedRelation: "edi_cotacoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "edi_cotacoes_itens_produto_id_fkey"
+            columns: ["produto_id"]
+            isOneToOne: false
+            referencedRelation: "produtos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "edi_cotacoes_itens_produto_vinculo_id_fkey"
+            columns: ["produto_vinculo_id"]
+            isOneToOne: false
+            referencedRelation: "edi_produtos_vinculo"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      edi_historico_mudancas: {
+        Row: {
+          alterado_em: string | null
+          alterado_por: string | null
+          campo: string
+          detalhes: Json | null
+          entidade_id: string
+          entidade_tipo: string
+          id: string
+          motivo: string | null
+          valor_anterior: string | null
+          valor_novo: string | null
+        }
+        Insert: {
+          alterado_em?: string | null
+          alterado_por?: string | null
+          campo: string
+          detalhes?: Json | null
+          entidade_id: string
+          entidade_tipo: string
+          id?: string
+          motivo?: string | null
+          valor_anterior?: string | null
+          valor_novo?: string | null
+        }
+        Update: {
+          alterado_em?: string | null
+          alterado_por?: string | null
+          campo?: string
+          detalhes?: Json | null
+          entidade_id?: string
+          entidade_tipo?: string
+          id?: string
+          motivo?: string | null
+          valor_anterior?: string | null
+          valor_novo?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "edi_historico_mudancas_alterado_por_fkey"
+            columns: ["alterado_por"]
+            isOneToOne: false
+            referencedRelation: "perfis_usuario"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      edi_logs_integracao: {
+        Row: {
+          dados_debug: Json | null
+          entidade_id: string | null
+          entidade_tipo: string | null
+          erro: string | null
+          executado_em: string | null
+          executado_por: string | null
+          id: string
+          id_cotacao_externa: string | null
+          id_pedido_externo: string | null
+          mensagem_retorno: string | null
+          metodo: string | null
+          operacao: string
+          parametros: Json | null
+          payload_enviado: string | null
+          payload_recebido: string | null
+          plataforma_id: string | null
+          stack_trace: string | null
+          status_code: number | null
+          status_http: number | null
+          sucesso: boolean | null
+          tempo_execucao_ms: number | null
+          tipo: string
+        }
+        Insert: {
+          dados_debug?: Json | null
+          entidade_id?: string | null
+          entidade_tipo?: string | null
+          erro?: string | null
+          executado_em?: string | null
+          executado_por?: string | null
+          id?: string
+          id_cotacao_externa?: string | null
+          id_pedido_externo?: string | null
+          mensagem_retorno?: string | null
+          metodo?: string | null
+          operacao: string
+          parametros?: Json | null
+          payload_enviado?: string | null
+          payload_recebido?: string | null
+          plataforma_id?: string | null
+          stack_trace?: string | null
+          status_code?: number | null
+          status_http?: number | null
+          sucesso?: boolean | null
+          tempo_execucao_ms?: number | null
+          tipo: string
+        }
+        Update: {
+          dados_debug?: Json | null
+          entidade_id?: string | null
+          entidade_tipo?: string | null
+          erro?: string | null
+          executado_em?: string | null
+          executado_por?: string | null
+          id?: string
+          id_cotacao_externa?: string | null
+          id_pedido_externo?: string | null
+          mensagem_retorno?: string | null
+          metodo?: string | null
+          operacao?: string
+          parametros?: Json | null
+          payload_enviado?: string | null
+          payload_recebido?: string | null
+          plataforma_id?: string | null
+          stack_trace?: string | null
+          status_code?: number | null
+          status_http?: number | null
+          sucesso?: boolean | null
+          tempo_execucao_ms?: number | null
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "edi_logs_integracao_executado_por_fkey"
+            columns: ["executado_por"]
+            isOneToOne: false
+            referencedRelation: "perfis_usuario"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "edi_logs_integracao_plataforma_id_fkey"
+            columns: ["plataforma_id"]
+            isOneToOne: false
+            referencedRelation: "plataformas_edi"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      edi_pedidos: {
+        Row: {
+          atualizado_em: string | null
+          cidade_cliente: string | null
+          cnpj_cliente: string
+          cotacao_id: string | null
+          criado_em: string | null
+          dados_brutos: string | null
+          dados_originais: Json
+          data_confirmacao: string
+          data_entrega_prevista: string | null
+          data_faturamento: string | null
+          data_pedido: string
+          detalhes: Json | null
+          id: string
+          id_pedido_externo: string
+          integrado_erp: boolean | null
+          integrado_erp_em: string | null
+          nome_cliente: string | null
+          numero_nota_fiscal: string | null
+          numero_pedido: string | null
+          plataforma_id: string | null
+          resgatado_em: string | null
+          status: string
+          uf_cliente: string | null
+          valor_desconto: number | null
+          valor_final: number
+          valor_frete: number | null
+          valor_total: number
+        }
+        Insert: {
+          atualizado_em?: string | null
+          cidade_cliente?: string | null
+          cnpj_cliente: string
+          cotacao_id?: string | null
+          criado_em?: string | null
+          dados_brutos?: string | null
+          dados_originais: Json
+          data_confirmacao: string
+          data_entrega_prevista?: string | null
+          data_faturamento?: string | null
+          data_pedido: string
+          detalhes?: Json | null
+          id?: string
+          id_pedido_externo: string
+          integrado_erp?: boolean | null
+          integrado_erp_em?: string | null
+          nome_cliente?: string | null
+          numero_nota_fiscal?: string | null
+          numero_pedido?: string | null
+          plataforma_id?: string | null
+          resgatado_em?: string | null
+          status?: string
+          uf_cliente?: string | null
+          valor_desconto?: number | null
+          valor_final: number
+          valor_frete?: number | null
+          valor_total: number
+        }
+        Update: {
+          atualizado_em?: string | null
+          cidade_cliente?: string | null
+          cnpj_cliente?: string
+          cotacao_id?: string | null
+          criado_em?: string | null
+          dados_brutos?: string | null
+          dados_originais?: Json
+          data_confirmacao?: string
+          data_entrega_prevista?: string | null
+          data_faturamento?: string | null
+          data_pedido?: string
+          detalhes?: Json | null
+          id?: string
+          id_pedido_externo?: string
+          integrado_erp?: boolean | null
+          integrado_erp_em?: string | null
+          nome_cliente?: string | null
+          numero_nota_fiscal?: string | null
+          numero_pedido?: string | null
+          plataforma_id?: string | null
+          resgatado_em?: string | null
+          status?: string
+          uf_cliente?: string | null
+          valor_desconto?: number | null
+          valor_final?: number
+          valor_frete?: number | null
+          valor_total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "edi_pedidos_cotacao_id_fkey"
+            columns: ["cotacao_id"]
+            isOneToOne: false
+            referencedRelation: "edi_cotacoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "edi_pedidos_plataforma_id_fkey"
+            columns: ["plataforma_id"]
+            isOneToOne: false
+            referencedRelation: "plataformas_edi"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      edi_pedidos_itens: {
+        Row: {
+          atualizado_em: string | null
+          cancelado_em: string | null
+          codigo_produto: string | null
+          cotacao_item_id: string | null
+          criado_em: string | null
+          dados_originais: Json
+          descricao_produto: string
+          detalhes: Json | null
+          foi_cancelado: boolean | null
+          id: string
+          id_item_externo: string | null
+          motivo_cancelamento: string | null
+          numero_item: number | null
+          pedido_id: string | null
+          percentual_desconto: number | null
+          preco_unitario: number
+          produto_id: string | null
+          produto_vinculo_id: string | null
+          quantidade: number
+          quantidade_entregue: number | null
+          status: string | null
+          unidade_medida: string | null
+          valor_desconto: number | null
+          valor_total: number
+        }
+        Insert: {
+          atualizado_em?: string | null
+          cancelado_em?: string | null
+          codigo_produto?: string | null
+          cotacao_item_id?: string | null
+          criado_em?: string | null
+          dados_originais: Json
+          descricao_produto: string
+          detalhes?: Json | null
+          foi_cancelado?: boolean | null
+          id?: string
+          id_item_externo?: string | null
+          motivo_cancelamento?: string | null
+          numero_item?: number | null
+          pedido_id?: string | null
+          percentual_desconto?: number | null
+          preco_unitario: number
+          produto_id?: string | null
+          produto_vinculo_id?: string | null
+          quantidade: number
+          quantidade_entregue?: number | null
+          status?: string | null
+          unidade_medida?: string | null
+          valor_desconto?: number | null
+          valor_total: number
+        }
+        Update: {
+          atualizado_em?: string | null
+          cancelado_em?: string | null
+          codigo_produto?: string | null
+          cotacao_item_id?: string | null
+          criado_em?: string | null
+          dados_originais?: Json
+          descricao_produto?: string
+          detalhes?: Json | null
+          foi_cancelado?: boolean | null
+          id?: string
+          id_item_externo?: string | null
+          motivo_cancelamento?: string | null
+          numero_item?: number | null
+          pedido_id?: string | null
+          percentual_desconto?: number | null
+          preco_unitario?: number
+          produto_id?: string | null
+          produto_vinculo_id?: string | null
+          quantidade?: number
+          quantidade_entregue?: number | null
+          status?: string | null
+          unidade_medida?: string | null
+          valor_desconto?: number | null
+          valor_total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "edi_pedidos_itens_cotacao_item_id_fkey"
+            columns: ["cotacao_item_id"]
+            isOneToOne: false
+            referencedRelation: "edi_cotacoes_itens"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "edi_pedidos_itens_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "edi_pedidos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "edi_pedidos_itens_produto_id_fkey"
+            columns: ["produto_id"]
+            isOneToOne: false
+            referencedRelation: "produtos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "edi_pedidos_itens_produto_vinculo_id_fkey"
+            columns: ["produto_vinculo_id"]
+            isOneToOne: false
+            referencedRelation: "edi_produtos_vinculo"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      edi_produtos_vinculo: {
+        Row: {
+          aprovado_em: string | null
+          aprovado_por: string | null
+          ativo: boolean | null
+          atualizado_em: string | null
+          cnpj_cliente: string
+          codigo_ean: string | null
+          codigo_produto_cliente: string | null
+          codigo_produto_fornecedor: string | null
+          codigo_simpro: string | null
+          criado_em: string | null
+          criado_por: string | null
+          desconto_padrao: number | null
+          descricao_cliente: string | null
+          eh_produto_alternativo: boolean | null
+          estoque_minimo: number | null
+          id: string
+          observacoes: string | null
+          ordem_prioridade: number | null
+          plataforma_id: string | null
+          preco_padrao: number | null
+          produto_id: string | null
+          prompt_ia: string | null
+          resposta_ia: Json | null
+          score_confianca: number | null
+          sugerido_em: string | null
+          sugerido_por_ia: boolean | null
+          taxa_conversao: number | null
+          total_cotacoes_respondidas: number | null
+          total_pedidos_ganhos: number | null
+          total_pedidos_perdidos: number | null
+          ultima_cotacao_em: string | null
+          ultimo_preco_respondido: number | null
+        }
+        Insert: {
+          aprovado_em?: string | null
+          aprovado_por?: string | null
+          ativo?: boolean | null
+          atualizado_em?: string | null
+          cnpj_cliente: string
+          codigo_ean?: string | null
+          codigo_produto_cliente?: string | null
+          codigo_produto_fornecedor?: string | null
+          codigo_simpro?: string | null
+          criado_em?: string | null
+          criado_por?: string | null
+          desconto_padrao?: number | null
+          descricao_cliente?: string | null
+          eh_produto_alternativo?: boolean | null
+          estoque_minimo?: number | null
+          id?: string
+          observacoes?: string | null
+          ordem_prioridade?: number | null
+          plataforma_id?: string | null
+          preco_padrao?: number | null
+          produto_id?: string | null
+          prompt_ia?: string | null
+          resposta_ia?: Json | null
+          score_confianca?: number | null
+          sugerido_em?: string | null
+          sugerido_por_ia?: boolean | null
+          taxa_conversao?: number | null
+          total_cotacoes_respondidas?: number | null
+          total_pedidos_ganhos?: number | null
+          total_pedidos_perdidos?: number | null
+          ultima_cotacao_em?: string | null
+          ultimo_preco_respondido?: number | null
+        }
+        Update: {
+          aprovado_em?: string | null
+          aprovado_por?: string | null
+          ativo?: boolean | null
+          atualizado_em?: string | null
+          cnpj_cliente?: string
+          codigo_ean?: string | null
+          codigo_produto_cliente?: string | null
+          codigo_produto_fornecedor?: string | null
+          codigo_simpro?: string | null
+          criado_em?: string | null
+          criado_por?: string | null
+          desconto_padrao?: number | null
+          descricao_cliente?: string | null
+          eh_produto_alternativo?: boolean | null
+          estoque_minimo?: number | null
+          id?: string
+          observacoes?: string | null
+          ordem_prioridade?: number | null
+          plataforma_id?: string | null
+          preco_padrao?: number | null
+          produto_id?: string | null
+          prompt_ia?: string | null
+          resposta_ia?: Json | null
+          score_confianca?: number | null
+          sugerido_em?: string | null
+          sugerido_por_ia?: boolean | null
+          taxa_conversao?: number | null
+          total_cotacoes_respondidas?: number | null
+          total_pedidos_ganhos?: number | null
+          total_pedidos_perdidos?: number | null
+          ultima_cotacao_em?: string | null
+          ultimo_preco_respondido?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "edi_produtos_vinculo_aprovado_por_fkey"
+            columns: ["aprovado_por"]
+            isOneToOne: false
+            referencedRelation: "perfis_usuario"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "edi_produtos_vinculo_criado_por_fkey"
+            columns: ["criado_por"]
+            isOneToOne: false
+            referencedRelation: "perfis_usuario"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "edi_produtos_vinculo_plataforma_id_fkey"
+            columns: ["plataforma_id"]
+            isOneToOne: false
+            referencedRelation: "plataformas_edi"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "edi_produtos_vinculo_produto_id_fkey"
+            columns: ["produto_id"]
+            isOneToOne: false
+            referencedRelation: "produtos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       empresas: {
         Row: {
           atualizado_em: string | null
@@ -1573,6 +2286,71 @@ export type Database = {
           tipo_pipeline?: string | null
         }
         Relationships: []
+      }
+      plataformas_edi: {
+        Row: {
+          ambiente: string | null
+          ativo: boolean | null
+          atualizado_em: string | null
+          configuracoes: Json
+          criado_em: string | null
+          criado_por: string | null
+          formato_dados: string | null
+          id: string
+          intervalo_consulta_minutos: number | null
+          mapeamento_campos: Json
+          nome: string
+          slug: string
+          tipo_plataforma: string
+          total_cotacoes_baixadas: number | null
+          total_pedidos_baixados: number | null
+          ultima_consulta_em: string | null
+        }
+        Insert: {
+          ambiente?: string | null
+          ativo?: boolean | null
+          atualizado_em?: string | null
+          configuracoes?: Json
+          criado_em?: string | null
+          criado_por?: string | null
+          formato_dados?: string | null
+          id?: string
+          intervalo_consulta_minutos?: number | null
+          mapeamento_campos?: Json
+          nome: string
+          slug: string
+          tipo_plataforma: string
+          total_cotacoes_baixadas?: number | null
+          total_pedidos_baixados?: number | null
+          ultima_consulta_em?: string | null
+        }
+        Update: {
+          ambiente?: string | null
+          ativo?: boolean | null
+          atualizado_em?: string | null
+          configuracoes?: Json
+          criado_em?: string | null
+          criado_por?: string | null
+          formato_dados?: string | null
+          id?: string
+          intervalo_consulta_minutos?: number | null
+          mapeamento_campos?: Json
+          nome?: string
+          slug?: string
+          tipo_plataforma?: string
+          total_cotacoes_baixadas?: number | null
+          total_pedidos_baixados?: number | null
+          ultima_consulta_em?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plataformas_edi_criado_por_fkey"
+            columns: ["criado_por"]
+            isOneToOne: false
+            referencedRelation: "perfis_usuario"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       produtos: {
         Row: {
