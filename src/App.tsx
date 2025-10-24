@@ -21,6 +21,7 @@ import MinhaCarteira from "./pages/vendas/MinhaCarteira";
 import CotacoesPlataforma from "./pages/plataformas/Cotacoes";
 import PedidosPlataforma from "./pages/plataformas/Pedidos";
 import RelatoriosPlataforma from "./pages/plataformas/Relatorios";
+import ProdutosVinculo from "./pages/plataformas/ProdutosVinculo";
 import SolicitacaoParticipacao from "./pages/licitacoes/SolicitacaoParticipacao";
 import ContratosGoverno from "./pages/licitacoes/ContratosGoverno";
 import WhatsApp from "./pages/WhatsApp";
@@ -142,6 +143,13 @@ const App = () => (
           <ProtectedRoute>
             <Layout>
               <RelatoriosPlataforma />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/plataformas/produtos-vinculo" element={
+          <ProtectedRoute>
+            <Layout>
+              <ProdutosVinculo />
             </Layout>
           </ProtectedRoute>
         } />
