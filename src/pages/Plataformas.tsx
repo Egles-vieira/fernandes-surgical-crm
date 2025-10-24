@@ -8,7 +8,7 @@ export default function Plataformas() {
 
   const modulos = [
     {
-      titulo: "Cotações EDI",
+      titulo: "Plataformas de eletrônicas",
       descricao: "Gerencie cotações de plataformas Bionexo, Mercado Eletrônico e outras",
       icone: Calculator,
       rota: "/plataformas/cotacoes",
@@ -48,9 +48,7 @@ export default function Plataformas() {
     <div className="p-8 space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Plataformas EDI</h1>
-        <p className="text-muted-foreground">
-          Gestão integrada de cotações e pedidos de múltiplas plataformas
-        </p>
+        <p className="text-muted-foreground">Gestão integrada de cotações e pedidos de múltiplas plataformas</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

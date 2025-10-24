@@ -47,7 +47,7 @@ export default function Header({ collapsed, onToggle }: HeaderProps) {
         };
       case "/plataformas/cotacoes":
         return {
-          title: "Cotações EDI",
+          title: "Plataformas de eletrônicas",
           description: "Gerencie cotações das plataformas EDI",
           breadcrumb: "Cirúrgica Fernandes / Plataformas / Cotações",
         };

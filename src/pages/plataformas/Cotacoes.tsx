@@ -78,7 +78,7 @@ export default function Cotacoes() {
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-2">
             <Calculator className="h-8 w-8" />
-            Plataformas de cotações
+            Plataformas de eletrônicas
           </h1>
           <p className="text-muted-foreground">Gerenciamento de cotações das plataformas integradas</p>
         </div>
