@@ -240,73 +240,103 @@ async function parseBionexoXML(xmlString: string): Promise<CotacaoImportada[]> {
   // Parse XML manualmente (regex-based para simplicidade)
   const cotacoes: CotacaoImportada[] = [];
   
-  // Buscar blocos <PDC> ou <pdc>
-  const pdcRegex = /<(?:PDC|pdc)[^>]*>([\s\S]*?)<\/(?:PDC|pdc)>/gi;
-  const pdcMatches = cleanXml.matchAll(pdcRegex);
+  // Buscar blocos <Pedido> (formato real do Bionexo)
+  const pedidoRegex = /<(?:Pedido|pedido)[^>]*>([\s\S]*?)<\/(?:Pedido|pedido)>/gi;
+  const pedidoMatches = cleanXml.matchAll(pedidoRegex);
   
-  for (const match of pdcMatches) {
-    const pdcXml = match[1];
+  for (const match of pedidoMatches) {
+    const pedidoXml = match[1];
     
     try {
-      // Extrair campos principais
-      const id_cotacao = extrairTag(pdcXml, ['IdPDC', 'idPDC', 'id_pdc']);
-      const numero = extrairTag(pdcXml, ['NumeroPDC', 'numero_pdc', 'numeroPDC']);
+      // Extrair bloco Cabecalho
+      const cabecalhoMatch = pedidoXml.match(/<Cabecalho[^>]*>([\s\S]*?)<\/Cabecalho>/i);
+      if (!cabecalhoMatch) {
+        console.warn('Pedido sem Cabecalho, pulando...');
+        continue;
+      }
+      const cabecalhoXml = cabecalhoMatch[1];
+      
+      // Extrair campos principais do cabeçalho
+      const id_cotacao = extrairTag(cabecalhoXml, ['Id_Pdc', 'IdPDC', 'id_pdc']);
+      const numero = extrairTag(cabecalhoXml, ['Titulo_Pdc', 'TituloPDC', 'titulo_pdc']);
       
       if (!id_cotacao) {
-        console.warn('PDC sem ID, pulando...');
+        console.warn('Pedido sem ID, pulando...');
         continue;
       }
 
       // Dados do hospital/comprador
-      const cnpj = extrairTag(pdcXml, ['CNPJ', 'cnpj', 'CnpjHospital', 'cnpjHospital']) || '';
-      const nome = extrairTag(pdcXml, ['NomeHospital', 'nomeHospital', 'RazaoSocial', 'razaoSocial']);
-      const cidade = extrairTag(pdcXml, ['Cidade', 'cidade']);
-      const uf = extrairTag(pdcXml, ['UF', 'uf', 'Estado', 'estado']);
+      const cnpj = (extrairTag(cabecalhoXml, ['CNPJ_Hospital', 'CnpjHospital', 'CNPJ', 'cnpj']) || '').replace(/[.\-\/]/g, '');
+      const nome = extrairTag(cabecalhoXml, ['Nome_Hospital', 'NomeHospital', 'nome_hospital']);
+      
+      // Extrair cidade e UF do endereço de entrega se disponível
+      const enderecoEntrega = extrairTag(cabecalhoXml, ['Endereco_Entrega', 'EnderecoEntrega', 'endereco_entrega']);
+      let cidade = '';
+      let uf = '';
+      if (enderecoEntrega) {
+        // Formato típico: "Rua X, Numero - Bairro, CIDADE, UF"
+        const enderecoMatch = enderecoEntrega.match(/,([^,]+),([A-Z]{2})\s*$/i);
+        if (enderecoMatch) {
+          cidade = enderecoMatch[1].trim();
+          uf = enderecoMatch[2].trim().toUpperCase();
+        }
+      }
 
-      // Datas
-      const dataAbertura = extrairTag(pdcXml, ['DataAbertura', 'dataAbertura', 'DataCriacao', 'dataCriacao']);
-      const dataVencimento = extrairTag(pdcXml, ['DataVencimento', 'dataVencimento', 'DataLimite', 'dataLimite']);
+      // Datas - montar a partir de Data + Hora
+      const dataVenc = extrairTag(cabecalhoXml, ['Data_Vencimento', 'DataVencimento', 'data_vencimento']);
+      const horaVenc = extrairTag(cabecalhoXml, ['Hora_Vencimento', 'HoraVencimento', 'hora_vencimento']);
+      const dataVencimento = dataVenc ? `${dataVenc} ${horaVenc || '23:59'}` : '';
+      
+      // Data de abertura - usar data atual se não disponível
+      const dataAbertura = new Date().toISOString().split('T')[0];
 
-      if (!cnpj || !dataAbertura || !dataVencimento) {
-        console.warn(`PDC ${id_cotacao} com dados incompletos, pulando...`);
+      if (!cnpj || !dataVencimento) {
+        console.warn(`Pedido ${id_cotacao} com dados incompletos (CNPJ ou data), pulando...`);
         continue;
       }
 
       // Parse dos itens
-      const itensRegex = /<(?:Item|item|Produto|produto)[^>]*>([\s\S]*?)<\/(?:Item|item|Produto|produto)>/gi;
-      const itensMatches = pdcXml.matchAll(itensRegex);
+      const itensRequisicaoMatch = pedidoXml.match(/<Itens_Requisicao[^>]*>([\s\S]*?)<\/Itens_Requisicao>/i);
+      if (!itensRequisicaoMatch) {
+        console.warn(`Pedido ${id_cotacao} sem Itens_Requisicao, pulando...`);
+        continue;
+      }
+      
+      const itensRequisicaoXml = itensRequisicaoMatch[1];
+      const itemRegex = /<Item_Requisicao[^>]*>([\s\S]*?)<\/Item_Requisicao>/gi;
+      const itemMatches = itensRequisicaoXml.matchAll(itemRegex);
       const itens: ItemCotacao[] = [];
 
-      let itemIndex = 0;
-      for (const itemMatch of itensMatches) {
+      for (const itemMatch of itemMatches) {
         const itemXml = itemMatch[1];
-        itemIndex++;
         
-        const id_item = extrairTag(itemXml, ['IdItem', 'idItem', 'id_item', 'CodigoItem', 'codigoItem']) || `item_${itemIndex}`;
-        const codigo = extrairTag(itemXml, ['CodigoProduto', 'codigoProduto', 'Codigo', 'codigo']);
-        const descricao = extrairTag(itemXml, ['Descricao', 'descricao', 'NomeProduto', 'nomeProduto']);
-        const unidade = extrairTag(itemXml, ['UnidadeMedida', 'unidadeMedida', 'Unidade', 'unidade']);
-        const quantidade = extrairTag(itemXml, ['Quantidade', 'quantidade', 'Qtde', 'qtde']);
+        const sequencia = extrairTag(itemXml, ['Sequencia', 'sequencia']);
+        const id_artigo = extrairTag(itemXml, ['Id_Artigo', 'IdArtigo', 'id_artigo']);
+        const codigo = extrairTag(itemXml, ['Codigo_Produto', 'CodigoProduto', 'codigo_produto']);
+        const descricao = extrairTag(itemXml, ['Descricao_Produto', 'DescricaoProduto', 'descricao_produto']);
+        const unidade = extrairTag(itemXml, ['Unidade_Medida', 'UnidadeMedida', 'unidade_medida']);
+        const quantidade = extrairTag(itemXml, ['Quantidade', 'quantidade']);
 
         if (!descricao || !quantidade) {
-          console.warn(`Item ${id_item} sem dados essenciais, pulando...`);
+          console.warn(`Item ${id_artigo || sequencia} sem descrição ou quantidade, pulando...`);
           continue;
         }
 
         itens.push({
-          id_item,
+          id_item: id_artigo || `seq_${sequencia}`,
           codigo_produto: codigo,
           descricao: descricao,
           unidade_medida: unidade,
           quantidade: parseFloat(quantidade),
           dados_originais: {
+            sequencia,
             xml_snippet: itemXml.substring(0, 500),
           },
         });
       }
 
       if (itens.length === 0) {
-        console.warn(`PDC ${id_cotacao} sem itens válidos, pulando...`);
+        console.warn(`Pedido ${id_cotacao} sem itens válidos, pulando...`);
         continue;
       }
 
@@ -321,25 +351,30 @@ async function parseBionexoXML(xmlString: string): Promise<CotacaoImportada[]> {
         data_vencimento: formatarDataBionexo(dataVencimento),
         itens,
         dados_originais: {
-          xml_snippet: pdcXml.substring(0, 1000),
+          xml_snippet: cabecalhoXml.substring(0, 1000),
         },
         detalhes: {
-          forma_pagamento: extrairTag(pdcXml, ['FormaPagamento', 'formaPagamento']),
-          prazo_entrega: extrairTag(pdcXml, ['PrazoEntrega', 'prazoEntrega']),
-          observacoes: extrairTag(pdcXml, ['Observacoes', 'observacoes']),
+          forma_pagamento: extrairTag(cabecalhoXml, ['Forma_Pagamento', 'FormaPagamento']),
+          observacao: extrairTag(cabecalhoXml, ['Observacao', 'observacao']),
+          termo: extrairTag(cabecalhoXml, ['Termo', 'termo']),
+          contato: extrairTag(cabecalhoXml, ['Contato', 'contato']),
+          endereco_entrega: enderecoEntrega,
         },
       });
 
+      console.log(`✅ Pedido ${id_cotacao} parseado: ${itens.length} itens`);
+
     } catch (error) {
-      console.error('Erro ao processar PDC:', error);
+      console.error('Erro ao processar Pedido:', error);
       continue;
     }
   }
 
   if (cotacoes.length === 0) {
-    throw new Error('Nenhuma cotação válida encontrada no XML');
+    throw new Error('Nenhuma cotação válida encontrada no XML. Verifique se o arquivo está no formato Bionexo.');
   }
 
+  console.log(`📦 Total de ${cotacoes.length} cotação(ões) parseada(s) com sucesso`);
   return cotacoes;
 }
 
