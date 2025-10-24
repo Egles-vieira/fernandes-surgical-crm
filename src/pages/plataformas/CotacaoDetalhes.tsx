@@ -7,23 +7,9 @@ import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import {
-  Building2,
-  Calendar,
-  MapPin,
-  FileText,
-  Package,
-  DollarSign,
-  Clock,
-  CheckCircle2,
-  XCircle,
-  ArrowLeft,
-  ChevronRight,
-  ChevronLeft,
-} from "lucide-react";
+import { Building2, Calendar, MapPin, FileText, Package, DollarSign, Clock, CheckCircle2, XCircle, ArrowLeft, ChevronRight, ChevronLeft } from "lucide-react";
 import { EDICotacao } from "@/hooks/useEDICotacoes";
 import { useToast } from "@/hooks/use-toast";
-
 interface ItemCotacao {
   id: string;
   numero_item: number;
@@ -37,59 +23,59 @@ interface ItemCotacao {
   status: string;
   respondido_em: string | null;
 }
-
 export default function CotacaoDetalhes() {
-  const { id } = useParams<{ id: string }>();
+  const {
+    id
+  } = useParams<{
+    id: string;
+  }>();
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const {
+    toast
+  } = useToast();
   const [cotacao, setCotacao] = useState<EDICotacao | null>(null);
   const [itens, setItens] = useState<ItemCotacao[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [historicoAberto, setHistoricoAberto] = useState(true);
-
   useEffect(() => {
     if (id) {
       carregarDados();
     }
   }, [id]);
-
   const carregarDados = async () => {
     setIsLoading(true);
     try {
       // Carregar cotação
-      const { data: cotacaoData, error: cotacaoError } = await supabase
-        .from("edi_cotacoes")
-        .select(`
+      const {
+        data: cotacaoData,
+        error: cotacaoError
+      } = await supabase.from("edi_cotacoes").select(`
           *,
           plataformas_edi(nome, slug)
-        `)
-        .eq("id", id)
-        .single();
-
+        `).eq("id", id).single();
       if (cotacaoError) throw cotacaoError;
       setCotacao(cotacaoData as EDICotacao);
 
       // Carregar itens
-      const { data: itensData, error: itensError } = await supabase
-        .from("edi_cotacoes_itens")
-        .select("*")
-        .eq("cotacao_id", id)
-        .order("numero_item", { ascending: true });
-
+      const {
+        data: itensData,
+        error: itensError
+      } = await supabase.from("edi_cotacoes_itens").select("*").eq("cotacao_id", id).order("numero_item", {
+        ascending: true
+      });
       if (itensError) throw itensError;
       setItens(itensData || []);
     } catch (error: any) {
       toast({
         title: "Erro ao carregar dados",
         description: error.message,
-        variant: "destructive",
+        variant: "destructive"
       });
       navigate("/plataformas/cotacoes");
     } finally {
       setIsLoading(false);
     }
   };
-
   const stepLabel = (step: string) => {
     const labels: Record<string, string> = {
       nova: "Nova",
@@ -97,67 +83,49 @@ export default function CotacaoDetalhes() {
       respondida: "Respondida",
       confirmada: "Confirmada",
       perdida: "Perdida",
-      cancelada: "Cancelada",
+      cancelada: "Cancelada"
     };
     return labels[step] || step;
   };
-
   const statusItemBadge = (status: string) => {
     switch (status) {
       case "respondido":
-        return (
-          <Badge variant="default">
+        return <Badge variant="default">
             <CheckCircle2 className="h-3 w-3 mr-1" />
             Respondido
-          </Badge>
-        );
+          </Badge>;
       case "pendente":
-        return (
-          <Badge variant="secondary">
+        return <Badge variant="secondary">
             <Clock className="h-3 w-3 mr-1" />
             Pendente
-          </Badge>
-        );
+          </Badge>;
       case "sem_estoque":
-        return (
-          <Badge variant="outline">
+        return <Badge variant="outline">
             <XCircle className="h-3 w-3 mr-1" />
             Sem Estoque
-          </Badge>
-        );
+          </Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
   };
-
   if (isLoading) {
-    return (
-      <div className="p-8">
+    return <div className="p-8">
         <div className="animate-pulse space-y-4">
           <div className="h-8 bg-muted rounded w-1/4"></div>
           <div className="h-64 bg-muted rounded"></div>
         </div>
-      </div>
-    );
+      </div>;
   }
-
   if (!cotacao) return null;
-
   const valorTotal = itens.reduce((acc, item) => acc + (item.preco_total || 0), 0);
-
-  return (
-    <div className="min-h-screen bg-background">
+  return <div className="min-h-screen bg-background">
       <div className="flex">
         {/* Área Principal */}
         <div className={`flex-1 transition-all duration-300 ${historicoAberto ? 'mr-96' : 'mr-0'}`}>
           <div className="p-8 space-y-6">
             {/* Header */}
             <div className="flex items-center gap-4 mb-6">
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => navigate("/plataformas/cotacoes")}
-              >
+              <Button variant="outline" size="icon" onClick={() => navigate("/plataformas/cotacoes")}>
                 <ArrowLeft className="h-4 w-4" />
               </Button>
               <div className="flex-1">
@@ -218,30 +186,26 @@ export default function CotacaoDetalhes() {
                         <p className="text-sm text-muted-foreground">Abertura</p>
                         <p className="font-medium">
                           {format(new Date(cotacao.data_abertura), "dd/MM/yyyy HH:mm", {
-                            locale: ptBR,
-                          })}
+                          locale: ptBR
+                        })}
                         </p>
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">Vencimento</p>
                         <p className="font-medium text-destructive">
-                          {format(
-                            new Date(cotacao.data_vencimento_atual),
-                            "dd/MM/yyyy HH:mm",
-                            { locale: ptBR }
-                          )}
+                          {format(new Date(cotacao.data_vencimento_atual), "dd/MM/yyyy HH:mm", {
+                          locale: ptBR
+                        })}
                         </p>
                       </div>
-                      {cotacao.resgatada && cotacao.resgatada_em && (
-                        <div>
+                      {cotacao.resgatada && cotacao.resgatada_em && <div>
                           <p className="text-sm text-muted-foreground">Resgatada em</p>
                           <p className="font-medium">
                             {format(new Date(cotacao.resgatada_em), "dd/MM/yyyy HH:mm", {
-                              locale: ptBR,
-                            })}
+                          locale: ptBR
+                        })}
                           </p>
-                        </div>
-                      )}
+                        </div>}
                     </div>
                   </div>
                 </div>
@@ -249,32 +213,7 @@ export default function CotacaoDetalhes() {
             </Card>
 
             {/* CABEÇALHO - Plataforma */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Package className="h-5 w-5" />
-                  Cabeçalho
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-3 gap-6">
-                  {cotacao.plataformas_edi && (
-                    <div>
-                      <p className="text-sm text-muted-foreground mb-1">Plataforma</p>
-                      <p className="font-medium">{cotacao.plataformas_edi.nome}</p>
-                    </div>
-                  )}
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-1">Número da Cotação</p>
-                    <p className="font-medium">{cotacao.numero_cotacao}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-1">ID Externo</p>
-                    <p className="font-medium">{cotacao.id_cotacao_externa}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            
 
             {/* ITENS E INFORMAÇÕES DE ITENS */}
             <Card>
@@ -286,8 +225,7 @@ export default function CotacaoDetalhes() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {itens.map((item) => (
-                    <Card key={item.id} className="border">
+                  {itens.map(item => <Card key={item.id} className="border">
                       <CardContent className="pt-4">
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex-1">
@@ -298,11 +236,9 @@ export default function CotacaoDetalhes() {
                             <h4 className="font-semibold mb-1">
                               {item.descricao_produto_cliente}
                             </h4>
-                            {item.codigo_produto_cliente && (
-                              <p className="text-sm text-muted-foreground">
+                            {item.codigo_produto_cliente && <p className="text-sm text-muted-foreground">
                                 Código: {item.codigo_produto_cliente}
-                              </p>
-                            )}
+                              </p>}
                           </div>
                         </div>
 
@@ -313,8 +249,7 @@ export default function CotacaoDetalhes() {
                               {item.quantidade_solicitada} {item.unidade_medida}
                             </p>
                           </div>
-                          {item.quantidade_respondida && (
-                            <>
+                          {item.quantidade_respondida && <>
                               <div>
                                 <p className="text-muted-foreground mb-1">Qtd. Respondida</p>
                                 <p className="font-medium">
@@ -325,26 +260,24 @@ export default function CotacaoDetalhes() {
                                 <p className="text-muted-foreground mb-1">Preço Unitário</p>
                                 <p className="font-medium">
                                   {new Intl.NumberFormat("pt-BR", {
-                                    style: "currency",
-                                    currency: "BRL",
-                                  }).format(item.preco_unitario_respondido || 0)}
+                              style: "currency",
+                              currency: "BRL"
+                            }).format(item.preco_unitario_respondido || 0)}
                                 </p>
                               </div>
                               <div>
                                 <p className="text-muted-foreground mb-1">Total</p>
                                 <p className="font-bold text-primary">
                                   {new Intl.NumberFormat("pt-BR", {
-                                    style: "currency",
-                                    currency: "BRL",
-                                  }).format(item.preco_total || 0)}
+                              style: "currency",
+                              currency: "BRL"
+                            }).format(item.preco_total || 0)}
                                 </p>
                               </div>
-                            </>
-                          )}
+                            </>}
                         </div>
                       </CardContent>
-                    </Card>
-                  ))}
+                    </Card>)}
                 </div>
               </CardContent>
             </Card>
@@ -366,8 +299,7 @@ export default function CotacaoDetalhes() {
                   </div>
                 </div>
                 
-                {cotacao.detalhes && Object.keys(cotacao.detalhes).length > 0 && (
-                  <>
+                {cotacao.detalhes && Object.keys(cotacao.detalhes).length > 0 && <>
                     <Separator className="my-4" />
                     <div>
                       <p className="text-sm font-semibold mb-2">Detalhes Adicionais</p>
@@ -375,8 +307,7 @@ export default function CotacaoDetalhes() {
                         {JSON.stringify(cotacao.detalhes, null, 2)}
                       </pre>
                     </div>
-                  </>
-                )}
+                  </>}
               </CardContent>
             </Card>
 
@@ -390,45 +321,29 @@ export default function CotacaoDetalhes() {
                   </div>
                   <p className="text-3xl font-bold text-primary">
                     {new Intl.NumberFormat("pt-BR", {
-                      style: "currency",
-                      currency: "BRL",
-                    }).format(valorTotal)}
+                    style: "currency",
+                    currency: "BRL"
+                  }).format(valorTotal)}
                   </p>
                 </div>
               </CardContent>
             </Card>
 
-            {cotacao.step_atual === "em_analise" && (
-              <div className="flex justify-end gap-2">
+            {cotacao.step_atual === "em_analise" && <div className="flex justify-end gap-2">
                 <Button size="lg">Responder Cotação</Button>
-              </div>
-            )}
+              </div>}
           </div>
         </div>
 
         {/* Painel Lateral de Histórico */}
-        <div
-          className={`fixed right-0 top-0 h-screen bg-card border-l shadow-lg transition-all duration-300 ${
-            historicoAberto ? 'w-96' : 'w-12'
-          }`}
-        >
+        <div className={`fixed right-0 top-0 h-screen bg-card border-l shadow-lg transition-all duration-300 ${historicoAberto ? 'w-96' : 'w-12'}`}>
           {/* Botão de Toggle */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute left-2 top-4 z-10"
-            onClick={() => setHistoricoAberto(!historicoAberto)}
-          >
-            {historicoAberto ? (
-              <ChevronRight className="h-4 w-4" />
-            ) : (
-              <ChevronLeft className="h-4 w-4" />
-            )}
+          <Button variant="ghost" size="icon" className="absolute left-2 top-4 z-10" onClick={() => setHistoricoAberto(!historicoAberto)}>
+            {historicoAberto ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
           </Button>
 
           {/* Conteúdo do Histórico */}
-          {historicoAberto && (
-            <div className="p-6 pt-16 h-full overflow-y-auto">
+          {historicoAberto && <div className="p-6 pt-16 h-full overflow-y-auto">
               <div className="flex items-center gap-2 mb-6">
                 <Clock className="h-5 w-5" />
                 <h2 className="text-xl font-bold">Histórico</h2>
@@ -444,10 +359,8 @@ export default function CotacaoDetalhes() {
                   </p>
                 </div>
               </div>
-            </div>
-          )}
+            </div>}
         </div>
       </div>
-    </div>
-  );
+    </div>;
 }
