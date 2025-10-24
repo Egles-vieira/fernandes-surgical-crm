@@ -1,12 +1,12 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Calculator, Clock, Building2, FileText, Sparkles, Upload } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useEDICotacoes, EDICotacao } from "@/hooks/useEDICotacoes";
+import { useEDICotacoes } from "@/hooks/useEDICotacoes";
 import ImportarXMLDialog from "@/components/plataformas/ImportarXMLDialog";
-import CotacaoDetalhesDialog from "@/components/plataformas/CotacaoDetalhesDialog";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -38,10 +38,9 @@ const stepLabel = (step: string) => {
 };
 
 export default function Cotacoes() {
+  const navigate = useNavigate();
   const [stepFiltro, setStepFiltro] = useState<string>("nova");
   const [importarDialogOpen, setImportarDialogOpen] = useState(false);
-  const [detalhesDialogOpen, setDetalhesDialogOpen] = useState(false);
-  const [cotacaoSelecionada, setCotacaoSelecionada] = useState<EDICotacao | null>(null);
   const { cotacoes, isLoading, resgatarCotacao } = useEDICotacoes({
     step: stepFiltro,
   });
@@ -58,11 +57,6 @@ export default function Cotacoes() {
 
   const handleResgatar = async (cotacaoId: string) => {
     await resgatarCotacao.mutateAsync(cotacaoId);
-  };
-
-  const handleVerDetalhes = (cotacao: EDICotacao) => {
-    setCotacaoSelecionada(cotacao);
-    setDetalhesDialogOpen(true);
   };
 
   if (isLoading) {
@@ -116,13 +110,6 @@ export default function Cotacoes() {
         onOpenChange={setImportarDialogOpen}
         plataformaId={null}
         tipoPlataforma="bionexo"
-      />
-
-      {/* Dialog de Detalhes */}
-      <CotacaoDetalhesDialog
-        open={detalhesDialogOpen}
-        onOpenChange={setDetalhesDialogOpen}
-        cotacao={cotacaoSelecionada}
       />
 
       {/* Cards de Estatísticas */}
@@ -269,7 +256,10 @@ export default function Cotacoes() {
                             Resgatar
                           </Button>
                         )}
-                        <Button variant="outline" onClick={() => handleVerDetalhes(cotacao)}>
+                        <Button 
+                          variant="outline" 
+                          onClick={() => navigate(`/plataformas/cotacoes/${cotacao.id}`)}
+                        >
                           Ver Detalhes
                         </Button>
                       </div>

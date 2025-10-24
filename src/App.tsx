@@ -19,6 +19,7 @@ import PedidosVendas from "./pages/vendas/Pedidos";
 import ContratosVendas from "./pages/vendas/Contratos";
 import MinhaCarteira from "./pages/vendas/MinhaCarteira";
 import CotacoesPlataforma from "./pages/plataformas/Cotacoes";
+import CotacaoDetalhes from "./pages/plataformas/CotacaoDetalhes";
 import PedidosPlataforma from "./pages/plataformas/Pedidos";
 import RelatoriosPlataforma from "./pages/plataformas/Relatorios";
 import ProdutosVinculo from "./pages/plataformas/ProdutosVinculo";
@@ -129,6 +130,13 @@ const App = () => (
           <ProtectedRoute>
             <Layout>
               <CotacoesPlataforma />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/plataformas/cotacoes/:id" element={
+          <ProtectedRoute>
+            <Layout>
+              <CotacaoDetalhes />
             </Layout>
           </ProtectedRoute>
         } />
