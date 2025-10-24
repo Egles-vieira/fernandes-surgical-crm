@@ -24,10 +24,14 @@ interface ItemCotacaoCardProps {
     percentual_desconto?: number | null;
     produto_id?: string | null;
   };
+  cotacao: {
+    cnpj_cliente: string;
+    plataforma_id: string;
+  };
   onUpdate: () => void;
 }
 
-export function ItemCotacaoCard({ item, onUpdate }: ItemCotacaoCardProps) {
+export function ItemCotacaoCard({ item, cotacao, onUpdate }: ItemCotacaoCardProps) {
   const { toast } = useToast();
   const [dialogAberto, setDialogAberto] = useState(false);
   const [produtoVinculado, setProdutoVinculado] = useState<any>(null);
@@ -86,19 +90,27 @@ export function ItemCotacaoCard({ item, onUpdate }: ItemCotacaoCardProps) {
       const response = await supabase.functions.invoke("edi-sugerir-produtos", {
         body: {
           descricao_cliente: item.descricao_produto_cliente,
-          codigo_cliente: item.codigo_produto_cliente,
+          cnpj_cliente: cotacao.cnpj_cliente,
+          plataforma_id: cotacao.plataforma_id,
+          limite: 5,
         },
       });
 
       if (response.error) throw response.error;
 
-      const sugestoes = response.data?.produtos || [];
+      const sugestoes = response.data?.sugestoes || [];
       if (sugestoes.length > 0) {
         setProdutoVinculado(sugestoes[0]);
         setPrecoUnitario(sugestoes[0].preco_venda || 0);
         toast({
           title: "Análise concluída",
-          description: `IA sugeriu: ${sugestoes[0].nome}`,
+          description: `IA sugeriu: ${sugestoes[0].nome} (Score: ${Math.round(sugestoes[0].score * 100)}%)`,
+        });
+      } else {
+        toast({
+          title: "Nenhuma sugestão encontrada",
+          description: "A IA não encontrou produtos compatíveis no catálogo.",
+          variant: "destructive",
         });
       }
     } catch (error: any) {

@@ -230,6 +230,7 @@ export default function CotacaoDetalhes() {
                     <ItemCotacaoCard 
                       key={item.id} 
                       item={item} 
+                      cotacao={cotacao}
                       onUpdate={carregarDados}
                     />
                   ))}
