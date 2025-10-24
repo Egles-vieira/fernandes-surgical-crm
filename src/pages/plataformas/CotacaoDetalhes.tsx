@@ -292,7 +292,7 @@ export default function CotacaoDetalhes() {
         </div>
 
         {/* Painel Lateral de Histórico */}
-        <div className={`fixed right-0 top-0 h-screen bg-card border-l shadow-lg transition-all duration-500 ease-in-out z-50 ${historicoAberto ? 'w-96' : 'w-12'} overflow-hidden`}>
+        <div className={`fixed right-0 top-16 h-[calc(100vh-4rem)] bg-card border-l shadow-lg transition-all duration-500 ease-in-out z-50 ${historicoAberto ? 'w-96' : 'w-12'} overflow-hidden`}>
           {/* Botão de Toggle */}
           <Button 
             variant="ghost" 
