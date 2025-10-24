@@ -13,6 +13,7 @@ export interface EDIProdutoVinculo {
   score_confianca: number | null;
   sugerido_em: string | null;
   aprovado_em: string | null;
+  criado_em?: string | null;
   ativo: boolean;
   produtos?: {
     id: string;
@@ -20,10 +21,7 @@ export interface EDIProdutoVinculo {
     referencia_interna: string;
     preco_venda: number;
     quantidade_em_maos: number;
-  };
-  plataformas_edi?: {
-    nome: string;
-    slug: string;
+    unidade_medida: string;
   };
 }
 
@@ -42,8 +40,7 @@ export const useEDIProdutosVinculo = (filtros?: {
         .from("edi_produtos_vinculo")
         .select(`
           *,
-          produtos(id, nome, referencia_interna, preco_venda, quantidade_em_maos),
-          plataformas_edi(nome, slug)
+          produtos(id, nome, referencia_interna, preco_venda, quantidade_em_maos, unidade_medida)
         `)
         .order("criado_em", { ascending: false });
 
@@ -66,6 +63,21 @@ export const useEDIProdutosVinculo = (filtros?: {
 
       if (error) throw error;
       return data as EDIProdutoVinculo[];
+    },
+  });
+
+  const { data: countPendentes } = useQuery({
+    queryKey: ["edi-produtos-vinculo-count"],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("edi_produtos_vinculo")
+        .select("*", { count: "exact", head: true })
+        .eq("sugerido_por_ia", true)
+        .is("aprovado_em", null)
+        .eq("ativo", false);
+
+      if (error) throw error;
+      return count || 0;
     },
   });
 
@@ -170,6 +182,7 @@ export const useEDIProdutosVinculo = (filtros?: {
   return {
     vinculos,
     isLoading,
+    countPendentes: countPendentes || 0,
     sugerirProdutos,
     aprovarVinculo,
     rejeitarVinculo,

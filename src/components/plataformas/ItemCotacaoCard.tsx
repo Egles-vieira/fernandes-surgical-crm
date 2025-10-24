@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Sparkles, Package, Link as LinkIcon, Save } from "lucide-react";
 import { ProdutoSearchDialog } from "./ProdutoSearchDialog";
+import { SugestoesIADialog } from "./SugestoesIADialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -34,6 +35,8 @@ interface ItemCotacaoCardProps {
 export function ItemCotacaoCard({ item, cotacao, onUpdate }: ItemCotacaoCardProps) {
   const { toast } = useToast();
   const [dialogAberto, setDialogAberto] = useState(false);
+  const [sugestoesDialogAberto, setSugestoesDialogAberto] = useState(false);
+  const [sugestoesIA, setSugestoesIA] = useState<any[]>([]);
   const [produtoVinculado, setProdutoVinculado] = useState<any>(null);
   const [quantidade, setQuantidade] = useState(item.quantidade_respondida || item.quantidade_solicitada);
   const [precoUnitario, setPrecoUnitario] = useState(item.preco_unitario_respondido || 0);
@@ -87,6 +90,11 @@ export function ItemCotacaoCard({ item, cotacao, onUpdate }: ItemCotacaoCardProp
   const handleAnalisarIA = async () => {
     setIsLoading(true);
     try {
+      toast({
+        title: "Analisando com IA...",
+        description: "Buscando produtos compatíveis no catálogo.",
+      });
+
       const response = await supabase.functions.invoke("edi-sugerir-produtos", {
         body: {
           descricao_cliente: item.descricao_produto_cliente,
@@ -101,30 +109,12 @@ export function ItemCotacaoCard({ item, cotacao, onUpdate }: ItemCotacaoCardProp
       const sugestoes = response.data?.sugestoes || [];
       
       if (sugestoes.length > 0) {
-        const melhorSugestao = sugestoes[0];
-        
-        // Criar objeto compatível com o formato esperado
-        const produtoSugerido = {
-          id: melhorSugestao.produto_id,
-          nome: melhorSugestao.nome,
-          referencia_interna: melhorSugestao.referencia,
-          preco_venda: melhorSugestao.preco,
-          quantidade_em_maos: melhorSugestao.estoque,
-          unidade_medida: melhorSugestao.unidade
-        };
-        
-        setProdutoVinculado(produtoSugerido);
-        setPrecoUnitario(melhorSugestao.preco || 0);
-        
-        toast({
-          title: "Análise concluída",
-          description: `IA sugeriu: ${melhorSugestao.nome} (Score: ${Math.round(melhorSugestao.score)}%)`,
-        });
+        setSugestoesIA(sugestoes);
+        setSugestoesDialogAberto(true);
       } else {
         toast({
           title: "Nenhuma sugestão encontrada",
-          description: "Não encontramos match no catálogo agora. Tente ajustar a descrição ou vincule manualmente.",
-          // usar padrão para garantir contraste
+          description: "Não encontramos match no catálogo. Tente vincular manualmente.",
         });
       }
     } catch (error: any) {
@@ -136,6 +126,25 @@ export function ItemCotacaoCard({ item, cotacao, onUpdate }: ItemCotacaoCardProp
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleSelecionarSugestao = (sugestao: any) => {
+    const produtoSugerido = {
+      id: sugestao.produto_id,
+      nome: sugestao.nome,
+      referencia_interna: sugestao.referencia_interna,
+      preco_venda: sugestao.preco_venda,
+      quantidade_em_maos: sugestao.quantidade_em_maos,
+      unidade_medida: sugestao.unidade_medida
+    };
+    
+    setProdutoVinculado(produtoSugerido);
+    setPrecoUnitario(sugestao.preco_venda || 0);
+    
+    toast({
+      title: "Produto vinculado",
+      description: `${sugestao.nome} (${sugestao.score}% compatibilidade)`,
+    });
   };
 
   return (
@@ -265,6 +274,17 @@ export function ItemCotacaoCard({ item, cotacao, onUpdate }: ItemCotacaoCardProp
         open={dialogAberto}
         onOpenChange={setDialogAberto}
         onSelect={handleVincularProduto}
+      />
+
+      <SugestoesIADialog
+        open={sugestoesDialogAberto}
+        onOpenChange={setSugestoesDialogAberto}
+        sugestoes={sugestoesIA}
+        onSelecionar={handleSelecionarSugestao}
+        onBuscarManual={() => {
+          setSugestoesDialogAberto(false);
+          setDialogAberto(true);
+        }}
       />
     </>
   );

@@ -155,11 +155,6 @@ export default function ProdutosVinculo() {
                           Ativo
                         </Badge>
                       )}
-                      {vinculo.plataformas_edi && (
-                        <Badge variant="outline">
-                          {vinculo.plataformas_edi.nome}
-                        </Badge>
-                      )}
                       {vinculo.score_confianca && (
                         <Badge
                           variant={
