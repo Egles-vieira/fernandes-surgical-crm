@@ -868,15 +868,7 @@ export type Database = {
           valor_anterior?: string | null
           valor_novo?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "edi_historico_mudancas_alterado_por_fkey"
-            columns: ["alterado_por"]
-            isOneToOne: false
-            referencedRelation: "perfis_usuario"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       edi_logs_integracao: {
         Row: {
