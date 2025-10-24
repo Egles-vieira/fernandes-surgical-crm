@@ -292,14 +292,20 @@ export default function CotacaoDetalhes() {
         </div>
 
         {/* Painel Lateral de Histórico */}
-        <div className={`fixed right-0 top-0 h-screen bg-card border-l shadow-lg transition-all duration-300 ${historicoAberto ? 'w-96' : 'w-12'}`}>
+        <div className={`fixed right-0 top-0 h-screen bg-card border-l shadow-lg transition-all duration-500 ease-in-out ${historicoAberto ? 'w-96' : 'w-12'} overflow-hidden`}>
           {/* Botão de Toggle */}
-          <Button variant="ghost" size="icon" className="absolute left-2 top-4 z-10" onClick={() => setHistoricoAberto(!historicoAberto)}>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className={`absolute left-2 top-4 z-10 transition-all duration-300 ${historicoAberto ? '' : 'hover:scale-110'}`}
+            onClick={() => setHistoricoAberto(!historicoAberto)}
+          >
             {historicoAberto ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
           </Button>
 
           {/* Conteúdo do Histórico */}
-          {historicoAberto && <div className="p-6 pt-16 h-full overflow-y-auto">
+          {historicoAberto && (
+            <div className="p-6 pt-16 h-full overflow-y-auto animate-fade-in">
               <div className="flex items-center gap-2 mb-6">
                 <Clock className="h-5 w-5" />
                 <h2 className="text-xl font-bold">Histórico</h2>
@@ -308,14 +314,15 @@ export default function CotacaoDetalhes() {
               <Separator className="mb-4" />
               
               <div className="space-y-4">
-                <div className="text-center py-12">
+                <div className="text-center py-12 animate-scale-in">
                   <Clock className="mx-auto h-12 w-12 text-muted-foreground mb-4 opacity-50" />
                   <p className="text-muted-foreground">
                     Histórico de atividades será exibido aqui
                   </p>
                 </div>
               </div>
-            </div>}
+            </div>
+          )}
         </div>
       </div>
     </div>;
