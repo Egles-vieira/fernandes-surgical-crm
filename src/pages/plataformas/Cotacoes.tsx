@@ -47,12 +47,9 @@ export default function Cotacoes() {
 
   const estatisticas = {
     novas: cotacoes?.filter((c) => c.step_atual === "nova").length || 0,
-    emAnalise:
-      cotacoes?.filter((c) => c.step_atual === "em_analise").length || 0,
-    respondidas:
-      cotacoes?.filter((c) => c.step_atual === "respondida").length || 0,
-    confirmadas:
-      cotacoes?.filter((c) => c.step_atual === "confirmada").length || 0,
+    emAnalise: cotacoes?.filter((c) => c.step_atual === "em_analise").length || 0,
+    respondidas: cotacoes?.filter((c) => c.step_atual === "respondida").length || 0,
+    confirmadas: cotacoes?.filter((c) => c.step_atual === "confirmada").length || 0,
   };
 
   const handleResgatar = async (cotacaoId: string) => {
@@ -81,19 +78,12 @@ export default function Cotacoes() {
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-2">
             <Calculator className="h-8 w-8" />
-            Cotações EDI
+            Plataformas de cotações
           </h1>
-          <p className="text-muted-foreground">
-            Gerenciamento de cotações das plataformas integradas
-          </p>
+          <p className="text-muted-foreground">Gerenciamento de cotações das plataformas integradas</p>
         </div>
         <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            size="lg" 
-            className="gap-2"
-            onClick={() => setImportarDialogOpen(true)}
-          >
+          <Button variant="outline" size="lg" className="gap-2" onClick={() => setImportarDialogOpen(true)}>
             <Upload className="h-4 w-4" />
             Importar XML
           </Button>
@@ -116,16 +106,12 @@ export default function Cotacoes() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Cotações Novas
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">Cotações Novas</CardTitle>
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{estatisticas.novas}</div>
-            <p className="text-xs text-muted-foreground">
-              Aguardando resgate
-            </p>
+            <p className="text-xs text-muted-foreground">Aguardando resgate</p>
           </CardContent>
         </Card>
 
@@ -136,9 +122,7 @@ export default function Cotacoes() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{estatisticas.emAnalise}</div>
-            <p className="text-xs text-muted-foreground">
-              Sendo trabalhadas
-            </p>
+            <p className="text-xs text-muted-foreground">Sendo trabalhadas</p>
           </CardContent>
         </Card>
 
@@ -149,9 +133,7 @@ export default function Cotacoes() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{estatisticas.respondidas}</div>
-            <p className="text-xs text-muted-foreground">
-              Aguardando confirmação
-            </p>
+            <p className="text-xs text-muted-foreground">Aguardando confirmação</p>
           </CardContent>
         </Card>
 
@@ -162,9 +144,7 @@ export default function Cotacoes() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{estatisticas.confirmadas}</div>
-            <p className="text-xs text-muted-foreground">
-              Pedidos confirmados
-            </p>
+            <p className="text-xs text-muted-foreground">Pedidos confirmados</p>
           </CardContent>
         </Card>
       </div>
@@ -172,18 +152,10 @@ export default function Cotacoes() {
       {/* Tabs com Cotações */}
       <Tabs value={stepFiltro} onValueChange={setStepFiltro}>
         <TabsList>
-          <TabsTrigger value="nova">
-            Novas ({estatisticas.novas})
-          </TabsTrigger>
-          <TabsTrigger value="em_analise">
-            Em Análise ({estatisticas.emAnalise})
-          </TabsTrigger>
-          <TabsTrigger value="respondida">
-            Respondidas ({estatisticas.respondidas})
-          </TabsTrigger>
-          <TabsTrigger value="confirmada">
-            Confirmadas ({estatisticas.confirmadas})
-          </TabsTrigger>
+          <TabsTrigger value="nova">Novas ({estatisticas.novas})</TabsTrigger>
+          <TabsTrigger value="em_analise">Em Análise ({estatisticas.emAnalise})</TabsTrigger>
+          <TabsTrigger value="respondida">Respondidas ({estatisticas.respondidas})</TabsTrigger>
+          <TabsTrigger value="confirmada">Confirmadas ({estatisticas.confirmadas})</TabsTrigger>
         </TabsList>
 
         <TabsContent value={stepFiltro} className="space-y-4 mt-4">
@@ -195,14 +167,8 @@ export default function Cotacoes() {
                     <div className="flex items-start justify-between">
                       <div className="space-y-2 flex-1">
                         <div className="flex items-center gap-2">
-                          <Badge variant={stepBadgeVariant(cotacao.step_atual)}>
-                            {stepLabel(cotacao.step_atual)}
-                          </Badge>
-                          {cotacao.plataformas_edi && (
-                            <Badge variant="outline">
-                              {cotacao.plataformas_edi.nome}
-                            </Badge>
-                          )}
+                          <Badge variant={stepBadgeVariant(cotacao.step_atual)}>{stepLabel(cotacao.step_atual)}</Badge>
+                          {cotacao.plataformas_edi && <Badge variant="outline">{cotacao.plataformas_edi.nome}</Badge>}
                         </div>
 
                         <h3 className="font-semibold text-lg">
@@ -213,9 +179,7 @@ export default function Cotacoes() {
                           <div>
                             <span className="text-muted-foreground">Cliente:</span>
                             <p className="font-medium">{cotacao.nome_cliente}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {cotacao.cnpj_cliente}
-                            </p>
+                            <p className="text-xs text-muted-foreground">{cotacao.cnpj_cliente}</p>
                           </div>
 
                           <div>
@@ -228,11 +192,7 @@ export default function Cotacoes() {
                           <div>
                             <span className="text-muted-foreground">Vencimento:</span>
                             <p className="font-medium">
-                              {format(
-                                new Date(cotacao.data_vencimento_atual),
-                                "dd/MM/yyyy HH:mm",
-                                { locale: ptBR }
-                              )}
+                              {format(new Date(cotacao.data_vencimento_atual), "dd/MM/yyyy HH:mm", { locale: ptBR })}
                             </p>
                           </div>
 
@@ -249,17 +209,11 @@ export default function Cotacoes() {
 
                       <div className="flex flex-col gap-2">
                         {!cotacao.resgatada && stepFiltro === "nova" && (
-                          <Button
-                            onClick={() => handleResgatar(cotacao.id)}
-                            disabled={resgatarCotacao.isPending}
-                          >
+                          <Button onClick={() => handleResgatar(cotacao.id)} disabled={resgatarCotacao.isPending}>
                             Resgatar
                           </Button>
                         )}
-                        <Button 
-                          variant="outline" 
-                          onClick={() => navigate(`/plataformas/cotacoes/${cotacao.id}`)}
-                        >
+                        <Button variant="outline" onClick={() => navigate(`/plataformas/cotacoes/${cotacao.id}`)}>
                           Ver Detalhes
                         </Button>
                       </div>
@@ -271,9 +225,7 @@ export default function Cotacoes() {
           ) : (
             <Card className="p-12 text-center">
               <FileText className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">
-                Nenhuma cotação encontrada neste status
-              </p>
+              <p className="text-muted-foreground">Nenhuma cotação encontrada neste status</p>
             </Card>
           )}
         </TabsContent>
