@@ -11,6 +11,7 @@ import { Building2, Calendar, MapPin, FileText, Package, DollarSign, Clock, Chec
 import { EDICotacao } from "@/hooks/useEDICotacoes";
 import { useToast } from "@/hooks/use-toast";
 import { ItemCotacaoCard } from "@/components/plataformas/ItemCotacaoCard";
+import { CotacaoActionBar } from "@/components/plataformas/CotacaoActionBar";
 interface ItemCotacao {
   id: string;
   numero_item: number;
@@ -119,7 +120,40 @@ export default function CotacaoDetalhes() {
   }
   if (!cotacao) return null;
   const valorTotal = itens.reduce((acc, item) => acc + (item.preco_total || 0), 0);
+
+  const handleResponder = () => {
+    // TODO: Implementar lógica de responder cotação
+    toast({
+      title: "Em desenvolvimento",
+      description: "Funcionalidade de responder cotação em breve.",
+    });
+  };
+
+  const handleCancelar = () => {
+    // TODO: Implementar lógica de cancelar cotação
+    toast({
+      title: "Em desenvolvimento",
+      description: "Funcionalidade de cancelar cotação em breve.",
+    });
+  };
+
+  const handleConfirmar = () => {
+    // TODO: Implementar lógica de confirmar pedido
+    toast({
+      title: "Em desenvolvimento",
+      description: "Funcionalidade de confirmar pedido em breve.",
+    });
+  };
+
   return <div className="min-h-screen bg-background">
+      <CotacaoActionBar
+        status={cotacao.step_atual}
+        numeroCotacao={cotacao.numero_cotacao}
+        onResponder={handleResponder}
+        onCancelar={handleCancelar}
+        onConfirmar={handleConfirmar}
+      />
+      
       <div className="flex">
         {/* Área Principal */}
         <div className={`flex-1 transition-all duration-300 ${historicoAberto ? 'mr-96' : 'mr-0'}`}>
@@ -130,12 +164,6 @@ export default function CotacaoDetalhes() {
                 <ArrowLeft className="h-4 w-4" />
               </Button>
               <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <h1 className="font-bold text-xl">
-                    Cotação {cotacao.numero_cotacao}
-                  </h1>
-                  <Badge variant="default">{stepLabel(cotacao.step_atual)}</Badge>
-                </div>
                 <p className="text-muted-foreground">
                   ID Externo: {cotacao.id_cotacao_externa}
                 </p>
@@ -273,9 +301,6 @@ export default function CotacaoDetalhes() {
               </CardContent>
             </Card>
 
-            {cotacao.step_atual === "em_analise" && <div className="flex justify-end gap-2">
-                <Button size="lg">Responder Cotação</Button>
-              </div>}
           </div>
         </div>
 
