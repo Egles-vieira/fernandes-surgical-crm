@@ -1,31 +1,11 @@
+import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
-
-interface ProdutoEstoque {
-  id: string;
-  referencia_interna: string;
-  nome: string;
-  quantidade_em_maos: number;
-  preco_venda: number;
-  unidade_medida: string;
-  ncm?: string;
-  narrativa?: string;
-}
-
-interface SugestaoIA {
-  produto_id: string;
-  score: number;
-  motivo: string;
-  referencia_interna: string;
-  nome_produto: string;
-  preco: number;
-  estoque: number;
-}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -33,109 +13,111 @@ serve(async (req) => {
   }
 
   try {
+    const { descricao_cliente, cnpj_cliente, plataforma_id, limite = 5 } = await req.json();
+    
+    if (!descricao_cliente) {
+      return new Response(
+        JSON.stringify({ error: 'descricao_cliente é obrigatória' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const deepseekApiKey = Deno.env.get('DEEPSEEK_API_KEY');
 
     if (!deepseekApiKey) {
-      throw new Error('DEEPSEEK_API_KEY não configurada');
+      return new Response(
+        JSON.stringify({ error: 'DEEPSEEK_API_KEY não configurada' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { 
-      descricao_cliente, 
-      codigo_produto_cliente, 
-      cnpj_cliente,
-      plataforma_id,
-      limite_sugestoes = 5 
-    } = await req.json();
-
-    if (!descricao_cliente) {
-      throw new Error('descricao_cliente é obrigatória');
-    }
-
-    console.log('🔍 Buscando produtos em estoque...');
-    
-    // Buscar produtos com estoque disponível
-    const { data: produtosEstoque, error: produtosError } = await supabase
+    // 1. Buscar todos os produtos em estoque
+    const { data: produtos, error: produtosError } = await supabase
       .from('produtos')
-      .select('id, referencia_interna, nome, quantidade_em_maos, preco_venda, unidade_medida, ncm, narrativa')
+      .select('id, referencia_interna, nome, unidade_medida, preco_venda, quantidade_em_maos, ncm, narrativa')
       .gt('quantidade_em_maos', 0)
-      .order('quantidade_em_maos', { ascending: false })
-      .limit(100); // Limitar para não enviar muitos dados para a IA
+      .order('nome');
 
     if (produtosError) {
-      throw new Error(`Erro ao buscar produtos: ${produtosError.message}`);
+      console.error('Erro ao buscar produtos:', produtosError);
+      return new Response(
+        JSON.stringify({ error: 'Erro ao buscar produtos' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
-    if (!produtosEstoque || produtosEstoque.length === 0) {
+    // 2. Verificar se já existe vínculo para esta descrição
+    const { data: vinculoExistente } = await supabase
+      .from('edi_produtos_vinculo')
+      .select('produto_id, score_confianca')
+      .eq('descricao_cliente', descricao_cliente)
+      .eq('cnpj_cliente', cnpj_cliente)
+      .eq('plataforma_id', plataforma_id)
+      .maybeSingle();
+
+    if (vinculoExistente) {
+      const produtoVinculado = produtos?.find(p => p.id === vinculoExistente.produto_id);
       return new Response(
-        JSON.stringify({ 
-          sugestoes: [], 
-          mensagem: 'Nenhum produto em estoque encontrado' 
+        JSON.stringify({
+          sugestoes: produtoVinculado ? [{
+            produto_id: produtoVinculado.id,
+            nome: produtoVinculado.nome,
+            referencia: produtoVinculado.referencia_interna,
+            preco: produtoVinculado.preco_venda,
+            estoque: produtoVinculado.quantidade_em_maos,
+            score: vinculoExistente.score_confianca || 100,
+            motivo: 'Vínculo já cadastrado',
+            ja_vinculado: true
+          }] : [],
+          total_produtos_analisados: produtos?.length || 0
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log(`📦 ${produtosEstoque.length} produtos em estoque encontrados`);
+    // 3. Preparar contexto dos produtos para a IA
+    const contextoProdutos = produtos?.slice(0, 100).map(p => 
+      `ID: ${p.id} | REF: ${p.referencia_interna} | NOME: ${p.nome} | UN: ${p.unidade_medida} | PREÇO: ${p.preco_venda} | ESTOQUE: ${p.quantidade_em_maos}${p.narrativa ? ` | DESC: ${p.narrativa}` : ''}`
+    ).join('\n');
 
-    // Preparar contexto para a IA
-    const catalogoProdutos = produtosEstoque.map((p: ProdutoEstoque) => ({
-      id: p.id,
-      ref: p.referencia_interna,
-      nome: p.nome,
-      estoque: p.quantidade_em_maos,
-      preco: p.preco_venda,
-      unidade: p.unidade_medida,
-      ncm: p.ncm || '',
-      descricao: p.narrativa || ''
-    }));
+    // 4. Montar prompt para DeepSeek
+    const systemPrompt = `Você é um especialista em matching de produtos farmacêuticos/hospitalares.
 
-    const systemPrompt = `Você é um especialista em produtos médico-hospitalares e deve sugerir produtos do nosso estoque que correspondam à descrição fornecida pelo cliente.
+Sua missão: Analisar a descrição de um produto solicitado pelo cliente e encontrar os ${limite} melhores produtos correspondentes em nosso catálogo.
 
-**SEU OBJETIVO:**
-Analisar a descrição do produto solicitado pelo cliente e encontrar os produtos mais adequados no nosso catálogo.
+REGRAS CRÍTICAS:
+1. Retorne APENAS JSON válido, sem texto adicional
+2. Analise: nome do produto, princípio ativo, dosagem, forma farmacêutica, apresentação
+3. Considere variações de nomenclatura (genérico vs. comercial)
+4. Score de 0-100: 90-100 = match perfeito, 70-89 = muito similar, 50-69 = provável, <50 = incerto
+5. Se não encontrar match razoável (score < 50), retorne array vazio
 
-**REGRAS IMPORTANTES:**
-1. Considere APENAS produtos com estoque disponível (estoque > 0)
-2. Priorize produtos com maior quantidade em estoque
-3. Considere sinônimos, nomes alternativos e descrições similares
-4. Se houver NCM, use-o como critério forte de correspondência
-5. Retorne no MÁXIMO ${limite_sugestoes} sugestões
-6. Ordene por score de confiança (0-100)
-7. SEMPRE retorne JSON válido no formato especificado
-
-**CRITÉRIOS DE SCORE:**
-- 90-100: Correspondência exata ou muito próxima
-- 70-89: Correspondência boa, produto similar
-- 50-69: Correspondência razoável, pode ser alternativa
-- Abaixo de 50: Não retorne
-
-**FORMATO DE RESPOSTA (JSON):**
+FORMATO DE RESPOSTA (JSON):
 {
   "sugestoes": [
     {
-      "produto_id": "uuid",
+      "produto_id": "uuid-do-produto",
       "score": 95,
-      "motivo": "Correspondência exata de nome e NCM"
+      "motivo": "Match perfeito: mesmo princípio ativo, dosagem e apresentação"
     }
   ]
 }`;
 
-    const userPrompt = `**PRODUTO SOLICITADO PELO CLIENTE:**
-Descrição: ${descricao_cliente}
-${codigo_produto_cliente ? `Código do Cliente: ${codigo_produto_cliente}` : ''}
-${cnpj_cliente ? `CNPJ Cliente: ${cnpj_cliente}` : ''}
+    const userPrompt = `PRODUTO SOLICITADO PELO CLIENTE:
+"${descricao_cliente}"
 
-**CATÁLOGO DISPONÍVEL (${catalogoProdutos.length} produtos):**
-${JSON.stringify(catalogoProdutos, null, 2)}
+NOSSO CATÁLOGO (${produtos?.length || 0} produtos disponíveis):
+${contextoProdutos}
 
-Analise e retorne as ${limite_sugestoes} melhores sugestões em JSON.`;
+Encontre os ${limite} produtos mais similares e retorne em JSON.`;
 
     console.log('🤖 Consultando DeepSeek AI...');
 
+    // 5. Chamar DeepSeek AI
     const deepseekResponse = await fetch('https://api.deepseek.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -148,100 +130,109 @@ Analise e retorne as ${limite_sugestoes} melhores sugestões em JSON.`;
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
         ],
-        temperature: 0.3, // Baixa temperatura para respostas mais determinísticas
-        max_tokens: 2000,
-        response_format: { type: 'json_object' }
+        temperature: 0.3,
+        max_tokens: 1000,
       }),
     });
 
     if (!deepseekResponse.ok) {
       const errorText = await deepseekResponse.text();
-      console.error('❌ Erro DeepSeek:', deepseekResponse.status, errorText);
-      throw new Error(`Erro na API DeepSeek: ${deepseekResponse.status}`);
+      console.error('Erro DeepSeek:', deepseekResponse.status, errorText);
+      return new Response(
+        JSON.stringify({ error: 'Erro ao consultar DeepSeek AI', detalhes: errorText }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     const deepseekData = await deepseekResponse.json();
     const respostaIA = deepseekData.choices[0].message.content;
 
-    console.log('✅ Resposta da IA recebida');
+    console.log('🤖 Resposta bruta da IA:', respostaIA);
 
+    // 6. Parse da resposta
     let sugestoesIA;
     try {
-      sugestoesIA = JSON.parse(respostaIA);
-    } catch (e) {
-      console.error('❌ Erro ao parsear JSON da IA:', respostaIA);
-      throw new Error('Resposta da IA não está em formato JSON válido');
+      // Limpar possível markdown
+      const jsonMatch = respostaIA.match(/\{[\s\S]*\}/);
+      const jsonText = jsonMatch ? jsonMatch[0] : respostaIA;
+      sugestoesIA = JSON.parse(jsonText);
+    } catch (parseError) {
+      console.error('Erro ao fazer parse da resposta IA:', parseError);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Formato de resposta inválido da IA', 
+          resposta_bruta: respostaIA 
+        }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
-    // Enriquecer sugestões com dados completos dos produtos
-    const sugestoesEnriquecidas: SugestaoIA[] = [];
-    
-    for (const sugestao of sugestoesIA.sugestoes || []) {
-      const produto = produtosEstoque.find((p: ProdutoEstoque) => p.id === sugestao.produto_id);
-      
-      if (produto) {
-        sugestoesEnriquecidas.push({
+    // 7. Enriquecer sugestões com dados completos dos produtos
+    const sugestoesEnriquecidas = sugestoesIA.sugestoes
+      .map((sug: any) => {
+        const produto = produtos?.find(p => p.id === sug.produto_id);
+        if (!produto) return null;
+        
+        return {
           produto_id: produto.id,
-          score: sugestao.score,
-          motivo: sugestao.motivo,
-          referencia_interna: produto.referencia_interna,
-          nome_produto: produto.nome,
+          nome: produto.nome,
+          referencia: produto.referencia_interna,
           preco: produto.preco_venda,
-          estoque: produto.quantidade_em_maos
+          estoque: produto.quantidade_em_maos,
+          unidade: produto.unidade_medida,
+          score: sug.score,
+          motivo: sug.motivo,
+          ja_vinculado: false
+        };
+      })
+      .filter((s: any) => s !== null)
+      .sort((a: any, b: any) => b.score - a.score);
+
+    // 8. Salvar sugestões no banco (para auditoria)
+    if (sugestoesEnriquecidas.length > 0) {
+      const melhorSugestao = sugestoesEnriquecidas[0];
+      
+      // Criar vínculo sugerido (não aprovado ainda)
+      const { error: insertError } = await supabase
+        .from('edi_produtos_vinculo')
+        .insert({
+          plataforma_id,
+          produto_id: melhorSugestao.produto_id,
+          cnpj_cliente,
+          descricao_cliente,
+          sugerido_por_ia: true,
+          score_confianca: melhorSugestao.score,
+          sugerido_em: new Date().toISOString(),
+          prompt_ia: userPrompt,
+          resposta_ia: { 
+            modelo: 'deepseek-chat',
+            todas_sugestoes: sugestoesEnriquecidas,
+            timestamp: new Date().toISOString()
+          },
+          ativo: false, // Inativo até aprovação manual
         });
+
+      if (insertError && insertError.code !== '23505') { // Ignora erro de duplicata
+        console.error('Erro ao salvar vínculo sugerido:', insertError);
       }
     }
 
-    // Ordenar por score
-    sugestoesEnriquecidas.sort((a, b) => b.score - a.score);
-
-    // Registrar log de integração
-    await supabase.from('edi_logs_integracao').insert({
-      plataforma_id: plataforma_id || null,
-      operacao: 'sugestao_ia_produtos',
-      tipo: 'response',
-      parametros: { 
-        descricao_cliente, 
-        codigo_produto_cliente,
-        limite_sugestoes 
-      },
-      payload_enviado: userPrompt,
-      payload_recebido: respostaIA,
-      sucesso: true,
-      tempo_execucao_ms: 0, // Calcular se necessário
-      dados_debug: {
-        total_produtos_analisados: catalogoProdutos.length,
-        total_sugestoes: sugestoesEnriquecidas.length
-      }
-    });
-
-    console.log(`✨ ${sugestoesEnriquecidas.length} sugestões retornadas`);
-
+    // 9. Retornar resultado
     return new Response(
       JSON.stringify({
         sugestoes: sugestoesEnriquecidas,
-        total_analisados: catalogoProdutos.length,
-        prompt_usado: systemPrompt,
-        resposta_bruta_ia: respostaIA
+        total_produtos_analisados: produtos?.length || 0,
+        prompt_usado: userPrompt,
+        resposta_ia_bruta: respostaIA
       }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200 
-      }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
-    console.error('❌ Erro geral:', error);
-
+    console.error('Erro geral:', error);
     return new Response(
-      JSON.stringify({ 
-        error: error instanceof Error ? error.message : 'Erro desconhecido',
-        detalhes: error instanceof Error ? error.stack : undefined
-      }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500 
-      }
+      JSON.stringify({ error: error instanceof Error ? error.message : 'Erro desconhecido' }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
