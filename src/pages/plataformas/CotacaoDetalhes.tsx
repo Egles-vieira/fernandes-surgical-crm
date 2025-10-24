@@ -143,7 +143,7 @@ export default function CotacaoDetalhes() {
             </div>
 
             {/* CAPA - Informações principais */}
-            <Card>
+            <Card className="mx-0 my-0 px-0 py-0">
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2">
                   <FileText className="h-5 w-5" />
@@ -226,14 +226,7 @@ export default function CotacaoDetalhes() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {itens.map(item => (
-                    <ItemCotacaoCard 
-                      key={item.id} 
-                      item={item} 
-                      cotacao={cotacao}
-                      onUpdate={carregarDados}
-                    />
-                  ))}
+                  {itens.map(item => <ItemCotacaoCard key={item.id} item={item} cotacao={cotacao} onUpdate={carregarDados} />)}
                 </div>
               </CardContent>
             </Card>
@@ -294,18 +287,12 @@ export default function CotacaoDetalhes() {
         {/* Painel Lateral de Histórico */}
         <div className={`fixed right-0 top-16 h-[calc(100vh-4rem)] bg-card border-l shadow-lg transition-all duration-500 ease-in-out z-50 ${historicoAberto ? 'w-96' : 'w-12'} overflow-hidden`}>
           {/* Botão de Toggle */}
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className={`absolute left-2 top-4 z-10 transition-all duration-300 ${historicoAberto ? '' : 'hover:scale-110'}`}
-            onClick={() => setHistoricoAberto(!historicoAberto)}
-          >
+          <Button variant="ghost" size="icon" className={`absolute left-2 top-4 z-10 transition-all duration-300 ${historicoAberto ? '' : 'hover:scale-110'}`} onClick={() => setHistoricoAberto(!historicoAberto)}>
             {historicoAberto ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
           </Button>
 
           {/* Conteúdo do Histórico */}
-          {historicoAberto && (
-            <div className="p-6 pt-16 h-full overflow-y-auto animate-fade-in">
+          {historicoAberto && <div className="p-6 pt-16 h-full overflow-y-auto animate-fade-in">
               <div className="flex items-center gap-2 mb-6">
                 <Clock className="h-5 w-5" />
                 <h2 className="text-xl font-bold">Histórico</h2>
@@ -321,8 +308,7 @@ export default function CotacaoDetalhes() {
                   </p>
                 </div>
               </div>
-            </div>
-          )}
+            </div>}
         </div>
       </div>
     </div>;
