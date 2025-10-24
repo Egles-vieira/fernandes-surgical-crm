@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Calculator, Clock, Building2, FileText, Sparkles } from "lucide-react";
+import { Calculator, Clock, Building2, FileText, Sparkles, Upload } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useEDICotacoes } from "@/hooks/useEDICotacoes";
+import ImportarXMLDialog from "@/components/plataformas/ImportarXMLDialog";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -37,6 +38,7 @@ const stepLabel = (step: string) => {
 
 export default function Cotacoes() {
   const [stepFiltro, setStepFiltro] = useState<string>("nova");
+  const [importarDialogOpen, setImportarDialogOpen] = useState(false);
   const { cotacoes, isLoading, resgatarCotacao } = useEDICotacoes({
     step: stepFiltro,
   });
@@ -83,11 +85,30 @@ export default function Cotacoes() {
             Gerenciamento de cotações das plataformas integradas
           </p>
         </div>
-        <Button size="lg" className="gap-2">
-          <Sparkles className="h-4 w-4" />
-          Sugestões IA
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            size="lg" 
+            className="gap-2"
+            onClick={() => setImportarDialogOpen(true)}
+          >
+            <Upload className="h-4 w-4" />
+            Importar XML
+          </Button>
+          <Button size="lg" className="gap-2">
+            <Sparkles className="h-4 w-4" />
+            Sugestões IA
+          </Button>
+        </div>
       </div>
+
+      {/* Dialog de Importação */}
+      <ImportarXMLDialog
+        open={importarDialogOpen}
+        onOpenChange={setImportarDialogOpen}
+        plataformaId="default-platform-id"
+        tipoPlataforma="bionexo"
+      />
 
       {/* Cards de Estatísticas */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
