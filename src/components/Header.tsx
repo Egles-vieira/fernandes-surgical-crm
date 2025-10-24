@@ -45,6 +45,24 @@ export default function Header({ collapsed, onToggle }: HeaderProps) {
           description: "Integração com plataformas de e-commerce",
           breadcrumb: "Cirúrgica Fernandes / Plataformas",
         };
+      case "/plataformas/cotacoes":
+        return {
+          title: "Cotações EDI",
+          description: "Gerencie cotações das plataformas EDI",
+          breadcrumb: "Cirúrgica Fernandes / Plataformas / Cotações",
+        };
+      case "/plataformas/vinculos-pendentes":
+        return {
+          title: "Vínculos Pendentes",
+          description: "Aprove ou rejeite vínculos sugeridos pela IA",
+          breadcrumb: "Cirúrgica Fernandes / Plataformas / Vínculos Pendentes",
+        };
+      case "/plataformas/produtos-vinculo":
+        return {
+          title: "Produtos Vinculados",
+          description: "Gerencie vínculos entre produtos EDI e internos",
+          breadcrumb: "Cirúrgica Fernandes / Plataformas / Produtos Vinculados",
+        };
       case "/licitacoes":
         return {
           title: "Licitações",
