@@ -131,7 +131,7 @@ export default function CotacaoDetalhes() {
               </Button>
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <h1 className="text-3xl font-bold">
+                  <h1 className="font-bold text-xl">
                     Cotação {cotacao.numero_cotacao}
                   </h1>
                   <Badge variant="default">{stepLabel(cotacao.step_atual)}</Badge>
@@ -143,14 +143,9 @@ export default function CotacaoDetalhes() {
             </div>
 
             {/* CAPA - Informações principais */}
-            <Card className="-mx-8 rounded-none">
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
-                  Capa
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="px-4">
+            <Card className="rounded-none mx-0">
+              
+              <CardContent className="mx-0 py-[12px] my-0 px-[24px]">
                 <div className="grid grid-cols-2 gap-6">
                   {/* Cliente */}
                   <div className="space-y-3">
