@@ -99,12 +99,26 @@ export function ItemCotacaoCard({ item, cotacao, onUpdate }: ItemCotacaoCardProp
       if (response.error) throw response.error;
 
       const sugestoes = response.data?.sugestoes || [];
+      
       if (sugestoes.length > 0) {
-        setProdutoVinculado(sugestoes[0]);
-        setPrecoUnitario(sugestoes[0].preco_venda || 0);
+        const melhorSugestao = sugestoes[0];
+        
+        // Criar objeto compatível com o formato esperado
+        const produtoSugerido = {
+          id: melhorSugestao.produto_id,
+          nome: melhorSugestao.nome,
+          referencia_interna: melhorSugestao.referencia,
+          preco_venda: melhorSugestao.preco,
+          quantidade_em_maos: melhorSugestao.estoque,
+          unidade_medida: melhorSugestao.unidade
+        };
+        
+        setProdutoVinculado(produtoSugerido);
+        setPrecoUnitario(melhorSugestao.preco || 0);
+        
         toast({
           title: "Análise concluída",
-          description: `IA sugeriu: ${sugestoes[0].nome} (Score: ${Math.round(sugestoes[0].score * 100)}%)`,
+          description: `IA sugeriu: ${melhorSugestao.nome} (Score: ${Math.round(melhorSugestao.score)}%)`,
         });
       } else {
         toast({
