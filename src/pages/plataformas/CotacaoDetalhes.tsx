@@ -119,51 +119,32 @@ export default function CotacaoDetalhes() {
       </div>;
   }
   if (!cotacao) return null;
-  const handleResponder = () => {
-    toast({
-      title: "Responder Cotação",
-      description: "Funcionalidade em desenvolvimento",
-    });
-  };
-
-  const handleCancelar = () => {
-    toast({
-      title: "Cancelar Cotação",
-      description: "Funcionalidade em desenvolvimento",
-      variant: "destructive",
-    });
-  };
-
-  const handleConfirmar = () => {
-    toast({
-      title: "Confirmar Cotação",
-      description: "Funcionalidade em desenvolvimento",
-    });
-  };
-
-  const handleEnviar = () => {
-    toast({
-      title: "Enviar Cotação",
-      description: "Funcionalidade em desenvolvimento",
-    });
-  };
-
   const valorTotal = itens.reduce((acc, item) => acc + (item.preco_total || 0), 0);
-  
+  const handleResponder = () => {
+    // TODO: Implementar lógica de responder cotação
+    toast({
+      title: "Em desenvolvimento",
+      description: "Funcionalidade de responder cotação em breve."
+    });
+  };
+  const handleCancelar = () => {
+    // TODO: Implementar lógica de cancelar cotação
+    toast({
+      title: "Em desenvolvimento",
+      description: "Funcionalidade de cancelar cotação em breve."
+    });
+  };
+  const handleConfirmar = () => {
+    // TODO: Implementar lógica de confirmar pedido
+    toast({
+      title: "Em desenvolvimento",
+      description: "Funcionalidade de confirmar pedido em breve."
+    });
+  };
   return <div className="min-h-screen bg-background">
-      <div
-        className="fixed top-16 z-30 bg-card border-b shadow-sm px-8 py-3 transition-all duration-300"
-        style={{ left: 'var(--sidebar-width)' as any, right: historicoAberto ? '24rem' : '3.5rem' }}
-      >
-        <CotacaoActionBar
-          status={cotacao.step_atual as any}
-          onResponder={handleResponder}
-          onCancelar={handleCancelar}
-          onConfirmar={handleConfirmar}
-          onEnviar={handleEnviar}
-        />
-      </div>
-      <div className="flex pt-[60px]">
+      <CotacaoActionBar status={cotacao.step_atual} numeroCotacao={cotacao.numero_cotacao} onResponder={handleResponder} onCancelar={handleCancelar} onConfirmar={handleConfirmar} />
+      
+      <div className="flex">
         {/* Área Principal */}
         <div className={`flex-1 transition-all duration-300 ${historicoAberto ? 'mr-96' : 'mr-0'}`}>
           <div className="p-8 space-y-6">
@@ -173,12 +154,6 @@ export default function CotacaoDetalhes() {
                 <ArrowLeft className="h-4 w-4" />
               </Button>
               <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <h1 className="font-bold text-xl">
-                    Cotação {cotacao.numero_cotacao}
-                  </h1>
-                  <Badge variant="default">{stepLabel(cotacao.step_atual)}</Badge>
-                </div>
                 <p className="text-muted-foreground">
                   ID Externo: {cotacao.id_cotacao_externa}
                 </p>
@@ -316,9 +291,6 @@ export default function CotacaoDetalhes() {
               </CardContent>
             </Card>
 
-            {cotacao.step_atual === "em_analise" && <div className="flex justify-end gap-2">
-                <Button size="lg">Responder Cotação</Button>
-              </div>}
           </div>
         </div>
 
@@ -341,7 +313,7 @@ export default function CotacaoDetalhes() {
               <div className="space-y-4">
                 <div className="text-center py-12 animate-scale-in">
                   <Clock className="mx-auto h-12 w-12 text-muted-foreground mb-4 opacity-50" />
-                  <p className="text-muted-foreground">
+                  <p className="text-muted-foreground mx-0 my-0 py-0 px-[20px]">
                     Histórico de atividades será exibido aqui
                   </p>
                 </div>
