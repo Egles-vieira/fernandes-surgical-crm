@@ -89,45 +89,77 @@ function extractNumbers(str: string): string[] {
 }
 
 function tokenize(str: string) {
-  // Stopwords MUITO reduzida - manter termos médicos importantes
-  const stop = new Set(['de','do','da','e','ou','para','com','|','-']);
+  // Stopwords reduzida - manter termos técnicos importantes
+  const stop = new Set(['de','do','da','e','ou','para','com','|','-','em','o','a','os','as','un','und']);
   return normalize(str)
     .split(' ')
     .filter(Boolean)
-    .filter(t => !stop.has(t) && t.length > 1); // Reduzido para > 1 ao invés de > 2
+    .filter(t => !stop.has(t) && t.length > 1);
 }
 
 function tokenBasedSimilarity(queryText: string, produtos: any[], limite: number) {
   const queryTokens = tokenize(queryText);
   const queryNumbers = extractNumbers(queryText);
+  const queryNormalized = normalize(queryText);
+  
+  // Requer ao menos 2 palavras significativas OU números
+  if (queryTokens.length < 2 && queryNumbers.length === 0) {
+    return [];
+  }
   
   return produtos.map(p => {
     const productText = `${p.nome} ${p.referencia_interna} ${p.narrativa || ''}`;
     const productTokens = tokenize(productText);
     const productNumbers = extractNumbers(productText);
+    const productNormalized = normalize(productText);
     
-    const setA = new Set(queryTokens);
-    const setB = new Set(productTokens);
+    // 1. CORRESPONDÊNCIA EXATA DE PALAVRAS (peso maior)
+    let exactMatches = 0;
+    let partialMatches = 0;
     
-    // Contar tokens em comum
-    let inter = 0;
-    for (const t of setA) if (setB.has(t)) inter++;
-    
-    const union = new Set([...setA, ...setB]).size || 1;
-    let jaccard = inter / union;
-    
-    // BONUS 1: Números em comum (ex: 500GR)
-    let numberBonus = 0;
-    for (const num of queryNumbers) {
-      if (productNumbers.includes(num)) {
-        numberBonus += 0.15;
+    for (const qt of queryTokens) {
+      // Match exato
+      if (productTokens.includes(qt)) {
+        exactMatches++;
+      } 
+      // Match parcial (palavra contém ou é contida) - apenas palavras longas
+      else if (qt.length >= 4) {
+        for (const pt of productTokens) {
+          if (pt.length >= 4 && (pt.includes(qt) || qt.includes(pt))) {
+            partialMatches++;
+            break;
+          }
+        }
       }
     }
     
-    // BONUS 2: Referência exata
-    const refBonus = queryText.toLowerCase().includes(String(p.referencia_interna).toLowerCase()) ? 0.2 : 0;
+    // Calcular percentual de palavras correspondidas
+    const matchRatio = (exactMatches + partialMatches * 0.5) / queryTokens.length;
     
-    // BONUS 3: Match de sequências (bigrams)
+    // Penalização severa se poucas palavras correspondem
+    if (matchRatio < 0.4) {
+      return { produto_id: p.id, score: 0, motivo: 'Poucas palavras correspondem', metodo: 'token_enhanced' };
+    }
+    
+    // 2. CORRESPONDÊNCIA DE NÚMEROS (crítico para produtos técnicos)
+    const numberMatchCount = queryNumbers.filter(qn => productNumbers.includes(qn)).length;
+    const numberMatchRatio = queryNumbers.length > 0 ? numberMatchCount / queryNumbers.length : 1;
+    
+    // Se query tem números mas produto não tem NENHUM match, penalizar muito
+    if (queryNumbers.length > 0 && numberMatchCount === 0) {
+      return { produto_id: p.id, score: 0, motivo: 'Números não correspondem', metodo: 'token_enhanced' };
+    }
+    
+    // 3. REFERÊNCIA EXATA
+    const hasExactRef = p.referencia_interna && 
+      (queryNormalized.includes(normalize(p.referencia_interna)) || 
+       normalize(p.referencia_interna).includes(queryNormalized));
+    
+    // 4. SUBSTRING MATCH
+    const hasSubstring = productNormalized.includes(queryNormalized) || 
+                        queryNormalized.includes(productNormalized);
+    
+    // 5. SEQUÊNCIAS DE PALAVRAS (bigrams)
     const queryBigrams = [];
     for (let i = 0; i < queryTokens.length - 1; i++) {
       queryBigrams.push(queryTokens[i] + ' ' + queryTokens[i + 1]);
@@ -138,22 +170,54 @@ function tokenBasedSimilarity(queryText: string, produtos: any[], limite: number
     }
     let bigramMatches = 0;
     for (const bg of queryBigrams) {
-      if (productBigrams.some(pbg => pbg.includes(bg) || bg.includes(pbg))) {
-        bigramMatches++;
+      if (productBigrams.some(pbg => pbg === bg)) {
+        bigramMatches += 2; // Match exato de bigram
+      } else if (productBigrams.some(pbg => pbg.includes(bg) || bg.includes(pbg))) {
+        bigramMatches += 1; // Match parcial
       }
     }
-    const bigramBonus = (bigramMatches / Math.max(queryBigrams.length, 1)) * 0.2;
+    const bigramRatio = queryBigrams.length > 0 ? bigramMatches / (queryBigrams.length * 2) : 0;
     
-    const finalScore = Math.min(1, jaccard + numberBonus + refBonus + bigramBonus) * 100;
+    // CÁLCULO FINAL DE SCORE
+    let score = 0;
+    
+    // Palavras exatas valem muito (30 pontos cada)
+    score += exactMatches * 30;
+    
+    // Palavras parciais valem menos (15 pontos cada)
+    score += partialMatches * 15;
+    
+    // Números valem MUITO (40 pontos cada)
+    score += numberMatchCount * 40;
+    
+    // Bônus por referência exata
+    if (hasExactRef) score += 60;
+    
+    // Bônus por substring
+    if (hasSubstring) score += 25;
+    
+    // Bônus por bigrams
+    score += bigramRatio * 30;
+    
+    // Bônus por alta taxa de correspondência
+    if (matchRatio >= 0.8) score += 20;
+    else if (matchRatio >= 0.6) score += 10;
+    
+    // Bônus por todos os números corresponderem
+    if (queryNumbers.length > 0 && numberMatchRatio === 1) {
+      score += 30;
+    }
+    
+    const finalScore = Math.min(100, Math.round(score));
     
     return { 
       produto_id: p.id, 
-      score: Math.round(finalScore), 
-      motivo: inter > 0 ? `${inter} termos + ${queryNumbers.filter(n => productNumbers.includes(n)).length} números` : 'Similaridade baixa',
+      score: finalScore, 
+      motivo: `${exactMatches} exatas, ${partialMatches} parciais, ${numberMatchCount} números (${Math.round(matchRatio * 100)}% match)`,
       metodo: 'token_enhanced'
     };
   })
-  .filter(s => s.score >= 12) // Threshold reduzido para capturar mais matches sem IA
+  .filter(s => s.score >= 30) // Threshold aumentado para 30 (somente matches bons)
   .sort((a, b) => b.score - a.score)
   .slice(0, limite);
 }
