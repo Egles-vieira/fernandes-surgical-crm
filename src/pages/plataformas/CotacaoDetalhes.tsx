@@ -188,15 +188,15 @@ export default function CotacaoDetalhes() {
       {/* ActionBar fixo que respeita sidebar e histórico */}
       <div className="fixed top-16 z-40 bg-card border-b shadow-sm px-8 py-3 transition-all duration-300" style={{
       left: 'var(--sidebar-width)' as any,
-      right: historicoAberto ? '24rem' : '3rem'
+      right: historicoAberto ? '24rem' : '4.5rem'
     }}>
         <CotacaoActionBar status={cotacao.step_atual as any} onResponder={handleResponder} onCancelar={handleCancelar} onConfirmar={handleConfirmar} onEnviar={handleEnviar} />
       </div>
 
       <div className="flex pt-[72px]">
         {/* Área Principal */}
-        <div className={`flex-1 transition-all duration-300 ${historicoAberto ? 'mr-96' : 'mr-12'}`}>
-          <div className="px-[10px] py-8 space-y-6">
+        <div className={`flex-1 transition-all duration-300 ${historicoAberto ? 'mr-96' : 'mr-0'}`}>
+          <div className="p-8 space-y-6">
             {/* Header */}
             <div className="flex items-center gap-4 mb-6">
               <Button variant="outline" size="icon" onClick={() => navigate("/plataformas/cotacoes")}>
@@ -222,7 +222,7 @@ export default function CotacaoDetalhes() {
             {/* CAPA - Informações principais */}
             <Card className="rounded-none mx-0">
               
-              <CardContent className="mx-0 py-[12px] my-0 px-[24px] rounded-lg">
+              <CardContent className="mx-0 py-[12px] my-0 px-[24px]">
                 <div className="grid grid-cols-2 gap-6">
                   {/* Cliente */}
                   <div className="space-y-3">
@@ -272,7 +272,7 @@ export default function CotacaoDetalhes() {
                         </p>
                       </div>
                       {cotacao.resgatada && cotacao.resgatada_em && <div>
-                          <p className="text-sm text-muted-foreground">Resgatada em</p>
+                          <p className="text-sm text-muted-foreground">Informações Gerais</p>
                           <p className="font-medium">
                             {format(new Date(cotacao.resgatada_em), "dd/MM/yyyy HH:mm", {
                           locale: ptBR
@@ -362,7 +362,7 @@ export default function CotacaoDetalhes() {
         </div>
 
         {/* Painel Lateral de Histórico */}
-        <div className={`fixed right-0 top-16 h-[calc(100vh-4rem)] bg-card border-l shadow-lg transition-all duration-500 ease-in-out z-30 ${historicoAberto ? 'w-96' : 'w-12'} overflow-hidden`}>
+        <div className={`fixed right-0 top-16 h-[calc(100vh-4rem)] bg-card border-l shadow-lg transition-all duration-500 ease-in-out z-50 ${historicoAberto ? 'w-96' : 'w-12'} overflow-hidden`}>
           {/* Botão de Toggle */}
           <Button variant="ghost" size="icon" className={`absolute left-2 top-4 z-10 transition-all duration-300 ${historicoAberto ? '' : 'hover:scale-110'}`} onClick={() => setHistoricoAberto(!historicoAberto)}>
             {historicoAberto ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
