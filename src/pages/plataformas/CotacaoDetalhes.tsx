@@ -155,8 +155,8 @@ export default function CotacaoDetalhes() {
       <div
         className="fixed top-16 z-40 bg-card border-b shadow-sm px-8 py-3 transition-all duration-300"
         style={{ 
-          marginLeft: 'var(--sidebar-width)',
-          right: historicoAberto ? '24rem' : '0'
+          left: 'var(--sidebar-width)' as any,
+          right: historicoAberto ? '24rem' : '4.5rem'
         }}
       >
         <CotacaoActionBar
