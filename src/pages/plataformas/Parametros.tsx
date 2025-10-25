@@ -107,7 +107,8 @@ export default function Parametros() {
         <Tabs defaultValue="unidades" className="space-y-4">
           <TabsList>
             <TabsTrigger value="unidades">Unidades de Medida</TabsTrigger>
-            <TabsTrigger value="condicoes">Condições de Pagamento</TabsTrigger>
+            <TabsTrigger value="condicoes">DE-PARA Condições</TabsTrigger>
+            <TabsTrigger value="minhas-condicoes">Minhas Condições</TabsTrigger>
           </TabsList>
 
           <TabsContent value="unidades" className="space-y-4">
@@ -364,6 +365,39 @@ export default function Parametros() {
                             </Button>
                           </div>
                         </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="minhas-condicoes" className="space-y-4">
+            <Card className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold">Minhas Condições de Pagamento</h2>
+              </div>
+
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nome</TableHead>
+                    <TableHead>Código Integração</TableHead>
+                    <TableHead>Data Criação</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {condicoesPagamento?.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={3} className="text-center">Nenhuma condição cadastrada</TableCell>
+                    </TableRow>
+                  ) : (
+                    condicoesPagamento?.map((condicao) => (
+                      <TableRow key={condicao.id}>
+                        <TableCell className="font-medium">{condicao.nome}</TableCell>
+                        <TableCell>{condicao.codigo_integracao || "-"}</TableCell>
+                        <TableCell>{new Date(condicao.created_at).toLocaleDateString('pt-BR')}</TableCell>
                       </TableRow>
                     ))
                   )}
