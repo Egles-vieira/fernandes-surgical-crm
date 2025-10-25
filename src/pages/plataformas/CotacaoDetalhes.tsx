@@ -195,7 +195,7 @@ export default function CotacaoDetalhes() {
 
       <div className="flex pt-[72px]">
         {/* Área Principal */}
-        <div className={`flex-1 transition-all duration-300 ${historicoAberto ? 'mr-96' : 'mr-0'}`}>
+        <div className={`flex-1 transition-all duration-300 ${historicoAberto ? 'mr-96' : 'mr-12'}`}>
           <div className="px-[10px] py-8 space-y-6">
             {/* Header */}
             <div className="flex items-center gap-4 mb-6">
