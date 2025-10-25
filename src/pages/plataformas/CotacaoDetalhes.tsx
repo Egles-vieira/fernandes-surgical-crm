@@ -188,7 +188,7 @@ export default function CotacaoDetalhes() {
       {/* ActionBar fixo que respeita sidebar e histórico */}
       <div className="fixed top-16 z-40 bg-card border-b shadow-sm px-8 py-3 transition-all duration-300" style={{
       left: 'var(--sidebar-width)' as any,
-      right: historicoAberto ? '24rem' : '4.5rem'
+      right: historicoAberto ? '24rem' : '3rem'
     }}>
         <CotacaoActionBar status={cotacao.step_atual as any} onResponder={handleResponder} onCancelar={handleCancelar} onConfirmar={handleConfirmar} onEnviar={handleEnviar} />
       </div>
