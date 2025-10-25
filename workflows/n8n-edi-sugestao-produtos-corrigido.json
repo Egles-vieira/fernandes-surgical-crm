@@ -28,7 +28,7 @@
             }
           ]
         },
-        "options": {}
+        "options": {"splitIntoItems": true}
       },
       "id": "buscar-itens-pendentes",
       "name": "1. Buscar Itens Pendentes",
@@ -64,7 +64,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"descricao_cliente\": \"{{ $json.descricao_produto_cliente }}\",\n  \"cnpj_cliente\": \"{{ $json.cnpj_cliente }}\",\n  \"plataforma_id\": \"{{ $json.plataforma_id }}\",\n  \"item_id\": \"{{ $json.item_id }}\",\n  \"limite\": 5\n}",
+        "jsonBody": "={\n  \"descricao_cliente\": \"{{$json.descricao_produto_cliente}}\",\n  \"cnpj_cliente\": \"{{$json.cnpj_cliente}}\",\n  \"plataforma_id\": \"{{$json.plataforma_id}}\",\n  \"item_id\": \"{{$json.item_id}}\",\n  \"limite\": 5\n}",
         "options": {}
       },
       "id": "sugerir-produtos-ia",
@@ -84,7 +84,7 @@
           "conditions": [
             {
               "id": "condition-1",
-              "leftValue": "={{ $json.sugestoes }}",
+              "leftValue": "={{$json.sugestoes}}",
               "rightValue": "",
               "operator": {
                 "type": "array",
