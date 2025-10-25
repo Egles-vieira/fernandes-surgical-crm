@@ -17,6 +17,7 @@ import {
   BarChart3,
   BookOpen,
   Settings,
+  Brain,
 } from "lucide-react";
 import {
   Collapsible,
@@ -62,6 +63,7 @@ const menuItems: MenuItem[] = [
     label: "Plataforma",
     children: [
       { path: "/plataformas/cotacoes", icon: FileText, label: "Cotações" },
+      { path: "/plataformas/dashboard-ia", icon: Brain, label: "Dashboard IA" },
       { path: "/plataformas/parametros", icon: Settings, label: "Parâmetros" },
     ],
   },

@@ -53,6 +53,12 @@ export default function Header({ collapsed, onToggle }: HeaderProps) {
           description: "Gerencie cotações das plataformas EDI",
           breadcrumb: "Cirúrgica Fernandes / Plataformas / Cotações",
         };
+      case "/plataformas/dashboard-ia":
+        return {
+          title: "Dashboard de Análise IA",
+          description: "Métricas e desempenho da IA na análise de cotações",
+          breadcrumb: "Cirúrgica Fernandes / Plataformas / Dashboard IA",
+        };
       case "/plataformas/vinculos-pendentes":
         return {
           title: "Vínculos Pendentes",
