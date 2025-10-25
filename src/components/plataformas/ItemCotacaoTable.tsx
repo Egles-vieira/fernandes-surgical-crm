@@ -129,7 +129,6 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
     } else {
       newExpanded.add(itemId);
       
-      // Carregar mapeamentos anteriores se ainda não carregados
       if (!previousMappings.has(itemId)) {
         await loadPreviousMappings(itemId, codigoCliente);
       }
@@ -298,7 +297,6 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
     try {
       const valorTotal = data.quantidade * data.precoUnitario * (1 - data.desconto / 100);
 
-      // Garante que o mapeamento DE-PARA exista e captura o ID
       let mappingId: string | undefined = currentData.mappingId;
 
       if (!mappingId) {
@@ -357,7 +355,6 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
 
       if (error) throw error;
 
-      // Atualiza cache local e recarrega mapeamentos
       const afterSave = new Map(itemsData);
       const current = afterSave.get(item.id) || {};
       afterSave.set(item.id, { ...current, mappingId });
@@ -402,7 +399,6 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
   const filteredAndSortedItems = useMemo(() => {
     let result = [...itens];
 
-    // Filtro de busca
     if (searchTerm) {
       result = result.filter(
         (item) =>
@@ -411,12 +407,10 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
       );
     }
 
-    // Filtro de status
     if (statusFilter !== "all") {
       result = result.filter((item) => item.status === statusFilter);
     }
 
-    // Ordenação
     if (sortColumn) {
       result.sort((a, b) => {
         let aVal: any = a[sortColumn as keyof ItemCotacao];
@@ -440,7 +434,6 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
     return result;
   }, [itens, searchTerm, statusFilter, sortColumn, sortDirection]);
 
-  // Paginação
   const totalPages = Math.ceil(filteredAndSortedItems.length / pageSize);
   const paginatedItems = filteredAndSortedItems.slice(
     (currentPage - 1) * pageSize,
@@ -591,281 +584,278 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
         </div>
 
         {/* Grid com Scroll */}
-        <div className="border rounded-lg">
-          <ScrollArea className="h-[600px] w-full">
-            <div className="min-w-[1400px]">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-muted/50">
-                    {visibleColumns.expand && <TableHead className="w-[50px]"></TableHead>}
-                    {visibleColumns.select && (
-                      <TableHead className="w-[50px]">
-                        <Checkbox
-                          checked={selectedItems.size === paginatedItems.length && paginatedItems.length > 0}
-                          onCheckedChange={handleSelectAll}
-                        />
-                      </TableHead>
-                    )}
-                    {visibleColumns.numero && (
-                      <TableHead className="w-[80px] cursor-pointer" onClick={() => handleSort("numero_item")}>
-                        <div className="flex items-center gap-1">
-                          Item Nº
-                          {sortColumn === "numero_item" && <ArrowUpDown className="h-3 w-3" />}
-                        </div>
-                      </TableHead>
-                    )}
-                    {visibleColumns.descricao && (
-                      <TableHead className="min-w-[200px] cursor-pointer" onClick={() => handleSort("descricao_produto_cliente")}>
-                        <div className="flex items-center gap-1">
-                          Descrição Cliente
-                          {sortColumn === "descricao_produto_cliente" && <ArrowUpDown className="h-3 w-3" />}
-                        </div>
-                      </TableHead>
-                    )}
-                    {visibleColumns.codigo && (
-                      <TableHead className="w-[120px] cursor-pointer" onClick={() => handleSort("codigo_produto_cliente")}>
-                        <div className="flex items-center gap-1">
-                          Cód. Cliente
-                          {sortColumn === "codigo_produto_cliente" && <ArrowUpDown className="h-3 w-3" />}
-                        </div>
-                      </TableHead>
-                    )}
-                    {visibleColumns.vinculo && <TableHead className="min-w-[200px]">Produto Vinculado</TableHead>}
-                    {visibleColumns.quantidade && (
-                      <TableHead className="w-[100px] cursor-pointer" onClick={() => handleSort("quantidade_solicitada")}>
-                        <div className="flex items-center gap-1">
-                          Qtd.
-                          {sortColumn === "quantidade_solicitada" && <ArrowUpDown className="h-3 w-3" />}
-                        </div>
-                      </TableHead>
-                    )}
-                    {visibleColumns.preco && <TableHead className="w-[120px]">Preço Unit.</TableHead>}
-                    {visibleColumns.desconto && <TableHead className="w-[100px]">Desc. %</TableHead>}
-                    {visibleColumns.total && (
-                      <TableHead className="w-[120px] cursor-pointer" onClick={() => handleSort("total")}>
-                        <div className="flex items-center gap-1">
-                          Total
-                          {sortColumn === "total" && <ArrowUpDown className="h-3 w-3" />}
-                        </div>
-                      </TableHead>
-                    )}
-                    {visibleColumns.status && (
-                      <TableHead className="w-[100px] cursor-pointer" onClick={() => handleSort("status")}>
-                        <div className="flex items-center gap-1">
-                          Status
-                          {sortColumn === "status" && <ArrowUpDown className="h-3 w-3" />}
-                        </div>
-                      </TableHead>
-                    )}
-                    {visibleColumns.acoes && <TableHead className="w-[200px]">Ações</TableHead>}
+        <div className="border rounded-lg overflow-hidden">
+          <div className="overflow-x-auto max-h-[600px]">
+            <Table className="relative">
+              <TableHeader className="sticky top-0 z-10">
+                <TableRow className="bg-muted/50">
+                  {visibleColumns.expand && <TableHead className="sticky left-0 z-20 bg-muted/50 w-[50px]"></TableHead>}
+                  {visibleColumns.select && (
+                    <TableHead className="sticky left-[50px] z-20 bg-muted/50 w-[50px]">
+                      <Checkbox
+                        checked={selectedItems.size === paginatedItems.length && paginatedItems.length > 0}
+                        onCheckedChange={handleSelectAll}
+                      />
+                    </TableHead>
+                  )}
+                  {visibleColumns.numero && (
+                    <TableHead className="sticky left-[100px] z-20 bg-muted/50 w-[80px] cursor-pointer" onClick={() => handleSort("numero_item")}>
+                      <div className="flex items-center gap-1">
+                        Item Nº
+                        {sortColumn === "numero_item" && <ArrowUpDown className="h-3 w-3" />}
+                      </div>
+                    </TableHead>
+                  )}
+                  {visibleColumns.descricao && (
+                    <TableHead className="sticky left-[180px] z-20 bg-muted/50 min-w-[300px] cursor-pointer" onClick={() => handleSort("descricao_produto_cliente")}>
+                      <div className="flex items-center gap-1">
+                        Descrição Cliente
+                        {sortColumn === "descricao_produto_cliente" && <ArrowUpDown className="h-3 w-3" />}
+                      </div>
+                    </TableHead>
+                  )}
+                  {visibleColumns.codigo && (
+                    <TableHead className="min-w-[120px] cursor-pointer" onClick={() => handleSort("codigo_produto_cliente")}>
+                      <div className="flex items-center gap-1">
+                        Cód. Cliente
+                        {sortColumn === "codigo_produto_cliente" && <ArrowUpDown className="h-3 w-3" />}
+                      </div>
+                    </TableHead>
+                  )}
+                  {visibleColumns.vinculo && <TableHead className="min-w-[250px]">Produto Vinculado</TableHead>}
+                  {visibleColumns.quantidade && (
+                    <TableHead className="min-w-[120px] cursor-pointer" onClick={() => handleSort("quantidade_solicitada")}>
+                      <div className="flex items-center gap-1">
+                        Qtd.
+                        {sortColumn === "quantidade_solicitada" && <ArrowUpDown className="h-3 w-3" />}
+                      </div>
+                    </TableHead>
+                  )}
+                  {visibleColumns.preco && <TableHead className="min-w-[140px]">Preço Unit.</TableHead>}
+                  {visibleColumns.desconto && <TableHead className="min-w-[120px]">Desc. %</TableHead>}
+                  {visibleColumns.total && (
+                    <TableHead className="min-w-[140px] cursor-pointer" onClick={() => handleSort("total")}>
+                      <div className="flex items-center gap-1">
+                        Total
+                        {sortColumn === "total" && <ArrowUpDown className="h-3 w-3" />}
+                      </div>
+                    </TableHead>
+                  )}
+                  {visibleColumns.status && (
+                    <TableHead className="min-w-[120px] cursor-pointer" onClick={() => handleSort("status")}>
+                      <div className="flex items-center gap-1">
+                        Status
+                        {sortColumn === "status" && <ArrowUpDown className="h-3 w-3" />}
+                      </div>
+                    </TableHead>
+                  )}
+                  {visibleColumns.acoes && <TableHead className="min-w-[200px]">Ações</TableHead>}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {paginatedItems.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={12} className="text-center py-8 text-muted-foreground">
+                      Nenhum item encontrado
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {paginatedItems.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={12} className="text-center py-8 text-muted-foreground">
-                        Nenhum item encontrado
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    paginatedItems.map((item) => {
-              const isExpanded = expandedRows.has(item.id);
-              const isSelected = selectedItems.has(item.id);
-              const data = itemsData.get(item.id);
-              const mappings = previousMappings.get(item.id) || [];
+                ) : (
+                  paginatedItems.map((item) => {
+                    const isExpanded = expandedRows.has(item.id);
+                    const isSelected = selectedItems.has(item.id);
+                    const data = itemsData.get(item.id);
+                    const mappings = previousMappings.get(item.id) || [];
 
-                      return (
-                        <>
-                          {/* Linha Principal */}
-                          <TableRow key={item.id} className="hover:bg-muted/50">
-                            {visibleColumns.expand && <TableCell className={densityClasses[density]}>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-6 w-6 p-0"
-                                onClick={() => toggleRow(item.id, item.codigo_produto_cliente)}
-                              >
-                                {isExpanded ? (
-                                  <ChevronDown className="h-4 w-4" />
-                                ) : (
-                                  <ChevronRight className="h-4 w-4" />
-                                )}
-                              </Button>
-                            </TableCell>}
-                            {visibleColumns.select && <TableCell className={densityClasses[density]}>
-                              <Checkbox
-                                checked={isSelected}
-                                onCheckedChange={(checked) => {
-                                  const newSelected = new Set(selectedItems);
-                                  if (checked) {
-                                    newSelected.add(item.id);
-                                  } else {
-                                    newSelected.delete(item.id);
-                                  }
-                                  setSelectedItems(newSelected);
-                                }}
-                              />
-                            </TableCell>}
-                            {visibleColumns.numero && <TableCell className={`font-medium ${densityClasses[density]}`}>{item.numero_item}</TableCell>}
-                            {visibleColumns.descricao && <TableCell className={`font-medium ${densityClasses[density]}`}>{item.descricao_produto_cliente}</TableCell>}
-                            {visibleColumns.codigo && <TableCell className={`text-muted-foreground text-sm ${densityClasses[density]}`}>
-                              {item.codigo_produto_cliente || "-"}
-                            </TableCell>}
-                            {visibleColumns.vinculo && <TableCell className={densityClasses[density]}>
-                              <div className="flex items-center gap-2">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => {
-                                    setCurrentItemId(item.id);
-                                    setDialogAberto(true);
-                                  }}
-                                >
-                                  <Package className="h-3 w-3" />
-                                </Button>
-                                {data?.produtoVinculado ? (
-                                  <div className="flex items-center gap-2">
-                                    <Package className="h-4 w-4 text-primary" />
-                                    <div>
-                                      <p className="text-sm font-medium">{data.produtoVinculado.nome}</p>
-                                      <p className="text-xs text-muted-foreground">
-                                        Ref: {data.produtoVinculado.referencia_interna}
-                                      </p>
-                                    </div>
-                                  </div>
-                                ) : (
-                                  <span className="text-sm text-muted-foreground">-</span>
-                                )}
-                              </div>
-                            </TableCell>}
-                            {visibleColumns.quantidade && <TableCell className={densityClasses[density]}>
-                              <Input
-                                type="number"
-                                value={data?.quantidade || 0}
-                                onChange={(e) => updateItemField(item.id, "quantidade", Number(e.target.value))}
-                                className="w-20 h-8"
-                                min={0}
-                              />
-                            </TableCell>}
-                            {visibleColumns.preco && <TableCell className={densityClasses[density]}>
-                              <Input
-                                type="number"
-                                value={data?.precoUnitario || 0}
-                                onChange={(e) => updateItemField(item.id, "precoUnitario", Number(e.target.value))}
-                                className="w-24 h-8"
-                                min={0}
-                                step={0.01}
-                              />
-                            </TableCell>}
-                            {visibleColumns.desconto && <TableCell className={densityClasses[density]}>
-                              <Input
-                                type="number"
-                                value={data?.desconto || 0}
-                                onChange={(e) => updateItemField(item.id, "desconto", Number(e.target.value))}
-                                className="w-20 h-8"
-                                min={0}
-                                max={100}
-                                step={0.01}
-                              />
-                            </TableCell>}
-                            {visibleColumns.total && <TableCell className={`font-bold text-primary ${densityClasses[density]}`}>
-                              {new Intl.NumberFormat("pt-BR", {
-                                style: "currency",
-                                currency: "BRL",
-                              }).format(getValorTotal(item.id))}
-                            </TableCell>}
-                             {visibleColumns.status && <TableCell className={densityClasses[density]}>
-                              <Badge variant={item.status === "respondido" ? "default" : "secondary"}>
-                                {item.status === "respondido" ? "Respondido" : "Pendente"}
-                              </Badge>
-                            </TableCell>}
-                            {visibleColumns.acoes && <TableCell className={densityClasses[density]}>
-                              <div className="flex gap-1">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleAnalisarIA(item)}
-                                  disabled={data?.isLoading}
-                                >
-                                  <Sparkles className="h-3 w-3" />
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  onClick={() => handleSalvar(item)}
-                                  disabled={data?.isLoading || !data?.produtoVinculado}
-                                >
-                                  <Save className="h-3 w-3" />
-                                </Button>
-                              </div>
-                            </TableCell>}
-                          </TableRow>
-
-                          {/* Linhas Expandidas - Mapeamentos Anteriores */}
-                          {isExpanded && mappings.length > 0 && mappings.map((mapping) => (
-                            <TableRow
-                              key={mapping.id}
-                              className="bg-muted/20 hover:bg-muted/40 cursor-pointer"
-                              onClick={() => handleSelectPreviousMapping(item.id, mapping)}
+                    return (
+                      <>
+                        {/* Linha Principal */}
+                        <TableRow key={item.id} className="hover:bg-muted/50">
+                          {visibleColumns.expand && <TableCell className={`sticky left-0 z-10 bg-background ${densityClasses[density]}`}>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0"
+                              onClick={() => toggleRow(item.id, item.codigo_produto_cliente)}
                             >
-                              {visibleColumns.expand && <TableCell></TableCell>}
-                              {visibleColumns.select && <TableCell></TableCell>}
-                              <TableCell colSpan={3} className="pl-12">
-                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                  <Package className="h-3 w-3" />
-                                  <span>Mapeamento anterior</span>
-                                </div>
-                              </TableCell>
-                              <TableCell>
+                              {isExpanded ? (
+                                <ChevronDown className="h-4 w-4" />
+                              ) : (
+                                <ChevronRight className="h-4 w-4" />
+                              )}
+                            </Button>
+                          </TableCell>}
+                          {visibleColumns.select && <TableCell className={`sticky left-[50px] z-10 bg-background ${densityClasses[density]}`}>
+                            <Checkbox
+                              checked={isSelected}
+                              onCheckedChange={(checked) => {
+                                const newSelected = new Set(selectedItems);
+                                if (checked) {
+                                  newSelected.add(item.id);
+                                } else {
+                                  newSelected.delete(item.id);
+                                }
+                                setSelectedItems(newSelected);
+                              }}
+                            />
+                          </TableCell>}
+                          {visibleColumns.numero && <TableCell className={`sticky left-[100px] z-10 bg-background font-medium ${densityClasses[density]}`}>{item.numero_item}</TableCell>}
+                          {visibleColumns.descricao && <TableCell className={`sticky left-[180px] z-10 bg-background font-medium ${densityClasses[density]}`}>{item.descricao_produto_cliente}</TableCell>}
+                          {visibleColumns.codigo && <TableCell className={`text-muted-foreground text-sm ${densityClasses[density]}`}>
+                            {item.codigo_produto_cliente || "-"}
+                          </TableCell>}
+                          {visibleColumns.vinculo && <TableCell className={densityClasses[density]}>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  setCurrentItemId(item.id);
+                                  setDialogAberto(true);
+                                }}
+                              >
+                                <Package className="h-3 w-3" />
+                              </Button>
+                              {data?.produtoVinculado ? (
                                 <div className="flex items-center gap-2">
                                   <Package className="h-4 w-4 text-primary" />
                                   <div>
-                                    <p className="text-sm font-medium">{mapping.produtos?.nome}</p>
+                                    <p className="text-sm font-medium">{data.produtoVinculado.nome}</p>
                                     <p className="text-xs text-muted-foreground">
-                                      Ref: {mapping.produtos?.referencia_interna}
+                                      Ref: {data.produtoVinculado.referencia_interna}
                                     </p>
                                   </div>
                                 </div>
-                              </TableCell>
-                              <TableCell className="text-sm">-</TableCell>
-                              <TableCell className="text-sm font-medium">
-                                {new Intl.NumberFormat("pt-BR", {
-                                  style: "currency",
-                                  currency: "BRL",
-                                }).format(mapping.produtos?.preco_venda || 0)}
-                              </TableCell>
-                              <TableCell className="text-sm">
-                                {mapping.desconto_padrao || 0}%
-                              </TableCell>
-                              <TableCell className="text-sm">-</TableCell>
-                              <TableCell>
-                                <Badge variant="outline" className="text-xs">
-                                  {mapping.sugerido_por_ia ? "IA" : "Manual"}
-                                </Badge>
-                              </TableCell>
-                              <TableCell>
-                                <Button variant="ghost" size="sm" className="text-xs">
-                                  Usar este
-                                </Button>
-                              </TableCell>
-                            </TableRow>
-                          ))}
+                              ) : (
+                                <span className="text-sm text-muted-foreground">-</span>
+                              )}
+                            </div>
+                          </TableCell>}
+                          {visibleColumns.quantidade && <TableCell className={densityClasses[density]}>
+                            <Input
+                              type="number"
+                              value={data?.quantidade || 0}
+                              onChange={(e) => updateItemField(item.id, "quantidade", Number(e.target.value))}
+                              className="w-20 h-8"
+                              min={0}
+                            />
+                          </TableCell>}
+                          {visibleColumns.preco && <TableCell className={densityClasses[density]}>
+                            <Input
+                              type="number"
+                              value={data?.precoUnitario || 0}
+                              onChange={(e) => updateItemField(item.id, "precoUnitario", Number(e.target.value))}
+                              className="w-24 h-8"
+                              min={0}
+                              step={0.01}
+                            />
+                          </TableCell>}
+                          {visibleColumns.desconto && <TableCell className={densityClasses[density]}>
+                            <Input
+                              type="number"
+                              value={data?.desconto || 0}
+                              onChange={(e) => updateItemField(item.id, "desconto", Number(e.target.value))}
+                              className="w-20 h-8"
+                              min={0}
+                              max={100}
+                              step={0.01}
+                            />
+                          </TableCell>}
+                          {visibleColumns.total && <TableCell className={`font-bold text-primary ${densityClasses[density]}`}>
+                            {new Intl.NumberFormat("pt-BR", {
+                              style: "currency",
+                              currency: "BRL",
+                            }).format(getValorTotal(item.id))}
+                          </TableCell>}
+                          {visibleColumns.status && <TableCell className={densityClasses[density]}>
+                            <Badge variant={item.status === "respondido" ? "default" : "secondary"}>
+                              {item.status === "respondido" ? "Respondido" : "Pendente"}
+                            </Badge>
+                          </TableCell>}
+                          {visibleColumns.acoes && <TableCell className={densityClasses[density]}>
+                            <div className="flex gap-1">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleAnalisarIA(item)}
+                                disabled={data?.isLoading}
+                              >
+                                <Sparkles className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                onClick={() => handleSalvar(item)}
+                                disabled={data?.isLoading || !data?.produtoVinculado}
+                              >
+                                <Save className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </TableCell>}
+                        </TableRow>
 
-                          {isExpanded && mappings.length === 0 && (
-                            <TableRow className="bg-muted/20">
-                              <TableCell colSpan={12} className="text-center text-sm text-muted-foreground py-4">
-                                Nenhum mapeamento anterior encontrado
-                              </TableCell>
-                            </TableRow>
-                          )}
-                        </>
-                      );
-                    })
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-            <ScrollBar orientation="horizontal" />
-          </ScrollArea>
+                        {/* Linhas Expandidas - Mapeamentos Anteriores */}
+                        {isExpanded && mappings.length > 0 && mappings.map((mapping) => (
+                          <TableRow
+                            key={mapping.id}
+                            className="bg-muted/20 hover:bg-muted/40 cursor-pointer"
+                            onClick={() => handleSelectPreviousMapping(item.id, mapping)}
+                          >
+                            {visibleColumns.expand && <TableCell className="sticky left-0 z-10 bg-muted/20"></TableCell>}
+                            {visibleColumns.select && <TableCell className="sticky left-[50px] z-10 bg-muted/20"></TableCell>}
+                            <TableCell colSpan={3} className="pl-12">
+                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <Package className="h-3 w-3" />
+                                <span>Mapeamento anterior</span>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <Package className="h-4 w-4 text-primary" />
+                                <div>
+                                  <p className="text-sm font-medium">{mapping.produtos?.nome}</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    Ref: {mapping.produtos?.referencia_interna}
+                                  </p>
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-sm">-</TableCell>
+                            <TableCell className="text-sm font-medium">
+                              {new Intl.NumberFormat("pt-BR", {
+                                style: "currency",
+                                currency: "BRL",
+                              }).format(mapping.produtos?.preco_venda || 0)}
+                            </TableCell>
+                            <TableCell className="text-sm">
+                              {mapping.desconto_padrao || 0}%
+                            </TableCell>
+                            <TableCell className="text-sm">-</TableCell>
+                            <TableCell>
+                              <Badge variant="outline" className="text-xs">
+                                {mapping.sugerido_por_ia ? "IA" : "Manual"}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <Button variant="ghost" size="sm" className="text-xs">
+                                Usar este
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+
+                        {isExpanded && mappings.length === 0 && (
+                          <TableRow className="bg-muted/20">
+                            <TableCell colSpan={12} className="text-center text-sm text-muted-foreground py-4">
+                              Nenhum mapeamento anterior encontrado
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </>
+                    );
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </div>
 
         {/* Paginação */}
