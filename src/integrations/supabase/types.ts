@@ -4325,9 +4325,11 @@ export type Database = {
           codigo_produto_cliente: string
           cotacao_id: string
           descricao_produto_cliente: string
+          id_item_externo: string
           item_id: string
+          numero_item: number
           plataforma_id: string
-          quantidade: number
+          quantidade_solicitada: number
           unidade_medida: string
         }[]
       }
