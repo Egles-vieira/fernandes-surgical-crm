@@ -151,9 +151,13 @@ export default function CotacaoDetalhes() {
   const valorTotal = itens.reduce((acc, item) => acc + (item.preco_total || 0), 0);
   
   return <div className="min-h-screen bg-background">
+      {/* ActionBar fixo que respeita sidebar e histórico */}
       <div
         className="fixed top-16 z-40 bg-card border-b shadow-sm px-8 py-3 transition-all duration-300"
-        style={{ left: 'var(--sidebar-width)' as any, right: historicoAberto ? '24rem' : '4.5rem' }}
+        style={{ 
+          marginLeft: 'var(--sidebar-width)',
+          right: historicoAberto ? '24rem' : '0'
+        }}
       >
         <CotacaoActionBar
           status={cotacao.step_atual as any}
@@ -163,7 +167,8 @@ export default function CotacaoDetalhes() {
           onEnviar={handleEnviar}
         />
       </div>
-      <div className="flex pt-[60px]">
+
+      <div className="flex pt-[72px]">
         {/* Área Principal */}
         <div className={`flex-1 transition-all duration-300 ${historicoAberto ? 'mr-96' : 'mr-0'}`}>
           <div className="p-8 space-y-6">
