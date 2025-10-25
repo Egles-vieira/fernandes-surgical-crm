@@ -23,6 +23,11 @@ export interface EDICotacao {
   valor_total_respondido: number;
   dados_originais: any;
   detalhes: any;
+  status_analise_ia: 'pendente' | 'em_analise' | 'concluida' | 'erro' | 'cancelada' | null;
+  progresso_analise_percent: number | null;
+  analisado_por_ia: boolean | null;
+  total_itens_analisados: number | null;
+  tempo_analise_segundos: number | null;
   plataformas_edi?: {
     nome: string;
     slug: string;
@@ -33,6 +38,8 @@ export const useEDICotacoes = (filtros?: {
   step?: string;
   plataforma_id?: string;
   resgatada?: boolean;
+  status_analise_ia?: 'pendente' | 'em_analise' | 'concluida' | 'erro' | 'cancelada';
+  respondida?: boolean;
 }) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -58,6 +65,16 @@ export const useEDICotacoes = (filtros?: {
 
       if (filtros?.resgatada !== undefined) {
         query = query.eq("resgatada", filtros.resgatada);
+      }
+
+      if (filtros?.status_analise_ia) {
+        query = query.eq("status_analise_ia", filtros.status_analise_ia);
+      }
+
+      if (filtros?.respondida === true) {
+        query = query.not("respondido_em", "is", null);
+      } else if (filtros?.respondida === false) {
+        query = query.is("respondido_em", null);
       }
 
       const { data, error } = await query;
