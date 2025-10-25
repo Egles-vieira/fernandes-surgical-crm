@@ -356,19 +356,31 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
                       {item.codigo_produto_cliente || "-"}
                     </TableCell>
                     <TableCell>
-                      {data?.produtoVinculado ? (
-                        <div className="flex items-center gap-2">
-                          <Package className="h-4 w-4 text-primary" />
-                          <div>
-                            <p className="text-sm font-medium">{data.produtoVinculado.nome}</p>
-                            <p className="text-xs text-muted-foreground">
-                              Ref: {data.produtoVinculado.referencia_interna}
-                            </p>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setCurrentItemId(item.id);
+                            setDialogAberto(true);
+                          }}
+                        >
+                          <Package className="h-3 w-3" />
+                        </Button>
+                        {data?.produtoVinculado ? (
+                          <div className="flex items-center gap-2">
+                            <Package className="h-4 w-4 text-primary" />
+                            <div>
+                              <p className="text-sm font-medium">{data.produtoVinculado.nome}</p>
+                              <p className="text-xs text-muted-foreground">
+                                Ref: {data.produtoVinculado.referencia_interna}
+                              </p>
+                            </div>
                           </div>
-                        </div>
-                      ) : (
-                        <span className="text-sm text-muted-foreground">-</span>
-                      )}
+                        ) : (
+                          <span className="text-sm text-muted-foreground">-</span>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell>
                       <Input
@@ -420,16 +432,6 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
                           disabled={data?.isLoading}
                         >
                           <Sparkles className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setCurrentItemId(item.id);
-                            setDialogAberto(true);
-                          }}
-                        >
-                          <Package className="h-3 w-3" />
                         </Button>
                         <Button
                           size="sm"
