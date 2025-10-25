@@ -12,7 +12,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ $env.SUPABASE_URL }}/rest/v1/rpc/get_pending_items",
+        "url": "https://rzzzfprgnoywmmjwepzm.supabase.co/rest/v1/rpc/get_pending_items",
         "authentication": "predefinedCredentialType",
         "nodeCredentialType": "supabaseApi",
         "sendHeaders": true,
@@ -57,7 +57,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ $env.SUPABASE_URL }}/functions/v1/edi-sugerir-produtos",
+        "url": "https://rzzzfprgnoywmmjwepzm.supabase.co/functions/v1/edi-sugerir-produtos",
         "authentication": "predefinedCredentialType",
         "nodeCredentialType": "supabaseApi",
         "sendHeaders": true,
@@ -119,7 +119,7 @@
     {
       "parameters": {
         "method": "PATCH",
-        "url": "={{ $env.SUPABASE_URL }}/rest/v1/edi_cotacoes_itens?id=eq.{{ $json.item_id }}",
+        "url": "https://rzzzfprgnoywmmjwepzm.supabase.co/rest/v1/edi_cotacoes_itens?id=eq.{{ $json.item_id }}",
         "authentication": "predefinedCredentialType",
         "nodeCredentialType": "supabaseApi",
         "sendHeaders": true,
