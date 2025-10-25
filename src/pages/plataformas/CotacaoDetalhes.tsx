@@ -10,7 +10,7 @@ import { ptBR } from "date-fns/locale";
 import { Building2, Calendar, MapPin, FileText, Package, DollarSign, Clock, CheckCircle2, XCircle, ArrowLeft, ChevronRight, ChevronLeft } from "lucide-react";
 import { EDICotacao } from "@/hooks/useEDICotacoes";
 import { useToast } from "@/hooks/use-toast";
-import { ItemCotacaoCard } from "@/components/plataformas/ItemCotacaoCard";
+import { ItemCotacaoTable } from "@/components/plataformas/ItemCotacaoTable";
 import { CotacaoActionBar } from "@/components/plataformas/CotacaoActionBar";
 interface ItemCotacao {
   id: string;
@@ -268,9 +268,11 @@ export default function CotacaoDetalhes() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {itens.map(item => <ItemCotacaoCard key={item.id} item={item} cotacao={cotacao} onUpdate={carregarDados} />)}
-                </div>
+                <ItemCotacaoTable 
+                  itens={itens} 
+                  cotacao={cotacao} 
+                  onUpdate={carregarDados} 
+                />
               </CardContent>
             </Card>
 

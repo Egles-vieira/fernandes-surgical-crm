@@ -15,6 +15,7 @@ export interface EDIProdutoVinculo {
   aprovado_em: string | null;
   criado_em?: string | null;
   ativo: boolean;
+  desconto_padrao?: number | null;
   produtos?: {
     id: string;
     nome: string;
