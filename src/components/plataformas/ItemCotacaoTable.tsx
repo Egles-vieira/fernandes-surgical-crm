@@ -71,6 +71,7 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
         precoUnitario: item.preco_unitario_respondido || 0,
         desconto: item.percentual_desconto || 0,
         isLoading: false,
+        sugeridoPorIA: false,
       });
     });
     setItemsData(initialData);
@@ -126,6 +127,7 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
       precoUnitario: mapping.produtos?.preco_venda || 0,
       desconto: mapping.desconto_padrao ?? currentData.desconto ?? 0,
       mappingId: mapping.id,
+      sugeridoPorIA: mapping.sugerido_por_ia || false,
     });
     
     setItemsData(newData);
@@ -146,6 +148,7 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
       ...currentData,
       produtoVinculado: produto,
       precoUnitario: produto.preco_venda || 0,
+      sugeridoPorIA: false,
     });
     
     setItemsData(newData);
@@ -221,6 +224,7 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
       ...currentData,
       produtoVinculado: produtoSugerido,
       precoUnitario: sugestao.preco_venda || 0,
+      sugeridoPorIA: true,
     });
     
     setItemsData(newData);
@@ -282,7 +286,7 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
               desconto_padrao: data.desconto,
               aprovado_em: new Date().toISOString(),
               ativo: true,
-              sugerido_por_ia: false,
+              sugerido_por_ia: data.sugeridoPorIA || false,
             })
             .select("id")
             .single();
