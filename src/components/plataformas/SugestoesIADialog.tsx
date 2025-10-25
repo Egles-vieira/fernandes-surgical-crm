@@ -1,7 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Sparkles, Package, DollarSign, Hash, Box } from "lucide-react";
 import { useState } from "react";
 
@@ -23,6 +23,12 @@ interface SugestoesIADialogProps {
   sugestoes: Sugestao[];
   onSelecionar: (produto: Sugestao) => void;
   onBuscarManual: () => void;
+  itemCliente?: {
+    descricao: string;
+    quantidade: number;
+    unidade_medida: string;
+    marca?: string;
+  };
 }
 
 export function SugestoesIADialog({
@@ -31,6 +37,7 @@ export function SugestoesIADialog({
   sugestoes,
   onSelecionar,
   onBuscarManual,
+  itemCliente,
 }: SugestoesIADialogProps) {
   const [selected, setSelected] = useState<string | null>(null);
 
@@ -58,6 +65,35 @@ export function SugestoesIADialog({
             Selecione o produto que melhor corresponde à solicitação ou busque manualmente.
           </DialogDescription>
         </DialogHeader>
+
+        {itemCliente && (
+          <Card className="bg-muted/50 border-dashed">
+            <CardContent className="pt-4">
+              <h4 className="font-semibold text-sm mb-3 flex items-center gap-2">
+                <Package className="h-4 w-4" />
+                Solicitação do Cliente
+              </h4>
+              <div className="space-y-2 text-sm">
+                <div>
+                  <span className="text-muted-foreground">Descrição: </span>
+                  <span className="font-medium">{itemCliente.descricao}</span>
+                </div>
+                <div className="flex gap-4">
+                  <div>
+                    <span className="text-muted-foreground">Quantidade: </span>
+                    <span className="font-medium">{itemCliente.quantidade} {itemCliente.unidade_medida}</span>
+                  </div>
+                  {itemCliente.marca && (
+                    <div>
+                      <span className="text-muted-foreground">Marca: </span>
+                      <span className="font-medium">{itemCliente.marca}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {sugestoes.length === 0 ? (
           <div className="py-8 text-center text-muted-foreground">

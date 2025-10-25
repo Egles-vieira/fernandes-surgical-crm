@@ -78,6 +78,7 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
   const [dialogAberto, setDialogAberto] = useState(false);
   const [sugestoesDialogAberto, setSugestoesDialogAberto] = useState(false);
   const [currentItemId, setCurrentItemId] = useState<string | null>(null);
+  const [currentItem, setCurrentItem] = useState<ItemCotacao | null>(null);
   const [sugestoesIA, setSugestoesIA] = useState<any[]>([]);
   const [itemsData, setItemsData] = useState<Map<string, any>>(new Map());
   const [previousMappings, setPreviousMappings] = useState<Map<string, EDIProdutoVinculo[]>>(new Map());
@@ -228,6 +229,7 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
       if (sugestoes.length > 0) {
         setSugestoesIA(sugestoes);
         setCurrentItemId(item.id);
+        setCurrentItem(item);
         setSugestoesDialogAberto(true);
       } else {
         toast({
@@ -953,6 +955,11 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
           setSugestoesDialogAberto(false);
           setDialogAberto(true);
         }}
+        itemCliente={currentItem ? {
+          descricao: currentItem.descricao_produto_cliente,
+          quantidade: currentItem.quantidade_solicitada,
+          unidade_medida: currentItem.unidade_medida,
+        } : undefined}
       />
     </>
   );

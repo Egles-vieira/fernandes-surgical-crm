@@ -285,6 +285,11 @@ export function ItemCotacaoCard({ item, cotacao, onUpdate }: ItemCotacaoCardProp
           setSugestoesDialogAberto(false);
           setDialogAberto(true);
         }}
+        itemCliente={{
+          descricao: item.descricao_produto_cliente,
+          quantidade: item.quantidade_solicitada,
+          unidade_medida: item.unidade_medida,
+        }}
       />
     </>
   );
