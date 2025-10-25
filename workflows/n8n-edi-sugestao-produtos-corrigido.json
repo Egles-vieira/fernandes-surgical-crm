@@ -136,7 +136,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"produto_sugerido_id\": \"{{ $json.sugestoes[0].produto_id }}\",\n  \"confianca_sugestao\": {{ $json.sugestoes[0].score }},\n  \"metodo_sugestao\": \"{{ $json.metodo }}\",\n  \"sugestao_ia_gerada\": true\n}",
+        "jsonBody": "={\n  \"produto_id\": \"{{ $json.sugestoes[0].produto_id }}\",\n  \"status\": \"sugerido\"\n}",
         "options": {}
       },
       "id": "atualizar-item-sugestao",
