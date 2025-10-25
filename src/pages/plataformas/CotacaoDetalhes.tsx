@@ -58,7 +58,7 @@ export default function CotacaoDetalhes() {
   const [cotacao, setCotacao] = useState<EDICotacao | null>(null);
   const [itens, setItens] = useState<ItemCotacao[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [historicoAberto, setHistoricoAberto] = useState(true);
+  const [historicoAberto, setHistoricoAberto] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   useEffect(() => {
