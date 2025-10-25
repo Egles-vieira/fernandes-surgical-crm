@@ -164,7 +164,7 @@ serve(async (req) => {
   }
 
   try {
-    const { descricao_cliente, cnpj_cliente, plataforma_id, limite = 5 } = await req.json();
+    const { descricao_cliente, cnpj_cliente, plataforma_id, limite = 5, item_id } = await req.json();
 
     if (!descricao_cliente) {
       return new Response(
@@ -288,7 +288,8 @@ serve(async (req) => {
       JSON.stringify({
         sugestoes: sugestoesEnriquecidas,
         total_produtos_analisados: produtos.length,
-        metodo
+        metodo,
+        item_id
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
