@@ -62,11 +62,16 @@ export const useEDICondicoesPagamento = (plataformaId?: string) => {
 
         if (error) throw error;
       } else {
-        const { plataformas_edi, condicoes_pagamento, ...condicaoData } = condicao;
+        const { id, plataformas_edi, condicoes_pagamento, criado_em, criado_por, atualizado_em, ...condicaoData } = condicao;
         const { error } = await supabase
           .from("edi_condicoes_pagamento")
           .insert([{
-            ...(condicaoData as any),
+            plataforma_id: condicao.plataforma_id,
+            codigo_portal: condicao.codigo_portal!,
+            descricao_portal: condicao.descricao_portal!,
+            condicao_pagamento_id: condicao.condicao_pagamento_id || null,
+            codigo_integracao: condicao.codigo_integracao || null,
+            ativo: condicao.ativo ?? true,
             criado_por: userData.user.id,
           }]);
 

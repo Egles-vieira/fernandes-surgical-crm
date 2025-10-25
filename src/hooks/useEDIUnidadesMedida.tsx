@@ -58,11 +58,16 @@ export const useEDIUnidadesMedida = (plataformaId?: string) => {
 
         if (error) throw error;
       } else {
-        const { plataformas_edi, ...unidadeData } = unidade;
+        const { id, plataformas_edi, criado_em, criado_por, atualizado_em, ...unidadeData } = unidade;
         const { error } = await supabase
           .from("edi_unidades_medida")
           .insert([{
-            ...(unidadeData as any),
+            plataforma_id: unidade.plataforma_id,
+            codigo_portal: unidade.codigo_portal!,
+            descricao_portal: unidade.descricao_portal!,
+            abreviacao_portal: unidade.abreviacao_portal || null,
+            unidade_medida_interna: unidade.unidade_medida_interna!,
+            ativo: unidade.ativo ?? true,
             criado_por: userData.user.id,
           }]);
 

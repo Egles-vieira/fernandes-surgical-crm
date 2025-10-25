@@ -21,6 +21,11 @@ export default function Parametros() {
   const [dialogCondicaoAberto, setDialogCondicaoAberto] = useState(false);
   const [unidadeEditando, setUnidadeEditando] = useState<any>(null);
   const [condicaoEditando, setCondicaoEditando] = useState<any>(null);
+  
+  // Estados para os formulários
+  const [plataformaUnidade, setPlataformaUnidade] = useState<string>("");
+  const [plataformaCondicao, setPlataformaCondicao] = useState<string>("");
+  const [condicaoPagamento, setCondicaoPagamento] = useState<string>("");
 
   const { plataformas } = usePlataformasEDI();
   const plataformaIdFiltro = plataformaFiltro === "all" ? undefined : plataformaFiltro;
@@ -34,16 +39,17 @@ export default function Parametros() {
     
     await salvarUnidade.mutateAsync({
       id: unidadeEditando?.id,
-      plataforma_id: formData.get("plataforma_id") as string,
+      plataforma_id: plataformaUnidade,
       codigo_portal: formData.get("codigo_portal") as string,
       descricao_portal: formData.get("descricao_portal") as string,
-      abreviacao_portal: formData.get("abreviacao_portal") as string,
+      abreviacao_portal: formData.get("abreviacao_portal") as string || null,
       unidade_medida_interna: formData.get("unidade_medida_interna") as string,
       ativo: true,
     });
 
     setDialogUnidadeAberto(false);
     setUnidadeEditando(null);
+    setPlataformaUnidade("");
   };
 
   const handleSalvarCondicao = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -52,16 +58,18 @@ export default function Parametros() {
     
     await salvarCondicao.mutateAsync({
       id: condicaoEditando?.id,
-      plataforma_id: formData.get("plataforma_id") as string,
+      plataforma_id: plataformaCondicao,
       codigo_portal: formData.get("codigo_portal") as string,
       descricao_portal: formData.get("descricao_portal") as string,
-      condicao_pagamento_id: formData.get("condicao_pagamento_id") as string || null,
+      condicao_pagamento_id: condicaoPagamento || null,
       codigo_integracao: formData.get("codigo_integracao") as string || null,
       ativo: true,
     });
 
     setDialogCondicaoAberto(false);
     setCondicaoEditando(null);
+    setPlataformaCondicao("");
+    setCondicaoPagamento("");
   };
 
   return (
@@ -108,7 +116,10 @@ export default function Parametros() {
                 <h2 className="text-xl font-semibold">Unidades de Medida</h2>
                 <Dialog open={dialogUnidadeAberto} onOpenChange={setDialogUnidadeAberto}>
                   <DialogTrigger asChild>
-                    <Button onClick={() => setUnidadeEditando(null)}>
+                    <Button onClick={() => {
+                      setUnidadeEditando(null);
+                      setPlataformaUnidade("");
+                    }}>
                       <Plus className="h-4 w-4 mr-2" />
                       Nova Unidade
                     </Button>
@@ -122,7 +133,10 @@ export default function Parametros() {
                     <form onSubmit={handleSalvarUnidade} className="space-y-4">
                       <div>
                         <Label>Portal</Label>
-                        <Select name="plataforma_id" defaultValue={unidadeEditando?.plataforma_id}>
+                        <Select 
+                          value={plataformaUnidade || unidadeEditando?.plataforma_id} 
+                          onValueChange={setPlataformaUnidade}
+                        >
                           <SelectTrigger>
                             <SelectValue placeholder="Selecione o portal" />
                           </SelectTrigger>
@@ -191,11 +205,12 @@ export default function Parametros() {
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-2">
-                            <Button
+                             <Button
                               size="icon"
                               variant="ghost"
                               onClick={() => {
                                 setUnidadeEditando(unidade);
+                                setPlataformaUnidade(unidade.plataforma_id || "");
                                 setDialogUnidadeAberto(true);
                               }}
                             >
@@ -224,7 +239,11 @@ export default function Parametros() {
                 <h2 className="text-xl font-semibold">Condições de Pagamento</h2>
                 <Dialog open={dialogCondicaoAberto} onOpenChange={setDialogCondicaoAberto}>
                   <DialogTrigger asChild>
-                    <Button onClick={() => setCondicaoEditando(null)}>
+                    <Button onClick={() => {
+                      setCondicaoEditando(null);
+                      setPlataformaCondicao("");
+                      setCondicaoPagamento("");
+                    }}>
                       <Plus className="h-4 w-4 mr-2" />
                       Nova Condição
                     </Button>
@@ -238,7 +257,10 @@ export default function Parametros() {
                     <form onSubmit={handleSalvarCondicao} className="space-y-4">
                       <div>
                         <Label>Portal</Label>
-                        <Select name="plataforma_id" defaultValue={condicaoEditando?.plataforma_id}>
+                        <Select 
+                          value={plataformaCondicao || condicaoEditando?.plataforma_id} 
+                          onValueChange={setPlataformaCondicao}
+                        >
                           <SelectTrigger>
                             <SelectValue placeholder="Selecione o portal" />
                           </SelectTrigger>
@@ -261,7 +283,10 @@ export default function Parametros() {
                       </div>
                       <div>
                         <Label>Minha Condição de Pagamento</Label>
-                        <Select name="condicao_pagamento_id" defaultValue={condicaoEditando?.condicao_pagamento_id}>
+                        <Select 
+                          value={condicaoPagamento || condicaoEditando?.condicao_pagamento_id || ""} 
+                          onValueChange={setCondicaoPagamento}
+                        >
                           <SelectTrigger>
                             <SelectValue placeholder="Selecione..." />
                           </SelectTrigger>
@@ -323,6 +348,8 @@ export default function Parametros() {
                               variant="ghost"
                               onClick={() => {
                                 setCondicaoEditando(condicao);
+                                setPlataformaCondicao(condicao.plataforma_id || "");
+                                setCondicaoPagamento(condicao.condicao_pagamento_id || "");
                                 setDialogCondicaoAberto(true);
                               }}
                             >
