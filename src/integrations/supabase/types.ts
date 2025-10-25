@@ -4318,6 +4318,19 @@ export type Database = {
         Returns: Json
       }
       gerar_numero_ticket: { Args: never; Returns: string }
+      get_pending_items: {
+        Args: never
+        Returns: {
+          cnpj_cliente: string
+          codigo_produto_cliente: string
+          cotacao_id: string
+          descricao_produto_cliente: string
+          item_id: string
+          plataforma_id: string
+          quantidade: number
+          unidade_medida: string
+        }[]
+      }
       get_user_roles: {
         Args: { _user_id: string }
         Returns: {
