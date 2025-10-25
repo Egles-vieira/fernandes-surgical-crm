@@ -28,20 +28,20 @@ interface SugestaoProduto {
   }>;
 }
 
-// ============= ANÁLISE SEMÂNTICA COM LOVABLE AI =============
-async function analisarComLovableAI(
+// ============= ANÁLISE SEMÂNTICA COM DEEPSEEK =============
+async function analisarComDeepSeek(
   descricaoCliente: string,
   candidatos: Array<{ produto: any; scoreToken: number }>,
   contexto: { marca?: string; quantidade?: number; unidade_medida?: string }
 ): Promise<any[]> {
-  const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
-  if (!lovableApiKey) {
-    console.warn('⚠️ LOVABLE_API_KEY não configurada, pulando análise semântica');
+  const deepseekApiKey = Deno.env.get('DEEPSEEK_API_KEY');
+  if (!deepseekApiKey) {
+    console.warn('⚠️ DEEPSEEK_API_KEY não configurada, pulando análise semântica');
     return [];
   }
 
   try {
-    console.log(`🤖 [Lovable AI] Analisando ${candidatos.length} candidatos...`);
+    console.log(`🤖 [DeepSeek] Analisando ${candidatos.length} candidatos...`);
     
     const candidatosFormatados = candidatos.map((c, idx) => ({
       index: idx,
@@ -95,53 +95,51 @@ Score de 0-100 onde:
 
 Retorne APENAS o JSON array, sem texto adicional.`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${lovableApiKey}`,
+        Authorization: `Bearer ${deepseekApiKey}`,
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "deepseek-chat",
         messages: [
           { role: "system", content: "Você é um especialista em análise de produtos médico-hospitalares. Retorne apenas JSON válido." },
           { role: "user", content: prompt },
         ],
+        temperature: 0.7,
       }),
     });
 
     if (!response.ok) {
       if (response.status === 429) {
-        throw new Error('Rate limit excedido - Lovable AI');
-      }
-      if (response.status === 402) {
-        throw new Error('Créditos insuficientes - Lovable AI');
+        throw new Error('Rate limit excedido - DeepSeek');
       }
       const errorText = await response.text();
-      console.error("❌ [Lovable AI] Erro:", response.status, errorText);
-      throw new Error(`Lovable AI error: ${response.status}`);
+      console.error("❌ [DeepSeek] Erro:", response.status, errorText);
+      throw new Error(`DeepSeek error: ${response.status}`);
     }
 
     const data = await response.json();
     const content = data.choices?.[0]?.message?.content;
 
     if (!content) {
-      throw new Error("Lovable AI retornou resposta vazia");
+      throw new Error("DeepSeek retornou resposta vazia");
     }
 
     // Extrair JSON da resposta (pode vir com markdown)
     const jsonMatch = content.match(/\[[\s\S]*\]/);
     if (!jsonMatch) {
-      console.error("❌ [Lovable AI] Resposta sem JSON válido:", content.substring(0, 200));
-      throw new Error("Lovable AI não retornou JSON válido");
+      console.error("❌ [DeepSeek] Resposta sem JSON válido:", content.substring(0, 200));
+      throw new Error("DeepSeek não retornou JSON válido");
     }
 
     const results = JSON.parse(jsonMatch[0]);
-    console.log(`✅ [Lovable AI] ${results.length} produtos analisados`);
+    console.log(`✅ [DeepSeek] ${results.length} produtos analisados`);
     
     return results;
   } catch (error) {
-    console.error("❌ [Lovable AI] Erro na análise:", error);
+    console.error("❌ [DeepSeek] Erro na análise:", error);
     return [];
   }
 }
@@ -341,7 +339,7 @@ serve(async (req) => {
       unidade_medida: unidade_medida
     };
 
-    const analiseSemantica = await analisarComLovableAI(
+    const analiseSemantica = await analisarComDeepSeek(
       descricao_cliente,
       candidatosPorToken.slice(0, 5).map(c => ({ produto: c.produto, scoreToken: c.score })),
       contexto
@@ -423,7 +421,7 @@ serve(async (req) => {
       JSON.stringify({
         sugestoes,
         total_produtos_analisados: produtos.length,
-        metodo: analiseSemantica.length > 0 ? 'hibrido_lovable_ai' : 'token_only',
+        metodo: analiseSemantica.length > 0 ? 'hibrido_deepseek' : 'token_only',
         candidatos_pre_filtrados: candidatosPorToken.length,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
