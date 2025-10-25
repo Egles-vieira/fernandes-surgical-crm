@@ -119,32 +119,51 @@ export default function CotacaoDetalhes() {
       </div>;
   }
   if (!cotacao) return null;
-  const valorTotal = itens.reduce((acc, item) => acc + (item.preco_total || 0), 0);
   const handleResponder = () => {
-    // TODO: Implementar lógica de responder cotação
     toast({
-      title: "Em desenvolvimento",
-      description: "Funcionalidade de responder cotação em breve."
+      title: "Responder Cotação",
+      description: "Funcionalidade em desenvolvimento",
     });
   };
+
   const handleCancelar = () => {
-    // TODO: Implementar lógica de cancelar cotação
     toast({
-      title: "Em desenvolvimento",
-      description: "Funcionalidade de cancelar cotação em breve."
+      title: "Cancelar Cotação",
+      description: "Funcionalidade em desenvolvimento",
+      variant: "destructive",
     });
   };
+
   const handleConfirmar = () => {
-    // TODO: Implementar lógica de confirmar pedido
     toast({
-      title: "Em desenvolvimento",
-      description: "Funcionalidade de confirmar pedido em breve."
+      title: "Confirmar Cotação",
+      description: "Funcionalidade em desenvolvimento",
     });
   };
+
+  const handleEnviar = () => {
+    toast({
+      title: "Enviar Cotação",
+      description: "Funcionalidade em desenvolvimento",
+    });
+  };
+
+  const valorTotal = itens.reduce((acc, item) => acc + (item.preco_total || 0), 0);
+  
   return <div className="min-h-screen bg-background">
-      <CotacaoActionBar status={cotacao.step_atual} numeroCotacao={cotacao.numero_cotacao} onResponder={handleResponder} onCancelar={handleCancelar} onConfirmar={handleConfirmar} />
-      
-      <div className="flex">
+      <div
+        className="fixed top-16 z-40 bg-card border-b shadow-sm px-8 py-3 transition-all duration-300"
+        style={{ left: 'var(--sidebar-width)' as any, right: historicoAberto ? '24rem' : '3.5rem' }}
+      >
+        <CotacaoActionBar
+          status={cotacao.step_atual as any}
+          onResponder={handleResponder}
+          onCancelar={handleCancelar}
+          onConfirmar={handleConfirmar}
+          onEnviar={handleEnviar}
+        />
+      </div>
+      <div className="flex pt-[60px]">
         {/* Área Principal */}
         <div className={`flex-1 transition-all duration-300 ${historicoAberto ? 'mr-96' : 'mr-0'}`}>
           <div className="p-8 space-y-6">
@@ -154,6 +173,12 @@ export default function CotacaoDetalhes() {
                 <ArrowLeft className="h-4 w-4" />
               </Button>
               <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <h1 className="font-bold text-xl">
+                    Cotação {cotacao.numero_cotacao}
+                  </h1>
+                  <Badge variant="default">{stepLabel(cotacao.step_atual)}</Badge>
+                </div>
                 <p className="text-muted-foreground">
                   ID Externo: {cotacao.id_cotacao_externa}
                 </p>
@@ -167,13 +192,16 @@ export default function CotacaoDetalhes() {
                 <div className="grid grid-cols-2 gap-6">
                   {/* Cliente */}
                   <div className="space-y-3">
-                    
+                    <div className="flex items-center gap-2 font-semibold">
+                      <Building2 className="h-4 w-4" />
+                      Cliente
+                    </div>
                     <div className="space-y-2 pl-6">
                       <div>
                         <p className="text-sm text-muted-foreground">Nome</p>
                         <p className="font-medium">{cotacao.nome_cliente}</p>
                       </div>
-                      <div className="rounded-xl">
+                      <div>
                         <p className="text-sm text-muted-foreground">CNPJ</p>
                         <p className="font-medium">{cotacao.cnpj_cliente}</p>
                       </div>
@@ -288,6 +316,9 @@ export default function CotacaoDetalhes() {
               </CardContent>
             </Card>
 
+            {cotacao.step_atual === "em_analise" && <div className="flex justify-end gap-2">
+                <Button size="lg">Responder Cotação</Button>
+              </div>}
           </div>
         </div>
 
@@ -310,7 +341,7 @@ export default function CotacaoDetalhes() {
               <div className="space-y-4">
                 <div className="text-center py-12 animate-scale-in">
                   <Clock className="mx-auto h-12 w-12 text-muted-foreground mb-4 opacity-50" />
-                  <p className="text-muted-foreground mx-0 my-0 py-0 px-[20px]">
+                  <p className="text-muted-foreground">
                     Histórico de atividades será exibido aqui
                   </p>
                 </div>
