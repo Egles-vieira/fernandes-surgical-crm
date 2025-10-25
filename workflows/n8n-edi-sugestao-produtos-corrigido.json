@@ -34,13 +34,7 @@
       "name": "1. Buscar Itens Pendentes",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [460, 300],
-      "credentials": {
-        "supabaseApi": {
-          "id": "1",
-          "name": "Supabase account"
-        }
-      }
+      "position": [460, 300]
     },
     {
       "parameters": {
@@ -77,13 +71,7 @@
       "name": "3. Sugerir Produtos",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [900, 300],
-      "credentials": {
-        "supabaseApi": {
-          "id": "1",
-          "name": "Supabase account"
-        }
-      }
+      "position": [900, 300]
     },
     {
       "parameters": {
@@ -143,13 +131,7 @@
       "name": "5. Atualizar Item",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1340, 200],
-      "credentials": {
-        "supabaseApi": {
-          "id": "1",
-          "name": "Supabase account"
-        }
-      }
+      "position": [1340, 200]
     },
     {
       "parameters": {
@@ -201,7 +183,7 @@
       "main": [
         [
           {
-            "node": "3. Sugerir Produtos (IA)",
+            "node": "3. Sugerir Produtos",
             "type": "main",
             "index": 0
           }
@@ -215,7 +197,7 @@
         ]
       ]
     },
-    "3. Sugerir Produtos (IA)": {
+    "3. Sugerir Produtos": {
       "main": [
         [
           {
