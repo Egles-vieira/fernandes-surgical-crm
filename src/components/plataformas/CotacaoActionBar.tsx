@@ -60,7 +60,7 @@ export function CotacaoActionBar({
   const statusInfo = getStatusInfo();
 
   return (
-    <div className="sticky top-16 z-30 bg-card border-b shadow-sm px-8 py-3">
+    <div className="fixed top-16 left-0 right-0 z-30 bg-card border-b shadow-sm px-8 py-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="text-sm font-medium text-muted-foreground">

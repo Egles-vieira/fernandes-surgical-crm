@@ -158,7 +158,7 @@ export default function CotacaoDetalhes() {
         onConfirmar={handleConfirmar}
         onEnviar={handleEnviar}
       />
-      <div className="flex">
+      <div className="flex pt-[60px]">
         {/* Área Principal */}
         <div className={`flex-1 transition-all duration-300 ${historicoAberto ? 'mr-96' : 'mr-0'}`}>
           <div className="p-8 space-y-6">
