@@ -61,6 +61,8 @@ export default function CotacaoDetalhes() {
   const [historicoAberto, setHistoricoAberto] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [condicaoPagamento, setCondicaoPagamento] = useState<any>(null);
+  
   useEffect(() => {
     if (id) {
       carregarDados();
@@ -92,6 +94,23 @@ export default function CotacaoDetalhes() {
       });
       if (itensError) throw itensError;
       setItens(itensData || []);
+
+      // Carregar condição de pagamento com DE-PARA
+      const detalhes = cotacaoData.detalhes as any;
+      if (detalhes?.condicao_pagamento_codigo) {
+        const { data: condicaoData } = await supabase
+          .from("edi_condicoes_pagamento")
+          .select(`
+            *,
+            condicoes_pagamento(*)
+          `)
+          .eq("plataforma_id", cotacaoData.plataforma_id)
+          .eq("codigo_portal", detalhes.condicao_pagamento_codigo)
+          .eq("ativo", true)
+          .maybeSingle();
+
+        setCondicaoPagamento(condicaoData);
+      }
     } catch (error: any) {
       toast({
         title: "Erro ao carregar dados",
@@ -255,7 +274,7 @@ export default function CotacaoDetalhes() {
             <Card className="rounded-none mx-0">
               
               <CardContent className="mx-0 py-[12px] my-0 px-[24px]">
-                <div className="grid grid-cols-3 gap-6">
+                <div className="grid grid-cols-4 gap-6">
                   {/* Cliente */}
                   <div className="space-y-3">
                     <div className="flex items-center gap-2 font-semibold">
@@ -330,6 +349,47 @@ export default function CotacaoDetalhes() {
                       ))}
                       {itens.length === 0 && (
                         <p className="text-sm text-muted-foreground">Nenhuma unidade</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Condição de Pagamento */}
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 font-semibold">
+                      <DollarSign className="h-4 w-4" />
+                      Condição de Pagamento
+                    </div>
+                    <div className="space-y-2 pl-6">
+                      {(cotacao.detalhes as any)?.condicao_pagamento_codigo && (
+                        <>
+                          <div>
+                            <p className="text-sm text-muted-foreground">Portal</p>
+                            <p className="font-medium text-xs">
+                              {(cotacao.detalhes as any).condicao_pagamento_codigo}
+                              {(cotacao.detalhes as any).condicao_pagamento_descricao && 
+                                ` - ${(cotacao.detalhes as any).condicao_pagamento_descricao}`
+                              }
+                            </p>
+                          </div>
+                          {condicaoPagamento?.condicoes_pagamento && (
+                            <div className="pt-2 border-t">
+                              <p className="text-sm text-muted-foreground">Minha Condição</p>
+                              <Badge variant="default" className="mt-1">
+                                {condicaoPagamento.condicoes_pagamento.nome}
+                              </Badge>
+                            </div>
+                          )}
+                          {!condicaoPagamento && (
+                            <div className="pt-2">
+                              <Badge variant="destructive" className="text-xs">
+                                Sem DE-PARA
+                              </Badge>
+                            </div>
+                          )}
+                        </>
+                      )}
+                      {!(cotacao.detalhes as any)?.condicao_pagamento_codigo && (
+                        <p className="text-sm text-muted-foreground">Não informada</p>
                       )}
                     </div>
                   </div>
