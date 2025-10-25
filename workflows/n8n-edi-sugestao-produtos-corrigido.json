@@ -74,7 +74,7 @@
         "options": {}
       },
       "id": "sugerir-produtos-ia",
-      "name": "3. Sugerir Produtos (IA)",
+      "name": "3. Sugerir Produtos",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [900, 300],
@@ -162,6 +162,16 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [1560, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "return items;"
+      },
+      "id": "fim",
+      "name": "7. Fim",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 480]
     }
   ],
   "connections": {
@@ -192,6 +202,13 @@
         [
           {
             "node": "3. Sugerir Produtos (IA)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "7. Fim",
             "type": "main",
             "index": 0
           }
@@ -232,6 +249,17 @@
         [
           {
             "node": "6. Aggregate Resultados",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "6. Aggregate Resultados": {
+      "main": [
+        [
+          {
+            "node": "2. Split Itens",
             "type": "main",
             "index": 0
           }
