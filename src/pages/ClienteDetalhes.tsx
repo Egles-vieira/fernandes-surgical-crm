@@ -220,14 +220,30 @@ export default function ClienteDetalhes() {
       const {
         data,
         error
-      } = await supabase.from("historico_ligacoes").select(`
-          *,
-          iniciada_por_perfil:perfis_usuario!historico_ligacoes_iniciada_por_fkey(nome_completo)
-        `).eq("cliente_id", id).order("iniciada_em", {
+      } = await supabase.from("historico_ligacoes").select("*").eq("cliente_id", id).order("iniciada_em", {
         ascending: false
       });
       if (error) throw error;
-      return data;
+      
+      // Buscar nomes dos usuários separadamente se necessário
+      if (data && data.length > 0) {
+        const userIds = [...new Set(data.map(l => l.iniciada_por).filter(Boolean))];
+        if (userIds.length > 0) {
+          const { data: perfis } = await supabase
+            .from("perfis_usuario")
+            .select("id, nome_completo")
+            .in("id", userIds);
+          
+          if (perfis) {
+            return data.map(ligacao => ({
+              ...ligacao,
+              iniciada_por_perfil: perfis.find(p => p.id === ligacao.iniciada_por)
+            }));
+          }
+        }
+      }
+      
+      return data || [];
     },
     enabled: !!id
   });
