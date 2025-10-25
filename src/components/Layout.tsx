@@ -147,7 +147,7 @@ export default function Layout({ children }: LayoutProps) {
         <div className="p-3 flex items-center justify-center border-b border-white/10 h-20 relative">
           {!collapsed ? (
             <img 
-              src={empresa?.url_logo || logo} 
+              src={empresa?.url_logo_expandido || empresa?.url_logo || logo} 
               alt={empresa?.nome || "Cirúrgica Fernandes"} 
               className="h-10 object-contain animate-fade-in" 
             />

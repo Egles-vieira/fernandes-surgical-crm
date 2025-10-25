@@ -1465,6 +1465,7 @@ export type Database = {
           site: string | null
           tamanho_empresa: string | null
           url_logo: string | null
+          url_logo_expandido: string | null
         }
         Insert: {
           atualizado_em?: string | null
@@ -1481,6 +1482,7 @@ export type Database = {
           site?: string | null
           tamanho_empresa?: string | null
           url_logo?: string | null
+          url_logo_expandido?: string | null
         }
         Update: {
           atualizado_em?: string | null
@@ -1497,6 +1499,7 @@ export type Database = {
           site?: string | null
           tamanho_empresa?: string | null
           url_logo?: string | null
+          url_logo_expandido?: string | null
         }
         Relationships: []
       }

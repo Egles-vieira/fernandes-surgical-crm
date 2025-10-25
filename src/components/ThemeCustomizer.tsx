@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Palette, Check, Upload, Image as ImageIcon } from "lucide-react";
 import {
   Dialog,
@@ -61,7 +61,6 @@ export default function ThemeCustomizer() {
     secondary: "#aacb55",
     accent: "#3e867f",
   });
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const { empresa, uploadLogo, isUploading } = useEmpresa();
 
   useEffect(() => {
@@ -161,10 +160,10 @@ export default function ThemeCustomizer() {
     localStorage.setItem("theme-colors", JSON.stringify(newColors));
   };
 
-  const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>, tipo: 'fechado' | 'aberto') => {
     const file = event.target.files?.[0];
     if (file) {
-      uploadLogo(file);
+      uploadLogo({ file, tipo });
     }
   };
 
@@ -316,54 +315,76 @@ export default function ThemeCustomizer() {
           </TabsContent>
 
           <TabsContent value="logo" className="space-y-4">
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="logo">Logo da Empresa</Label>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Faça upload do logo da sua empresa. Será exibido no menu e como ícone da página.
+            <div className="space-y-6">
+              {/* Logo para menu fechado */}
+              <div className="space-y-2">
+                <Label htmlFor="logo-fechado">Logo para Menu Fechado (Ícone)</Label>
+                <p className="text-sm text-muted-foreground">
+                  Logo quadrado ou ícone exibido quando o menu está recolhido
                 </p>
                 
                 {empresa?.url_logo && (
-                  <div className="mb-4 p-4 border rounded-lg bg-muted/50">
-                    <p className="text-sm font-medium mb-2">Logo Atual:</p>
-                    <img 
-                      src={empresa.url_logo} 
-                      alt="Logo atual" 
-                      className="h-16 object-contain"
-                    />
+                  <div className="mb-3 p-4 border rounded-lg bg-muted/30">
+                    <p className="text-xs font-medium mb-2">Preview - Menu Fechado:</p>
+                    <div className="flex items-center gap-4">
+                      <img 
+                        src={empresa.url_logo} 
+                        alt="Logo menu fechado" 
+                        className="h-12 w-12 object-contain bg-white p-2 rounded-lg border"
+                      />
+                      <div className="text-xs text-muted-foreground">
+                        <p>Usado como favicon e ícone do menu</p>
+                      </div>
+                    </div>
                   </div>
                 )}
 
-                <input
-                  ref={fileInputRef}
+                <Input
+                  id="logo-fechado"
                   type="file"
                   accept="image/*"
-                  onChange={handleLogoUpload}
-                  className="hidden"
-                />
-
-                <Button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
+                  onChange={(e) => handleLogoUpload(e, 'fechado')}
                   disabled={isUploading}
-                  className="w-full"
-                >
-                  {isUploading ? (
-                    <>
-                      <Upload className="mr-2 h-4 w-4 animate-spin" />
-                      Fazendo upload...
-                    </>
-                  ) : (
-                    <>
-                      <ImageIcon className="mr-2 h-4 w-4" />
-                      Selecionar Logo
-                    </>
-                  )}
-                </Button>
+                />
+              </div>
 
-                <p className="text-xs text-muted-foreground mt-2">
-                  Formatos aceitos: PNG, JPG, WEBP. Tamanho máximo: 2MB
+              {/* Logo para menu aberto */}
+              <div className="space-y-2">
+                <Label htmlFor="logo-aberto">Logo para Menu Aberto (Completo)</Label>
+                <p className="text-sm text-muted-foreground">
+                  Logo horizontal exibido quando o menu está expandido
                 </p>
+                
+                {empresa?.url_logo_expandido && (
+                  <div className="mb-3 p-4 border rounded-lg bg-muted/30">
+                    <p className="text-xs font-medium mb-2">Preview - Menu Aberto:</p>
+                    <div className="flex items-center gap-4">
+                      <img 
+                        src={empresa.url_logo_expandido} 
+                        alt="Logo menu aberto" 
+                        className="h-10 w-auto max-w-[200px] object-contain bg-white p-2 rounded border"
+                      />
+                      <div className="text-xs text-muted-foreground">
+                        <p>Logo completo exibido no menu expandido</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <Input
+                  id="logo-aberto"
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleLogoUpload(e, 'aberto')}
+                  disabled={isUploading}
+                />
+              </div>
+
+              <div className="text-xs text-muted-foreground p-3 bg-muted/30 rounded-lg">
+                <p className="font-medium mb-1">📌 Dica:</p>
+                <p>• Para menu fechado: use um ícone/logo quadrado (ideal 512x512px)</p>
+                <p>• Para menu aberto: use um logo horizontal/retangular</p>
+                <p>• Formatos aceitos: PNG, JPG, WEBP (máx. 2MB)</p>
               </div>
             </div>
           </TabsContent>

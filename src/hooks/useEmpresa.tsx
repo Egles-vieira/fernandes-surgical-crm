@@ -20,7 +20,7 @@ export function useEmpresa() {
   });
 
   const uploadLogo = useMutation({
-    mutationFn: async (file: File) => {
+    mutationFn: async ({ file, tipo }: { file: File; tipo: 'fechado' | 'aberto' }) => {
       // Validar tipo de arquivo
       if (!file.type.startsWith("image/")) {
         throw new Error("Por favor, selecione um arquivo de imagem");
@@ -32,7 +32,7 @@ export function useEmpresa() {
       }
 
       const fileExt = file.name.split(".").pop();
-      const fileName = `logo-${Date.now()}.${fileExt}`;
+      const fileName = `logo-${tipo}-${Date.now()}.${fileExt}`;
 
       // Fazer upload do arquivo
       const { error: uploadError } = await supabase.storage
@@ -49,11 +49,11 @@ export function useEmpresa() {
         .from("logos-empresa")
         .getPublicUrl(fileName);
 
-      return publicUrl;
+      return { publicUrl, tipo };
     },
-    onSuccess: (publicUrl) => {
+    onSuccess: ({ publicUrl, tipo }) => {
       // Atualizar URL do logo no banco
-      updateLogo.mutate(publicUrl);
+      updateLogo.mutate({ logoUrl: publicUrl, tipo });
     },
     onError: (error: any) => {
       toast.error(error.message || "Erro ao fazer upload do logo");
@@ -61,23 +61,27 @@ export function useEmpresa() {
   });
 
   const updateLogo = useMutation({
-    mutationFn: async (logoUrl: string) => {
+    mutationFn: async ({ logoUrl, tipo }: { logoUrl: string; tipo: 'fechado' | 'aberto' }) => {
+      const campo = tipo === 'fechado' ? 'url_logo' : 'url_logo_expandido';
       const { error } = await supabase
         .from("empresas")
-        .update({ url_logo: logoUrl, atualizado_em: new Date().toISOString() })
+        .update({ [campo]: logoUrl, atualizado_em: new Date().toISOString() })
         .eq("esta_ativa", true);
 
       if (error) throw error;
-      return logoUrl;
+      return { logoUrl, tipo };
     },
-    onSuccess: (logoUrl) => {
+    onSuccess: ({ logoUrl, tipo }) => {
       queryClient.invalidateQueries({ queryKey: ["empresa"] });
-      toast.success("Logo atualizado com sucesso!");
+      const tipoTexto = tipo === 'fechado' ? 'ícone' : 'logo expandido';
+      toast.success(`${tipoTexto} atualizado com sucesso!`);
       
-      // Atualizar favicon dinamicamente
-      const link = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
-      if (link) {
-        link.href = logoUrl;
+      // Atualizar favicon dinamicamente se for o logo fechado
+      if (tipo === 'fechado') {
+        const link = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
+        if (link) {
+          link.href = logoUrl;
+        }
       }
     },
     onError: (error: any) => {
