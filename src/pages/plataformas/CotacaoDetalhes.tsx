@@ -188,14 +188,14 @@ export default function CotacaoDetalhes() {
       {/* ActionBar fixo que respeita sidebar e histórico */}
       <div className="fixed top-16 z-40 bg-card border-b shadow-sm px-8 py-3 transition-all duration-300" style={{
       left: 'var(--sidebar-width)' as any,
-      right: historicoAberto ? '24rem' : '4rem'
+      right: historicoAberto ? '24rem' : '3rem'
     }}>
         <CotacaoActionBar status={cotacao.step_atual as any} onResponder={handleResponder} onCancelar={handleCancelar} onConfirmar={handleConfirmar} onEnviar={handleEnviar} />
       </div>
 
       <div className="flex pt-[72px]">
         {/* Área Principal */}
-        <div className={`flex-1 transition-all duration-300 ${historicoAberto ? 'mr-96' : 'mr-16'}`}>
+        <div className={`flex-1 transition-all duration-300 ${historicoAberto ? 'mr-96' : 'mr-12'}`}>
           <div className="px-[10px] py-8 space-y-6">
             {/* Header */}
             <div className="flex items-center gap-4 mb-6">
