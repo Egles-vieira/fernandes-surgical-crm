@@ -7,11 +7,21 @@ import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Building2, Calendar, MapPin, FileText, Package, DollarSign, Clock, CheckCircle2, XCircle, ArrowLeft, ChevronRight, ChevronLeft } from "lucide-react";
+import { Building2, Calendar, MapPin, FileText, Package, DollarSign, Clock, CheckCircle2, XCircle, ArrowLeft, ChevronRight, ChevronLeft, Trash2 } from "lucide-react";
 import { EDICotacao } from "@/hooks/useEDICotacoes";
 import { useToast } from "@/hooks/use-toast";
 import { ItemCotacaoTable } from "@/components/plataformas/ItemCotacaoTable";
 import { CotacaoActionBar } from "@/components/plataformas/CotacaoActionBar";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 interface ItemCotacao {
   id: string;
   numero_item: number;
@@ -49,6 +59,8 @@ export default function CotacaoDetalhes() {
   const [itens, setItens] = useState<ItemCotacao[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [historicoAberto, setHistoricoAberto] = useState(true);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   useEffect(() => {
     if (id) {
       carregarDados();
@@ -161,6 +173,34 @@ export default function CotacaoDetalhes() {
     });
   };
 
+  const handleExcluir = async () => {
+    setIsDeleting(true);
+    try {
+      const { error } = await supabase
+        .from("edi_cotacoes")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Cotação excluída",
+        description: "A cotação foi excluída com sucesso. Você pode importar novamente se necessário.",
+      });
+
+      navigate("/plataformas/cotacoes");
+    } catch (error: any) {
+      toast({
+        title: "Erro ao excluir cotação",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
+      setDeleteDialogOpen(false);
+    }
+  };
+
   const valorTotal = itens.reduce((acc, item) => acc + (item.preco_total || 0), 0);
   
   return <div className="min-h-screen bg-background">
@@ -201,6 +241,14 @@ export default function CotacaoDetalhes() {
                   ID Externo: {cotacao.id_cotacao_externa}
                 </p>
               </div>
+              <Button 
+                variant="destructive" 
+                size="sm"
+                onClick={() => setDeleteDialogOpen(true)}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Excluir Cotação
+              </Button>
             </div>
 
             {/* CAPA - Informações principais */}
@@ -369,5 +417,32 @@ export default function CotacaoDetalhes() {
             </div>}
         </div>
       </div>
+
+      {/* Dialog de Confirmação de Exclusão */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir Cotação</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir esta cotação? Esta ação não pode ser desfeita.
+              Todos os itens e vínculos relacionados também serão excluídos.
+              <br /><br />
+              <strong>Cotação:</strong> {cotacao?.numero_cotacao}
+              <br />
+              <strong>Cliente:</strong> {cotacao?.nome_cliente}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleExcluir}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? "Excluindo..." : "Excluir"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>;
 }
