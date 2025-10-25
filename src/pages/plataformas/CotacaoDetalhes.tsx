@@ -255,7 +255,7 @@ export default function CotacaoDetalhes() {
             <Card className="rounded-none mx-0">
               
               <CardContent className="mx-0 py-[12px] my-0 px-[24px]">
-                <div className="grid grid-cols-2 gap-6">
+                <div className="grid grid-cols-3 gap-6">
                   {/* Cliente */}
                   <div className="space-y-3">
                     <div className="flex items-center gap-2 font-semibold">
@@ -311,6 +311,26 @@ export default function CotacaoDetalhes() {
                         })}
                           </p>
                         </div>}
+                    </div>
+                  </div>
+
+                  {/* Unidades de Medida */}
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 font-semibold">
+                      <Package className="h-4 w-4" />
+                      Unidades de Medida
+                    </div>
+                    <div className="space-y-2 pl-6">
+                      {Array.from(new Set(itens.map(item => item.unidade_medida).filter(Boolean))).map((unidade, index) => (
+                        <div key={index}>
+                          <Badge variant="outline" className="text-xs">
+                            {unidade}
+                          </Badge>
+                        </div>
+                      ))}
+                      {itens.length === 0 && (
+                        <p className="text-sm text-muted-foreground">Nenhuma unidade</p>
+                      )}
                     </div>
                   </div>
                 </div>
