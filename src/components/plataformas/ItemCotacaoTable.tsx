@@ -124,6 +124,8 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
       ...currentData,
       produtoVinculado: mapping.produtos,
       precoUnitario: mapping.produtos?.preco_venda || 0,
+      desconto: mapping.desconto_padrao ?? currentData.desconto ?? 0,
+      mappingId: mapping.id,
     });
     
     setItemsData(newData);
@@ -248,9 +250,52 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
     try {
       const valorTotal = data.quantidade * data.precoUnitario * (1 - data.desconto / 100);
 
+      // Garante que o mapeamento DE-PARA exista e captura o ID
+      let mappingId: string | undefined = currentData.mappingId;
+
+      if (!mappingId) {
+        const { data: found, error: findError } = await supabase
+          .from("edi_produtos_vinculo")
+          .select("id")
+          .eq("cnpj_cliente", cotacao.cnpj_cliente)
+          .eq("codigo_produto_cliente", item.codigo_produto_cliente)
+          .eq("produto_id", data.produtoVinculado.id)
+          .eq("ativo", true)
+          .limit(1);
+
+        if (findError) {
+          console.error("Erro ao buscar mapeamento:", findError);
+        }
+
+        mappingId = found?.[0]?.id;
+
+        if (!mappingId) {
+          const { data: inserted, error: insertError } = await supabase
+            .from("edi_produtos_vinculo")
+            .insert({
+              plataforma_id: cotacao.plataforma_id,
+              produto_id: data.produtoVinculado.id,
+              cnpj_cliente: cotacao.cnpj_cliente,
+              codigo_produto_cliente: item.codigo_produto_cliente,
+              descricao_cliente: item.descricao_produto_cliente,
+              preco_padrao: data.precoUnitario,
+              desconto_padrao: data.desconto,
+              aprovado_em: new Date().toISOString(),
+              ativo: true,
+              sugerido_por_ia: false,
+            })
+            .select("id")
+            .single();
+
+          if (insertError) throw insertError;
+          mappingId = inserted?.id;
+        }
+      }
+
       const { error } = await supabase
         .from("edi_cotacoes_itens")
         .update({
+          produto_vinculo_id: mappingId,
           produto_id: data.produtoVinculado.id,
           quantidade_respondida: data.quantidade,
           preco_unitario_respondido: data.precoUnitario,
@@ -264,9 +309,17 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
 
       if (error) throw error;
 
+      // Atualiza cache local e recarrega mapeamentos
+      const afterSave = new Map(itemsData);
+      const current = afterSave.get(item.id) || {};
+      afterSave.set(item.id, { ...current, mappingId });
+      setItemsData(afterSave);
+
+      await loadPreviousMappings(item.id, item.codigo_produto_cliente);
+
       toast({
         title: "Item salvo",
-        description: "As informações foram atualizadas com sucesso.",
+        description: "Mapeamento DE-PARA registrado e item respondido.",
       });
       
       onUpdate();
