@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Palette, Check } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Palette, Check, Upload, Image as ImageIcon } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useEmpresa } from "@/hooks/useEmpresa";
 
 interface ColorScheme {
   name: string;
@@ -60,6 +61,8 @@ export default function ThemeCustomizer() {
     secondary: "#aacb55",
     accent: "#3e867f",
   });
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { empresa, uploadLogo, isUploading } = useEmpresa();
 
   useEffect(() => {
     const saved = localStorage.getItem("theme-colors");
@@ -158,6 +161,13 @@ export default function ThemeCustomizer() {
     localStorage.setItem("theme-colors", JSON.stringify(newColors));
   };
 
+  const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      uploadLogo(file);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -174,9 +184,10 @@ export default function ThemeCustomizer() {
         </DialogHeader>
 
         <Tabs defaultValue="presets" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="presets">Temas Predefinidos</TabsTrigger>
             <TabsTrigger value="custom">Cores Personalizadas</TabsTrigger>
+            <TabsTrigger value="logo">Logo da Empresa</TabsTrigger>
           </TabsList>
 
           <TabsContent value="presets" className="space-y-4">
@@ -300,6 +311,59 @@ export default function ThemeCustomizer() {
                     </div>
                   </div>
                 </div>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="logo" className="space-y-4">
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="logo">Logo da Empresa</Label>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Faça upload do logo da sua empresa. Será exibido no menu e como ícone da página.
+                </p>
+                
+                {empresa?.url_logo && (
+                  <div className="mb-4 p-4 border rounded-lg bg-muted/50">
+                    <p className="text-sm font-medium mb-2">Logo Atual:</p>
+                    <img 
+                      src={empresa.url_logo} 
+                      alt="Logo atual" 
+                      className="h-16 object-contain"
+                    />
+                  </div>
+                )}
+
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleLogoUpload}
+                  className="hidden"
+                />
+
+                <Button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploading}
+                  className="w-full"
+                >
+                  {isUploading ? (
+                    <>
+                      <Upload className="mr-2 h-4 w-4 animate-spin" />
+                      Fazendo upload...
+                    </>
+                  ) : (
+                    <>
+                      <ImageIcon className="mr-2 h-4 w-4" />
+                      Selecionar Logo
+                    </>
+                  )}
+                </Button>
+
+                <p className="text-xs text-muted-foreground mt-2">
+                  Formatos aceitos: PNG, JPG, WEBP. Tamanho máximo: 2MB
+                </p>
               </div>
             </div>
           </TabsContent>

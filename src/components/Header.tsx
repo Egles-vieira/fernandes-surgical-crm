@@ -1,9 +1,10 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { Search, Bell, User, ChevronRight, Menu, LogOut, Settings } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import { useEmpresa } from "@/hooks/useEmpresa";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,6 +22,7 @@ export default function Header({ collapsed, onToggle }: HeaderProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
+  const { empresa } = useEmpresa();
   const handleLogout = async () => {
     await signOut();
     navigate("/auth");
@@ -162,12 +164,15 @@ export default function Header({ collapsed, onToggle }: HeaderProps) {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="flex items-center gap-3">
                 <Avatar className="h-8 w-8">
+                  {empresa?.url_logo ? (
+                    <AvatarImage src={empresa.url_logo} alt={empresa.nome || "Logo"} />
+                  ) : null}
                   <AvatarFallback className="bg-primary text-primary-foreground text-xs font-semibold">
-                    {user?.email?.substring(0, 2).toUpperCase() || "CF"}
+                    {empresa?.nome?.substring(0, 2).toUpperCase() || "CF"}
                   </AvatarFallback>
                 </Avatar>
                 <div className="text-sm leading-tight text-left">
-                  <p className="font-semibold text-foreground">Cirúrgica Fernandes</p>
+                  <p className="font-semibold text-foreground">{empresa?.nome || "Cirúrgica Fernandes"}</p>
                   <p className="text-xs text-muted-foreground">{user?.email || "admin@cfernandes.com.br"}</p>
                 </div>
               </Button>

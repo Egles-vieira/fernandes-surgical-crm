@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -32,6 +32,7 @@ import favicon from "@/assets/favicon-cfernandes.png";
 import logo from "@/assets/logo-cfernandes.webp";
 import Header from "./Header";
 import { useRoles } from "@/hooks/useRoles";
+import { useEmpresa } from "@/hooks/useEmpresa";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -103,8 +104,19 @@ const menuItems: MenuItem[] = [
 export default function Layout({ children }: LayoutProps) {
   const location = useLocation();
   const { isAdmin } = useRoles();
+  const { empresa } = useEmpresa();
   const [collapsed, setCollapsed] = useState(true);
   const [openMenus, setOpenMenus] = useState<string[]>([]);
+
+  // Atualizar favicon dinamicamente quando o logo da empresa mudar
+  useEffect(() => {
+    if (empresa?.url_logo) {
+      const link = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
+      if (link) {
+        link.href = empresa.url_logo;
+      }
+    }
+  }, [empresa?.url_logo]);
 
   const toggleMenu = (label: string) => {
     setOpenMenus(prev =>
@@ -135,14 +147,14 @@ export default function Layout({ children }: LayoutProps) {
         <div className="p-3 flex items-center justify-center border-b border-white/10 h-20 relative">
           {!collapsed ? (
             <img 
-              src={logo} 
-              alt="Cirúrgica Fernandes" 
+              src={empresa?.url_logo || logo} 
+              alt={empresa?.nome || "Cirúrgica Fernandes"} 
               className="h-10 object-contain animate-fade-in" 
             />
           ) : (
             <img 
-              src={favicon} 
-              alt="CF" 
+              src={empresa?.url_logo || favicon} 
+              alt={empresa?.nome || "CF"} 
               className="h-12 w-12 object-contain animate-fade-in rounded-lg" 
             />
           )}
