@@ -153,7 +153,7 @@ export default function CotacaoDetalhes() {
   return <div className="min-h-screen bg-background">
       <div
         className="fixed top-16 z-40 bg-card border-b shadow-sm px-8 py-3 transition-all duration-300"
-        style={{ left: 'var(--sidebar-width)' as any, right: historicoAberto ? '24rem' : '3.5rem' }}
+        style={{ left: 'var(--sidebar-width)' as any, right: historicoAberto ? '24rem' : '4.5rem' }}
       >
         <CotacaoActionBar
           status={cotacao.step_atual as any}
