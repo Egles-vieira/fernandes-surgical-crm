@@ -153,7 +153,7 @@ function tokenBasedSimilarity(queryText: string, produtos: any[], limite: number
       metodo: 'token_enhanced'
     };
   })
-  .filter(s => s.score >= 25) // Threshold mais baixo para capturar mais candidatos
+  .filter(s => s.score >= 12) // Threshold reduzido para capturar mais matches sem IA
   .sort((a, b) => b.score - a.score)
   .slice(0, limite);
 }
@@ -235,26 +235,11 @@ serve(async (req) => {
       }
     }
 
-    let sugestoes: any[] = [];
-    let metodo = 'ai_semantic';
-
-    // 3. Tentar matching semântico com Lovable AI (chat-based)
-    if (lovableApiKey && produtos.length > 0) {
-      console.log("Tentando matching semântico com IA...");
-      sugestoes = await semanticMatching(descricao_cliente, produtos, lovableApiKey, limite);
-      
-      if (sugestoes.length > 0) {
-        console.log(`IA encontrou ${sugestoes.length} sugestões`);
-      }
-    }
-
-    // 4. Fallback: usar similaridade baseada em tokens MELHORADA
-    if (sugestoes.length === 0) {
-      console.log("Usando algoritmo baseado em tokens melhorado...");
-      metodo = 'token_enhanced';
-      sugestoes = tokenBasedSimilarity(descricao_cliente, produtos, limite);
-      console.log(`Token matching encontrou ${sugestoes.length} sugestões`);
-    }
+    // 3. Usar APENAS matching baseado em tokens (SEM IA - economia de créditos)
+    console.log("✓ Usando algoritmo baseado em tokens (SEM IA)...");
+    const metodo = 'token_enhanced';
+    const sugestoes = tokenBasedSimilarity(descricao_cliente, produtos, limite);
+    console.log(`✓ Token matching encontrou ${sugestoes.length} sugestões`);
 
     // 5. Enriquecer sugestões com dados completos
     const sugestoesEnriquecidas = sugestoes.map(sug => {
