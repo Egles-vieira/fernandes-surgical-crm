@@ -3,6 +3,9 @@ project_id = "rzzzfprgnoywmmjwepzm"
 [functions.analisar-sentimento-cliente]
 verify_jwt = true
 
+[functions.analisar-cotacao-completa]
+verify_jwt = true
+
 [functions.edi-sugerir-produtos]
 verify_jwt = true
 
@@ -32,3 +35,6 @@ verify_jwt = true
 
 [functions.zenvia-webhook-ligacao]
 verify_jwt = false
+
+[functions.upload-anexo-spaces]
+verify_jwt = true

@@ -215,6 +215,17 @@ serve(async (req) => {
 
         console.log(`✅ Cotação ${cotacao.id_cotacao_externa} importada com sucesso`);
 
+        // NOVO: Disparar análise IA automática da cotação (fire-and-forget)
+        if (cotacaoInserida.id) {
+          supabaseClient.functions.invoke('analisar-cotacao-completa', {
+            body: { cotacao_id: cotacaoInserida.id }
+          }).then(() => {
+            console.log(`🤖 Análise IA iniciada para cotação ${cotacaoInserida.id}`);
+          }).catch((err) => {
+            console.warn(`⚠️ Falha ao iniciar análise IA: ${err.message}`);
+          });
+        }
+
       } catch (error) {
         console.error('Erro ao processar cotação:', error);
         resultados.erros++;

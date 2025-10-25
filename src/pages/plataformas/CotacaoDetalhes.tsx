@@ -77,12 +77,21 @@ export default function CotacaoDetalhes() {
         error: itensError
       } = await supabase.from("edi_cotacoes_itens").select(`
           *,
-          produtos(id, nome, referencia_interna, preco_venda, quantidade_em_maos, unidade_medida)
+          produto:produto_id(id, nome, referencia_interna, preco_venda, quantidade_em_maos, unidade_medida),
+          produto_selecionado:produto_selecionado_id(id, nome, referencia_interna)
         `).eq("cotacao_id", id).order("numero_item", {
         ascending: true
       });
       if (itensError) throw itensError;
-      setItens(itensData || []);
+      
+      // Mapear resultado para manter compatibilidade
+      const itensMapeados = (itensData || []).map((item: any) => ({
+        ...item,
+        produtos: item.produto || null,
+        produto_selecionado: item.produto_selecionado || null
+      }));
+      
+      setItens(itensMapeados);
     } catch (error: any) {
       toast({
         title: "Erro ao carregar dados",
