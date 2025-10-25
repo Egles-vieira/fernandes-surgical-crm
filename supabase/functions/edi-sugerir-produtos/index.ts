@@ -88,13 +88,13 @@ Ordene por score decrescente e retorne no máximo ${limite} produtos.`;
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "deepseek-reasoner",
+        model: "deepseek-chat",
         messages: [
           { role: "system", content: "Você é um especialista em análise e matching de produtos. Retorne sempre respostas em JSON válido." },
           { role: "user", content: prompt }
         ],
-        temperature: 0.3,
-        max_tokens: 2000,
+        temperature: 0.2,
+        max_tokens: 1000,
       }),
     });
 
@@ -402,8 +402,8 @@ serve(async (req) => {
     
     console.log("🔍 Iniciando busca híbrida para:", descricao_cliente);
     
-    // NÍVEL 1: Filtragem rápida por tokens (top 15 candidatos)
-    const candidatosPorToken = tokenBasedSimilarity(descricao_cliente, produtos, 15);
+    // NÍVEL 1: Filtragem rápida por tokens (top 10 candidatos)
+    const candidatosPorToken = tokenBasedSimilarity(descricao_cliente, produtos, 10);
     console.log(`📊 Nível 1 - Token matching: ${candidatosPorToken.length} candidatos encontrados`);
     
     let sugestoesFinais: any[] = [];
@@ -411,12 +411,12 @@ serve(async (req) => {
     let analiseSemanticaAplicada = false;
     
     // NÍVEL 2 e 3: Análise semântica com DeepSeek (se houver candidatos razoáveis e API key disponível)
-    if (candidatosPorToken.length > 0 && candidatosPorToken[0].score >= 25 && deepseekApiKey) {
+    if (candidatosPorToken.length > 0 && candidatosPorToken[0].score >= 30 && deepseekApiKey) {
       try {
         console.log("🤖 Nível 2 - Iniciando análise semântica com DeepSeek...");
         
-        // Preparar candidatos no formato correto
-        const candidatosParaAnalise = candidatosPorToken.slice(0, 10).map(c => {
+        // Preparar candidatos no formato correto (top 5 para análise rápida)
+        const candidatosParaAnalise = candidatosPorToken.slice(0, 5).map(c => {
           const produto = produtos.find(p => p.id === c.produto_id);
           return {
             produto: produto!,
