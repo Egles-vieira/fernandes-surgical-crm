@@ -2,7 +2,8 @@ import { useState, useEffect, useMemo } from "react";
 import { 
   ChevronRight, ChevronDown, Package, Sparkles, Save, 
   ChevronLeft, ChevronsLeft, ChevronRight as ChevronRightIcon, ChevronsRight,
-  Settings2, Download, Search, ArrowUpDown, Eye, EyeOff, Filter
+  Settings2, Download, Search, ArrowUpDown, Eye, EyeOff, Filter, CheckCircle2,
+  AlertCircle, TrendingUp, ThumbsUp, ThumbsDown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,9 +36,12 @@ import {
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { ProdutoSearchDialog } from "./ProdutoSearchDialog";
 import { SugestoesIADialog } from "./SugestoesIADialog";
+import { FeedbackIADialog } from "./FeedbackIADialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { EDIProdutoVinculo } from "@/hooks/useEDIProdutosVinculo";
+import type { SugestaoProduto } from "@/types/ia-analysis";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 interface ItemCotacao {
   id: string;
@@ -60,6 +64,10 @@ interface ItemCotacao {
     quantidade_em_maos: number;
     unidade_medida: string;
   } | null;
+  analisado_por_ia?: boolean;
+  analise_ia_em?: string | null;
+  score_confianca_ia?: number | null;
+  produtos_sugeridos_ia?: any;
 }
 
 interface ItemCotacaoTableProps {
@@ -82,6 +90,9 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
   const [sugestoesIA, setSugestoesIA] = useState<any[]>([]);
   const [itemsData, setItemsData] = useState<Map<string, any>>(new Map());
   const [previousMappings, setPreviousMappings] = useState<Map<string, EDIProdutoVinculo[]>>(new Map());
+  const [itemSugestoes, setItemSugestoes] = useState<Map<string, SugestaoProduto[]>>(new Map());
+  const [feedbackDialogOpen, setFeedbackDialogOpen] = useState(false);
+  const [sugestaoParaFeedback, setSugestaoParaFeedback] = useState<{item: ItemCotacao, sugestao: SugestaoProduto} | null>(null);
   
   // Grid Controls
   const [currentPage, setCurrentPage] = useState(1);
@@ -104,12 +115,15 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
     desconto: true,
     total: true,
     status: true,
+    sugestoesIA: true,
     acoes: true,
   });
 
   useEffect(() => {
     // Inicializar dados dos itens
     const initialData = new Map();
+    const initialSugestoes = new Map();
+    
     itens.forEach(item => {
       initialData.set(item.id, {
         produtoVinculado: item.produtos || null,
@@ -119,8 +133,22 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
         isLoading: false,
         sugeridoPorIA: false,
       });
+      
+      // Se já tem sugestões salvas, carregar
+      if (item.produtos_sugeridos_ia) {
+        try {
+          const sugestoes = JSON.parse(JSON.stringify(item.produtos_sugeridos_ia));
+          if (Array.isArray(sugestoes)) {
+            initialSugestoes.set(item.id, sugestoes);
+          }
+        } catch (e) {
+          console.error('Erro ao parsear sugestões IA:', e);
+        }
+      }
     });
+    
     setItemsData(initialData);
+    setItemSugestoes(initialSugestoes);
   }, [itens]);
 
   const toggleRow = async (itemId: string, codigoCliente: string) => {
@@ -218,6 +246,10 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
           descricao_cliente: item.descricao_produto_cliente,
           cnpj_cliente: cotacao.cnpj_cliente,
           plataforma_id: cotacao.plataforma_id,
+          codigo_produto_cliente: item.codigo_produto_cliente,
+          quantidade_solicitada: item.quantidade_solicitada,
+          unidade_medida: item.unidade_medida,
+          item_id: item.id,
           limite: 5,
         },
       });
@@ -227,10 +259,27 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
       const sugestoes = response.data?.sugestoes || [];
       
       if (sugestoes.length > 0) {
-        setSugestoesIA(sugestoes);
-        setCurrentItemId(item.id);
-        setCurrentItem(item);
-        setSugestoesDialogAberto(true);
+        // Salvar sugestões no estado
+        const newSugestoes = new Map(itemSugestoes);
+        newSugestoes.set(item.id, sugestoes);
+        setItemSugestoes(newSugestoes);
+        
+        // Salvar no banco para cache
+        await supabase
+          .from('edi_cotacoes_itens')
+          .update({
+            produtos_sugeridos_ia: sugestoes,
+            analisado_por_ia: true,
+            analise_ia_em: new Date().toISOString(),
+            score_confianca_ia: sugestoes[0]?.score_final || null,
+            justificativa_ia: sugestoes[0]?.justificativa || null,
+          })
+          .eq('id', item.id);
+        
+        toast({
+          title: "Análise concluída",
+          description: `${sugestoes.length} sugestões encontradas`,
+        });
       } else {
         toast({
           title: "Nenhuma sugestão encontrada",
@@ -251,22 +300,20 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
     }
   };
 
-  const handleSelecionarSugestao = (sugestao: any) => {
-    if (!currentItemId) return;
-
+  const handleAceitarSugestaoInline = async (item: ItemCotacao, sugestao: SugestaoProduto) => {
     const produtoSugerido = {
       id: sugestao.produto_id,
-      nome: sugestao.nome,
-      referencia_interna: sugestao.referencia_interna,
-      preco_venda: sugestao.preco_venda,
-      quantidade_em_maos: sugestao.quantidade_em_maos,
-      unidade_medida: sugestao.unidade_medida
+      nome: sugestao.descricao,
+      referencia_interna: sugestao.codigo,
+      preco_venda: sugestao.preco_venda || 0,
+      quantidade_em_maos: sugestao.estoque_disponivel || 0,
+      unidade_medida: sugestao.unidade_medida || ''
     };
     
     const newData = new Map(itemsData);
-    const currentData = newData.get(currentItemId) || {};
+    const currentData = newData.get(item.id) || {};
     
-    newData.set(currentItemId, {
+    newData.set(item.id, {
       ...currentData,
       produtoVinculado: produtoSugerido,
       precoUnitario: sugestao.preco_venda || 0,
@@ -275,10 +322,30 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
     
     setItemsData(newData);
     
+    // Salvar automaticamente
+    await handleSalvar(item);
+    
     toast({
-      title: "Produto vinculado",
-      description: `${sugestao.nome} (${sugestao.score}% compatibilidade)`,
+      title: "Sugestão aceita",
+      description: `${sugestao.descricao} (${sugestao.score_final}% compatibilidade)`,
     });
+  };
+
+  const getConfiancaBadge = (confianca: 'alta' | 'media' | 'baixa') => {
+    const variants = {
+      alta: { variant: 'default' as const, icon: CheckCircle2, text: 'Alta' },
+      media: { variant: 'secondary' as const, icon: TrendingUp, text: 'Média' },
+      baixa: { variant: 'outline' as const, icon: AlertCircle, text: 'Baixa' },
+    };
+    const config = variants[confianca];
+    const Icon = config.icon;
+    
+    return (
+      <Badge variant={config.variant} className="gap-1">
+        <Icon className="h-3 w-3" />
+        {config.text}
+      </Badge>
+    );
   };
 
   const handleSalvar = async (item: ItemCotacao) => {
@@ -654,6 +721,14 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
                       </div>
                     </TableHead>
                   )}
+                  {visibleColumns.sugestoesIA && (
+                    <TableHead className="min-w-[300px]">
+                      <div className="flex items-center gap-1">
+                        <Sparkles className="h-4 w-4 text-primary" />
+                        Sugestões IA
+                      </div>
+                    </TableHead>
+                  )}
                   {visibleColumns.acoes && <TableHead className="min-w-[200px]">Ações</TableHead>}
                 </TableRow>
               </TableHeader>
@@ -779,6 +854,106 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
                               {item.status === "respondido" ? "Respondido" : "Pendente"}
                             </Badge>
                           </TableCell>}
+                          {visibleColumns.sugestoesIA && (
+                            <TableCell className={densityClasses[density]}>
+                              {(() => {
+                                const sugestoes = itemSugestoes.get(item.id);
+                                if (!sugestoes || sugestoes.length === 0) {
+                                  return (
+                                    <span className="text-xs text-muted-foreground">
+                                      Sem sugestões
+                                    </span>
+                                  );
+                                }
+                                
+                                const principal = sugestoes[0];
+                                return (
+                                  <Collapsible>
+                                    <div className="space-y-2">
+                                      {/* Sugestão principal inline */}
+                                      <div className="flex items-start justify-between gap-2 p-2 border rounded-md bg-primary/5">
+                                        <div className="flex-1 min-w-0">
+                                          <div className="flex items-center gap-2 mb-1">
+                                            {getConfiancaBadge(principal.confianca)}
+                                            <Badge variant="outline" className="text-xs">
+                                              {principal.score_final}%
+                                            </Badge>
+                                          </div>
+                                          <p className="text-xs font-medium truncate">
+                                            {principal.descricao}
+                                          </p>
+                                          <p className="text-xs text-muted-foreground truncate">
+                                            {principal.codigo}
+                                          </p>
+                                        </div>
+                                        <div className="flex gap-1">
+                                          <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            className="h-7 w-7 p-0"
+                                            onClick={() => handleAceitarSugestaoInline(item, principal)}
+                                            title="Aceitar sugestão"
+                                          >
+                                            <CheckCircle2 className="h-3 w-3 text-green-600" />
+                                          </Button>
+                                          <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            className="h-7 w-7 p-0"
+                                            onClick={() => {
+                                              setSugestaoParaFeedback({ item, sugestao: principal });
+                                              setFeedbackDialogOpen(true);
+                                            }}
+                                            title="Dar feedback"
+                                          >
+                                            <ThumbsDown className="h-3 w-3" />
+                                          </Button>
+                                        </div>
+                                      </div>
+                                      
+                                      {/* Alternativas colapsáveis */}
+                                      {sugestoes.length > 1 && (
+                                        <CollapsibleTrigger asChild>
+                                          <Button variant="ghost" size="sm" className="w-full text-xs">
+                                            {sugestoes.length - 1} alternativas
+                                            <ChevronDown className="h-3 w-3 ml-1" />
+                                          </Button>
+                                        </CollapsibleTrigger>
+                                      )}
+                                      
+                                      <CollapsibleContent className="space-y-2">
+                                        {sugestoes.slice(1, 3).map((alt, idx) => (
+                                          <div key={idx} className="p-2 border rounded-md bg-muted/30">
+                                            <div className="flex items-start justify-between gap-2">
+                                              <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-1 mb-1">
+                                                  {getConfiancaBadge(alt.confianca)}
+                                                  <Badge variant="outline" className="text-xs">
+                                                    {alt.score_final}%
+                                                  </Badge>
+                                                </div>
+                                                <p className="text-xs font-medium truncate">
+                                                  {alt.descricao}
+                                                </p>
+                                              </div>
+                                              <Button
+                                                size="sm"
+                                                variant="ghost"
+                                                className="h-6 w-6 p-0"
+                                                onClick={() => handleAceitarSugestaoInline(item, alt)}
+                                              >
+                                                <CheckCircle2 className="h-3 w-3" />
+                                              </Button>
+                                            </div>
+                                          </div>
+                                        ))}
+                                      </CollapsibleContent>
+                                    </div>
+                                  </Collapsible>
+                                );
+                              })()}
+                            </TableCell>
+                          )}
                           {visibleColumns.acoes && <TableCell className={densityClasses[density]}>
                             <div className="flex gap-1">
                               <Button
@@ -949,8 +1124,27 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
       <SugestoesIADialog
         open={sugestoesDialogAberto}
         onOpenChange={setSugestoesDialogAberto}
-        sugestoes={sugestoesIA}
-        onSelecionar={handleSelecionarSugestao}
+        sugestoes={sugestoesIA.map(s => ({
+          produto_id: s.produto_id,
+          nome: s.descricao,
+          referencia_interna: s.codigo,
+          preco_venda: s.preco_venda || 0,
+          unidade_medida: s.unidade_medida || '',
+          quantidade_em_maos: s.estoque_disponivel || 0,
+          score: s.score_final,
+          motivo: s.justificativa,
+          metodo: s.confianca,
+        }))}
+        onSelecionar={(sugestaoOld) => {
+          if (currentItem) {
+            // Encontrar a sugestão original
+            const sugestaoOriginal = sugestoesIA.find(s => s.produto_id === sugestaoOld.produto_id);
+            if (sugestaoOriginal) {
+              handleAceitarSugestaoInline(currentItem, sugestaoOriginal);
+            }
+            setSugestoesDialogAberto(false);
+          }
+        }}
         onBuscarManual={() => {
           setSugestoesDialogAberto(false);
           setDialogAberto(true);
@@ -961,6 +1155,15 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
           unidade_medida: currentItem.unidade_medida,
         } : undefined}
       />
+
+      {sugestaoParaFeedback && (
+        <FeedbackIADialog
+          open={feedbackDialogOpen}
+          onOpenChange={setFeedbackDialogOpen}
+          itemId={sugestaoParaFeedback.item.id}
+          sugestao={sugestaoParaFeedback.sugestao}
+        />
+      )}
     </>
   );
 }
