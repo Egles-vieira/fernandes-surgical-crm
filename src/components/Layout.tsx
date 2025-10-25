@@ -16,6 +16,7 @@ import {
   TicketCheck,
   BarChart3,
   BookOpen,
+  Settings,
 } from "lucide-react";
 import {
   Collapsible,
@@ -60,6 +61,7 @@ const menuItems: MenuItem[] = [
     label: "Plataforma",
     children: [
       { path: "/plataformas/cotacoes", icon: FileText, label: "Cotações" },
+      { path: "/plataformas/parametros", icon: Settings, label: "Parâmetros" },
     ],
   },
   {
