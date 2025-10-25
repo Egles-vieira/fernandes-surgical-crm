@@ -12,7 +12,6 @@ import { EDICotacao } from "@/hooks/useEDICotacoes";
 import { useToast } from "@/hooks/use-toast";
 import { ItemCotacaoCard } from "@/components/plataformas/ItemCotacaoCard";
 import { CotacaoActionBar } from "@/components/plataformas/CotacaoActionBar";
-import { useSidebar } from "@/components/ui/sidebar";
 interface ItemCotacao {
   id: string;
   numero_item: number;
@@ -40,9 +39,6 @@ export default function CotacaoDetalhes() {
   const [itens, setItens] = useState<ItemCotacao[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [historicoAberto, setHistoricoAberto] = useState(true);
-  const { state: sidebarState, isMobile } = useSidebar();
-  const leftOffset = isMobile ? "0" : sidebarState === "expanded" ? "var(--sidebar-width)" : "var(--sidebar-width-icon)";
-  const rightOffset = historicoAberto ? "24rem" : "0";
   useEffect(() => {
     if (id) {
       carregarDados();
@@ -156,8 +152,7 @@ export default function CotacaoDetalhes() {
   
   return <div className="min-h-screen bg-background">
       <div
-        className="fixed top-16 z-[60] bg-card border-b shadow-sm px-8 py-3 transition-all duration-300"
-        style={{ left: leftOffset, right: rightOffset }}
+        className={`fixed top-16 left-0 z-[60] bg-card border-b shadow-sm px-8 py-3 transition-all duration-300 ${historicoAberto ? 'right-96' : 'right-0'}`}
       >
         <CotacaoActionBar
           status={cotacao.step_atual as any}
