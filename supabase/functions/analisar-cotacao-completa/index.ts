@@ -72,9 +72,10 @@ serve(async (req) => {
       .update({
         step_atual: 'em_analise', // Move para aba "Análise IA"
         status_analise_ia: 'em_analise',
-        analise_iniciada_em: inicioAnalise.toISOString(),
+        analise_ia_iniciada_em: inicioAnalise.toISOString(), // Padronizado
         progresso_analise_percent: 0,
-        total_itens_analisados: 0,
+        itens_analisados: 0, // Padronizado
+        total_itens_para_analise: itens.length, // Novo campo
         total_sugestoes_geradas: 0,
         modelo_ia_utilizado: 'google/gemini-2.5-flash',
         versao_algoritmo: '2.0-hybrid',
@@ -134,13 +135,13 @@ serve(async (req) => {
           .from('edi_cotacoes_itens')
           .update({
             analisado_por_ia: true,
-            analise_ia_em: new Date().toISOString(),
+            analisado_em: new Date().toISOString(), // Padronizado
             score_confianca_ia: scoreConfianca,
             produtos_sugeridos_ia: sugestoes,
             produto_selecionado_id: melhorSugestao?.produto_id,
             metodo_vinculacao: scoreConfianca >= 85 ? 'ia_automatico' : 'ia_manual',
             justificativa_ia: melhorSugestao?.justificativa || '',
-            tempo_analise_ms: tempoMs,
+            tempo_analise_segundos: Math.round(tempoMs / 1000), // Padronizado para segundos
             requer_revisao_humana: requerRevisao,
           })
           .eq('id', item.id);
@@ -161,7 +162,7 @@ serve(async (req) => {
           .from('edi_cotacoes')
           .update({
             progresso_analise_percent: progresso,
-            total_itens_analisados: i + 1,
+            itens_analisados: i + 1, // Padronizado
             total_sugestoes_geradas: totalSugestoes,
           })
           .eq('id', cotacao_id);
@@ -213,10 +214,10 @@ serve(async (req) => {
         step_atual: itensErro === 0 ? 'em_analise' : 'nova', // Mantém em análise se sucesso
         status_analise_ia: itensErro === 0 ? 'concluida' : 'erro',
         analisado_por_ia: true,
-        analise_concluida_em: fimAnalise.toISOString(),
+        analise_ia_concluida_em: fimAnalise.toISOString(), // Padronizado
         progresso_analise_percent: 100,
         tempo_analise_segundos: tempoTotalSegundos,
-        erro_analise: itensErro > 0 ? `${itensErro} itens falharam na análise` : null,
+        erro_analise_ia: itensErro > 0 ? `${itensErro} itens falharam na análise` : null, // Padronizado
       })
       .eq('id', cotacao_id);
 
@@ -263,7 +264,7 @@ serve(async (req) => {
         .from('edi_cotacoes')
         .update({
           status_analise_ia: 'erro',
-          erro_analise: error instanceof Error ? error.message : 'Erro desconhecido',
+          erro_analise_ia: error instanceof Error ? error.message : 'Erro desconhecido', // Padronizado
         })
         .eq('id', cotacao_id);
     } catch { /* ignore */ }

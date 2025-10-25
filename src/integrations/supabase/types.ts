@@ -669,6 +669,8 @@ export type Database = {
         Row: {
           analisado_por_ia: boolean | null
           analise_concluida_em: string | null
+          analise_ia_concluida_em: string | null
+          analise_ia_iniciada_em: string | null
           analise_iniciada_em: string | null
           atualizado_em: string | null
           baixado_em: string | null
@@ -684,12 +686,14 @@ export type Database = {
           data_vencimento_original: string
           detalhes: Json | null
           erro_analise: string | null
+          erro_analise_ia: string | null
           forma_pagamento_portal: string | null
           historico_steps: Json | null
           id: string
           id_cotacao_externa: string
           id_forma_pagamento_portal: string | null
           id_resposta_externa: string | null
+          itens_analisados: number | null
           modelo_ia_utilizado: string | null
           nome_cliente: string | null
           numero_cotacao: string | null
@@ -708,6 +712,7 @@ export type Database = {
           total_itens: number | null
           total_itens_analisados: number | null
           total_itens_confirmados: number | null
+          total_itens_para_analise: number | null
           total_itens_respondidos: number | null
           total_sugestoes_geradas: number | null
           uf_cliente: string | null
@@ -718,6 +723,8 @@ export type Database = {
         Insert: {
           analisado_por_ia?: boolean | null
           analise_concluida_em?: string | null
+          analise_ia_concluida_em?: string | null
+          analise_ia_iniciada_em?: string | null
           analise_iniciada_em?: string | null
           atualizado_em?: string | null
           baixado_em?: string | null
@@ -733,12 +740,14 @@ export type Database = {
           data_vencimento_original: string
           detalhes?: Json | null
           erro_analise?: string | null
+          erro_analise_ia?: string | null
           forma_pagamento_portal?: string | null
           historico_steps?: Json | null
           id?: string
           id_cotacao_externa: string
           id_forma_pagamento_portal?: string | null
           id_resposta_externa?: string | null
+          itens_analisados?: number | null
           modelo_ia_utilizado?: string | null
           nome_cliente?: string | null
           numero_cotacao?: string | null
@@ -757,6 +766,7 @@ export type Database = {
           total_itens?: number | null
           total_itens_analisados?: number | null
           total_itens_confirmados?: number | null
+          total_itens_para_analise?: number | null
           total_itens_respondidos?: number | null
           total_sugestoes_geradas?: number | null
           uf_cliente?: string | null
@@ -767,6 +777,8 @@ export type Database = {
         Update: {
           analisado_por_ia?: boolean | null
           analise_concluida_em?: string | null
+          analise_ia_concluida_em?: string | null
+          analise_ia_iniciada_em?: string | null
           analise_iniciada_em?: string | null
           atualizado_em?: string | null
           baixado_em?: string | null
@@ -782,12 +794,14 @@ export type Database = {
           data_vencimento_original?: string
           detalhes?: Json | null
           erro_analise?: string | null
+          erro_analise_ia?: string | null
           forma_pagamento_portal?: string | null
           historico_steps?: Json | null
           id?: string
           id_cotacao_externa?: string
           id_forma_pagamento_portal?: string | null
           id_resposta_externa?: string | null
+          itens_analisados?: number | null
           modelo_ia_utilizado?: string | null
           nome_cliente?: string | null
           numero_cotacao?: string | null
@@ -806,6 +820,7 @@ export type Database = {
           total_itens?: number | null
           total_itens_analisados?: number | null
           total_itens_confirmados?: number | null
+          total_itens_para_analise?: number | null
           total_itens_respondidos?: number | null
           total_sugestoes_geradas?: number | null
           uf_cliente?: string | null
@@ -846,6 +861,7 @@ export type Database = {
       }
       edi_cotacoes_itens: {
         Row: {
+          analisado_em: string | null
           analisado_por_ia: boolean | null
           analise_ia_em: string | null
           atualizado_em: string | null
@@ -856,6 +872,8 @@ export type Database = {
           dados_originais: Json
           descricao_produto_cliente: string
           detalhes_resposta: Json | null
+          feedback_vendedor: string | null
+          feedback_vendedor_em: string | null
           id: string
           id_item_externo: string | null
           id_unidade_medida_portal: string | null
@@ -868,6 +886,7 @@ export type Database = {
           percentual_desconto: number | null
           preco_total: number | null
           preco_unitario_respondido: number | null
+          produto_aceito_ia_id: string | null
           produto_id: string | null
           produto_selecionado_id: string | null
           produto_vinculo_id: string | null
@@ -882,11 +901,13 @@ export type Database = {
           score_confianca_ia: number | null
           status: string | null
           tempo_analise_ms: number | null
+          tempo_analise_segundos: number | null
           unidade_medida: string | null
           unidade_medida_portal: string | null
           valor_desconto: number | null
         }
         Insert: {
+          analisado_em?: string | null
           analisado_por_ia?: boolean | null
           analise_ia_em?: string | null
           atualizado_em?: string | null
@@ -897,6 +918,8 @@ export type Database = {
           dados_originais: Json
           descricao_produto_cliente: string
           detalhes_resposta?: Json | null
+          feedback_vendedor?: string | null
+          feedback_vendedor_em?: string | null
           id?: string
           id_item_externo?: string | null
           id_unidade_medida_portal?: string | null
@@ -909,6 +932,7 @@ export type Database = {
           percentual_desconto?: number | null
           preco_total?: number | null
           preco_unitario_respondido?: number | null
+          produto_aceito_ia_id?: string | null
           produto_id?: string | null
           produto_selecionado_id?: string | null
           produto_vinculo_id?: string | null
@@ -923,11 +947,13 @@ export type Database = {
           score_confianca_ia?: number | null
           status?: string | null
           tempo_analise_ms?: number | null
+          tempo_analise_segundos?: number | null
           unidade_medida?: string | null
           unidade_medida_portal?: string | null
           valor_desconto?: number | null
         }
         Update: {
+          analisado_em?: string | null
           analisado_por_ia?: boolean | null
           analise_ia_em?: string | null
           atualizado_em?: string | null
@@ -938,6 +964,8 @@ export type Database = {
           dados_originais?: Json
           descricao_produto_cliente?: string
           detalhes_resposta?: Json | null
+          feedback_vendedor?: string | null
+          feedback_vendedor_em?: string | null
           id?: string
           id_item_externo?: string | null
           id_unidade_medida_portal?: string | null
@@ -950,6 +978,7 @@ export type Database = {
           percentual_desconto?: number | null
           preco_total?: number | null
           preco_unitario_respondido?: number | null
+          produto_aceito_ia_id?: string | null
           produto_id?: string | null
           produto_selecionado_id?: string | null
           produto_vinculo_id?: string | null
@@ -964,6 +993,7 @@ export type Database = {
           score_confianca_ia?: number | null
           status?: string | null
           tempo_analise_ms?: number | null
+          tempo_analise_segundos?: number | null
           unidade_medida?: string | null
           unidade_medida_portal?: string | null
           valor_desconto?: number | null
@@ -974,6 +1004,20 @@ export type Database = {
             columns: ["cotacao_id"]
             isOneToOne: false
             referencedRelation: "edi_cotacoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "edi_cotacoes_itens_produto_aceito_ia_id_fkey"
+            columns: ["produto_aceito_ia_id"]
+            isOneToOne: false
+            referencedRelation: "produtos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "edi_cotacoes_itens_produto_aceito_ia_id_fkey"
+            columns: ["produto_aceito_ia_id"]
+            isOneToOne: false
+            referencedRelation: "vw_produtos_mais_sugeridos_ia"
             referencedColumns: ["id"]
           },
           {
@@ -2174,48 +2218,60 @@ export type Database = {
       ia_score_ajustes: {
         Row: {
           ajuste_score: number
+          ativo: boolean | null
           atualizado_em: string | null
           cnpj_cliente: string | null
           criado_em: string | null
           criado_por: string | null
+          feedback_origem: string | null
           id: string
+          motivo_ajuste: string | null
           observacoes: string | null
           padrao_codigo: string | null
           padrao_descricao: string | null
           plataforma_id: string | null
           produto_id: string | null
+          score_anterior: number | null
           taxa_acerto: number | null
           total_ocorrencias: number | null
           ultima_utilizacao_em: string | null
         }
         Insert: {
           ajuste_score: number
+          ativo?: boolean | null
           atualizado_em?: string | null
           cnpj_cliente?: string | null
           criado_em?: string | null
           criado_por?: string | null
+          feedback_origem?: string | null
           id?: string
+          motivo_ajuste?: string | null
           observacoes?: string | null
           padrao_codigo?: string | null
           padrao_descricao?: string | null
           plataforma_id?: string | null
           produto_id?: string | null
+          score_anterior?: number | null
           taxa_acerto?: number | null
           total_ocorrencias?: number | null
           ultima_utilizacao_em?: string | null
         }
         Update: {
           ajuste_score?: number
+          ativo?: boolean | null
           atualizado_em?: string | null
           cnpj_cliente?: string | null
           criado_em?: string | null
           criado_por?: string | null
+          feedback_origem?: string | null
           id?: string
+          motivo_ajuste?: string | null
           observacoes?: string | null
           padrao_codigo?: string | null
           padrao_descricao?: string | null
           plataforma_id?: string | null
           produto_id?: string | null
+          score_anterior?: number | null
           taxa_acerto?: number | null
           total_ocorrencias?: number | null
           ultima_utilizacao_em?: string | null
@@ -4726,6 +4782,14 @@ export type Database = {
       }
     }
     Functions: {
+      ajustar_score_aprendizado: {
+        Args: {
+          p_feedback_tipo: string
+          p_produto_id: string
+          p_score_original: number
+        }
+        Returns: undefined
+      }
       calcular_tempo_efetivo_ticket: {
         Args: { ticket_id: string }
         Returns: Json
@@ -4780,6 +4844,16 @@ export type Database = {
           roles: Database["public"]["Enums"]["app_role"][]
           user_id: string
         }[]
+      }
+      registrar_feedback_ia: {
+        Args: {
+          p_feedback_tipo: string
+          p_item_id: string
+          p_produto_escolhido_id: string
+          p_produto_sugerido_id: string
+          p_score_ia: number
+        }
+        Returns: undefined
       }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }

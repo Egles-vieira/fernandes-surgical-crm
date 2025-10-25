@@ -13,26 +13,44 @@ export function useIAFeedback() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
 
-      const { data, error } = await supabase
-        .from('ia_feedback_historico')
-        .insert({
-          cotacao_item_id: feedback.cotacao_item_id,
-          produto_sugerido_id: feedback.produto_sugerido_id,
-          produto_correto_id: feedback.produto_correto_id,
-          tipo_feedback: feedback.tipo_feedback,
-          foi_aceito: feedback.foi_aceito,
-          motivo_rejeicao: feedback.motivo_rejeicao,
-          score_original: feedback.score_original,
-          detalhes_contexto: feedback.detalhes_contexto,
-          usuario_id: user.id,
-        })
-        .select()
-        .single();
+      console.log('📤 Enviando feedback da IA:', feedback);
 
-      if (error) throw error;
+      // 1. Registrar feedback usando função SQL (inclui histórico + atualização do item)
+      const { error: feedbackError } = await supabase.rpc('registrar_feedback_ia', {
+        p_item_id: feedback.cotacao_item_id,
+        p_produto_sugerido_id: feedback.produto_sugerido_id || null,
+        p_produto_escolhido_id: feedback.produto_correto_id || null,
+        p_feedback_tipo: feedback.foi_aceito ? 'aceito' : 'rejeitado',
+        p_score_ia: feedback.score_original || 0
+      });
 
-      toast.success('Feedback registrado com sucesso');
-      return data;
+      if (feedbackError) {
+        console.error('❌ Erro ao registrar feedback:', feedbackError);
+        throw feedbackError;
+      }
+
+      console.log('✅ Feedback registrado com sucesso');
+
+      // 2. Ajustar score para machine learning (se houver produto sugerido)
+      if (feedback.produto_sugerido_id && feedback.foi_aceito !== undefined) {
+        const feedbackTipo = feedback.foi_aceito ? 'aceito' : 'rejeitado';
+        
+        const { error: scoreError } = await supabase.rpc('ajustar_score_aprendizado', {
+          p_produto_id: feedback.produto_sugerido_id,
+          p_feedback_tipo: feedbackTipo,
+          p_score_original: feedback.score_original || 0
+        });
+
+        if (scoreError) {
+          console.warn('⚠️ Erro ao ajustar score (não crítico):', scoreError);
+        } else {
+          console.log('🧠 Score ajustado para machine learning');
+        }
+      }
+
+      toast.success('Feedback registrado! A IA vai aprender com sua escolha.');
+      
+      return { success: true };
     } catch (err: any) {
       console.error('❌ Erro ao enviar feedback:', err);
       toast.error('Erro ao registrar feedback');
