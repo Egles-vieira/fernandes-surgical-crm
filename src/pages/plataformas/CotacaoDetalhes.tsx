@@ -357,10 +357,19 @@ export default function CotacaoDetalhes() {
                 {cotacao.detalhes && Object.keys(cotacao.detalhes).length > 0 && <>
                     <Separator className="my-4" />
                     <div>
-                      <p className="text-sm font-semibold mb-2">Detalhes Adicionais</p>
-                      <pre className="text-xs bg-muted p-3 rounded overflow-auto max-h-48">
-                        {JSON.stringify(cotacao.detalhes, null, 2)}
-                      </pre>
+                      <p className="text-sm font-semibold mb-3">Detalhes Adicionais</p>
+                      <div className="grid grid-cols-1 gap-3">
+                        {Object.entries(cotacao.detalhes).map(([key, value]) => (
+                          <div key={key} className="bg-muted/50 p-3 rounded">
+                            <p className="text-xs font-medium text-muted-foreground mb-1 capitalize">
+                              {key.replace(/_/g, ' ')}
+                            </p>
+                            <p className="text-sm break-words whitespace-pre-wrap">
+                              {typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value)}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </>}
               </CardContent>
