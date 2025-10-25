@@ -24,6 +24,16 @@ interface ItemCotacao {
   unidade_medida: string;
   status: string;
   respondido_em: string | null;
+  percentual_desconto?: number | null;
+  produto_id?: string | null;
+  produtos?: {
+    id: string;
+    nome: string;
+    referencia_interna: string;
+    preco_venda: number;
+    quantidade_em_maos: number;
+    unidade_medida: string;
+  } | null;
 }
 export default function CotacaoDetalhes() {
   const {
@@ -62,7 +72,10 @@ export default function CotacaoDetalhes() {
       const {
         data: itensData,
         error: itensError
-      } = await supabase.from("edi_cotacoes_itens").select("*").eq("cotacao_id", id).order("numero_item", {
+      } = await supabase.from("edi_cotacoes_itens").select(`
+          *,
+          produtos(id, nome, referencia_interna, preco_venda, quantidade_em_maos, unidade_medida)
+        `).eq("cotacao_id", id).order("numero_item", {
         ascending: true
       });
       if (itensError) throw itensError;

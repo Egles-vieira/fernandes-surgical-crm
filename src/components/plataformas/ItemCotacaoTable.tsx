@@ -31,6 +31,14 @@ interface ItemCotacao {
   status: string;
   percentual_desconto?: number | null;
   produto_id?: string | null;
+  produtos?: {
+    id: string;
+    nome: string;
+    referencia_interna: string;
+    preco_venda: number;
+    quantidade_em_maos: number;
+    unidade_medida: string;
+  } | null;
 }
 
 interface ItemCotacaoTableProps {
@@ -58,7 +66,7 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
     const initialData = new Map();
     itens.forEach(item => {
       initialData.set(item.id, {
-        produtoVinculado: null,
+        produtoVinculado: item.produtos || null,
         quantidade: item.quantidade_respondida || item.quantidade_solicitada,
         precoUnitario: item.preco_unitario_respondido || 0,
         desconto: item.percentual_desconto || 0,
