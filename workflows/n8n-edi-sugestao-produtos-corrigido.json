@@ -3,56 +3,66 @@
   "nodes": [
     {
       "parameters": {},
-      "id": "start",
+      "id": "start-node",
       "name": "Start",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
-      "position": [250, 300]
+      "position": [240, 300]
     },
     {
       "parameters": {
         "method": "POST",
         "url": "={{ $env.SUPABASE_URL }}/rest/v1/rpc/get_pending_items",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
             {
-              "name": "apikey",
-              "value": "={{ $env.SUPABASE_ANON_KEY }}"
-            },
-            {
-              "name": "Authorization",
-              "value": "Bearer {{ $env.SUPABASE_ANON_KEY }}"
-            },
-            {
               "name": "Content-Type",
               "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "return=representation"
             }
           ]
         },
         "options": {}
       },
-      "id": "buscar-itens",
-      "name": "Buscar Itens Pendentes",
+      "id": "buscar-itens-pendentes",
+      "name": "1. Buscar Itens Pendentes",
       "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.1,
-      "position": [450, 300]
+      "typeVersion": 4.2,
+      "position": [460, 300],
+      "credentials": {
+        "supabaseApi": {
+          "id": "1",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combinationMode": "multiplex",
+        "options": {}
+      },
+      "id": "split-itens",
+      "name": "2. Split Itens",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [680, 300]
     },
     {
       "parameters": {
         "method": "POST",
         "url": "={{ $env.SUPABASE_URL }}/functions/v1/edi-sugerir-produtos",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            {
-              "name": "Authorization",
-              "value": "Bearer {{ $env.SUPABASE_ANON_KEY }}"
-            },
             {
               "name": "Content-Type",
               "value": "application/json"
@@ -60,51 +70,61 @@
           ]
         },
         "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"descricao_cliente\": \"{{ $json.descricao_produto_cliente }}\",\n  \"cnpj_cliente\": \"{{ $json.cnpj_cliente }}\",\n  \"plataforma_id\": \"{{ $json.plataforma_id }}\",\n  \"limite\": 5\n}",
+        "options": {}
+      },
+      "id": "sugerir-produtos-ia",
+      "name": "3. Sugerir Produtos (IA)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [900, 300],
+      "credentials": {
+        "supabaseApi": {
+          "id": "1",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
             {
-              "name": "descricao_cliente",
-              "value": "={{ $json.descricao_produto_cliente }}"
-            },
-            {
-              "name": "cnpj_cliente",
-              "value": "={{ $json.cnpj_cliente }}"
-            },
-            {
-              "name": "plataforma_id",
-              "value": "={{ $json.plataforma_id }}"
-            },
-            {
-              "name": "limite",
-              "value": "5"
+              "id": "condition-1",
+              "leftValue": "={{ $json.sugestoes }}",
+              "rightValue": "",
+              "operator": {
+                "type": "array",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
             }
-          ]
+          ],
+          "combinator": "and"
         },
         "options": {}
       },
-      "id": "sugerir-produtos",
-      "name": "Sugerir Produtos (Edge Function)",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.1,
-      "position": [650, 300]
+      "id": "verificar-sugestoes",
+      "name": "4. Verificar Sugestões",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1120, 300]
     },
     {
       "parameters": {
         "method": "PATCH",
         "url": "={{ $env.SUPABASE_URL }}/rest/v1/edi_cotacoes_itens?id=eq.{{ $json.item_id }}",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            {
-              "name": "apikey",
-              "value": "={{ $env.SUPABASE_ANON_KEY }}"
-            },
-            {
-              "name": "Authorization",
-              "value": "Bearer {{ $env.SUPABASE_ANON_KEY }}"
-            },
             {
               "name": "Content-Type",
               "value": "application/json"
@@ -116,47 +136,117 @@
           ]
         },
         "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
-            {
-              "name": "produto_sugerido_id",
-              "value": "={{ $json.sugestoes[0]?.produto_id }}"
-            },
-            {
-              "name": "confianca_sugestao",
-              "value": "={{ $json.sugestoes[0]?.score }}"
-            },
-            {
-              "name": "metodo_sugestao",
-              "value": "={{ $json.metodo }}"
-            },
-            {
-              "name": "sugestao_ia_gerada",
-              "value": "true"
-            }
-          ]
-        },
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"produto_sugerido_id\": \"{{ $json.sugestoes[0].produto_id }}\",\n  \"confianca_sugestao\": {{ $json.sugestoes[0].score }},\n  \"metodo_sugestao\": \"{{ $json.metodo }}\",\n  \"sugestao_ia_gerada\": true\n}",
         "options": {}
       },
-      "id": "atualizar-item",
-      "name": "Atualizar Item com Sugestão",
+      "id": "atualizar-item-sugestao",
+      "name": "5. Atualizar Item",
       "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.1,
-      "position": [850, 300]
+      "typeVersion": 4.2,
+      "position": [1340, 200],
+      "credentials": {
+        "supabaseApi": {
+          "id": "1",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "aggregateItems",
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "id": "aggregate-resultados",
+      "name": "6. Aggregate Resultados",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1560, 300]
     }
   ],
   "connections": {
     "Start": {
-      "main": [[{ "node": "Buscar Itens Pendentes", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "1. Buscar Itens Pendentes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
-    "Buscar Itens Pendentes": {
-      "main": [[{ "node": "Sugerir Produtos (Edge Function)", "type": "main", "index": 0 }]]
+    "1. Buscar Itens Pendentes": {
+      "main": [
+        [
+          {
+            "node": "2. Split Itens",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
-    "Sugerir Produtos (Edge Function)": {
-      "main": [[{ "node": "Atualizar Item com Sugestão", "type": "main", "index": 0 }]]
+    "2. Split Itens": {
+      "main": [
+        [
+          {
+            "node": "3. Sugerir Produtos (IA)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "3. Sugerir Produtos (IA)": {
+      "main": [
+        [
+          {
+            "node": "4. Verificar Sugestões",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "4. Verificar Sugestões": {
+      "main": [
+        [
+          {
+            "node": "5. Atualizar Item",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "6. Aggregate Resultados",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "5. Atualizar Item": {
+      "main": [
+        [
+          {
+            "node": "6. Aggregate Resultados",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
+  "pinData": {},
   "settings": {
     "executionOrder": "v1"
-  }
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2025-01-30T00:00:00.000Z",
+  "versionId": "1"
 }
