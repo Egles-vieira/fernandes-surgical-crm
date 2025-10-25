@@ -1,0 +1,162 @@
+{
+  "name": "EDI - Sugestão Automática de Produtos (REST API)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "start",
+      "name": "Start",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/rpc/get_pending_items",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $env.SUPABASE_ANON_KEY }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.SUPABASE_ANON_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "buscar-itens",
+      "name": "Buscar Itens Pendentes",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SUPABASE_URL }}/functions/v1/edi-sugerir-produtos",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.SUPABASE_ANON_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "descricao_cliente",
+              "value": "={{ $json.descricao_produto_cliente }}"
+            },
+            {
+              "name": "cnpj_cliente",
+              "value": "={{ $json.cnpj_cliente }}"
+            },
+            {
+              "name": "plataforma_id",
+              "value": "={{ $json.plataforma_id }}"
+            },
+            {
+              "name": "limite",
+              "value": "5"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "sugerir-produtos",
+      "name": "Sugerir Produtos (Edge Function)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/edi_cotacoes_itens?id=eq.{{ $json.item_id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $env.SUPABASE_ANON_KEY }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.SUPABASE_ANON_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "return=representation"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "produto_sugerido_id",
+              "value": "={{ $json.sugestoes[0]?.produto_id }}"
+            },
+            {
+              "name": "confianca_sugestao",
+              "value": "={{ $json.sugestoes[0]?.score }}"
+            },
+            {
+              "name": "metodo_sugestao",
+              "value": "={{ $json.metodo }}"
+            },
+            {
+              "name": "sugestao_ia_gerada",
+              "value": "true"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "atualizar-item",
+      "name": "Atualizar Item com Sugestão",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [850, 300]
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [[{ "node": "Buscar Itens Pendentes", "type": "main", "index": 0 }]]
+    },
+    "Buscar Itens Pendentes": {
+      "main": [[{ "node": "Sugerir Produtos (Edge Function)", "type": "main", "index": 0 }]]
+    },
+    "Sugerir Produtos (Edge Function)": {
+      "main": [[{ "node": "Atualizar Item com Sugestão", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
