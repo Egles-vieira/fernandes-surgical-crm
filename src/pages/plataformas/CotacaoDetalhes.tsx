@@ -209,15 +209,18 @@ export default function CotacaoDetalhes() {
                   </h1>
                   <Badge variant="default">{stepLabel(cotacao.step_atual)}</Badge>
                 </div>
-                <div className="flex items-center gap-4">
-                  <p className="text-muted-foreground">
-                    ID Externo: {cotacao.id_cotacao_externa}
-                  </p>
+                <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                  <span>ID Externo: {cotacao.id_cotacao_externa}</span>
                   {cotacao.detalhes?.contato_comprador && (
-                    <p className="text-muted-foreground">
-                      | Contato: {cotacao.detalhes.contato_comprador}
-                    </p>
+                    <span>| Contato: {cotacao.detalhes.contato_comprador}</span>
                   )}
+                  {cotacao.detalhes && Object.entries(cotacao.detalhes)
+                    .filter(([key]) => key !== 'contato_comprador')
+                    .map(([key, value]) => (
+                      <span key={key}>
+                        | {key.replace(/_/g, ' ').split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}: {typeof value === 'object' ? JSON.stringify(value) : String(value)}
+                      </span>
+                    ))}
                 </div>
               </div>
               <Button variant="destructive" size="sm" onClick={() => setDeleteDialogOpen(true)}>
@@ -324,23 +327,6 @@ export default function CotacaoDetalhes() {
                     <p className="font-medium text-xl">{cotacao.total_itens_respondidos}</p>
                   </div>
                 </div>
-                
-                {cotacao.detalhes && Object.keys(cotacao.detalhes).length > 0 && <>
-                    <Separator className="my-4" />
-                    <div>
-                      <p className="text-sm font-semibold mb-3">Detalhes Adicionais</p>
-                      <div className="grid grid-cols-1 gap-3">
-                        {Object.entries(cotacao.detalhes).map(([key, value]) => <div key={key} className="bg-muted/50 p-3 rounded">
-                            <p className="text-xs font-medium text-muted-foreground mb-1 capitalize">
-                              {key.replace(/_/g, ' ')}
-                            </p>
-                            <p className="text-sm break-words whitespace-pre-wrap">
-                              {typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value)}
-                            </p>
-                          </div>)}
-                      </div>
-                    </div>
-                  </>}
               </CardContent>
             </Card>
 
