@@ -1,23 +1,23 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Loader2, Send, Sparkles, CheckCircle2, Paperclip, X, Image as ImageIcon } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import React, { useState, useRef, useEffect } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Loader2, Send, Sparkles, CheckCircle2, Paperclip, X, Image as ImageIcon } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface Message {
-  role: 'user' | 'assistant';
+  role: "user" | "assistant";
   content: string;
 }
 
 interface SugestaoIA {
   titulo_sugerido?: string;
   descricao_completa?: string;
-  prioridade_sugerida?: 'baixa' | 'normal' | 'alta' | 'urgente';
+  prioridade_sugerida?: "baixa" | "normal" | "alta" | "urgente";
   fila_sugerida?: string;
   justificativa?: string;
   perguntas_pendentes?: string[];
@@ -37,22 +37,23 @@ interface ChatAssistenteCriacaoProps {
   onCriarTicket?: (e: React.FormEvent) => void;
 }
 
-export default function ChatAssistenteCriacao({ 
-  contextoInicial, 
+export default function ChatAssistenteCriacao({
+  contextoInicial,
   onSugestoesRecebidas,
   onMensagensChange,
   sugestoesIA,
   isClassificando,
   isCriandoTicket,
-  onCriarTicket
+  onCriarTicket,
 }: ChatAssistenteCriacaoProps) {
   const [mensagens, setMensagens] = useState<Message[]>([
     {
-      role: 'assistant',
-      content: '👋 Olá! Estou aqui para te ajudar a criar um ticket completo. Vou fazer algumas perguntas para entender melhor o problema. Pode começar me contando o que aconteceu? Você também pode anexar fotos se precisar.'
-    }
+      role: "assistant",
+      content:
+        "👋 Olá! Estou aqui para te ajudar a criar um ticket completo. Vou fazer algumas perguntas para entender melhor o problema. Pode começar me contando o que aconteceu? Você também pode anexar fotos se precisar.",
+    },
   ]);
-  const [inputMensagem, setInputMensagem] = useState('');
+  const [inputMensagem, setInputMensagem] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [perguntasRespondidas, setPerguntasRespondidas] = useState(0);
   const [anexosSelecionados, setAnexosSelecionados] = useState<File[]>([]);
@@ -77,29 +78,29 @@ export default function ChatAssistenteCriacao({
     const files = e.target.files;
     if (!files) return;
 
-    const novosAnexos = Array.from(files).filter(file => {
+    const novosAnexos = Array.from(files).filter((file) => {
       // Aceitar imagens até 10MB
-      if (file.type.startsWith('image/') && file.size <= 10 * 1024 * 1024) {
+      if (file.type.startsWith("image/") && file.size <= 10 * 1024 * 1024) {
         return true;
       }
       toast.error(`${file.name}: arquivo não suportado ou muito grande (máx 10MB)`);
       return false;
     });
 
-    setAnexosSelecionados(prev => [...prev, ...novosAnexos]);
-    e.target.value = ''; // Reset input
+    setAnexosSelecionados((prev) => [...prev, ...novosAnexos]);
+    e.target.value = ""; // Reset input
   };
 
   const removerAnexo = (index: number) => {
-    setAnexosSelecionados(prev => prev.filter((_, i) => i !== index));
+    setAnexosSelecionados((prev) => prev.filter((_, i) => i !== index));
   };
 
   const enviarMensagem = async () => {
     if ((!inputMensagem.trim() && anexosSelecionados.length === 0) || enviando) return;
 
     const mensagemUsuario = inputMensagem.trim();
-    setInputMensagem('');
-    
+    setInputMensagem("");
+
     let conteudoMensagem = mensagemUsuario;
 
     // Upload de anexos se houver
@@ -110,13 +111,13 @@ export default function ChatAssistenteCriacao({
       try {
         for (const file of anexosSelecionados) {
           const formData = new FormData();
-          formData.append('file', file);
-          formData.append('ticket_id', 'temp'); // Temporário até ter ticket criado
+          formData.append("file", file);
+          formData.append("ticket_id", "temp"); // Temporário até ter ticket criado
 
           const { data: session } = await supabase.auth.getSession();
-          if (!session.session) throw new Error('Não autenticado');
+          if (!session.session) throw new Error("Não autenticado");
 
-          const response = await supabase.functions.invoke('upload-anexo-spaces', {
+          const response = await supabase.functions.invoke("upload-anexo-spaces", {
             body: formData,
             headers: {
               Authorization: `Bearer ${session.session.access_token}`,
@@ -131,39 +132,39 @@ export default function ChatAssistenteCriacao({
 
         // Adicionar URLs dos anexos à mensagem
         if (urlsAnexos.length > 0) {
-          conteudoMensagem += `\n\n📎 Anexos enviados:\n${urlsAnexos.map((url, i) => `${i + 1}. ${url}`).join('\n')}`;
+          conteudoMensagem += `\n\n📎 Anexos enviados:\n${urlsAnexos.map((url, i) => `${i + 1}. ${url}`).join("\n")}`;
         }
 
         setAnexosSelecionados([]);
         toast.success(`${urlsAnexos.length} arquivo(s) enviado(s)`);
       } catch (error: any) {
-        console.error('Erro ao fazer upload:', error);
-        toast.error('Erro ao enviar anexos');
+        console.error("Erro ao fazer upload:", error);
+        toast.error("Erro ao enviar anexos");
         setUploadando(false);
         return;
       } finally {
         setUploadando(false);
       }
     }
-    
-    const novasMensagens = [...mensagens, { role: 'user' as const, content: conteudoMensagem }];
+
+    const novasMensagens = [...mensagens, { role: "user" as const, content: conteudoMensagem }];
     setMensagens(novasMensagens);
     setEnviando(true);
 
     try {
-      const response = await supabase.functions.invoke('chat-assistente-criacao', {
+      const response = await supabase.functions.invoke("chat-assistente-criacao", {
         body: {
           messages: novasMensagens,
-          contexto: contextoInicial
-        }
+          contexto: contextoInicial,
+        },
       });
 
       if (response.error) throw response.error;
 
       const { message, sugestoes, perguntas_respondidas, perguntas_pendentes } = response.data;
 
-      setMensagens(prev => [...prev, { role: 'assistant', content: message }]);
-      
+      setMensagens((prev) => [...prev, { role: "assistant", content: message }]);
+
       if (perguntas_respondidas !== undefined) {
         setPerguntasRespondidas(perguntas_respondidas);
       }
@@ -172,24 +173,27 @@ export default function ChatAssistenteCriacao({
         // Adicionar perguntas_pendentes se vier da API
         const sugestoesComPendentes = {
           ...sugestoes,
-          perguntas_pendentes: perguntas_pendentes
+          perguntas_pendentes: perguntas_pendentes,
         };
         onSugestoesRecebidas(sugestoesComPendentes);
       }
     } catch (error: any) {
-      console.error('Erro no chat:', error);
-      toast.error('Erro ao processar mensagem');
-      setMensagens(prev => [...prev, { 
-        role: 'assistant', 
-        content: 'Desculpe, tive um problema. Pode repetir?' 
-      }]);
+      console.error("Erro no chat:", error);
+      toast.error("Erro ao processar mensagem");
+      setMensagens((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: "Desculpe, tive um problema. Pode repetir?",
+        },
+      ]);
     } finally {
       setEnviando(false);
     }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       enviarMensagem();
     }
@@ -217,11 +221,10 @@ export default function ChatAssistenteCriacao({
             )}
           </div>
         </div>
-        <CardDescription>
-          Qualidade da descrição: {qualidadeDescricao}%
-        </CardDescription>
+        <CardDescription>Sou uma enfermeira IA que posso te ajudar na crição so pós-venda!</CardDescription>
+        <CardDescription>Qualidade da descrição: {qualidadeDescricao}%</CardDescription>
         <div className="w-full bg-secondary rounded-full h-2 mt-2">
-          <div 
+          <div
             className="bg-primary h-2 rounded-full transition-all duration-300"
             style={{ width: `${qualidadeDescricao}%` }}
           />
@@ -235,34 +238,31 @@ export default function ChatAssistenteCriacao({
               // Extrair URLs de imagens da mensagem
               const urlRegex = /(https?:\/\/[^\s]+\.(jpg|jpeg|png|gif|webp))/gi;
               const imagensUrls = msg.content.match(urlRegex) || [];
-              const textoSemUrls = msg.content.replace(urlRegex, '').replace(/📎 Anexos enviados:\s*/g, '').replace(/\d+\.\s*/g, '').trim();
-              
+              const textoSemUrls = msg.content
+                .replace(urlRegex, "")
+                .replace(/📎 Anexos enviados:\s*/g, "")
+                .replace(/\d+\.\s*/g, "")
+                .trim();
+
               return (
-                <div
-                  key={idx}
-                  className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                >
+                <div key={idx} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                   <div
                     className={`rounded-lg px-4 py-2 max-w-[85%] ${
-                      msg.role === 'user'
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-muted'
+                      msg.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted"
                     }`}
                   >
-                    {textoSemUrls && (
-                      <p className="text-sm whitespace-pre-wrap mb-2">{textoSemUrls}</p>
-                    )}
+                    {textoSemUrls && <p className="text-sm whitespace-pre-wrap mb-2">{textoSemUrls}</p>}
                     {imagensUrls.length > 0 && (
                       <div className="flex flex-col gap-2 mt-2">
                         {imagensUrls.map((url, imgIdx) => (
                           <div key={imgIdx} className="relative rounded-lg overflow-hidden border border-border">
-                            <img 
-                              src={url} 
+                            <img
+                              src={url}
                               alt={`Anexo ${imgIdx + 1}`}
                               className="max-w-full h-auto max-h-64 object-contain bg-background"
                               onError={(e) => {
                                 // Fallback se imagem não carregar
-                                e.currentTarget.style.display = 'none';
+                                e.currentTarget.style.display = "none";
                               }}
                             />
                           </div>
@@ -338,31 +338,29 @@ export default function ChatAssistenteCriacao({
               {uploadando ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
             </Button>
           </div>
-          
-          {sugestoesIA && (!sugestoesIA.perguntas_pendentes || sugestoesIA.perguntas_pendentes.length === 0) && onCriarTicket && (
-            <Button 
-              onClick={onCriarTicket}
-              disabled={isCriandoTicket || isClassificando}
-              className="w-full h-[50px]"
-            >
-              {isClassificando ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Classificando com IA...
-                </>
-              ) : isCriandoTicket ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Criando Ticket...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="w-4 h-4 mr-2" />
-                  Criar Ticket
-                </>
-              )}
-            </Button>
-          )}
+
+          {sugestoesIA &&
+            (!sugestoesIA.perguntas_pendentes || sugestoesIA.perguntas_pendentes.length === 0) &&
+            onCriarTicket && (
+              <Button onClick={onCriarTicket} disabled={isCriandoTicket || isClassificando} className="w-full h-[50px]">
+                {isClassificando ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Classificando com IA...
+                  </>
+                ) : isCriandoTicket ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Criando Ticket...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Criar Ticket
+                  </>
+                )}
+              </Button>
+            )}
         </div>
       </CardContent>
     </Card>
