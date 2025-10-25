@@ -23,6 +23,7 @@ import CotacaoDetalhes from "./pages/plataformas/CotacaoDetalhes";
 import PedidosPlataforma from "./pages/plataformas/Pedidos";
 import RelatoriosPlataforma from "./pages/plataformas/Relatorios";
 import ProdutosVinculo from "./pages/plataformas/ProdutosVinculo";
+import Parametros from "./pages/plataformas/Parametros";
 import SolicitacaoParticipacao from "./pages/licitacoes/SolicitacaoParticipacao";
 import ContratosGoverno from "./pages/licitacoes/ContratosGoverno";
 import WhatsApp from "./pages/WhatsApp";
@@ -158,6 +159,13 @@ const App = () => (
           <ProtectedRoute>
             <Layout>
               <ProdutosVinculo />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/plataformas/parametros" element={
+          <ProtectedRoute>
+            <Layout>
+              <Parametros />
             </Layout>
           </ProtectedRoute>
         } />

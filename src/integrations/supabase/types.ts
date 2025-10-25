@@ -604,12 +604,74 @@ export type Database = {
           },
         ]
       }
+      edi_condicoes_pagamento: {
+        Row: {
+          ativo: boolean | null
+          atualizado_em: string | null
+          codigo_integracao: string | null
+          codigo_portal: string
+          condicao_pagamento_id: string | null
+          criado_em: string | null
+          criado_por: string | null
+          descricao_portal: string
+          id: string
+          plataforma_id: string | null
+        }
+        Insert: {
+          ativo?: boolean | null
+          atualizado_em?: string | null
+          codigo_integracao?: string | null
+          codigo_portal: string
+          condicao_pagamento_id?: string | null
+          criado_em?: string | null
+          criado_por?: string | null
+          descricao_portal: string
+          id?: string
+          plataforma_id?: string | null
+        }
+        Update: {
+          ativo?: boolean | null
+          atualizado_em?: string | null
+          codigo_integracao?: string | null
+          codigo_portal?: string
+          condicao_pagamento_id?: string | null
+          criado_em?: string | null
+          criado_por?: string | null
+          descricao_portal?: string
+          id?: string
+          plataforma_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "edi_condicoes_pagamento_condicao_pagamento_id_fkey"
+            columns: ["condicao_pagamento_id"]
+            isOneToOne: false
+            referencedRelation: "condicoes_pagamento"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "edi_condicoes_pagamento_criado_por_fkey"
+            columns: ["criado_por"]
+            isOneToOne: false
+            referencedRelation: "perfis_usuario"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "edi_condicoes_pagamento_plataforma_id_fkey"
+            columns: ["plataforma_id"]
+            isOneToOne: false
+            referencedRelation: "plataformas_edi"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       edi_cotacoes: {
         Row: {
           atualizado_em: string | null
           baixado_em: string | null
           cidade_cliente: string | null
           cnpj_cliente: string
+          condicao_pagamento_id: string | null
           criado_em: string | null
           dados_brutos: string | null
           dados_originais: Json
@@ -618,9 +680,11 @@ export type Database = {
           data_vencimento_atual: string
           data_vencimento_original: string
           detalhes: Json | null
+          forma_pagamento_portal: string | null
           historico_steps: Json | null
           id: string
           id_cotacao_externa: string
+          id_forma_pagamento_portal: string | null
           id_resposta_externa: string | null
           nome_cliente: string | null
           numero_cotacao: string | null
@@ -643,6 +707,7 @@ export type Database = {
           baixado_em?: string | null
           cidade_cliente?: string | null
           cnpj_cliente: string
+          condicao_pagamento_id?: string | null
           criado_em?: string | null
           dados_brutos?: string | null
           dados_originais: Json
@@ -651,9 +716,11 @@ export type Database = {
           data_vencimento_atual: string
           data_vencimento_original: string
           detalhes?: Json | null
+          forma_pagamento_portal?: string | null
           historico_steps?: Json | null
           id?: string
           id_cotacao_externa: string
+          id_forma_pagamento_portal?: string | null
           id_resposta_externa?: string | null
           nome_cliente?: string | null
           numero_cotacao?: string | null
@@ -676,6 +743,7 @@ export type Database = {
           baixado_em?: string | null
           cidade_cliente?: string | null
           cnpj_cliente?: string
+          condicao_pagamento_id?: string | null
           criado_em?: string | null
           dados_brutos?: string | null
           dados_originais?: Json
@@ -684,9 +752,11 @@ export type Database = {
           data_vencimento_atual?: string
           data_vencimento_original?: string
           detalhes?: Json | null
+          forma_pagamento_portal?: string | null
           historico_steps?: Json | null
           id?: string
           id_cotacao_externa?: string
+          id_forma_pagamento_portal?: string | null
           id_resposta_externa?: string | null
           nome_cliente?: string | null
           numero_cotacao?: string | null
@@ -705,6 +775,13 @@ export type Database = {
           valor_total_respondido?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "edi_cotacoes_condicao_pagamento_id_fkey"
+            columns: ["condicao_pagamento_id"]
+            isOneToOne: false
+            referencedRelation: "condicoes_pagamento"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "edi_cotacoes_plataforma_id_fkey"
             columns: ["plataforma_id"]
@@ -740,6 +817,7 @@ export type Database = {
           detalhes_resposta: Json | null
           id: string
           id_item_externo: string | null
+          id_unidade_medida_portal: string | null
           marca_cliente: string | null
           numero_item: number | null
           percentual_desconto: number | null
@@ -754,6 +832,7 @@ export type Database = {
           respondido_em: string | null
           status: string | null
           unidade_medida: string | null
+          unidade_medida_portal: string | null
           valor_desconto: number | null
         }
         Insert: {
@@ -767,6 +846,7 @@ export type Database = {
           detalhes_resposta?: Json | null
           id?: string
           id_item_externo?: string | null
+          id_unidade_medida_portal?: string | null
           marca_cliente?: string | null
           numero_item?: number | null
           percentual_desconto?: number | null
@@ -781,6 +861,7 @@ export type Database = {
           respondido_em?: string | null
           status?: string | null
           unidade_medida?: string | null
+          unidade_medida_portal?: string | null
           valor_desconto?: number | null
         }
         Update: {
@@ -794,6 +875,7 @@ export type Database = {
           detalhes_resposta?: Json | null
           id?: string
           id_item_externo?: string | null
+          id_unidade_medida_portal?: string | null
           marca_cliente?: string | null
           numero_item?: number | null
           percentual_desconto?: number | null
@@ -808,6 +890,7 @@ export type Database = {
           respondido_em?: string | null
           status?: string | null
           unidade_medida?: string | null
+          unidade_medida_portal?: string | null
           valor_desconto?: number | null
         }
         Relationships: [
@@ -1308,6 +1391,60 @@ export type Database = {
             columns: ["produto_id"]
             isOneToOne: false
             referencedRelation: "produtos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      edi_unidades_medida: {
+        Row: {
+          abreviacao_portal: string | null
+          ativo: boolean | null
+          atualizado_em: string | null
+          codigo_portal: string
+          criado_em: string | null
+          criado_por: string | null
+          descricao_portal: string
+          id: string
+          plataforma_id: string | null
+          unidade_medida_interna: string
+        }
+        Insert: {
+          abreviacao_portal?: string | null
+          ativo?: boolean | null
+          atualizado_em?: string | null
+          codigo_portal: string
+          criado_em?: string | null
+          criado_por?: string | null
+          descricao_portal: string
+          id?: string
+          plataforma_id?: string | null
+          unidade_medida_interna: string
+        }
+        Update: {
+          abreviacao_portal?: string | null
+          ativo?: boolean | null
+          atualizado_em?: string | null
+          codigo_portal?: string
+          criado_em?: string | null
+          criado_por?: string | null
+          descricao_portal?: string
+          id?: string
+          plataforma_id?: string | null
+          unidade_medida_interna?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "edi_unidades_medida_criado_por_fkey"
+            columns: ["criado_por"]
+            isOneToOne: false
+            referencedRelation: "perfis_usuario"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "edi_unidades_medida_plataforma_id_fkey"
+            columns: ["plataforma_id"]
+            isOneToOne: false
+            referencedRelation: "plataformas_edi"
             referencedColumns: ["id"]
           },
         ]
