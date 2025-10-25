@@ -24,6 +24,7 @@ import PedidosPlataforma from "./pages/plataformas/Pedidos";
 import RelatoriosPlataforma from "./pages/plataformas/Relatorios";
 import ProdutosVinculo from "./pages/plataformas/ProdutosVinculo";
 import Parametros from "./pages/plataformas/Parametros";
+import DashboardAnaliseIA from "./pages/plataformas/DashboardAnaliseIA";
 import SolicitacaoParticipacao from "./pages/licitacoes/SolicitacaoParticipacao";
 import ContratosGoverno from "./pages/licitacoes/ContratosGoverno";
 import WhatsApp from "./pages/WhatsApp";
@@ -166,6 +167,13 @@ const App = () => (
           <ProtectedRoute>
             <Layout>
               <Parametros />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/plataformas/dashboard-ia" element={
+          <ProtectedRoute>
+            <Layout>
+              <DashboardAnaliseIA />
             </Layout>
           </ProtectedRoute>
         } />

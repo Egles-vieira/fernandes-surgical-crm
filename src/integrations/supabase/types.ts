@@ -984,10 +984,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "edi_cotacoes_itens_produto_id_fkey"
+            columns: ["produto_id"]
+            isOneToOne: false
+            referencedRelation: "vw_produtos_mais_sugeridos_ia"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "edi_cotacoes_itens_produto_selecionado_id_fkey"
             columns: ["produto_selecionado_id"]
             isOneToOne: false
             referencedRelation: "produtos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "edi_cotacoes_itens_produto_selecionado_id_fkey"
+            columns: ["produto_selecionado_id"]
+            isOneToOne: false
+            referencedRelation: "vw_produtos_mais_sugeridos_ia"
             referencedColumns: ["id"]
           },
           {
@@ -1335,6 +1349,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "edi_pedidos_itens_produto_id_fkey"
+            columns: ["produto_id"]
+            isOneToOne: false
+            referencedRelation: "vw_produtos_mais_sugeridos_ia"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "edi_pedidos_itens_produto_vinculo_id_fkey"
             columns: ["produto_vinculo_id"]
             isOneToOne: false
@@ -1473,6 +1494,13 @@ export type Database = {
             columns: ["produto_id"]
             isOneToOne: false
             referencedRelation: "produtos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "edi_produtos_vinculo_produto_id_fkey"
+            columns: ["produto_id"]
+            isOneToOne: false
+            referencedRelation: "vw_produtos_mais_sugeridos_ia"
             referencedColumns: ["id"]
           },
         ]
@@ -1851,6 +1879,13 @@ export type Database = {
             referencedRelation: "produtos"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "estoque_produto_id_fkey"
+            columns: ["produto_id"]
+            isOneToOne: false
+            referencedRelation: "vw_produtos_mais_sugeridos_ia"
+            referencedColumns: ["id"]
+          },
         ]
       }
       etiquetaveis: {
@@ -2114,10 +2149,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "ia_feedback_historico_produto_correto_id_fkey"
+            columns: ["produto_correto_id"]
+            isOneToOne: false
+            referencedRelation: "vw_produtos_mais_sugeridos_ia"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "ia_feedback_historico_produto_sugerido_id_fkey"
             columns: ["produto_sugerido_id"]
             isOneToOne: false
             referencedRelation: "produtos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ia_feedback_historico_produto_sugerido_id_fkey"
+            columns: ["produto_sugerido_id"]
+            isOneToOne: false
+            referencedRelation: "vw_produtos_mais_sugeridos_ia"
             referencedColumns: ["id"]
           },
         ]
@@ -2184,6 +2233,13 @@ export type Database = {
             columns: ["produto_id"]
             isOneToOne: false
             referencedRelation: "produtos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ia_score_ajustes_produto_id_fkey"
+            columns: ["produto_id"]
+            isOneToOne: false
+            referencedRelation: "vw_produtos_mais_sugeridos_ia"
             referencedColumns: ["id"]
           },
         ]
@@ -3080,6 +3136,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "tickets_produto_id_fkey"
+            columns: ["produto_id"]
+            isOneToOne: false
+            referencedRelation: "vw_produtos_mais_sugeridos_ia"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "tickets_venda_id_fkey"
             columns: ["venda_id"]
             isOneToOne: false
@@ -3685,6 +3748,13 @@ export type Database = {
             columns: ["produto_id"]
             isOneToOne: false
             referencedRelation: "produtos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendas_itens_produto_id_fkey"
+            columns: ["produto_id"]
+            isOneToOne: false
+            referencedRelation: "vw_produtos_mais_sugeridos_ia"
             referencedColumns: ["id"]
           },
           {
@@ -4584,6 +4654,37 @@ export type Database = {
       }
     }
     Views: {
+      vw_analise_ia_dashboard: {
+        Row: {
+          analises_com_erro: number | null
+          analises_concluidas: number | null
+          analises_ultimas_24h: number | null
+          analises_ultimos_7_dias: number | null
+          em_analise_agora: number | null
+          modelo_mais_usado: string | null
+          taxa_automacao_percent: number | null
+          taxa_erro_percent: number | null
+          taxa_sugestoes_percent: number | null
+          tempo_medio_analise_seg: number | null
+          total_analisadas: number | null
+          total_cotacoes: number | null
+          total_itens_analisados: number | null
+          total_itens_cotacoes: number | null
+          total_sugestoes_geradas: number | null
+        }
+        Relationships: []
+      }
+      vw_analise_ia_por_dia: {
+        Row: {
+          analises_com_erro: number | null
+          analises_concluidas: number | null
+          data: string | null
+          tempo_medio_seg: number | null
+          total_analises: number | null
+          total_sugestoes: number | null
+        }
+        Relationships: []
+      }
       vw_clientes_completo: {
         Row: {
           cgc: string | null
@@ -4608,6 +4709,18 @@ export type Database = {
           telefone1: string | null
           tipo_conta: string | null
           user_id: string | null
+        }
+        Relationships: []
+      }
+      vw_produtos_mais_sugeridos_ia: {
+        Row: {
+          id: string | null
+          nome: string | null
+          referencia_interna: string | null
+          score_medio: number | null
+          taxa_aceitacao_percent: number | null
+          vezes_aceito: number | null
+          vezes_sugerido: number | null
         }
         Relationships: []
       }

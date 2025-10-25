@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Calculator, Package, Link, BarChart3, Settings } from "lucide-react";
+import { Calculator, Package, Link, BarChart3, Settings, Brain } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -13,6 +13,13 @@ export default function Plataformas() {
       icone: Calculator,
       rota: "/plataformas/cotacoes",
       cor: "bg-blue-500",
+    },
+    {
+      titulo: "Dashboard de Análise IA",
+      descricao: "Métricas e desempenho da IA na análise de cotações",
+      icone: Brain,
+      rota: "/plataformas/dashboard-ia",
+      cor: "bg-primary",
     },
     {
       titulo: "DE-PARA Produtos",
