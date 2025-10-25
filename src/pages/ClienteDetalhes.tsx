@@ -12,6 +12,7 @@ import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft, Building2, Mail, Phone, MapPin, Edit, UserPlus, FileText, DollarSign, Users, Calendar, Briefcase, TrendingUp, CheckCircle2, Clock, MessageSquare, Target, Package, Search } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useToast } from "@/hooks/use-toast";
 import NovoContatoDialog from "@/components/cliente/NovoContatoDialog";
 import NovaOportunidadeDialog from "@/components/cliente/NovaOportunidadeDialog";
 import WhatsAppChat from "@/components/cliente/WhatsAppChat";
@@ -23,12 +24,14 @@ export default function ClienteDetalhes() {
     id: string;
   }>();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [novoContatoOpen, setNovoContatoOpen] = useState(false);
   const [novaOportunidadeOpen, setNovaOportunidadeOpen] = useState(false);
   const [whatsappChatOpen, setWhatsappChatOpen] = useState(false);
   const [selectedContact, setSelectedContact] = useState<any>(null);
   const [historicoProdutosOpen, setHistoricoProdutosOpen] = useState(false);
   const [filtroContatos, setFiltroContatos] = useState("");
+  const [iniciandoLigacao, setIniciandoLigacao] = useState(false);
   const {
     data: cliente,
     isLoading
@@ -164,6 +167,44 @@ export default function ClienteDetalhes() {
     return Math.round(preenchidos / total * 100);
   };
   const preenchimento = calcularPreenchimento();
+  
+  const iniciarLigacao = async (telefone: string, nomeContato?: string) => {
+    if (!telefone) {
+      toast({
+        title: "Número não disponível",
+        description: "Este contato não possui número de telefone cadastrado",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIniciandoLigacao(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('zenvia-iniciar-ligacao', {
+        body: {
+          numero_destino: telefone,
+          nome_cliente: nomeContato || cliente?.nome_abrev || 'Cliente'
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Ligação iniciada",
+        description: `Chamada para ${telefone} em andamento`,
+      });
+    } catch (error) {
+      console.error('Erro ao iniciar ligação:', error);
+      toast({
+        title: "Erro ao iniciar ligação",
+        description: error.message || "Não foi possível iniciar a ligação",
+        variant: "destructive"
+      });
+    } finally {
+      setIniciandoLigacao(false);
+    }
+  };
+
   const getPreenchimentoColor = (percentual: number) => {
     if (percentual >= 80) return 'text-success';
     if (percentual >= 50) return 'text-secondary';
@@ -500,9 +541,15 @@ export default function ClienteDetalhes() {
                     
                     {/* Ações de CRM */}
                     <div className="flex gap-2">
-                      {contato.telefone && <Button size="sm" variant="outline" className="flex-1 h-8 text-xs" onClick={() => window.open(`tel:${contato.telefone}`, '_self')}>
+                      {contato.telefone && <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="flex-1 h-8 text-xs" 
+                          onClick={() => iniciarLigacao(contato.telefone, contato.nome_completo)}
+                          disabled={iniciandoLigacao}
+                        >
                           <Phone className="h-3 w-3 mr-1" />
-                          Ligar
+                          {iniciandoLigacao ? 'Ligando...' : 'Ligar'}
                         </Button>}
                       {contato.email && <Button size="sm" variant="outline" className="flex-1 h-8 text-xs" onClick={() => window.open(`mailto:${contato.email}`, '_blank')}>
                           <Mail className="h-3 w-3 mr-1" />
