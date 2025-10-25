@@ -223,7 +223,7 @@ export default function CotacaoDetalhes() {
             <Card className="rounded-none mx-0">
               
               <CardContent className="mx-0 py-[12px] my-0 px-[24px]">
-                <div className="grid grid-cols-2 gap-6">
+                <div className="grid gap-6" style={{gridTemplateColumns: '1fr 0.6fr'}}>
                   {/* Cliente */}
                   <div className="space-y-3">
                     <div className="flex items-center gap-2 font-semibold">
