@@ -14,6 +14,7 @@ import { ItemCotacaoTable } from "@/components/plataformas/ItemCotacaoTable";
 import { CotacaoActionBar } from "@/components/plataformas/CotacaoActionBar";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useIAAnalysis } from "@/hooks/useIAAnalysis";
+import { useRealtimeItemUpdates } from "@/hooks/useRealtimeItemUpdates";
 import { ProgressoAnaliseIA } from "@/components/plataformas/ProgressoAnaliseIA";
 import { SugestoesIACard } from "@/components/plataformas/SugestoesIACard";
 interface ItemCotacao {
@@ -64,6 +65,19 @@ export default function CotacaoDetalhes() {
   // Análise de IA
   const { isAnalyzing, progress, error: iaError, iniciarAnalise } = useIAAnalysis(id);
   const [mostrarSugestoes, setMostrarSugestoes] = useState(false);
+
+  // Hook de realtime updates para itens
+  useRealtimeItemUpdates({
+    cotacaoId: id || '',
+    onItemUpdate: (itemId, updates) => {
+      // Atualiza o item na lista local
+      setItens((prevItens) => 
+        prevItens.map((item) => 
+          item.id === itemId ? { ...item, ...updates } : item
+        )
+      );
+    },
+  });
   useEffect(() => {
     if (id) {
       carregarDados();
