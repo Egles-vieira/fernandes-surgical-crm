@@ -36,12 +36,13 @@ serve(async (req) => {
       );
     }
 
-    // Formatar o número para o padrão internacional se necessário
+    // Formatar o número para o padrão da Zenvia (apenas DDD + número, sem +55)
     let numeroFormatado = numero_destino.replace(/\D/g, '');
-    if (!numeroFormatado.startsWith('55')) {
-      numeroFormatado = '55' + numeroFormatado;
+    
+    // Remover o código do país se existir
+    if (numeroFormatado.startsWith('55')) {
+      numeroFormatado = numeroFormatado.substring(2);
     }
-    numeroFormatado = '+' + numeroFormatado;
 
     console.log('Iniciando ligação para:', numeroFormatado);
 
@@ -91,10 +92,11 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Erro ao processar requisição:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
     return new Response(
       JSON.stringify({ 
         error: 'Erro interno ao processar requisição',
-        message: error.message 
+        message: errorMessage
       }),
       { 
         status: 500, 

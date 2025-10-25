@@ -26,3 +26,6 @@ verify_jwt = false
 
 [functions.handle-ura-zenvia]
 verify_jwt = false
+
+[functions.zenvia-iniciar-ligacao]
+verify_jwt = true
