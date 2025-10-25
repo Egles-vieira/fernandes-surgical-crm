@@ -44,8 +44,7 @@
     },
     {
       "parameters": {
-        "mode": "combine",
-        "combinationMode": "multiplex",
+        "batchSize": 1,
         "options": {}
       },
       "id": "split-itens",
