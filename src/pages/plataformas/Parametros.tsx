@@ -185,11 +185,11 @@ export default function Parametros() {
                 <TableBody>
                   {loadingUnidades ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center">Carregando...</TableCell>
+                      <TableCell colSpan={7} className="text-center">Carregando...</TableCell>
                     </TableRow>
                   ) : unidades?.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center">Nenhuma unidade cadastrada</TableCell>
+                      <TableCell colSpan={7} className="text-center">Nenhuma unidade cadastrada</TableCell>
                     </TableRow>
                   ) : (
                     unidades?.map((unidade) => (
