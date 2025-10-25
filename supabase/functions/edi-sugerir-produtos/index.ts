@@ -228,7 +228,8 @@ serve(async (req) => {
               metodo: 'vinculo_existente'
             }],
             total_produtos_analisados: 1,
-            metodo: 'vinculo_existente'
+            metodo: 'vinculo_existente',
+            item_id
           }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
