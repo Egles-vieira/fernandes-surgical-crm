@@ -151,13 +151,15 @@ export default function CotacaoDetalhes() {
   const valorTotal = itens.reduce((acc, item) => acc + (item.preco_total || 0), 0);
   
   return <div className="min-h-screen bg-background">
-      <CotacaoActionBar
-        status={cotacao.step_atual as any}
-        onResponder={handleResponder}
-        onCancelar={handleCancelar}
-        onConfirmar={handleConfirmar}
-        onEnviar={handleEnviar}
-      />
+      <div className={`fixed top-16 left-0 z-30 bg-card border-b shadow-sm px-8 py-3 transition-all duration-300 ${historicoAberto ? 'right-96' : 'right-0'}`}>
+        <CotacaoActionBar
+          status={cotacao.step_atual as any}
+          onResponder={handleResponder}
+          onCancelar={handleCancelar}
+          onConfirmar={handleConfirmar}
+          onEnviar={handleEnviar}
+        />
+      </div>
       <div className="flex pt-[60px]">
         {/* Área Principal */}
         <div className={`flex-1 transition-all duration-300 ${historicoAberto ? 'mr-96' : 'mr-0'}`}>
