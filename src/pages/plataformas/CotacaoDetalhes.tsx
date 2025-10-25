@@ -12,16 +12,7 @@ import { EDICotacao } from "@/hooks/useEDICotacoes";
 import { useToast } from "@/hooks/use-toast";
 import { ItemCotacaoTable } from "@/components/plataformas/ItemCotacaoTable";
 import { CotacaoActionBar } from "@/components/plataformas/CotacaoActionBar";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 interface ItemCotacao {
   id: string;
   numero_item: number;
@@ -61,8 +52,6 @@ export default function CotacaoDetalhes() {
   const [historicoAberto, setHistoricoAberto] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [condicaoPagamento, setCondicaoPagamento] = useState<any>(null);
-  
   useEffect(() => {
     if (id) {
       carregarDados();
@@ -94,23 +83,6 @@ export default function CotacaoDetalhes() {
       });
       if (itensError) throw itensError;
       setItens(itensData || []);
-
-      // Carregar condição de pagamento com DE-PARA
-      const detalhes = cotacaoData.detalhes as any;
-      if (detalhes?.condicao_pagamento_codigo) {
-        const { data: condicaoData } = await supabase
-          .from("edi_condicoes_pagamento")
-          .select(`
-            *,
-            condicoes_pagamento(*)
-          `)
-          .eq("plataforma_id", cotacaoData.plataforma_id)
-          .eq("codigo_portal", detalhes.condicao_pagamento_codigo)
-          .eq("ativo", true)
-          .maybeSingle();
-
-        setCondicaoPagamento(condicaoData);
-      }
     } catch (error: any) {
       toast({
         title: "Erro ao carregar dados",
@@ -166,78 +138,59 @@ export default function CotacaoDetalhes() {
   const handleResponder = () => {
     toast({
       title: "Responder Cotação",
-      description: "Funcionalidade em desenvolvimento",
+      description: "Funcionalidade em desenvolvimento"
     });
   };
-
   const handleCancelar = () => {
     toast({
       title: "Cancelar Cotação",
       description: "Funcionalidade em desenvolvimento",
-      variant: "destructive",
+      variant: "destructive"
     });
   };
-
   const handleConfirmar = () => {
     toast({
       title: "Confirmar Cotação",
-      description: "Funcionalidade em desenvolvimento",
+      description: "Funcionalidade em desenvolvimento"
     });
   };
-
   const handleEnviar = () => {
     toast({
       title: "Enviar Cotação",
-      description: "Funcionalidade em desenvolvimento",
+      description: "Funcionalidade em desenvolvimento"
     });
   };
-
   const handleExcluir = async () => {
     setIsDeleting(true);
     try {
-      const { error } = await supabase
-        .from("edi_cotacoes")
-        .delete()
-        .eq("id", id);
-
+      const {
+        error
+      } = await supabase.from("edi_cotacoes").delete().eq("id", id);
       if (error) throw error;
-
       toast({
         title: "Cotação excluída",
-        description: "A cotação foi excluída com sucesso. Você pode importar novamente se necessário.",
+        description: "A cotação foi excluída com sucesso. Você pode importar novamente se necessário."
       });
-
       navigate("/plataformas/cotacoes");
     } catch (error: any) {
       toast({
         title: "Erro ao excluir cotação",
         description: error.message,
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setIsDeleting(false);
       setDeleteDialogOpen(false);
     }
   };
-
   const valorTotal = itens.reduce((acc, item) => acc + (item.preco_total || 0), 0);
-  
   return <div className="min-h-screen bg-background">
       {/* ActionBar fixo que respeita sidebar e histórico */}
-      <div
-        className="fixed top-16 z-40 bg-card border-b shadow-sm px-8 py-3 transition-all duration-300"
-        style={{ 
-          left: 'var(--sidebar-width)' as any,
-          right: historicoAberto ? '24rem' : '4.5rem'
-        }}
-      >
-        <CotacaoActionBar
-          status={cotacao.step_atual as any}
-          onResponder={handleResponder}
-          onCancelar={handleCancelar}
-          onConfirmar={handleConfirmar}
-          onEnviar={handleEnviar}
-        />
+      <div className="fixed top-16 z-40 bg-card border-b shadow-sm px-8 py-3 transition-all duration-300" style={{
+      left: 'var(--sidebar-width)' as any,
+      right: historicoAberto ? '24rem' : '4.5rem'
+    }}>
+        <CotacaoActionBar status={cotacao.step_atual as any} onResponder={handleResponder} onCancelar={handleCancelar} onConfirmar={handleConfirmar} onEnviar={handleEnviar} />
       </div>
 
       <div className="flex pt-[72px]">
@@ -260,11 +213,7 @@ export default function CotacaoDetalhes() {
                   ID Externo: {cotacao.id_cotacao_externa}
                 </p>
               </div>
-              <Button 
-                variant="destructive" 
-                size="sm"
-                onClick={() => setDeleteDialogOpen(true)}
-              >
+              <Button variant="destructive" size="sm" onClick={() => setDeleteDialogOpen(true)}>
                 <Trash2 className="h-4 w-4 mr-2" />
                 Excluir Cotação
               </Button>
@@ -274,7 +223,7 @@ export default function CotacaoDetalhes() {
             <Card className="rounded-none mx-0">
               
               <CardContent className="mx-0 py-[12px] my-0 px-[24px]">
-                <div className="grid grid-cols-4 gap-6">
+                <div className="grid grid-cols-2 gap-6">
                   {/* Cliente */}
                   <div className="space-y-3">
                     <div className="flex items-center gap-2 font-semibold">
@@ -292,7 +241,7 @@ export default function CotacaoDetalhes() {
                       </div>
                       <div className="flex items-center gap-2">
                         <MapPin className="h-3 w-3 text-muted-foreground" />
-                        <p className="text-sm">
+                        <p className="text-sm mx-0 px-[32px] my-0 py-[7px]">
                           {cotacao.cidade_cliente}, {cotacao.uf_cliente}
                         </p>
                       </div>
@@ -332,67 +281,6 @@ export default function CotacaoDetalhes() {
                         </div>}
                     </div>
                   </div>
-
-                  {/* Unidades de Medida */}
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2 font-semibold">
-                      <Package className="h-4 w-4" />
-                      Unidades de Medida
-                    </div>
-                    <div className="space-y-2 pl-6">
-                      {Array.from(new Set(itens.map(item => item.unidade_medida).filter(Boolean))).map((unidade, index) => (
-                        <div key={index}>
-                          <Badge variant="outline" className="text-xs">
-                            {unidade}
-                          </Badge>
-                        </div>
-                      ))}
-                      {itens.length === 0 && (
-                        <p className="text-sm text-muted-foreground">Nenhuma unidade</p>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Condição de Pagamento */}
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2 font-semibold">
-                      <DollarSign className="h-4 w-4" />
-                      Condição de Pagamento
-                    </div>
-                    <div className="space-y-2 pl-6">
-                      {(cotacao.detalhes as any)?.condicao_pagamento_codigo && (
-                        <>
-                          <div>
-                            <p className="text-sm text-muted-foreground">Portal</p>
-                            <p className="font-medium text-xs">
-                              {(cotacao.detalhes as any).condicao_pagamento_codigo}
-                              {(cotacao.detalhes as any).condicao_pagamento_descricao && 
-                                ` - ${(cotacao.detalhes as any).condicao_pagamento_descricao}`
-                              }
-                            </p>
-                          </div>
-                          {condicaoPagamento?.condicoes_pagamento && (
-                            <div className="pt-2 border-t">
-                              <p className="text-sm text-muted-foreground">Minha Condição</p>
-                              <Badge variant="default" className="mt-1">
-                                {condicaoPagamento.condicoes_pagamento.nome}
-                              </Badge>
-                            </div>
-                          )}
-                          {!condicaoPagamento && (
-                            <div className="pt-2">
-                              <Badge variant="destructive" className="text-xs">
-                                Sem DE-PARA
-                              </Badge>
-                            </div>
-                          )}
-                        </>
-                      )}
-                      {!(cotacao.detalhes as any)?.condicao_pagamento_codigo && (
-                        <p className="text-sm text-muted-foreground">Não informada</p>
-                      )}
-                    </div>
-                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -409,11 +297,7 @@ export default function CotacaoDetalhes() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <ItemCotacaoTable 
-                  itens={itens} 
-                  cotacao={cotacao} 
-                  onUpdate={carregarDados} 
-                />
+                <ItemCotacaoTable itens={itens} cotacao={cotacao} onUpdate={carregarDados} />
               </CardContent>
             </Card>
 
@@ -439,16 +323,14 @@ export default function CotacaoDetalhes() {
                     <div>
                       <p className="text-sm font-semibold mb-3">Detalhes Adicionais</p>
                       <div className="grid grid-cols-1 gap-3">
-                        {Object.entries(cotacao.detalhes).map(([key, value]) => (
-                          <div key={key} className="bg-muted/50 p-3 rounded">
+                        {Object.entries(cotacao.detalhes).map(([key, value]) => <div key={key} className="bg-muted/50 p-3 rounded">
                             <p className="text-xs font-medium text-muted-foreground mb-1 capitalize">
                               {key.replace(/_/g, ' ')}
                             </p>
                             <p className="text-sm break-words whitespace-pre-wrap">
                               {typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value)}
                             </p>
-                          </div>
-                        ))}
+                          </div>)}
                       </div>
                     </div>
                   </>}
@@ -523,11 +405,7 @@ export default function CotacaoDetalhes() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleExcluir}
-              disabled={isDeleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
+            <AlertDialogAction onClick={handleExcluir} disabled={isDeleting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               {isDeleting ? "Excluindo..." : "Excluir"}
             </AlertDialogAction>
           </AlertDialogFooter>
