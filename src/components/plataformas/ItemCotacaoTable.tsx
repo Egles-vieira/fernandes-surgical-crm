@@ -97,6 +97,7 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
     descricao: true,
     codigo: true,
     vinculo: true,
+    unidadeInterna: true,
     quantidade: true,
     preco: true,
     desconto: true,
@@ -458,13 +459,14 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
   };
 
   const exportToCSV = () => {
-    const headers = ["Item", "Descrição", "Código", "Quantidade", "Preço", "Desconto", "Total", "Status"];
+    const headers = ["Item", "Descrição", "Código", "Unidade", "Quantidade", "Preço", "Desconto", "Total", "Status"];
     const rows = filteredAndSortedItems.map((item) => {
       const data = itemsData.get(item.id);
       return [
         item.numero_item,
         item.descricao_produto_cliente,
         item.codigo_produto_cliente || "",
+        item.unidade_medida || "",
         data?.quantidade || 0,
         data?.precoUnitario || 0,
         data?.desconto || 0,
@@ -623,6 +625,7 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
                     </TableHead>
                   )}
                   {visibleColumns.vinculo && <TableHead className="min-w-[250px]">Produto Vinculado</TableHead>}
+                  {visibleColumns.unidadeInterna && <TableHead className="min-w-[120px]">Unidade Interna</TableHead>}
                   {visibleColumns.quantidade && (
                     <TableHead className="min-w-[120px] cursor-pointer" onClick={() => handleSort("quantidade_solicitada")}>
                       <div className="flex items-center gap-1">
@@ -730,6 +733,9 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
                               )}
                             </div>
                           </TableCell>}
+                          {visibleColumns.unidadeInterna && <TableCell className={`text-sm ${densityClasses[density]}`}>
+                            {item.unidade_medida || "-"}
+                          </TableCell>}
                           {visibleColumns.quantidade && <TableCell className={densityClasses[density]}>
                             <Input
                               type="number"
@@ -795,7 +801,7 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
                         {/* Linhas Expandidas - Mapeamentos Anteriores */}
                         {isExpanded && mappings.length > 0 && mappings.map((mapping) => (
                           <TableRow
-                            key={mapping.id}
+                            key={`${item.id}-mapping-${mapping.id}`}
                             className="bg-muted/20 hover:bg-muted/40 cursor-pointer"
                             onClick={() => handleSelectPreviousMapping(item.id, mapping)}
                           >
@@ -818,6 +824,7 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
                                 </div>
                               </div>
                             </TableCell>
+                            {visibleColumns.unidadeInterna && <TableCell className="text-sm">-</TableCell>}
                             <TableCell className="text-sm">-</TableCell>
                             <TableCell className="text-sm font-medium">
                               {new Intl.NumberFormat("pt-BR", {
