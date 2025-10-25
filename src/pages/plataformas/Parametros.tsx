@@ -13,6 +13,7 @@ import { Plus, Pencil, Trash2, Settings } from "lucide-react";
 import { useEDIUnidadesMedida } from "@/hooks/useEDIUnidadesMedida";
 import { useEDICondicoesPagamento } from "@/hooks/useEDICondicoesPagamento";
 import { useCondicoesPagamento } from "@/hooks/useCondicoesPagamento";
+import { usePlataformasEDI } from "@/hooks/usePlataformasEDI";
 
 export default function Parametros() {
   const [plataformaFiltro, setPlataformaFiltro] = useState<string>("");
@@ -21,6 +22,7 @@ export default function Parametros() {
   const [unidadeEditando, setUnidadeEditando] = useState<any>(null);
   const [condicaoEditando, setCondicaoEditando] = useState<any>(null);
 
+  const { plataformas } = usePlataformasEDI();
   const { unidades, isLoading: loadingUnidades, salvarUnidade, deletarUnidade } = useEDIUnidadesMedida(plataformaFiltro || undefined);
   const { condicoes, isLoading: loadingCondicoes, salvarCondicao, deletarCondicao } = useEDICondicoesPagamento(plataformaFiltro || undefined);
   const { condicoes: condicoesPagamento } = useCondicoesPagamento();
@@ -74,6 +76,25 @@ export default function Parametros() {
           <Settings className="h-8 w-8 text-muted-foreground" />
         </div>
 
+        <Card className="p-4">
+          <div className="flex items-center gap-4">
+            <Label className="min-w-fit">Filtrar por Portal:</Label>
+            <Select value={plataformaFiltro} onValueChange={setPlataformaFiltro}>
+              <SelectTrigger className="w-[300px]">
+                <SelectValue placeholder="Todos os portais" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Todos os portais</SelectItem>
+                {plataformas?.map((plataforma) => (
+                  <SelectItem key={plataforma.id} value={plataforma.id}>
+                    {plataforma.nome}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </Card>
+
         <Tabs defaultValue="unidades" className="space-y-4">
           <TabsList>
             <TabsTrigger value="unidades">Unidades de Medida</TabsTrigger>
@@ -99,8 +120,19 @@ export default function Parametros() {
                     </DialogHeader>
                     <form onSubmit={handleSalvarUnidade} className="space-y-4">
                       <div>
-                        <Label>Plataforma ID</Label>
-                        <Input name="plataforma_id" defaultValue={unidadeEditando?.plataforma_id} required />
+                        <Label>Portal</Label>
+                        <Select name="plataforma_id" defaultValue={unidadeEditando?.plataforma_id}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione o portal" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {plataformas?.map((plataforma) => (
+                              <SelectItem key={plataforma.id} value={plataforma.id}>
+                                {plataforma.nome}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
                       <div>
                         <Label>Código Portal</Label>
@@ -204,8 +236,19 @@ export default function Parametros() {
                     </DialogHeader>
                     <form onSubmit={handleSalvarCondicao} className="space-y-4">
                       <div>
-                        <Label>Plataforma ID</Label>
-                        <Input name="plataforma_id" defaultValue={condicaoEditando?.plataforma_id} required />
+                        <Label>Portal</Label>
+                        <Select name="plataforma_id" defaultValue={condicaoEditando?.plataforma_id}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione o portal" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {plataformas?.map((plataforma) => (
+                              <SelectItem key={plataforma.id} value={plataforma.id}>
+                                {plataforma.nome}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
                       <div>
                         <Label>Código Portal</Label>
