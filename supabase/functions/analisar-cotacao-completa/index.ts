@@ -65,11 +65,12 @@ serve(async (req) => {
       throw new Error('Cotação sem itens para analisar');
     }
 
-    // Atualizar status para "em_analise"
+    // Atualizar status para "em_analise" e mover para aba "Análise IA"
     const inicioAnalise = new Date();
     await supabase
       .from('edi_cotacoes')
       .update({
+        step_atual: 'em_analise', // Move para aba "Análise IA"
         status_analise_ia: 'em_analise',
         analise_iniciada_em: inicioAnalise.toISOString(),
         progresso_analise_percent: 0,
@@ -209,6 +210,7 @@ serve(async (req) => {
     await supabase
       .from('edi_cotacoes')
       .update({
+        step_atual: itensErro === 0 ? 'em_analise' : 'nova', // Mantém em análise se sucesso
         status_analise_ia: itensErro === 0 ? 'concluida' : 'erro',
         analisado_por_ia: true,
         analise_concluida_em: fimAnalise.toISOString(),

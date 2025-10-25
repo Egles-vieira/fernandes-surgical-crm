@@ -109,7 +109,7 @@ serve(async (req) => {
           }
         }
 
-        // Inserir cotação
+        // Inserir cotação com status inicial para análise IA
         const { data: cotacaoInserida, error: cotacaoError } = await supabaseClient
           .from('edi_cotacoes')
           .insert({
@@ -132,6 +132,9 @@ serve(async (req) => {
             dados_originais: cotacao.dados_originais,
             detalhes: cotacao.detalhes,
             dados_brutos: xml_conteudo,
+            // Preparar para análise IA automática
+            status_analise_ia: 'pendente',
+            analisado_por_ia: false,
           })
           .select()
           .single();
@@ -215,14 +218,21 @@ serve(async (req) => {
 
         console.log(`✅ Cotação ${cotacao.id_cotacao_externa} importada com sucesso`);
 
-        // NOVO: Disparar análise IA automática da cotação (fire-and-forget)
+        // 🤖 TRIGGER AUTOMÁTICO: Disparar análise IA da cotação (fire-and-forget)
         if (cotacaoInserida.id) {
+          console.log(`🚀 Disparando análise IA automática para cotação ${cotacaoInserida.id}...`);
+          
+          // Chamada assíncrona que não bloqueia o fluxo
           supabaseClient.functions.invoke('analisar-cotacao-completa', {
             body: { cotacao_id: cotacaoInserida.id }
-          }).then(() => {
-            console.log(`🤖 Análise IA iniciada para cotação ${cotacaoInserida.id}`);
+          }).then((response) => {
+            if (response.error) {
+              console.error(`❌ Erro ao iniciar análise IA: ${response.error.message}`);
+            } else {
+              console.log(`✅ Análise IA iniciada com sucesso para cotação ${cotacaoInserida.id}`);
+            }
           }).catch((err) => {
-            console.warn(`⚠️ Falha ao iniciar análise IA: ${err.message}`);
+            console.error(`❌ Falha crítica ao iniciar análise IA: ${err.message}`);
           });
         }
 
