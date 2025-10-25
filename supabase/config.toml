@@ -29,3 +29,6 @@ verify_jwt = false
 
 [functions.zenvia-iniciar-ligacao]
 verify_jwt = true
+
+[functions.zenvia-webhook-ligacao]
+verify_jwt = false

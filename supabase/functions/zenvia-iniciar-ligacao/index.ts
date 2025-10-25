@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,7 +13,24 @@ serve(async (req) => {
   }
 
   try {
-    const { numero_destino, nome_cliente } = await req.json();
+    const { numero_destino, nome_cliente, cliente_id, contato_id } = await req.json();
+    
+    // Criar cliente Supabase
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+    
+    // Obter usuário autenticado
+    const authHeader = req.headers.get('Authorization')!;
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: 'Não autenticado' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     if (!numero_destino) {
       return new Response(
@@ -78,12 +96,34 @@ serve(async (req) => {
     }
 
     console.log('Ligação iniciada com sucesso:', data);
+    
+    // Registrar ligação no histórico
+    const { data: historico, error: historicoError } = await supabase
+      .from('historico_ligacoes')
+      .insert({
+        cliente_id: cliente_id,
+        contato_id: contato_id,
+        numero_destino: numeroFormatado,
+        nome_contato: nome_cliente,
+        iniciada_por: user.id,
+        id_chamada_externa: data.id || data.call_id,
+        status: 'chamando',
+        chamada_iniciada_em: new Date().toISOString(),
+        dados_webhook: data
+      })
+      .select()
+      .single();
+    
+    if (historicoError) {
+      console.error('Erro ao registrar histórico:', historicoError);
+    }
 
     return new Response(
       JSON.stringify({ 
         success: true,
         message: 'Ligação iniciada com sucesso',
-        data 
+        data,
+        historico_id: historico?.id
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }

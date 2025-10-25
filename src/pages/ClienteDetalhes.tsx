@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,6 +25,7 @@ export default function ClienteDetalhes() {
   }>();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [novoContatoOpen, setNovoContatoOpen] = useState(false);
   const [novaOportunidadeOpen, setNovaOportunidadeOpen] = useState(false);
   const [whatsappChatOpen, setWhatsappChatOpen] = useState(false);
@@ -168,7 +169,7 @@ export default function ClienteDetalhes() {
   };
   const preenchimento = calcularPreenchimento();
   
-  const iniciarLigacao = async (telefone: string, nomeContato?: string) => {
+  const iniciarLigacao = async (telefone: string, nomeContato?: string, contatoId?: string) => {
     if (!telefone) {
       toast({
         title: "Número não disponível",
@@ -183,7 +184,9 @@ export default function ClienteDetalhes() {
       const { data, error } = await supabase.functions.invoke('zenvia-iniciar-ligacao', {
         body: {
           numero_destino: telefone,
-          nome_cliente: nomeContato || cliente?.nome_abrev || 'Cliente'
+          nome_cliente: nomeContato || cliente?.nome_abrev || 'Cliente',
+          cliente_id: id,
+          contato_id: contatoId
         }
       });
 
@@ -193,6 +196,9 @@ export default function ClienteDetalhes() {
         title: "Ligação iniciada",
         description: `Chamada para ${telefone} em andamento`,
       });
+      
+      // Recarregar histórico de ligações
+      queryClient.invalidateQueries({ queryKey: ["historico-ligacoes", id] });
     } catch (error) {
       console.error('Erro ao iniciar ligação:', error);
       toast({
@@ -204,6 +210,27 @@ export default function ClienteDetalhes() {
       setIniciandoLigacao(false);
     }
   };
+  
+  // Buscar histórico de ligações
+  const {
+    data: historicoLigacoes = []
+  } = useQuery({
+    queryKey: ["historico-ligacoes", id],
+    queryFn: async () => {
+      const {
+        data,
+        error
+      } = await supabase.from("historico_ligacoes").select(`
+          *,
+          iniciada_por_perfil:perfis_usuario!historico_ligacoes_iniciada_por_fkey(nome_completo)
+        `).eq("cliente_id", id).order("iniciada_em", {
+        ascending: false
+      });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!id
+  });
 
   const getPreenchimentoColor = (percentual: number) => {
     if (percentual >= 80) return 'text-success';
@@ -545,7 +572,7 @@ export default function ClienteDetalhes() {
                           size="sm" 
                           variant="outline" 
                           className="flex-1 h-8 text-xs" 
-                          onClick={() => iniciarLigacao(contato.telefone, contato.nome_completo)}
+                          onClick={() => iniciarLigacao(contato.telefone, contato.nome_completo, contato.id)}
                           disabled={iniciandoLigacao}
                         >
                           <Phone className="h-3 w-3 mr-1" />
@@ -570,19 +597,57 @@ export default function ClienteDetalhes() {
           </CardContent>
         </Card>
 
-        {/* Right Column - Histórico */}
+        {/* Right Column - Histórico de Ligações */}
         <Card>
           <CardHeader>
             <CardTitle className="text-base font-medium flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
-              Histórico
+              <Phone className="h-5 w-5" />
+              Histórico de Ligações
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-center py-6 text-muted-foreground">
-              <Calendar className="h-10 w-10 mx-auto mb-2 opacity-20" />
-              <p className="text-sm">Nenhuma atividade registrada</p>
-            </div>
+            {historicoLigacoes.length === 0 ? <div className="text-center py-6 text-muted-foreground">
+                <Phone className="h-10 w-10 mx-auto mb-2 opacity-20" />
+                <p className="text-sm">Nenhuma ligação registrada</p>
+              </div> : <div className="space-y-3">
+                {historicoLigacoes.map((ligacao: any) => <div key={ligacao.id} className="flex items-start gap-3 pb-3 border-b last:border-0">
+                    <div className={`mt-1 p-2 rounded-full flex-shrink-0 ${ligacao.status === 'atendida' ? 'bg-success/10 text-success' : ligacao.status === 'nao_atendida' ? 'bg-secondary/10 text-secondary' : ligacao.status === 'erro' ? 'bg-destructive/10 text-destructive' : 'bg-muted text-muted-foreground'}`}>
+                      <Phone className="h-3 w-3" />
+                    </div>
+                    <div className="flex-1 min-w-0 space-y-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-sm font-medium truncate">
+                          {ligacao.nome_contato || 'Sem nome'}
+                        </p>
+                        <span className="text-xs text-muted-foreground whitespace-nowrap">
+                          {new Date(ligacao.iniciada_em).toLocaleString('pt-BR', {
+              day: '2-digit',
+              month: '2-digit',
+              hour: '2-digit',
+              minute: '2-digit'
+            })}
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {ligacao.numero_destino}
+                      </p>
+                      <div className="flex items-center gap-2 text-xs flex-wrap">
+                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full ${ligacao.status === 'atendida' ? 'bg-success/10 text-success' : ligacao.status === 'nao_atendida' ? 'bg-secondary/10 text-secondary' : ligacao.status === 'erro' ? 'bg-destructive/10 text-destructive' : 'bg-muted text-muted-foreground'}`}>
+                          {ligacao.status === 'atendida' ? 'Atendida' : ligacao.status === 'nao_atendida' ? 'Não atendida' : ligacao.status === 'erro' ? 'Erro' : ligacao.status === 'ocupado' ? 'Ocupado' : 'Chamando'}
+                        </span>
+                        {ligacao.duracao_segundos && <span className="text-muted-foreground">
+                            {Math.floor(ligacao.duracao_segundos / 60)}m {ligacao.duracao_segundos % 60}s
+                          </span>}
+                        {ligacao.iniciada_por_perfil?.nome_completo && <span className="text-muted-foreground truncate">
+                            por {ligacao.iniciada_por_perfil.nome_completo}
+                          </span>}
+                      </div>
+                      {ligacao.motivo_falha && <p className="text-xs text-destructive truncate">
+                          {ligacao.motivo_falha}
+                        </p>}
+                    </div>
+                  </div>)}
+              </div>}
           </CardContent>
         </Card>
       </div>

@@ -1888,6 +1888,94 @@ export type Database = {
           },
         ]
       }
+      historico_ligacoes: {
+        Row: {
+          atendida: boolean | null
+          atualizado_em: string | null
+          chamada_atendida_em: string | null
+          chamada_encerrada_em: string | null
+          chamada_iniciada_em: string | null
+          cliente_id: string | null
+          contato_id: string | null
+          criado_em: string | null
+          dados_webhook: Json | null
+          duracao_segundos: number | null
+          id: string
+          id_chamada_externa: string | null
+          iniciada_em: string | null
+          iniciada_por: string | null
+          motivo_falha: string | null
+          nome_contato: string | null
+          numero_destino: string
+          observacoes: string | null
+          status: string | null
+        }
+        Insert: {
+          atendida?: boolean | null
+          atualizado_em?: string | null
+          chamada_atendida_em?: string | null
+          chamada_encerrada_em?: string | null
+          chamada_iniciada_em?: string | null
+          cliente_id?: string | null
+          contato_id?: string | null
+          criado_em?: string | null
+          dados_webhook?: Json | null
+          duracao_segundos?: number | null
+          id?: string
+          id_chamada_externa?: string | null
+          iniciada_em?: string | null
+          iniciada_por?: string | null
+          motivo_falha?: string | null
+          nome_contato?: string | null
+          numero_destino: string
+          observacoes?: string | null
+          status?: string | null
+        }
+        Update: {
+          atendida?: boolean | null
+          atualizado_em?: string | null
+          chamada_atendida_em?: string | null
+          chamada_encerrada_em?: string | null
+          chamada_iniciada_em?: string | null
+          cliente_id?: string | null
+          contato_id?: string | null
+          criado_em?: string | null
+          dados_webhook?: Json | null
+          duracao_segundos?: number | null
+          id?: string
+          id_chamada_externa?: string | null
+          iniciada_em?: string | null
+          iniciada_por?: string | null
+          motivo_falha?: string | null
+          nome_contato?: string | null
+          numero_destino?: string
+          observacoes?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "historico_ligacoes_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "historico_ligacoes_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "vw_clientes_completo"
+            referencedColumns: ["cliente_id"]
+          },
+          {
+            foreignKeyName: "historico_ligacoes_contato_id_fkey"
+            columns: ["contato_id"]
+            isOneToOne: false
+            referencedRelation: "contatos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       itens_linha_cotacao: {
         Row: {
           cotacao_id: string | null
