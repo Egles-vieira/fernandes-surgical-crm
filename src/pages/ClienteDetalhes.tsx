@@ -99,6 +99,43 @@ export default function ClienteDetalhes() {
     },
     enabled: !!cliente?.cgc
   });
+
+  // Buscar histórico de ligações
+  const {
+    data: historicoLigacoes = []
+  } = useQuery({
+    queryKey: ["historico-ligacoes", id],
+    queryFn: async () => {
+      const {
+        data,
+        error
+      } = await supabase.from("historico_ligacoes").select("*").eq("cliente_id", id).order("iniciada_em", {
+        ascending: false
+      });
+      if (error) throw error;
+      
+      // Buscar nomes dos usuários separadamente se necessário
+      if (data && data.length > 0) {
+        const userIds = [...new Set(data.map(l => l.iniciada_por).filter(Boolean))];
+        if (userIds.length > 0) {
+          const { data: perfis } = await supabase
+            .from("perfis_usuario")
+            .select("id, nome_completo")
+            .in("id", userIds);
+          
+          if (perfis) {
+            return data.map(ligacao => ({
+              ...ligacao,
+              iniciada_por_perfil: perfis.find(p => p.id === ligacao.iniciada_por)
+            }));
+          }
+        }
+      }
+      
+      return data || [];
+    },
+    enabled: !!id
+  });
   if (isLoading) {
     return <div className="px-4 py-6 space-y-6 max-w-full">
         <Skeleton className="h-12 w-64" />
@@ -211,42 +248,6 @@ export default function ClienteDetalhes() {
     }
   };
   
-  // Buscar histórico de ligações
-  const {
-    data: historicoLigacoes = []
-  } = useQuery({
-    queryKey: ["historico-ligacoes", id],
-    queryFn: async () => {
-      const {
-        data,
-        error
-      } = await supabase.from("historico_ligacoes").select("*").eq("cliente_id", id).order("iniciada_em", {
-        ascending: false
-      });
-      if (error) throw error;
-      
-      // Buscar nomes dos usuários separadamente se necessário
-      if (data && data.length > 0) {
-        const userIds = [...new Set(data.map(l => l.iniciada_por).filter(Boolean))];
-        if (userIds.length > 0) {
-          const { data: perfis } = await supabase
-            .from("perfis_usuario")
-            .select("id, nome_completo")
-            .in("id", userIds);
-          
-          if (perfis) {
-            return data.map(ligacao => ({
-              ...ligacao,
-              iniciada_por_perfil: perfis.find(p => p.id === ligacao.iniciada_por)
-            }));
-          }
-        }
-      }
-      
-      return data || [];
-    },
-    enabled: !!id
-  });
 
   const getPreenchimentoColor = (percentual: number) => {
     if (percentual >= 80) return 'text-success';
