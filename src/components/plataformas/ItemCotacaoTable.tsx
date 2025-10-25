@@ -1,5 +1,9 @@
-import { useState, useEffect } from "react";
-import { ChevronRight, ChevronDown, Package, Sparkles, Save } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { 
+  ChevronRight, ChevronDown, Package, Sparkles, Save, 
+  ChevronLeft, ChevronsLeft, ChevronRight as ChevronRightIcon, ChevronsRight,
+  Settings2, Download, Search, ArrowUpDown, Eye, EyeOff, Filter
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +16,23 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { ProdutoSearchDialog } from "./ProdutoSearchDialog";
 import { SugestoesIADialog } from "./SugestoesIADialog";
 import { supabase } from "@/integrations/supabase/client";
@@ -60,6 +81,29 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
   const [sugestoesIA, setSugestoesIA] = useState<any[]>([]);
   const [itemsData, setItemsData] = useState<Map<string, any>>(new Map());
   const [previousMappings, setPreviousMappings] = useState<Map<string, EDIProdutoVinculo[]>>(new Map());
+  
+  // Grid Controls
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [sortColumn, setSortColumn] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [density, setDensity] = useState<"compact" | "normal" | "comfortable">("normal");
+  const [visibleColumns, setVisibleColumns] = useState({
+    expand: true,
+    select: true,
+    numero: true,
+    descricao: true,
+    codigo: true,
+    vinculo: true,
+    quantidade: true,
+    preco: true,
+    desconto: true,
+    total: true,
+    status: true,
+    acoes: true,
+  });
 
   useEffect(() => {
     // Inicializar dados dos itens
@@ -354,223 +398,547 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
     return data.quantidade * data.precoUnitario * (1 - data.desconto / 100);
   };
 
+  // Filtrar e ordenar itens
+  const filteredAndSortedItems = useMemo(() => {
+    let result = [...itens];
+
+    // Filtro de busca
+    if (searchTerm) {
+      result = result.filter(
+        (item) =>
+          item.descricao_produto_cliente.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.codigo_produto_cliente?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Filtro de status
+    if (statusFilter !== "all") {
+      result = result.filter((item) => item.status === statusFilter);
+    }
+
+    // Ordenação
+    if (sortColumn) {
+      result.sort((a, b) => {
+        let aVal: any = a[sortColumn as keyof ItemCotacao];
+        let bVal: any = b[sortColumn as keyof ItemCotacao];
+
+        if (sortColumn === "total") {
+          aVal = getValorTotal(a.id);
+          bVal = getValorTotal(b.id);
+        }
+
+        if (typeof aVal === "string") {
+          return sortDirection === "asc"
+            ? aVal.localeCompare(bVal)
+            : bVal.localeCompare(aVal);
+        }
+
+        return sortDirection === "asc" ? aVal - bVal : bVal - aVal;
+      });
+    }
+
+    return result;
+  }, [itens, searchTerm, statusFilter, sortColumn, sortDirection]);
+
+  // Paginação
+  const totalPages = Math.ceil(filteredAndSortedItems.length / pageSize);
+  const paginatedItems = filteredAndSortedItems.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
+
+  const handleSort = (column: string) => {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortColumn(column);
+      setSortDirection("asc");
+    }
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedItems(new Set(paginatedItems.map((item) => item.id)));
+    } else {
+      setSelectedItems(new Set());
+    }
+  };
+
+  const exportToCSV = () => {
+    const headers = ["Item", "Descrição", "Código", "Quantidade", "Preço", "Desconto", "Total", "Status"];
+    const rows = filteredAndSortedItems.map((item) => {
+      const data = itemsData.get(item.id);
+      return [
+        item.numero_item,
+        item.descricao_produto_cliente,
+        item.codigo_produto_cliente || "",
+        data?.quantidade || 0,
+        data?.precoUnitario || 0,
+        data?.desconto || 0,
+        getValorTotal(item.id),
+        item.status,
+      ];
+    });
+
+    const csvContent = [headers, ...rows].map((row) => row.join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `cotacao-itens-${new Date().toISOString().split("T")[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const densityClasses = {
+    compact: "py-1",
+    normal: "py-2",
+    comfortable: "py-3",
+  };
+
   return (
     <>
-      <div className="border rounded-lg overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-muted/50">
-              <TableHead className="w-[50px]"></TableHead>
-              <TableHead className="w-[50px]">
-                <Checkbox />
-              </TableHead>
-              <TableHead className="w-[80px]">Item Nº</TableHead>
-              <TableHead className="min-w-[200px]">Descrição Cliente</TableHead>
-              <TableHead className="w-[120px]">Cód. Cliente</TableHead>
-              <TableHead className="min-w-[200px]">Produto Vinculado</TableHead>
-              <TableHead className="w-[100px]">Qtd.</TableHead>
-              <TableHead className="w-[120px]">Preço Unit.</TableHead>
-              <TableHead className="w-[100px]">Desc. %</TableHead>
-              <TableHead className="w-[120px]">Total</TableHead>
-              <TableHead className="w-[100px]">Status</TableHead>
-              <TableHead className="w-[200px]">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {itens.map((item) => {
+      <div className="space-y-4">
+        {/* Toolbar */}
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between p-4 bg-muted/30 rounded-lg border">
+          <div className="flex flex-1 gap-2 w-full sm:w-auto">
+            <div className="relative flex-1 max-w-sm">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar por descrição ou código..."
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="pl-8"
+              />
+            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon">
+                  <Filter className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-48">
+                <DropdownMenuLabel>Filtrar por Status</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setStatusFilter("all")}>
+                  Todos
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setStatusFilter("respondido")}>
+                  Respondidos
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setStatusFilter("pendente")}>
+                  Pendentes
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          <div className="flex gap-2 items-center">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Settings2 className="h-4 w-4 mr-2" />
+                  Densidade
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Densidade da Tabela</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setDensity("compact")}>
+                  Compacta
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setDensity("normal")}>
+                  Normal
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setDensity("comfortable")}>
+                  Confortável
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Eye className="h-4 w-4 mr-2" />
+                  Colunas
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuLabel>Colunas Visíveis</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {Object.entries(visibleColumns).map(([key, value]) => (
+                  <DropdownMenuCheckboxItem
+                    key={key}
+                    checked={value}
+                    onCheckedChange={(checked) =>
+                      setVisibleColumns({ ...visibleColumns, [key]: checked })
+                    }
+                  >
+                    {key.charAt(0).toUpperCase() + key.slice(1)}
+                  </DropdownMenuCheckboxItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <Button variant="outline" size="sm" onClick={exportToCSV}>
+              <Download className="h-4 w-4 mr-2" />
+              Exportar
+            </Button>
+          </div>
+        </div>
+
+        {/* Grid com Scroll */}
+        <div className="border rounded-lg">
+          <ScrollArea className="h-[600px] w-full">
+            <div className="min-w-[1400px]">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50">
+                    {visibleColumns.expand && <TableHead className="w-[50px]"></TableHead>}
+                    {visibleColumns.select && (
+                      <TableHead className="w-[50px]">
+                        <Checkbox
+                          checked={selectedItems.size === paginatedItems.length && paginatedItems.length > 0}
+                          onCheckedChange={handleSelectAll}
+                        />
+                      </TableHead>
+                    )}
+                    {visibleColumns.numero && (
+                      <TableHead className="w-[80px] cursor-pointer" onClick={() => handleSort("numero_item")}>
+                        <div className="flex items-center gap-1">
+                          Item Nº
+                          {sortColumn === "numero_item" && <ArrowUpDown className="h-3 w-3" />}
+                        </div>
+                      </TableHead>
+                    )}
+                    {visibleColumns.descricao && (
+                      <TableHead className="min-w-[200px] cursor-pointer" onClick={() => handleSort("descricao_produto_cliente")}>
+                        <div className="flex items-center gap-1">
+                          Descrição Cliente
+                          {sortColumn === "descricao_produto_cliente" && <ArrowUpDown className="h-3 w-3" />}
+                        </div>
+                      </TableHead>
+                    )}
+                    {visibleColumns.codigo && (
+                      <TableHead className="w-[120px] cursor-pointer" onClick={() => handleSort("codigo_produto_cliente")}>
+                        <div className="flex items-center gap-1">
+                          Cód. Cliente
+                          {sortColumn === "codigo_produto_cliente" && <ArrowUpDown className="h-3 w-3" />}
+                        </div>
+                      </TableHead>
+                    )}
+                    {visibleColumns.vinculo && <TableHead className="min-w-[200px]">Produto Vinculado</TableHead>}
+                    {visibleColumns.quantidade && (
+                      <TableHead className="w-[100px] cursor-pointer" onClick={() => handleSort("quantidade_solicitada")}>
+                        <div className="flex items-center gap-1">
+                          Qtd.
+                          {sortColumn === "quantidade_solicitada" && <ArrowUpDown className="h-3 w-3" />}
+                        </div>
+                      </TableHead>
+                    )}
+                    {visibleColumns.preco && <TableHead className="w-[120px]">Preço Unit.</TableHead>}
+                    {visibleColumns.desconto && <TableHead className="w-[100px]">Desc. %</TableHead>}
+                    {visibleColumns.total && (
+                      <TableHead className="w-[120px] cursor-pointer" onClick={() => handleSort("total")}>
+                        <div className="flex items-center gap-1">
+                          Total
+                          {sortColumn === "total" && <ArrowUpDown className="h-3 w-3" />}
+                        </div>
+                      </TableHead>
+                    )}
+                    {visibleColumns.status && (
+                      <TableHead className="w-[100px] cursor-pointer" onClick={() => handleSort("status")}>
+                        <div className="flex items-center gap-1">
+                          Status
+                          {sortColumn === "status" && <ArrowUpDown className="h-3 w-3" />}
+                        </div>
+                      </TableHead>
+                    )}
+                    {visibleColumns.acoes && <TableHead className="w-[200px]">Ações</TableHead>}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paginatedItems.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={12} className="text-center py-8 text-muted-foreground">
+                        Nenhum item encontrado
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    paginatedItems.map((item) => {
               const isExpanded = expandedRows.has(item.id);
               const isSelected = selectedItems.has(item.id);
               const data = itemsData.get(item.id);
               const mappings = previousMappings.get(item.id) || [];
 
-              return (
-                <>
-                  {/* Linha Principal */}
-                  <TableRow key={item.id} className="hover:bg-muted/50">
-                    <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 w-6 p-0"
-                        onClick={() => toggleRow(item.id, item.codigo_produto_cliente)}
-                      >
-                        {isExpanded ? (
-                          <ChevronDown className="h-4 w-4" />
-                        ) : (
-                          <ChevronRight className="h-4 w-4" />
-                        )}
-                      </Button>
-                    </TableCell>
-                    <TableCell>
-                      <Checkbox
-                        checked={isSelected}
-                        onCheckedChange={(checked) => {
-                          const newSelected = new Set(selectedItems);
-                          if (checked) {
-                            newSelected.add(item.id);
-                          } else {
-                            newSelected.delete(item.id);
-                          }
-                          setSelectedItems(newSelected);
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell className="font-medium">{item.numero_item}</TableCell>
-                    <TableCell className="font-medium">{item.descricao_produto_cliente}</TableCell>
-                    <TableCell className="text-muted-foreground text-sm">
-                      {item.codigo_produto_cliente || "-"}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setCurrentItemId(item.id);
-                            setDialogAberto(true);
-                          }}
-                        >
-                          <Package className="h-3 w-3" />
-                        </Button>
-                        {data?.produtoVinculado ? (
-                          <div className="flex items-center gap-2">
-                            <Package className="h-4 w-4 text-primary" />
-                            <div>
-                              <p className="text-sm font-medium">{data.produtoVinculado.nome}</p>
-                              <p className="text-xs text-muted-foreground">
-                                Ref: {data.produtoVinculado.referencia_interna}
-                              </p>
-                            </div>
-                          </div>
-                        ) : (
-                          <span className="text-sm text-muted-foreground">-</span>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Input
-                        type="number"
-                        value={data?.quantidade || 0}
-                        onChange={(e) => updateItemField(item.id, "quantidade", Number(e.target.value))}
-                        className="w-20 h-8"
-                        min={0}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Input
-                        type="number"
-                        value={data?.precoUnitario || 0}
-                        onChange={(e) => updateItemField(item.id, "precoUnitario", Number(e.target.value))}
-                        className="w-24 h-8"
-                        min={0}
-                        step={0.01}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Input
-                        type="number"
-                        value={data?.desconto || 0}
-                        onChange={(e) => updateItemField(item.id, "desconto", Number(e.target.value))}
-                        className="w-20 h-8"
-                        min={0}
-                        max={100}
-                        step={0.01}
-                      />
-                    </TableCell>
-                    <TableCell className="font-bold text-primary">
-                      {new Intl.NumberFormat("pt-BR", {
-                        style: "currency",
-                        currency: "BRL",
-                      }).format(getValorTotal(item.id))}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={item.status === "respondido" ? "default" : "secondary"}>
-                        {item.status === "respondido" ? "Respondido" : "Pendente"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-1">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleAnalisarIA(item)}
-                          disabled={data?.isLoading}
-                        >
-                          <Sparkles className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          onClick={() => handleSalvar(item)}
-                          disabled={data?.isLoading || !data?.produtoVinculado}
-                        >
-                          <Save className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
+                      return (
+                        <>
+                          {/* Linha Principal */}
+                          <TableRow key={item.id} className="hover:bg-muted/50">
+                            {visibleColumns.expand && <TableCell className={densityClasses[density]}>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0"
+                                onClick={() => toggleRow(item.id, item.codigo_produto_cliente)}
+                              >
+                                {isExpanded ? (
+                                  <ChevronDown className="h-4 w-4" />
+                                ) : (
+                                  <ChevronRight className="h-4 w-4" />
+                                )}
+                              </Button>
+                            </TableCell>}
+                            {visibleColumns.select && <TableCell className={densityClasses[density]}>
+                              <Checkbox
+                                checked={isSelected}
+                                onCheckedChange={(checked) => {
+                                  const newSelected = new Set(selectedItems);
+                                  if (checked) {
+                                    newSelected.add(item.id);
+                                  } else {
+                                    newSelected.delete(item.id);
+                                  }
+                                  setSelectedItems(newSelected);
+                                }}
+                              />
+                            </TableCell>}
+                            {visibleColumns.numero && <TableCell className={`font-medium ${densityClasses[density]}`}>{item.numero_item}</TableCell>}
+                            {visibleColumns.descricao && <TableCell className={`font-medium ${densityClasses[density]}`}>{item.descricao_produto_cliente}</TableCell>}
+                            {visibleColumns.codigo && <TableCell className={`text-muted-foreground text-sm ${densityClasses[density]}`}>
+                              {item.codigo_produto_cliente || "-"}
+                            </TableCell>}
+                            {visibleColumns.vinculo && <TableCell className={densityClasses[density]}>
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    setCurrentItemId(item.id);
+                                    setDialogAberto(true);
+                                  }}
+                                >
+                                  <Package className="h-3 w-3" />
+                                </Button>
+                                {data?.produtoVinculado ? (
+                                  <div className="flex items-center gap-2">
+                                    <Package className="h-4 w-4 text-primary" />
+                                    <div>
+                                      <p className="text-sm font-medium">{data.produtoVinculado.nome}</p>
+                                      <p className="text-xs text-muted-foreground">
+                                        Ref: {data.produtoVinculado.referencia_interna}
+                                      </p>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <span className="text-sm text-muted-foreground">-</span>
+                                )}
+                              </div>
+                            </TableCell>}
+                            {visibleColumns.quantidade && <TableCell className={densityClasses[density]}>
+                              <Input
+                                type="number"
+                                value={data?.quantidade || 0}
+                                onChange={(e) => updateItemField(item.id, "quantidade", Number(e.target.value))}
+                                className="w-20 h-8"
+                                min={0}
+                              />
+                            </TableCell>}
+                            {visibleColumns.preco && <TableCell className={densityClasses[density]}>
+                              <Input
+                                type="number"
+                                value={data?.precoUnitario || 0}
+                                onChange={(e) => updateItemField(item.id, "precoUnitario", Number(e.target.value))}
+                                className="w-24 h-8"
+                                min={0}
+                                step={0.01}
+                              />
+                            </TableCell>}
+                            {visibleColumns.desconto && <TableCell className={densityClasses[density]}>
+                              <Input
+                                type="number"
+                                value={data?.desconto || 0}
+                                onChange={(e) => updateItemField(item.id, "desconto", Number(e.target.value))}
+                                className="w-20 h-8"
+                                min={0}
+                                max={100}
+                                step={0.01}
+                              />
+                            </TableCell>}
+                            {visibleColumns.total && <TableCell className={`font-bold text-primary ${densityClasses[density]}`}>
+                              {new Intl.NumberFormat("pt-BR", {
+                                style: "currency",
+                                currency: "BRL",
+                              }).format(getValorTotal(item.id))}
+                            </TableCell>}
+                             {visibleColumns.status && <TableCell className={densityClasses[density]}>
+                              <Badge variant={item.status === "respondido" ? "default" : "secondary"}>
+                                {item.status === "respondido" ? "Respondido" : "Pendente"}
+                              </Badge>
+                            </TableCell>}
+                            {visibleColumns.acoes && <TableCell className={densityClasses[density]}>
+                              <div className="flex gap-1">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleAnalisarIA(item)}
+                                  disabled={data?.isLoading}
+                                >
+                                  <Sparkles className="h-3 w-3" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleSalvar(item)}
+                                  disabled={data?.isLoading || !data?.produtoVinculado}
+                                >
+                                  <Save className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            </TableCell>}
+                          </TableRow>
 
-                  {/* Linhas Expandidas - Mapeamentos Anteriores */}
-                  {isExpanded && mappings.length > 0 && mappings.map((mapping) => (
-                    <TableRow
-                      key={mapping.id}
-                      className="bg-muted/20 hover:bg-muted/40 cursor-pointer"
-                      onClick={() => handleSelectPreviousMapping(item.id, mapping)}
-                    >
-                      <TableCell></TableCell>
-                      <TableCell></TableCell>
-                      <TableCell colSpan={3} className="pl-12">
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Package className="h-3 w-3" />
-                          <span>Mapeamento anterior</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Package className="h-4 w-4 text-primary" />
-                          <div>
-                            <p className="text-sm font-medium">{mapping.produtos?.nome}</p>
-                            <p className="text-xs text-muted-foreground">
-                              Ref: {mapping.produtos?.referencia_interna}
-                            </p>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-sm">-</TableCell>
-                      <TableCell className="text-sm font-medium">
-                        {new Intl.NumberFormat("pt-BR", {
-                          style: "currency",
-                          currency: "BRL",
-                        }).format(mapping.produtos?.preco_venda || 0)}
-                      </TableCell>
-                      <TableCell className="text-sm">
-                        {mapping.desconto_padrao || 0}%
-                      </TableCell>
-                      <TableCell className="text-sm">-</TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="text-xs">
-                          {mapping.sugerido_por_ia ? "IA" : "Manual"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Button variant="ghost" size="sm" className="text-xs">
-                          Usar este
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                          {/* Linhas Expandidas - Mapeamentos Anteriores */}
+                          {isExpanded && mappings.length > 0 && mappings.map((mapping) => (
+                            <TableRow
+                              key={mapping.id}
+                              className="bg-muted/20 hover:bg-muted/40 cursor-pointer"
+                              onClick={() => handleSelectPreviousMapping(item.id, mapping)}
+                            >
+                              {visibleColumns.expand && <TableCell></TableCell>}
+                              {visibleColumns.select && <TableCell></TableCell>}
+                              <TableCell colSpan={3} className="pl-12">
+                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                  <Package className="h-3 w-3" />
+                                  <span>Mapeamento anterior</span>
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex items-center gap-2">
+                                  <Package className="h-4 w-4 text-primary" />
+                                  <div>
+                                    <p className="text-sm font-medium">{mapping.produtos?.nome}</p>
+                                    <p className="text-xs text-muted-foreground">
+                                      Ref: {mapping.produtos?.referencia_interna}
+                                    </p>
+                                  </div>
+                                </div>
+                              </TableCell>
+                              <TableCell className="text-sm">-</TableCell>
+                              <TableCell className="text-sm font-medium">
+                                {new Intl.NumberFormat("pt-BR", {
+                                  style: "currency",
+                                  currency: "BRL",
+                                }).format(mapping.produtos?.preco_venda || 0)}
+                              </TableCell>
+                              <TableCell className="text-sm">
+                                {mapping.desconto_padrao || 0}%
+                              </TableCell>
+                              <TableCell className="text-sm">-</TableCell>
+                              <TableCell>
+                                <Badge variant="outline" className="text-xs">
+                                  {mapping.sugerido_por_ia ? "IA" : "Manual"}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>
+                                <Button variant="ghost" size="sm" className="text-xs">
+                                  Usar este
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          ))}
 
-                  {isExpanded && mappings.length === 0 && (
-                    <TableRow className="bg-muted/20">
-                      <TableCell colSpan={12} className="text-center text-sm text-muted-foreground py-4">
-                        Nenhum mapeamento anterior encontrado
-                      </TableCell>
-                    </TableRow>
+                          {isExpanded && mappings.length === 0 && (
+                            <TableRow className="bg-muted/20">
+                              <TableCell colSpan={12} className="text-center text-sm text-muted-foreground py-4">
+                                Nenhum mapeamento anterior encontrado
+                              </TableCell>
+                            </TableRow>
+                          )}
+                        </>
+                      );
+                    })
                   )}
-                </>
-              );
-            })}
-          </TableBody>
-        </Table>
+                </TableBody>
+              </Table>
+            </div>
+            <ScrollBar orientation="horizontal" />
+          </ScrollArea>
+        </div>
+
+        {/* Paginação */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 py-3 bg-muted/30 rounded-lg border">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">
+              Mostrando {paginatedItems.length === 0 ? 0 : (currentPage - 1) * pageSize + 1} a {Math.min(currentPage * pageSize, filteredAndSortedItems.length)} de {filteredAndSortedItems.length} itens
+            </span>
+            {selectedItems.size > 0 && (
+              <Badge variant="secondary">
+                {selectedItems.size} selecionado(s)
+              </Badge>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Select
+              value={String(pageSize)}
+              onValueChange={(value) => {
+                setPageSize(Number(value));
+                setCurrentPage(1);
+              }}
+            >
+              <SelectTrigger className="w-[100px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="5">5 / página</SelectItem>
+                <SelectItem value="10">10 / página</SelectItem>
+                <SelectItem value="20">20 / página</SelectItem>
+                <SelectItem value="50">50 / página</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <div className="flex items-center gap-1">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setCurrentPage(1)}
+                disabled={currentPage === 1}
+              >
+                <ChevronsLeft className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setCurrentPage(currentPage - 1)}
+                disabled={currentPage === 1}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <span className="text-sm px-3">
+                Página {currentPage} de {totalPages || 1}
+              </span>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setCurrentPage(currentPage + 1)}
+                disabled={currentPage === totalPages || totalPages === 0}
+              >
+                <ChevronRightIcon className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setCurrentPage(totalPages)}
+                disabled={currentPage === totalPages || totalPages === 0}
+              >
+                <ChevronsRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <ProdutoSearchDialog
