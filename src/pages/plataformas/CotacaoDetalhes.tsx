@@ -209,9 +209,16 @@ export default function CotacaoDetalhes() {
                   </h1>
                   <Badge variant="default">{stepLabel(cotacao.step_atual)}</Badge>
                 </div>
-                <p className="text-muted-foreground">
-                  ID Externo: {cotacao.id_cotacao_externa}
-                </p>
+                <div className="flex items-center gap-4">
+                  <p className="text-muted-foreground">
+                    ID Externo: {cotacao.id_cotacao_externa}
+                  </p>
+                  {cotacao.detalhes?.contato_comprador && (
+                    <p className="text-muted-foreground">
+                      | Contato: {cotacao.detalhes.contato_comprador}
+                    </p>
+                  )}
+                </div>
               </div>
               <Button variant="destructive" size="sm" onClick={() => setDeleteDialogOpen(true)}>
                 <Trash2 className="h-4 w-4 mr-2" />
