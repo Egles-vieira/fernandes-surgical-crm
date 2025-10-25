@@ -650,12 +650,16 @@ export default function ClienteDetalhes() {
                       </p>
                       <div className="flex items-center gap-2 text-xs flex-wrap">
                         <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full ${ligacao.status === 'atendida' ? 'bg-success/10 text-success' : ligacao.status === 'nao_atendida' ? 'bg-secondary/10 text-secondary' : ligacao.status === 'erro' ? 'bg-destructive/10 text-destructive' : 'bg-muted text-muted-foreground'}`}>
-                          {ligacao.status === 'atendida' ? 'Atendida' : ligacao.status === 'nao_atendida' ? 'Não atendida' : ligacao.status === 'erro' ? 'Erro' : ligacao.status === 'ocupado' ? 'Ocupado' : 'Chamando'}
+                          {ligacao.status === 'atendida' ? 'Atendida' : 
+                           ligacao.status === 'nao_atendida' ? 'Não atendida' : 
+                           ligacao.status === 'erro' ? 'Erro' : 
+                           ligacao.status === 'ocupado' ? 'Ocupado' : 
+                           `Chamando${ligacao.iniciada_por_perfil?.nome_completo ? ` - ${ligacao.iniciada_por_perfil.nome_completo}` : ''}`}
                         </span>
                         {ligacao.duracao_segundos && <span className="text-muted-foreground">
                             {Math.floor(ligacao.duracao_segundos / 60)}m {ligacao.duracao_segundos % 60}s
                           </span>}
-                        {ligacao.iniciada_por_perfil?.nome_completo && <span className="text-muted-foreground truncate">
+                        {ligacao.status !== 'chamando' && ligacao.iniciada_por_perfil?.nome_completo && <span className="text-muted-foreground truncate">
                             por {ligacao.iniciada_por_perfil.nome_completo}
                           </span>}
                       </div>
