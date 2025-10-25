@@ -740,6 +740,7 @@ export type Database = {
           detalhes_resposta: Json | null
           id: string
           id_item_externo: string | null
+          marca_cliente: string | null
           numero_item: number | null
           percentual_desconto: number | null
           preco_total: number | null
@@ -766,6 +767,7 @@ export type Database = {
           detalhes_resposta?: Json | null
           id?: string
           id_item_externo?: string | null
+          marca_cliente?: string | null
           numero_item?: number | null
           percentual_desconto?: number | null
           preco_total?: number | null
@@ -792,6 +794,7 @@ export type Database = {
           detalhes_resposta?: Json | null
           id?: string
           id_item_externo?: string | null
+          marca_cliente?: string | null
           numero_item?: number | null
           percentual_desconto?: number | null
           preco_total?: number | null

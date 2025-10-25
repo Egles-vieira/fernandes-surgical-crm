@@ -13,6 +13,7 @@ interface ItemCotacao {
   descricao: string;
   unidade_medida?: string;
   quantidade: number;
+  marca_cliente?: string;
   dados_originais: any;
 }
 
@@ -133,6 +134,7 @@ serve(async (req) => {
           descricao_produto_cliente: item.descricao,
           unidade_medida: item.unidade_medida,
           quantidade_solicitada: item.quantidade,
+          marca_cliente: item.marca_cliente,
           dados_originais: item.dados_originais,
           status: 'pendente',
         }));
@@ -316,6 +318,7 @@ async function parseBionexoXML(xmlString: string): Promise<CotacaoImportada[]> {
         const descricao = extrairTag(itemXml, ['Descricao_Produto', 'DescricaoProduto', 'descricao_produto']);
         const unidade = extrairTag(itemXml, ['Unidade_Medida', 'UnidadeMedida', 'unidade_medida']);
         const quantidade = extrairTag(itemXml, ['Quantidade', 'quantidade']);
+        const marca = extrairTag(itemXml, ['Marca_Favorita', 'MarcaFavorita', 'marca_favorita']);
 
         if (!descricao || !quantidade) {
           console.warn(`Item ${id_artigo || sequencia} sem descrição ou quantidade, pulando...`);
@@ -328,6 +331,7 @@ async function parseBionexoXML(xmlString: string): Promise<CotacaoImportada[]> {
           descricao: descricao,
           unidade_medida: unidade,
           quantidade: parseFloat(quantidade),
+          marca_cliente: marca,
           dados_originais: {
             sequencia,
             xml_snippet: itemXml.substring(0, 500),
