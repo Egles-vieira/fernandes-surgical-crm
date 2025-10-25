@@ -345,12 +345,30 @@ serve(async (req) => {
       contexto
     );
 
-    // 5. NÍVEL 3: Combinar scores e gerar estrutura rica de sugestões
+    // 5. NÍVEL 3: Buscar ajustes de ML
+    console.log("🧠 Buscando ajustes de machine learning...");
+    const produtoIds = candidatosPorToken.slice(0, limite).map(c => c.produto.id);
+    const { data: ajustes } = await supabase
+      .from("ia_score_ajustes")
+      .select("*")
+      .in("produto_id", produtoIds)
+      .eq("ativo", true);
+
+    const ajustesPorProduto = new Map<string, number>();
+    if (ajustes && ajustes.length > 0) {
+      console.log(`📊 ${ajustes.length} ajustes de ML encontrados`);
+      ajustes.forEach(ajuste => {
+        const atual = ajustesPorProduto.get(ajuste.produto_id) || 0;
+        ajustesPorProduto.set(ajuste.produto_id, atual + (ajuste.ajuste_score || 0));
+      });
+    }
+
+    // 6. NÍVEL 4: Combinar scores e aplicar ajustes de ML
     const sugestoes: SugestaoProduto[] = [];
 
     if (analiseSemantica.length > 0) {
-      // Híbrido: 40% token + 60% semântico
-      console.log("✨ Combinando scores (40% token + 60% semântico)");
+      // Híbrido: 40% token + 60% semântico + ajustes ML
+      console.log("✨ Combinando scores (40% token + 60% semântico + ML)");
       
       for (let i = 0; i < Math.min(candidatosPorToken.length, limite); i++) {
         const candidato = candidatosPorToken[i];
@@ -358,7 +376,14 @@ serve(async (req) => {
         
         const scoreToken = candidato.score;
         const scoreSemantico = analise?.score || 0;
-        const scoreFinal = Math.round((scoreToken * 0.4) + (scoreSemantico * 0.6));
+        let scoreFinal = Math.round((scoreToken * 0.4) + (scoreSemantico * 0.6));
+        
+        // Aplicar ajuste de ML (se houver)
+        const ajusteML = ajustesPorProduto.get(candidato.produto.id) || 0;
+        if (ajusteML !== 0) {
+          scoreFinal = Math.max(0, Math.min(100, scoreFinal + ajusteML));
+          console.log(`  🎯 Produto ${candidato.produto.referencia_interna}: score ${scoreFinal - ajusteML} → ${scoreFinal} (ajuste: ${ajusteML > 0 ? '+' : ''}${ajusteML})`);
+        }
         
         // Determinar confiança
         let confianca: 'alta' | 'media' | 'baixa';
@@ -385,11 +410,19 @@ serve(async (req) => {
         });
       }
     } else {
-      // Fallback: apenas tokens
-      console.log("📝 Usando apenas scores de tokens");
+      // Fallback: apenas tokens + ajustes ML
+      console.log("📝 Usando apenas scores de tokens + ML");
       
       for (const candidato of candidatosPorToken.slice(0, limite)) {
-        const scoreFinal = candidato.score;
+        let scoreFinal = candidato.score;
+        
+        // Aplicar ajuste de ML (se houver)
+        const ajusteML = ajustesPorProduto.get(candidato.produto.id) || 0;
+        if (ajusteML !== 0) {
+          scoreFinal = Math.max(0, Math.min(100, scoreFinal + ajusteML));
+          console.log(`  🎯 Produto ${candidato.produto.referencia_interna}: score ${candidato.score} → ${scoreFinal} (ajuste: ${ajusteML > 0 ? '+' : ''}${ajusteML})`);
+        }
+        
         let confianca: 'alta' | 'media' | 'baixa';
         if (scoreFinal >= 85) confianca = 'alta';
         else if (scoreFinal >= 70) confianca = 'media';
@@ -398,15 +431,15 @@ serve(async (req) => {
         sugestoes.push({
           produto_id: candidato.produto.id,
           score_final: scoreFinal,
-          score_token: scoreFinal,
+          score_token: candidato.score,
           score_semantico: 0,
           descricao: candidato.produto.nome,
           codigo: candidato.produto.referencia_interna,
           unidade_medida: candidato.produto.unidade_medida,
           preco_venda: candidato.produto.preco_venda,
           estoque_disponivel: candidato.produto.quantidade_em_maos,
-          justificativa: `Match baseado em análise textual (${scoreFinal}% de compatibilidade)`,
-          razoes_match: [`${scoreFinal}% de similaridade textual`],
+          justificativa: `Match baseado em análise textual (${candidato.score}% de compatibilidade)`,
+          razoes_match: [`${candidato.score}% de similaridade textual`],
           confianca,
         });
       }

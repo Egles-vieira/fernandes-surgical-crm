@@ -37,6 +37,7 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { ProdutoSearchDialog } from "./ProdutoSearchDialog";
 import { SugestoesIADialog } from "./SugestoesIADialog";
 import { FeedbackIADialog } from "./FeedbackIADialog";
+import { ItemSugestaoIAIcon } from "./ItemSugestaoIAIcon";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { EDIProdutoVinculo } from "@/hooks/useEDIProdutosVinculo";
@@ -860,9 +861,17 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
                                 const sugestoes = itemSugestoes.get(item.id);
                                 if (!sugestoes || sugestoes.length === 0) {
                                   return (
-                                    <span className="text-xs text-muted-foreground">
-                                      Sem sugestões
-                                    </span>
+                                    <div className="flex items-center gap-2">
+                                      <ItemSugestaoIAIcon
+                                        scoreConfianca={0}
+                                        totalSugestoes={0}
+                                        onClick={() => handleAnalisarIA(item)}
+                                        className="opacity-50"
+                                      />
+                                      <span className="text-xs text-muted-foreground">
+                                        Clique para analisar
+                                      </span>
+                                    </div>
                                   );
                                 }
                                 
@@ -870,46 +879,57 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
                                 return (
                                   <Collapsible>
                                     <div className="space-y-2">
-                                      {/* Sugestão principal inline */}
-                                      <div className="flex items-start justify-between gap-2 p-2 border rounded-md bg-primary/5">
-                                        <div className="flex-1 min-w-0">
-                                          <div className="flex items-center gap-2 mb-1">
-                                            {getConfiancaBadge(principal.confianca)}
-                                            <Badge variant="outline" className="text-xs">
-                                              {principal.score_final}%
-                                            </Badge>
+                                      {/* Ícone animado + Sugestão principal inline */}
+                                      <div className="flex items-start gap-2">
+                                        <ItemSugestaoIAIcon
+                                          scoreConfianca={principal.score_final}
+                                          totalSugestoes={sugestoes.length}
+                                          onClick={() => {
+                                            setCurrentItem(item);
+                                            setSugestoesIA(sugestoes);
+                                            setSugestoesDialogAberto(true);
+                                          }}
+                                        />
+                                        <div className="flex items-start justify-between gap-2 p-2 border rounded-md bg-primary/5 flex-1">
+                                          <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-2 mb-1">
+                                              {getConfiancaBadge(principal.confianca)}
+                                              <Badge variant="outline" className="text-xs">
+                                                {principal.score_final}%
+                                              </Badge>
+                                            </div>
+                                            <p className="text-xs font-medium truncate">
+                                              {principal.descricao}
+                                            </p>
+                                            <p className="text-xs text-muted-foreground truncate">
+                                              {principal.codigo}
+                                            </p>
                                           </div>
-                                          <p className="text-xs font-medium truncate">
-                                            {principal.descricao}
-                                          </p>
-                                          <p className="text-xs text-muted-foreground truncate">
-                                            {principal.codigo}
-                                          </p>
-                                        </div>
-                                        <div className="flex gap-1">
-                                          <Button
-                                            size="sm"
-                                            variant="ghost"
-                                            className="h-7 w-7 p-0"
-                                            onClick={() => handleAceitarSugestaoInline(item, principal)}
-                                            title="Aceitar sugestão"
-                                          >
-                                            <CheckCircle2 className="h-3 w-3 text-green-600" />
-                                          </Button>
-                                          <Button
-                                            size="sm"
-                                            variant="ghost"
-                                            className="h-7 w-7 p-0"
-                                            onClick={() => {
-                                              setSugestaoParaFeedback({ item, sugestao: principal });
-                                              setFeedbackDialogOpen(true);
-                                            }}
-                                            title="Dar feedback"
-                                          >
-                                            <ThumbsDown className="h-3 w-3" />
-                                          </Button>
-                                        </div>
-                                      </div>
+                                          <div className="flex gap-1">
+                                            <Button
+                                              size="sm"
+                                              variant="ghost"
+                                              className="h-7 w-7 p-0"
+                                              onClick={() => handleAceitarSugestaoInline(item, principal)}
+                                              title="Aceitar sugestão"
+                                            >
+                                              <CheckCircle2 className="h-3 w-3 text-green-600" />
+                                            </Button>
+                                             <Button
+                                               size="sm"
+                                               variant="ghost"
+                                               className="h-7 w-7 p-0"
+                                               onClick={() => {
+                                                 setSugestaoParaFeedback({ item, sugestao: principal });
+                                                 setFeedbackDialogOpen(true);
+                                               }}
+                                               title="Dar feedback"
+                                             >
+                                               <ThumbsDown className="h-3 w-3" />
+                                             </Button>
+                                           </div>
+                                         </div>
+                                       </div>
                                       
                                       {/* Alternativas colapsáveis */}
                                       {sugestoes.length > 1 && (

@@ -2,8 +2,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Sparkles, Package, DollarSign, Hash, Box } from "lucide-react";
+import { Sparkles, Package, DollarSign, Hash, Box, ThumbsUp, ThumbsDown } from "lucide-react";
 import { useState } from "react";
+import { useIAFeedback } from "@/hooks/useIAFeedback";
+import { toast } from "sonner";
 
 interface Sugestao {
   produto_id: string;
@@ -24,6 +26,7 @@ interface SugestoesIADialogProps {
   onSelecionar: (produto: Sugestao) => void;
   onBuscarManual: () => void;
   itemCliente?: {
+    id?: string;
     descricao: string;
     quantidade: number;
     unidade_medida: string;
@@ -40,6 +43,29 @@ export function SugestoesIADialog({
   itemCliente,
 }: SugestoesIADialogProps) {
   const [selected, setSelected] = useState<string | null>(null);
+  const { enviarFeedback, isSubmitting } = useIAFeedback();
+
+  const handleFeedback = async (sugestao: Sugestao, foiAceito: boolean) => {
+    if (!itemCliente?.id) return;
+    
+    try {
+      await enviarFeedback({
+        cotacao_item_id: itemCliente.id,
+        produto_sugerido_id: sugestao.produto_id,
+        produto_correto_id: foiAceito ? sugestao.produto_id : null,
+        foi_aceito: foiAceito,
+        score_original: sugestao.score,
+        tipo_feedback: foiAceito ? 'aceito' : 'rejeitado',
+      });
+      
+      if (foiAceito) {
+        onSelecionar(sugestao);
+        onOpenChange(false);
+      }
+    } catch (error) {
+      console.error('Erro ao enviar feedback:', error);
+    }
+  };
 
   const getScoreBadgeVariant = (score: number) => {
     if (score >= 80) return "default";
@@ -157,17 +183,34 @@ export function SugestoesIADialog({
                         {sugestao.score}%
                       </span>
                     </Badge>
-                    <Button
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onSelecionar(sugestao);
-                        onOpenChange(false);
-                      }}
-                      disabled={selected !== sugestao.produto_id && selected !== null}
-                    >
-                      Selecionar
-                    </Button>
+                    <div className="flex gap-1">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-8 w-8 p-0"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleFeedback(sugestao, true);
+                        }}
+                        disabled={isSubmitting}
+                        title="Aceitar sugestão"
+                      >
+                        <ThumbsUp className="h-3 w-3 text-success" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-8 w-8 p-0"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleFeedback(sugestao, false);
+                        }}
+                        disabled={isSubmitting}
+                        title="Rejeitar sugestão"
+                      >
+                        <ThumbsDown className="h-3 w-3 text-destructive" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </Card>
