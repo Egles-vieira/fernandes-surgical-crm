@@ -7,12 +7,15 @@ import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Building2, Calendar, MapPin, FileText, Package, DollarSign, Clock, CheckCircle2, XCircle, ArrowLeft, ChevronRight, ChevronLeft, Trash2 } from "lucide-react";
+import { Building2, Calendar, MapPin, FileText, Package, DollarSign, Clock, CheckCircle2, XCircle, ArrowLeft, ChevronRight, ChevronLeft, Trash2, Sparkles } from "lucide-react";
 import { EDICotacao } from "@/hooks/useEDICotacoes";
 import { useToast } from "@/hooks/use-toast";
 import { ItemCotacaoTable } from "@/components/plataformas/ItemCotacaoTable";
 import { CotacaoActionBar } from "@/components/plataformas/CotacaoActionBar";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { useIAAnalysis } from "@/hooks/useIAAnalysis";
+import { ProgressoAnaliseIA } from "@/components/plataformas/ProgressoAnaliseIA";
+import { SugestoesIACard } from "@/components/plataformas/SugestoesIACard";
 interface ItemCotacao {
   id: string;
   numero_item: number;
@@ -35,6 +38,11 @@ interface ItemCotacao {
     quantidade_em_maos: number;
     unidade_medida: string;
   } | null;
+  produto_selecionado?: {
+    id: string;
+    nome: string;
+    referencia_interna: string;
+  } | null;
 }
 export default function CotacaoDetalhes() {
   const {
@@ -52,6 +60,10 @@ export default function CotacaoDetalhes() {
   const [historicoAberto, setHistoricoAberto] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  
+  // Análise de IA
+  const { isAnalyzing, progress, error: iaError, iniciarAnalise } = useIAAnalysis(id);
+  const [mostrarSugestoes, setMostrarSugestoes] = useState(false);
   useEffect(() => {
     if (id) {
       carregarDados();
@@ -304,6 +316,46 @@ export default function CotacaoDetalhes() {
             {/* CABEÇALHO - Plataforma */}
             
 
+            {/* ANÁLISE DE IA */}
+            {cotacao.step_atual === 'em_analise' && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <Sparkles className="h-5 w-5 text-primary" />
+                    Análise com IA
+                  </h3>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setMostrarSugestoes(!mostrarSugestoes)}
+                      disabled={!progress || progress.status !== 'concluido'}
+                    >
+                      {mostrarSugestoes ? 'Ocultar Sugestões' : 'Ver Sugestões'}
+                    </Button>
+                    <Button
+                      onClick={() => id && iniciarAnalise(id)}
+                      disabled={isAnalyzing}
+                      size="sm"
+                    >
+                      <Sparkles className="h-4 w-4 mr-2" />
+                      {isAnalyzing ? 'Analisando...' : 'Analisar com IA'}
+                    </Button>
+                  </div>
+                </div>
+
+                <ProgressoAnaliseIA progresso={progress} isAnalyzing={isAnalyzing} />
+
+                {iaError && (
+                  <Card className="border-destructive">
+                    <CardContent className="pt-6">
+                      <p className="text-sm text-destructive">{iaError}</p>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            )}
+
             {/* ITENS E INFORMAÇÕES DE ITENS */}
             <Card>
               <CardHeader>
@@ -316,6 +368,56 @@ export default function CotacaoDetalhes() {
                 <ItemCotacaoTable itens={itens} cotacao={cotacao} onUpdate={carregarDados} />
               </CardContent>
             </Card>
+
+            {/* SUGESTÕES DE IA POR ITEM */}
+            {mostrarSugestoes && progress?.status === 'concluido' && progress.itens_detalhes.length > 0 && (
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Sugestões de Produtos</h3>
+                {progress.itens_detalhes.map((analise) => {
+                  const item = itens.find(i => i.id === analise.item_id);
+                  if (!item) return null;
+
+                  return (
+                    <div key={analise.item_id} className="space-y-2">
+                      <div className="bg-muted/50 p-3 rounded-md">
+                        <p className="text-sm font-medium">Item {item.numero_item}</p>
+                        <p className="text-xs text-muted-foreground">{item.descricao_produto_cliente}</p>
+                      </div>
+                      <SugestoesIACard
+                        analise={analise}
+                        onSelecionarProduto={async (itemId, produtoId) => {
+                          try {
+                            const { error } = await supabase
+                              .from('edi_cotacoes_itens')
+                              .update({ 
+                                produto_selecionado_id: produtoId,
+                                status: 'vinculado_ia'
+                              })
+                              .eq('id', itemId);
+
+                            if (error) throw error;
+
+                            toast({
+                              title: "Produto selecionado",
+                              description: "Produto vinculado ao item com sucesso",
+                            });
+
+                            carregarDados();
+                          } catch (error: any) {
+                            toast({
+                              title: "Erro ao selecionar produto",
+                              description: error.message,
+                              variant: "destructive",
+                            });
+                          }
+                        }}
+                        produtoSelecionadoId={item.produto_selecionado?.id}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            )}
 
             {/* INFORMAÇÕES GERAIS, OBS E TERMO */}
             <Card>
