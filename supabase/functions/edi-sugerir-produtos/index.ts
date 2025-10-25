@@ -7,73 +7,169 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Removido: cosineSimilarity não é mais necessário
+// Interface para resultado de análise semântica
+interface SemanticResult {
+  index: number;
+  score: number;
+  motivo: string;
+  categoria_match: boolean;
+  aplicacao_match: boolean;
+}
 
-// Função para fazer matching semântico usando Lovable AI
-async function semanticMatching(descricao: string, produtos: any[], lovableApiKey: string, limite: number): Promise<any[]> {
+// Função para análise semântica com DeepSeek
+async function semanticMatchingWithDeepSeek(
+  descricaoCliente: string,
+  candidatos: Array<{ produto: any; score: number; motivo: string }>,
+  contexto: { marca?: string; quantidade?: number; unidade_medida?: string },
+  apiKey: string,
+  limite: number = 5
+): Promise<SemanticResult[]> {
   try {
-    // Pegar amostra de produtos para análise (max 50 para não exceder token limits)
-    const amostra = produtos.slice(0, 50);
+    console.log("🤖 Iniciando análise semântica com DeepSeek...");
     
-    const produtosTexto = amostra.map((p, idx) => 
-      `${idx + 1}. ${p.nome} (Ref: ${p.referencia_interna}) - ${p.narrativa || 'sem descrição'}`
-    ).join('\n');
+    // Formatar produtos para análise
+    const produtosFormatados = candidatos.map((c, idx) => ({
+      index: idx,
+      nome: c.produto.nome,
+      referencia: c.produto.referencia_interna,
+      narrativa: c.produto.narrativa || 'Sem descrição detalhada',
+      unidade: c.produto.unidade_medida,
+      estoque: c.produto.quantidade_em_maos,
+      score_token: c.score
+    }));
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    // Construir prompt estruturado
+    const prompt = `Você é um especialista em análise de produtos médicos e hospitalares. Analise a compatibilidade entre a solicitação do cliente e os produtos candidatos.
+
+**SOLICITAÇÃO DO CLIENTE:**
+Descrição: "${descricaoCliente}"
+${contexto.marca ? `Marca solicitada: ${contexto.marca}` : ''}
+${contexto.quantidade ? `Quantidade: ${contexto.quantidade} ${contexto.unidade_medida || ''}` : ''}
+
+**PRODUTOS CANDIDATOS:**
+${produtosFormatados.map(p => 
+  `[${p.index}] ${p.nome} (Ref: ${p.referencia})
+   Descrição: ${p.narrativa}
+   Unidade: ${p.unidade} | Estoque: ${p.estoque}
+   Score por tokens: ${p.score_token}`
+).join('\n\n')}
+
+**INSTRUÇÕES:**
+Analise cada produto considerando:
+1. Compatibilidade de categoria (mesmo tipo de produto)
+2. Compatibilidade de aplicação (mesma finalidade)
+3. Equivalência de especificações técnicas
+4. Correspondência de marca (se aplicável)
+5. Adequação da unidade de medida
+
+Retorne um JSON array com este formato EXATO:
+[
+  {
+    "index": 0,
+    "score": 85,
+    "motivo": "Explicação breve da compatibilidade",
+    "categoria_match": true,
+    "aplicacao_match": true
+  }
+]
+
+Retorne APENAS o JSON array, sem texto adicional. Score de 0-100 onde:
+- 90-100: Match perfeito ou equivalente
+- 70-89: Compatível com pequenas diferenças
+- 50-69: Parcialmente compatível
+- 0-49: Incompatível ou muito diferente
+
+Ordene por score decrescente e retorne no máximo ${limite} produtos.`;
+
+    const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${lovableApiKey}`,
+        "Authorization": `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "deepseek-reasoner",
         messages: [
-          {
-            role: "system",
-            content: "Você é um especialista em matching de produtos médicos e hospitalares. Analise a descrição do cliente e retorne os índices dos produtos mais compatíveis em ordem de relevância."
-          },
-          {
-            role: "user",
-            content: `Descrição do cliente: "${descricao}"\n\nProdutos disponíveis:\n${produtosTexto}\n\nRetorne APENAS um JSON array com os índices (1-${amostra.length}) dos 5 produtos mais compatíveis, do mais para o menos relevante. Formato: [3, 7, 12, 5, 1]`
-          }
+          { role: "system", content: "Você é um especialista em análise e matching de produtos. Retorne sempre respostas em JSON válido." },
+          { role: "user", content: prompt }
         ],
+        temperature: 0.3,
+        max_tokens: 2000,
       }),
     });
 
     if (!response.ok) {
-      console.error("AI matching error:", response.status, await response.text());
-      return [];
+      const errorText = await response.text();
+      console.error("❌ Erro DeepSeek API:", response.status, errorText);
+      throw new Error(`DeepSeek API error: ${response.status}`);
     }
 
     const data = await response.json();
     const content = data.choices?.[0]?.message?.content || "[]";
     
-    // Extrair array JSON da resposta
-    const match = content.match(/\[[\d,\s]+\]/);
-    if (!match) return [];
+    // Extrair JSON da resposta
+    const jsonMatch = content.match(/\[[\s\S]*\]/);
+    if (!jsonMatch) {
+      console.error("❌ Resposta DeepSeek sem JSON válido:", content);
+      return [];
+    }
     
-    const indices = JSON.parse(match[0]) as number[];
+    const results = JSON.parse(jsonMatch[0]) as SemanticResult[];
+    console.log(`✅ DeepSeek analisou ${results.length} produtos`);
     
-    return indices.map((idx, position) => {
-      const produto = amostra[idx - 1];
-      if (!produto) return null;
-      
-      const score = 95 - (position * 10); // 95, 85, 75, 65, 55
-      return {
-        produto_id: produto.id,
-        score,
-        motivo: `Compatibilidade semântica (posição ${position + 1})`,
-        metodo: 'ai_semantic'
-      };
-    }).filter(Boolean).slice(0, limite);
+    return results.slice(0, limite);
     
   } catch (error) {
-    console.error("Error in semantic matching:", error);
+    console.error("❌ Erro na análise semântica DeepSeek:", error);
     return [];
   }
 }
 
-// Fallback: similaridade baseada em tokens melhorada
+// Função para combinar scores de token e semântico
+function combinarScores(
+  candidatosToken: Array<{ produto: any; score: number; motivo: string }>,
+  analiseSemantica: SemanticResult[],
+  limite: number
+): Array<{ produto_id: string; score: number; motivo: string; metodo: string }> {
+  
+  const resultadosCombinados = candidatosToken.map((candidato, idx) => {
+    // Buscar análise semântica correspondente
+    const analise = analiseSemantica.find(a => a.index === idx);
+    
+    if (!analise) {
+      // Se não tem análise semântica, usar apenas score de tokens
+      return {
+        produto_id: candidato.produto.id,
+        score: candidato.score,
+        motivo: `Token: ${candidato.motivo}`,
+        metodo: 'token_only'
+      };
+    }
+    
+    // Combinar scores: 40% tokens + 60% semântico
+    const scoreFinal = Math.round((candidato.score * 0.4) + (analise.score * 0.6));
+    
+    // Combinar motivos
+    const motivoCombinado = `Token: ${candidato.motivo} | IA: ${analise.motivo} (${analise.score}/100)`;
+    
+    return {
+      produto_id: candidato.produto.id,
+      score: scoreFinal,
+      motivo: motivoCombinado,
+      metodo: 'hibrido_deepseek',
+      categoria_match: analise.categoria_match,
+      aplicacao_match: analise.aplicacao_match
+    };
+  });
+  
+  // Filtrar scores muito baixos e ordenar
+  return resultadosCombinados
+    .filter(r => r.score >= 40)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limite);
+}
+
+// Similaridade baseada em tokens
 function normalize(str: string) {
   return (str || '')
     .toLowerCase()
@@ -300,14 +396,103 @@ serve(async (req) => {
       }
     }
 
-    // 3. Usar APENAS matching baseado em tokens (SEM IA - economia de créditos)
-    console.log("✓ Usando algoritmo baseado em tokens (SEM IA)...");
-    const metodo = 'token_enhanced';
-    const sugestoes = tokenBasedSimilarity(descricao_cliente, produtos, limite);
-    console.log(`✓ Token matching encontrou ${sugestoes.length} sugestões`);
-
-    // 5. Enriquecer sugestões com dados completos
-    const sugestoesEnriquecidas = sugestoes.map(sug => {
+    // 3. BUSCA HÍBRIDA EM 3 NÍVEIS COM DEEPSEEK
+    
+    const deepseekApiKey = Deno.env.get("DEEPSEEK_API_KEY");
+    
+    console.log("🔍 Iniciando busca híbrida para:", descricao_cliente);
+    
+    // NÍVEL 1: Filtragem rápida por tokens (top 15 candidatos)
+    const candidatosPorToken = tokenBasedSimilarity(descricao_cliente, produtos, 15);
+    console.log(`📊 Nível 1 - Token matching: ${candidatosPorToken.length} candidatos encontrados`);
+    
+    let sugestoesFinais: any[] = [];
+    let metodoUtilizado = 'token_only';
+    let analiseSemanticaAplicada = false;
+    
+    // NÍVEL 2 e 3: Análise semântica com DeepSeek (se houver candidatos razoáveis e API key disponível)
+    if (candidatosPorToken.length > 0 && candidatosPorToken[0].score >= 25 && deepseekApiKey) {
+      try {
+        console.log("🤖 Nível 2 - Iniciando análise semântica com DeepSeek...");
+        
+        // Preparar candidatos no formato correto
+        const candidatosParaAnalise = candidatosPorToken.slice(0, 10).map(c => {
+          const produto = produtos.find(p => p.id === c.produto_id);
+          return {
+            produto: produto!,
+            score: c.score,
+            motivo: c.motivo
+          };
+        });
+        
+        // Extrair contexto adicional da requisição
+        const { data: itemCotacao } = item_id ? await supabase
+          .from("edi_cotacoes_itens")
+          .select("marca_produto_cliente, quantidade_solicitada, unidade_medida")
+          .eq("id", item_id)
+          .maybeSingle() : { data: null };
+        
+        const contexto = {
+          marca: itemCotacao?.marca_produto_cliente,
+          quantidade: itemCotacao?.quantidade_solicitada,
+          unidade_medida: itemCotacao?.unidade_medida
+        };
+        
+        // Análise semântica
+        const analiseSemantica = await semanticMatchingWithDeepSeek(
+          descricao_cliente,
+          candidatosParaAnalise,
+          contexto,
+          deepseekApiKey,
+          limite
+        );
+        
+        if (analiseSemantica.length > 0) {
+          console.log("✅ Nível 3 - Combinando scores (40% token + 60% semântico)");
+          
+          // Combinar scores
+          sugestoesFinais = combinarScores(candidatosParaAnalise, analiseSemantica, limite);
+          metodoUtilizado = 'hibrido_deepseek';
+          analiseSemanticaAplicada = true;
+          
+          console.log(`✨ Score final do melhor match: ${sugestoesFinais[0]?.score || 0}`);
+        } else {
+          console.log("⚠️ Análise semântica não retornou resultados, usando apenas tokens");
+          sugestoesFinais = candidatosPorToken.slice(0, limite).map(c => ({
+            produto_id: c.produto_id,
+            score: c.score,
+            motivo: c.motivo,
+            metodo: 'token_fallback'
+          }));
+          metodoUtilizado = 'token_fallback';
+        }
+        
+      } catch (error) {
+        console.error("❌ Erro na análise DeepSeek, usando fallback de tokens:", error);
+        sugestoesFinais = candidatosPorToken.slice(0, limite).map(c => ({
+          produto_id: c.produto_id,
+          score: c.score,
+          motivo: c.motivo,
+          metodo: 'token_fallback'
+        }));
+        metodoUtilizado = 'token_fallback';
+      }
+    } else {
+      // Sem candidatos bons ou sem API key, usar apenas tokens
+      const motivo = !deepseekApiKey ? "API key não configurada" : "Nenhum candidato com score >= 25";
+      console.log(`⚠️ Análise semântica pulada: ${motivo}`);
+      
+      sugestoesFinais = candidatosPorToken.slice(0, limite).map(c => ({
+        produto_id: c.produto_id,
+        score: c.score,
+        motivo: c.motivo,
+        metodo: 'token_only'
+      }));
+      metodoUtilizado = 'token_only';
+    }
+    
+    // 4. Enriquecer sugestões com dados completos
+    const sugestoesEnriquecidas = sugestoesFinais.map(sug => {
       const produto = produtos.find(p => p.id === sug.produto_id);
       if (!produto) return null;
       return {
@@ -319,7 +504,7 @@ serve(async (req) => {
         quantidade_em_maos: produto.quantidade_em_maos,
         score: sug.score,
         motivo: sug.motivo,
-        metodo: sug.metodo || metodo
+        metodo: sug.metodo || metodoUtilizado
       };
     }).filter(Boolean);
 
@@ -353,7 +538,9 @@ serve(async (req) => {
       JSON.stringify({
         sugestoes: sugestoesEnriquecidas,
         total_produtos_analisados: produtos.length,
-        metodo,
+        metodo: metodoUtilizado,
+        candidatos_pre_filtrados: candidatosPorToken.length,
+        analise_semantica_aplicada: analiseSemanticaAplicada,
         item_id
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
