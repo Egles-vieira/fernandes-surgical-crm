@@ -16,15 +16,16 @@ import { useCondicoesPagamento } from "@/hooks/useCondicoesPagamento";
 import { usePlataformasEDI } from "@/hooks/usePlataformasEDI";
 
 export default function Parametros() {
-  const [plataformaFiltro, setPlataformaFiltro] = useState<string>("");
+  const [plataformaFiltro, setPlataformaFiltro] = useState<string>("all");
   const [dialogUnidadeAberto, setDialogUnidadeAberto] = useState(false);
   const [dialogCondicaoAberto, setDialogCondicaoAberto] = useState(false);
   const [unidadeEditando, setUnidadeEditando] = useState<any>(null);
   const [condicaoEditando, setCondicaoEditando] = useState<any>(null);
 
   const { plataformas } = usePlataformasEDI();
-  const { unidades, isLoading: loadingUnidades, salvarUnidade, deletarUnidade } = useEDIUnidadesMedida(plataformaFiltro || undefined);
-  const { condicoes, isLoading: loadingCondicoes, salvarCondicao, deletarCondicao } = useEDICondicoesPagamento(plataformaFiltro || undefined);
+  const plataformaIdFiltro = plataformaFiltro === "all" ? undefined : plataformaFiltro;
+  const { unidades, isLoading: loadingUnidades, salvarUnidade, deletarUnidade } = useEDIUnidadesMedida(plataformaIdFiltro);
+  const { condicoes, isLoading: loadingCondicoes, salvarCondicao, deletarCondicao } = useEDICondicoesPagamento(plataformaIdFiltro);
   const { condicoes: condicoesPagamento } = useCondicoesPagamento();
 
   const handleSalvarUnidade = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -84,7 +85,7 @@ export default function Parametros() {
                 <SelectValue placeholder="Todos os portais" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos os portais</SelectItem>
+                <SelectItem value="all">Todos os portais</SelectItem>
                 {plataformas?.map((plataforma) => (
                   <SelectItem key={plataforma.id} value={plataforma.id}>
                     {plataforma.nome}
