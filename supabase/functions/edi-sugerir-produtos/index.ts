@@ -7,12 +7,12 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// ============= CONFIGURAÇÃO v3.3 - REFINADA =============
-const MAX_PRODUTOS_BUSCA = 300;
-const MIN_SCORE_TOKEN = 35; // Mais seletivo
-const MIN_SIMILARITY_THRESHOLD = 0.22; // pg_trgm mais rigoroso
-const LIMITE_CANDIDATOS_IA = 5;
-const SCORE_MINIMO_ACEITAVEL = 45; // Score mínimo para considerar sugestão válida
+// ============= CONFIGURAÇÃO v3.4 - BUSCA COMPLETA =============
+const MAX_PRODUTOS_BUSCA = 10000; // Buscar TODOS os produtos do estoque
+const MIN_SCORE_TOKEN = 25; // Menos restritivo para não perder candidatos válidos
+const MIN_SIMILARITY_THRESHOLD = 0.15; // pg_trgm menos rigoroso
+const LIMITE_CANDIDATOS_IA = 8; // Mais candidatos para IA analisar
+const SCORE_MINIMO_ACEITAVEL = 35; // Score mínimo mais permissivo
 
 interface SugestaoProduto {
   produto_id: string;
@@ -35,7 +35,7 @@ interface SugestaoProduto {
   }>;
 }
 
-// ============= ANÁLISE SEMÂNTICA COM DEEPSEEK v3.3 =============
+// ============= ANÁLISE SEMÂNTICA COM DEEPSEEK v3.4 =============
 async function analisarComDeepSeek(
   descricaoCliente: string,
   candidatos: Array<{ produto: any; scoreToken: number; scorePgTrgm: number }>,
@@ -66,7 +66,7 @@ async function analisarComDeepSeek(
       scorePgTrgm: c.scorePgTrgm,
     }));
 
-    const prompt = `Você é um especialista em análise de compatibilidade de produtos médico-hospitalares. Sua função é avaliar com MÁXIMA PRECISÃO se os produtos disponíveis atendem a solicitação do cliente.
+    const prompt = `Você é um especialista em análise de compatibilidade de produtos médico-hospitalares. Sua função é avaliar se os produtos disponíveis atendem a solicitação do cliente, considerando que pode haver variações de marca, embalagem ou apresentação.
 
 **SOLICITAÇÃO DO CLIENTE:**
 "${descricaoCliente}"
@@ -85,19 +85,26 @@ ${candidatosFormatados
   )
   .join("\n\n")}
 
-**CRITÉRIOS DE AVALIAÇÃO (em ordem de importância):**
-1. **CATEGORIA DO PRODUTO**: Produtos de categorias diferentes são INCOMPATÍVEIS (ex: luva ≠ seringa)
-2. **ESPECIFICAÇÕES TÉCNICAS**: Tamanho, calibre, volume, concentração devem ser equivalentes
-3. **FINALIDADE/APLICAÇÃO**: O produto deve servir para o mesmo uso clínico
-4. **MARCA**: Se marca específica foi solicitada, avaliar se é crítico ou se aceita similar
-5. **UNIDADE DE MEDIDA**: Verificar se é compatível (unidade vs caixa vs frasco)
+**CRITÉRIOS DE AVALIAÇÃO:**
+1. **CATEGORIA/FUNÇÃO**: O produto serve para o mesmo propósito? (ex: luva ≠ seringa)
+2. **ESPECIFICAÇÕES TÉCNICAS**: Tamanho, calibre, volume, concentração são compatíveis?
+3. **MARCA/SIMILAR**: Marca diferente é aceitável se o produto for equivalente
+4. **UNIDADE DE MEDIDA**: Verificar se é compatível para conversão
+5. **APLICAÇÃO**: O produto pode substituir o solicitado na prática clínica?
+
+**ESCALA DE PONTUAÇÃO (seja realista, não super rigoroso):**
+- 85-100: Produto altamente compatível, mesma categoria e specs similares
+- 70-84: Compatível com pequenas diferenças (marca, embalagem)
+- 55-69: Compatível mas com algumas diferenças relevantes
+- 40-54: Parcialmente compatível, pode servir dependendo do contexto
+- 0-39: Incompatível ou categoria/aplicação muito diferente
 
 **RETORNE JSON ARRAY:**
 [
   {
     "index": 0,
-    "score": 85,
-    "justificativa": "Descrição clara em 1 frase do motivo do score",
+    "score": 75,
+    "justificativa": "Descrição clara e objetiva do motivo do score",
     "razoes_match": ["razão 1", "razão 2", "razão 3"],
     "categoria_compativel": true,
     "aplicacao_compativel": true,
@@ -105,18 +112,10 @@ ${candidatosFormatados
   }
 ]
 
-**ESCALA DE SCORE (seja RIGOROSO):**
-- 95-100: Match exato - mesma categoria, specs idênticas, marca compatível
-- 85-94: Excelente - mesma categoria, specs equivalentes, pode ter marca diferente
-- 70-84: Bom - mesma categoria, specs similares com pequenas variações aceitáveis
-- 50-69: Razoável - categoria OK mas especificações divergem moderadamente
-- 30-49: Fraco - compatibilidade duvidosa, requer revisão humana
-- 0-29: Incompatível - categoria diferente ou especificações incompatíveis
-
 **IMPORTANTE**: 
-- Se o produto for de OUTRA CATEGORIA, dê score 0-20
-- Se specs técnicas forem incompatíveis (ex: tamanho errado), score máximo 40
-- Seja conservador: na dúvida, score mais BAIXO
+- Seja EQUILIBRADO: produtos similares de marcas diferentes podem ser compatíveis
+- Marca diferente NÃO elimina automaticamente se função e specs são similares
+- Na dúvida entre 2 scores próximos, escolha o mais alto se o produto for funcional
 - Retorne APENAS o JSON, sem markdown ou texto extra`;
 
     const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
@@ -130,12 +129,12 @@ ${candidatosFormatados
         messages: [
           {
             role: "system",
-            content: "Você é um especialista em produtos médico-hospitalares com 20 anos de experiência. Analise com precisão cirúrgica a compatibilidade entre produtos. Seja RIGOROSO: prefira rejeitar (score baixo) do que sugerir produto incompatível. Retorne APENAS JSON válido.",
+            content: "Você é um especialista em produtos médico-hospitalares com experiência em substituições e equivalências. Analise compatibilidade considerando que marcas diferentes podem ser equivalentes se mesma função e especificações similares. Seja realista e prático. Retorne APENAS JSON válido.",
           },
           { role: "user", content: prompt },
         ],
-        temperature: 0.15, // Mais determinístico
-        max_tokens: 2000,
+        temperature: 0.25, // Mais criativo para encontrar equivalências
+        max_tokens: 1800,
       }),
     });
 
@@ -172,7 +171,7 @@ ${candidatosFormatados
   }
 }
 
-// ============= BUSCA POR TOKENS v3.3 =============
+// ============= BUSCA POR TOKENS v3.4 =============
 // Normalização mais preservativa de informação
 function normalize(str: string) {
   return (str || "")
@@ -239,19 +238,17 @@ function tokenBasedSimilarity(queryText: string, produtos: any[], limite: number
         ? (exactMatches + partialMatches * 0.5) / queryTokens.length 
         : 0;
 
-      // Filtro mais seletivo: exige pelo menos 45% de match
-      if (matchRatio < 0.45) {
+      // Filtro menos restritivo: exige pelo menos 30% de match
+      if (matchRatio < 0.30) {
         return { produto: p, score: 0 };
       }
 
-      // Se query tem números, produto DEVE ter pelo menos 1 número correspondente
+      // Se query tem números, é preferível mas não obrigatório ter correspondência
       const numberMatchCount = queryNumbers.filter((qn) => productNumbers.includes(qn)).length;
-      if (queryNumbers.length > 0 && numberMatchCount === 0) {
-        return { produto: p, score: 0 };
-      }
+      const hasNumberMatch = numberMatchCount > 0;
 
-      // Se query tem 2+ números, produto deve ter pelo menos 50% dos números
-      if (queryNumbers.length >= 2 && numberMatchCount < queryNumbers.length * 0.5) {
+      // Se query tem 2+ números, produto deve ter pelo menos 1 número correspondente
+      if (queryNumbers.length >= 2 && numberMatchCount === 0) {
         return { produto: p, score: 0 };
       }
 
@@ -262,32 +259,33 @@ function tokenBasedSimilarity(queryText: string, produtos: any[], limite: number
 
       const hasSubstring = productNormalized.includes(queryNormalized) || queryNormalized.includes(productNormalized);
 
-      // Sistema de scoring mais refinado v3.3
+      // Sistema de scoring mais balanceado v3.4
       let score = 0;
       
       // Matches exatos valem muito
-      score += exactMatches * 35;
+      score += exactMatches * 30;
       
       // Matches parciais valem menos
-      score += partialMatches * 12;
+      score += partialMatches * 15;
       
-      // Números são críticos (especialmente em produtos médicos)
-      score += numberMatchCount * 45;
+      // Números são importantes mas não eliminatórios
+      if (hasNumberMatch) score += numberMatchCount * 40;
       
       // Referência exata é forte indicador
-      if (hasExactRef) score += 70;
+      if (hasExactRef) score += 65;
       
       // Substring também é bom indicador
-      if (hasSubstring) score += 30;
+      if (hasSubstring) score += 25;
       
       // Bonus por alta taxa de match
-      if (matchRatio >= 0.9) score += 30;
-      else if (matchRatio >= 0.75) score += 20;
-      else if (matchRatio >= 0.6) score += 10;
+      if (matchRatio >= 0.85) score += 35;
+      else if (matchRatio >= 0.70) score += 25;
+      else if (matchRatio >= 0.50) score += 15;
+      else if (matchRatio >= 0.35) score += 8;
 
-      // Penalty se o match ratio for baixo mesmo tendo alguns matches
-      if (matchRatio < 0.6 && exactMatches < 3) {
-        score *= 0.7;
+      // Penalty suave se o match ratio for baixo
+      if (matchRatio < 0.50 && exactMatches < 2) {
+        score *= 0.85;
       }
 
       return {
@@ -331,7 +329,7 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    console.log(`🔍 [v3.3] Buscando produtos para: "${descricao_cliente}"`);
+    console.log(`🔍 [v3.4] Buscando produtos para: "${descricao_cliente}"`);
 
     // 1. Verificar vínculo aprovado existente
     if (plataforma_id && cnpj_cliente) {
@@ -366,7 +364,7 @@ serve(async (req) => {
             sugestoes: [sugestaoVinculo],
             total_produtos_analisados: 1,
             metodo: "vinculo_existente",
-            versao: "3.3",
+            versao: "3.4",
           }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" } },
         );
@@ -382,14 +380,14 @@ serve(async (req) => {
 
     if (produtosError) throw new Error(`Erro ao buscar produtos: ${produtosError.message}`);
     if (!produtos || produtos.length === 0) {
-      return new Response(JSON.stringify({ sugestoes: [], total_produtos_analisados: 0, metodo: "sem_produtos_catalogo", versao: "3.3" }), {
+      return new Response(JSON.stringify({ sugestoes: [], total_produtos_analisados: 0, metodo: "sem_produtos_catalogo", versao: "3.4" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // 3. NÍVEL 1: Busca por tokens (mais seletiva)
-    const candidatosPorToken = tokenBasedSimilarity(descricao_cliente, produtos, 10);
-    console.log(`📊 Token matching: ${candidatosPorToken.length} candidatos (melhor: ${candidatosPorToken[0]?.score || 0})`);
+    // 3. NÍVEL 1: Busca por tokens (aumentando limite de candidatos)
+    const candidatosPorToken = tokenBasedSimilarity(descricao_cliente, produtos, 25);
+    console.log(`📊 Token matching: ${candidatosPorToken.length} candidatos de ${produtos.length} produtos analisados (melhor: ${candidatosPorToken[0]?.score || 0})`);
 
     // Se não encontrou candidatos, retornar vazio e marcar como "sem produtos CF"
     if (candidatosPorToken.length === 0) {
@@ -415,18 +413,18 @@ serve(async (req) => {
           total_produtos_analisados: produtos.length, 
           metodo: "sem_produtos_cf",
           mensagem: "Sem produtos da CF compatíveis",
-          versao: "3.3",
+          versao: "3.4",
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
-    // 4. NÍVEL 2: Buscar scores pg_trgm
+    // 4. NÍVEL 2: Buscar scores pg_trgm (aumentando limite)
     console.log("🔍 Calculando similaridade pg_trgm...");
-    const produtoIds = candidatosPorToken.slice(0, 10).map((c) => c.produto.id);
+    const produtoIds = candidatosPorToken.slice(0, 25).map((c) => c.produto.id);
     const { data: similarityScores } = await supabase.rpc("buscar_produtos_similares_trgm", {
       texto_busca: descricao_cliente,
-      limite_resultados: 10,
+      limite_resultados: 25,
       threshold: MIN_SIMILARITY_THRESHOLD,
     });
 
@@ -473,8 +471,8 @@ serve(async (req) => {
       });
     }
 
-    // 7. NÍVEL 5: Combinar scores com algoritmo v3.3 refinado
-    console.log("🔄 Combinando scores (v3.3)...");
+    // 7. NÍVEL 5: Combinar scores com algoritmo v3.4 refinado
+    console.log("🔄 Combinando scores (v3.4)...");
     const sugestoes: SugestaoProduto[] = [];
 
     for (let i = 0; i < Math.min(candidatosPorToken.length, limite); i++) {
@@ -522,32 +520,32 @@ serve(async (req) => {
         }
       }
 
-      // Combinar scores com pesos mais balanceados (v3.3)
+      // Combinar scores com pesos mais balanceados (v3.4)
       let scoreFinal: number;
       
       if (analiseSemantica.length > 0 && scoreSemantico > 0) {
         // Com IA semântica: dar mais peso à IA mas validar com outros scores
         scoreFinal = Math.round(
-          scoreToken * 0.15 + // Token ainda importa mas menos
-          scoreSemantico * 0.50 + // IA é a principal
-          scoreContexto * 0.20 + // Contexto é importante
+          scoreToken * 0.18 + // Token importa
+          scoreSemantico * 0.45 + // IA é importante mas não dominante
+          scoreContexto * 0.22 + // Contexto é muito importante
           scorePgTrgm * 0.15 // pg_trgm como validação adicional
         );
 
-        // Se IA deu score muito baixo (<50), limitar score final
-        if (scoreSemantico < 50) {
-          scoreFinal = Math.min(scoreFinal, 55);
+        // Se IA deu score muito baixo (<45), limitar score final
+        if (scoreSemantico < 45) {
+          scoreFinal = Math.min(scoreFinal, 52);
         }
 
-        // Se IA deu score alto (85+) e outros scores também são bons, boost
-        if (scoreSemantico >= 85 && scoreToken >= 60 && scorePgTrgm >= 50) {
-          scoreFinal = Math.max(scoreFinal, 85);
+        // Se IA deu score alto (80+) e outros scores também são bons, boost
+        if (scoreSemantico >= 80 && scoreToken >= 50 && scorePgTrgm >= 40) {
+          scoreFinal = Math.max(scoreFinal, 80);
         }
       } else {
         // Sem IA: balancear entre token, pg_trgm e contexto
         scoreFinal = Math.round(
-          scoreToken * 0.40 + 
-          scorePgTrgm * 0.35 + 
+          scoreToken * 0.42 + 
+          scorePgTrgm * 0.33 + 
           scoreContexto * 0.25
         );
       }
@@ -570,8 +568,8 @@ serve(async (req) => {
 
       // Determinar confiança com thresholds ajustados
       let confianca: "alta" | "media" | "baixa";
-      if (scoreFinal >= 80) confianca = "alta";
-      else if (scoreFinal >= 60) confianca = "media";
+      if (scoreFinal >= 75) confianca = "alta";
+      else if (scoreFinal >= 55) confianca = "media";
       else confianca = "baixa";
 
       // Construir justificativa mais detalhada
@@ -633,15 +631,15 @@ serve(async (req) => {
       JSON.stringify({
         sugestoes,
         total_produtos_analisados: produtos.length,
-        metodo: analiseSemantica.length > 0 ? "hibrido_deepseek_v3.3" : "token_only_v3.3",
+        metodo: analiseSemantica.length > 0 ? "hibrido_deepseek_v3.4" : "token_only_v3.4",
         candidatos_pre_filtrados: candidatosPorToken.length,
-        versao: "3.3",
+        versao: "3.4",
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (error: any) {
     console.error("❌ Erro em edi-sugerir-produtos:", error);
-    return new Response(JSON.stringify({ error: error.message || "Erro interno", versao: "3.3" }), {
+    return new Response(JSON.stringify({ error: error.message || "Erro interno", versao: "3.4" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
