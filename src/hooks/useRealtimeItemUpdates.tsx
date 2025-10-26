@@ -29,28 +29,25 @@ export function useRealtimeItemUpdates({
         (payload) => {
           console.log('📦 Item atualizado:', payload);
           const item = payload.new;
+          const itemLabel = item?.numero_item ?? item?.sequencia ?? item?.codigo_produto_cliente ?? item?.id?.toString()?.slice(0, 8) ?? '?';
 
           // Notifica sobre produtos vinculados
-          if (item.produto_id && payload.old.produto_id !== item.produto_id) {
+          if (item.produto_id && payload.old?.produto_id !== item.produto_id) {
             toast.success('Produto vinculado', {
-              description: `Item ${item.sequencia} vinculado com sucesso`,
+              description: `Item ${itemLabel} vinculado com sucesso`,
             });
           }
 
           // Notifica sobre análise IA concluída no item
-          if (item.analisado_por_ia && !payload.old.analisado_por_ia) {
-            const sugestoes = item.produtos_sugeridos_ia?.length || 0;
-            if (sugestoes > 0) {
-              toast.info(`Item ${item.sequencia} analisado`, {
-                description: `${sugestoes} sugestão(ões) disponível(is)`,
-              });
-            }
+          if (item.analisado_por_ia && !payload.old?.analisado_por_ia) {
+            const sugestoes = Array.isArray(item.produtos_sugeridos_ia) ? item.produtos_sugeridos_ia.length : 0;
+            toast.info(`Item ${itemLabel} analisado`, {
+              description: sugestoes > 0 ? `${sugestoes} sugestão(ões) disponível(is)` : 'Nenhuma sugestão gerada',
+            });
           }
 
           // Callback para atualizar estado do componente
-          if (onItemUpdate) {
-            onItemUpdate(item.id, item);
-          }
+          onItemUpdate?.(item.id, item);
         }
       )
       .subscribe((status) => {
