@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Search, Plus, Eye, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Grid3x3, List, Upload } from "lucide-react";
+import { Search, Plus, Eye, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Grid3x3, List, Upload, Download } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import * as XLSX from 'xlsx';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -83,6 +84,69 @@ export default function Produtos() {
     }).format(value);
   };
 
+  const handleExportToExcel = () => {
+    // Prepare data for export
+    const exportData = produtos.map(p => ({
+      'Referência Interna': p.referencia_interna,
+      'Nome': p.nome,
+      'Unidade Medida': p.unidade_medida,
+      'NCM': p.ncm,
+      'Preço Venda': p.preco_venda,
+      'Custo': p.custo,
+      'Quantidade em Mãos': p.quantidade_em_maos,
+      'Estoque Mínimo (DTR)': p.dtr,
+      'Marcadores': p.marcadores_produto ? p.marcadores_produto.join(', ') : '',
+      'Narrativa': p.narrativa || '',
+      'Cód. Trib. ICMS': p.cod_trib_icms,
+      'Alíquota IPI': p.aliquota_ipi,
+      'Qtd CR': p.qtd_cr,
+      'ICMS SP %': p.icms_sp_percent,
+      'Grupo Estoque': p.grupo_estoque,
+      'Quantidade Prevista': p.quantidade_prevista,
+      'Lote Múltiplo': p.lote_multiplo,
+      'Responsável': p.responsavel || '',
+      'Previsão Chegada': p.previsao_chegada || '',
+    }));
+
+    // Create worksheet
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    
+    // Set column widths
+    const columnWidths = [
+      { wch: 20 }, // Referência Interna
+      { wch: 40 }, // Nome
+      { wch: 15 }, // Unidade Medida
+      { wch: 12 }, // NCM
+      { wch: 15 }, // Preço Venda
+      { wch: 15 }, // Custo
+      { wch: 18 }, // Quantidade em Mãos
+      { wch: 20 }, // Estoque Mínimo
+      { wch: 30 }, // Marcadores
+      { wch: 50 }, // Narrativa
+      { wch: 18 }, // Cód. Trib. ICMS
+      { wch: 15 }, // Alíquota IPI
+      { wch: 10 }, // Qtd CR
+      { wch: 12 }, // ICMS SP %
+      { wch: 15 }, // Grupo Estoque
+      { wch: 20 }, // Quantidade Prevista
+      { wch: 15 }, // Lote Múltiplo
+      { wch: 20 }, // Responsável
+      { wch: 18 }, // Previsão Chegada
+    ];
+    ws['!cols'] = columnWidths;
+
+    // Create workbook
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Produtos');
+
+    // Generate file name with current date
+    const date = new Date().toISOString().split('T')[0];
+    const fileName = `produtos_${date}.xlsx`;
+
+    // Download file
+    XLSX.writeFile(wb, fileName);
+  };
+
   if (isLoading) {
     return (
       <div className="p-8 flex items-center justify-center min-h-[400px]">
@@ -109,6 +173,10 @@ export default function Produtos() {
           </p>
         </div>
         <div className="flex items-center gap-4">
+          <Button variant="outline" onClick={handleExportToExcel}>
+            <Download size={16} className="mr-2" />
+            Exportar Excel
+          </Button>
           <Button onClick={() => navigate('/importar-produtos')}>
             <Upload size={16} className="mr-2" />
             Importar Produtos
