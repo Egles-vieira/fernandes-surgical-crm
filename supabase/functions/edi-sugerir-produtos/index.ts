@@ -8,9 +8,9 @@ const corsHeaders = {
 };
 
 // Configuração otimizada
-const MAX_PRODUTOS_BUSCA = 150; // Reduzido de 1000 para 150
+const MAX_PRODUTOS_BUSCA = 300; // Aumentado para capturar mais produtos
 const LIMITE_CANDIDATOS_IA = 5; // Máximo para análise IA
-const MIN_SCORE_TOKEN = 25; // Mínimo para considerar
+const MIN_SCORE_TOKEN = 20; // Reduzido para ser mais inclusivo
 
 // ============= INTERFACES =============
 interface SugestaoProduto {
@@ -341,31 +341,32 @@ class AdvancedSearchEngine {
     let score = 0;
     const totalQueryTokens = queryTokens.length || 1;
 
-    // Pesos ajustados para melhor precisão
-    score += exactMatches * 35; // Tokens exatos
-    score += partialMatches * 20; // Tokens parciais
+    // Pesos ajustados para melhor precisão e recall
+    score += exactMatches * 30; // Tokens exatos
+    score += partialMatches * 18; // Tokens parciais
     score += fuzzyMatches * 12; // Fuzzy matches
     score += ngramMatches * 15; // N-grams
-    score += numberMatchCount * 50; // Números (crítico)
+    score += numberMatchCount * 45; // Números (crítico mas não bloqueante)
     score += hasExactRef ? 80 : 0; // Referência exata (muito importante)
-    score += hasSubstring ? 30 : 0; // Substring completa
+    score += hasSubstring ? 35 : 0; // Substring completa
     score += categoryMatch ? 40 : 0; // Categoria igual
-    score += measurementMatch ? 35 : 0; // Medidas compatíveis
-    score += unidadeCompativel ? 20 : 0; // Unidade compatível
+    score += measurementMatch ? 30 : 0; // Medidas compatíveis
+    score += unidadeCompativel ? 25 : 0; // Unidade compatível
 
     // Boost para alta taxa de cobertura
-    const matchRatio = (exactMatches + partialMatches * 0.7 + fuzzyMatches * 0.4) / totalQueryTokens;
-    if (matchRatio >= 0.9) score += 30;
-    else if (matchRatio >= 0.7) score += 20;
-    else if (matchRatio >= 0.5) score += 10;
+    const matchRatio = (exactMatches + partialMatches * 0.7 + fuzzyMatches * 0.5) / totalQueryTokens;
+    if (matchRatio >= 0.8) score += 35;
+    else if (matchRatio >= 0.6) score += 25;
+    else if (matchRatio >= 0.4) score += 15;
+    else if (matchRatio >= 0.25) score += 8;
 
-    // Penalidades
+    // Penalidades mais brandas para não excluir bons matches
     if (queryNumbers.length > 0 && numberMatchCount === 0) {
-      score *= 0.3; // Penalidade severa se números não batem
+      score *= 0.5; // Penalidade moderada (era 0.3)
     }
 
-    if (matchRatio < 0.3) {
-      score *= 0.5; // Baixa cobertura de tokens
+    if (matchRatio < 0.2) {
+      score *= 0.6; // Penalidade mais branda (era 0.5)
     }
 
     // Normalizar para 0-100
@@ -597,9 +598,24 @@ serve(async (req) => {
     // ===== ETAPA 1: CARREGAR PRODUTOS COM BUSCA OTIMIZADA =====
     console.log("📂 [1/6] Carregando produtos do banco...");
     
-    // Normalizar descrição para busca otimizada
-    const termosBusca = TextProcessor.tokenize(descricao_cliente).slice(0, 5);
-    const queryBusca = `%${termosBusca.join("%")}%`;
+    // Estratégia de busca em 3 camadas para máxima cobertura
+    const termosBusca = TextProcessor.tokenize(descricao_cliente).slice(0, 8);
+    const numerosQuery = TextProcessor.extractNumbers(descricao_cliente);
+    
+    // Camada 1: Busca por tokens individuais (OR) - mais flexível
+    const termosBuscaIndividuais = termosBusca
+      .map(termo => `nome.ilike.%${termo}%,narrativa.ilike.%${termo}%,referencia_interna.ilike.%${termo}%`)
+      .join(',');
+    
+    // Camada 2: Busca por números (se houver)
+    const numerosBusca = numerosQuery.length > 0
+      ? numerosQuery.map(num => `nome.ilike.%${num}%,narrativa.ilike.%${num}%,referencia_interna.ilike.%${num}%`).join(',')
+      : '';
+    
+    // Query final combinada
+    const queryCompleta = numerosBusca 
+      ? `${termosBuscaIndividuais},${numerosBusca}`
+      : termosBuscaIndividuais;
     
     const { data: produtos, error: produtosError } = await supabase
       .from("produtos")
@@ -607,7 +623,7 @@ serve(async (req) => {
         "id, referencia_interna, nome, preco_venda, unidade_medida, quantidade_em_maos, narrativa",
       )
       .gt("quantidade_em_maos", 0)
-      .or(`nome.ilike.${queryBusca},narrativa.ilike.${queryBusca},referencia_interna.ilike.${queryBusca}`)
+      .or(queryCompleta)
       .limit(MAX_PRODUTOS_BUSCA);
 
     if (produtosError) {
@@ -695,7 +711,7 @@ serve(async (req) => {
     const candidatosPorToken = AdvancedSearchEngine.searchProducts(
       descricao_cliente,
       produtos as Produto[],
-      Math.min(10, limite * 2), // Reduzido de 15 para 10
+      Math.min(15, limite * 3), // Aumentado para capturar mais candidatos
       MIN_SCORE_TOKEN,
     );
 
