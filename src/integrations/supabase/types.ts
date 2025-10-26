@@ -4849,16 +4849,27 @@ export type Database = {
           user_id: string
         }[]
       }
-      registrar_feedback_ia: {
-        Args: {
-          p_feedback_tipo: string
-          p_item_id: string
-          p_produto_escolhido_id: string
-          p_produto_sugerido_id: string
-          p_score_ia: number
-        }
-        Returns: undefined
-      }
+      registrar_feedback_ia:
+        | {
+            Args: {
+              p_feedback_tipo: string
+              p_item_id: string
+              p_produto_escolhido_id: string
+              p_produto_sugerido_id: string
+              p_score_ia: number
+            }
+            Returns: undefined
+          }
+        | {
+            Args: {
+              p_feedback_tipo: string
+              p_item_id: string
+              p_produto_escolhido_id: string
+              p_produto_sugerido_id: string
+              p_score_ia: number
+            }
+            Returns: undefined
+          }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
     }
