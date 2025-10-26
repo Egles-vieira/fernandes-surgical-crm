@@ -1,7 +1,10 @@
 import { useState } from "react";
-import { Search, Plus, Eye, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Grid3x3, List, Upload, Download } from "lucide-react";
+import { Search, Plus, Eye, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Grid3x3, List, Upload, Download, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import * as XLSX from 'xlsx';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -17,10 +20,13 @@ type ViewMode = "grid" | "list";
 
 export default function Produtos() {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const { produtos, isLoading } = useProdutos();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedProduto, setSelectedProduto] = useState<Produto | null>(null);
   const [showDetails, setShowDetails] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(12);
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
@@ -147,6 +153,35 @@ export default function Produtos() {
     XLSX.writeFile(wb, fileName);
   };
 
+  const handleDeleteAll = async () => {
+    setIsDeleting(true);
+    try {
+      // Delete all products
+      const { error } = await supabase
+        .from('produtos')
+        .delete()
+        .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all (using a condition that matches all)
+
+      if (error) throw error;
+
+      toast({
+        title: "Produtos excluídos",
+        description: `${produtos.length} produtos foram excluídos com sucesso.`,
+      });
+
+      setShowDeleteDialog(false);
+      window.location.reload(); // Reload to refresh the list
+    } catch (error: any) {
+      toast({
+        title: "Erro ao excluir produtos",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="p-8 flex items-center justify-center min-h-[400px]">
@@ -173,13 +208,25 @@ export default function Produtos() {
           </p>
         </div>
         <div className="flex items-center gap-4">
-          <Button variant="outline" onClick={handleExportToExcel}>
+          <Button 
+            variant="outline" 
+            onClick={handleExportToExcel}
+            disabled={produtos.length === 0}
+          >
             <Download size={16} className="mr-2" />
             Exportar Excel
           </Button>
           <Button onClick={() => navigate('/importar-produtos')}>
             <Upload size={16} className="mr-2" />
             Importar Produtos
+          </Button>
+          <Button 
+            variant="destructive" 
+            onClick={() => setShowDeleteDialog(true)}
+            disabled={produtos.length === 0}
+          >
+            <Trash2 size={16} className="mr-2" />
+            Excluir Todos
           </Button>
           <div className="flex items-center gap-2 border rounded-lg p-1">
             <Button
@@ -545,6 +592,31 @@ export default function Produtos() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Delete All Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Tem certeza absoluta?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. Isso irá excluir permanentemente todos os{" "}
+              <span className="font-bold text-destructive">{produtos.length} produtos</span> do banco de dados.
+              <br /><br />
+              Digite <span className="font-mono font-bold">EXCLUIR</span> para confirmar.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteAll}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? "Excluindo..." : "Excluir Todos os Produtos"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
