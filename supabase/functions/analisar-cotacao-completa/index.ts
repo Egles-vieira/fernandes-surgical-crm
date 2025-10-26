@@ -7,8 +7,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Configurações de execução em lotes/retomada
-const BATCH_SIZE = 10; // quantidade de itens processados por execução
+// Configuração otimizada - Reduzir lote para evitar timeout
+const BATCH_SIZE = 5; // Reduzido de 10 para 5
 
 serve(async (req) => {
   // CORS

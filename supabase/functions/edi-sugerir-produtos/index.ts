@@ -7,6 +7,11 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Configuração otimizada
+const MAX_PRODUTOS_BUSCA = 150; // Reduzido de 1000 para 150
+const LIMITE_CANDIDATOS_IA = 5; // Máximo para análise IA
+const MIN_SCORE_TOKEN = 25; // Mínimo para considerar
+
 // ============= INTERFACES =============
 interface SugestaoProduto {
   produto_id: string;
@@ -403,23 +408,26 @@ class AdvancedSearchEngine {
   }
 }
 
-// ============= ANÁLISE SEMÂNTICA COM IA =============
+// ============= ANÁLISE SEMÂNTICA COM IA (LOVABLE AI) =============
 async function analisarComIA(
   descricaoCliente: string,
   candidatos: Array<{ produto: Produto; scoreToken: number; details: MatchingDetails }>,
   contexto: { marca?: string; quantidade?: number; unidade_medida?: string },
 ): Promise<any[]> {
-  const deepseekApiKey = Deno.env.get("DEEPSEEK_API_KEY");
+  const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
 
-  if (!deepseekApiKey) {
-    console.warn("⚠️ DEEPSEEK_API_KEY não configurada, pulando análise semântica");
+  if (!lovableApiKey) {
+    console.warn("⚠️ LOVABLE_API_KEY não configurada, pulando análise semântica");
     return [];
   }
+  
+  // Limitar candidatos para evitar timeout
+  const candidatosLimitados = candidatos.slice(0, LIMITE_CANDIDATOS_IA);
 
   try {
-    console.log(`🤖 [DeepSeek] Analisando ${candidatos.length} candidatos com IA...`);
+    console.log(`🤖 [Lovable AI] Analisando ${candidatosLimitados.length} candidatos com IA...`);
 
-    const candidatosFormatados = candidatos.map((c, idx) => ({
+    const candidatosFormatados = candidatosLimitados.map((c, idx) => ({
       index: idx,
       nome: c.produto.nome,
       referencia: c.produto.referencia_interna,
@@ -434,115 +442,75 @@ async function analisarComIA(
       },
     }));
 
-    const prompt = `Você é um especialista em produtos médico-hospitalares com profundo conhecimento em equipamentos, materiais e suprimentos de saúde.
+    const prompt = `Analise produtos médico-hospitalares e retorne score de compatibilidade.
 
-**SOLICITAÇÃO DO CLIENTE:**
-"${descricaoCliente}"
-${contexto.marca ? `→ Marca solicitada: ${contexto.marca}` : ""}
-${contexto.quantidade ? `→ Quantidade: ${contexto.quantidade} ${contexto.unidade_medida || ""}` : ""}
+SOLICITAÇÃO: "${descricaoCliente}"
+${contexto.marca ? `Marca: ${contexto.marca}` : ""}
 
-**PRODUTOS CANDIDATOS (pré-filtrados por algoritmo de matching):**
-${candidatosFormatados
-  .map(
-    (p) =>
-  `[${p.index}] ${p.nome}
-   ├─ Código: ${p.referencia}
-   ├─ Descrição: ${p.narrativa}
-   ├─ Unidade: ${p.unidade} | Estoque: ${p.estoque} un
-   └─ Score inicial: ${p.scoreToken}/100 (${p.matching.tokens_exatos} tokens exatos, ref: ${p.matching.referencia_match ? "sim" : "não"})`,
-  )
-  .join("\n\n")}
+CANDIDATOS:
+${candidatosFormatados.map(p => `[${p.index}] ${p.nome} (${p.referencia}) - Score: ${p.scoreToken}`).join("\n")}
 
-**SUA TAREFA:**
-Analise cada produto candidato considerando:
+CRITÉRIOS:
+- 95-100: Match perfeito
+- 85-94: Equivalente funcional
+- 70-84: Compatível
+- <70: Baixa compatibilidade
 
-1. **Equivalência Técnica**: As especificações atendem a solicitação?
-2. **Compatibilidade de Uso**: Pode ser usado para a mesma finalidade?
-3. **Correspondência de Marca**: Se marca foi especificada, há match?
-4. **Adequação de Unidade**: A unidade de medida faz sentido?
-5. **Contexto Clínico**: Faz sentido no contexto médico-hospitalar?
+RESPONDA APENAS JSON: [{"index":0,"score":85,"justificativa":"...","razoes_match":["..."],"categoria_compativel":true,"aplicacao_compativel":true,"marca_match":false}]`;
 
-**CRITÉRIOS DE PONTUAÇÃO (0-100):**
-- **95-100**: Match perfeito e idêntico
-- **85-94**: Equivalente funcional com especificações iguais/superiores
-- **70-84**: Compatível com pequenas diferenças aceitáveis
-- **50-69**: Parcialmente compatível (pode servir em alguns casos)
-- **30-49**: Baixa compatibilidade (serve apenas como alternativa remota)
-- **0-29**: Incompatível ou inadequado
-
-**FORMATO DE RESPOSTA (JSON Array):**
-[
-  {
-    "index": 0,
-    "score": 85,
-    "justificativa": "Breve explicação clara e objetiva da análise",
-    "razoes_match": [
-      "Razão específica 1 (ex: mesma finalidade clínica)",
-      "Razão específica 2 (ex: especificações equivalentes)",
-      "Razão específica 3 (ex: marca compatível ou superior)"
-    ],
-    "categoria_compativel": true,
-    "aplicacao_compativel": true,
-    "marca_match": false,
-    "observacoes": "Comentário adicional se necessário"
-  }
-]
-
-**IMPORTANTE:**
-- Seja rigoroso mas justo na avaliação
-- Priorize segurança e adequação clínica
-- Considere alternativas equivalentes mesmo de marcas diferentes
-- Retorne APENAS o JSON array, sem markdown ou texto adicional`;
-
-    const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
+        "Authorization": `Bearer ${lovableApiKey}`,
         "Content-Type": "application/json",
-        Authorization: `Bearer ${deepseekApiKey}`,
       },
       body: JSON.stringify({
-        model: "deepseek-chat",
+        model: "google/gemini-2.5-flash",
         messages: [
           {
             role: "system",
             content:
-              "Você é um especialista em análise de produtos médico-hospitalares. Sua resposta deve ser APENAS um JSON válido, sem formatação markdown.",
+              "Você é especialista em produtos médico-hospitalares. Responda APENAS com JSON válido.",
           },
           { role: "user", content: prompt },
         ],
-        temperature: 0.3, // Reduzido para mais consistência
+        temperature: 0.3,
         max_tokens: 2000,
       }),
     });
 
     if (!response.ok) {
       if (response.status === 429) {
-        console.warn("⚠️ [DeepSeek] Rate limit atingido, continuando sem análise semântica");
+        console.warn("⚠️ [Lovable AI] Rate limit atingido");
         return [];
       }
-      throw new Error(`DeepSeek API error: ${response.status}`);
+      if (response.status === 402) {
+        console.warn("⚠️ [Lovable AI] Créditos insuficientes");
+        return [];
+      }
+      throw new Error(`Lovable AI error: ${response.status}`);
     }
 
     const data = await response.json();
     const content = data.choices?.[0]?.message?.content;
 
     if (!content) {
-      throw new Error("DeepSeek retornou resposta vazia");
+      throw new Error("IA retornou resposta vazia");
     }
 
-    // Extrair JSON (remover markdown se houver)
+    // Extrair JSON
     const jsonMatch = content.match(/\[[\s\S]*\]/);
     if (!jsonMatch) {
-      console.error("❌ [DeepSeek] Resposta inválida:", content.substring(0, 300));
+      console.error("❌ [IA] Resposta inválida:", content.substring(0, 300));
       return [];
     }
 
     const results = JSON.parse(jsonMatch[0]);
-    console.log(`✅ [DeepSeek] ${results.length} produtos analisados por IA`);
+    console.log(`✅ [IA] ${results.length} produtos analisados`);
 
     return results;
   } catch (error: any) {
-    console.error("❌ [DeepSeek] Erro:", error.message);
+    console.error("❌ [IA] Erro:", error.message);
     return [];
   }
 }
@@ -626,15 +594,21 @@ serve(async (req) => {
     console.log(`📦 Quantidade: ${quantidade_solicitada || "Não especificada"} ${unidade_medida || ""}`);
     console.log(`${"=".repeat(80)}\n`);
 
-    // ===== ETAPA 1: CARREGAR PRODUTOS =====
+    // ===== ETAPA 1: CARREGAR PRODUTOS COM BUSCA OTIMIZADA =====
     console.log("📂 [1/6] Carregando produtos do banco...");
+    
+    // Normalizar descrição para busca otimizada
+    const termosBusca = TextProcessor.tokenize(descricao_cliente).slice(0, 5);
+    const queryBusca = `%${termosBusca.join("%")}%`;
+    
     const { data: produtos, error: produtosError } = await supabase
       .from("produtos")
       .select(
         "id, referencia_interna, nome, preco_venda, unidade_medida, quantidade_em_maos, narrativa",
       )
       .gt("quantidade_em_maos", 0)
-      .limit(1000);
+      .or(`nome.ilike.${queryBusca},narrativa.ilike.${queryBusca},referencia_interna.ilike.${queryBusca}`)
+      .limit(MAX_PRODUTOS_BUSCA);
 
     if (produtosError) {
       throw new Error(`Erro ao buscar produtos: ${produtosError.message}`);
@@ -721,8 +695,8 @@ serve(async (req) => {
     const candidatosPorToken = AdvancedSearchEngine.searchProducts(
       descricao_cliente,
       produtos as Produto[],
-      Math.min(15, limite * 3),
-      min_score,
+      Math.min(10, limite * 2), // Reduzido de 15 para 10
+      MIN_SCORE_TOKEN,
     );
 
     const tempoToken = Date.now() - inicioToken;
