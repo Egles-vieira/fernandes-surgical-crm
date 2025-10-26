@@ -4840,6 +4840,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_admin: { Args: { _user_id: string }; Returns: boolean }
       list_users_with_roles: {
         Args: never
         Returns: {
