@@ -266,7 +266,20 @@ console.log('⏱️ Tempo de busca:', tempoMs);
 
 ## 📝 Changelog
 
-### v3.0 (2025-10-26) - ATUAL ⭐
+### v3.1 (2025-10-26) - ASSERTIVIDADE MÁXIMA ⭐ ATUAL
+- 🎯 **Precisão Aprimorada**: Filtros mais rigorosos para eliminar sugestões incorretas
+- ⬆️ MIN_SCORE_TOKEN: 20 → 35 (75% mais rigoroso)
+- ⬆️ Threshold pg_trgm: 0.15 → 0.25 (67% mais rigoroso)
+- 🔥 Penalidades severas: números críticos (0.2x), múltiplos números (0.3x)
+- 🤖 Prompt IA reformulado: foco em REJEIÇÃO de incompatíveis
+- 📊 Temperatura IA: 0.3 → 0.1 (mais conservador)
+- ⚖️ Pesos rebalanceados: IA 50%, Token 15%, Contexto 15%, pg_trgm 20%
+- ✅ Validação adicional: IA score <50 = limite máximo de 50
+- 🎯 Confiança rigorosa: Alta ≥90, Média ≥70
+- 📉 Candidatos IA reduzidos: 8 → 5 (apenas melhores)
+- 🚫 Filtro pré-IA: score ≥40 obrigatório
+
+### v3.0 (2025-10-26)
 - ✅ **Full-Text Search com pg_trgm** implementado
 - ✅ Funções SQL `buscar_produtos_similares` e `buscar_produtos_hibrido`
 - ✅ Score pg_trgm integrado na combinação final (25-30% do peso)
