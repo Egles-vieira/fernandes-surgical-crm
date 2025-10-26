@@ -28,6 +28,7 @@ export interface EDICotacao {
   analisado_por_ia: boolean | null;
   total_itens_analisados: number | null;
   tempo_analise_segundos: number | null;
+  tags: string[] | null;
   plataformas_edi?: {
     nome: string;
     slug: string;

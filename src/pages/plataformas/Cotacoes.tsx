@@ -229,6 +229,15 @@ export default function Cotacoes() {
                             totalItens={cotacao.total_itens}
                             tempoEstimado={cotacao.tempo_analise_segundos || undefined}
                           />
+                          {cotacao.tags && cotacao.tags.length > 0 && cotacao.tags.map(tag => (
+                            <Badge 
+                              key={tag} 
+                              variant="destructive" 
+                              className="text-xs"
+                            >
+                              {tag}
+                            </Badge>
+                          ))}
                           <span className="text-xs text-muted-foreground">
                             {format(new Date(cotacao.data_vencimento_atual), "dd/MM/yyyy | HH:mm", { locale: ptBR })}
                           </span>

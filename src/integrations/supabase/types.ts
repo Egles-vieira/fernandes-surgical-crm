@@ -708,6 +708,7 @@ export type Database = {
             | Database["public"]["Enums"]["status_analise_ia"]
             | null
           step_atual: string
+          tags: string[] | null
           tempo_analise_segundos: number | null
           total_itens: number | null
           total_itens_analisados: number | null
@@ -762,6 +763,7 @@ export type Database = {
             | Database["public"]["Enums"]["status_analise_ia"]
             | null
           step_atual?: string
+          tags?: string[] | null
           tempo_analise_segundos?: number | null
           total_itens?: number | null
           total_itens_analisados?: number | null
@@ -816,6 +818,7 @@ export type Database = {
             | Database["public"]["Enums"]["status_analise_ia"]
             | null
           step_atual?: string
+          tags?: string[] | null
           tempo_analise_segundos?: number | null
           total_itens?: number | null
           total_itens_analisados?: number | null

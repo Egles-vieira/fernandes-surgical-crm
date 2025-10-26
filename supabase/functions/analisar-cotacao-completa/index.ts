@@ -237,6 +237,20 @@ serve(async (req) => {
 
     const itensSucesso = contagemFinal?.length ?? 0; // head:true -> length undefined; manter 0 e confiar em campos agregados
 
+    // Verificar se algum produto foi encontrado
+    const { data: itensSugestoes } = await supabase
+      .from('edi_cotacoes_itens')
+      .select('produtos_sugeridos_ia')
+      .eq('cotacao_id', cotacao_id)
+      .not('produtos_sugeridos_ia', 'is', null);
+
+    const totalProdutosEncontrados = itensSugestoes?.filter(
+      item => item.produtos_sugeridos_ia && Array.isArray(item.produtos_sugeridos_ia) && item.produtos_sugeridos_ia.length > 0
+    ).length ?? 0;
+
+    // Adicionar tag se nenhum produto foi encontrado
+    const tags = totalProdutosEncontrados === 0 ? ['Sem produtos CF'] : [];
+
     await supabase
       .from('edi_cotacoes')
       .update({
@@ -244,6 +258,7 @@ serve(async (req) => {
         analise_ia_concluida_em: fimAnalise.toISOString(),
         progresso_analise_percent: 100,
         step_atual: 'em_analise', // Mantém em análise para o usuário revisar as sugestões
+        tags: tags,
       })
       .eq('id', cotacao_id);
 
