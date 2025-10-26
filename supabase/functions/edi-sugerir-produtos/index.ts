@@ -672,7 +672,7 @@ serve(async (req) => {
     const numerosQuery = TextProcessor.extractNumbers(descricao_cliente);
     const timestampBuscaInicio = Date.now();
     
-    let produtos: Produto[];
+    let produtos: Produto[] = [];
     let metodoUsado = "";
     let scoresBusca = { texto: 0, numeros: 0 };
 
@@ -686,18 +686,26 @@ serve(async (req) => {
           p_limite: MAX_PRODUTOS_BUSCA
         });
       
-      if (error) throw new Error(`Erro busca híbrida: ${error.message}`);
+      if (error) {
+        console.error("❌ Erro busca híbrida:", error);
+        throw new Error(`Erro busca híbrida: ${error.message}`);
+      }
       
-      produtos = (data || []).map((p: any) => ({
-        id: p.id,
-        referencia_interna: p.referencia_interna,
-        nome: p.nome,
-        preco_venda: p.preco_venda,
-        unidade_medida: p.unidade_medida,
-        quantidade_em_maos: p.quantidade_em_maos,
-        narrativa: p.narrativa,
-        score_pg_trgm: p.score_total
-      }));
+      // Mapear resultados com tipo explícito
+      produtos = (data || []).map((row: any) => {
+        const p: Produto = {
+          id: row.id,
+          referencia_interna: row.referencia_interna || '',
+          nome: row.nome || '',
+          preco_venda: row.preco_venda || 0,
+          unidade_medida: row.unidade_medida || '',
+          quantidade_em_maos: row.quantidade_em_maos || 0,
+          narrativa: row.narrativa || '',
+        };
+        // Adicionar score como propriedade customizada
+        (p as any).score_pg_trgm = row.score_total || 0;
+        return p;
+      });
       
       metodoUsado = "hibrido";
       if (data && data.length > 0) {
@@ -718,18 +726,26 @@ serve(async (req) => {
           p_similaridade_minima: 0.15
         });
       
-      if (error) throw new Error(`Erro busca similar: ${error.message}`);
+      if (error) {
+        console.error("❌ Erro busca similar:", error);
+        throw new Error(`Erro busca similar: ${error.message}`);
+      }
       
-      produtos = (data || []).map((p: any) => ({
-        id: p.id,
-        referencia_interna: p.referencia_interna,
-        nome: p.nome,
-        preco_venda: p.preco_venda,
-        unidade_medida: p.unidade_medida,
-        quantidade_em_maos: p.quantidade_em_maos,
-        narrativa: p.narrativa,
-        score_pg_trgm: p.score_similaridade
-      }));
+      // Mapear resultados com tipo explícito
+      produtos = (data || []).map((row: any) => {
+        const p: Produto = {
+          id: row.id,
+          referencia_interna: row.referencia_interna || '',
+          nome: row.nome || '',
+          preco_venda: row.preco_venda || 0,
+          unidade_medida: row.unidade_medida || '',
+          quantidade_em_maos: row.quantidade_em_maos || 0,
+          narrativa: row.narrativa || '',
+        };
+        // Adicionar score como propriedade customizada
+        (p as any).score_pg_trgm = row.score_similaridade || 0;
+        return p;
+      });
       
       metodoUsado = "similaridade";
       if (data && data.length > 0) {
