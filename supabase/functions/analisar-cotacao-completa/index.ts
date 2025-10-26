@@ -7,8 +7,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Configuração otimizada - Reduzir lote para evitar timeout
-const BATCH_SIZE = 5; // Reduzido de 10 para 5
+// Configuração otimizada para análise PARALELA
+const BATCH_SIZE = 3; // Reduzido para 3 itens simultâneos = mais estável
 
 serve(async (req) => {
   // CORS
@@ -73,8 +73,8 @@ serve(async (req) => {
         itens_analisados: itensJaAnalisados,
         total_itens_para_analise: totalItens,
         total_sugestoes_geradas: cotacao.total_sugestoes_geradas ?? 0,
-        modelo_ia_utilizado: 'google/gemini-2.5-flash',
-        versao_algoritmo: '2.1-batch-resume',
+        modelo_ia_utilizado: 'deepseek-chat',
+        versao_algoritmo: '3.5-parallel-optimized',
       })
       .eq('id', cotacao_id);
 
@@ -98,9 +98,9 @@ serve(async (req) => {
     const lote = itensPendentes.slice(0, BATCH_SIZE);
     let totalSugestoesGeradas = cotacao.total_sugestoes_geradas ?? 0;
 
-    for (let idx = 0; idx < lote.length; idx++) {
-      const item = lote[idx];
-      const itemIndexGlobal = itensJaAnalisados + idx + 1; // posição real considerando já analisados
+    // Processar itens do lote EM PARALELO para ser MUITO mais rápido
+    const promessasAnalise = lote.map(async (item, idx) => {
+      const itemIndexGlobal = itensJaAnalisados + idx + 1;
       const itemInicio = Date.now();
 
       try {
@@ -151,58 +151,67 @@ serve(async (req) => {
           })
           .eq('id', item.id);
 
-        totalSugestoesGeradas += sugestoes.length;
+        if (sugestoes.length > 0) {
+          totalSugestoesGeradas += sugestoes.length;
+        }
 
-        // Atualizar progresso parcial e heartbeat
-        const itensAnalisadosAgora = itensJaAnalisados + idx + 1;
-        const percentual = Math.round((itensAnalisadosAgora / totalItens) * 100);
-        await supabase
-          .from('edi_cotacoes')
-          .update({
-            progresso_analise_percent: percentual,
-            itens_analisados: itensAnalisadosAgora,
-            total_sugestoes_geradas: totalSugestoesGeradas,
-          })
-          .eq('id', cotacao_id);
-
-        // Broadcast do item e progresso
-        await emitirBroadcast(
-          supabase,
-          `edi_cotacoes_changes`, // Usando canal global
-          'analise-item-concluido',
-          {
-            cotacao_id,
-            item_descricao: item.descricao_produto_cliente,
-            sugestoes_encontradas: sugestoes.length,
-            score: scoreConfianca,
-          }
-        );
-
-        await emitirBroadcast(
-          supabase,
-          `edi_cotacoes_changes`, // Usando canal global
-          'analise-progresso',
-          {
-            cotacao_id,
-            status: 'processando',
-            total_itens: totalItens,
-            itens_analisados: itensAnalisadosAgora,
-            itens_pendentes: totalItens - itensAnalisadosAgora,
-            percentual,
-            itens_detalhes: [],
-          }
-        );
-
+        const itemProgresso = Math.round((itemIndexGlobal / totalItens) * 100);
         console.log(`✅ Item ${itemIndexGlobal}/${totalItens} analisado - Score: ${scoreConfianca}% - ${tempoMs}ms`);
-      } catch (err) {
-        console.error(`❌ Erro ao analisar item ${item.id}:`, err);
-        // Marca item para revisão
+
+        // Broadcast de conclusão do item
+        await emitirBroadcast(supabase, 'edi_cotacoes_changes', 'analise-item-concluido', {
+          cotacao_id,
+          item_id: item.id,
+          item_numero: item.numero_item,
+          score_confianca: scoreConfianca,
+          tem_sugestoes: sugestoes.length > 0,
+          tempo_ms: tempoMs,
+        });
+
+        // Broadcast de progresso
+        await emitirBroadcast(supabase, 'edi_cotacoes_changes', 'analise-progresso', {
+          cotacao_id,
+          total_itens: totalItens,
+          itens_analisados: itemIndexGlobal,
+          percentual: itemProgresso,
+          status: 'analisando',
+          itens_detalhes: [],
+        });
+
+        return { sucesso: true, item_id: item.id, score: scoreConfianca };
+      } catch (erro: any) {
+        console.error(`❌ Erro ao analisar item ${item.id}:`, erro);
+        
+        // Marcar item como erro
         await supabase
           .from('edi_cotacoes_itens')
-          .update({ analisado_por_ia: false, requer_revisao_humana: true })
+          .update({
+            analisado_por_ia: true,
+            analisado_em: new Date().toISOString(),
+            justificativa_ia: `Erro: ${erro.message}`,
+            score_confianca_ia: 0,
+            requer_revisao_humana: true,
+          })
           .eq('id', item.id);
+
+        return { sucesso: false, item_id: item.id, erro: erro.message };
       }
-    }
+    });
+
+    // Aguardar TODAS as análises em paralelo
+    const resultados = await Promise.all(promessasAnalise);
+
+    // Atualizar progresso final do lote
+    const itensAnalisadosAposLote = itensJaAnalisados + lote.length;
+    const percentualFinal = Math.round((itensAnalisadosAposLote / totalItens) * 100);
+    await supabase
+      .from('edi_cotacoes')
+      .update({
+        progresso_analise_percent: percentualFinal,
+        itens_analisados: itensAnalisadosAposLote,
+        total_sugestoes_geradas: totalSugestoesGeradas,
+      })
+      .eq('id', cotacao_id);
 
     // Verificar se ainda restam itens (executar próximo lote em background)
     const { count: pendentesRestantes } = await supabase

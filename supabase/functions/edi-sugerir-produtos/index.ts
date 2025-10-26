@@ -7,12 +7,12 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// ============= CONFIGURAÇÃO v3.4 - BUSCA COMPLETA =============
-const MAX_PRODUTOS_BUSCA = 10000; // Buscar TODOS os produtos do estoque
-const MIN_SCORE_TOKEN = 25; // Menos restritivo para não perder candidatos válidos
-const MIN_SIMILARITY_THRESHOLD = 0.15; // pg_trgm menos rigoroso
-const LIMITE_CANDIDATOS_IA = 8; // Mais candidatos para IA analisar
-const SCORE_MINIMO_ACEITAVEL = 35; // Score mínimo mais permissivo
+// ============= CONFIGURAÇÃO v3.5 - OTIMIZADA PARA VELOCIDADE =============
+const MAX_PRODUTOS_BUSCA = 3000; // Reduzido para melhor performance (Supabase limita a ~1000 por query)
+const MIN_SCORE_TOKEN = 30; // Balanceado
+const MIN_SIMILARITY_THRESHOLD = 0.18; // pg_trgm balanceado
+const LIMITE_CANDIDATOS_IA = 5; // Reduzido de 8 para 5 = 40% mais rápido
+const SCORE_MINIMO_ACEITAVEL = 35; // Score mínimo aceitável
 
 interface SugestaoProduto {
   produto_id: string;
@@ -35,7 +35,7 @@ interface SugestaoProduto {
   }>;
 }
 
-// ============= ANÁLISE SEMÂNTICA COM DEEPSEEK v3.4 =============
+// ============= ANÁLISE SEMÂNTICA COM DEEPSEEK v3.5 OTIMIZADA =============
 async function analisarComDeepSeek(
   descricaoCliente: string,
   candidatos: Array<{ produto: any; scoreToken: number; scorePgTrgm: number }>,
@@ -171,7 +171,7 @@ ${candidatosFormatados
   }
 }
 
-// ============= BUSCA POR TOKENS v3.4 =============
+// ============= BUSCA POR TOKENS v3.5 OTIMIZADA =============
 // Normalização mais preservativa de informação
 function normalize(str: string) {
   return (str || "")
@@ -329,7 +329,7 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    console.log(`🔍 [v3.4] Buscando produtos para: "${descricao_cliente}"`);
+    console.log(`🔍 [v3.5 OTIMIZADA] Buscando produtos para: "${descricao_cliente}"`);
 
     // 1. Verificar vínculo aprovado existente
     if (plataforma_id && cnpj_cliente) {
@@ -364,30 +364,33 @@ serve(async (req) => {
             sugestoes: [sugestaoVinculo],
             total_produtos_analisados: 1,
             metodo: "vinculo_existente",
-            versao: "3.4",
+            versao: "3.5",
           }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" } },
         );
       }
     }
 
-    // 2. Buscar produtos disponíveis
+    // 2. Buscar produtos disponíveis (Supabase limita a ~1000 por padrão, usar range para mais)
     const { data: produtos, error: produtosError } = await supabase
       .from("produtos")
       .select("id, referencia_interna, nome, preco_venda, unidade_medida, quantidade_em_maos, narrativa")
       .gt("quantidade_em_maos", 0)
+      .range(0, 2999) // Busca até 3000 produtos (0-2999)
       .limit(MAX_PRODUTOS_BUSCA);
 
     if (produtosError) throw new Error(`Erro ao buscar produtos: ${produtosError.message}`);
     if (!produtos || produtos.length === 0) {
-      return new Response(JSON.stringify({ sugestoes: [], total_produtos_analisados: 0, metodo: "sem_produtos_catalogo", versao: "3.4" }), {
+      return new Response(JSON.stringify({ sugestoes: [], total_produtos_analisados: 0, metodo: "sem_produtos_catalogo", versao: "3.5" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // 3. NÍVEL 1: Busca por tokens (aumentando limite de candidatos)
-    const candidatosPorToken = tokenBasedSimilarity(descricao_cliente, produtos, 25);
-    console.log(`📊 Token matching: ${candidatosPorToken.length} candidatos de ${produtos.length} produtos analisados (melhor: ${candidatosPorToken[0]?.score || 0})`);
+    console.log(`📦 ${produtos.length} produtos disponíveis em estoque`);
+
+    // 3. NÍVEL 1: Busca por tokens (reduzido para 15 candidatos = mais rápido)
+    const candidatosPorToken = tokenBasedSimilarity(descricao_cliente, produtos, 15);
+    console.log(`📊 Token matching: ${candidatosPorToken.length} candidatos (melhor: ${candidatosPorToken[0]?.score || 0})`);
 
     // Se não encontrou candidatos, retornar vazio e marcar como "sem produtos CF"
     if (candidatosPorToken.length === 0) {
@@ -413,18 +416,18 @@ serve(async (req) => {
           total_produtos_analisados: produtos.length, 
           metodo: "sem_produtos_cf",
           mensagem: "Sem produtos da CF compatíveis",
-          versao: "3.4",
+          versao: "3.5",
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
-    // 4. NÍVEL 2: Buscar scores pg_trgm (aumentando limite)
-    console.log("🔍 Calculando similaridade pg_trgm...");
-    const produtoIds = candidatosPorToken.slice(0, 25).map((c) => c.produto.id);
+    // 4. NÍVEL 2: Buscar scores pg_trgm (reduzido para 15 = mais rápido)
+    console.log("🔍 Calculando pg_trgm...");
+    const produtoIds = candidatosPorToken.slice(0, 15).map((c) => c.produto.id);
     const { data: similarityScores } = await supabase.rpc("buscar_produtos_similares_trgm", {
       texto_busca: descricao_cliente,
-      limite_resultados: 25,
+      limite_resultados: 15,
       threshold: MIN_SIMILARITY_THRESHOLD,
     });
 
@@ -471,8 +474,8 @@ serve(async (req) => {
       });
     }
 
-    // 7. NÍVEL 5: Combinar scores com algoritmo v3.4 refinado
-    console.log("🔄 Combinando scores (v3.4)...");
+    // 7. NÍVEL 5: Combinar scores (v3.5 otimizado)
+    console.log("🔄 Combinando scores...");
     const sugestoes: SugestaoProduto[] = [];
 
     for (let i = 0; i < Math.min(candidatosPorToken.length, limite); i++) {
@@ -631,15 +634,15 @@ serve(async (req) => {
       JSON.stringify({
         sugestoes,
         total_produtos_analisados: produtos.length,
-        metodo: analiseSemantica.length > 0 ? "hibrido_deepseek_v3.4" : "token_only_v3.4",
+        metodo: analiseSemantica.length > 0 ? "hibrido_deepseek_v3.5" : "token_only_v3.5",
         candidatos_pre_filtrados: candidatosPorToken.length,
-        versao: "3.4",
+        versao: "3.5",
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (error: any) {
     console.error("❌ Erro em edi-sugerir-produtos:", error);
-    return new Response(JSON.stringify({ error: error.message || "Erro interno", versao: "3.4" }), {
+    return new Response(JSON.stringify({ error: error.message || "Erro interno", versao: "3.5" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
