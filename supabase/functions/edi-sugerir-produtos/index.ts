@@ -49,9 +49,6 @@ interface Produto {
   unidade_medida: string;
   quantidade_em_maos: number;
   narrativa: string;
-  categoria?: string;
-  marca?: string;
-  aplicacao?: string;
 }
 
 // ============= NORMALIZAÇÃO E TOKENIZAÇÃO AVANÇADA =============
@@ -429,7 +426,6 @@ async function analisarComIA(
       narrativa: c.produto.narrativa || "Sem descrição detalhada",
       unidade: c.produto.unidade_medida,
       estoque: c.produto.quantidade_em_maos,
-      categoria: c.produto.categoria || "Não especificada",
       scoreToken: c.scoreToken,
       matching: {
         tokens_exatos: c.details.tokens_exatos,
@@ -449,11 +445,10 @@ ${contexto.quantidade ? `→ Quantidade: ${contexto.quantidade} ${contexto.unida
 ${candidatosFormatados
   .map(
     (p) =>
-      `[${p.index}] ${p.nome}
+  `[${p.index}] ${p.nome}
    ├─ Código: ${p.referencia}
    ├─ Descrição: ${p.narrativa}
    ├─ Unidade: ${p.unidade} | Estoque: ${p.estoque} un
-   ├─ Categoria: ${p.categoria}
    └─ Score inicial: ${p.scoreToken}/100 (${p.matching.tokens_exatos} tokens exatos, ref: ${p.matching.referencia_match ? "sim" : "não"})`,
   )
   .join("\n\n")}
@@ -564,18 +559,6 @@ function calcularScoreContexto(
 ): number {
   let score = 0;
 
-  // Marca compatível
-  if (contexto.marca && produto.marca) {
-    const marcaQuery = TextProcessor.normalize(contexto.marca);
-    const marcaProduto = TextProcessor.normalize(produto.marca);
-
-    if (marcaProduto === marcaQuery) {
-      score += 30;
-    } else if (marcaProduto.includes(marcaQuery) || marcaQuery.includes(marcaProduto)) {
-      score += 15;
-    }
-  }
-
   // Unidade de medida compatível
   if (contexto.unidade_medida && produto.unidade_medida) {
     if (TextProcessor.unidadesCompativeis(contexto.unidade_medida, produto.unidade_medida)) {
@@ -648,7 +631,7 @@ serve(async (req) => {
     const { data: produtos, error: produtosError } = await supabase
       .from("produtos")
       .select(
-        "id, referencia_interna, nome, preco_venda, unidade_medida, quantidade_em_maos, narrativa, categoria, marca, aplicacao",
+        "id, referencia_interna, nome, preco_venda, unidade_medida, quantidade_em_maos, narrativa",
       )
       .gt("quantidade_em_maos", 0)
       .limit(1000);
