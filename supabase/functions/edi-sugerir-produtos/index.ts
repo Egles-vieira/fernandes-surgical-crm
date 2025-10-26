@@ -389,37 +389,78 @@ serve(async (req) => {
     console.log(`📦 ${produtos.length} produtos disponíveis em estoque`);
 
     // 3. NÍVEL 1: Busca por tokens (reduzido para 15 candidatos = mais rápido)
-    const candidatosPorToken = tokenBasedSimilarity(descricao_cliente, produtos, 15);
+    let candidatosPorToken = tokenBasedSimilarity(descricao_cliente, produtos, 15);
     console.log(`📊 Token matching: ${candidatosPorToken.length} candidatos (melhor: ${candidatosPorToken[0]?.score || 0})`);
 
-    // Se não encontrou candidatos, retornar vazio e marcar como "sem produtos CF"
+    // Fallback: se não encontrou candidatos, relaxar critérios e tentar novamente antes de desistir
     if (candidatosPorToken.length === 0) {
-      console.log("❌ Nenhum candidato encontrado - marcando como 'sem produtos CF'");
-      
-      // Marcar item como sem produtos CF se item_id foi fornecido
-      if (item_id) {
-        await supabase
-          .from("edi_cotacoes_itens")
-          .update({
-            sem_produtos_cf: true,
-            motivo_sem_produtos: "Nenhum produto da CF Fernandes compatível foi encontrado após análise automática",
-            analisado_por_ia: true,
-            analise_ia_em: new Date().toISOString(),
-            score_confianca_ia: 0,
-          })
-          .eq("id", item_id);
-      }
+      console.log("⚠️ Nenhum candidato via tokens — ativando fallback relaxado");
 
-      return new Response(
-        JSON.stringify({ 
-          sugestoes: [], 
-          total_produtos_analisados: produtos.length, 
-          metodo: "sem_produtos_cf",
-          mensagem: "Sem produtos da CF compatíveis",
-          versao: "3.5",
-        }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
+      const queryTokens = tokenize(descricao_cliente);
+      const queryNumbers = extractNumbers(descricao_cliente);
+      const queryNorm = normalize(descricao_cliente);
+
+      // Estratégia relaxada: considerar qualquer ocorrência de token (>=4 chars) ou referência/substring
+      const fallback = produtos
+        .map((p) => {
+          const textoProduto = `${p.nome} ${p.referencia_interna} ${p.narrativa || ""}`;
+          const produtoNorm = normalize(textoProduto);
+          const produtoTokens = tokenize(textoProduto);
+          const produtoNumbers = extractNumbers(textoProduto);
+
+          let hits = 0;
+          for (const t of queryTokens) {
+            if (t.length >= 4 && (produtoTokens.includes(t) || produtoNorm.includes(t))) hits++;
+          }
+
+          const numberHits = queryNumbers.filter((n) => produtoNumbers.includes(n)).length;
+          const hasRef = p.referencia_interna && (queryNorm.includes(normalize(p.referencia_interna)) || normalize(p.referencia_interna).includes(queryNorm));
+          const hasSubstring = produtoNorm.includes(queryNorm) || queryNorm.includes(produtoNorm);
+
+          // Score simples e permissivo
+          let score = 0;
+          score += hits * 20;
+          score += numberHits * 30;
+          if (hasRef) score += 60;
+          if (hasSubstring) score += 20;
+
+          return { produto: p, score: Math.min(100, Math.round(score)) };
+        })
+        .filter((c) => c.score >= 10)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 10);
+
+      if (fallback.length > 0) {
+        candidatosPorToken = fallback;
+        console.log(`🛟 Fallback relaxado recuperou ${fallback.length} candidatos (melhor: ${fallback[0].score})`);
+      } else {
+        console.log("❌ Nenhum candidato encontrado mesmo após fallback - marcando como 'sem produtos CF'");
+
+        // Marcar item como sem produtos CF se item_id foi fornecido
+        if (item_id) {
+          await supabase
+            .from("edi_cotacoes_itens")
+            .update({
+              sem_produtos_cf: true,
+              motivo_sem_produtos: "Nenhum produto da CF Fernandes compatível encontrado (token e fallback)",
+              analisado_por_ia: true,
+              analise_ia_em: new Date().toISOString(),
+              score_confianca_ia: 0,
+            })
+            .eq("id", item_id);
+        }
+
+        return new Response(
+          JSON.stringify({ 
+            sugestoes: [], 
+            total_produtos_analisados: produtos.length, 
+            metodo: "sem_produtos_cf",
+            mensagem: "Sem produtos da CF compatíveis",
+            versao: "3.5",
+          }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
     }
 
     // 4. NÍVEL 2: Buscar scores pg_trgm (reduzido para 15 = mais rápido)
