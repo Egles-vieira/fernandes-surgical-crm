@@ -6,6 +6,7 @@ import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import Papa from 'papaparse';
+import * as XLSX from 'xlsx';
 
 interface ImportResult {
   success: number;
@@ -24,10 +25,13 @@ export default function ImportarProdutos() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!file.name.endsWith('.csv')) {
+    const isExcel = file.name.endsWith('.xlsx') || file.name.endsWith('.xls');
+    const isCsv = file.name.endsWith('.csv');
+
+    if (!isExcel && !isCsv) {
       toast({
         title: "Erro",
-        description: "Por favor, selecione um arquivo CSV",
+        description: "Por favor, selecione um arquivo CSV ou Excel (.xlsx, .xls)",
         variant: "destructive",
       });
       return;
@@ -38,26 +42,54 @@ export default function ImportarProdutos() {
     setResult(null);
 
     try {
-      const text = await file.text();
-      
-      // Detect separator (tab or semicolon)
-      const firstLine = text.split('\n')[0];
-      const delimiter = firstLine.includes('\t') ? '\t' : ';';
-      
-      // Parse CSV with PapaParse
-      const parseResult = Papa.parse(text, {
-        header: true,
-        delimiter,
-        skipEmptyLines: 'greedy',
-        transformHeader: (h: string) =>
-          h.replace(/^\uFEFF/, '') // Remove BOM
-           .trim()
-           .toLowerCase()
-           .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // Remove accents
-           .replace(/[^\w]+/g, '_'), // Replace non-word chars with underscore
-      });
+      let produtos: any[] = [];
 
-      const produtos = parseResult.data as any[];
+      if (isExcel) {
+        // Process Excel file
+        const arrayBuffer = await file.arrayBuffer();
+        const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+        const jsonData = XLSX.utils.sheet_to_json(firstSheet, { 
+          raw: false,
+          defval: ''
+        });
+
+        // Transform headers to match expected format
+        produtos = jsonData.map((row: any) => {
+          const transformedRow: any = {};
+          Object.keys(row).forEach(key => {
+            const transformedKey = key
+              .trim()
+              .toLowerCase()
+              .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+              .replace(/[^\w]+/g, '_');
+            transformedRow[transformedKey] = row[key];
+          });
+          return transformedRow;
+        });
+      } else {
+        // Process CSV file
+        const text = await file.text();
+        
+        // Detect separator (tab or semicolon)
+        const firstLine = text.split('\n')[0];
+        const delimiter = firstLine.includes('\t') ? '\t' : ';';
+        
+        // Parse CSV with PapaParse
+        const parseResult = Papa.parse(text, {
+          header: true,
+          delimiter,
+          skipEmptyLines: 'greedy',
+          transformHeader: (h: string) =>
+            h.replace(/^\uFEFF/, '') // Remove BOM
+             .trim()
+             .toLowerCase()
+             .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // Remove accents
+             .replace(/[^\w]+/g, '_'), // Replace non-word chars with underscore
+        });
+
+        produtos = parseResult.data as any[];
+      }
 
       const total = produtos.length;
       let success = 0;
@@ -177,7 +209,7 @@ export default function ImportarProdutos() {
     <div className="p-8 space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-primary">Importar Produtos</h1>
-        <p className="text-muted-foreground">Importe produtos em lote via arquivo CSV</p>
+        <p className="text-muted-foreground">Importe produtos em lote via arquivo CSV ou Excel</p>
       </div>
 
       <Card className="p-8 shadow-elegant">
@@ -186,9 +218,9 @@ export default function ImportarProdutos() {
             <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
               <FileSpreadsheet className="text-primary" size={40} />
             </div>
-            <h3 className="text-lg font-semibold mb-2">Formato do CSV</h3>
+            <h3 className="text-lg font-semibold mb-2">Formato do Arquivo</h3>
             <p className="text-sm text-muted-foreground mb-4">
-              O arquivo deve conter as seguintes colunas:
+              Aceita CSV, XLS e XLSX com as seguintes colunas:
             </p>
             <div className="bg-muted/50 p-4 rounded-lg text-left max-w-2xl mx-auto">
               <p className="text-xs mb-2 font-semibold">Aceita separadores: ponto-e-vírgula (;) ou tabulação (TAB)</p>
@@ -209,20 +241,20 @@ export default function ImportarProdutos() {
             <div className="border-2 border-dashed border-border rounded-lg p-12 text-center">
               <Upload className="mx-auto text-muted-foreground mb-4" size={48} />
               <p className="text-muted-foreground mb-4">
-                Arraste e solte seu arquivo CSV aqui ou clique para selecionar
+                Arraste e solte seu arquivo CSV ou Excel aqui ou clique para selecionar
               </p>
               <label htmlFor="file-upload">
                 <Button asChild>
                   <span>
                     <Upload size={16} className="mr-2" />
-                    Selecionar Arquivo CSV
+                    Selecionar Arquivo (CSV/Excel)
                   </span>
                 </Button>
               </label>
               <input
                 id="file-upload"
                 type="file"
-                accept=".csv"
+                accept=".csv,.xlsx,.xls"
                 className="hidden"
                 onChange={handleFileUpload}
               />
