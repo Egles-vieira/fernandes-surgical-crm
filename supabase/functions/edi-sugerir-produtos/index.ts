@@ -375,9 +375,9 @@ class AdvancedSearchEngine {
         tokens_exatos: exactMatches,
         tokens_parciais: partialMatches + fuzzyMatches,
         numeros_match: numberMatchCount,
-        referencia_match: hasExactRef,
+        referencia_match: !!hasExactRef,
         substring_match: hasSubstring,
-        categoria_match: categoryMatch,
+        categoria_match: !!categoryMatch,
         unidade_compativel: unidadeCompativel,
       },
     };
