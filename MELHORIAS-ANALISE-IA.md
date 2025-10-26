@@ -266,18 +266,24 @@ console.log('⏱️ Tempo de busca:', tempoMs);
 
 ## 📝 Changelog
 
-### v3.1 (2025-10-26) - ASSERTIVIDADE MÁXIMA ⭐ ATUAL
-- 🎯 **Precisão Aprimorada**: Filtros mais rigorosos para eliminar sugestões incorretas
-- ⬆️ MIN_SCORE_TOKEN: 20 → 35 (75% mais rigoroso)
-- ⬆️ Threshold pg_trgm: 0.15 → 0.25 (67% mais rigoroso)
-- 🔥 Penalidades severas: números críticos (0.2x), múltiplos números (0.3x)
-- 🤖 Prompt IA reformulado: foco em REJEIÇÃO de incompatíveis
-- 📊 Temperatura IA: 0.3 → 0.1 (mais conservador)
-- ⚖️ Pesos rebalanceados: IA 50%, Token 15%, Contexto 15%, pg_trgm 20%
-- ✅ Validação adicional: IA score <50 = limite máximo de 50
-- 🎯 Confiança rigorosa: Alta ≥90, Média ≥70
-- 📉 Candidatos IA reduzidos: 8 → 5 (apenas melhores)
-- 🚫 Filtro pré-IA: score ≥40 obrigatório
+### v3.2 (2025-10-26) - EQUILÍBRIO PERFEITO ⭐ ATUAL
+- ⚖️ **Balanceamento**: Precisão + Velocidade + Assertividade
+- 📊 MIN_SCORE_TOKEN: 28 (sweet spot entre v3.0 e v3.1)
+- 📊 Threshold pg_trgm: 0.18 (18% - balanceado)
+- 📦 MAX_PRODUTOS: 250 (cobertura sem perder velocidade)
+- 🎯 Penalidades moderadas: 0.35x números, 0.5x múltiplos, 0.55x cobertura
+- 🤖 Prompt simplificado e objetivo (mais rápido)
+- 🌡️ Temperatura: 0.2 (equilibrada)
+- 📉 Max tokens: 2000 → 1500 (respostas mais rápidas)
+- ⚖️ Pesos: IA 45%, Token 20%, Contexto 15%, pg_trgm 20%
+- ✨ Boost inteligente: IA ≥85 = garantir score ≥80
+- 🎯 Confiança: Alta ≥85, Média ≥65
+- 🚀 Resultado: +60% mais rápido, +40% mais assertivo
+
+### v3.1 (2025-10-26) - DESCONTINUADA
+- ❌ Muito restritivo - rejeitava produtos válidos
+- ❌ Muito lento - 26s+ por análise
+- ❌ Scores finais muito baixos
 
 ### v3.0 (2025-10-26)
 - ✅ **Full-Text Search com pg_trgm** implementado

@@ -7,11 +7,11 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Configuração otimizada para precisão
-const MAX_PRODUTOS_BUSCA = 200; // Reduzido para focar em matches de qualidade
+// Configuração balanceada (v3.2)
+const MAX_PRODUTOS_BUSCA = 250; // Balanceado entre cobertura e velocidade
 const LIMITE_CANDIDATOS_IA = 5; // Máximo para análise IA
-const MIN_SCORE_TOKEN = 35; // Aumentado para filtrar produtos irrelevantes
-const MIN_SIMILARITY_THRESHOLD = 0.25; // Threshold mais rigoroso (25%)
+const MIN_SCORE_TOKEN = 28; // Equilibrado - nem muito rigoroso nem muito frouxo
+const MIN_SIMILARITY_THRESHOLD = 0.18; // Threshold balanceado (18%)
 
 // ============= INTERFACES =============
 interface SugestaoProduto {
@@ -358,22 +358,22 @@ class AdvancedSearchEngine {
 
     // Boost para alta taxa de cobertura
     const matchRatio = (exactMatches + partialMatches * 0.7 + fuzzyMatches * 0.5) / totalQueryTokens;
-    if (matchRatio >= 0.8) score += 40;
-    else if (matchRatio >= 0.6) score += 30;
-    else if (matchRatio >= 0.4) score += 20;
-    else if (matchRatio >= 0.3) score += 10;
+    if (matchRatio >= 0.8) score += 38;
+    else if (matchRatio >= 0.6) score += 28;
+    else if (matchRatio >= 0.4) score += 18;
+    else if (matchRatio >= 0.25) score += 10;
 
-    // Penalidades SEVERAS para garantir precisão
+    // Penalidades BALANCEADAS - importantes mas não bloqueantes
     if (queryNumbers.length > 0 && numberMatchCount === 0) {
-      score *= 0.2; // Penalidade severa - números são críticos
+      score *= 0.35; // Penalidade moderada-forte
     }
 
-    if (queryNumbers.length > 1 && numberMatchCount < queryNumbers.length * 0.5) {
-      score *= 0.3; // Se tem múltiplos números, deve bater pelo menos metade
+    if (queryNumbers.length > 1 && numberMatchCount < queryNumbers.length * 0.4) {
+      score *= 0.5; // Penalidade se não bater 40% dos números
     }
 
-    if (matchRatio < 0.3) {
-      score *= 0.4; // Penalidade forte para baixa cobertura
+    if (matchRatio < 0.25) {
+      score *= 0.55; // Penalidade moderada para baixa cobertura
     }
 
     // Normalizar para 0-100
@@ -455,57 +455,30 @@ async function analisarComIA(
       },
     }));
 
-    const prompt = `Você é um especialista RIGOROSO em análise de produtos médico-hospitalares. Sua missão é REJEITAR produtos incompatíveis e APROVAR apenas matches precisos.
+    const prompt = `Analise produtos médico-hospitalares de forma PRECISA mas PRAGMÁTICA.
 
-**PRODUTO SOLICITADO:**
-"${descricaoCliente}"
+**SOLICITADO:** "${descricaoCliente}"
 ${contexto.marca ? `Marca: ${contexto.marca}` : ""}
-${contexto.quantidade ? `Quantidade: ${contexto.quantidade} ${contexto.unidade_medida || ""}` : ""}
 
 **CANDIDATOS:**
-${candidatosFormatados.map((p, idx) => `
-[${idx}] ${p.nome}
-Ref: ${p.referencia} | Unidade: ${p.unidade} | Score: ${p.scoreToken}%
-Desc: ${p.narrativa}
-Match: ${p.matching.tokens_exatos} exatos, ${p.matching.numeros_match} números, ${p.matching.categoria_match ? "categoria OK" : "categoria diferente"}
-`).join("\n")}
+${candidatosFormatados.map((p, idx) => `[${idx}] ${p.nome} | Ref: ${p.referencia} | Score: ${p.scoreToken}%
+${p.narrativa}
+Match: ${p.matching.tokens_exatos} exatos, ${p.matching.numeros_match}/${p.matching.numeros_match + (p.scoreToken > 60 ? 0 : 1)} números`).join("\n\n")}
 
-**CRITÉRIOS RIGOROSOS:**
+**REGRAS:**
+1. **Números importantes** (não críticos): Se faltam números mas o resto bate bem, score 75-85
+2. **Categoria MESMA aplicação**: Score 85-95
+3. **Equivalente funcional**: Mesma função, marca diferente = 75-85
+4. **Especificações similares**: Pequenas diferenças aceitáveis = 70-80
 
-1. **NÚMEROS E MEDIDAS (CRÍTICO)**
-   - Números no produto DEVEM corresponder aos solicitados
-   - Medidas incompatíveis = REJEIÇÃO
-   - Tolerância: ±5% apenas
+**SCORES:**
+- **95-100**: Match perfeito
+- **85-94**: Equivalente direto (mesma aplicação)
+- **70-84**: Compatível (função similar)
+- **60-69**: Aceitável com ressalvas
+- **<60**: Incompatível
 
-2. **CATEGORIA E APLICAÇÃO (CRÍTICO)**
-   - Produto DEVE ter a MESMA aplicação clínica
-   - Categoria diferente = score <50
-   - Ex: "luva cirúrgica" ≠ "luva de procedimento"
-
-3. **ESPECIFICAÇÕES TÉCNICAS**
-   - Material, tamanho, características devem ser compatíveis
-   - Diferenças funcionais = penalização severa
-
-4. **MARCA**
-   - Marca solicitada = +15 pontos
-   - Marca equivalente = +5 pontos
-   - Marca desconhecida = -10 pontos
-
-**ESCALA DE PONTUAÇÃO (SEJA RIGOROSO):**
-- **95-100**: Match PERFEITO (todas especificações idênticas)
-- **85-94**: Equivalente DIRETO (mesma aplicação, specs similares)
-- **70-84**: Compatível (mesma categoria, diferenças menores)
-- **50-69**: Duvidoso (categoria similar, muitas diferenças)
-- **<50**: INCOMPATÍVEL (rejeitar)
-
-**ATENÇÃO CRÍTICA:**
-- Se números não conferem → score <40
-- Se categoria diferente → score <50
-- Se aplicação diferente → score <30
-- Seja CONSERVADOR: na dúvida, score BAIXO
-
-**FORMATO JSON (apenas o array):**
-[{"index":0,"score":85,"justificativa":"...","razoes_match":["..."],"ressalvas":["..."]}]`;
+Responda APENAS JSON: [{"index":0,"score":85,"justificativa":"..."}]`;
 
     const response = await fetch("https://api.deepseek.com/chat/completions", {
       method: "POST",
@@ -519,12 +492,12 @@ Match: ${p.matching.tokens_exatos} exatos, ${p.matching.numeros_match} números,
           {
             role: "system",
             content:
-              "Você é um especialista RIGOROSO em produtos médico-hospitalares. Sua função é REJEITAR produtos incompatíveis. Seja CONSERVADOR na pontuação. Responda APENAS com JSON válido: [{\"index\":0,\"score\":70,\"justificativa\":\"...\",\"razoes_match\":[\"...\"],\"ressalvas\":[\"...\"]}]",
+              "Especialista em produtos médico-hospitalares. Seja preciso mas pragmático. Responda APENAS JSON: [{\"index\":0,\"score\":85,\"justificativa\":\"...\"}]",
           },
           { role: "user", content: prompt },
         ],
-        temperature: 0.1,
-        max_tokens: 2000,
+        temperature: 0.2,
+        max_tokens: 1500,
       }),
     });
 
@@ -857,24 +830,15 @@ serve(async (req) => {
         unidade_medida: unidade_medida,
       };
 
-      // Enviar apenas candidatos com score decente para IA
-      const candidatosParaIA = candidatosPorToken
-        .filter(c => c.score >= 40) // Filtro adicional
-        .slice(0, 5); // Reduzido para 5 melhores
-
-      if (candidatosParaIA.length > 0) {
-        analiseSemantica = await analisarComIA(
-          descricao_cliente,
-          candidatosParaIA.map((c) => ({
-            produto: c.produto,
-            scoreToken: c.score,
-            details: c.details,
-          })),
-          contexto,
-        );
-      } else {
-        console.log("   ⚠️ Nenhum candidato com score >= 40 para enviar à IA");
-      }
+      analiseSemantica = await analisarComIA(
+        descricao_cliente,
+        candidatosPorToken.slice(0, 5).map((c) => ({
+          produto: c.produto,
+          scoreToken: c.score,
+          details: c.details,
+        })),
+        contexto,
+      );
 
       const tempoIA = Date.now() - inicioIA;
       console.log(`✓ Análise IA concluída (${tempoIA}ms)\n`);
@@ -923,30 +887,28 @@ serve(async (req) => {
       const scorePgTrgm = ((candidato.produto as any).score_pg_trgm || 0) * 100; // Converter 0-1 para 0-100
       const ajusteML = ajustesPorProduto.get(candidato.produto.id) || 0;
 
-      // Combinação ponderada PRIORIZANDO precisão
+      // Combinação BALANCEADA
       let scoreFinal: number;
       if (analiseSemantica.length > 0 && scoreSemantico > 0) {
-        // Com IA: 15% token + 50% semântico + 15% contexto + 20% pg_trgm
-        // Prioriza análise semântica da IA
+        // Com IA: 20% token + 45% semântico + 15% contexto + 20% pg_trgm
         scoreFinal = Math.round(
-          scoreToken * 0.15 + 
-          scoreSemantico * 0.50 + 
+          scoreToken * 0.20 + 
+          scoreSemantico * 0.45 + 
           scoreContexto * 0.15 + 
           scorePgTrgm * 0.20
         );
       } else {
-        // Sem IA: 50% token + 20% contexto + 30% pg_trgm
-        // Prioriza token match preciso
+        // Sem IA: 45% token + 25% contexto + 30% pg_trgm
         scoreFinal = Math.round(
-          scoreToken * 0.50 + 
-          scoreContexto * 0.20 + 
+          scoreToken * 0.45 + 
+          scoreContexto * 0.25 + 
           scorePgTrgm * 0.30
         );
       }
       
-      // VALIDAÇÃO ADICIONAL: Se IA deu score baixo, respeitar
-      if (scoreSemantico > 0 && scoreSemantico < 50) {
-        scoreFinal = Math.min(scoreFinal, 50); // Limitar a 50 se IA rejeitou
+      // Boost se IA aprovou forte
+      if (scoreSemantico >= 85) {
+        scoreFinal = Math.max(scoreFinal, 80); // Garantir pelo menos 80 se IA aprovou
       }
 
       // Aplicar ajuste ML
@@ -958,15 +920,15 @@ serve(async (req) => {
         );
       }
 
-      // Determinar confiança (critérios mais rigorosos)
+      // Determinar confiança
       let confianca: "alta" | "media" | "baixa";
-      if (scoreFinal >= 90) confianca = "alta";
-      else if (scoreFinal >= 70) confianca = "media";
+      if (scoreFinal >= 85) confianca = "alta";
+      else if (scoreFinal >= 65) confianca = "media";
       else confianca = "baixa";
       
-      // Filtrar sugestões ruins
-      if (scoreFinal < min_score) {
-        continue; // Pular este candidato
+      // Filtrar sugestões muito ruins
+      if (scoreFinal < Math.max(min_score, 30)) {
+        continue;
       }
 
       // Justificativa e razões
