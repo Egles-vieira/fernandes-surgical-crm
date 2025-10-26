@@ -156,17 +156,48 @@ export default function Produtos() {
   const handleDeleteAll = async () => {
     setIsDeleting(true);
     try {
-      // Delete all products
+      // First, try to delete products that are not referenced
+      const { data: produtosComReferencia, error: checkError } = await supabase
+        .from('vendas_itens')
+        .select('produto_id');
+
+      if (checkError) throw checkError;
+
+      const produtosReferenciadosIds = new Set(
+        produtosComReferencia?.map(item => item.produto_id) || []
+      );
+
+      const produtosSemReferencia = produtos.filter(
+        p => !produtosReferenciadosIds.has(p.id)
+      );
+
+      if (produtosSemReferencia.length === 0) {
+        toast({
+          title: "Não é possível excluir",
+          description: "Todos os produtos estão sendo usados em vendas. Exclua as vendas primeiro.",
+          variant: "destructive",
+        });
+        setShowDeleteDialog(false);
+        setIsDeleting(false);
+        return;
+      }
+
+      // Delete only products without references
       const { error } = await supabase
         .from('produtos')
         .delete()
-        .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all (using a condition that matches all)
+        .in('id', produtosSemReferencia.map(p => p.id));
 
       if (error) throw error;
 
+      const produtosNaoExcluidos = produtos.length - produtosSemReferencia.length;
+
       toast({
         title: "Produtos excluídos",
-        description: `${produtos.length} produtos foram excluídos com sucesso.`,
+        description: produtosNaoExcluidos > 0
+          ? `${produtosSemReferencia.length} produtos excluídos. ${produtosNaoExcluidos} produtos não foram excluídos pois estão em vendas.`
+          : `${produtosSemReferencia.length} produtos foram excluídos com sucesso.`,
+        variant: produtosNaoExcluidos > 0 ? "default" : "default",
       });
 
       setShowDeleteDialog(false);
@@ -597,13 +628,17 @@ export default function Produtos() {
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar Exclusão de Todos os Produtos</AlertDialogTitle>
+            <AlertDialogTitle>Confirmar Exclusão de Produtos</AlertDialogTitle>
             <AlertDialogDescription className="space-y-2">
               <p>
-                Esta ação não pode ser desfeita. Isso irá excluir permanentemente{" "}
-                <span className="font-bold text-destructive">{produtos.length} produtos</span> do banco de dados.
+                Isso irá excluir permanentemente os produtos que <strong>não estão sendo usados em vendas</strong>.
               </p>
-              <p className="font-semibold">Tem certeza que deseja continuar?</p>
+              <p>
+                <span className="font-bold text-destructive">{produtos.length} produtos</span> no total.
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Produtos que estão em vendas não serão excluídos para manter a integridade dos dados.
+              </p>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -616,7 +651,7 @@ export default function Produtos() {
               disabled={isDeleting}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {isDeleting ? "Excluindo..." : "Sim, Excluir Todos"}
+              {isDeleting ? "Excluindo..." : "Confirmar Exclusão"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
