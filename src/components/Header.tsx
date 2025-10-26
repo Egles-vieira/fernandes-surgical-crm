@@ -49,7 +49,7 @@ export default function Header({ collapsed, onToggle }: HeaderProps) {
         };
       case "/plataformas/cotacoes":
         return {
-          title: "Plataformas de eletrônicas",
+          title: "Plataformas eletrônicas",
           description: "Gerencie cotações das plataformas EDI",
           breadcrumb: "Cirúrgica Fernandes / Plataformas / Cotações",
         };
@@ -170,9 +170,7 @@ export default function Header({ collapsed, onToggle }: HeaderProps) {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="flex items-center gap-3">
                 <Avatar className="h-8 w-8">
-                  {empresa?.url_logo ? (
-                    <AvatarImage src={empresa.url_logo} alt={empresa.nome || "Logo"} />
-                  ) : null}
+                  {empresa?.url_logo ? <AvatarImage src={empresa.url_logo} alt={empresa.nome || "Logo"} /> : null}
                   <AvatarFallback className="bg-primary text-primary-foreground text-xs font-semibold">
                     {empresa?.nome?.substring(0, 2).toUpperCase() || "CF"}
                   </AvatarFallback>
