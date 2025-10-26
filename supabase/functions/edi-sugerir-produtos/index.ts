@@ -19,6 +19,8 @@ interface SugestaoProduto {
   score_token: number;
   score_semantico: number;
   score_contexto: number;
+  score_pg_trgm: number;
+  score_ml_ajuste: number;
   descricao: string;
   codigo: string;
   unidade_medida?: string;
@@ -664,54 +666,96 @@ serve(async (req) => {
     console.log(`📦 Quantidade: ${quantidade_solicitada || "Não especificada"} ${unidade_medida || ""}`);
     console.log(`${"=".repeat(80)}\n`);
 
-    // ===== ETAPA 1: CARREGAR PRODUTOS COM BUSCA OTIMIZADA =====
-    console.log("📂 [1/6] Carregando produtos do banco...");
+    // ===== ETAPA 1: CARREGAR PRODUTOS COM FULL-TEXT SEARCH (pg_trgm) =====
+    console.log("📂 [1/6] Carregando produtos com Full-Text Search (pg_trgm)...");
     
-    // Estratégia de busca em 3 camadas para máxima cobertura
-    const termosBusca = TextProcessor.tokenize(descricao_cliente).slice(0, 8);
     const numerosQuery = TextProcessor.extractNumbers(descricao_cliente);
+    const timestampBuscaInicio = Date.now();
     
-    // Camada 1: Busca por tokens individuais (OR) - mais flexível
-    const termosBuscaIndividuais = termosBusca
-      .map(termo => `nome.ilike.%${termo}%,narrativa.ilike.%${termo}%,referencia_interna.ilike.%${termo}%`)
-      .join(',');
-    
-    // Camada 2: Busca por números (se houver)
-    const numerosBusca = numerosQuery.length > 0
-      ? numerosQuery.map(num => `nome.ilike.%${num}%,narrativa.ilike.%${num}%,referencia_interna.ilike.%${num}%`).join(',')
-      : '';
-    
-    // Query final combinada
-    const queryCompleta = numerosBusca 
-      ? `${termosBuscaIndividuais},${numerosBusca}`
-      : termosBuscaIndividuais;
-    
-    const { data: produtos, error: produtosError } = await supabase
-      .from("produtos")
-      .select(
-        "id, referencia_interna, nome, preco_venda, unidade_medida, quantidade_em_maos, narrativa",
-      )
-      .gt("quantidade_em_maos", 0)
-      .or(queryCompleta)
-      .limit(MAX_PRODUTOS_BUSCA);
+    let produtos: Produto[];
+    let metodoUsado = "";
+    let scoresBusca = { texto: 0, numeros: 0 };
 
-    if (produtosError) {
-      throw new Error(`Erro ao buscar produtos: ${produtosError.message}`);
+    if (numerosQuery.length > 0) {
+      // Busca híbrida com números
+      console.log(`   🔢 Detectados ${numerosQuery.length} números: [${numerosQuery.join(', ')}]`);
+      const { data, error } = await supabase
+        .rpc('buscar_produtos_hibrido', {
+          p_descricao: descricao_cliente,
+          p_numeros: numerosQuery,
+          p_limite: MAX_PRODUTOS_BUSCA
+        });
+      
+      if (error) throw new Error(`Erro busca híbrida: ${error.message}`);
+      
+      produtos = (data || []).map((p: any) => ({
+        id: p.id,
+        referencia_interna: p.referencia_interna,
+        nome: p.nome,
+        preco_venda: p.preco_venda,
+        unidade_medida: p.unidade_medida,
+        quantidade_em_maos: p.quantidade_em_maos,
+        narrativa: p.narrativa,
+        score_pg_trgm: p.score_total
+      }));
+      
+      metodoUsado = "hibrido";
+      if (data && data.length > 0) {
+        scoresBusca = {
+          texto: data[0].score_texto || 0,
+          numeros: data[0].score_numeros || 0
+        };
+      }
+      
+      console.log(`   ✓ ${produtos.length} produtos (busca híbrida)`);
+      console.log(`   📊 Melhor match: texto=${scoresBusca.texto.toFixed(2)}, números=${scoresBusca.numeros.toFixed(2)}`);
+    } else {
+      // Busca simples por similaridade
+      const { data, error } = await supabase
+        .rpc('buscar_produtos_similares', {
+          p_descricao: descricao_cliente,
+          p_limite: MAX_PRODUTOS_BUSCA,
+          p_similaridade_minima: 0.15
+        });
+      
+      if (error) throw new Error(`Erro busca similar: ${error.message}`);
+      
+      produtos = (data || []).map((p: any) => ({
+        id: p.id,
+        referencia_interna: p.referencia_interna,
+        nome: p.nome,
+        preco_venda: p.preco_venda,
+        unidade_medida: p.unidade_medida,
+        quantidade_em_maos: p.quantidade_em_maos,
+        narrativa: p.narrativa,
+        score_pg_trgm: p.score_similaridade
+      }));
+      
+      metodoUsado = "similaridade";
+      if (data && data.length > 0) {
+        scoresBusca.texto = data[0].score_similaridade || 0;
+      }
+      
+      console.log(`   ✓ ${produtos.length} produtos (busca por similaridade)`);
+      console.log(`   📊 Melhor score: ${scoresBusca.texto.toFixed(2)}`);
     }
 
+    const tempoBusca = Date.now() - timestampBuscaInicio;
+    console.log(`   ⏱️  Tempo de busca: ${tempoBusca}ms\n`);
+
     if (!produtos || produtos.length === 0) {
-      console.log("⚠️  Nenhum produto com estoque disponível");
+      console.log("⚠️  Nenhum produto similar encontrado");
       return new Response(
         JSON.stringify({
           sugestoes: [],
           total_produtos_analisados: 0,
-          metodo: "sem_estoque",
+          metodo: "sem_similaridade",
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
-    console.log(`✓ ${produtos.length} produtos carregados\n`);
+    console.log(`✓ ${produtos.length} produtos carregados (pg_trgm ${metodoUsado})\n`);
 
     // ===== ETAPA 2: VERIFICAR VÍNCULO EXISTENTE =====
     if (plataforma_id && cnpj_cliente) {
@@ -735,6 +779,8 @@ serve(async (req) => {
           score_token: 100,
           score_semantico: 100,
           score_contexto: 100,
+          score_pg_trgm: 100,
+          score_ml_ajuste: 0,
           descricao: prod.nome,
           codigo: prod.referencia_interna,
           unidade_medida: prod.unidade_medida,
@@ -878,16 +924,26 @@ serve(async (req) => {
       const scoreToken = candidato.score;
       const scoreSemantico = analise?.score || 0;
       const scoreContexto = calcularScoreContexto(candidato.produto, contexto);
+      const scorePgTrgm = ((candidato.produto as any).score_pg_trgm || 0) * 100; // Converter 0-1 para 0-100
       const ajusteML = ajustesPorProduto.get(candidato.produto.id) || 0;
 
-      // Combinação ponderada
+      // Combinação ponderada COM pg_trgm
       let scoreFinal: number;
       if (analiseSemantica.length > 0) {
-        // Com IA: 30% token + 50% semântico + 20% contexto
-        scoreFinal = Math.round(scoreToken * 0.3 + scoreSemantico * 0.5 + scoreContexto * 0.2);
+        // Com IA: 20% token + 40% semântico + 15% contexto + 25% pg_trgm
+        scoreFinal = Math.round(
+          scoreToken * 0.2 + 
+          scoreSemantico * 0.4 + 
+          scoreContexto * 0.15 + 
+          scorePgTrgm * 0.25
+        );
       } else {
-        // Sem IA: 60% token + 40% contexto
-        scoreFinal = Math.round(scoreToken * 0.6 + scoreContexto * 0.4);
+        // Sem IA: 40% token + 30% contexto + 30% pg_trgm
+        scoreFinal = Math.round(
+          scoreToken * 0.4 + 
+          scoreContexto * 0.3 + 
+          scorePgTrgm * 0.3
+        );
       }
 
       // Aplicar ajuste ML
@@ -925,6 +981,8 @@ serve(async (req) => {
         score_token: scoreToken,
         score_semantico: scoreSemantico,
         score_contexto: scoreContexto,
+        score_pg_trgm: Math.round(scorePgTrgm),
+        score_ml_ajuste: ajusteML,
         descricao: candidato.produto.nome,
         codigo: candidato.produto.referencia_interna,
         unidade_medida: candidato.produto.unidade_medida,
@@ -956,7 +1014,9 @@ serve(async (req) => {
         total_produtos_analisados: produtos.length,
         candidatos_pre_filtrados: candidatosPorToken.length,
         metodo: analiseSemantica.length > 0 ? "hibrido_ia_avancado" : "token_avancado",
-        motor_busca: "v2.0-advanced",
+        motor_busca: "v3.0-pgtrgm",
+        metodo_busca: metodoUsado,
+        tempo_busca_ms: tempoBusca,
         estatisticas: {
           tempo_token_ms: tempoToken,
           candidatos_token: candidatosPorToken.length,

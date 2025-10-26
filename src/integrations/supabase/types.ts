@@ -4793,6 +4793,38 @@ export type Database = {
         }
         Returns: undefined
       }
+      buscar_produtos_hibrido: {
+        Args: { p_descricao: string; p_limite?: number; p_numeros?: string[] }
+        Returns: {
+          id: string
+          narrativa: string
+          nome: string
+          preco_venda: number
+          quantidade_em_maos: number
+          referencia_interna: string
+          score_numeros: number
+          score_texto: number
+          score_total: number
+          unidade_medida: string
+        }[]
+      }
+      buscar_produtos_similares: {
+        Args: {
+          p_descricao: string
+          p_limite?: number
+          p_similaridade_minima?: number
+        }
+        Returns: {
+          id: string
+          narrativa: string
+          nome: string
+          preco_venda: number
+          quantidade_em_maos: number
+          referencia_interna: string
+          score_similaridade: number
+          unidade_medida: string
+        }[]
+      }
       calcular_tempo_efetivo_ticket: {
         Args: { ticket_id: string }
         Returns: Json
@@ -4861,6 +4893,7 @@ export type Database = {
       }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
+      unaccent: { Args: { "": string }; Returns: string }
     }
     Enums: {
       app_role: "admin" | "manager" | "sales" | "warehouse" | "support"
