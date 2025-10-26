@@ -41,50 +41,112 @@ export const useRealtimeCotacoes = () => {
       .on(
         "broadcast",
         { event: "analise-progresso" },
-        (payload) => {
+        (raw) => {
+          const payload: any = (raw as any)?.payload ?? raw;
           console.log("🧠 Progresso de análise IA recebido:", payload);
-          
-          // Invalida imediatamente para mostrar o progresso
+          const { cotacao_id, percentual, itens_analisados, total_itens } = payload || {};
+
+          // Atualiza cache imediatamente (sem esperar refetch)
+          queryClient.setQueriesData({ queryKey: ["edi-cotacoes"] }, (oldData: any) => {
+            if (!oldData) return oldData;
+            // Suporta múltiplos formatos (array simples ou objeto do react-query)
+            const apply = (arr: any[]) =>
+              arr?.map((c) =>
+                c?.id === cotacao_id
+                  ? {
+                      ...c,
+                      status_analise_ia: "em_analise",
+                      progresso_analise_percent: percentual ?? c.progresso_analise_percent,
+                      itens_analisados: itens_analisados ?? c.itens_analisados,
+                      total_itens_para_analise: total_itens ?? c.total_itens_para_analise ?? c.total_itens,
+                    }
+                  : c
+              );
+
+            if (Array.isArray(oldData)) return apply(oldData);
+            if (Array.isArray(oldData?.pages)) {
+              return {
+                ...oldData,
+                pages: oldData.pages.map((p: any) => Array.isArray(p) ? apply(p) : p),
+              };
+            }
+            return oldData;
+          });
+
+          // Também invalida para sincronizar com o backend
           queryClient.invalidateQueries({ queryKey: ["edi-cotacoes"] });
         }
       )
       .on(
         "broadcast",
         { event: "analise-item-concluido" },
-        (payload) => {
+        (raw) => {
+          const payload: any = (raw as any)?.payload ?? raw;
           console.log("✅ Item analisado:", payload);
           
-          // Invalida para atualizar contadores
+          // Apenas invalida (detalhe do item não está no cache desta lista)
           queryClient.invalidateQueries({ queryKey: ["edi-cotacoes"] });
         }
       )
       .on(
         "broadcast",
         { event: "analise-iniciada" },
-        (payload) => {
+        (raw) => {
+          const payload: any = (raw as any)?.payload ?? raw;
           console.log("🚀 Análise iniciada:", payload);
-          
-          // Invalida para atualizar status
+
+          queryClient.setQueriesData({ queryKey: ["edi-cotacoes"] }, (oldData: any) => {
+            if (!oldData) return oldData;
+            const { cotacao_id, total_itens } = payload || {};
+            const apply = (arr: any[]) => arr?.map((c) => c?.id === cotacao_id ? {
+              ...c,
+              status_analise_ia: "em_analise",
+              progresso_analise_percent: 0,
+              itens_analisados: 0,
+              total_itens_para_analise: total_itens ?? c.total_itens_para_analise ?? c.total_itens,
+            } : c);
+            if (Array.isArray(oldData)) return apply(oldData);
+            if (Array.isArray(oldData?.pages)) {
+              return { ...oldData, pages: oldData.pages.map((p: any) => Array.isArray(p) ? apply(p) : p) };
+            }
+            return oldData;
+          });
+
           queryClient.invalidateQueries({ queryKey: ["edi-cotacoes"] });
         }
       )
       .on(
         "broadcast",
         { event: "analise-concluida" },
-        (payload) => {
+        (raw) => {
+          const payload: any = (raw as any)?.payload ?? raw;
           console.log("🏁 Análise concluída:", payload);
-          
-          // Invalida para atualizar status final
+          const { cotacao_id, percentual } = payload || {};
+
+          queryClient.setQueriesData({ queryKey: ["edi-cotacoes"] }, (oldData: any) => {
+            if (!oldData) return oldData;
+            const apply = (arr: any[]) => arr?.map((c) => c?.id === cotacao_id ? {
+              ...c,
+              status_analise_ia: "concluida",
+              progresso_analise_percent: percentual ?? 100,
+            } : c);
+            if (Array.isArray(oldData)) return apply(oldData);
+            if (Array.isArray(oldData?.pages)) {
+              return { ...oldData, pages: oldData.pages.map((p: any) => Array.isArray(p) ? apply(p) : p) };
+            }
+            return oldData;
+          });
+
           queryClient.invalidateQueries({ queryKey: ["edi-cotacoes"] });
         }
       )
       .on(
         "broadcast",
         { event: "analise-erro" },
-        (payload) => {
+        (raw) => {
+          const payload: any = (raw as any)?.payload ?? raw;
           console.log("❌ Erro na análise:", payload);
           
-          // Invalida para atualizar status de erro
           queryClient.invalidateQueries({ queryKey: ["edi-cotacoes"] });
         }
       )
@@ -92,8 +154,14 @@ export const useRealtimeCotacoes = () => {
         console.log("📡 Status do canal realtime:", status);
       });
 
+    // Fallback: polling leve para garantir atualização mesmo sem eventos
+    const interval = setInterval(() => {
+      queryClient.invalidateQueries({ queryKey: ["edi-cotacoes"] });
+    }, 5000);
+
     return () => {
       console.log("🔌 Desconectando canal realtime");
+      clearInterval(interval);
       supabase.removeChannel(channel);
     };
   }, [queryClient]);
