@@ -885,6 +885,7 @@ export type Database = {
           metodo_vinculacao:
             | Database["public"]["Enums"]["metodo_vinculacao"]
             | null
+          motivo_sem_produtos: string | null
           numero_item: number | null
           percentual_desconto: number | null
           preco_total: number | null
@@ -902,6 +903,7 @@ export type Database = {
           revisado_em: string | null
           revisado_por: string | null
           score_confianca_ia: number | null
+          sem_produtos_cf: boolean | null
           status: string | null
           tempo_analise_ms: number | null
           tempo_analise_segundos: number | null
@@ -931,6 +933,7 @@ export type Database = {
           metodo_vinculacao?:
             | Database["public"]["Enums"]["metodo_vinculacao"]
             | null
+          motivo_sem_produtos?: string | null
           numero_item?: number | null
           percentual_desconto?: number | null
           preco_total?: number | null
@@ -948,6 +951,7 @@ export type Database = {
           revisado_em?: string | null
           revisado_por?: string | null
           score_confianca_ia?: number | null
+          sem_produtos_cf?: boolean | null
           status?: string | null
           tempo_analise_ms?: number | null
           tempo_analise_segundos?: number | null
@@ -977,6 +981,7 @@ export type Database = {
           metodo_vinculacao?:
             | Database["public"]["Enums"]["metodo_vinculacao"]
             | null
+          motivo_sem_produtos?: string | null
           numero_item?: number | null
           percentual_desconto?: number | null
           preco_total?: number | null
@@ -994,6 +999,7 @@ export type Database = {
           revisado_em?: string | null
           revisado_por?: string | null
           score_confianca_ia?: number | null
+          sem_produtos_cf?: boolean | null
           status?: string | null
           tempo_analise_ms?: number | null
           tempo_analise_segundos?: number | null
