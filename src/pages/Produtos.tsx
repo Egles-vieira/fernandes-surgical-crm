@@ -597,22 +597,26 @@ export default function Produtos() {
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Tem certeza absoluta?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Esta ação não pode ser desfeita. Isso irá excluir permanentemente todos os{" "}
-              <span className="font-bold text-destructive">{produtos.length} produtos</span> do banco de dados.
-              <br /><br />
-              Digite <span className="font-mono font-bold">EXCLUIR</span> para confirmar.
+            <AlertDialogTitle>Confirmar Exclusão de Todos os Produtos</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              <p>
+                Esta ação não pode ser desfeita. Isso irá excluir permanentemente{" "}
+                <span className="font-bold text-destructive">{produtos.length} produtos</span> do banco de dados.
+              </p>
+              <p className="font-semibold">Tem certeza que deseja continuar?</p>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleDeleteAll}
+              onClick={(e) => {
+                e.preventDefault();
+                handleDeleteAll();
+              }}
               disabled={isDeleting}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {isDeleting ? "Excluindo..." : "Excluir Todos os Produtos"}
+              {isDeleting ? "Excluindo..." : "Sim, Excluir Todos"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
