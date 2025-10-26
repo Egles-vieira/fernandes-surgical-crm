@@ -7,31 +7,17 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-interface ItemAnalise {
-  item_id: string;
-  descricao: string;
-  codigo_cliente?: string;
-  quantidade: number;
-  unidade_medida?: string;
-}
-
-interface ResultadoAnaliseItem {
-  item_id: string;
-  sucesso: boolean;
-  score_confianca?: number;
-  produtos_sugeridos?: any;
-  erro?: string;
-  tempo_ms?: number;
-}
+// Configurações de execução em lotes/retomada
+const BATCH_SIZE = 10; // quantidade de itens processados por execução
 
 serve(async (req) => {
+  // CORS
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
     const { cotacao_id } = await req.json();
-    
     if (!cotacao_id) {
       return new Response(
         JSON.stringify({ error: 'cotacao_id é obrigatório' }),
@@ -43,15 +29,12 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    console.log(`🤖 Iniciando análise IA para cotação ${cotacao_id}...`);
+    console.log(`🤖 Análise IA (batch) para cotação ${cotacao_id} iniciada`);
 
-    // Buscar cotação e seus itens
+    // Buscar cotação
     const { data: cotacao, error: cotacaoError } = await supabase
       .from('edi_cotacoes')
-      .select(`
-        *,
-        edi_cotacoes_itens(*)
-      `)
+      .select('*')
       .eq('id', cotacao_id)
       .single();
 
@@ -59,46 +42,69 @@ serve(async (req) => {
       throw new Error(`Cotação não encontrada: ${cotacaoError?.message}`);
     }
 
-    const itens = cotacao.edi_cotacoes_itens || [];
-    
-    if (itens.length === 0) {
+    // Buscar itens da cotação (sempre atualizado para suportar retomada)
+    const { data: todosItens, error: itensError } = await supabase
+      .from('edi_cotacoes_itens')
+      .select('*')
+      .eq('cotacao_id', cotacao_id)
+      .order('numero_item', { ascending: true });
+
+    if (itensError) {
+      throw new Error(`Falha ao buscar itens: ${itensError.message}`);
+    }
+
+    if (!todosItens || todosItens.length === 0) {
       throw new Error('Cotação sem itens para analisar');
     }
 
-    // Atualizar status para "em_analise" e mover para aba "Análise IA"
-    const inicioAnalise = new Date();
+    const totalItens = todosItens.length;
+    const itensJaAnalisados = todosItens.filter((i: any) => i.analisado_por_ia).length;
+    const itensPendentes = todosItens.filter((i: any) => !i.analisado_por_ia);
+
+    // Atualiza status para em_analise e mantém progresso real caso seja retomada
+    const progressoInicial = Math.round((itensJaAnalisados / totalItens) * 100);
     await supabase
       .from('edi_cotacoes')
       .update({
-        step_atual: 'em_analise', // Move para aba "Análise IA"
+        step_atual: 'em_analise',
         status_analise_ia: 'em_analise',
-        analise_ia_iniciada_em: inicioAnalise.toISOString(), // Padronizado
-        progresso_analise_percent: 0,
-        itens_analisados: 0, // Padronizado
-        total_itens_para_analise: itens.length, // Novo campo
-        total_sugestoes_geradas: 0,
+        analise_ia_iniciada_em: cotacao.analise_ia_iniciada_em ?? new Date().toISOString(),
+        progresso_analise_percent: progressoInicial,
+        itens_analisados: itensJaAnalisados,
+        total_itens_para_analise: totalItens,
+        total_sugestoes_geradas: cotacao.total_sugestoes_geradas ?? 0,
         modelo_ia_utilizado: 'google/gemini-2.5-flash',
-        versao_algoritmo: '2.0-hybrid',
+        versao_algoritmo: '2.1-batch-resume',
       })
       .eq('id', cotacao_id);
 
-    // Emitir evento Realtime de início
-    await emitirEventoRealtime(supabase, cotacao_id, {
-      tipo: 'analise_iniciada',
-      progresso: 0,
-      total_itens: itens.length,
-    });
+    // Broadcast de início/retomada
+    await emitirBroadcast(
+      supabase,
+      `cotacao-ia-${cotacao_id}`,
+      itensJaAnalisados === 0 ? 'analise-iniciada' : 'analise-progresso',
+      {
+        cotacao_id,
+        status: itensJaAnalisados === 0 ? 'iniciando' : 'retomando',
+        total_itens: totalItens,
+        itens_analisados: itensJaAnalisados,
+        itens_pendentes: totalItens - itensJaAnalisados,
+        percentual: progressoInicial,
+        itens_detalhes: [],
+      }
+    );
 
-    // Analisar cada item
-    const resultados: ResultadoAnaliseItem[] = [];
-    let totalSugestoes = 0;
+    // Seleciona lote atual
+    const lote = itensPendentes.slice(0, BATCH_SIZE);
+    let totalSugestoesGeradas = cotacao.total_sugestoes_geradas ?? 0;
 
-    for (let i = 0; i < itens.length; i++) {
-      const item = itens[i];
+    for (let idx = 0; idx < lote.length; idx++) {
+      const item = lote[idx];
+      const itemIndexGlobal = itensJaAnalisados + idx + 1; // posição real considerando já analisados
       const itemInicio = Date.now();
-      
+
       try {
-        console.log(`📝 Analisando item ${i + 1}/${itens.length}: ${item.descricao_produto_cliente}`);
+        console.log(`📝 [${itemIndexGlobal}/${totalItens}] Analisando: ${item.descricao_produto_cliente}`);
 
         // Chamar função de sugestão de produtos
         const { data: sugestoesData, error: sugestoesError } = await supabase.functions.invoke(
@@ -112,8 +118,8 @@ serve(async (req) => {
               quantidade_solicitada: item.quantidade_solicitada,
               unidade_medida: item.unidade_medida,
               item_id: item.id,
-              limite: 5, // Buscar top 5 sugestões
-              modo_analise_completa: true, // Flag para retornar estrutura completa
+              limite: 5,
+              modo_analise_completa: true,
             }
           }
         );
@@ -127,170 +133,189 @@ serve(async (req) => {
         const scoreConfianca = melhorSugestao?.score_final || 0;
         const tempoMs = Date.now() - itemInicio;
 
-        // Determinar se requer revisão humana
-        const requerRevisao = scoreConfianca < 70 || sugestoes.length > 1 && (sugestoes[1].score_final >= scoreConfianca - 10);
+        const requerRevisao = scoreConfianca < 70 || (sugestoes.length > 1 && (sugestoes[1].score_final >= scoreConfianca - 10));
 
-        // Atualizar item com sugestões da IA
+        // Atualizar item com resultado
         await supabase
           .from('edi_cotacoes_itens')
           .update({
             analisado_por_ia: true,
-            analisado_em: new Date().toISOString(), // Padronizado
+            analisado_em: new Date().toISOString(),
             score_confianca_ia: scoreConfianca,
             produtos_sugeridos_ia: sugestoes,
-            produto_selecionado_id: melhorSugestao?.produto_id,
+            produto_selecionado_id: melhorSugestao?.produto_id ?? null,
             metodo_vinculacao: scoreConfianca >= 85 ? 'ia_automatico' : 'ia_manual',
             justificativa_ia: melhorSugestao?.justificativa || '',
-            tempo_analise_segundos: Math.round(tempoMs / 1000), // Padronizado para segundos
+            tempo_analise_segundos: Math.round(tempoMs / 1000),
             requer_revisao_humana: requerRevisao,
           })
           .eq('id', item.id);
 
-        resultados.push({
-          item_id: item.id,
-          sucesso: true,
-          score_confianca: scoreConfianca,
-          produtos_sugeridos: sugestoes.length,
-          tempo_ms: tempoMs,
-        });
+        totalSugestoesGeradas += sugestoes.length;
 
-        totalSugestoes += sugestoes.length;
-
-        // Atualizar progresso
-        const progresso = Math.round(((i + 1) / itens.length) * 100);
+        // Atualizar progresso parcial e heartbeat
+        const itensAnalisadosAgora = itensJaAnalisados + idx + 1;
+        const percentual = Math.round((itensAnalisadosAgora / totalItens) * 100);
         await supabase
           .from('edi_cotacoes')
           .update({
-            progresso_analise_percent: progresso,
-            itens_analisados: i + 1, // Padronizado
-            total_sugestoes_geradas: totalSugestoes,
+            progresso_analise_percent: percentual,
+            itens_analisados: itensAnalisadosAgora,
+            total_sugestoes_geradas: totalSugestoesGeradas,
           })
           .eq('id', cotacao_id);
 
-        // Emitir evento de progresso
-        await emitirEventoRealtime(supabase, cotacao_id, {
-          tipo: 'progresso_analise',
-          progresso,
-          item_atual: i + 1,
-          total_itens: itens.length,
-          item_descricao: item.descricao_produto_cliente,
-          score: scoreConfianca,
-        });
+        // Broadcast do item e progresso
+        await emitirBroadcast(
+          supabase,
+          `cotacao-ia-${cotacao_id}`,
+          'analise-item-concluido',
+          {
+            cotacao_id,
+            item_descricao: item.descricao_produto_cliente,
+            sugestoes_encontradas: sugestoes.length,
+            score: scoreConfianca,
+          }
+        );
 
-        console.log(`✅ Item ${i + 1}/${itens.length} analisado - Score: ${scoreConfianca}% - ${tempoMs}ms`);
+        await emitirBroadcast(
+          supabase,
+          `cotacao-ia-${cotacao_id}`,
+          'analise-progresso',
+          {
+            cotacao_id,
+            status: 'processando',
+            total_itens: totalItens,
+            itens_analisados: itensAnalisadosAgora,
+            itens_pendentes: totalItens - itensAnalisadosAgora,
+            percentual,
+            itens_detalhes: [],
+          }
+        );
 
-      } catch (error) {
-        console.error(`❌ Erro ao analisar item ${item.id}:`, error);
-        
-        const tempoMs = Date.now() - itemInicio;
-        resultados.push({
-          item_id: item.id,
-          sucesso: false,
-          erro: error instanceof Error ? error.message : 'Erro desconhecido',
-          tempo_ms: tempoMs,
-        });
-
-        // Marcar item com erro
+        console.log(`✅ Item ${itemIndexGlobal}/${totalItens} analisado - Score: ${scoreConfianca}% - ${tempoMs}ms`);
+      } catch (err) {
+        console.error(`❌ Erro ao analisar item ${item.id}:`, err);
+        // Marca item para revisão
         await supabase
           .from('edi_cotacoes_itens')
-          .update({
-            analisado_por_ia: false,
-            requer_revisao_humana: true,
-          })
+          .update({ analisado_por_ia: false, requer_revisao_humana: true })
           .eq('id', item.id);
       }
     }
 
-    // Calcular métricas finais
-    const fimAnalise = new Date();
-    const tempoTotalSegundos = Math.round((fimAnalise.getTime() - inicioAnalise.getTime()) / 1000);
-    const itensSucesso = resultados.filter(r => r.sucesso).length;
-    const itensErro = resultados.filter(r => !r.sucesso).length;
+    // Verificar se ainda restam itens (executar próximo lote em background)
+    const { count: pendentesRestantes } = await supabase
+      .from('edi_cotacoes_itens')
+      .select('*', { count: 'exact', head: true })
+      .eq('cotacao_id', cotacao_id)
+      .eq('analisado_por_ia', false);
 
-    // Atualizar cotação com resultado final
+    if ((pendentesRestantes ?? 0) > 0) {
+      console.log(`⏭️ Agendando próximo lote. Restantes: ${pendentesRestantes}`);
+      // Continua em background para não estourar timeout
+      try {
+        // @ts-ignore - objeto exposto pelo runtime de funções edge
+        EdgeRuntime.waitUntil(supabase.functions.invoke('analisar-cotacao-completa', { body: { cotacao_id } }));
+      } catch (e) {
+        console.warn('⚠️ waitUntil indisponível, tentativa síncrona de reencolar ignorada:', e);
+      }
+
+      return new Response(
+        JSON.stringify({ started: true, cotacao_id, remaining: pendentesRestantes }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Sem pendências: concluir
+    const fimAnalise = new Date();
+    const { data: contagemFinal } = await supabase
+      .from('edi_cotacoes_itens')
+      .select('id', { count: 'exact', head: true })
+      .eq('cotacao_id', cotacao_id)
+      .eq('analisado_por_ia', true);
+
+    const itensSucesso = contagemFinal?.length ?? 0; // head:true -> length undefined; manter 0 e confiar em campos agregados
+
     await supabase
       .from('edi_cotacoes')
       .update({
-        step_atual: itensErro === 0 ? 'em_analise' : 'nova', // Mantém em análise se sucesso
-        status_analise_ia: itensErro === 0 ? 'concluida' : 'erro',
-        analisado_por_ia: true,
-        analise_ia_concluida_em: fimAnalise.toISOString(), // Padronizado
+        status_analise_ia: 'concluida',
+        analise_ia_concluida_em: fimAnalise.toISOString(),
         progresso_analise_percent: 100,
-        tempo_analise_segundos: tempoTotalSegundos,
-        erro_analise_ia: itensErro > 0 ? `${itensErro} itens falharam na análise` : null, // Padronizado
       })
       .eq('id', cotacao_id);
 
-    // Emitir evento de conclusão
-    await emitirEventoRealtime(supabase, cotacao_id, {
-      tipo: 'analise_concluida',
-      sucesso: itensErro === 0,
-      total_itens: itens.length,
-      itens_sucesso: itensSucesso,
-      itens_erro: itensErro,
-      tempo_total_segundos: tempoTotalSegundos,
-      total_sugestoes: totalSugestoes,
-    });
-
-    console.log(`✅ Análise completa: ${itensSucesso} sucesso, ${itensErro} erros em ${tempoTotalSegundos}s`);
-
-    return new Response(
-      JSON.stringify({
-        sucesso: true,
+    await emitirBroadcast(
+      supabase,
+      `cotacao-ia-${cotacao_id}`,
+      'analise-concluida',
+      {
         cotacao_id,
-        resultados: {
-          total_itens: itens.length,
-          itens_sucesso: itensSucesso,
-          itens_erro: itensErro,
-          tempo_total_segundos: tempoTotalSegundos,
-          total_sugestoes: totalSugestoes,
-        },
-        itens: resultados,
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        total_itens: totalItens,
+        itens_analisados: totalItens,
+        itens_pendentes: 0,
+        percentual: 100,
+        itens_detalhes: [],
+      }
     );
 
+    console.log(`🏁 Análise concluída para ${cotacao_id}`);
+
+    return new Response(
+      JSON.stringify({ sucesso: true, cotacao_id, finished: true }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
   } catch (error) {
     console.error('❌ Erro geral na análise:', error);
-    
-    // Tentar atualizar cotação com erro
+
+    // Atualiza status para erro
     try {
-      const { cotacao_id } = await req.json();
+      const body = await req.json().catch(() => ({}));
       const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
       const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
       const supabase = createClient(supabaseUrl, supabaseServiceKey);
-      
-      await supabase
-        .from('edi_cotacoes')
-        .update({
-          status_analise_ia: 'erro',
-          erro_analise_ia: error instanceof Error ? error.message : 'Erro desconhecido', // Padronizado
-        })
-        .eq('id', cotacao_id);
-    } catch { /* ignore */ }
+      if (body?.cotacao_id) {
+        await supabase
+          .from('edi_cotacoes')
+          .update({ status_analise_ia: 'erro', erro_analise_ia: String(error) })
+          .eq('id', body.cotacao_id);
+
+        await emitirBroadcast(
+          supabase,
+          `cotacao-ia-${body.cotacao_id}`,
+          'analise-erro',
+          { cotacao_id: body.cotacao_id, erro: String(error) }
+        );
+      }
+    } catch (_) { /* noop */ }
 
     return new Response(
-      JSON.stringify({ 
-        error: error instanceof Error ? error.message : 'Erro desconhecido',
-      }),
+      JSON.stringify({ error: error instanceof Error ? error.message : 'Erro desconhecido' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
 
-// Função auxiliar para emitir eventos Realtime
-async function emitirEventoRealtime(supabase: any, cotacaoId: string, payload: any) {
+// Utilitário: emitir broadcast real para o canal esperado pelo frontend
+async function emitirBroadcast(
+  supabase: any,
+  channelName: string,
+  event: 'analise-iniciada' | 'analise-progresso' | 'analise-item-concluido' | 'analise-concluida' | 'analise-erro',
+  payload: Record<string, unknown>
+) {
   try {
-    // Inserir evento na tabela de eventos (opcional - pode ser usado para histórico)
-    await supabase
-      .from('edi_cotacoes')
-      .update({
-        atualizado_em: new Date().toISOString(),
-      })
-      .eq('id', cotacaoId);
+    const channel = supabase.channel(channelName, { config: { broadcast: { ack: false } } });
+    await channel.subscribe((status: string) => {
+      if (status === 'SUBSCRIBED') {
+        // no-op
+      }
+    });
 
-    console.log(`📡 Evento Realtime emitido:`, payload.tipo);
-  } catch (error) {
-    console.warn('Aviso: Falha ao emitir evento Realtime:', error);
+    await channel.send({ type: 'broadcast', event, payload });
+    await supabase.removeChannel(channel);
+    console.log(`📡 Broadcast enviado: ${event}`);
+  } catch (e) {
+    console.warn('⚠️ Falha ao enviar broadcast realtime:', e);
   }
 }
