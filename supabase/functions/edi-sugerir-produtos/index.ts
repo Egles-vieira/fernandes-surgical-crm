@@ -409,16 +409,16 @@ class AdvancedSearchEngine {
   }
 }
 
-// ============= ANÁLISE SEMÂNTICA COM IA (LOVABLE AI) =============
+// ============= ANÁLISE SEMÂNTICA COM IA (DEEPSEEK) =============
 async function analisarComIA(
   descricaoCliente: string,
   candidatos: Array<{ produto: Produto; scoreToken: number; details: MatchingDetails }>,
   contexto: { marca?: string; quantidade?: number; unidade_medida?: string },
 ): Promise<any[]> {
-  const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
+  const deepseekApiKey = Deno.env.get("DEEPSEEK_API_KEY");
 
-  if (!lovableApiKey) {
-    console.warn("⚠️ LOVABLE_API_KEY não configurada, pulando análise semântica");
+  if (!deepseekApiKey) {
+    console.warn("⚠️ DEEPSEEK_API_KEY não configurada, pulando análise semântica");
     return [];
   }
   
@@ -426,7 +426,7 @@ async function analisarComIA(
   const candidatosLimitados = candidatos.slice(0, LIMITE_CANDIDATOS_IA);
 
   try {
-    console.log(`🤖 [Lovable AI] Analisando ${candidatosLimitados.length} candidatos com IA...`);
+    console.log(`🤖 [DeepSeek] Analisando ${candidatosLimitados.length} candidatos com IA...`);
 
     const candidatosFormatados = candidatosLimitados.map((c, idx) => ({
       index: idx,
@@ -435,61 +435,130 @@ async function analisarComIA(
       narrativa: c.produto.narrativa || "Sem descrição detalhada",
       unidade: c.produto.unidade_medida,
       estoque: c.produto.quantidade_em_maos,
+      preco: c.produto.preco_venda,
       scoreToken: c.scoreToken,
       matching: {
         tokens_exatos: c.details.tokens_exatos,
+        tokens_parciais: c.details.tokens_parciais,
+        numeros_match: c.details.numeros_match,
         referencia_match: c.details.referencia_match,
+        substring_match: c.details.substring_match,
         categoria_match: c.details.categoria_match,
+        unidade_compativel: c.details.unidade_compativel,
       },
     }));
 
-    const prompt = `Analise produtos médico-hospitalares e retorne score de compatibilidade.
+    const prompt = `Você é um especialista em análise de produtos médico-hospitalares. Sua tarefa é avaliar a compatibilidade entre um produto solicitado pelo cliente e os produtos disponíveis no catálogo.
 
-SOLICITAÇÃO: "${descricaoCliente}"
-${contexto.marca ? `Marca: ${contexto.marca}` : ""}
+**PRODUTO SOLICITADO PELO CLIENTE:**
+"${descricaoCliente}"
+${contexto.marca ? `Marca preferencial: ${contexto.marca}` : ""}
+${contexto.quantidade ? `Quantidade: ${contexto.quantidade}` : ""}
+${contexto.unidade_medida ? `Unidade: ${contexto.unidade_medida}` : ""}
 
-CANDIDATOS:
-${candidatosFormatados.map(p => `[${p.index}] ${p.nome} (${p.referencia}) - Score: ${p.scoreToken}`).join("\n")}
+**PRODUTOS CANDIDATOS DO CATÁLOGO:**
 
-CRITÉRIOS:
-- 95-100: Match perfeito
-- 85-94: Equivalente funcional
-- 70-84: Compatível
-- <70: Baixa compatibilidade
+${candidatosFormatados.map((p, idx) => `
+### Candidato ${idx + 1}
+- **Nome**: ${p.nome}
+- **Referência**: ${p.referencia}
+- **Descrição**: ${p.narrativa}
+- **Unidade**: ${p.unidade}
+- **Estoque**: ${p.estoque} unidades
+- **Preço**: R$ ${p.preco?.toFixed(2) || "0.00"}
+- **Score de Texto**: ${p.scoreToken}%
+- **Detalhes do Match**:
+  - Tokens exatos: ${p.matching.tokens_exatos}
+  - Tokens parciais: ${p.matching.tokens_parciais}
+  - Números coincidem: ${p.matching.numeros_match}
+  - Referência match: ${p.matching.referencia_match ? "Sim" : "Não"}
+  - Substring match: ${p.matching.substring_match ? "Sim" : "Não"}
+  - Categoria match: ${p.matching.categoria_match ? "Sim" : "Não"}
+  - Unidade compatível: ${p.matching.unidade_compativel ? "Sim" : "Não"}
+`).join("\n")}
 
-RESPONDA APENAS JSON: [{"index":0,"score":85,"justificativa":"...","razoes_match":["..."],"categoria_compativel":true,"aplicacao_compativel":true,"marca_match":false}]`;
+**INSTRUÇÕES DE ANÁLISE:**
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+Para cada produto candidato, avalie:
+
+1. **Compatibilidade Funcional** (0-40 pontos)
+   - O produto serve para a mesma aplicação/uso?
+   - As especificações técnicas são compatíveis?
+   - A categoria do produto é a mesma?
+
+2. **Equivalência de Marca/Modelo** (0-30 pontos)
+   - É a marca solicitada? (+30)
+   - É uma marca equivalente reconhecida? (+20)
+   - Marca diferente mas similar? (+10)
+
+3. **Correspondência de Características** (0-30 pontos)
+   - Dimensões/medidas compatíveis?
+   - Materiais equivalentes?
+   - Características técnicas similares?
+
+**CRITÉRIOS DE PONTUAÇÃO:**
+- **95-100**: Match perfeito (marca exata, especificações idênticas)
+- **85-94**: Equivalente funcional direto (mesma aplicação, marca similar)
+- **70-84**: Compatível com ressalvas (mesma aplicação, marca diferente)
+- **50-69**: Parcialmente compatível (aplicação similar, diferenças técnicas)
+- **<50**: Baixa compatibilidade (aplicação diferente ou incompatível)
+
+**FORMATO DE RESPOSTA (JSON):**
+Retorne um array JSON com a análise de cada candidato no formato:
+
+\`\`\`json
+[
+  {
+    "index": 0,
+    "score": 85,
+    "justificativa": "Produto equivalente funcional. Mesma aplicação clínica, marca reconhecida no mercado, especificações técnicas compatíveis.",
+    "razoes_match": [
+      "Categoria de produto idêntica",
+      "Aplicação clínica compatível",
+      "Marca equivalente de qualidade"
+    ],
+    "categoria_compativel": true,
+    "aplicacao_compativel": true,
+    "marca_match": false,
+    "ressalvas": [
+      "Marca diferente da solicitada"
+    ]
+  }
+]
+\`\`\`
+
+**IMPORTANTE:**
+- Seja rigoroso mas justo na avaliação
+- Considere equivalências funcionais aceitas no mercado médico-hospitalar
+- Explique claramente as razões do score atribuído
+- Se houver incompatibilidades críticas, seja explícito sobre elas
+- Responda APENAS com o JSON, sem texto adicional`;
+
+    const response = await fetch("https://api.deepseek.com/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${lovableApiKey}`,
+        "Authorization": `Bearer ${deepseekApiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "deepseek-chat",
         messages: [
           {
             role: "system",
             content:
-              "Você é especialista em produtos médico-hospitalares. Responda APENAS com JSON válido.",
+              "Você é um especialista em produtos médico-hospitalares com conhecimento técnico avançado. Responda APENAS com JSON válido, sem markdown ou texto adicional.",
           },
           { role: "user", content: prompt },
         ],
         temperature: 0.3,
-        max_tokens: 2000,
+        max_tokens: 3000,
       }),
     });
 
     if (!response.ok) {
-      if (response.status === 429) {
-        console.warn("⚠️ [Lovable AI] Rate limit atingido");
-        return [];
-      }
-      if (response.status === 402) {
-        console.warn("⚠️ [Lovable AI] Créditos insuficientes");
-        return [];
-      }
-      throw new Error(`Lovable AI error: ${response.status}`);
+      const errorText = await response.text();
+      console.error(`❌ [DeepSeek] Erro HTTP ${response.status}:`, errorText);
+      throw new Error(`DeepSeek API error: ${response.status}`);
     }
 
     const data = await response.json();
