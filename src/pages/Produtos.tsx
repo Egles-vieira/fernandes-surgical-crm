@@ -201,21 +201,29 @@ export default function Produtos() {
         return;
       }
 
-      // Delete only products without references
-      const { error } = await supabase
-        .from('produtos')
-        .delete()
-        .in('id', produtosSemReferencia.map(p => p.id));
+      // Delete in batches to avoid URL length limits (50 items per batch)
+      const batchSize = 50;
+      const idsParaDeletar = produtosSemReferencia.map(p => p.id);
+      let deletedCount = 0;
 
-      if (error) throw error;
+      for (let i = 0; i < idsParaDeletar.length; i += batchSize) {
+        const batch = idsParaDeletar.slice(i, i + batchSize);
+        const { error } = await supabase
+          .from('produtos')
+          .delete()
+          .in('id', batch);
 
-      const produtosNaoExcluidos = produtos.length - produtosSemReferencia.length;
+        if (error) throw error;
+        deletedCount += batch.length;
+      }
+
+      const produtosNaoExcluidos = produtos.length - deletedCount;
 
       toast({
         title: "Produtos excluídos",
         description: produtosNaoExcluidos > 0
-          ? `${produtosSemReferencia.length} produtos excluídos. ${produtosNaoExcluidos} produtos não foram excluídos pois estão em uso (vendas ou portais EDI).`
-          : `${produtosSemReferencia.length} produtos foram excluídos com sucesso.`,
+          ? `${deletedCount} produtos excluídos. ${produtosNaoExcluidos} produtos não foram excluídos pois estão em uso (vendas ou portais EDI).`
+          : `${deletedCount} produtos foram excluídos com sucesso.`,
         variant: produtosNaoExcluidos > 0 ? "default" : "default",
       });
 
