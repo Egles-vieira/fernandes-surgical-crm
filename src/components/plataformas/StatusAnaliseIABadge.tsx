@@ -32,9 +32,12 @@ export function StatusAnaliseIABadge({
 
   // Em análise (com animação e progresso)
   if (statusAnalise === 'em_analise') {
-    const progressoPercent = totalItens > 0 
-      ? Math.round((itensAnalisados / totalItens) * 100)
-      : progresso;
+    const hasRatio = typeof itensAnalisados === 'number' && typeof totalItens === 'number' && totalItens > 0;
+    const progressoPercent = (progresso ?? 0) > 0
+      ? Math.round(progresso as number)
+      : hasRatio
+        ? Math.round(((itensAnalisados as number) / (totalItens as number)) * 100)
+        : 0;
     
     const tempoRestante = tempoEstimado 
       ? tempoEstimado > 60 
@@ -54,7 +57,7 @@ export function StatusAnaliseIABadge({
         <span className="font-medium">
           Analisando... {progressoPercent}%
         </span>
-        {totalItens > 0 && (
+        {hasRatio && (
           <span className="text-xs opacity-90">
             ({itensAnalisados}/{totalItens} itens)
           </span>

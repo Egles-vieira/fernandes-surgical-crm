@@ -27,6 +27,8 @@ export interface EDICotacao {
   progresso_analise_percent: number | null;
   analisado_por_ia: boolean | null;
   total_itens_analisados: number | null;
+  itens_analisados?: number | null;
+  total_itens_para_analise?: number | null;
   tempo_analise_segundos: number | null;
   tags: string[] | null;
   plataformas_edi?: {
