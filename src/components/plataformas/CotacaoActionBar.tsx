@@ -1,4 +1,4 @@
-import { FileText, X, CheckCircle, Send } from "lucide-react";
+import { FileText, X, CheckCircle, Send, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -8,6 +8,8 @@ interface CotacaoActionBarProps {
   onCancelar: () => void;
   onConfirmar: () => void;
   onEnviar: () => void;
+  onResetarAnalise?: () => void;
+  analiseIATravada?: boolean;
 }
 
 export function CotacaoActionBar({
@@ -16,6 +18,8 @@ export function CotacaoActionBar({
   onCancelar,
   onConfirmar,
   onEnviar,
+  onResetarAnalise,
+  analiseIATravada = false,
 }: CotacaoActionBarProps) {
   const getStatusInfo = () => {
     switch (status) {
@@ -71,6 +75,18 @@ export function CotacaoActionBar({
         </div>
 
         <div className="flex items-center gap-2">
+          {analiseIATravada && onResetarAnalise && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onResetarAnalise}
+              className="gap-2 border-warning text-warning hover:bg-warning/10"
+            >
+              <RotateCcw size={16} />
+              Resetar Análise
+            </Button>
+          )}
+          
           {status === "em_analise" && (
             <Button
               variant="default"

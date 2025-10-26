@@ -65,6 +65,7 @@ export default function CotacaoDetalhes() {
   // Análise de IA
   const { isAnalyzing, progress, error: iaError, iniciarAnalise } = useIAAnalysis(id);
   const [mostrarSugestoes, setMostrarSugestoes] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
 
   // Hook de realtime updates para itens
   useRealtimeItemUpdates({
@@ -195,6 +196,62 @@ export default function CotacaoDetalhes() {
       description: "Funcionalidade em desenvolvimento"
     });
   };
+
+  const handleResetarAnalise = async () => {
+    if (!id) return;
+    
+    setIsResetting(true);
+    try {
+      // Resetar estado da cotação
+      const { error: resetError } = await supabase
+        .from('edi_cotacoes')
+        .update({
+          status_analise_ia: 'pendente',
+          progresso_analise_percent: 0,
+          itens_analisados: 0,
+          total_sugestoes_geradas: 0,
+          erro_analise_ia: null,
+        })
+        .eq('id', id);
+
+      if (resetError) throw resetError;
+
+      // Resetar itens
+      const { error: itensError } = await supabase
+        .from('edi_cotacoes_itens')
+        .update({
+          analisado_por_ia: false,
+          score_confianca_ia: null,
+          produtos_sugeridos_ia: null,
+          produto_selecionado_id: null,
+          requer_revisao_humana: false,
+        })
+        .eq('cotacao_id', id);
+
+      if (itensError) throw itensError;
+
+      toast({
+        title: "Análise resetada",
+        description: "A análise foi resetada. Reiniciando agora...",
+      });
+
+      // Reiniciar análise
+      await carregarDados();
+      if (id) {
+        setTimeout(() => iniciarAnalise(id), 1000);
+      }
+    } catch (error) {
+      console.error('Erro ao resetar análise:', error);
+      toast({
+        title: "Erro ao resetar",
+        description: "Não foi possível resetar a análise. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
   const handleExcluir = async () => {
     setIsDeleting(true);
     try {
@@ -225,7 +282,20 @@ export default function CotacaoDetalhes() {
       left: 'var(--sidebar-width)' as any,
       right: historicoAberto ? '24rem' : '4.5rem'
     }}>
-        <CotacaoActionBar status={cotacao.step_atual as any} onResponder={handleResponder} onCancelar={handleCancelar} onConfirmar={handleConfirmar} onEnviar={handleEnviar} />
+        <CotacaoActionBar 
+          status={cotacao.step_atual as any} 
+          onResponder={handleResponder} 
+          onCancelar={handleCancelar} 
+          onConfirmar={handleConfirmar} 
+          onEnviar={handleEnviar}
+          onResetarAnalise={handleResetarAnalise}
+          analiseIATravada={
+            cotacao.status_analise_ia === 'em_analise' && 
+            (cotacao.progresso_analise_percent || 0) > 0 && 
+            (cotacao.progresso_analise_percent || 0) < 100 &&
+            !isAnalyzing
+          }
+        />
       </div>
 
       <div className="flex pt-[72px]">
