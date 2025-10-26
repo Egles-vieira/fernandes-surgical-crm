@@ -156,16 +156,35 @@ export default function Produtos() {
   const handleDeleteAll = async () => {
     setIsDeleting(true);
     try {
-      // First, try to delete products that are not referenced
-      const { data: produtosComReferencia, error: checkError } = await supabase
-        .from('vendas_itens')
-        .select('produto_id');
+      // Check for product references in multiple tables
+      const [
+        { data: vendasItens, error: vendasError },
+        { data: ediCotacoesItens, error: ediCotacoesError },
+        { data: ediVinculos, error: ediVinculosError }
+      ] = await Promise.all([
+        supabase.from('vendas_itens').select('produto_id'),
+        supabase.from('edi_cotacoes_itens').select('produto_id'),
+        supabase.from('edi_produtos_vinculo').select('produto_id')
+      ]);
 
-      if (checkError) throw checkError;
+      if (vendasError) throw vendasError;
+      if (ediCotacoesError) throw ediCotacoesError;
+      if (ediVinculosError) throw ediVinculosError;
 
-      const produtosReferenciadosIds = new Set(
-        produtosComReferencia?.map(item => item.produto_id) || []
-      );
+      // Combine all referenced product IDs
+      const produtosReferenciadosIds = new Set<string>();
+      
+      vendasItens?.forEach(item => {
+        if (item.produto_id) produtosReferenciadosIds.add(item.produto_id);
+      });
+      
+      ediCotacoesItens?.forEach(item => {
+        if (item.produto_id) produtosReferenciadosIds.add(item.produto_id);
+      });
+      
+      ediVinculos?.forEach(item => {
+        if (item.produto_id) produtosReferenciadosIds.add(item.produto_id);
+      });
 
       const produtosSemReferencia = produtos.filter(
         p => !produtosReferenciadosIds.has(p.id)
@@ -174,7 +193,7 @@ export default function Produtos() {
       if (produtosSemReferencia.length === 0) {
         toast({
           title: "Não é possível excluir",
-          description: "Todos os produtos estão sendo usados em vendas. Exclua as vendas primeiro.",
+          description: "Todos os produtos estão sendo usados em vendas ou portais EDI. Remova as referências primeiro.",
           variant: "destructive",
         });
         setShowDeleteDialog(false);
@@ -195,13 +214,13 @@ export default function Produtos() {
       toast({
         title: "Produtos excluídos",
         description: produtosNaoExcluidos > 0
-          ? `${produtosSemReferencia.length} produtos excluídos. ${produtosNaoExcluidos} produtos não foram excluídos pois estão em vendas.`
+          ? `${produtosSemReferencia.length} produtos excluídos. ${produtosNaoExcluidos} produtos não foram excluídos pois estão em uso (vendas ou portais EDI).`
           : `${produtosSemReferencia.length} produtos foram excluídos com sucesso.`,
         variant: produtosNaoExcluidos > 0 ? "default" : "default",
       });
 
       setShowDeleteDialog(false);
-      window.location.reload(); // Reload to refresh the list
+      window.location.reload();
     } catch (error: any) {
       toast({
         title: "Erro ao excluir produtos",
