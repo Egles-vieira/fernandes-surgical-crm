@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Search, Plus, Eye, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Grid3x3, List } from "lucide-react";
+import { Search, Plus, Eye, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Grid3x3, List, Upload } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -14,6 +15,7 @@ type Produto = Tables<"produtos">;
 type ViewMode = "grid" | "list";
 
 export default function Produtos() {
+  const navigate = useNavigate();
   const { produtos, isLoading } = useProdutos();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedProduto, setSelectedProduto] = useState<Produto | null>(null);
@@ -107,6 +109,10 @@ export default function Produtos() {
           </p>
         </div>
         <div className="flex items-center gap-4">
+          <Button onClick={() => navigate('/importar-produtos')}>
+            <Upload size={16} className="mr-2" />
+            Importar Produtos
+          </Button>
           <div className="flex items-center gap-2 border rounded-lg p-1">
             <Button
               variant={viewMode === "grid" ? "default" : "ghost"}
