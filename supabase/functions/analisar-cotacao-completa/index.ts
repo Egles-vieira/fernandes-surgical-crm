@@ -243,6 +243,7 @@ serve(async (req) => {
         status_analise_ia: 'concluida',
         analise_ia_concluida_em: fimAnalise.toISOString(),
         progresso_analise_percent: 100,
+        step_atual: 'em_analise', // Mantém em análise para o usuário revisar as sugestões
       })
       .eq('id', cotacao_id);
 

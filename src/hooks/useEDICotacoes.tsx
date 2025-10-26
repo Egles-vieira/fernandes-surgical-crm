@@ -40,6 +40,7 @@ export const useEDICotacoes = (filtros?: {
   resgatada?: boolean;
   status_analise_ia?: 'pendente' | 'em_analise' | 'concluida' | 'erro' | 'cancelada';
   respondida?: boolean;
+  analise_concluida?: boolean; // Novo filtro
 }) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -69,6 +70,11 @@ export const useEDICotacoes = (filtros?: {
 
       if (filtros?.status_analise_ia) {
         query = query.eq("status_analise_ia", filtros.status_analise_ia);
+      }
+
+      // Novo: filtro específico para análise concluída
+      if (filtros?.analise_concluida) {
+        query = query.eq("status_analise_ia", "concluida").is("respondido_em", null);
       }
 
       if (filtros?.respondida === true) {

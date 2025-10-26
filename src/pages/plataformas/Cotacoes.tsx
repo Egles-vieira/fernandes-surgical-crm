@@ -48,17 +48,14 @@ export default function Cotacoes() {
   const { cotacoes: todasCotacoes } = useEDICotacoes({});
   
   // Filtros por aba
-  const getFiltros = (): {
-    step?: string;
-    resgatada?: boolean;
-    status_analise_ia?: 'pendente' | 'em_analise' | 'concluida' | 'erro' | 'cancelada';
-    respondida?: boolean;
-  } => {
+  const getFiltros = () => {
     switch (abaAtiva) {
       case "novas":
         return { step: "nova", resgatada: false };
       case "analise_ia":
         return { status_analise_ia: "em_analise" as const };
+      case "analisadas":
+        return { analise_concluida: true }; // Nova aba para análises concluídas
       case "aguardando":
         return { resgatada: true, respondida: false };
       case "respondidas":
@@ -79,7 +76,8 @@ export default function Cotacoes() {
   const estatisticas = {
     novas: todasCotacoes?.filter(c => c.step_atual === "nova" && !c.resgatada).length || 0,
     analiseIA: todasCotacoes?.filter(c => c.status_analise_ia === "em_analise").length || 0,
-    aguardando: todasCotacoes?.filter(c => c.resgatada && !c.respondido_em).length || 0,
+    analisadas: todasCotacoes?.filter(c => c.status_analise_ia === "concluida" && !c.respondido_em).length || 0,
+    aguardando: todasCotacoes?.filter(c => c.resgatada && !c.respondido_em && c.status_analise_ia !== "em_analise" && c.status_analise_ia !== "concluida").length || 0,
     respondidas: todasCotacoes?.filter(c => c.step_atual === "respondida").length || 0,
     confirmadas: todasCotacoes?.filter(c => c.step_atual === "confirmada").length || 0
   };
@@ -120,7 +118,7 @@ export default function Cotacoes() {
       <ImportarXMLDialog open={importarDialogOpen} onOpenChange={setImportarDialogOpen} plataformaId={null} tipoPlataforma="bionexo" />
 
       {/* Cards de Estatísticas */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Novas</CardTitle>
@@ -140,6 +138,17 @@ export default function Cotacoes() {
           <CardContent>
             <div className="text-2xl font-bold text-primary">{estatisticas.analiseIA}</div>
             <p className="text-xs text-muted-foreground">IA analisando</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-green-500/20 bg-green-500/5">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Analisadas</CardTitle>
+            <Sparkles className="h-4 w-4 text-green-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">{estatisticas.analisadas}</div>
+            <p className="text-xs text-muted-foreground">Prontas para cotação</p>
           </CardContent>
         </Card>
 
@@ -185,10 +194,14 @@ export default function Cotacoes() {
           </TabsTrigger>
           <TabsTrigger value="analise_ia" className="gap-2">
             <Brain className="h-3 w-3" />
-            Análise IA ({estatisticas.analiseIA})
+            Analisando ({estatisticas.analiseIA})
+          </TabsTrigger>
+          <TabsTrigger value="analisadas" className="gap-2">
+            <Sparkles className="h-3 w-3" />
+            Analisadas ({estatisticas.analisadas})
           </TabsTrigger>
           <TabsTrigger value="aguardando">
-            Aguardando Resposta ({estatisticas.aguardando})
+            Aguardando ({estatisticas.aguardando})
           </TabsTrigger>
           <TabsTrigger value="respondidas">
             Respondidas ({estatisticas.respondidas})
