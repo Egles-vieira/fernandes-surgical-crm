@@ -81,7 +81,7 @@ serve(async (req) => {
     // Broadcast de início/retomada
     await emitirBroadcast(
       supabase,
-      `cotacao-ia-${cotacao_id}`,
+      `edi_cotacoes_changes`, // Usando canal global
       itensJaAnalisados === 0 ? 'analise-iniciada' : 'analise-progresso',
       {
         cotacao_id,
@@ -168,7 +168,7 @@ serve(async (req) => {
         // Broadcast do item e progresso
         await emitirBroadcast(
           supabase,
-          `cotacao-ia-${cotacao_id}`,
+          `edi_cotacoes_changes`, // Usando canal global
           'analise-item-concluido',
           {
             cotacao_id,
@@ -180,7 +180,7 @@ serve(async (req) => {
 
         await emitirBroadcast(
           supabase,
-          `cotacao-ia-${cotacao_id}`,
+          `edi_cotacoes_changes`, // Usando canal global
           'analise-progresso',
           {
             cotacao_id,
@@ -264,7 +264,7 @@ serve(async (req) => {
 
     await emitirBroadcast(
       supabase,
-      `cotacao-ia-${cotacao_id}`,
+      `edi_cotacoes_changes`, // Usando canal global
       'analise-concluida',
       {
         cotacao_id,
@@ -299,7 +299,7 @@ serve(async (req) => {
 
         await emitirBroadcast(
           supabase,
-          `cotacao-ia-${body.cotacao_id}`,
+          `edi_cotacoes_changes`, // Usando canal global
           'analise-erro',
           { cotacao_id: body.cotacao_id, erro: String(error) }
         );

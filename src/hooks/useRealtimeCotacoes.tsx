@@ -38,6 +38,56 @@ export const useRealtimeCotacoes = () => {
           queryClient.invalidateQueries({ queryKey: ["edi-cotacoes"] });
         }
       )
+      .on(
+        "broadcast",
+        { event: "analise-progresso" },
+        (payload) => {
+          console.log("🧠 Progresso de análise IA recebido:", payload);
+          
+          // Invalida imediatamente para mostrar o progresso
+          queryClient.invalidateQueries({ queryKey: ["edi-cotacoes"] });
+        }
+      )
+      .on(
+        "broadcast",
+        { event: "analise-item-concluido" },
+        (payload) => {
+          console.log("✅ Item analisado:", payload);
+          
+          // Invalida para atualizar contadores
+          queryClient.invalidateQueries({ queryKey: ["edi-cotacoes"] });
+        }
+      )
+      .on(
+        "broadcast",
+        { event: "analise-iniciada" },
+        (payload) => {
+          console.log("🚀 Análise iniciada:", payload);
+          
+          // Invalida para atualizar status
+          queryClient.invalidateQueries({ queryKey: ["edi-cotacoes"] });
+        }
+      )
+      .on(
+        "broadcast",
+        { event: "analise-concluida" },
+        (payload) => {
+          console.log("🏁 Análise concluída:", payload);
+          
+          // Invalida para atualizar status final
+          queryClient.invalidateQueries({ queryKey: ["edi-cotacoes"] });
+        }
+      )
+      .on(
+        "broadcast",
+        { event: "analise-erro" },
+        (payload) => {
+          console.log("❌ Erro na análise:", payload);
+          
+          // Invalida para atualizar status de erro
+          queryClient.invalidateQueries({ queryKey: ["edi-cotacoes"] });
+        }
+      )
       .subscribe((status) => {
         console.log("📡 Status do canal realtime:", status);
       });
