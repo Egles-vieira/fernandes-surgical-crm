@@ -1,19 +1,18 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+}
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: corsHeaders })
   }
 
   try {
-    console.log('=== Cliente API - Início ===');
+    console.log('=== Cliente API - Início ===')
     
     // Criar cliente Supabase
     const supabaseClient = createClient(
@@ -24,34 +23,34 @@ serve(async (req) => {
           headers: { Authorization: req.headers.get('Authorization')! },
         },
       }
-    );
+    )
 
     // Verificar autenticação
     const {
       data: { user },
       error: authError,
-    } = await supabaseClient.auth.getUser();
+    } = await supabaseClient.auth.getUser()
 
     if (authError || !user) {
-      console.error('Erro de autenticação:', authError);
+      console.error('Erro de autenticação:', authError)
       return new Response(
         JSON.stringify({ error: 'Não autenticado' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      )
     }
 
-    console.log('Usuário autenticado:', user.email);
+    console.log('Usuário autenticado:', user.email)
 
     // Parse do body
-    const body = await req.json();
-    console.log('Dados recebidos:', JSON.stringify(body, null, 2));
+    const body = await req.json()
+    console.log('Dados recebidos:', JSON.stringify(body, null, 2))
 
     // Validação básica
     if (!body.nome_abrev) {
       return new Response(
         JSON.stringify({ error: 'Campo "nome_abrev" é obrigatório' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      )
     }
 
     // Preparar dados do cliente
@@ -69,9 +68,9 @@ serve(async (req) => {
       atividade: body.atividade || null,
       coligada: body.coligada || null,
       user_id: user.id,
-    };
+    }
 
-    console.log('Dados preparados para inserção:', JSON.stringify(clienteData, null, 2));
+    console.log('Dados preparados para inserção:', JSON.stringify(clienteData, null, 2))
 
     // Se tiver ID, atualiza. Senão, cria novo
     if (body.id) {
@@ -82,49 +81,50 @@ serve(async (req) => {
         .eq('id', body.id)
         .eq('user_id', user.id) // Garante que só atualiza seus próprios clientes
         .select()
-        .single();
+        .single()
 
       if (error) {
-        console.error('Erro ao atualizar cliente:', error);
+        console.error('Erro ao atualizar cliente:', error)
         return new Response(
           JSON.stringify({ error: error.message }),
           { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+        )
       }
 
-      console.log('Cliente atualizado com sucesso:', data.id);
+      console.log('Cliente atualizado com sucesso:', data.id)
       return new Response(
         JSON.stringify({ success: true, data, message: 'Cliente atualizado com sucesso' }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      )
     } else {
       // Criar novo cliente
       const { data, error } = await supabaseClient
         .from('clientes')
         .insert(clienteData)
         .select()
-        .single();
+        .single()
 
       if (error) {
-        console.error('Erro ao criar cliente:', error);
+        console.error('Erro ao criar cliente:', error)
         return new Response(
           JSON.stringify({ error: error.message }),
           { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+        )
       }
 
-      console.log('Cliente criado com sucesso:', data.id);
+      console.log('Cliente criado com sucesso:', data.id)
       return new Response(
         JSON.stringify({ success: true, data, message: 'Cliente criado com sucesso' }),
         { status: 201, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      )
     }
 
   } catch (error) {
-    console.error('Erro no endpoint:', error);
+    console.error('Erro no endpoint:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido'
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: errorMessage }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    )
   }
-});
+})
