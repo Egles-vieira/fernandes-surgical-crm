@@ -278,9 +278,9 @@ export default function CotacaoDetalhes() {
   const valorTotal = itens.reduce((acc, item) => acc + (item.preco_total || 0), 0);
   return <div className="min-h-screen bg-background">
       {/* ActionBar fixo que respeita sidebar e histórico */}
-      <div className="fixed top-16 z-40 bg-card border-b shadow-sm px-8 py-3 transition-all duration-300" style={{
+      <div className="fixed top-16 z-40 bg-card border-b shadow-sm px-4 md:px-6 py-3 transition-all duration-300" style={{
       left: 'var(--sidebar-width)' as any,
-      right: historicoAberto ? '24rem' : '4.5rem'
+      right: historicoAberto ? '24rem' : '0'
     }}>
         <CotacaoActionBar 
           status={cotacao.step_atual as any} 
@@ -298,10 +298,10 @@ export default function CotacaoDetalhes() {
         />
       </div>
 
-      <div className="flex pt-[72px]">
+      <div className="flex pt-[72px] w-full">
         {/* Área Principal */}
-        <div className={`flex-1 transition-all duration-300 ${historicoAberto ? 'mr-96' : 'mr-0'}`}>
-          <div className="px-4 py-8 space-y-6 max-w-full overflow-x-hidden md:px-6">
+        <div className={`flex-1 min-w-0 transition-all duration-300 ${historicoAberto ? 'mr-96' : 'mr-0'}`}>
+          <div className="px-4 py-6 space-y-6 w-full md:px-6 md:py-8">
             {/* Header */}
             <div className="flex items-center gap-4 mb-6">
               <Button variant="outline" size="icon" onClick={() => navigate("/plataformas/cotacoes")}>
@@ -332,7 +332,7 @@ export default function CotacaoDetalhes() {
             </div>
 
             {/* CAPA - Informações principais */}
-            <Card className="rounded-none mx-0">
+            <Card className="rounded-none mx-0 w-full overflow-hidden">
               
               <CardContent className="mx-0 py-[12px] my-0 px-[24px]">
                 <div className="grid grid-cols-2 gap-6">
@@ -402,13 +402,13 @@ export default function CotacaoDetalhes() {
 
             {/* ANÁLISE DE IA */}
             {cotacao.step_atual === 'em_analise' && (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
+              <div className="space-y-4 w-full">
+                <div className="flex items-center justify-between flex-wrap gap-2">
                   <h3 className="text-lg font-semibold flex items-center gap-2">
                     <Sparkles className="h-5 w-5 text-primary" />
                     Análise com IA
                   </h3>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 flex-wrap">
                     <Button
                       variant="outline"
                       size="sm"
@@ -431,7 +431,7 @@ export default function CotacaoDetalhes() {
                 <ProgressoAnaliseIA progresso={progress} isAnalyzing={isAnalyzing} />
 
                 {iaError && (
-                  <Card className="border-destructive">
+                  <Card className="border-destructive w-full overflow-hidden">
                     <CardContent className="pt-6">
                       <p className="text-sm text-destructive">{iaError}</p>
                     </CardContent>
@@ -441,15 +441,17 @@ export default function CotacaoDetalhes() {
             )}
 
             {/* ITENS E INFORMAÇÕES DE ITENS */}
-            <Card>
+            <Card className="w-full overflow-hidden">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Package className="h-5 w-5" />
                   Itens e Informações de Itens
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <ItemCotacaoTable itens={itens} cotacao={cotacao} onUpdate={carregarDados} />
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <ItemCotacaoTable itens={itens} cotacao={cotacao} onUpdate={carregarDados} />
+                </div>
               </CardContent>
             </Card>
 
@@ -504,7 +506,7 @@ export default function CotacaoDetalhes() {
             )}
 
             {/* INFORMAÇÕES GERAIS, OBS E TERMO */}
-            <Card>
+            <Card className="w-full overflow-hidden">
               <CardHeader>
                 <CardTitle>Informações Gerais, Obs e Termo</CardTitle>
               </CardHeader>
