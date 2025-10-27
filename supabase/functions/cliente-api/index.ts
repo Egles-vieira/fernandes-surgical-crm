@@ -57,7 +57,7 @@ Deno.serve(async (req) => {
     const clienteData = {
       nome_abrev: body.nome_abrev,
       cgc: body.cgc || null,
-      email: body.email || null,
+      e_mail: body.e_mail || body.email || null,
       email_financeiro: body.email_financeiro || null,
       email_xml: body.email_xml || null,
       telefone1: body.telefone1 || null,
