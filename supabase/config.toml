@@ -1,5 +1,8 @@
 project_id = "rzzzfprgnoywmmjwepzm"
 
+[functions.cliente-api]
+verify_jwt = true
+
 [functions.analisar-sentimento-cliente]
 verify_jwt = true
 
