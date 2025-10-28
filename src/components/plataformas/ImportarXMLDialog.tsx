@@ -94,8 +94,10 @@ export default function ImportarXMLDialog({
 
       setProgresso(20);
 
-      // Ler conteúdo do arquivo
-      const conteudoXML = await arquivo.text();
+      // Ler conteúdo do arquivo com encoding correto (ISO-8859-1)
+      const arrayBuffer = await arquivo.arrayBuffer();
+      const decoder = new TextDecoder('iso-8859-1');
+      const conteudoXML = decoder.decode(arrayBuffer);
       setProgresso(40);
 
       // Chamar edge function
