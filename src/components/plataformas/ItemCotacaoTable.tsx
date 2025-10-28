@@ -657,8 +657,7 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
 
         {/* Grid com Scroll */}
         <div className="border rounded-lg overflow-hidden">
-          <div className="overflow-x-auto max-h-[600px]">
-            <Table className="relative">
+            <Table className="relative" wrapperClassName="max-h-[600px]">
               <TableHeader className="sticky top-0 z-10 bg-background">
                 <TableRow>
                   {visibleColumns.expand && <TableHead className="sticky left-0 z-50 bg-background w-[50px] px-0 relative"></TableHead>}
