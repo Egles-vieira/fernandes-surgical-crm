@@ -38,6 +38,7 @@ import NovoTicket from "./pages/NovoTicket";
 import TicketDetalhes from "./pages/TicketDetalhes";
 import TicketsDashboard from "./pages/TicketsDashboard";
 import BaseConhecimento from "./pages/BaseConhecimento";
+import MeuPerfil from "./pages/MeuPerfil";
 
 const App = () => (
   <>
@@ -274,6 +275,13 @@ const App = () => (
           <ProtectedRoute>
             <Layout>
               <BaseConhecimento />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/perfil" element={
+          <ProtectedRoute>
+            <Layout>
+              <MeuPerfil />
             </Layout>
           </ProtectedRoute>
         } />
