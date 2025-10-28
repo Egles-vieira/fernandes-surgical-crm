@@ -125,10 +125,13 @@ serve(async (req) => {
         );
 
         if (sugestoesError) {
-          throw new Error(`Erro ao sugerir produtos: ${sugestoesError.message}`);
+          const errorMsg = `Erro ao sugerir produtos: ${sugestoesError.message}`;
+          console.error(`❌ ${errorMsg}`);
+          throw new Error(errorMsg);
         }
 
         const sugestoes = sugestoesData?.sugestoes || [];
+        const erroDeepSeek = sugestoesData?.deepseek_error;
         const melhorSugestao = sugestoes[0];
         const scoreConfianca = melhorSugestao?.score_final || 0;
         const tempoMs = Date.now() - itemInicio;
@@ -136,19 +139,27 @@ serve(async (req) => {
         const requerRevisao = scoreConfianca < 70 || (sugestoes.length > 1 && (sugestoes[1].score_final >= scoreConfianca - 10));
 
         // Atualizar item com resultado
+        const updateData: any = {
+          analisado_por_ia: true,
+          analisado_em: new Date().toISOString(),
+          score_confianca_ia: scoreConfianca,
+          produtos_sugeridos_ia: sugestoes,
+          produto_selecionado_id: melhorSugestao?.produto_id ?? null,
+          metodo_vinculacao: scoreConfianca >= 85 ? 'ia_automatico' : 'ia_manual',
+          justificativa_ia: melhorSugestao?.justificativa || '',
+          tempo_analise_segundos: Math.round(tempoMs / 1000),
+          requer_revisao_humana: requerRevisao,
+        };
+
+        // Registrar erro do DeepSeek se houver
+        if (erroDeepSeek) {
+          updateData.erro_analise_ia = `DeepSeek: ${erroDeepSeek}`;
+          console.warn(`⚠️ Item ${item.id} analisado com fallback (erro DeepSeek: ${erroDeepSeek})`);
+        }
+
         await supabase
           .from('edi_cotacoes_itens')
-          .update({
-            analisado_por_ia: true,
-            analisado_em: new Date().toISOString(),
-            score_confianca_ia: scoreConfianca,
-            produtos_sugeridos_ia: sugestoes,
-            produto_selecionado_id: melhorSugestao?.produto_id ?? null,
-            metodo_vinculacao: scoreConfianca >= 85 ? 'ia_automatico' : 'ia_manual',
-            justificativa_ia: melhorSugestao?.justificativa || '',
-            tempo_analise_segundos: Math.round(tempoMs / 1000),
-            requer_revisao_humana: requerRevisao,
-          })
+          .update(updateData)
           .eq('id', item.id);
 
         if (sugestoes.length > 0) {
@@ -180,21 +191,24 @@ serve(async (req) => {
 
         return { sucesso: true, item_id: item.id, score: scoreConfianca };
       } catch (erro: any) {
-        console.error(`❌ Erro ao analisar item ${item.id}:`, erro);
+        const errorMsg = erro.message || String(erro);
+        console.error(`❌ Erro ao analisar item ${item.id}:`, errorMsg);
+        console.error(`Stack trace:`, erro.stack);
         
-        // Marcar item como erro
+        // Marcar item como erro com informações detalhadas
         await supabase
           .from('edi_cotacoes_itens')
           .update({
             analisado_por_ia: true,
             analisado_em: new Date().toISOString(),
-            justificativa_ia: `Erro: ${erro.message}`,
+            justificativa_ia: `Erro na análise: ${errorMsg.substring(0, 200)}`,
+            erro_analise_ia: errorMsg,
             score_confianca_ia: 0,
             requer_revisao_humana: true,
           })
           .eq('id', item.id);
 
-        return { sucesso: false, item_id: item.id, erro: erro.message };
+        return { sucesso: false, item_id: item.id, erro: errorMsg };
       }
     });
 
@@ -292,31 +306,55 @@ serve(async (req) => {
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
-    console.error('❌ Erro geral na análise:', error);
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    const errorStack = error instanceof Error ? error.stack : '';
+    
+    console.error('❌ Erro geral na análise:', errorMsg);
+    console.error('Stack trace:', errorStack);
 
-    // Atualiza status para erro
+    // Atualiza status para erro com detalhes completos
     try {
       const body = await req.json().catch(() => ({}));
       const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
       const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
       const supabase = createClient(supabaseUrl, supabaseServiceKey);
+      
       if (body?.cotacao_id) {
+        const errorDetails = {
+          message: errorMsg,
+          stack: errorStack?.substring(0, 500), // Primeiros 500 chars do stack
+          timestamp: new Date().toISOString(),
+        };
+
         await supabase
           .from('edi_cotacoes')
-          .update({ status_analise_ia: 'erro', erro_analise_ia: String(error) })
+          .update({ 
+            status_analise_ia: 'erro', 
+            erro_analise_ia: JSON.stringify(errorDetails),
+            step_atual: 'em_analise', // Mantém em análise para permitir retry
+          })
           .eq('id', body.cotacao_id);
 
         await emitirBroadcast(
           supabase,
-          `edi_cotacoes_changes`, // Usando canal global
+          `edi_cotacoes_changes`,
           'analise-erro',
-          { cotacao_id: body.cotacao_id, erro: String(error) }
+          { 
+            cotacao_id: body.cotacao_id, 
+            erro: errorMsg,
+            pode_tentar_novamente: true,
+          }
         );
       }
-    } catch (_) { /* noop */ }
+    } catch (updateError) {
+      console.error('❌ Erro ao atualizar status de erro:', updateError);
+    }
 
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Erro desconhecido' }),
+      JSON.stringify({ 
+        error: errorMsg,
+        details: errorStack?.substring(0, 200),
+      }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
