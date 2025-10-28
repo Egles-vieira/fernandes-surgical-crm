@@ -1,12 +1,15 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Calculator, Clock, Building2, FileText, Sparkles, Upload, Brain, Database } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { Calculator, Clock, Building2, FileText, Sparkles, Upload, Brain, Database, RefreshCw } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useEDICotacoes } from "@/hooks/useEDICotacoes";
 import { useRealtimeCotacoes } from "@/hooks/useRealtimeCotacoes";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import ImportarXMLDialog from "@/components/plataformas/ImportarXMLDialog";
 import { StatusAnaliseIABadge } from "@/components/plataformas/StatusAnaliseIABadge";
 import { format } from "date-fns";
@@ -38,8 +41,11 @@ const stepLabel = (step: string) => {
 };
 export default function Cotacoes() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
   const [abaAtiva, setAbaAtiva] = useState<string>("novas");
   const [importarDialogOpen, setImportarDialogOpen] = useState(false);
+  const [corrigindoAnalises, setCorrigindoAnalises] = useState(false);
   const [paginas, setPaginas] = useState<Record<string, number>>({
     novas: 0,
     analise_ia: 0,
@@ -104,6 +110,31 @@ export default function Cotacoes() {
   const handleResgatar = async (cotacaoId: string) => {
     await resgatarCotacao.mutateAsync(cotacaoId);
   };
+
+  const handleCorrigirAnalisesTravadas = async () => {
+    setCorrigindoAnalises(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("corrigir-analises-travadas");
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Análises corrigidas",
+        description: `${data.total_corrigidas} de ${data.total_verificadas} cotações foram corrigidas.`,
+      });
+      
+      // Recarregar dados
+      queryClient.invalidateQueries({ queryKey: ["edi-cotacoes"] });
+    } catch (error: any) {
+      toast({
+        title: "Erro ao corrigir análises",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setCorrigindoAnalises(false);
+    }
+  };
   if (isLoading) {
     return <div className="p-8">
         <div className="animate-pulse space-y-4">
@@ -123,6 +154,18 @@ export default function Cotacoes() {
         </p>
         </div>
         <div className="flex gap-2">
+          {abaAtiva === "analise_ia" && estatisticas.analiseIA > 0 && (
+            <Button 
+              variant="outline" 
+              size="lg" 
+              className="gap-2"
+              onClick={handleCorrigirAnalisesTravadas}
+              disabled={corrigindoAnalises}
+            >
+              <RefreshCw className={`h-4 w-4 ${corrigindoAnalises ? 'animate-spin' : ''}`} />
+              Corrigir Travadas
+            </Button>
+          )}
           <Button 
             variant="outline" 
             size="lg" 
