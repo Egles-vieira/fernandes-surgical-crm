@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
+import { produtoImportSchema } from "@/lib/validations/produto";
 
 interface ImportResult {
   success: number;
@@ -126,27 +127,40 @@ export default function ImportarProdutos() {
           return `${year}-${month}-${day}`;
         };
 
-        const produtosFormatted = batch.map(p => ({
-          referencia_interna: p.referencia_interna || p.codigo,
-          nome: p.nome,
-          unidade_medida: p.unidade_medida || p.unidade || 'UN',
-          ncm: p.ncm || '00000000',
-          preco_venda: parseDecimal(p.preco_venda || p.precoVenda || '0'),
-          custo: parseDecimal(p.custo || p.precoCusto || '0'),
-          quantidade_em_maos: parseDecimal(p.quantidade_em_maos || p.estoqueAtual || '0'),
-          dtr: parseDecimal(p.dtr || p.estoqueMinimo || '0'),
-          marcadores_produto: parseArray(p.marcadores_produto),
-          narrativa: p.narrativa || [p.fabricante, p.marca, p.procedencia, p.descricao].filter(Boolean).join(' | '),
-          cod_trib_icms: p.cod_trib_icms || 'Tributado',
-          aliquota_ipi: parseDecimal(p.aliquota_ipi || '0'),
-          qtd_cr: parseDecimal(p.qtd_cr || '0'),
-          grupo_estoque: parseDecimal(p.grupo_estoque || '0'),
-          quantidade_prevista: parseDecimal(p.quantidade_prevista || '0'),
-          lote_multiplo: parseDecimal(p.lote_multiplo || '1'),
-          icms_sp_percent: parseDecimal(p.icms_sp_percent || '0'),
-          responsavel: p.responsavel || null,
-          previsao_chegada: parseDate(p.previsao_chegada),
-        }));
+        const produtosFormatted = batch.map((p, idx) => {
+          const produtoData = {
+            referencia_interna: p.referencia_interna || p.codigo,
+            nome: p.nome,
+            unidade_medida: p.unidade_medida || p.unidade || 'UN',
+            ncm: p.ncm || '00000000',
+            preco_venda: parseDecimal(p.preco_venda || p.precoVenda || '0'),
+            custo: parseDecimal(p.custo || p.precoCusto || '0'),
+            quantidade_em_maos: parseDecimal(p.quantidade_em_maos || p.estoqueAtual || '0'),
+            dtr: parseDecimal(p.dtr || p.estoqueMinimo || '0'),
+            marcadores_produto: parseArray(p.marcadores_produto),
+            narrativa: p.narrativa || [p.fabricante, p.marca, p.procedencia, p.descricao].filter(Boolean).join(' | '),
+            cod_trib_icms: p.cod_trib_icms || 'Tributado',
+            aliquota_ipi: parseDecimal(p.aliquota_ipi || '0'),
+            qtd_cr: parseDecimal(p.qtd_cr || '0'),
+            grupo_estoque: parseDecimal(p.grupo_estoque || '0'),
+            quantidade_prevista: parseDecimal(p.quantidade_prevista || '0'),
+            lote_multiplo: parseDecimal(p.lote_multiplo || '1'),
+            icms_sp_percent: parseDecimal(p.icms_sp_percent || '0'),
+            responsavel: p.responsavel || null,
+            previsao_chegada: parseDate(p.previsao_chegada),
+          };
+          
+          // Validate with Zod schema
+          try {
+            produtoImportSchema.parse(produtoData);
+          } catch (validationError: any) {
+            console.error(`Validation error on row ${i + idx + 1}:`, validationError.errors);
+            errorDetails.push(`Linha ${i + idx + 1}: ${validationError.errors.map((e: any) => e.message).join(', ')}`);
+            throw new Error('Validation failed');
+          }
+          
+          return produtoData;
+        });
 
         const { data, error } = await supabase
           .from('produtos')

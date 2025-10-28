@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { ChevronLeft, Plus, X, Search, History, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +12,9 @@ import { Card } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { vendaSchema, vendaItemSchema, type VendaInput, type VendaItemInput } from "@/lib/validations/venda";
+import { z } from "zod";
 
 interface ItemPedido {
   codigo: string;

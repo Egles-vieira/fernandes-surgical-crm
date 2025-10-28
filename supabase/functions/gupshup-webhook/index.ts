@@ -1,9 +1,64 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from 'https://esm.sh/zod@3.22.4';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Input validation schema for webhook payload
+const GupshupWebhookSchema = z.object({
+  type: z.enum(['message', 'message-event'], { required_error: "Type is required" }),
+  payload: z.object({
+    source: z.string().min(1, "Source phone required").max(50),
+    payload: z.object({
+      text: z.string().max(5000, "Message too long").optional(),
+      type: z.string().max(50).optional(),
+    }).passthrough(),
+    sender: z.object({
+      phone: z.string().min(1).max(50),
+      name: z.string().max(200).optional(),
+    }).passthrough(),
+  }).passthrough(),
+  eventType: z.string().max(100).optional(),
+  gsId: z.string().max(200).optional(),
+}).passthrough();
+
+// Verify webhook signature (if Gupshup provides one in headers)
+async function verifyGupshupSignature(
+  payload: string, 
+  signature: string | null, 
+  secret: string
+): Promise<boolean> {
+  if (!signature) {
+    console.warn('No signature provided - webhook signature verification disabled');
+    return true; // Allow for backward compatibility
+  }
+  
+  try {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(payload);
+    const keyData = encoder.encode(secret);
+    
+    const cryptoKey = await crypto.subtle.importKey(
+      'raw',
+      keyData,
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['sign']
+    );
+    
+    const signatureBuffer = await crypto.subtle.sign('HMAC', cryptoKey, data);
+    const expectedSignature = Array.from(new Uint8Array(signatureBuffer))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
+    
+    return signature === expectedSignature;
+  } catch (error) {
+    console.error('Signature verification error:', error);
+    return false;
+  }
+}
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {

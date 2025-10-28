@@ -6,6 +6,7 @@ import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import Papa from 'papaparse';
+import { clienteImportSchema } from "@/lib/validations/cliente";
 
 interface ImportResult {
   success: number;
@@ -87,33 +88,48 @@ export default function ImportarClientes() {
           return isNaN(parsed) ? 0 : parsed;
         };
 
-        const clientesFormatted = batch.map(c => ({
-          user_id: user.id,
-          nome_emit: c.nome_emit || c.razao_social || '',
-          nome_abrev: c.nome_abrev || c.nome_abreviado || '',
-          cgc: c.cgc || c.cnpj || c.cpf || '',
-          cod_emitente: parseInteger(c.cod_emitente || c.codigo || '0'),
-          identific: c.identific || 'Cliente',
-          natureza: c.natureza || 'Juridica',
-          ins_estadual: c.ins_estadual || c.inscricao_estadual || null,
-          cod_suframa: c.cod_suframa || null,
-          telefone1: c.telefone1 || c.telefone || null,
-          e_mail: c.e_mail || c.email || null,
-          email_xml: c.email_xml || null,
-          email_financeiro: c.email_financeiro || null,
-          nat_operacao: c.nat_operacao || c.natureza_operacao || null,
-          atividade: c.atividade || null,
-          coligada: c.coligada || null,
-          cod_gr_cli: parseInteger(c.cod_gr_cli || c.grupo_cliente || '0'),
-          cod_rep: parseInteger(c.cod_rep || c.codigo_representante || '0'),
-          lim_credito: parseDecimal(c.lim_credito || c.limite_credito || '0'),
-          limite_disponivel: parseDecimal(c.limite_disponivel || c.credito_disponivel || '0'),
-          ind_cre_cli: c.ind_cre_cli || c.indicador_credito || 'Normal',
-          cod_cond_pag: parseInteger(c.cod_cond_pag || c.condicao_pagamento || '0'),
-          cond_pag_fixa: c.cond_pag_fixa || 'NO',
-          equipevendas: c.equipevendas || c.equipe_vendas || null,
-          observacoes: c.observacoes || null,
-        }));
+        const clientesFormatted = batch.map((c, idx) => {
+          const clienteData = {
+            nome_emit: c.nome_emit || c.razao_social || '',
+            nome_abrev: c.nome_abrev || c.nome_abreviado || '',
+            cgc: c.cgc || c.cnpj || c.cpf || '',
+            cod_emitente: parseInteger(c.cod_emitente || c.codigo || '0'),
+            identific: c.identific || 'Cliente',
+            natureza: c.natureza || 'Juridica',
+            ins_estadual: c.ins_estadual || c.inscricao_estadual || null,
+            cod_suframa: c.cod_suframa || null,
+            telefone1: c.telefone1 || c.telefone || null,
+            e_mail: c.e_mail || c.email || null,
+            email_xml: c.email_xml || null,
+            email_financeiro: c.email_financeiro || null,
+            nat_operacao: c.nat_operacao || c.natureza_operacao || null,
+            atividade: c.atividade || null,
+            coligada: c.coligada || null,
+            cod_gr_cli: parseInteger(c.cod_gr_cli || c.grupo_cliente || '0'),
+            cod_rep: parseInteger(c.cod_rep || c.codigo_representante || '0'),
+            lim_credito: parseDecimal(c.lim_credito || c.limite_credito || '0'),
+            limite_disponivel: parseDecimal(c.limite_disponivel || c.credito_disponivel || '0'),
+            ind_cre_cli: c.ind_cre_cli || c.indicador_credito || 'Normal',
+            cod_cond_pag: parseInteger(c.cod_cond_pag || c.condicao_pagamento || '0'),
+            cond_pag_fixa: c.cond_pag_fixa || 'NO',
+            equipevendas: c.equipevendas || c.equipe_vendas || null,
+            observacoes: c.observacoes || null,
+          };
+          
+          // Validate with Zod schema
+          try {
+            clienteImportSchema.parse(clienteData);
+          } catch (validationError: any) {
+            console.error(`Validation error on row ${i + idx + 1}:`, validationError.errors);
+            errorDetails.push(`Linha ${i + idx + 1}: ${validationError.errors.map((e: any) => e.message).join(', ')}`);
+            throw new Error('Validation failed');
+          }
+          
+          return {
+            user_id: user.id,
+            ...clienteData
+          };
+        });
 
         const { data, error } = await supabase
           .from('clientes')
