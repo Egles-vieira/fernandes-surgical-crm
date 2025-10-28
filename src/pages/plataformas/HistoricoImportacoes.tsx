@@ -28,8 +28,6 @@ export default function HistoricoImportacoes() {
   const offset = pagina * limite;
 
   const { logs, total, stats, isLoading } = useEDILogs({
-    tipo: "importacao",
-    operacao: "importar_xml",
     plataforma_id: plataformaFiltro,
     limite,
     offset,

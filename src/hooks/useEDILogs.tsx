@@ -10,7 +10,7 @@ interface UseEDILogsParams {
 }
 
 export function useEDILogs({
-  tipo = "importacao",
+  tipo,
   operacao,
   plataforma_id,
   limite = 20,
@@ -25,9 +25,12 @@ export function useEDILogs({
           *,
           plataformas_edi(nome, slug)
         `, { count: "exact" })
-        .eq("tipo", tipo)
         .order("executado_em", { ascending: false })
         .range(offset, offset + limite - 1);
+
+      if (tipo) {
+        query = query.eq("tipo", tipo);
+      }
 
       if (operacao) {
         query = query.eq("operacao", operacao);
@@ -51,8 +54,11 @@ export function useEDILogs({
     queryFn: async () => {
       let query = supabase
         .from("edi_logs_integracao")
-        .select("sucesso, executado_em", { count: "exact" })
-        .eq("tipo", tipo);
+        .select("sucesso, executado_em", { count: "exact" });
+
+      if (tipo) {
+        query = query.eq("tipo", tipo);
+      }
 
       if (operacao) {
         query = query.eq("operacao", operacao);
