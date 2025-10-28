@@ -5,6 +5,17 @@ interface CreateUserRequest {
   email: string;
   password: string;
   roles: string[];
+  profile: {
+    nome_exibicao?: string;
+    foto_perfil_url?: string;
+    numero_celular?: string;
+    telefone?: string;
+    ramal?: string;
+    codigo_vendedor?: string;
+    cargo?: string;
+    vendedor_vinculado_id?: string;
+    equipe_id?: string;
+  };
 }
 
 Deno.serve(async (req) => {
@@ -48,7 +59,7 @@ Deno.serve(async (req) => {
       throw new Error('Only admins can create users');
     }
 
-    const { email, password, roles }: CreateUserRequest = await req.json();
+    const { email, password, roles, profile }: CreateUserRequest = await req.json();
 
     // Criar o usuário
     const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
@@ -61,12 +72,33 @@ Deno.serve(async (req) => {
       throw createError;
     }
 
+    // Criar perfil do usuário
+    const { error: profileError } = await supabaseAdmin
+      .from('perfis_usuario')
+      .insert({
+        id: newUser.user.id,
+        primeiro_nome: profile.nome_exibicao?.split(' ')[0],
+        sobrenome: profile.nome_exibicao?.split(' ').slice(1).join(' '),
+        foto_perfil_url: profile.foto_perfil_url,
+        numero_celular: profile.numero_celular,
+        telefone: profile.telefone,
+        ramal: profile.ramal,
+        codigo_vendedor: profile.codigo_vendedor,
+        cargo: profile.cargo,
+      });
+
+    if (profileError) {
+      console.error('Error creating profile:', profileError);
+    }
+
     // Adicionar roles ao novo usuário
     if (roles && roles.length > 0) {
       const roleInserts = roles.map(role => ({
         user_id: newUser.user.id,
         role,
         created_by: user.id,
+        vendedor_vinculado_id: role === 'backoffice' ? profile.vendedor_vinculado_id : null,
+        equipe_id: role === 'lider' ? profile.equipe_id : null,
       }));
 
       const { error: rolesError } = await supabaseAdmin
@@ -75,7 +107,6 @@ Deno.serve(async (req) => {
 
       if (rolesError) {
         console.error('Error adding roles:', rolesError);
-        // Não vamos falhar a operação se os roles falharem
       }
     }
 

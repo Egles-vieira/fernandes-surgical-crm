@@ -2826,17 +2826,21 @@ export type Database = {
           atualizado_em: string | null
           cargo: string | null
           celular: string | null
+          codigo_vendedor: string | null
           criado_em: string | null
           departamento: string | null
           empresa_id: string | null
           esta_ativo: boolean | null
+          foto_perfil_url: string | null
           fuso_horario: string | null
           gerente_id: string | null
           id: string
           idioma: string | null
           nome_completo: string | null
+          numero_celular: string | null
           perfil_id: string | null
           primeiro_nome: string | null
+          ramal: string | null
           sobrenome: string | null
           telefone: string | null
           ultimo_login_em: string | null
@@ -2846,17 +2850,21 @@ export type Database = {
           atualizado_em?: string | null
           cargo?: string | null
           celular?: string | null
+          codigo_vendedor?: string | null
           criado_em?: string | null
           departamento?: string | null
           empresa_id?: string | null
           esta_ativo?: boolean | null
+          foto_perfil_url?: string | null
           fuso_horario?: string | null
           gerente_id?: string | null
           id: string
           idioma?: string | null
           nome_completo?: string | null
+          numero_celular?: string | null
           perfil_id?: string | null
           primeiro_nome?: string | null
+          ramal?: string | null
           sobrenome?: string | null
           telefone?: string | null
           ultimo_login_em?: string | null
@@ -2866,17 +2874,21 @@ export type Database = {
           atualizado_em?: string | null
           cargo?: string | null
           celular?: string | null
+          codigo_vendedor?: string | null
           criado_em?: string | null
           departamento?: string | null
           empresa_id?: string | null
           esta_ativo?: boolean | null
+          foto_perfil_url?: string | null
           fuso_horario?: string | null
           gerente_id?: string | null
           id?: string
           idioma?: string | null
           nome_completo?: string | null
+          numero_celular?: string | null
           perfil_id?: string | null
           primeiro_nome?: string | null
+          ramal?: string | null
           sobrenome?: string | null
           telefone?: string | null
           ultimo_login_em?: string | null
@@ -3769,6 +3781,7 @@ export type Database = {
         Row: {
           created_at: string
           created_by: string | null
+          equipe_id: string | null
           id: string
           role: Database["public"]["Enums"]["app_role"]
           user_id: string
@@ -3777,6 +3790,7 @@ export type Database = {
         Insert: {
           created_at?: string
           created_by?: string | null
+          equipe_id?: string | null
           id?: string
           role: Database["public"]["Enums"]["app_role"]
           user_id: string
@@ -3785,12 +3799,21 @@ export type Database = {
         Update: {
           created_at?: string
           created_by?: string | null
+          equipe_id?: string | null
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
           vendedor_vinculado_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_equipe_id_fkey"
+            columns: ["equipe_id"]
+            isOneToOne: false
+            referencedRelation: "equipes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       vendas: {
         Row: {
