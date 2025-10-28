@@ -22,6 +22,7 @@ import {
 import { Shield, X, Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CriarUsuarioDialog } from "@/components/usuario/CriarUsuarioDialog";
+import { EditarUsuarioDialog } from "@/components/usuario/EditarUsuarioDialog";
 
 const AVAILABLE_ROLES: { value: AppRole; label: string; description: string; color: string }[] = [
   {
@@ -178,6 +179,7 @@ export default function Usuarios() {
                     <TableHead>Email</TableHead>
                     <TableHead>Permissões</TableHead>
                     <TableHead>Adicionar Permissão</TableHead>
+                    <TableHead className="w-[100px]">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -248,6 +250,13 @@ export default function Usuarios() {
                             Adicionar
                           </Button>
                         </div>
+                      </TableCell>
+                      <TableCell>
+                        <EditarUsuarioDialog
+                          userId={user.user_id}
+                          userEmail={user.email}
+                          currentRoles={user.roles || []}
+                        />
                       </TableCell>
                     </TableRow>
                   ))}
