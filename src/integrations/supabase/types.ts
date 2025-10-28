@@ -4905,7 +4905,14 @@ export type Database = {
       unaccent: { Args: { "": string }; Returns: string }
     }
     Enums: {
-      app_role: "admin" | "manager" | "sales" | "warehouse" | "support"
+      app_role:
+        | "admin"
+        | "manager"
+        | "sales"
+        | "warehouse"
+        | "support"
+        | "lider"
+        | "backoffice"
       etapa_pipeline:
         | "prospeccao"
         | "qualificacao"
@@ -5068,7 +5075,15 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "manager", "sales", "warehouse", "support"],
+      app_role: [
+        "admin",
+        "manager",
+        "sales",
+        "warehouse",
+        "support",
+        "lider",
+        "backoffice",
+      ],
       etapa_pipeline: [
         "prospeccao",
         "qualificacao",
