@@ -52,7 +52,7 @@ export const useEDICotacoes = (filtros?: {
   const { data: cotacoes, isLoading } = useQuery({
     queryKey: ["edi-cotacoes", filtros],
     queryFn: async () => {
-      const limite = filtros?.limite || 100;
+      const limite = filtros?.limite || 50;
       
       let query = supabase
         .from("edi_cotacoes")

@@ -40,6 +40,16 @@ export default function Cotacoes() {
   const navigate = useNavigate();
   const [abaAtiva, setAbaAtiva] = useState<string>("novas");
   const [importarDialogOpen, setImportarDialogOpen] = useState(false);
+  const [paginas, setPaginas] = useState<Record<string, number>>({
+    novas: 0,
+    analise_ia: 0,
+    analisadas: 0,
+    aguardando: 0,
+    respondidas: 0,
+    confirmadas: 0
+  });
+  
+  const LIMITE_POR_PAGINA = 50;
   
   // Hook de realtime para atualizar automaticamente
   useRealtimeCotacoes();
@@ -47,24 +57,34 @@ export default function Cotacoes() {
   // Buscar todas as cotações para estatísticas
   const { cotacoes: todasCotacoes } = useEDICotacoes({});
   
-  // Filtros por aba
+  // Filtros por aba com paginação
   const getFiltros = () => {
+    const paginaAtual = paginas[abaAtiva] || 0;
+    const filtrosBase = { limite: LIMITE_POR_PAGINA };
+    
     switch (abaAtiva) {
       case "novas":
-        return { step: "nova", resgatada: false };
+        return { ...filtrosBase, step: "nova", resgatada: false };
       case "analise_ia":
-        return { status_analise_ia: "em_analise" as const };
+        return { ...filtrosBase, status_analise_ia: "em_analise" as const };
       case "analisadas":
-        return { analise_concluida: true }; // Nova aba para análises concluídas
+        return { ...filtrosBase, analise_concluida: true };
       case "aguardando":
-        return { resgatada: true, respondida: false };
+        return { ...filtrosBase, resgatada: true, respondida: false };
       case "respondidas":
-        return { step: "respondida" };
+        return { ...filtrosBase, step: "respondida" };
       case "confirmadas":
-        return { step: "confirmada" };
+        return { ...filtrosBase, step: "confirmada" };
       default:
-        return {};
+        return filtrosBase;
     }
+  };
+
+  const handleMudarPagina = (novaPagina: number) => {
+    setPaginas(prev => ({
+      ...prev,
+      [abaAtiva]: novaPagina
+    }));
   };
 
   const {
@@ -220,83 +240,116 @@ export default function Cotacoes() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value={abaAtiva} className="space-y-2 mt-4">
-          {cotacoes && cotacoes.length > 0 ? <div className="space-y-2">
-              {cotacoes.map(cotacao => <Card key={cotacao.id} className="hover:shadow-sm transition-shadow">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-4">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-xs text-muted-foreground">
-                            Origem: {cotacao.id_cotacao_externa}
-                          </span>
-                          {cotacao.plataformas_edi && <Badge variant="outline" className="text-xs">{cotacao.plataformas_edi.nome}</Badge>}
-                          <StatusAnaliseIABadge 
-                            statusAnalise={cotacao.status_analise_ia}
-                            progresso={cotacao.progresso_analise_percent ?? 0}
-                            itensAnalisados={cotacao.itens_analisados ?? cotacao.total_itens_analisados ?? 0}
-                            totalItens={cotacao.total_itens_para_analise ?? cotacao.total_itens ?? 0}
-                            tempoEstimado={cotacao.tempo_analise_segundos ?? undefined}
-                          />
-                          {cotacao.tags && cotacao.tags.length > 0 && cotacao.tags.map(tag => (
-                            <Badge 
-                              key={tag} 
-                              variant="destructive" 
-                              className="text-xs"
+        <TabsContent value={abaAtiva} className="space-y-4 mt-4">
+          {cotacoes && cotacoes.length > 0 ? (
+            <>
+              <div className="space-y-2">
+                {cotacoes.map(cotacao => <Card key={cotacao.id} className="hover:shadow-sm transition-shadow">
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-xs text-muted-foreground">
+                              Origem: {cotacao.id_cotacao_externa}
+                            </span>
+                            {cotacao.plataformas_edi && <Badge variant="outline" className="text-xs">{cotacao.plataformas_edi.nome}</Badge>}
+                            <StatusAnaliseIABadge 
+                              statusAnalise={cotacao.status_analise_ia}
+                              progresso={cotacao.progresso_analise_percent ?? 0}
+                              itensAnalisados={cotacao.itens_analisados ?? cotacao.total_itens_analisados ?? 0}
+                              totalItens={cotacao.total_itens_para_analise ?? cotacao.total_itens ?? 0}
+                              tempoEstimado={cotacao.tempo_analise_segundos ?? undefined}
+                            />
+                            {cotacao.tags && cotacao.tags.length > 0 && cotacao.tags.map(tag => (
+                              <Badge 
+                                key={tag} 
+                                variant="destructive" 
+                                className="text-xs"
+                              >
+                                {tag}
+                              </Badge>
+                            ))}
+                            <span className="text-xs text-muted-foreground">
+                              {format(new Date(cotacao.data_vencimento_atual), "dd/MM/yyyy | HH:mm", { locale: ptBR })}
+                            </span>
+                          </div>
+                          
+                          <div className="flex items-center gap-4">
+                            <button 
+                              onClick={() => navigate(`/plataformas/cotacoes/${cotacao.id}`)}
+                              className="text-primary hover:underline font-medium text-sm truncate"
                             >
-                              {tag}
+                              {cotacao.nome_cliente}
+                            </button>
+                            
+                            <span className="text-xs text-muted-foreground">
+                              {cotacao.total_itens} {cotacao.total_itens === 1 ? 'Item' : 'Itens'}
+                            </span>
+                            
+                            <Badge variant={stepBadgeVariant(cotacao.step_atual)} className="text-xs">
+                              {stepLabel(cotacao.step_atual)}
                             </Badge>
-                          ))}
-                          <span className="text-xs text-muted-foreground">
-                            {format(new Date(cotacao.data_vencimento_atual), "dd/MM/yyyy | HH:mm", { locale: ptBR })}
-                          </span>
+                            
+                            <span className="text-xs font-medium">
+                              {cotacao.cidade_cliente}, {cotacao.uf_cliente}
+                            </span>
+                          </div>
                         </div>
-                        
-                        <div className="flex items-center gap-4">
-                          <button 
-                            onClick={() => navigate(`/plataformas/cotacoes/${cotacao.id}`)}
-                            className="text-primary hover:underline font-medium text-sm truncate"
-                          >
-                            {cotacao.nome_cliente}
-                          </button>
-                          
-                          <span className="text-xs text-muted-foreground">
-                            {cotacao.total_itens} {cotacao.total_itens === 1 ? 'Item' : 'Itens'}
-                          </span>
-                          
-                          <Badge variant={stepBadgeVariant(cotacao.step_atual)} className="text-xs">
-                            {stepLabel(cotacao.step_atual)}
-                          </Badge>
-                          
-                          <span className="text-xs font-medium">
-                            {cotacao.cidade_cliente}, {cotacao.uf_cliente}
-                          </span>
-                        </div>
-                      </div>
 
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        {!cotacao.resgatada && abaAtiva === "novas" && <Button 
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          {!cotacao.resgatada && abaAtiva === "novas" && <Button 
+                              size="sm"
+                              onClick={() => handleResgatar(cotacao.id)} 
+                              disabled={resgatarCotacao.isPending}
+                            >
+                              Resgatar
+                            </Button>}
+                          <Button 
                             size="sm"
-                            onClick={() => handleResgatar(cotacao.id)} 
-                            disabled={resgatarCotacao.isPending}
+                            variant="outline" 
+                            onClick={() => navigate(`/plataformas/cotacoes/${cotacao.id}`)}
                           >
-                            Resgatar
-                          </Button>}
-                        <Button 
-                          size="sm"
-                          variant="outline" 
-                          onClick={() => navigate(`/plataformas/cotacoes/${cotacao.id}`)}
-                        >
-                          Ver Detalhes
-                        </Button>
+                            Ver Detalhes
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>)}
-            </div> : <Card className="p-12 text-center">
+                    </CardContent>
+                  </Card>)}
+              </div>
+              
+              {/* Paginação */}
+              {cotacoes.length === LIMITE_POR_PAGINA && (
+                <div className="flex items-center justify-between pt-4 border-t">
+                  <div className="text-sm text-muted-foreground">
+                    Página {(paginas[abaAtiva] || 0) + 1} • {cotacoes.length} registros
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleMudarPagina(Math.max(0, (paginas[abaAtiva] || 0) - 1))}
+                      disabled={(paginas[abaAtiva] || 0) === 0}
+                    >
+                      Anterior
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleMudarPagina((paginas[abaAtiva] || 0) + 1)}
+                      disabled={cotacoes.length < LIMITE_POR_PAGINA}
+                    >
+                      Próxima
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
+            <Card className="p-12 text-center">
               <FileText className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
               <p className="text-muted-foreground">Nenhuma cotação encontrada neste status</p>
-            </Card>}
+            </Card>
+          )}
         </TabsContent>
       </Tabs>
     </div>;
