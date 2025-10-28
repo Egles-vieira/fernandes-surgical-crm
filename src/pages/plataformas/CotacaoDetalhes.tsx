@@ -99,8 +99,8 @@ export default function CotacaoDetalhes() {
           
           supabase.from("edi_cotacoes_itens").select(`
             *,
-            produtos:produto_id(id, nome, referencia_interna, preco_venda, quantidade_em_maos, unidade_medida),
-            produto_selecionado:produto_selecionado_id(id, nome, referencia_interna)
+            produtos!produto_id(id, nome, referencia_interna, preco_venda, quantidade_em_maos, unidade_medida),
+            produto_selecionado:produtos!produto_selecionado_id(id, nome, referencia_interna)
           `).eq("cotacao_id", id).order("numero_item", { ascending: true })
         ]);
 
