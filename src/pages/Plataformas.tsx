@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Calculator, Package, Link, BarChart3, Settings, Brain } from "lucide-react";
+import { Calculator, Package, Link, BarChart3, Settings, Brain, TrendingUp } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -20,6 +20,13 @@ export default function Plataformas() {
       icone: Brain,
       rota: "/plataformas/dashboard-ia",
       cor: "bg-primary",
+    },
+    {
+      titulo: "ML Dashboard",
+      descricao: "Aprendizado de máquina e feedbacks do sistema",
+      icone: TrendingUp,
+      rota: "/plataformas/ml-dashboard",
+      cor: "bg-indigo-500",
     },
     {
       titulo: "DE-PARA Produtos",

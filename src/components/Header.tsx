@@ -59,6 +59,12 @@ export default function Header({ collapsed, onToggle }: HeaderProps) {
           description: "Métricas e desempenho da IA na análise de cotações",
           breadcrumb: "Cirúrgica Fernandes / Plataformas / Dashboard IA",
         };
+      case "/plataformas/ml-dashboard":
+        return {
+          title: "ML Dashboard",
+          description: "Aprendizado de máquina e métricas de feedback",
+          breadcrumb: "Cirúrgica Fernandes / Plataformas / ML Dashboard",
+        };
       case "/plataformas/vinculos-pendentes":
         return {
           title: "Vínculos Pendentes",
