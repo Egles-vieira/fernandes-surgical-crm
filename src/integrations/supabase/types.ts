@@ -62,6 +62,7 @@ export type Database = {
           e_mail: string | null
           email_financeiro: string | null
           email_xml: string | null
+          equipe_id: string | null
           equipevendas: string | null
           id: string
           identific: Database["public"]["Enums"]["identificacao_tipo"]
@@ -77,6 +78,7 @@ export type Database = {
           telefone1: string | null
           updated_at: string
           user_id: string
+          vendedor_id: string | null
         }
         Insert: {
           atividade?: string | null
@@ -93,6 +95,7 @@ export type Database = {
           e_mail?: string | null
           email_financeiro?: string | null
           email_xml?: string | null
+          equipe_id?: string | null
           equipevendas?: string | null
           id?: string
           identific?: Database["public"]["Enums"]["identificacao_tipo"]
@@ -108,6 +111,7 @@ export type Database = {
           telefone1?: string | null
           updated_at?: string
           user_id: string
+          vendedor_id?: string | null
         }
         Update: {
           atividade?: string | null
@@ -124,6 +128,7 @@ export type Database = {
           e_mail?: string | null
           email_financeiro?: string | null
           email_xml?: string | null
+          equipe_id?: string | null
           equipevendas?: string | null
           id?: string
           identific?: Database["public"]["Enums"]["identificacao_tipo"]
@@ -139,6 +144,7 @@ export type Database = {
           telefone1?: string | null
           updated_at?: string
           user_id?: string
+          vendedor_id?: string | null
         }
         Relationships: [
           {
@@ -154,6 +160,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "vw_clientes_completo"
             referencedColumns: ["conta_id"]
+          },
+          {
+            foreignKeyName: "clientes_equipe_id_fkey"
+            columns: ["equipe_id"]
+            isOneToOne: false
+            referencedRelation: "equipes"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -2312,6 +2325,54 @@ export type Database = {
           },
         ]
       }
+      interacoes: {
+        Row: {
+          cliente_id: string | null
+          created_at: string
+          data_interacao: string
+          descricao: string
+          id: string
+          tipo: string
+          updated_at: string
+          usuario_id: string | null
+        }
+        Insert: {
+          cliente_id?: string | null
+          created_at?: string
+          data_interacao?: string
+          descricao: string
+          id?: string
+          tipo: string
+          updated_at?: string
+          usuario_id?: string | null
+        }
+        Update: {
+          cliente_id?: string | null
+          created_at?: string
+          data_interacao?: string
+          descricao?: string
+          id?: string
+          tipo?: string
+          updated_at?: string
+          usuario_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interacoes_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interacoes_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "vw_clientes_completo"
+            referencedColumns: ["cliente_id"]
+          },
+        ]
+      }
       itens_linha_cotacao: {
         Row: {
           cotacao_id: string | null
@@ -2438,6 +2499,42 @@ export type Database = {
           },
         ]
       }
+      logs_auditoria: {
+        Row: {
+          acao: string
+          created_at: string
+          dados_anteriores: Json | null
+          dados_novos: Json | null
+          detalhes: string | null
+          entidade_id: string
+          entidade_tipo: string
+          id: string
+          usuario_id: string | null
+        }
+        Insert: {
+          acao: string
+          created_at?: string
+          dados_anteriores?: Json | null
+          dados_novos?: Json | null
+          detalhes?: string | null
+          entidade_id: string
+          entidade_tipo: string
+          id?: string
+          usuario_id?: string | null
+        }
+        Update: {
+          acao?: string
+          created_at?: string
+          dados_anteriores?: Json | null
+          dados_novos?: Json | null
+          detalhes?: string | null
+          entidade_id?: string
+          entidade_tipo?: string
+          id?: string
+          usuario_id?: string | null
+        }
+        Relationships: []
+      }
       membros_equipe: {
         Row: {
           entrou_em: string | null
@@ -2476,6 +2573,7 @@ export type Database = {
           data_fechamento: string | null
           descricao: string | null
           dias_no_estagio: number | null
+          equipe_id: string | null
           esta_fechada: boolean | null
           estagio_id: string | null
           excluido_em: string | null
@@ -2493,6 +2591,7 @@ export type Database = {
           tipo: string | null
           ultima_mudanca_estagio_em: string | null
           valor: number | null
+          vendedor_id: string | null
         }
         Insert: {
           atualizado_em?: string | null
@@ -2505,6 +2604,7 @@ export type Database = {
           data_fechamento?: string | null
           descricao?: string | null
           dias_no_estagio?: number | null
+          equipe_id?: string | null
           esta_fechada?: boolean | null
           estagio_id?: string | null
           excluido_em?: string | null
@@ -2522,6 +2622,7 @@ export type Database = {
           tipo?: string | null
           ultima_mudanca_estagio_em?: string | null
           valor?: number | null
+          vendedor_id?: string | null
         }
         Update: {
           atualizado_em?: string | null
@@ -2534,6 +2635,7 @@ export type Database = {
           data_fechamento?: string | null
           descricao?: string | null
           dias_no_estagio?: number | null
+          equipe_id?: string | null
           esta_fechada?: boolean | null
           estagio_id?: string | null
           excluido_em?: string | null
@@ -2551,6 +2653,7 @@ export type Database = {
           tipo?: string | null
           ultima_mudanca_estagio_em?: string | null
           valor?: number | null
+          vendedor_id?: string | null
         }
         Relationships: [
           {
@@ -2572,6 +2675,13 @@ export type Database = {
             columns: ["contato_id"]
             isOneToOne: false
             referencedRelation: "contatos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "oportunidades_equipe_id_fkey"
+            columns: ["equipe_id"]
+            isOneToOne: false
+            referencedRelation: "equipes"
             referencedColumns: ["id"]
           },
           {
@@ -3662,6 +3772,7 @@ export type Database = {
           id: string
           role: Database["public"]["Enums"]["app_role"]
           user_id: string
+          vendedor_vinculado_id: string | null
         }
         Insert: {
           created_at?: string
@@ -3669,6 +3780,7 @@ export type Database = {
           id?: string
           role: Database["public"]["Enums"]["app_role"]
           user_id: string
+          vendedor_vinculado_id?: string | null
         }
         Update: {
           created_at?: string
@@ -3676,11 +3788,14 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+          vendedor_vinculado_id?: string | null
         }
         Relationships: []
       }
       vendas: {
         Row: {
+          aprovado_em: string | null
+          aprovado_por: string | null
           cliente_cnpj: string | null
           cliente_nome: string
           condicao_pagamento_id: string | null
@@ -3688,6 +3803,7 @@ export type Database = {
           data_fechamento_prevista: string | null
           data_venda: string
           desconto: number
+          equipe_id: string | null
           etapa_pipeline: Database["public"]["Enums"]["etapa_pipeline"] | null
           id: string
           motivo_perda: string | null
@@ -3695,6 +3811,7 @@ export type Database = {
           observacoes: string | null
           origem_lead: string | null
           probabilidade: number | null
+          requer_aprovacao: boolean | null
           responsavel_id: string | null
           status: string
           tipo_frete_id: string | null
@@ -3704,8 +3821,11 @@ export type Database = {
           valor_estimado: number | null
           valor_final: number
           valor_total: number
+          vendedor_id: string | null
         }
         Insert: {
+          aprovado_em?: string | null
+          aprovado_por?: string | null
           cliente_cnpj?: string | null
           cliente_nome: string
           condicao_pagamento_id?: string | null
@@ -3713,6 +3833,7 @@ export type Database = {
           data_fechamento_prevista?: string | null
           data_venda?: string
           desconto?: number
+          equipe_id?: string | null
           etapa_pipeline?: Database["public"]["Enums"]["etapa_pipeline"] | null
           id?: string
           motivo_perda?: string | null
@@ -3720,6 +3841,7 @@ export type Database = {
           observacoes?: string | null
           origem_lead?: string | null
           probabilidade?: number | null
+          requer_aprovacao?: boolean | null
           responsavel_id?: string | null
           status?: string
           tipo_frete_id?: string | null
@@ -3729,8 +3851,11 @@ export type Database = {
           valor_estimado?: number | null
           valor_final?: number
           valor_total?: number
+          vendedor_id?: string | null
         }
         Update: {
+          aprovado_em?: string | null
+          aprovado_por?: string | null
           cliente_cnpj?: string | null
           cliente_nome?: string
           condicao_pagamento_id?: string | null
@@ -3738,6 +3863,7 @@ export type Database = {
           data_fechamento_prevista?: string | null
           data_venda?: string
           desconto?: number
+          equipe_id?: string | null
           etapa_pipeline?: Database["public"]["Enums"]["etapa_pipeline"] | null
           id?: string
           motivo_perda?: string | null
@@ -3745,6 +3871,7 @@ export type Database = {
           observacoes?: string | null
           origem_lead?: string | null
           probabilidade?: number | null
+          requer_aprovacao?: boolean | null
           responsavel_id?: string | null
           status?: string
           tipo_frete_id?: string | null
@@ -3754,6 +3881,7 @@ export type Database = {
           valor_estimado?: number | null
           valor_final?: number
           valor_total?: number
+          vendedor_id?: string | null
         }
         Relationships: [
           {
@@ -3761,6 +3889,13 @@ export type Database = {
             columns: ["condicao_pagamento_id"]
             isOneToOne: false
             referencedRelation: "condicoes_pagamento"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendas_equipe_id_fkey"
+            columns: ["equipe_id"]
+            isOneToOne: false
+            referencedRelation: "equipes"
             referencedColumns: ["id"]
           },
           {
@@ -4838,7 +4973,15 @@ export type Database = {
         Args: { ticket_id: string }
         Returns: Json
       }
+      can_access_cliente: {
+        Args: { _cliente_id: string; _user_id: string }
+        Returns: boolean
+      }
       gerar_numero_ticket: { Args: never; Returns: string }
+      get_linked_seller: {
+        Args: { _backoffice_user_id: string }
+        Returns: string
+      }
       get_pending_items: {
         Args: never
         Returns: {
@@ -4867,6 +5010,7 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_user_team: { Args: { _user_id: string }; Returns: string }
       has_any_role: {
         Args: {
           _roles: Database["public"]["Enums"]["app_role"][]
@@ -4882,6 +5026,10 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_team_leader: {
+        Args: { _equipe_id: string; _user_id: string }
+        Returns: boolean
+      }
       list_users_with_roles: {
         Args: never
         Returns: {
