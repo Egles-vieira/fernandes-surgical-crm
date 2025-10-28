@@ -237,7 +237,7 @@ export default function HistoricoImportacoes() {
 
       {/* Dialog de Detalhes */}
       <Dialog open={detalhesOpen} onOpenChange={setDetalhesOpen}>
-        <DialogContent className="max-w-4xl max-h-[80vh]">
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               {logSelecionado?.sucesso ? (
@@ -315,16 +315,16 @@ export default function HistoricoImportacoes() {
               </TabsContent>
 
               <TabsContent value="xml">
-                <ScrollArea className="h-96 rounded-md border p-4">
-                  <pre className="text-xs whitespace-pre-wrap">
+                <ScrollArea className="h-[600px] w-full rounded-md border">
+                  <pre className="text-xs whitespace-pre-wrap p-4 font-mono">
                     {logSelecionado.payload_enviado || "XML não disponível"}
                   </pre>
                 </ScrollArea>
               </TabsContent>
 
               <TabsContent value="payload">
-                <ScrollArea className="h-96 rounded-md border p-4">
-                  <pre className="text-xs">
+                <ScrollArea className="h-[600px] w-full rounded-md border">
+                  <pre className="text-xs font-mono p-4">
                     {logSelecionado.payload_recebido ? 
                       JSON.stringify(JSON.parse(logSelecionado.payload_recebido), null, 2) :
                       "Dados não disponíveis"}
