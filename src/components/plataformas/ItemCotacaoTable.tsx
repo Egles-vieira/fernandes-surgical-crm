@@ -1075,7 +1075,6 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
               </TableBody>
             </Table>
           </div>
-        </div>
 
         {/* Paginação */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 py-3 bg-muted/30 rounded-lg border">
