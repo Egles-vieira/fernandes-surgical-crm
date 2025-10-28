@@ -661,9 +661,9 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
             <Table className="relative">
               <TableHeader className="sticky top-0 z-10 bg-background">
                 <TableRow>
-                  {visibleColumns.expand && <TableHead className="sticky left-0 z-20 bg-background w-[50px] p-2 border-r"></TableHead>}
+                  {visibleColumns.expand && <TableHead className="sticky left-0 z-20 bg-background w-[50px] px-0"></TableHead>}
                   {visibleColumns.select && (
-                    <TableHead className="sticky left-[50px] z-20 bg-background w-[50px] p-2 border-r">
+                    <TableHead className="sticky left-[50px] z-20 bg-background w-[50px] px-0">
                       <Checkbox
                         checked={selectedItems.size === paginatedItems.length && paginatedItems.length > 0}
                         onCheckedChange={handleSelectAll}
@@ -671,7 +671,7 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
                     </TableHead>
                   )}
                   {visibleColumns.numero && (
-                    <TableHead className="sticky left-[100px] z-20 bg-background w-[80px] p-2 border-r cursor-pointer" onClick={() => handleSort("numero_item")}>
+                    <TableHead className="sticky left-[100px] z-20 bg-background w-[80px] px-0 cursor-pointer" onClick={() => handleSort("numero_item")}>
                       <div className="flex items-center gap-1">
                         Item Nº
                         {sortColumn === "numero_item" && <ArrowUpDown className="h-3 w-3" />}
@@ -751,7 +751,7 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
                       <>
                         {/* Linha Principal */}
                         <TableRow key={item.id} className="hover:bg-muted/50">
-                          {visibleColumns.expand && <TableCell className={`sticky left-0 z-10 bg-background w-[50px] p-2 border-r ${densityClasses[density]}`}>
+                          {visibleColumns.expand && <TableCell className={`sticky left-0 z-10 bg-background w-[50px] px-0 ${densityClasses[density]}`}>
                             <Button
                               variant="ghost"
                               size="sm"
@@ -765,7 +765,7 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
                               )}
                             </Button>
                           </TableCell>}
-                          {visibleColumns.select && <TableCell className={`sticky left-[50px] z-10 bg-background w-[50px] p-2 border-r ${densityClasses[density]}`}>
+                          {visibleColumns.select && <TableCell className={`sticky left-[50px] z-10 bg-background w-[50px] px-0 ${densityClasses[density]}`}>
                             <Checkbox
                               checked={isSelected}
                               onCheckedChange={(checked) => {
@@ -779,7 +779,7 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
                               }}
                             />
                           </TableCell>}
-                          {visibleColumns.numero && <TableCell className={`sticky left-[100px] z-10 bg-background w-[80px] p-2 border-r font-medium ${densityClasses[density]}`}>{item.numero_item}</TableCell>}
+                          {visibleColumns.numero && <TableCell className={`sticky left-[100px] z-10 bg-background w-[80px] px-0 font-medium ${densityClasses[density]}`}>{item.numero_item}</TableCell>}
                           {visibleColumns.descricao && <TableCell className={`sticky left-[180px] z-10 bg-background font-medium ${densityClasses[density]}`}>{item.descricao_produto_cliente}</TableCell>}
                           {visibleColumns.codigo && <TableCell className={`text-muted-foreground text-sm ${densityClasses[density]}`}>
                             {item.codigo_produto_cliente || "-"}
@@ -1002,9 +1002,9 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
                             className="bg-muted/20 hover:bg-muted/40 cursor-pointer"
                             onClick={() => handleSelectPreviousMapping(item.id, mapping)}
                           >
-                            {visibleColumns.expand && <TableCell className="sticky left-0 z-10 bg-muted/20 w-[50px] p-2 border-r"></TableCell>}
-                            {visibleColumns.select && <TableCell className="sticky left-[50px] z-10 bg-muted/20 w-[50px] p-2 border-r"></TableCell>}
-                            {visibleColumns.numero && <TableCell className="sticky left-[100px] z-10 bg-muted/20 w-[80px] p-2 border-r"></TableCell>}
+                            {visibleColumns.expand && <TableCell className="sticky left-0 z-10 bg-muted/20 w-[50px] px-0"></TableCell>}
+                            {visibleColumns.select && <TableCell className="sticky left-[50px] z-10 bg-muted/20 w-[50px] px-0"></TableCell>}
+                            {visibleColumns.numero && <TableCell className="sticky left-[100px] z-10 bg-muted/20 w-[80px] px-0"></TableCell>}
                             {visibleColumns.descricao && <TableCell className="sticky left-[180px] z-10 bg-muted/20 pl-12">
                               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                 <Package className="h-3 w-3" />
