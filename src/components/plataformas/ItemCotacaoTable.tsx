@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { 
   ChevronRight, ChevronDown, Package, Sparkles, Save, 
   ChevronLeft, ChevronsLeft, ChevronRight as ChevronRightIcon, ChevronsRight,
@@ -99,7 +99,16 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+
+  // Debounce search para reduzir re-renders
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [density, setDensity] = useState<"compact" | "normal" | "comfortable">("normal");
@@ -453,28 +462,31 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
     }
   };
 
-  const updateItemField = (itemId: string, field: string, value: any) => {
-    const newData = new Map(itemsData);
-    const currentData = newData.get(itemId) || {};
-    newData.set(itemId, { ...currentData, [field]: value });
-    setItemsData(newData);
-  };
+  const updateItemField = useCallback((itemId: string, field: string, value: any) => {
+    setItemsData(prev => {
+      const newData = new Map(prev);
+      const currentData = newData.get(itemId) || {};
+      newData.set(itemId, { ...currentData, [field]: value });
+      return newData;
+    });
+  }, []);
 
-  const getValorTotal = (itemId: string) => {
+  const getValorTotal = useCallback((itemId: string) => {
     const data = itemsData.get(itemId);
     if (!data) return 0;
     return data.quantidade * data.precoUnitario * (1 - data.desconto / 100);
-  };
+  }, [itemsData]);
 
-  // Filtrar e ordenar itens
+  // Filtrar e ordenar itens (com debounce no search)
   const filteredAndSortedItems = useMemo(() => {
     let result = [...itens];
 
-    if (searchTerm) {
+    if (debouncedSearch) {
+      const searchLower = debouncedSearch.toLowerCase();
       result = result.filter(
         (item) =>
-          item.descricao_produto_cliente.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          item.codigo_produto_cliente?.toLowerCase().includes(searchTerm.toLowerCase())
+          item.descricao_produto_cliente.toLowerCase().includes(searchLower) ||
+          item.codigo_produto_cliente?.toLowerCase().includes(searchLower)
       );
     }
 
@@ -503,7 +515,7 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
     }
 
     return result;
-  }, [itens, searchTerm, statusFilter, sortColumn, sortDirection]);
+  }, [itens, debouncedSearch, statusFilter, sortColumn, sortDirection, getValorTotal]);
 
   const totalPages = Math.ceil(filteredAndSortedItems.length / pageSize);
   const paginatedItems = filteredAndSortedItems.slice(

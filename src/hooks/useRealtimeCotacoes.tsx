@@ -154,10 +154,10 @@ export const useRealtimeCotacoes = () => {
         console.log("📡 Status do canal realtime:", status);
       });
 
-    // Fallback: polling leve para garantir atualização mesmo sem eventos
+    // Fallback: polling reduzido para garantir atualização mesmo sem eventos
     const interval = setInterval(() => {
       queryClient.invalidateQueries({ queryKey: ["edi-cotacoes"] });
-    }, 5000);
+    }, 15000); // Reduzido de 5s para 15s
 
     return () => {
       console.log("🔌 Desconectando canal realtime");
