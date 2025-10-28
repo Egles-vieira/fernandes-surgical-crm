@@ -64,6 +64,7 @@ const menuItems: MenuItem[] = [
     children: [
       { path: "/plataformas/cotacoes", icon: FileText, label: "Cotações" },
       { path: "/plataformas/dashboard-ia", icon: Brain, label: "Dashboard IA" },
+      { path: "/plataformas/ml-dashboard", icon: BarChart3, label: "ML Dashboard" },
       { path: "/plataformas/parametros", icon: Settings, label: "Parâmetros" },
     ],
   },
