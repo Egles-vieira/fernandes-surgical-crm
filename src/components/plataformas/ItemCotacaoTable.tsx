@@ -659,11 +659,11 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
         <div className="border rounded-lg overflow-hidden">
           <div className="overflow-x-auto max-h-[600px]">
             <Table className="relative">
-              <TableHeader className="sticky top-0 z-10">
-                <TableRow className="bg-muted/50">
-                  {visibleColumns.expand && <TableHead className="sticky left-0 z-20 bg-muted/50 w-[50px]"></TableHead>}
+              <TableHeader className="sticky top-0 z-10 bg-background">
+                <TableRow>
+                  {visibleColumns.expand && <TableHead className="sticky left-0 z-20 bg-background border-r w-[50px]"></TableHead>}
                   {visibleColumns.select && (
-                    <TableHead className="sticky left-[50px] z-20 bg-muted/50 w-[50px]">
+                    <TableHead className="sticky left-[50px] z-20 bg-background border-r w-[50px]">
                       <Checkbox
                         checked={selectedItems.size === paginatedItems.length && paginatedItems.length > 0}
                         onCheckedChange={handleSelectAll}
@@ -671,7 +671,7 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
                     </TableHead>
                   )}
                   {visibleColumns.numero && (
-                    <TableHead className="sticky left-[100px] z-20 bg-muted/50 w-[80px] cursor-pointer" onClick={() => handleSort("numero_item")}>
+                    <TableHead className="sticky left-[100px] z-20 bg-background border-r w-[80px] cursor-pointer" onClick={() => handleSort("numero_item")}>
                       <div className="flex items-center gap-1">
                         Item Nº
                         {sortColumn === "numero_item" && <ArrowUpDown className="h-3 w-3" />}
@@ -679,7 +679,7 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
                     </TableHead>
                   )}
                   {visibleColumns.descricao && (
-                    <TableHead className="sticky left-[180px] z-20 bg-muted/50 min-w-[300px] cursor-pointer" onClick={() => handleSort("descricao_produto_cliente")}>
+                    <TableHead className="sticky left-[180px] z-20 bg-background border-r min-w-[300px] cursor-pointer" onClick={() => handleSort("descricao_produto_cliente")}>
                       <div className="flex items-center gap-1">
                         Descrição Cliente
                         {sortColumn === "descricao_produto_cliente" && <ArrowUpDown className="h-3 w-3" />}
@@ -751,7 +751,7 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
                       <>
                         {/* Linha Principal */}
                         <TableRow key={item.id} className="hover:bg-muted/50">
-                          {visibleColumns.expand && <TableCell className={`sticky left-0 z-10 bg-background ${densityClasses[density]}`}>
+                          {visibleColumns.expand && <TableCell className={`sticky left-0 z-10 bg-background border-r ${densityClasses[density]}`}>
                             <Button
                               variant="ghost"
                               size="sm"
@@ -765,7 +765,7 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
                               )}
                             </Button>
                           </TableCell>}
-                          {visibleColumns.select && <TableCell className={`sticky left-[50px] z-10 bg-background ${densityClasses[density]}`}>
+                          {visibleColumns.select && <TableCell className={`sticky left-[50px] z-10 bg-background border-r ${densityClasses[density]}`}>
                             <Checkbox
                               checked={isSelected}
                               onCheckedChange={(checked) => {
@@ -779,8 +779,8 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
                               }}
                             />
                           </TableCell>}
-                          {visibleColumns.numero && <TableCell className={`sticky left-[100px] z-10 bg-background font-medium ${densityClasses[density]}`}>{item.numero_item}</TableCell>}
-                          {visibleColumns.descricao && <TableCell className={`sticky left-[180px] z-10 bg-background font-medium ${densityClasses[density]}`}>{item.descricao_produto_cliente}</TableCell>}
+                          {visibleColumns.numero && <TableCell className={`sticky left-[100px] z-10 bg-background border-r font-medium ${densityClasses[density]}`}>{item.numero_item}</TableCell>}
+                          {visibleColumns.descricao && <TableCell className={`sticky left-[180px] z-10 bg-background border-r font-medium ${densityClasses[density]}`}>{item.descricao_produto_cliente}</TableCell>}
                           {visibleColumns.codigo && <TableCell className={`text-muted-foreground text-sm ${densityClasses[density]}`}>
                             {item.codigo_produto_cliente || "-"}
                           </TableCell>}
@@ -1002,8 +1002,8 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
                             className="bg-muted/20 hover:bg-muted/40 cursor-pointer"
                             onClick={() => handleSelectPreviousMapping(item.id, mapping)}
                           >
-                            {visibleColumns.expand && <TableCell className="sticky left-0 z-10 bg-muted/20"></TableCell>}
-                            {visibleColumns.select && <TableCell className="sticky left-[50px] z-10 bg-muted/20"></TableCell>}
+                            {visibleColumns.expand && <TableCell className="sticky left-0 z-10 bg-muted/20 border-r"></TableCell>}
+                            {visibleColumns.select && <TableCell className="sticky left-[50px] z-10 bg-muted/20 border-r"></TableCell>}
                             <TableCell colSpan={3} className="pl-12">
                               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                 <Package className="h-3 w-3" />
