@@ -19,8 +19,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Shield, UserPlus, X, Loader2 } from "lucide-react";
+import { Shield, X, Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { CriarUsuarioDialog } from "@/components/usuario/CriarUsuarioDialog";
 
 const AVAILABLE_ROLES: { value: AppRole; label: string; description: string; color: string }[] = [
   {
@@ -107,6 +108,7 @@ export default function Usuarios() {
   return (
     <Layout>
       <div className="container mx-auto p-6 space-y-6">
+      <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-2">
             <Shield className="h-8 w-8" />
@@ -116,6 +118,8 @@ export default function Usuarios() {
             Gerencie roles e permissões dos usuários do sistema
           </p>
         </div>
+        <CriarUsuarioDialog />
+      </div>
 
         {/* Legenda de Roles */}
         <Card>
@@ -226,7 +230,7 @@ export default function Usuarios() {
                             onClick={() => handleAddRole(user.user_id)}
                             disabled={!selectedRole[user.user_id]}
                           >
-                            <UserPlus className="h-4 w-4" />
+                            Adicionar
                           </Button>
                         </div>
                       </TableCell>
