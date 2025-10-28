@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
 
 interface UseRealtimeItemUpdatesProps {
   cotacaoId: string;
@@ -31,19 +30,15 @@ export function useRealtimeItemUpdates({
           const item = payload.new;
           const itemLabel = item?.numero_item ?? item?.sequencia ?? item?.codigo_produto_cliente ?? item?.id?.toString()?.slice(0, 8) ?? '?';
 
-          // Notifica sobre produtos vinculados
+          // Notifica sobre produtos vinculados (sem toast excessivo)
           if (item.produto_id && payload.old?.produto_id !== item.produto_id) {
-            toast.success('Produto vinculado', {
-              description: `Item ${itemLabel} vinculado com sucesso`,
-            });
+            console.log(`✅ Item ${itemLabel} vinculado com sucesso`);
           }
 
-          // Notifica sobre análise IA concluída no item
+          // Notifica sobre análise IA concluída no item (sem toast excessivo)
           if (item.analisado_por_ia && !payload.old?.analisado_por_ia) {
             const sugestoes = Array.isArray(item.produtos_sugeridos_ia) ? item.produtos_sugeridos_ia.length : 0;
-            toast.info(`Item ${itemLabel} analisado`, {
-              description: sugestoes > 0 ? `${sugestoes} sugestão(ões) disponível(is)` : 'Nenhuma sugestão gerada',
-            });
+            console.log(`🧠 Item ${itemLabel} analisado:`, sugestoes > 0 ? `${sugestoes} sugestão(ões)` : 'Nenhuma sugestão');
           }
 
           // Callback para atualizar estado do componente

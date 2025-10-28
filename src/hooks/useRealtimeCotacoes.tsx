@@ -2,10 +2,12 @@ import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-export const useRealtimeCotacoes = () => {
+export const useRealtimeCotacoes = (enabled: boolean = true) => {
   const queryClient = useQueryClient();
 
   useEffect(() => {
+    if (!enabled) return;
+    
     console.log("🔌 Iniciando canal realtime para cotações");
     
     const channel = supabase
@@ -73,8 +75,7 @@ export const useRealtimeCotacoes = () => {
             return oldData;
           });
 
-          // Também invalida para sincronizar com o backend
-          queryClient.invalidateQueries({ queryKey: ["edi-cotacoes"] });
+          // NÃO invalida aqui - o cache já foi atualizado
         }
       )
       .on(
@@ -84,8 +85,7 @@ export const useRealtimeCotacoes = () => {
           const payload: any = (raw as any)?.payload ?? raw;
           console.log("✅ Item analisado:", payload);
           
-          // Apenas invalida (detalhe do item não está no cache desta lista)
-          queryClient.invalidateQueries({ queryKey: ["edi-cotacoes"] });
+          // NÃO invalida aqui - evita refetch excessivo
         }
       )
       .on(
@@ -112,7 +112,7 @@ export const useRealtimeCotacoes = () => {
             return oldData;
           });
 
-          queryClient.invalidateQueries({ queryKey: ["edi-cotacoes"] });
+          // NÃO invalida aqui - o cache já foi atualizado
         }
       )
       .on(
@@ -137,7 +137,10 @@ export const useRealtimeCotacoes = () => {
             return oldData;
           });
 
-          queryClient.invalidateQueries({ queryKey: ["edi-cotacoes"] });
+          // Invalida apenas quando concluir para garantir dados finais corretos
+          setTimeout(() => {
+            queryClient.invalidateQueries({ queryKey: ["edi-cotacoes"] });
+          }, 2000);
         }
       )
       .on(
@@ -147,22 +150,25 @@ export const useRealtimeCotacoes = () => {
           const payload: any = (raw as any)?.payload ?? raw;
           console.log("❌ Erro na análise:", payload);
           
-          queryClient.invalidateQueries({ queryKey: ["edi-cotacoes"] });
+          // Invalida em caso de erro para recarregar estado correto
+          setTimeout(() => {
+            queryClient.invalidateQueries({ queryKey: ["edi-cotacoes"] });
+          }, 1000);
         }
       )
       .subscribe((status) => {
         console.log("📡 Status do canal realtime:", status);
       });
 
-    // Fallback: polling reduzido para garantir atualização mesmo sem eventos
+    // Polling muito reduzido - apenas como fallback de segurança
     const interval = setInterval(() => {
       queryClient.invalidateQueries({ queryKey: ["edi-cotacoes"] });
-    }, 15000); // Reduzido de 5s para 15s
+    }, 60000); // Aumentado para 60s - realtime já cuida das atualizações
 
     return () => {
       console.log("🔌 Desconectando canal realtime");
       clearInterval(interval);
       supabase.removeChannel(channel);
     };
-  }, [queryClient]);
+  }, [queryClient, enabled]);
 };

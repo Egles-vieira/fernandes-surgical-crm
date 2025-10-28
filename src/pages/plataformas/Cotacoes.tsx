@@ -57,8 +57,8 @@ export default function Cotacoes() {
   
   const LIMITE_POR_PAGINA = 50;
   
-  // Hook de realtime para atualizar automaticamente
-  useRealtimeCotacoes();
+  // Hook de realtime - só ativa nesta página
+  useRealtimeCotacoes(true);
 
   // Buscar todas as cotações para estatísticas
   const { cotacoes: todasCotacoes } = useEDICotacoes({});
