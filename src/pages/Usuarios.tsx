@@ -30,6 +30,12 @@ const AVAILABLE_ROLES: { value: AppRole; label: string; description: string; col
     color: "bg-red-500",
   },
   {
+    value: "lider",
+    label: "Líder de Equipe",
+    description: "Gerenciar equipe de vendas, aprovar descontos",
+    color: "bg-indigo-500",
+  },
+  {
     value: "manager",
     label: "Gerente",
     description: "Gerenciar produtos, relatórios e equipe",
@@ -37,9 +43,15 @@ const AVAILABLE_ROLES: { value: AppRole; label: string; description: string; col
   },
   {
     value: "sales",
-    label: "Vendas",
-    description: "Criar pedidos, gerenciar clientes",
+    label: "Vendedor",
+    description: "Gerenciar clientes e oportunidades",
     color: "bg-blue-500",
+  },
+  {
+    value: "backoffice",
+    label: "Backoffice",
+    description: "Suporte operacional ao vendedor",
+    color: "bg-cyan-500",
   },
   {
     value: "warehouse",

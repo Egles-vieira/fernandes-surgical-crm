@@ -3,13 +3,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "./useAuth";
 
-export type AppRole = "admin" | "manager" | "sales" | "warehouse" | "support";
+export type AppRole = "admin" | "manager" | "sales" | "warehouse" | "support" | "lider" | "backoffice";
 
 interface UserRole {
   id: string;
   user_id: string;
   role: AppRole;
   created_at: string;
+  vendedor_vinculado_id: string | null;
 }
 
 interface UserWithRoles {
@@ -51,6 +52,8 @@ export function useRoles() {
   const isSales = hasRole("sales");
   const isWarehouse = hasRole("warehouse");
   const isSupport = hasRole("support");
+  const isLider = hasRole("lider");
+  const isBackoffice = hasRole("backoffice");
 
   // Listar todos os usuários com roles (apenas para admins)
   const { data: allUsers, isLoading: isLoadingAllUsers } = useQuery({
@@ -135,6 +138,8 @@ export function useRoles() {
     isSales,
     isWarehouse,
     isSupport,
+    isLider,
+    isBackoffice,
     
     // All users (admin only)
     allUsers,

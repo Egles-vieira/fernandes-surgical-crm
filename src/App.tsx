@@ -13,6 +13,7 @@ import Produtos from "./pages/Produtos";
 import ImportarProdutos from "./pages/ImportarProdutos";
 import ImportarClientes from "./pages/ImportarClientes";
 import Usuarios from "./pages/Usuarios";
+import Equipes from "./pages/Equipes";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import PedidosVendas from "./pages/vendas/Pedidos";
@@ -231,6 +232,13 @@ const App = () => (
           <ProtectedRoute>
             <Layout>
               <Usuarios />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/equipes" element={
+          <ProtectedRoute>
+            <Layout>
+              <Equipes />
             </Layout>
           </ProtectedRoute>
         } />
