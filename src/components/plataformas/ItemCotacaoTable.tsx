@@ -657,12 +657,13 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
 
         {/* Grid com Scroll */}
         <div className="border rounded-lg overflow-hidden">
-            <Table className="relative" wrapperClassName="max-h-[600px]">
+          <div className="overflow-x-auto max-h-[600px]">
+            <Table className="relative">
               <TableHeader className="sticky top-0 z-10 bg-background">
                 <TableRow>
-                  {visibleColumns.expand && <TableHead className="sticky left-0 z-50 bg-background w-[50px] px-0 relative"></TableHead>}
+                  {visibleColumns.expand && <TableHead className="sticky left-0 z-20 bg-background w-[50px] px-0"></TableHead>}
                   {visibleColumns.select && (
-                    <TableHead className="sticky left-[50px] z-40 bg-background w-[50px] px-0 relative after:content-[''] after:absolute after:inset-y-0 after:right-0 after:w-px after:bg-background">
+                    <TableHead className="sticky left-[50px] z-20 bg-background w-[50px] px-0">
                       <Checkbox
                         checked={selectedItems.size === paginatedItems.length && paginatedItems.length > 0}
                         onCheckedChange={handleSelectAll}
@@ -670,7 +671,7 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
                     </TableHead>
                   )}
                   {visibleColumns.numero && (
-                    <TableHead className="sticky left-[100px] z-30 bg-background w-[80px] px-0 cursor-pointer relative after:content-[''] after:absolute after:inset-y-0 after:right-0 after:w-px after:bg-background" onClick={() => handleSort("numero_item")}>
+                    <TableHead className="sticky left-[100px] z-20 bg-background w-[80px] px-0 cursor-pointer" onClick={() => handleSort("numero_item")}>
                       <div className="flex items-center gap-1">
                         Item Nº
                         {sortColumn === "numero_item" && <ArrowUpDown className="h-3 w-3" />}
@@ -678,7 +679,7 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
                     </TableHead>
                   )}
                   {visibleColumns.descricao && (
-                    <TableHead className="sticky left-[180px] z-20 bg-background min-w-[300px] p-2 cursor-pointer relative before:content-[''] before:absolute before:inset-y-0 before:left-0 before:w-px before:bg-background" onClick={() => handleSort("descricao_produto_cliente")}>
+                    <TableHead className="sticky left-[180px] z-20 bg-background min-w-[300px] p-2 cursor-pointer" onClick={() => handleSort("descricao_produto_cliente")}>
                       <div className="flex items-center gap-1">
                         Descrição Cliente
                         {sortColumn === "descricao_produto_cliente" && <ArrowUpDown className="h-3 w-3" />}
@@ -750,7 +751,7 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
                       <>
                         {/* Linha Principal */}
                         <TableRow key={item.id} className="hover:bg-muted/50">
-                          {visibleColumns.expand && <TableCell className={`sticky left-0 z-50 bg-background w-[50px] px-0 relative ${densityClasses[density]}`}>
+                          {visibleColumns.expand && <TableCell className={`sticky left-0 z-10 bg-background w-[50px] px-0 ${densityClasses[density]}`}>
                             <Button
                               variant="ghost"
                               size="sm"
@@ -764,7 +765,7 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
                               )}
                             </Button>
                           </TableCell>}
-                          {visibleColumns.select && <TableCell className={`sticky left-[50px] z-40 bg-background w-[50px] px-0 relative after:content-[''] after:absolute after:inset-y-0 after:right-0 after:w-px after:bg-background ${densityClasses[density]}`}>
+                          {visibleColumns.select && <TableCell className={`sticky left-[50px] z-10 bg-background w-[50px] px-0 ${densityClasses[density]}`}>
                             <Checkbox
                               checked={isSelected}
                               onCheckedChange={(checked) => {
@@ -778,8 +779,8 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
                               }}
                             />
                           </TableCell>}
-                          {visibleColumns.numero && <TableCell className={`sticky left-[100px] z-30 bg-background w-[80px] px-0 font-medium relative after:content-[''] after:absolute after:inset-y-0 after:right-0 after:w-px after:bg-background ${densityClasses[density]}`}>{item.numero_item}</TableCell>}
-                          {visibleColumns.descricao && <TableCell className={`sticky left-[180px] z-20 bg-background font-medium relative before:content-[''] before:absolute before:inset-y-0 before:left-0 before:w-px before:bg-background ${densityClasses[density]}`}>{item.descricao_produto_cliente}</TableCell>}
+                          {visibleColumns.numero && <TableCell className={`sticky left-[100px] z-10 bg-background w-[80px] px-0 font-medium ${densityClasses[density]}`}>{item.numero_item}</TableCell>}
+                          {visibleColumns.descricao && <TableCell className={`sticky left-[180px] z-10 bg-background font-medium ${densityClasses[density]}`}>{item.descricao_produto_cliente}</TableCell>}
                           {visibleColumns.codigo && <TableCell className={`text-muted-foreground text-sm ${densityClasses[density]}`}>
                             {item.codigo_produto_cliente || "-"}
                           </TableCell>}
@@ -1075,6 +1076,7 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
               </TableBody>
             </Table>
           </div>
+        </div>
 
         {/* Paginação */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 py-3 bg-muted/30 rounded-lg border">
