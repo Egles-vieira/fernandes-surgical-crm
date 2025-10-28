@@ -1,9 +1,31 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { z } from 'https://esm.sh/zod@3.22.4';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-zenvia-token',
 };
+
+// Input validation schemas
+const IncomingCallSchema = z.object({
+  chamada_id: z.string().min(1).max(200),
+  numero_origem: z.string().min(1).max(50),
+  numero_destino: z.string().min(1).max(50),
+  timestamp: z.string().optional(),
+}).passthrough();
+
+const OptionSelectedSchema = z.object({
+  chamada_id: z.string().min(1).max(200),
+  opcao_selecionada: z.string().min(1).max(10),
+  ura_id: z.string().uuid().optional(),
+}).passthrough();
+
+const CallEndedSchema = z.object({
+  chamada_id: z.string().min(1).max(200),
+  duracao: z.union([z.string(), z.number()]).optional(),
+  gravacao_url: z.string().url().max(1000).optional(),
+  status: z.string().max(50).optional(),
+}).passthrough();
 
 interface URA {
   id: string;
@@ -152,7 +174,18 @@ Deno.serve(async (req) => {
     // 1. INCOMING CALL - Nova chamada chegando
     if (path.includes('/incoming-call') && req.method === 'POST') {
       const body = await req.json();
-      const { chamada_id, numero_destino, numero_origem } = body;
+      
+      // Validate input
+      const validationResult = IncomingCallSchema.safeParse(body);
+      if (!validationResult.success) {
+        console.error('Validation error:', validationResult.error.errors);
+        return new Response(
+          JSON.stringify({ error: 'Invalid input', details: validationResult.error.errors }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
+      const { chamada_id, numero_destino, numero_origem } = validationResult.data;
 
       console.log(`📥 Chamada recebida: ${chamada_id} de ${numero_origem} para ${numero_destino}`);
 

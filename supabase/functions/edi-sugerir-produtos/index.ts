@@ -1,11 +1,25 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from 'https://esm.sh/zod@3.22.4';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// Input validation schema
+const SugerirProdutosSchema = z.object({
+  descricao_cliente: z.string().min(3, "Descrição deve ter pelo menos 3 caracteres").max(500, "Descrição muito longa").trim(),
+  codigo_produto_cliente: z.string().max(100, "Código muito longo").optional(),
+  cnpj_cliente: z.string().regex(/^\d{14}$/, "CNPJ inválido (14 dígitos)").optional().or(z.literal('')),
+  plataforma_id: z.string().uuid("ID de plataforma inválido").optional(),
+  quantidade_solicitada: z.number().positive("Quantidade deve ser positiva").optional(),
+  unidade_medida: z.string().max(20, "Unidade de medida inválida").optional(),
+  item_id: z.string().uuid("ID de item inválido").optional(),
+  limite: z.number().int().min(1).max(20, "Limite deve estar entre 1 e 20").default(5),
+  modo_analise_completa: z.boolean().optional().default(false),
+});
 
 // ============= CONFIGURAÇÃO v3.5 - OTIMIZADA PARA VELOCIDADE =============
 const MAX_PRODUTOS_BUSCA = 3000; // Reduzido para melhor performance (Supabase limita a ~1000 por query)
@@ -438,6 +452,20 @@ serve(async (req) => {
 
   try {
     const body = await req.json();
+    
+    // Validate input
+    const validationResult = SugerirProdutosSchema.safeParse(body);
+    if (!validationResult.success) {
+      console.error('Validation error:', validationResult.error.errors);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invalid input', 
+          details: validationResult.error.errors 
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const {
       descricao_cliente,
       codigo_produto_cliente,
@@ -446,16 +474,9 @@ serve(async (req) => {
       quantidade_solicitada,
       unidade_medida,
       item_id,
-      limite = 5,
-      modo_analise_completa = false,
-    } = body;
-
-    if (!descricao_cliente) {
-      return new Response(JSON.stringify({ error: "descricao_cliente é obrigatória" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+      limite,
+      modo_analise_completa,
+    } = validationResult.data;
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
