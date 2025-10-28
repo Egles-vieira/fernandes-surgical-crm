@@ -218,21 +218,57 @@ serve(async (req) => {
 
         console.log(`✅ Cotação ${cotacao.id_cotacao_externa} importada com sucesso`);
 
-        // 🤖 TRIGGER AUTOMÁTICO: Disparar análise IA da cotação (fire-and-forget)
+        // 🤖 TRIGGER AUTOMÁTICO: Disparar análise IA da cotação (fire-and-forget com retry)
         if (cotacaoInserida.id) {
           console.log(`🚀 Disparando análise IA automática para cotação ${cotacaoInserida.id}...`);
           
-          // Chamada assíncrona que não bloqueia o fluxo
-          supabaseClient.functions.invoke('analisar-cotacao-completa', {
-            body: { cotacao_id: cotacaoInserida.id }
-          }).then((response) => {
-            if (response.error) {
-              console.error(`❌ Erro ao iniciar análise IA: ${response.error.message}`);
-            } else {
-              console.log(`✅ Análise IA iniciada com sucesso para cotação ${cotacaoInserida.id}`);
+          // Função auxiliar para disparar análise com retry
+          const dispararAnaliseComRetry = async (cotacaoId: string, tentativas = 3) => {
+            for (let i = 0; i < tentativas; i++) {
+              try {
+                console.log(`🔄 Tentativa ${i + 1}/${tentativas} de disparar análise IA...`);
+                
+                const response = await supabaseClient.functions.invoke('analisar-cotacao-completa', {
+                  body: { cotacao_id: cotacaoId }
+                });
+
+                if (response.error) {
+                  throw new Error(response.error.message);
+                }
+
+                console.log(`✅ Análise IA iniciada com sucesso para cotação ${cotacaoId}`);
+                return true;
+
+              } catch (err) {
+                const errorMsg = err instanceof Error ? err.message : 'Erro desconhecido';
+                console.error(`❌ Tentativa ${i + 1} falhou: ${errorMsg}`);
+                
+                // Se não é a última tentativa, aguardar antes de tentar novamente
+                if (i < tentativas - 1) {
+                  await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1))); // Backoff exponencial
+                } else {
+                  // Última tentativa falhou - atualizar status no banco
+                  console.error(`❌ Todas as tentativas falharam. Marcando análise como erro.`);
+                  await supabaseClient
+                    .from('edi_cotacoes')
+                    .update({ 
+                      status_analise_ia: 'erro',
+                      detalhes: { 
+                        erro_trigger: errorMsg,
+                        timestamp_erro: new Date().toISOString()
+                      }
+                    })
+                    .eq('id', cotacaoId);
+                  return false;
+                }
+              }
             }
-          }).catch((err) => {
-            console.error(`❌ Falha crítica ao iniciar análise IA: ${err.message}`);
+            return false;
+          };
+
+          // Executar trigger em background (não bloqueia resposta)
+          dispararAnaliseComRetry(cotacaoInserida.id).catch(err => {
+            console.error(`❌ Erro não capturado no trigger: ${err}`);
           });
         }
 
