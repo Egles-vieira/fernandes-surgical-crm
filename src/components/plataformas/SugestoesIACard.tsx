@@ -7,6 +7,7 @@ import type { SugestaoProduto, AnaliseIAItem } from "@/types/ia-analysis";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown } from "lucide-react";
 import { FeedbackIADialog } from "./FeedbackIADialog";
+import { MLIndicator } from "./MLIndicator";
 
 interface SugestoesIACardProps {
   analise: AnaliseIAItem;
@@ -97,13 +98,20 @@ export function SugestoesIACard({ analise, onSelecionarProduto, produtoSeleciona
               <div className="flex-1 space-y-1">
                 <h4 className="font-semibold text-sm">{principal.descricao}</h4>
                 <p className="text-xs text-muted-foreground">Código: {principal.codigo}</p>
-                <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
                   <span>Score: {principal.score_final}%</span>
                   {principal.unidade_medida && <span>Un: {principal.unidade_medida}</span>}
                   {principal.estoque_disponivel !== undefined && (
                     <span className={principal.estoque_disponivel > 0 ? 'text-green-600' : 'text-destructive'}>
                       Estoque: {principal.estoque_disponivel}
                     </span>
+                  )}
+                  {/* Indicador de ML */}
+                  {(principal as any).ajuste_ml !== undefined && (principal as any).ajuste_ml !== 0 && (
+                    <MLIndicator 
+                      ajusteML={(principal as any).ajuste_ml} 
+                      compact 
+                    />
                   )}
                 </div>
               </div>

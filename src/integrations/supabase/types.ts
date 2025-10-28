@@ -875,6 +875,7 @@ export type Database = {
           dados_originais: Json
           descricao_produto_cliente: string
           detalhes_resposta: Json | null
+          erro_analise_ia: string | null
           feedback_vendedor: string | null
           feedback_vendedor_em: string | null
           id: string
@@ -923,6 +924,7 @@ export type Database = {
           dados_originais: Json
           descricao_produto_cliente: string
           detalhes_resposta?: Json | null
+          erro_analise_ia?: string | null
           feedback_vendedor?: string | null
           feedback_vendedor_em?: string | null
           id?: string
@@ -971,6 +973,7 @@ export type Database = {
           dados_originais?: Json
           descricao_produto_cliente?: string
           detalhes_resposta?: Json | null
+          erro_analise_ia?: string | null
           feedback_vendedor?: string | null
           feedback_vendedor_em?: string | null
           id?: string

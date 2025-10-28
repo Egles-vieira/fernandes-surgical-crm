@@ -16,6 +16,7 @@ import {
 import { useDashboardIA } from "@/hooks/useDashboardIA";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { MLQuickStats } from "@/components/plataformas/MLQuickStats";
 
 export default function DashboardAnaliseIA() {
   const { metricas, analisePorDia, produtosMaisSugeridos, isLoading } = useDashboardIA();
@@ -53,6 +54,9 @@ export default function DashboardAnaliseIA() {
           Acompanhe o desempenho e precisão da IA na análise de cotações
         </p>
       </div>
+
+      {/* Quick Stats de ML */}
+      <MLQuickStats />
 
       {/* KPIs Principais */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

@@ -27,6 +27,7 @@ interface SugestaoProduto {
   justificativa: string;
   razoes_match: string[];
   confianca: "alta" | "media" | "baixa";
+  ajuste_ml?: number; // Ajuste de Machine Learning aplicado
   alternativas?: Array<{
     produto_id: string;
     descricao: string;
@@ -769,6 +770,7 @@ serve(async (req) => {
         ...razoeContexto,
         `Score token: ${scoreToken}%`,
         scorePgTrgm > 0 ? `Similarity: ${scorePgTrgm}%` : null,
+        ajusteML !== 0 ? `ML ajuste: ${ajusteML > 0 ? '+' : ''}${ajusteML}` : null,
       ].filter(Boolean) as string[];
 
       sugestoes.push({
@@ -784,6 +786,7 @@ serve(async (req) => {
         justificativa,
         razoes_match: razoes,
         confianca,
+        ajuste_ml: ajusteML, // Adicionar ajuste ML para visibilidade no frontend
       });
     }
 
