@@ -17,6 +17,7 @@ import { useIAAnalysis } from "@/hooks/useIAAnalysis";
 import { useRealtimeItemUpdates } from "@/hooks/useRealtimeItemUpdates";
 import { ProgressoAnaliseIA } from "@/components/plataformas/ProgressoAnaliseIA";
 import { SugestoesIACard } from "@/components/plataformas/SugestoesIACard";
+import { usePerformanceMonitor } from "@/hooks/usePerformanceMonitor";
 interface ItemCotacao {
   id: string;
   numero_item: number;
@@ -55,6 +56,7 @@ export default function CotacaoDetalhes() {
   const {
     toast
   } = useToast();
+  const { track } = usePerformanceMonitor();
   const [cotacao, setCotacao] = useState<EDICotacao | null>(null);
   const [itens, setItens] = useState<ItemCotacao[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -87,38 +89,27 @@ export default function CotacaoDetalhes() {
   const carregarDados = async () => {
     setIsLoading(true);
     try {
-      // Carregar cotação
-      const {
-        data: cotacaoData,
-        error: cotacaoError
-      } = await supabase.from("edi_cotacoes").select(`
-          *,
-          plataformas_edi(nome, slug)
-        `).eq("id", id).single();
-      if (cotacaoError) throw cotacaoError;
-      setCotacao(cotacaoData as EDICotacao);
+      await track('carregar-cotacao-detalhes', async () => {
+        // Carregar cotação e itens em PARALELO para melhor performance
+        const [cotacaoResult, itensResult] = await Promise.all([
+          supabase.from("edi_cotacoes").select(`
+            *,
+            plataformas_edi(nome, slug)
+          `).eq("id", id).single(),
+          
+          supabase.from("edi_cotacoes_itens").select(`
+            *,
+            produtos:produto_id(id, nome, referencia_interna, preco_venda, quantidade_em_maos, unidade_medida),
+            produto_selecionado:produto_selecionado_id(id, nome, referencia_interna)
+          `).eq("cotacao_id", id).order("numero_item", { ascending: true })
+        ]);
 
-      // Carregar itens
-      const {
-        data: itensData,
-        error: itensError
-      } = await supabase.from("edi_cotacoes_itens").select(`
-          *,
-          produto:produto_id(id, nome, referencia_interna, preco_venda, quantidade_em_maos, unidade_medida),
-          produto_selecionado:produto_selecionado_id(id, nome, referencia_interna)
-        `).eq("cotacao_id", id).order("numero_item", {
-        ascending: true
+        if (cotacaoResult.error) throw cotacaoResult.error;
+        if (itensResult.error) throw itensResult.error;
+
+        setCotacao(cotacaoResult.data as EDICotacao);
+        setItens(itensResult.data || []);
       });
-      if (itensError) throw itensError;
-      
-      // Mapear resultado para manter compatibilidade
-      const itensMapeados = (itensData || []).map((item: any) => ({
-        ...item,
-        produtos: item.produto || null,
-        produto_selecionado: item.produto_selecionado || null
-      }));
-      
-      setItens(itensMapeados);
     } catch (error: any) {
       toast({
         title: "Erro ao carregar dados",
