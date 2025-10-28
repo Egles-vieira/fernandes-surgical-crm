@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Calculator, Clock, Building2, FileText, Sparkles, Upload, Brain } from "lucide-react";
+import { Calculator, Clock, Building2, FileText, Sparkles, Upload, Brain, Database } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -103,6 +103,15 @@ export default function Cotacoes() {
         </p>
         </div>
         <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            size="lg" 
+            className="gap-2" 
+            onClick={() => navigate("/plataformas/historico-importacoes")}
+          >
+            <Database className="h-4 w-4" />
+            Histórico Importações
+          </Button>
           <Button variant="outline" size="lg" className="gap-2" onClick={() => setImportarDialogOpen(true)}>
             <Upload className="h-4 w-4" />
             Importar XML

@@ -27,6 +27,7 @@ import ProdutosVinculo from "./pages/plataformas/ProdutosVinculo";
 import Parametros from "./pages/plataformas/Parametros";
 import DashboardAnaliseIA from "./pages/plataformas/DashboardAnaliseIA";
 import MLDashboard from "./pages/plataformas/MLDashboard";
+import HistoricoImportacoes from "./pages/plataformas/HistoricoImportacoes";
 import SolicitacaoParticipacao from "./pages/licitacoes/SolicitacaoParticipacao";
 import ContratosGoverno from "./pages/licitacoes/ContratosGoverno";
 import WhatsApp from "./pages/WhatsApp";
@@ -184,6 +185,13 @@ const App = () => (
           <ProtectedRoute>
             <Layout>
               <MLDashboard />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/plataformas/historico-importacoes" element={
+          <ProtectedRoute>
+            <Layout>
+              <HistoricoImportacoes />
             </Layout>
           </ProtectedRoute>
         } />
