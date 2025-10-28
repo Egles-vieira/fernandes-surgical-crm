@@ -46,7 +46,7 @@ export default function Header({ collapsed, onToggle }: HeaderProps) {
   });
 
   // Buscar roles do usuário
-  const { data: roles } = useQuery({
+  const { data: rolesData } = useQuery({
     queryKey: ["user-roles", user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
@@ -57,10 +57,20 @@ export default function Header({ collapsed, onToggle }: HeaderProps) {
         .eq("user_id", user.id);
       
       if (error) throw error;
-      return data.map(r => r.role);
+      return data || [];
     },
     enabled: !!user?.id,
   });
+
+  // Garantir que roles é sempre um array de strings
+  const roles = rolesData?.map((item: any) => {
+    // Se item for um objeto, extrair a propriedade role
+    if (typeof item === 'object' && item !== null) {
+      return typeof item.role === 'string' ? item.role : String(item.role);
+    }
+    // Se item já for uma string, retornar diretamente
+    return String(item);
+  }) || [];
   const handleLogout = async () => {
     await signOut();
     navigate("/auth");
