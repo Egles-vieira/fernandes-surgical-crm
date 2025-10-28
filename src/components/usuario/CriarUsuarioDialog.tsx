@@ -19,14 +19,14 @@ import { UserPlus, Loader2, Upload } from "lucide-react";
 import { AppRole } from "@/hooks/useRoles";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-const AVAILABLE_ROLES: { value: AppRole; label: string; description: string }[] = [
-  { value: "admin", label: "Administrador", description: "Acesso total ao sistema" },
-  { value: "lider", label: "Líder de Equipe", description: "Gerenciar equipe de vendas" },
-  { value: "manager", label: "Gerente", description: "Gerenciar produtos e relatórios" },
-  { value: "sales", label: "Vendedor", description: "Gerenciar clientes e oportunidades" },
-  { value: "backoffice", label: "Backoffice", description: "Suporte operacional" },
-  { value: "warehouse", label: "Estoque", description: "Gerenciar inventário" },
-  { value: "support", label: "Suporte", description: "Atendimento ao cliente" },
+const AVAILABLE_ROLES: { value: AppRole; label: string; description: string; color: string }[] = [
+  { value: "admin", label: "Administrador", description: "Acesso total ao sistema", color: "bg-red-500" },
+  { value: "lider", label: "Líder de Equipe", description: "Gerenciar equipe de vendas", color: "bg-indigo-500" },
+  { value: "manager", label: "Gerente", description: "Gerenciar produtos e relatórios", color: "bg-purple-500" },
+  { value: "sales", label: "Vendedor", description: "Gerenciar clientes e oportunidades", color: "bg-blue-500" },
+  { value: "backoffice", label: "Backoffice", description: "Suporte operacional", color: "bg-cyan-500" },
+  { value: "warehouse", label: "Estoque", description: "Gerenciar inventário", color: "bg-green-500" },
+  { value: "support", label: "Suporte", description: "Atendimento ao cliente", color: "bg-orange-500" },
 ];
 
 interface ProfileData {
@@ -195,42 +195,48 @@ export function CriarUsuarioDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>
-          <UserPlus className="h-4 w-4 mr-2" />
+        <Button className="bg-white text-primary hover:bg-white/90 shadow-md hover:shadow-lg transition-all">
+          <UserPlus className="h-5 w-5 mr-2" />
           Criar Novo Usuário
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>Criar Novo Usuário</DialogTitle>
-          <DialogDescription>
+      <DialogContent className="max-w-2xl max-h-[90vh] border-0 shadow-elegant">
+        <DialogHeader className="gradient-subtle pb-4 -mt-6 -mx-6 px-6 pt-6 rounded-t-xl">
+          <DialogTitle className="text-2xl flex items-center gap-2">
+            <UserPlus className="h-6 w-6 text-primary" />
+            Criar Novo Usuário
+          </DialogTitle>
+          <DialogDescription className="text-base">
             Preencha os dados para criar um novo usuário no sistema
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
-          <div className="flex items-center gap-4 pb-4 border-b">
-            <Avatar className="h-20 w-20">
+        <form onSubmit={handleSubmit} className="space-y-5 max-h-[65vh] overflow-y-auto pr-2 custom-scrollbar">
+          <div className="flex items-center gap-4 pb-5 border-b border-border/50">
+            <Avatar className="h-24 w-24 border-4 border-primary/20 shadow-md">
               <AvatarImage src={profileData.foto_perfil_url} />
-              <AvatarFallback>
-                <UserPlus className="h-10 w-10" />
+              <AvatarFallback className="bg-gradient-to-br from-primary to-primary/70 text-white">
+                <UserPlus className="h-12 w-12" />
               </AvatarFallback>
             </Avatar>
             <div className="flex-1">
-              <Label htmlFor="foto">URL da Foto de Perfil</Label>
+              <Label htmlFor="foto" className="text-sm font-semibold">URL da Foto de Perfil</Label>
               <Input
                 id="foto"
                 type="url"
                 value={profileData.foto_perfil_url}
                 onChange={(e) => setProfileData({...profileData, foto_perfil_url: e.target.value})}
-                placeholder="https://..."
+                placeholder="https://exemplo.com/foto.jpg"
                 disabled={createUserMutation.isPending}
+                className="mt-1.5 border-primary/20 focus:border-primary"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email *</Label>
+              <Label htmlFor="email" className="text-sm font-semibold">
+                Email <span className="text-destructive">*</span>
+              </Label>
               <Input
                 id="email"
                 type="email"
@@ -238,12 +244,15 @@ export function CriarUsuarioDialog() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="usuario@exemplo.com"
                 disabled={createUserMutation.isPending}
+                className="border-primary/20 focus:border-primary"
                 required
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Senha *</Label>
+              <Label htmlFor="password" className="text-sm font-semibold">
+                Senha <span className="text-destructive">*</span>
+              </Label>
               <Input
                 id="password"
                 type="password"
@@ -251,100 +260,112 @@ export function CriarUsuarioDialog() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Mínimo 6 caracteres"
                 disabled={createUserMutation.isPending}
+                className="border-primary/20 focus:border-primary"
                 required
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="nome">Nome de Exibição</Label>
+            <Label htmlFor="nome" className="text-sm font-semibold">Nome de Exibição</Label>
             <Input
               id="nome"
               value={profileData.nome_exibicao}
               onChange={(e) => setProfileData({...profileData, nome_exibicao: e.target.value})}
-              placeholder="Nome completo"
+              placeholder="Nome completo do usuário"
               disabled={createUserMutation.isPending}
+              className="border-primary/20 focus:border-primary"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="celular">Número Celular</Label>
+              <Label htmlFor="celular" className="text-sm font-semibold">Número Celular</Label>
               <Input
                 id="celular"
                 value={profileData.numero_celular}
                 onChange={(e) => setProfileData({...profileData, numero_celular: e.target.value})}
                 placeholder="(00) 00000-0000"
                 disabled={createUserMutation.isPending}
+                className="border-primary/20 focus:border-primary"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="telefone">Telefone</Label>
+              <Label htmlFor="telefone" className="text-sm font-semibold">Telefone</Label>
               <Input
                 id="telefone"
                 value={profileData.telefone}
                 onChange={(e) => setProfileData({...profileData, telefone: e.target.value})}
                 placeholder="(00) 0000-0000"
                 disabled={createUserMutation.isPending}
+                className="border-primary/20 focus:border-primary"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="ramal">Ramal</Label>
+              <Label htmlFor="ramal" className="text-sm font-semibold">Ramal</Label>
               <Input
                 id="ramal"
                 value={profileData.ramal}
                 onChange={(e) => setProfileData({...profileData, ramal: e.target.value})}
                 placeholder="000"
                 disabled={createUserMutation.isPending}
+                className="border-primary/20 focus:border-primary"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="codigo">Código de Vendedor</Label>
+              <Label htmlFor="codigo" className="text-sm font-semibold">Código de Vendedor</Label>
               <Input
                 id="codigo"
                 value={profileData.codigo_vendedor}
                 onChange={(e) => setProfileData({...profileData, codigo_vendedor: e.target.value})}
                 placeholder="COD-000"
                 disabled={createUserMutation.isPending}
+                className="border-primary/20 focus:border-primary"
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="cargo">Cargo</Label>
+            <Label htmlFor="cargo" className="text-sm font-semibold">Cargo</Label>
             <Input
               id="cargo"
               value={profileData.cargo}
               onChange={(e) => setProfileData({...profileData, cargo: e.target.value})}
               placeholder="Ex: Gerente de Vendas"
               disabled={createUserMutation.isPending}
+              className="border-primary/20 focus:border-primary"
             />
           </div>
 
-          <div className="space-y-2">
-            <Label>Permissões</Label>
-            <div className="space-y-2 border rounded-lg p-3 max-h-64 overflow-y-auto">
+          <div className="space-y-3">
+            <Label className="text-sm font-semibold">Permissões *</Label>
+            <div className="space-y-2 border border-primary/20 rounded-lg p-4 max-h-64 overflow-y-auto custom-scrollbar bg-muted/20">
               {AVAILABLE_ROLES.map((role) => (
-                <div key={role.value} className="flex items-start space-x-2">
+                <div 
+                  key={role.value} 
+                  className="flex items-start space-x-3 p-3 rounded-lg hover:bg-muted/50 transition-colors"
+                >
                   <Checkbox
                     id={role.value}
                     checked={selectedRoles.includes(role.value)}
                     onCheckedChange={() => toggleRole(role.value)}
                     disabled={createUserMutation.isPending}
+                    className="mt-1 border-primary/40 data-[state=checked]:bg-primary"
                   />
-                  <div className="grid gap-1">
+                  <div className="grid gap-1.5 flex-1">
                     <label
                       htmlFor={role.value}
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      className="text-sm font-semibold leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer flex items-center gap-2"
                     >
                       {role.label}
+                      <span className={`w-2 h-2 rounded-full ${role.color}`} />
                     </label>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-muted-foreground leading-relaxed">
                       {role.description}
                     </p>
                   </div>
@@ -354,17 +375,20 @@ export function CriarUsuarioDialog() {
           </div>
 
           {selectedRoles.includes("backoffice") && (
-            <div className="space-y-2">
-              <Label htmlFor="vendedor">Vendedor Vinculado</Label>
+            <div className="space-y-2 p-4 bg-muted/30 rounded-lg border border-primary/20">
+              <Label htmlFor="vendedor" className="text-sm font-semibold flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-cyan-500" />
+                Vendedor Vinculado
+              </Label>
               <Select
                 value={profileData.vendedor_vinculado_id}
                 onValueChange={(value) => setProfileData({...profileData, vendedor_vinculado_id: value})}
                 disabled={createUserMutation.isPending}
               >
-                <SelectTrigger>
+                <SelectTrigger className="border-primary/20 focus:border-primary">
                   <SelectValue placeholder="Selecione um vendedor..." />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-popover">
                   {vendedores?.map((vendedor) => (
                     <SelectItem key={vendedor.id} value={vendedor.id}>
                       {vendedor.primeiro_nome} {vendedor.sobrenome}
@@ -376,17 +400,20 @@ export function CriarUsuarioDialog() {
           )}
 
           {selectedRoles.includes("lider") && (
-            <div className="space-y-2">
-              <Label htmlFor="equipe">Equipe de Vendas</Label>
+            <div className="space-y-2 p-4 bg-muted/30 rounded-lg border border-primary/20">
+              <Label htmlFor="equipe" className="text-sm font-semibold flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-indigo-500" />
+                Equipe de Vendas
+              </Label>
               <Select
                 value={profileData.equipe_id}
                 onValueChange={(value) => setProfileData({...profileData, equipe_id: value})}
                 disabled={createUserMutation.isPending}
               >
-                <SelectTrigger>
+                <SelectTrigger className="border-primary/20 focus:border-primary">
                   <SelectValue placeholder="Selecione uma equipe..." />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-popover">
                   {equipes?.map((equipe) => (
                     <SelectItem key={equipe.id} value={equipe.id}>
                       {equipe.nome}
@@ -397,18 +424,23 @@ export function CriarUsuarioDialog() {
             </div>
           )}
 
-          <div className="flex justify-end gap-2">
+          <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
             <Button
               type="button"
               variant="outline"
               onClick={() => setOpen(false)}
               disabled={createUserMutation.isPending}
+              className="px-6"
             >
               Cancelar
             </Button>
-            <Button type="submit" disabled={createUserMutation.isPending}>
+            <Button 
+              type="submit" 
+              disabled={createUserMutation.isPending}
+              className="px-6 bg-primary hover:bg-primary/90 shadow-md"
+            >
               {createUserMutation.isPending && (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                <Loader2 className="h-5 w-5 mr-2 animate-spin" />
               )}
               Criar Usuário
             </Button>
