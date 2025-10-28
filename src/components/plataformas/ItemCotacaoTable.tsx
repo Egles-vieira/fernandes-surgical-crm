@@ -1004,13 +1004,15 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
                           >
                             {visibleColumns.expand && <TableCell className="sticky left-0 z-10 bg-muted/20 border-r"></TableCell>}
                             {visibleColumns.select && <TableCell className="sticky left-[50px] z-10 bg-muted/20 border-r"></TableCell>}
-                            <TableCell colSpan={3} className="pl-12">
+                            {visibleColumns.numero && <TableCell className="sticky left-[100px] z-10 bg-muted/20 border-r"></TableCell>}
+                            {visibleColumns.descricao && <TableCell className="sticky left-[180px] z-10 bg-muted/20 border-r pl-12">
                               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                 <Package className="h-3 w-3" />
                                 <span>Mapeamento anterior</span>
                               </div>
-                            </TableCell>
-                            <TableCell>
+                            </TableCell>}
+                            {visibleColumns.codigo && <TableCell className="text-sm">-</TableCell>}
+                             {visibleColumns.vinculo && <TableCell>
                               <div className="flex items-center gap-2">
                                 <Package className="h-4 w-4 text-primary" />
                                 <div>
@@ -1020,35 +1022,49 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
                                   </p>
                                 </div>
                               </div>
-                            </TableCell>
+                            </TableCell>}
                             {visibleColumns.unidadeInterna && <TableCell className="text-sm">-</TableCell>}
-                            <TableCell className="text-sm">-</TableCell>
-                            <TableCell className="text-sm font-medium">
+                            {visibleColumns.quantidade && <TableCell className="text-sm">-</TableCell>}
+                            {visibleColumns.preco && <TableCell className="text-sm font-medium">
                               {new Intl.NumberFormat("pt-BR", {
                                 style: "currency",
                                 currency: "BRL",
                               }).format(mapping.produtos?.preco_venda || 0)}
-                            </TableCell>
-                            <TableCell className="text-sm">
+                            </TableCell>}
+                            {visibleColumns.desconto && <TableCell className="text-sm">
                               {mapping.desconto_padrao || 0}%
-                            </TableCell>
-                            <TableCell className="text-sm">-</TableCell>
-                            <TableCell>
+                            </TableCell>}
+                            {visibleColumns.total && <TableCell className="text-sm">-</TableCell>}
+                            {visibleColumns.status && <TableCell>
                               <Badge variant="outline" className="text-xs">
                                 {mapping.sugerido_por_ia ? "IA" : "Manual"}
                               </Badge>
-                            </TableCell>
-                            <TableCell>
+                            </TableCell>}
+                            {visibleColumns.sugestoesIA && <TableCell></TableCell>}
+                            {visibleColumns.acoes && <TableCell>
                               <Button variant="ghost" size="sm" className="text-xs">
                                 Usar este
                               </Button>
-                            </TableCell>
+                            </TableCell>}
                           </TableRow>
                         ))}
 
                         {isExpanded && mappings.length === 0 && (
                           <TableRow className="bg-muted/20">
-                            <TableCell colSpan={12} className="text-center text-sm text-muted-foreground py-4">
+                            {visibleColumns.expand && <TableCell className="sticky left-0 z-10 bg-muted/20 border-r"></TableCell>}
+                            {visibleColumns.select && <TableCell className="sticky left-[50px] z-10 bg-muted/20 border-r"></TableCell>}
+                            {visibleColumns.numero && <TableCell className="sticky left-[100px] z-10 bg-muted/20 border-r"></TableCell>}
+                            {visibleColumns.descricao && <TableCell className="sticky left-[180px] z-10 bg-muted/20 border-r"></TableCell>}
+                            {visibleColumns.codigo && <TableCell></TableCell>}
+                            {visibleColumns.vinculo && <TableCell></TableCell>}
+                            {visibleColumns.unidadeInterna && <TableCell></TableCell>}
+                            {visibleColumns.quantidade && <TableCell></TableCell>}
+                            {visibleColumns.preco && <TableCell></TableCell>}
+                            {visibleColumns.desconto && <TableCell></TableCell>}
+                            {visibleColumns.total && <TableCell></TableCell>}
+                            {visibleColumns.status && <TableCell></TableCell>}
+                            {visibleColumns.sugestoesIA && <TableCell></TableCell>}
+                            <TableCell colSpan={1} className="text-center text-sm text-muted-foreground py-4">
                               Nenhum mapeamento anterior encontrado
                             </TableCell>
                           </TableRow>
