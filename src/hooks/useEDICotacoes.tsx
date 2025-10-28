@@ -43,7 +43,8 @@ export const useEDICotacoes = (filtros?: {
   resgatada?: boolean;
   status_analise_ia?: 'pendente' | 'em_analise' | 'concluida' | 'erro' | 'cancelada';
   respondida?: boolean;
-  analise_concluida?: boolean; // Novo filtro
+  analise_concluida?: boolean;
+  limite?: number;
 }) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -51,13 +52,41 @@ export const useEDICotacoes = (filtros?: {
   const { data: cotacoes, isLoading } = useQuery({
     queryKey: ["edi-cotacoes", filtros],
     queryFn: async () => {
+      const limite = filtros?.limite || 100;
+      
       let query = supabase
         .from("edi_cotacoes")
         .select(`
-          *,
+          id,
+          plataforma_id,
+          id_cotacao_externa,
+          numero_cotacao,
+          cnpj_cliente,
+          nome_cliente,
+          cidade_cliente,
+          uf_cliente,
+          data_abertura,
+          data_vencimento_atual,
+          step_atual,
+          resgatada,
+          resgatada_por,
+          resgatada_em,
+          respondido_em,
+          total_itens,
+          total_itens_respondidos,
+          valor_total_respondido,
+          dados_originais,
+          detalhes,
+          status_analise_ia,
+          progresso_analise_percent,
+          analisado_por_ia,
+          total_itens_analisados,
+          tempo_analise_segundos,
+          tags,
           plataformas_edi(nome, slug)
         `)
-        .order("data_vencimento_atual", { ascending: true });
+        .order("data_vencimento_atual", { ascending: true })
+        .limit(limite);
 
       if (filtros?.step) {
         query = query.eq("step_atual", filtros.step);
@@ -75,7 +104,6 @@ export const useEDICotacoes = (filtros?: {
         query = query.eq("status_analise_ia", filtros.status_analise_ia);
       }
 
-      // Novo: filtro específico para análise concluída
       if (filtros?.analise_concluida) {
         query = query.eq("status_analise_ia", "concluida").is("respondido_em", null);
       }
