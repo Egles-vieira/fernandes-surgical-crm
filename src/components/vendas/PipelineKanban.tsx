@@ -45,13 +45,13 @@ interface PipelineKanbanProps {
 }
 
 const ETAPAS_CONFIG: Record<EtapaPipeline, { label: string; color: string; icon: any }> = {
-  prospeccao: { label: "Prospecção", color: "bg-slate-100 border-slate-300", icon: Users },
-  qualificacao: { label: "Qualificação", color: "bg-blue-100 border-blue-300", icon: TrendingUp },
-  proposta: { label: "Proposta", color: "bg-purple-100 border-purple-300", icon: DollarSign },
-  negociacao: { label: "Negociação", color: "bg-yellow-100 border-yellow-300", icon: DollarSign },
-  fechamento: { label: "Fechamento", color: "bg-orange-100 border-orange-300", icon: DollarSign },
-  ganho: { label: "Ganho", color: "bg-green-100 border-green-300", icon: DollarSign },
-  perdido: { label: "Perdido", color: "bg-red-100 border-red-300", icon: DollarSign },
+  prospeccao: { label: "Leads de Entrada", color: "bg-gradient-to-r from-amber-400 to-amber-500", icon: Users },
+  qualificacao: { label: "Contato Inicial", color: "bg-gradient-to-r from-purple-400 to-purple-500", icon: TrendingUp },
+  proposta: { label: "Proposta Enviada", color: "bg-gradient-to-r from-emerald-400 to-emerald-500", icon: DollarSign },
+  negociacao: { label: "Negociação", color: "bg-gradient-to-r from-blue-400 to-blue-500", icon: DollarSign },
+  fechamento: { label: "Fechamento", color: "bg-gradient-to-r from-orange-400 to-orange-500", icon: DollarSign },
+  ganho: { label: "Ganho", color: "bg-gradient-to-r from-green-500 to-green-600", icon: DollarSign },
+  perdido: { label: "Perdido", color: "bg-gradient-to-r from-red-400 to-red-500", icon: DollarSign },
 };
 
 const ETAPAS_ATIVAS: EtapaPipeline[] = [
@@ -99,14 +99,14 @@ export function PipelineKanban({ vendas, onMoverCard, onEditarVenda, onNovaVenda
   const activeVenda = activeId ? vendas.find(v => v.id === activeId) : null;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Header com Estatísticas */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-primary">Pipeline de Vendas</h2>
+          <h1 className="text-3xl font-bold text-foreground uppercase tracking-tight">Funil de Vendas</h1>
           <p className="text-muted-foreground">Gerencie suas oportunidades por etapa</p>
         </div>
-        <Button onClick={onNovaVenda}>
+        <Button onClick={onNovaVenda} className="shadow-md">
           <Plus size={16} className="mr-2" />
           Nova Oportunidade
         </Button>
@@ -114,31 +114,31 @@ export function PipelineKanban({ vendas, onMoverCard, onEditarVenda, onNovaVenda
 
       {/* Estatísticas Rápidas */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="p-4">
-          <p className="text-sm text-muted-foreground">Total em Pipeline</p>
-          <p className="text-2xl font-bold text-primary">
+        <Card className="p-4 border-l-4 border-l-primary shadow-sm">
+          <p className="text-sm font-medium text-muted-foreground mb-1">Total em Pipeline</p>
+          <p className="text-2xl font-bold text-foreground">
             {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
               ETAPAS_ATIVAS.reduce((sum, etapa) => sum + calcularValorTotal(etapa), 0)
             )}
           </p>
         </Card>
-        <Card className="p-4">
-          <p className="text-sm text-muted-foreground">Oportunidades Ativas</p>
-          <p className="text-2xl font-bold text-primary">
+        <Card className="p-4 border-l-4 border-l-blue-500 shadow-sm">
+          <p className="text-sm font-medium text-muted-foreground mb-1">Oportunidades Ativas</p>
+          <p className="text-2xl font-bold text-foreground">
             {ETAPAS_ATIVAS.reduce((sum, etapa) => sum + getVendasPorEtapa(etapa).length, 0)}
           </p>
         </Card>
-        <Card className="p-4 bg-green-50">
-          <p className="text-sm text-muted-foreground">Vendas Ganhas</p>
-          <p className="text-2xl font-bold text-green-600">
+        <Card className="p-4 border-l-4 border-l-emerald-500 shadow-sm bg-emerald-50/50">
+          <p className="text-sm font-medium text-emerald-700 mb-1">Vendas Ganhas</p>
+          <p className="text-2xl font-bold text-emerald-600">
             {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
               calcularValorTotal("ganho")
             )}
           </p>
         </Card>
-        <Card className="p-4 bg-red-50">
-          <p className="text-sm text-muted-foreground">Vendas Perdidas</p>
-          <p className="text-2xl font-bold text-red-600">
+        <Card className="p-4 border-l-4 border-l-rose-500 shadow-sm bg-rose-50/50">
+          <p className="text-sm font-medium text-rose-700 mb-1">Vendas Perdidas</p>
+          <p className="text-2xl font-bold text-rose-600">
             {getVendasPorEtapa("perdido").length}
           </p>
         </Card>
