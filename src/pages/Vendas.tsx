@@ -633,7 +633,7 @@ export default function Vendas() {
         {/* Filtros */}
         <VendasFilters onFilterChange={(filters) => console.log("Filtros aplicados:", filters)} />
 
-        <TabsContent value="pipeline" className="mt-4">
+        <TabsContent value="pipeline" className="mt-0 pt-6">
           <PipelineKanban vendas={vendas.map(v => ({
           id: v.id,
           numero_venda: v.numero_venda,
@@ -650,7 +650,7 @@ export default function Vendas() {
         }} onNovaVenda={() => setView("nova")} />
         </TabsContent>
 
-        <TabsContent value="list" className="mt-4">
+        <TabsContent value="list" className="mt-0 pt-6">
 
       {/* Search */}
       <div className="flex items-center gap-4">

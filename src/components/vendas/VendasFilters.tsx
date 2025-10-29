@@ -29,7 +29,7 @@ export function VendasFilters({ onFilterChange }: VendasFiltersProps) {
   };
 
   return (
-    <div className="flex items-center gap-3 py-3 px-6 border-b bg-background/50">
+    <div className="sticky top-0 z-30 flex items-center gap-3 py-3 px-6 border-b bg-card shadow-sm">
       {/* Funil de Vendas */}
       <Select defaultValue="todos" onValueChange={(value) => handleFilterChange("pipeline", value)}>
         <SelectTrigger className="w-[200px] h-9 bg-background">
