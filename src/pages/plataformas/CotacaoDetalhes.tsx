@@ -323,7 +323,7 @@ export default function CotacaoDetalhes() {
             </div>
 
             {/* CAPA - Informações principais */}
-            <Card className="rounded-none mx-0 w-full overflow-hidden">
+            <Card className="rounded-lg mx-0 w-full overflow-hidden">
               
               <CardContent className="mx-0 py-[12px] my-0 px-[24px]">
                 <div className="grid grid-cols-2 gap-6">
