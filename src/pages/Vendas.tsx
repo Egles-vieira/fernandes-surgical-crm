@@ -19,29 +19,45 @@ import { VendasActionBar } from "@/components/VendasActionBar";
 import { PipelineKanban, EtapaPipeline } from "@/components/vendas/PipelineKanban";
 import { Tables } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
-
 type Produto = Tables<"produtos">;
 type Cliente = Tables<"clientes">;
-
 interface ItemCarrinho {
   produto: Produto;
   quantidade: number;
   desconto: number;
   valor_total: number;
 }
-
 export default function Vendas() {
-  const { vendas, isLoading, createVenda, addItem, updateVenda, updateItem, removeItem } = useVendas();
-  const { condicoes, isLoading: isLoadingCondicoes } = useCondicoesPagamento();
-  const { tipos: tiposFrete, isLoading: isLoadingTiposFrete } = useTiposFrete();
-  const { tipos: tiposPedido, isLoading: isLoadingTiposPedido } = useTiposPedido();
-  const { toast } = useToast();
+  const {
+    vendas,
+    isLoading,
+    createVenda,
+    addItem,
+    updateVenda,
+    updateItem,
+    removeItem
+  } = useVendas();
+  const {
+    condicoes,
+    isLoading: isLoadingCondicoes
+  } = useCondicoesPagamento();
+  const {
+    tipos: tiposFrete,
+    isLoading: isLoadingTiposFrete
+  } = useTiposFrete();
+  const {
+    tipos: tiposPedido,
+    isLoading: isLoadingTiposPedido
+  } = useTiposPedido();
+  const {
+    toast
+  } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [view, setView] = useState<"pipeline" | "list" | "nova">("pipeline");
   const [showProdutoSearch, setShowProdutoSearch] = useState(false);
   const [showClienteSearch, setShowClienteSearch] = useState(false);
   const [editandoVendaId, setEditandoVendaId] = useState<string | null>(null);
-  
+
   // Nova venda state
   const [numeroVenda, setNumeroVenda] = useState("");
   const [clienteSelecionado, setClienteSelecionado] = useState<Cliente | null>(null);
@@ -53,7 +69,7 @@ export default function Vendas() {
   const [tipoPedidoId, setTipoPedidoId] = useState<string>("");
   const [observacoes, setObservacoes] = useState("");
   const [carrinho, setCarrinho] = useState<ItemCarrinho[]>([]);
-  
+
   // Novos campos do pipeline
   const [etapaPipeline, setEtapaPipeline] = useState<EtapaPipeline>("prospeccao");
   const [valorEstimado, setValorEstimado] = useState<number>(0);
@@ -62,29 +78,19 @@ export default function Vendas() {
   const [motivoPerda, setMotivoPerda] = useState<string>("");
   const [origemLead, setOrigemLead] = useState<string>("");
   const [responsavelId, setResponsavelId] = useState<string>("");
-
   useEffect(() => {
     if (view === "nova" && !numeroVenda) {
       const nextNumber = `V${Date.now().toString().slice(-8)}`;
       setNumeroVenda(nextNumber);
     }
   }, [view]);
-
-  const filteredVendas = vendas.filter(
-    (v) =>
-      v.numero_venda.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      v.cliente_nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (v.cliente_cnpj && v.cliente_cnpj.includes(searchTerm)) ||
-      v.status.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
+  const filteredVendas = vendas.filter(v => v.numero_venda.toLowerCase().includes(searchTerm.toLowerCase()) || v.cliente_nome.toLowerCase().includes(searchTerm.toLowerCase()) || v.cliente_cnpj && v.cliente_cnpj.includes(searchTerm) || v.status.toLowerCase().includes(searchTerm.toLowerCase()));
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {
       style: "currency",
-      currency: "BRL",
+      currency: "BRL"
     }).format(value);
   };
-
   const getStatusColor = (status: string) => {
     switch (status) {
       case "rascunho":
@@ -97,20 +103,14 @@ export default function Vendas() {
         return "bg-muted";
     }
   };
-
   const handleAddProduto = (produto: Produto) => {
     const existingItem = carrinho.find(item => item.produto.id === produto.id);
-    
     if (existingItem) {
-      setCarrinho(carrinho.map(item => 
-        item.produto.id === produto.id
-          ? { 
-              ...item, 
-              quantidade: item.quantidade + 1,
-              valor_total: (item.quantidade + 1) * item.produto.preco_venda * (1 - item.desconto / 100)
-            }
-          : item
-      ));
+      setCarrinho(carrinho.map(item => item.produto.id === produto.id ? {
+        ...item,
+        quantidade: item.quantidade + 1,
+        valor_total: (item.quantidade + 1) * item.produto.preco_venda * (1 - item.desconto / 100)
+      } : item));
     } else {
       setCarrinho([...carrinho, {
         produto,
@@ -119,56 +119,39 @@ export default function Vendas() {
         valor_total: produto.preco_venda
       }]);
     }
-
     toast({
       title: "Produto adicionado!",
       description: `${produto.nome} foi adicionado ao carrinho.`,
-      variant: "success",
+      variant: "success"
     });
   };
-
   const handleUpdateQuantidade = (index: number, quantidade: number) => {
     if (quantidade <= 0) return;
-    
-    setCarrinho(carrinho.map((item, i) => 
-      i === index
-        ? { 
-            ...item, 
-            quantidade,
-            valor_total: quantidade * item.produto.preco_venda * (1 - item.desconto / 100)
-          }
-        : item
-    ));
+    setCarrinho(carrinho.map((item, i) => i === index ? {
+      ...item,
+      quantidade,
+      valor_total: quantidade * item.produto.preco_venda * (1 - item.desconto / 100)
+    } : item));
   };
-
   const handleUpdateDesconto = (index: number, desconto: number) => {
     if (desconto < 0 || desconto > 100) return;
-    
-    setCarrinho(carrinho.map((item, i) => 
-      i === index
-        ? { 
-            ...item, 
-            desconto,
-            valor_total: item.quantidade * item.produto.preco_venda * (1 - desconto / 100)
-          }
-        : item
-    ));
+    setCarrinho(carrinho.map((item, i) => i === index ? {
+      ...item,
+      desconto,
+      valor_total: item.quantidade * item.produto.preco_venda * (1 - desconto / 100)
+    } : item));
   };
-
   const handleRemoveItem = (index: number) => {
     setCarrinho(carrinho.filter((_, i) => i !== index));
   };
-
   const calcularTotal = () => {
     return carrinho.reduce((sum, item) => sum + item.valor_total, 0);
   };
-
   const handleSelectCliente = (cliente: Cliente) => {
     setClienteSelecionado(cliente);
     setClienteNome(cliente.nome_emit);
     setClienteCnpj(cliente.cgc);
   };
-
   const handleEditarVenda = (venda: any) => {
     setEditandoVendaId(venda.id);
     setNumeroVenda(venda.numero_venda);
@@ -179,7 +162,7 @@ export default function Vendas() {
     setTipoFreteId(venda.tipo_frete_id || "");
     setTipoPedidoId(venda.tipo_pedido_id || "");
     setObservacoes(venda.observacoes || "");
-    
+
     // Novos campos do pipeline
     setEtapaPipeline(venda.etapa_pipeline || "prospeccao");
     setValorEstimado(venda.valor_estimado || 0);
@@ -188,19 +171,17 @@ export default function Vendas() {
     setMotivoPerda(venda.motivo_perda || "");
     setOrigemLead(venda.origem_lead || "");
     setResponsavelId(venda.responsavel_id || "");
-    
+
     // Carregar itens da venda
     const itensCarrinho: ItemCarrinho[] = (venda.vendas_itens || []).map((item: any) => ({
       produto: item.produtos,
       quantidade: item.quantidade,
       desconto: item.desconto,
-      valor_total: item.valor_total,
+      valor_total: item.valor_total
     }));
     setCarrinho(itensCarrinho);
-    
     setView("nova");
   };
-
   const limparFormulario = () => {
     setEditandoVendaId(null);
     setNumeroVenda("");
@@ -213,7 +194,7 @@ export default function Vendas() {
     setTipoPedidoId("");
     setObservacoes("");
     setCarrinho([]);
-    
+
     // Limpar campos do pipeline
     setEtapaPipeline("prospeccao");
     setValorEstimado(0);
@@ -223,71 +204,61 @@ export default function Vendas() {
     setOrigemLead("");
     setResponsavelId("");
   };
-
   const handleCalcular = () => {
     toast({
       title: "Calculando proposta",
-      description: "Valores atualizados com sucesso.",
+      description: "Valores atualizados com sucesso."
     });
   };
-
   const handleCancelarProposta = () => {
     limparFormulario();
     setView("pipeline");
   };
-
   const handleDiretoria = () => {
     toast({
       title: "Enviar para Diretoria",
-      description: "Proposta enviada para aprovação da diretoria.",
+      description: "Proposta enviada para aprovação da diretoria."
     });
   };
-
   const handleEfetivar = async () => {
     if (!clienteNome.trim()) {
       toast({
         title: "Erro",
         description: "Selecione ou informe o cliente",
-        variant: "destructive",
+        variant: "destructive"
       });
       return;
     }
-
     if (carrinho.length === 0) {
       toast({
         title: "Erro",
         description: "Adicione pelo menos um produto à venda",
-        variant: "destructive",
+        variant: "destructive"
       });
       return;
     }
-
     setStatus("aprovada");
     await handleSalvarVenda();
   };
-
   const handleSalvarVenda = async () => {
     if (!clienteNome.trim()) {
       toast({
         title: "Erro",
         description: "Selecione ou informe o cliente",
-        variant: "destructive",
+        variant: "destructive"
       });
       return;
     }
-
     if (carrinho.length === 0) {
       toast({
         title: "Erro",
         description: "Adicione pelo menos um produto à venda",
-        variant: "destructive",
+        variant: "destructive"
       });
       return;
     }
-
     try {
       const valorTotal = calcularTotal();
-      
       if (editandoVendaId) {
         // Atualizar venda existente
         await updateVenda.mutateAsync({
@@ -309,7 +280,7 @@ export default function Vendas() {
           data_fechamento_prevista: dataFechamentoPrevista || null,
           motivo_perda: motivoPerda || null,
           origem_lead: origemLead || null,
-          responsavel_id: responsavelId || null,
+          responsavel_id: responsavelId || null
         });
 
         // Remover itens antigos e adicionar novos
@@ -319,7 +290,6 @@ export default function Vendas() {
             await removeItem.mutateAsync(item.id);
           }
         }
-
         for (const item of carrinho) {
           await addItem.mutateAsync({
             venda_id: editandoVendaId,
@@ -327,13 +297,12 @@ export default function Vendas() {
             quantidade: item.quantidade,
             preco_unitario: item.produto.preco_venda,
             desconto: item.desconto,
-            valor_total: item.valor_total,
+            valor_total: item.valor_total
           });
         }
-
         toast({
           title: "Venda atualizada!",
-          description: "A venda foi atualizada com sucesso.",
+          description: "A venda foi atualizada com sucesso."
         });
       } else {
         // Criar nova venda
@@ -355,9 +324,8 @@ export default function Vendas() {
           data_fechamento_prevista: dataFechamentoPrevista || null,
           motivo_perda: motivoPerda || null,
           origem_lead: origemLead || null,
-          responsavel_id: responsavelId || null,
+          responsavel_id: responsavelId || null
         });
-
         for (const item of carrinho) {
           await addItem.mutateAsync({
             venda_id: venda.id,
@@ -365,60 +333,45 @@ export default function Vendas() {
             quantidade: item.quantidade,
             preco_unitario: item.produto.preco_venda,
             desconto: item.desconto,
-            valor_total: item.valor_total,
+            valor_total: item.valor_total
           });
         }
-
         toast({
           title: "Venda salva!",
-          description: "A venda foi criada com sucesso.",
+          description: "A venda foi criada com sucesso."
         });
       }
-
       limparFormulario();
       setView("pipeline");
     } catch (error: any) {
       console.error("Erro ao salvar venda:", error);
     }
   };
-
   const handleMoverCard = async (vendaId: string, novaEtapa: EtapaPipeline) => {
     try {
       await updateVenda.mutateAsync({
         id: vendaId,
-        etapa_pipeline: novaEtapa,
+        etapa_pipeline: novaEtapa
       });
-      
       toast({
         title: "Etapa atualizada!",
-        description: `Venda movida para ${novaEtapa}`,
+        description: `Venda movida para ${novaEtapa}`
       });
     } catch (error: any) {
       console.error("Erro ao mover card:", error);
     }
   };
-
   if (isLoading) {
-    return (
-      <div className="p-8 flex items-center justify-center min-h-[400px]">
+    return <div className="p-8 flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
           <p className="mt-4 text-muted-foreground">Carregando vendas...</p>
         </div>
-      </div>
-    );
+      </div>;
   }
-
   if (view === "nova") {
-    return (
-      <>
-        <VendasActionBar
-          status={status}
-          onCalcular={handleCalcular}
-          onCancelar={handleCancelarProposta}
-          onDiretoria={handleDiretoria}
-          onEfetivar={handleEfetivar}
-        />
+    return <>
+        <VendasActionBar status={status} onCalcular={handleCalcular} onCancelar={handleCancelarProposta} onDiretoria={handleDiretoria} onEfetivar={handleEfetivar} />
         
         <div className="pt-20 p-8 space-y-6">
           {/* Header */}
@@ -433,9 +386,9 @@ export default function Vendas() {
             </div>
             <div className="flex gap-2">
               <Button variant="outline" onClick={() => {
-                limparFormulario();
-                setView("pipeline");
-              }}>
+              limparFormulario();
+              setView("pipeline");
+            }}>
                 Cancelar
               </Button>
               <Button onClick={handleSalvarVenda} disabled={createVenda.isPending || updateVenda.isPending}>
@@ -452,18 +405,8 @@ export default function Vendas() {
               <div>
                 <Label>Cliente *</Label>
                 <div className="flex gap-2">
-                  <Input
-                    value={clienteNome}
-                    onChange={(e) => setClienteNome(e.target.value)}
-                    placeholder="Nome do cliente"
-                    readOnly
-                    className="bg-muted cursor-pointer"
-                    onClick={() => setShowClienteSearch(true)}
-                  />
-                  <Button
-                    type="button"
-                    onClick={() => setShowClienteSearch(true)}
-                  >
+                  <Input value={clienteNome} onChange={e => setClienteNome(e.target.value)} placeholder="Nome do cliente" readOnly className="bg-muted cursor-pointer" onClick={() => setShowClienteSearch(true)} />
+                  <Button type="button" onClick={() => setShowClienteSearch(true)}>
                     <Search size={16} />
                   </Button>
                 </div>
@@ -471,11 +414,7 @@ export default function Vendas() {
 
               <div>
                 <Label>CNPJ/CPF</Label>
-                <Input
-                  value={clienteCnpj}
-                  onChange={(e) => setClienteCnpj(e.target.value)}
-                  placeholder="00.000.000/0000-00"
-                />
+                <Input value={clienteCnpj} onChange={e => setClienteCnpj(e.target.value)} placeholder="00.000.000/0000-00" />
               </div>
 
               <div>
@@ -485,15 +424,9 @@ export default function Vendas() {
                     <SelectValue placeholder="Selecione..." />
                   </SelectTrigger>
                   <SelectContent>
-                    {isLoadingCondicoes ? (
-                      <SelectItem value="loading" disabled>Carregando...</SelectItem>
-                    ) : (
-                      condicoes.map((cond) => (
-                        <SelectItem key={cond.id} value={cond.id}>
+                    {isLoadingCondicoes ? <SelectItem value="loading" disabled>Carregando...</SelectItem> : condicoes.map(cond => <SelectItem key={cond.id} value={cond.id}>
                           {cond.nome}
-                        </SelectItem>
-                      ))
-                    )}
+                        </SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
@@ -505,15 +438,9 @@ export default function Vendas() {
                     <SelectValue placeholder="Selecione..." />
                   </SelectTrigger>
                   <SelectContent>
-                    {isLoadingTiposFrete ? (
-                      <SelectItem value="loading" disabled>Carregando...</SelectItem>
-                    ) : (
-                      tiposFrete.map((tipo) => (
-                        <SelectItem key={tipo.id} value={tipo.id}>
+                    {isLoadingTiposFrete ? <SelectItem value="loading" disabled>Carregando...</SelectItem> : tiposFrete.map(tipo => <SelectItem key={tipo.id} value={tipo.id}>
                           {tipo.nome}
-                        </SelectItem>
-                      ))
-                    )}
+                        </SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
@@ -525,15 +452,9 @@ export default function Vendas() {
                     <SelectValue placeholder="Selecione..." />
                   </SelectTrigger>
                   <SelectContent>
-                    {isLoadingTiposPedido ? (
-                      <SelectItem value="loading" disabled>Carregando...</SelectItem>
-                    ) : (
-                      tiposPedido.map((tipo) => (
-                        <SelectItem key={tipo.id} value={tipo.id}>
+                    {isLoadingTiposPedido ? <SelectItem value="loading" disabled>Carregando...</SelectItem> : tiposPedido.map(tipo => <SelectItem key={tipo.id} value={tipo.id}>
                           {tipo.nome}
-                        </SelectItem>
-                      ))
-                    )}
+                        </SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
@@ -578,65 +499,33 @@ export default function Vendas() {
 
               <div>
                 <Label>Valor Estimado (R$)</Label>
-                <Input
-                  type="number"
-                  value={valorEstimado}
-                  onChange={(e) => setValorEstimado(Number(e.target.value))}
-                  placeholder="0.00"
-                  step="0.01"
-                  min="0"
-                />
+                <Input type="number" value={valorEstimado} onChange={e => setValorEstimado(Number(e.target.value))} placeholder="0.00" step="0.01" min="0" />
               </div>
 
               <div>
                 <Label>Probabilidade (%)</Label>
-                <Input
-                  type="number"
-                  value={probabilidade}
-                  onChange={(e) => setProbabilidade(Number(e.target.value))}
-                  placeholder="50"
-                  min="0"
-                  max="100"
-                />
+                <Input type="number" value={probabilidade} onChange={e => setProbabilidade(Number(e.target.value))} placeholder="50" min="0" max="100" />
               </div>
 
               <div>
                 <Label>Data Fechamento Prevista</Label>
-                <Input
-                  type="date"
-                  value={dataFechamentoPrevista}
-                  onChange={(e) => setDataFechamentoPrevista(e.target.value)}
-                />
+                <Input type="date" value={dataFechamentoPrevista} onChange={e => setDataFechamentoPrevista(e.target.value)} />
               </div>
 
               <div>
                 <Label>Origem do Lead</Label>
-                <Input
-                  value={origemLead}
-                  onChange={(e) => setOrigemLead(e.target.value)}
-                  placeholder="Ex: Indicação, Site, Cold Call"
-                />
+                <Input value={origemLead} onChange={e => setOrigemLead(e.target.value)} placeholder="Ex: Indicação, Site, Cold Call" />
               </div>
 
-              {etapaPipeline === "perdido" && (
-                <div className="md:col-span-3">
+              {etapaPipeline === "perdido" && <div className="md:col-span-3">
                   <Label>Motivo da Perda</Label>
-                  <Input
-                    value={motivoPerda}
-                    onChange={(e) => setMotivoPerda(e.target.value)}
-                    placeholder="Descreva por que a oportunidade foi perdida..."
-                  />
-                </div>
-              )}
+                  <Input value={motivoPerda} onChange={e => setMotivoPerda(e.target.value)} placeholder="Descreva por que a oportunidade foi perdida..." />
+                </div>}
             </div>
 
             <div className="mt-4">
               <Label>Observações</Label>
-              <Input
-                value={observacoes}
-                onChange={(e) => setObservacoes(e.target.value)}
-                placeholder="Observações sobre a venda..."
-              />
+              <Input value={observacoes} onChange={e => setObservacoes(e.target.value)} placeholder="Observações sobre a venda..." />
             </div>
           </Card>
 
@@ -644,17 +533,13 @@ export default function Vendas() {
           <Card className="p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-primary">Produtos</h3>
-              <Button
-                type="button"
-                onClick={() => setShowProdutoSearch(true)}
-              >
+              <Button type="button" onClick={() => setShowProdutoSearch(true)}>
                 <Plus size={16} className="mr-2" />
                 Adicionar Produto
               </Button>
             </div>
 
-            {carrinho.length > 0 ? (
-              <>
+            {carrinho.length > 0 ? <>
                 <div className="overflow-x-auto border rounded-lg">
                   <Table>
                     <TableHeader>
@@ -669,52 +554,29 @@ export default function Vendas() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {carrinho.map((item, index) => (
-                        <TableRow key={index}>
+                      {carrinho.map((item, index) => <TableRow key={index}>
                           <TableCell className="font-mono">
                             {item.produto.referencia_interna}
                           </TableCell>
                           <TableCell>{item.produto.nome}</TableCell>
                           <TableCell className="text-center">
-                            <Input
-                              type="number"
-                              value={item.quantidade}
-                              onChange={(e) =>
-                                handleUpdateQuantidade(index, Number(e.target.value))
-                              }
-                              className="w-20 text-center"
-                              min="1"
-                            />
+                            <Input type="number" value={item.quantidade} onChange={e => handleUpdateQuantidade(index, Number(e.target.value))} className="w-20 text-center" min="1" />
                           </TableCell>
                           <TableCell className="text-right">
                             {formatCurrency(item.produto.preco_venda)}
                           </TableCell>
                           <TableCell className="text-center">
-                            <Input
-                              type="number"
-                              value={item.desconto}
-                              onChange={(e) =>
-                                handleUpdateDesconto(index, Number(e.target.value))
-                              }
-                              className="w-20 text-center"
-                              min="0"
-                              max="100"
-                            />
+                            <Input type="number" value={item.desconto} onChange={e => handleUpdateDesconto(index, Number(e.target.value))} className="w-20 text-center" min="0" max="100" />
                           </TableCell>
                           <TableCell className="text-right font-semibold">
                             {formatCurrency(item.valor_total)}
                           </TableCell>
                           <TableCell className="text-center">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleRemoveItem(index)}
-                            >
+                            <Button variant="ghost" size="sm" onClick={() => handleRemoveItem(index)}>
                               <Trash2 size={16} className="text-destructive" />
                             </Button>
                           </TableCell>
-                        </TableRow>
-                      ))}
+                        </TableRow>)}
                     </TableBody>
                   </Table>
                 </div>
@@ -731,46 +593,24 @@ export default function Vendas() {
                     </p>
                   </div>
                 </div>
-              </>
-            ) : (
-              <div className="text-center py-8 text-muted-foreground border rounded-lg bg-muted/20">
+              </> : <div className="text-center py-8 text-muted-foreground border rounded-lg bg-muted/20">
                 Nenhum produto adicionado. Clique em "Adicionar Produto" para começar.
-              </div>
-            )}
+              </div>}
           </Card>
 
-          <ProdutoSearchDialog
-            open={showProdutoSearch}
-            onOpenChange={setShowProdutoSearch}
-            onSelectProduto={handleAddProduto}
-          />
+          <ProdutoSearchDialog open={showProdutoSearch} onOpenChange={setShowProdutoSearch} onSelectProduto={handleAddProduto} />
           
-          <ClienteSearchDialog
-            open={showClienteSearch}
-            onOpenChange={setShowClienteSearch}
-            onSelectCliente={handleSelectCliente}
-          />
+          <ClienteSearchDialog open={showClienteSearch} onOpenChange={setShowClienteSearch} onSelectCliente={handleSelectCliente} />
         </div>
-      </>
-    );
+      </>;
   }
 
   // Pipeline / List Views
-  return (
-    <div className="p-8 space-y-6">
+  return <div className="p-8 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-primary">Vendas</h1>
-          <p className="text-muted-foreground">Gerencie suas propostas e vendas</p>
-        </div>
-        <Button onClick={() => setView("nova")}>
-          <Plus size={16} className="mr-2" />
-          Nova Venda
-        </Button>
-      </div>
+      
 
-      <Tabs value={view} onValueChange={(v) => setView(v as any)} className="w-full">
+      <Tabs value={view} onValueChange={v => setView(v as any)} className="w-full mx-0 my-0 px-0 py-0">
         <TabsList className="grid w-full max-w-md grid-cols-2">
           <TabsTrigger value="pipeline">
             <Kanban size={16} className="mr-2" />
@@ -783,25 +623,20 @@ export default function Vendas() {
         </TabsList>
 
         <TabsContent value="pipeline" className="mt-6">
-          <PipelineKanban
-            vendas={vendas.map(v => ({
-              id: v.id,
-              numero_venda: v.numero_venda,
-              cliente_nome: v.cliente_nome,
-              valor_estimado: (v as any).valor_estimado || 0,
-              valor_total: v.valor_total,
-              probabilidade: (v as any).probabilidade || 50,
-              etapa_pipeline: (v as any).etapa_pipeline || 'prospeccao',
-              data_fechamento_prevista: (v as any).data_fechamento_prevista,
-              responsavel_id: (v as any).responsavel_id,
-            }))}
-            onMoverCard={handleMoverCard}
-            onEditarVenda={(venda) => {
-              const vendaCompleta = vendas.find(v => v.id === venda.id);
-              if (vendaCompleta) handleEditarVenda(vendaCompleta);
-            }}
-            onNovaVenda={() => setView("nova")}
-          />
+          <PipelineKanban vendas={vendas.map(v => ({
+          id: v.id,
+          numero_venda: v.numero_venda,
+          cliente_nome: v.cliente_nome,
+          valor_estimado: (v as any).valor_estimado || 0,
+          valor_total: v.valor_total,
+          probabilidade: (v as any).probabilidade || 50,
+          etapa_pipeline: (v as any).etapa_pipeline || 'prospeccao',
+          data_fechamento_prevista: (v as any).data_fechamento_prevista,
+          responsavel_id: (v as any).responsavel_id
+        }))} onMoverCard={handleMoverCard} onEditarVenda={venda => {
+          const vendaCompleta = vendas.find(v => v.id === venda.id);
+          if (vendaCompleta) handleEditarVenda(vendaCompleta);
+        }} onNovaVenda={() => setView("nova")} />
         </TabsContent>
 
         <TabsContent value="list" className="mt-6">
@@ -810,12 +645,7 @@ export default function Vendas() {
       <div className="flex items-center gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
-          <Input
-            placeholder="Buscar por número, cliente, CNPJ ou status..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
+          <Input placeholder="Buscar por número, cliente, CNPJ ou status..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-10" />
         </div>
         <span className="text-sm text-muted-foreground">
           {filteredVendas.length} {filteredVendas.length === 1 ? "venda" : "vendas"}
@@ -838,15 +668,11 @@ export default function Vendas() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredVendas.length === 0 ? (
-              <TableRow>
+            {filteredVendas.length === 0 ? <TableRow>
                 <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                   Nenhuma venda encontrada
                 </TableCell>
-              </TableRow>
-            ) : (
-              filteredVendas.map((venda) => (
-                <TableRow key={venda.id} className="hover:bg-muted/30">
+              </TableRow> : filteredVendas.map(venda => <TableRow key={venda.id} className="hover:bg-muted/30">
                   <TableCell className="font-mono text-success font-semibold">
                     {venda.numero_venda}
                   </TableCell>
@@ -871,22 +697,15 @@ export default function Vendas() {
                     </Badge>
                   </TableCell>
                   <TableCell className="text-center">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleEditarVenda(venda)}
-                    >
+                    <Button variant="ghost" size="sm" onClick={() => handleEditarVenda(venda)}>
                       <Edit size={16} />
                     </Button>
                   </TableCell>
-                </TableRow>
-              ))
-            )}
+                </TableRow>)}
           </TableBody>
         </Table>
       </Card>
         </TabsContent>
       </Tabs>
-    </div>
-  );
+    </div>;
 }
