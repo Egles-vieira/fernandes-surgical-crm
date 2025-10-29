@@ -47,7 +47,7 @@ export function KanbanCard({ venda, onEdit, isDragging = false }: KanbanCardProp
       style={style}
       {...attributes}
       {...listeners}
-      className="p-4 cursor-grab active:cursor-grabbing hover:shadow-lg transition-all bg-card border-border/50"
+      className="p-4 cursor-grab active:cursor-grabbing hover:shadow-lg transition-all bg-card border-border/50 rounded-md"
       onClick={(e) => {
         e.stopPropagation();
         onEdit();
