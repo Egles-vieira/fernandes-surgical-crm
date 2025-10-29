@@ -42,7 +42,9 @@ const stepLabel = (step: string) => {
 export default function Cotacoes() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { toast } = useToast();
+  const {
+    toast
+  } = useToast();
   const [abaAtiva, setAbaAtiva] = useState<string>("novas");
   const [importarDialogOpen, setImportarDialogOpen] = useState(false);
   const [corrigindoAnalises, setCorrigindoAnalises] = useState(false);
@@ -54,45 +56,65 @@ export default function Cotacoes() {
     respondidas: 0,
     confirmadas: 0
   });
-  
   const LIMITE_POR_PAGINA = 50;
-  
+
   // Hook de realtime - só ativa nesta página
   useRealtimeCotacoes(true);
 
   // Buscar todas as cotações para estatísticas
-  const { cotacoes: todasCotacoes } = useEDICotacoes({});
-  
+  const {
+    cotacoes: todasCotacoes
+  } = useEDICotacoes({});
+
   // Filtros por aba com paginação
   const getFiltros = () => {
     const paginaAtual = paginas[abaAtiva] || 0;
-    const filtrosBase = { limite: LIMITE_POR_PAGINA };
-    
+    const filtrosBase = {
+      limite: LIMITE_POR_PAGINA
+    };
     switch (abaAtiva) {
       case "novas":
-        return { ...filtrosBase, step: "nova", resgatada: false };
+        return {
+          ...filtrosBase,
+          step: "nova",
+          resgatada: false
+        };
       case "analise_ia":
-        return { ...filtrosBase, status_analise_ia: "em_analise" as const };
+        return {
+          ...filtrosBase,
+          status_analise_ia: "em_analise" as const
+        };
       case "analisadas":
-        return { ...filtrosBase, analise_concluida: true };
+        return {
+          ...filtrosBase,
+          analise_concluida: true
+        };
       case "aguardando":
-        return { ...filtrosBase, resgatada: true, respondida: false };
+        return {
+          ...filtrosBase,
+          resgatada: true,
+          respondida: false
+        };
       case "respondidas":
-        return { ...filtrosBase, step: "respondida" };
+        return {
+          ...filtrosBase,
+          step: "respondida"
+        };
       case "confirmadas":
-        return { ...filtrosBase, step: "confirmada" };
+        return {
+          ...filtrosBase,
+          step: "confirmada"
+        };
       default:
         return filtrosBase;
     }
   };
-
   const handleMudarPagina = (novaPagina: number) => {
     setPaginas(prev => ({
       ...prev,
       [abaAtiva]: novaPagina
     }));
   };
-
   const {
     cotacoes,
     isLoading,
@@ -110,26 +132,28 @@ export default function Cotacoes() {
   const handleResgatar = async (cotacaoId: string) => {
     await resgatarCotacao.mutateAsync(cotacaoId);
   };
-
   const handleCorrigirAnalisesTravadas = async () => {
     setCorrigindoAnalises(true);
     try {
-      const { data, error } = await supabase.functions.invoke("corrigir-analises-travadas");
-      
+      const {
+        data,
+        error
+      } = await supabase.functions.invoke("corrigir-analises-travadas");
       if (error) throw error;
-      
       toast({
         title: "Análises corrigidas",
-        description: `${data.total_corrigidas} de ${data.total_verificadas} cotações foram corrigidas.`,
+        description: `${data.total_corrigidas} de ${data.total_verificadas} cotações foram corrigidas.`
       });
-      
+
       // Recarregar dados
-      queryClient.invalidateQueries({ queryKey: ["edi-cotacoes"] });
+      queryClient.invalidateQueries({
+        queryKey: ["edi-cotacoes"]
+      });
     } catch (error: any) {
       toast({
         title: "Erro ao corrigir análises",
         description: error.message,
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setCorrigindoAnalises(false);
@@ -154,24 +178,11 @@ export default function Cotacoes() {
         </p>
         </div>
         <div className="flex gap-2">
-          {abaAtiva === "analise_ia" && estatisticas.analiseIA > 0 && (
-            <Button 
-              variant="outline" 
-              size="lg" 
-              className="gap-2"
-              onClick={handleCorrigirAnalisesTravadas}
-              disabled={corrigindoAnalises}
-            >
+          {abaAtiva === "analise_ia" && estatisticas.analiseIA > 0 && <Button variant="outline" size="lg" className="gap-2" onClick={handleCorrigirAnalisesTravadas} disabled={corrigindoAnalises}>
               <RefreshCw className={`h-4 w-4 ${corrigindoAnalises ? 'animate-spin' : ''}`} />
               Corrigir Travadas
-            </Button>
-          )}
-          <Button 
-            variant="outline" 
-            size="lg" 
-            className="gap-2" 
-            onClick={() => navigate("/plataformas/historico-importacoes")}
-          >
+            </Button>}
+          <Button variant="outline" size="lg" className="gap-2" onClick={() => navigate("/plataformas/historico-importacoes")}>
             <Database className="h-4 w-4" />
             Histórico Importações
           </Button>
@@ -179,10 +190,7 @@ export default function Cotacoes() {
             <Upload className="h-4 w-4" />
             Importar XML
           </Button>
-          <Button size="lg" className="gap-2">
-            <Sparkles className="h-4 w-4" />
-            Sugestões IA
-          </Button>
+          
         </div>
       </div>
 
@@ -284,8 +292,7 @@ export default function Cotacoes() {
         </TabsList>
 
         <TabsContent value={abaAtiva} className="space-y-4 mt-4">
-          {cotacoes && cotacoes.length > 0 ? (
-            <>
+          {cotacoes && cotacoes.length > 0 ? <>
               <div className="space-y-2">
                 {cotacoes.map(cotacao => <Card key={cotacao.id} className="hover:shadow-sm transition-shadow">
                     <CardContent className="p-4">
@@ -296,32 +303,19 @@ export default function Cotacoes() {
                               Origem: {cotacao.id_cotacao_externa}
                             </span>
                             {cotacao.plataformas_edi && <Badge variant="outline" className="text-xs">{cotacao.plataformas_edi.nome}</Badge>}
-                            <StatusAnaliseIABadge 
-                              statusAnalise={cotacao.status_analise_ia}
-                              progresso={cotacao.progresso_analise_percent ?? 0}
-                              itensAnalisados={cotacao.itens_analisados ?? cotacao.total_itens_analisados ?? 0}
-                              totalItens={cotacao.total_itens_para_analise ?? cotacao.total_itens ?? 0}
-                              tempoEstimado={cotacao.tempo_analise_segundos ?? undefined}
-                            />
-                            {cotacao.tags && cotacao.tags.length > 0 && cotacao.tags.map(tag => (
-                              <Badge 
-                                key={tag} 
-                                variant="destructive" 
-                                className="text-xs"
-                              >
+                            <StatusAnaliseIABadge statusAnalise={cotacao.status_analise_ia} progresso={cotacao.progresso_analise_percent ?? 0} itensAnalisados={cotacao.itens_analisados ?? cotacao.total_itens_analisados ?? 0} totalItens={cotacao.total_itens_para_analise ?? cotacao.total_itens ?? 0} tempoEstimado={cotacao.tempo_analise_segundos ?? undefined} />
+                            {cotacao.tags && cotacao.tags.length > 0 && cotacao.tags.map(tag => <Badge key={tag} variant="destructive" className="text-xs">
                                 {tag}
-                              </Badge>
-                            ))}
+                              </Badge>)}
                             <span className="text-xs text-muted-foreground">
-                              {format(new Date(cotacao.data_vencimento_atual), "dd/MM/yyyy | HH:mm", { locale: ptBR })}
+                              {format(new Date(cotacao.data_vencimento_atual), "dd/MM/yyyy | HH:mm", {
+                          locale: ptBR
+                        })}
                             </span>
                           </div>
                           
                           <div className="flex items-center gap-4">
-                            <button 
-                              onClick={() => navigate(`/plataformas/cotacoes/${cotacao.id}`)}
-                              className="text-primary hover:underline font-medium text-sm truncate"
-                            >
+                            <button onClick={() => navigate(`/plataformas/cotacoes/${cotacao.id}`)} className="text-primary hover:underline font-medium text-sm truncate">
                               {cotacao.nome_cliente}
                             </button>
                             
@@ -340,18 +334,10 @@ export default function Cotacoes() {
                         </div>
 
                         <div className="flex items-center gap-2 flex-shrink-0">
-                          {!cotacao.resgatada && abaAtiva === "novas" && <Button 
-                              size="sm"
-                              onClick={() => handleResgatar(cotacao.id)} 
-                              disabled={resgatarCotacao.isPending}
-                            >
+                          {!cotacao.resgatada && abaAtiva === "novas" && <Button size="sm" onClick={() => handleResgatar(cotacao.id)} disabled={resgatarCotacao.isPending}>
                               Resgatar
                             </Button>}
-                          <Button 
-                            size="sm"
-                            variant="outline" 
-                            onClick={() => navigate(`/plataformas/cotacoes/${cotacao.id}`)}
-                          >
+                          <Button size="sm" variant="outline" onClick={() => navigate(`/plataformas/cotacoes/${cotacao.id}`)}>
                             Ver Detalhes
                           </Button>
                         </div>
@@ -361,38 +347,23 @@ export default function Cotacoes() {
               </div>
               
               {/* Paginação */}
-              {cotacoes.length === LIMITE_POR_PAGINA && (
-                <div className="flex items-center justify-between pt-4 border-t">
+              {cotacoes.length === LIMITE_POR_PAGINA && <div className="flex items-center justify-between pt-4 border-t">
                   <div className="text-sm text-muted-foreground">
                     Página {(paginas[abaAtiva] || 0) + 1} • {cotacoes.length} registros
                   </div>
                   <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleMudarPagina(Math.max(0, (paginas[abaAtiva] || 0) - 1))}
-                      disabled={(paginas[abaAtiva] || 0) === 0}
-                    >
+                    <Button size="sm" variant="outline" onClick={() => handleMudarPagina(Math.max(0, (paginas[abaAtiva] || 0) - 1))} disabled={(paginas[abaAtiva] || 0) === 0}>
                       Anterior
                     </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleMudarPagina((paginas[abaAtiva] || 0) + 1)}
-                      disabled={cotacoes.length < LIMITE_POR_PAGINA}
-                    >
+                    <Button size="sm" variant="outline" onClick={() => handleMudarPagina((paginas[abaAtiva] || 0) + 1)} disabled={cotacoes.length < LIMITE_POR_PAGINA}>
                       Próxima
                     </Button>
                   </div>
-                </div>
-              )}
-            </>
-          ) : (
-            <Card className="p-12 text-center">
+                </div>}
+            </> : <Card className="p-12 text-center">
               <FileText className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
               <p className="text-muted-foreground">Nenhuma cotação encontrada neste status</p>
-            </Card>
-          )}
+            </Card>}
         </TabsContent>
       </Tabs>
     </div>;
