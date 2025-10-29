@@ -104,8 +104,8 @@ export function PipelineKanban({
       {/* Header com Estatísticas */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground uppercase tracking-tight">Funil de Vendas</h1>
-          <p className="text-muted-foreground">Gerencie suas oportunidades por etapa</p>
+          <h1 className="font-bold text-foreground uppercase tracking-tight text-lg">Funil de Vendas</h1>
+          <p className="text-muted-foreground text-sm">Gerencie suas oportunidades por etapa</p>
         </div>
         <Button onClick={onNovaVenda} className="shadow-md">
           <Plus size={16} className="mr-2" />
