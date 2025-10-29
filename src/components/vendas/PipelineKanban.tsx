@@ -1,13 +1,5 @@
 import { useState } from "react";
-import {
-  DndContext,
-  DragEndEvent,
-  DragOverlay,
-  DragStartEvent,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
+import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -15,16 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, TrendingUp, Users, DollarSign } from "lucide-react";
 import { KanbanCard } from "./KanbanCard";
 import { KanbanColumn } from "./KanbanColumn";
-
-export type EtapaPipeline = 
-  | "prospeccao"
-  | "qualificacao" 
-  | "proposta"
-  | "negociacao"
-  | "fechamento"
-  | "ganho"
-  | "perdido";
-
+export type EtapaPipeline = "prospeccao" | "qualificacao" | "proposta" | "negociacao" | "fechamento" | "ganho" | "perdido";
 export interface VendaPipeline {
   id: string;
   numero_venda: string;
@@ -36,70 +19,88 @@ export interface VendaPipeline {
   data_fechamento_prevista?: string | null;
   responsavel_id?: string | null;
 }
-
 interface PipelineKanbanProps {
   vendas: VendaPipeline[];
   onMoverCard: (vendaId: string, novaEtapa: EtapaPipeline) => void;
   onEditarVenda: (venda: VendaPipeline) => void;
   onNovaVenda: () => void;
 }
-
-const ETAPAS_CONFIG: Record<EtapaPipeline, { label: string; color: string; icon: any }> = {
-  prospeccao: { label: "Leads de Entrada", color: "bg-gradient-to-r from-amber-400 to-amber-500", icon: Users },
-  qualificacao: { label: "Contato Inicial", color: "bg-gradient-to-r from-purple-400 to-purple-500", icon: TrendingUp },
-  proposta: { label: "Proposta Enviada", color: "bg-gradient-to-r from-emerald-400 to-emerald-500", icon: DollarSign },
-  negociacao: { label: "Negociação", color: "bg-gradient-to-r from-blue-400 to-blue-500", icon: DollarSign },
-  fechamento: { label: "Fechamento", color: "bg-gradient-to-r from-orange-400 to-orange-500", icon: DollarSign },
-  ganho: { label: "Ganho", color: "bg-gradient-to-r from-green-500 to-green-600", icon: DollarSign },
-  perdido: { label: "Perdido", color: "bg-gradient-to-r from-red-400 to-red-500", icon: DollarSign },
+const ETAPAS_CONFIG: Record<EtapaPipeline, {
+  label: string;
+  color: string;
+  icon: any;
+}> = {
+  prospeccao: {
+    label: "Leads de Entrada",
+    color: "bg-gradient-to-r from-amber-400 to-amber-500",
+    icon: Users
+  },
+  qualificacao: {
+    label: "Contato Inicial",
+    color: "bg-gradient-to-r from-purple-400 to-purple-500",
+    icon: TrendingUp
+  },
+  proposta: {
+    label: "Proposta Enviada",
+    color: "bg-gradient-to-r from-emerald-400 to-emerald-500",
+    icon: DollarSign
+  },
+  negociacao: {
+    label: "Negociação",
+    color: "bg-gradient-to-r from-blue-400 to-blue-500",
+    icon: DollarSign
+  },
+  fechamento: {
+    label: "Fechamento",
+    color: "bg-gradient-to-r from-orange-400 to-orange-500",
+    icon: DollarSign
+  },
+  ganho: {
+    label: "Ganho",
+    color: "bg-gradient-to-r from-green-500 to-green-600",
+    icon: DollarSign
+  },
+  perdido: {
+    label: "Perdido",
+    color: "bg-gradient-to-r from-red-400 to-red-500",
+    icon: DollarSign
+  }
 };
-
-const ETAPAS_ATIVAS: EtapaPipeline[] = [
-  "prospeccao",
-  "qualificacao",
-  "proposta",
-  "negociacao",
-  "fechamento",
-];
-
-export function PipelineKanban({ vendas, onMoverCard, onEditarVenda, onNovaVenda }: PipelineKanbanProps) {
+const ETAPAS_ATIVAS: EtapaPipeline[] = ["prospeccao", "qualificacao", "proposta", "negociacao", "fechamento"];
+export function PipelineKanban({
+  vendas,
+  onMoverCard,
+  onEditarVenda,
+  onNovaVenda
+}: PipelineKanbanProps) {
   const [activeId, setActiveId] = useState<string | null>(null);
-  
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    })
-  );
-
+  const sensors = useSensors(useSensor(PointerSensor, {
+    activationConstraint: {
+      distance: 8
+    }
+  }));
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id as string);
   };
-
   const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    
+    const {
+      active,
+      over
+    } = event;
     if (over && active.id !== over.id) {
       const novaEtapa = over.id as EtapaPipeline;
       onMoverCard(active.id as string, novaEtapa);
     }
-    
     setActiveId(null);
   };
-
   const getVendasPorEtapa = (etapa: EtapaPipeline) => {
     return vendas.filter(v => v.etapa_pipeline === etapa);
   };
-
   const calcularValorTotal = (etapa: EtapaPipeline) => {
     return getVendasPorEtapa(etapa).reduce((sum, v) => sum + (v.valor_estimado || v.valor_total), 0);
   };
-
   const activeVenda = activeId ? vendas.find(v => v.id === activeId) : null;
-
-  return (
-    <div className="space-y-6">
+  return <div className="space-y-6">
       {/* Header com Estatísticas */}
       <div className="flex items-center justify-between">
         <div>
@@ -117,9 +118,10 @@ export function PipelineKanban({ vendas, onMoverCard, onEditarVenda, onNovaVenda
         <Card className="p-4 border-l-4 border-l-primary shadow-sm">
           <p className="text-sm font-medium text-muted-foreground mb-1">Total em Pipeline</p>
           <p className="text-2xl font-bold text-foreground">
-            {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
-              ETAPAS_ATIVAS.reduce((sum, etapa) => sum + calcularValorTotal(etapa), 0)
-            )}
+            {new Intl.NumberFormat("pt-BR", {
+            style: "currency",
+            currency: "BRL"
+          }).format(ETAPAS_ATIVAS.reduce((sum, etapa) => sum + calcularValorTotal(etapa), 0))}
           </p>
         </Card>
         <Card className="p-4 border-l-4 border-l-blue-500 shadow-sm">
@@ -131,9 +133,10 @@ export function PipelineKanban({ vendas, onMoverCard, onEditarVenda, onNovaVenda
         <Card className="p-4 border-l-4 border-l-emerald-500 shadow-sm bg-emerald-50/50">
           <p className="text-sm font-medium text-emerald-700 mb-1">Vendas Ganhas</p>
           <p className="text-2xl font-bold text-emerald-600">
-            {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
-              calcularValorTotal("ganho")
-            )}
+            {new Intl.NumberFormat("pt-BR", {
+            style: "currency",
+            currency: "BRL"
+          }).format(calcularValorTotal("ganho"))}
           </p>
         </Card>
         <Card className="p-4 border-l-4 border-l-rose-500 shadow-sm bg-rose-50/50">
@@ -145,82 +148,25 @@ export function PipelineKanban({ vendas, onMoverCard, onEditarVenda, onNovaVenda
       </div>
 
       {/* Kanban Board */}
-      <DndContext
-        sensors={sensors}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
-      >
+      <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         <div className="flex gap-4 overflow-x-auto pb-4">
-          {ETAPAS_ATIVAS.map((etapa) => {
-            const vendasEtapa = getVendasPorEtapa(etapa);
-            const config = ETAPAS_CONFIG[etapa];
-            
-            return (
-              <KanbanColumn
-                key={etapa}
-                id={etapa}
-                title={config.label}
-                count={vendasEtapa.length}
-                totalValue={calcularValorTotal(etapa)}
-                color={config.color}
-              >
-                <SortableContext
-                  items={vendasEtapa.map(v => v.id)}
-                  strategy={verticalListSortingStrategy}
-                >
-                  {vendasEtapa.map((venda) => (
-                    <KanbanCard
-                      key={venda.id}
-                      venda={venda}
-                      onEdit={() => onEditarVenda(venda)}
-                    />
-                  ))}
+          {ETAPAS_ATIVAS.map(etapa => {
+          const vendasEtapa = getVendasPorEtapa(etapa);
+          const config = ETAPAS_CONFIG[etapa];
+          return <KanbanColumn key={etapa} id={etapa} title={config.label} count={vendasEtapa.length} totalValue={calcularValorTotal(etapa)} color={config.color}>
+                <SortableContext items={vendasEtapa.map(v => v.id)} strategy={verticalListSortingStrategy}>
+                  {vendasEtapa.map(venda => <KanbanCard key={venda.id} venda={venda} onEdit={() => onEditarVenda(venda)} />)}
                 </SortableContext>
-              </KanbanColumn>
-            );
-          })}
+              </KanbanColumn>;
+        })}
         </div>
 
         <DragOverlay>
-          {activeVenda ? (
-            <KanbanCard venda={activeVenda} onEdit={() => {}} isDragging />
-          ) : null}
+          {activeVenda ? <KanbanCard venda={activeVenda} onEdit={() => {}} isDragging /> : null}
         </DragOverlay>
       </DndContext>
 
       {/* Seção de Ganhos e Perdas */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-        <Card className="p-4 border-green-200">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold text-green-700">✅ Ganho ({getVendasPorEtapa("ganho").length})</h3>
-            <Badge variant="outline" className="bg-green-100">
-              {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(calcularValorTotal("ganho"))}
-            </Badge>
-          </div>
-          <div className="space-y-2 max-h-64 overflow-y-auto">
-            {getVendasPorEtapa("ganho").map(venda => (
-              <div key={venda.id} className="p-2 bg-green-50 rounded border border-green-200 cursor-pointer hover:bg-green-100" onClick={() => onEditarVenda(venda)}>
-                <p className="text-sm font-medium">{venda.cliente_nome}</p>
-                <p className="text-xs text-muted-foreground">{venda.numero_venda}</p>
-              </div>
-            ))}
-          </div>
-        </Card>
-
-        <Card className="p-4 border-red-200">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold text-red-700">❌ Perdido ({getVendasPorEtapa("perdido").length})</h3>
-          </div>
-          <div className="space-y-2 max-h-64 overflow-y-auto">
-            {getVendasPorEtapa("perdido").map(venda => (
-              <div key={venda.id} className="p-2 bg-red-50 rounded border border-red-200 cursor-pointer hover:bg-red-100" onClick={() => onEditarVenda(venda)}>
-                <p className="text-sm font-medium">{venda.cliente_nome}</p>
-                <p className="text-xs text-muted-foreground">{venda.numero_venda}</p>
-              </div>
-            ))}
-          </div>
-        </Card>
-      </div>
-    </div>
-  );
+      
+    </div>;
 }
