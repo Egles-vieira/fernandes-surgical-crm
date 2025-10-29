@@ -115,7 +115,7 @@ export function PipelineKanban({
 
       {/* Estatísticas Rápidas */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="p-4 border-l-4 border-l-primary shadow-sm">
+        <Card className="p-4 border-l-4 border-l-primary shadow-sm rounded-md">
           <p className="text-sm font-medium text-muted-foreground mb-1">Total em Pipeline</p>
           <p className="text-2xl font-bold text-foreground">
             {new Intl.NumberFormat("pt-BR", {
@@ -124,13 +124,13 @@ export function PipelineKanban({
           }).format(ETAPAS_ATIVAS.reduce((sum, etapa) => sum + calcularValorTotal(etapa), 0))}
           </p>
         </Card>
-        <Card className="p-4 border-l-4 border-l-blue-500 shadow-sm">
+        <Card className="p-4 border-l-4 border-l-blue-500 shadow-sm rounded-md">
           <p className="text-sm font-medium text-muted-foreground mb-1">Oportunidades Ativas</p>
           <p className="text-2xl font-bold text-foreground">
             {ETAPAS_ATIVAS.reduce((sum, etapa) => sum + getVendasPorEtapa(etapa).length, 0)}
           </p>
         </Card>
-        <Card className="p-4 border-l-4 border-l-emerald-500 shadow-sm bg-emerald-50/50">
+        <Card className="p-4 border-l-4 border-l-emerald-500 shadow-sm bg-emerald-50/50 rounded-md">
           <p className="text-sm font-medium text-emerald-700 mb-1">Vendas Ganhas</p>
           <p className="text-2xl font-bold text-emerald-600">
             {new Intl.NumberFormat("pt-BR", {
@@ -139,7 +139,7 @@ export function PipelineKanban({
           }).format(calcularValorTotal("ganho"))}
           </p>
         </Card>
-        <Card className="p-4 border-l-4 border-l-rose-500 shadow-sm bg-rose-50/50">
+        <Card className="p-4 border-l-4 border-l-rose-500 shadow-sm bg-rose-50/50 rounded-md">
           <p className="text-sm font-medium text-rose-700 mb-1">Vendas Perdidas</p>
           <p className="text-2xl font-bold text-rose-600">
             {getVendasPorEtapa("perdido").length}
