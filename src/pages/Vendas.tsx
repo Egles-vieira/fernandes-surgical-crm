@@ -16,6 +16,7 @@ import { useTiposPedido } from "@/hooks/useTiposPedido";
 import { ProdutoSearchDialog } from "@/components/ProdutoSearchDialog";
 import { ClienteSearchDialog } from "@/components/ClienteSearchDialog";
 import { VendasActionBar } from "@/components/VendasActionBar";
+import { VendasFilters } from "@/components/vendas/VendasFilters";
 import { PipelineKanban, EtapaPipeline } from "@/components/vendas/PipelineKanban";
 import { Tables } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
@@ -629,7 +630,10 @@ export default function Vendas() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="pipeline" className="mt-6">
+        {/* Filtros */}
+        <VendasFilters onFilterChange={(filters) => console.log("Filtros aplicados:", filters)} />
+
+        <TabsContent value="pipeline" className="mt-4">
           <PipelineKanban vendas={vendas.map(v => ({
           id: v.id,
           numero_venda: v.numero_venda,
@@ -646,7 +650,7 @@ export default function Vendas() {
         }} onNovaVenda={() => setView("nova")} />
         </TabsContent>
 
-        <TabsContent value="list" className="mt-6">
+        <TabsContent value="list" className="mt-4">
 
       {/* Search */}
       <div className="flex items-center gap-4">
