@@ -613,7 +613,7 @@ export default function Vendas() {
   }
 
   // Pipeline / List Views
-  return <div className="pt-[72px]">
+  return <div className="-m-8">
       {/* Filtros com toggle de view */}
       <VendasFilters 
         view={view as "pipeline" | "list"} 
@@ -621,7 +621,7 @@ export default function Vendas() {
         onFilterChange={(filters) => console.log("Filtros aplicados:", filters)} 
       />
 
-      <div className="p-8 pt-6">
+      <div className="p-8">
         {view === "pipeline" ? (
           <PipelineKanban 
             vendas={vendas.map(v => ({
