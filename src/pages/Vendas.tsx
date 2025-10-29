@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
-import { Search, Plus, Eye, Trash2, ShoppingCart, Save, Users, Edit, Kanban } from "lucide-react";
+import { Search, Plus, Eye, Trash2, ShoppingCart, Save, Users, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
@@ -614,109 +613,114 @@ export default function Vendas() {
   }
 
   // Pipeline / List Views
-  return <div className="p-8 space-y-6">
-      {/* Header */}
-      
+  return <div className="p-8 space-y-0">
+      {/* Filtros com toggle de view */}
+      <VendasFilters 
+        view={view as "pipeline" | "list"} 
+        onViewChange={(v) => setView(v)} 
+        onFilterChange={(filters) => console.log("Filtros aplicados:", filters)} 
+      />
 
-      <Tabs value={view} onValueChange={v => setView(v as any)} className="w-full mx-0 my-0 px-0 py-0">
-        <TabsList className="grid w-full max-w-md grid-cols-2">
-          <TabsTrigger value="pipeline">
-            <Kanban size={16} className="mr-2" />
-            Pipeline
-          </TabsTrigger>
-          <TabsTrigger value="list">
-            <Search size={16} className="mr-2" />
-            Lista
-          </TabsTrigger>
-        </TabsList>
+      <div className="pt-6">
+        {view === "pipeline" ? (
+          <PipelineKanban 
+            vendas={vendas.map(v => ({
+              id: v.id,
+              numero_venda: v.numero_venda,
+              cliente_nome: v.cliente_nome,
+              valor_estimado: (v as any).valor_estimado || 0,
+              valor_total: v.valor_total,
+              probabilidade: (v as any).probabilidade || 50,
+              etapa_pipeline: (v as any).etapa_pipeline || 'prospeccao',
+              data_fechamento_prevista: (v as any).data_fechamento_prevista,
+              responsavel_id: (v as any).responsavel_id
+            }))} 
+            onMoverCard={handleMoverCard} 
+            onEditarVenda={venda => {
+              const vendaCompleta = vendas.find(v => v.id === venda.id);
+              if (vendaCompleta) handleEditarVenda(vendaCompleta);
+            }} 
+            onNovaVenda={() => setView("nova")} 
+          />
+        ) : (
+          <>
+            {/* Search */}
+            <div className="flex items-center gap-4 mb-6">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
+                <Input 
+                  placeholder="Buscar por número, cliente, CNPJ ou status..." 
+                  value={searchTerm} 
+                  onChange={e => setSearchTerm(e.target.value)} 
+                  className="pl-10" 
+                />
+              </div>
+              <span className="text-sm text-muted-foreground">
+                {filteredVendas.length} {filteredVendas.length === 1 ? "venda" : "vendas"}
+              </span>
+            </div>
 
-        {/* Filtros */}
-        <VendasFilters onFilterChange={(filters) => console.log("Filtros aplicados:", filters)} />
-
-        <TabsContent value="pipeline" className="mt-0 pt-6">
-          <PipelineKanban vendas={vendas.map(v => ({
-          id: v.id,
-          numero_venda: v.numero_venda,
-          cliente_nome: v.cliente_nome,
-          valor_estimado: (v as any).valor_estimado || 0,
-          valor_total: v.valor_total,
-          probabilidade: (v as any).probabilidade || 50,
-          etapa_pipeline: (v as any).etapa_pipeline || 'prospeccao',
-          data_fechamento_prevista: (v as any).data_fechamento_prevista,
-          responsavel_id: (v as any).responsavel_id
-        }))} onMoverCard={handleMoverCard} onEditarVenda={venda => {
-          const vendaCompleta = vendas.find(v => v.id === venda.id);
-          if (vendaCompleta) handleEditarVenda(vendaCompleta);
-        }} onNovaVenda={() => setView("nova")} />
-        </TabsContent>
-
-        <TabsContent value="list" className="mt-0 pt-6">
-
-      {/* Search */}
-      <div className="flex items-center gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
-          <Input placeholder="Buscar por número, cliente, CNPJ ou status..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-10" />
-        </div>
-        <span className="text-sm text-muted-foreground">
-          {filteredVendas.length} {filteredVendas.length === 1 ? "venda" : "vendas"}
-        </span>
+            {/* Table */}
+            <Card>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Número</TableHead>
+                    <TableHead>Cliente</TableHead>
+                    <TableHead>CNPJ/CPF</TableHead>
+                    <TableHead>Data</TableHead>
+                    <TableHead className="text-right">Valor Total</TableHead>
+                    <TableHead className="text-center">Status</TableHead>
+                    <TableHead className="text-center">Itens</TableHead>
+                    <TableHead className="text-center">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredVendas.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                        Nenhuma venda encontrada
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredVendas.map(venda => (
+                      <TableRow key={venda.id} className="hover:bg-muted/30">
+                        <TableCell className="font-mono text-success font-semibold">
+                          {venda.numero_venda}
+                        </TableCell>
+                        <TableCell>{venda.cliente_nome}</TableCell>
+                        <TableCell className="font-mono text-sm">
+                          {venda.cliente_cnpj || "-"}
+                        </TableCell>
+                        <TableCell>
+                          {new Date(venda.data_venda).toLocaleDateString("pt-BR")}
+                        </TableCell>
+                        <TableCell className="text-right font-semibold">
+                          {formatCurrency(venda.valor_final)}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Badge className={getStatusColor(venda.status)}>
+                            {venda.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Badge variant="outline">
+                            {venda.vendas_itens?.length || 0}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Button variant="ghost" size="sm" onClick={() => handleEditarVenda(venda)}>
+                            <Edit size={16} />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </Card>
+          </>
+        )}
       </div>
-
-      {/* Table */}
-      <Card>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Número</TableHead>
-              <TableHead>Cliente</TableHead>
-              <TableHead>CNPJ/CPF</TableHead>
-              <TableHead>Data</TableHead>
-              <TableHead className="text-right">Valor Total</TableHead>
-              <TableHead className="text-center">Status</TableHead>
-              <TableHead className="text-center">Itens</TableHead>
-              <TableHead className="text-center">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredVendas.length === 0 ? <TableRow>
-                <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
-                  Nenhuma venda encontrada
-                </TableCell>
-              </TableRow> : filteredVendas.map(venda => <TableRow key={venda.id} className="hover:bg-muted/30">
-                  <TableCell className="font-mono text-success font-semibold">
-                    {venda.numero_venda}
-                  </TableCell>
-                  <TableCell>{venda.cliente_nome}</TableCell>
-                  <TableCell className="font-mono text-sm">
-                    {venda.cliente_cnpj || "-"}
-                  </TableCell>
-                  <TableCell>
-                    {new Date(venda.data_venda).toLocaleDateString("pt-BR")}
-                  </TableCell>
-                  <TableCell className="text-right font-semibold">
-                    {formatCurrency(venda.valor_final)}
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <Badge className={getStatusColor(venda.status)}>
-                      {venda.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <Badge variant="outline">
-                      {venda.vendas_itens?.length || 0}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <Button variant="ghost" size="sm" onClick={() => handleEditarVenda(venda)}>
-                      <Edit size={16} />
-                    </Button>
-                  </TableCell>
-                </TableRow>)}
-          </TableBody>
-        </Table>
-      </Card>
-        </TabsContent>
-      </Tabs>
     </div>;
 }

@@ -1,4 +1,4 @@
-import { Filter, Users, BarChart3, Calendar, SlidersHorizontal } from "lucide-react";
+import { Filter, Users, BarChart3, Calendar, SlidersHorizontal, Kanban, List } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -8,8 +8,11 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 interface VendasFiltersProps {
+  view: "pipeline" | "list";
+  onViewChange: (view: "pipeline" | "list") => void;
   onFilterChange?: (filters: FilterValues) => void;
 }
 
@@ -21,7 +24,7 @@ interface FilterValues {
   ordenacao?: string;
 }
 
-export function VendasFilters({ onFilterChange }: VendasFiltersProps) {
+export function VendasFilters({ view, onViewChange, onFilterChange }: VendasFiltersProps) {
   const handleFilterChange = (key: keyof FilterValues, value: string) => {
     if (onFilterChange) {
       onFilterChange({ [key]: value });
@@ -30,6 +33,17 @@ export function VendasFilters({ onFilterChange }: VendasFiltersProps) {
 
   return (
     <div className="sticky top-0 z-30 flex items-center gap-3 py-3 px-6 border-b bg-card shadow-sm">
+      {/* Toggle de visualização Pipeline/Lista */}
+      <ToggleGroup type="single" value={view} onValueChange={(value) => value && onViewChange(value as "pipeline" | "list")} className="border rounded-md">
+        <ToggleGroupItem value="pipeline" aria-label="Visualização Pipeline" className="px-3">
+          <Kanban className="h-4 w-4" />
+        </ToggleGroupItem>
+        <ToggleGroupItem value="list" aria-label="Visualização Lista" className="px-3">
+          <List className="h-4 w-4" />
+        </ToggleGroupItem>
+      </ToggleGroup>
+
+      <div className="h-6 w-px bg-border" />
       {/* Funil de Vendas */}
       <Select defaultValue="todos" onValueChange={(value) => handleFilterChange("pipeline", value)}>
         <SelectTrigger className="w-[200px] h-9 bg-background">
