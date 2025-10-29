@@ -291,7 +291,7 @@ export default function CotacaoDetalhes() {
 
       <div className="flex pt-[72px] w-full">
         {/* Área Principal */}
-        <div className={`flex-1 min-w-0 transition-all duration-300 ${historicoAberto ? 'mr-96' : 'mr-0'}`}>
+        <div className={`flex-1 min-w-0 transition-all duration-300 ${historicoAberto ? 'mr-96' : 'mr-12'}`}>
           <div className="px-4 py-6 space-y-6 w-full md:px-6 md:py-8">
             {/* Header */}
             <div className="flex items-center gap-4 mb-6">
@@ -557,7 +557,7 @@ export default function CotacaoDetalhes() {
         </div>
 
         {/* Painel Lateral de Histórico */}
-        <div className={`fixed right-0 top-16 h-[calc(100vh-4rem)] bg-card border-l shadow-lg transition-all duration-500 ease-in-out z-50 ${historicoAberto ? 'w-96' : 'w-12'} overflow-hidden`}>
+        <div className={`fixed right-0 top-16 h-[calc(100vh-4rem)] bg-card border-l shadow-lg transition-all duration-500 ease-in-out z-30 ${historicoAberto ? 'w-96' : 'w-12'} overflow-hidden`}>
           {/* Botão de Toggle */}
           <Button variant="ghost" size="icon" className={`absolute left-2 top-4 z-10 transition-all duration-300 ${historicoAberto ? '' : 'hover:scale-110'}`} onClick={() => setHistoricoAberto(!historicoAberto)}>
             {historicoAberto ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
