@@ -54,12 +54,8 @@ export function useVendas() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["vendas"] });
-      toast({
-        title: "Venda criada!",
-        description: "A venda foi criada com sucesso.",
-      });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["vendas"] });
     },
     onError: (error: any) => {
       toast({

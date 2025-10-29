@@ -326,15 +326,22 @@ export default function Vendas() {
           origem_lead: origemLead || null,
           responsavel_id: responsavelId || null
         });
-        for (const item of carrinho) {
-          await addItem.mutateAsync({
-            venda_id: venda.id,
-            produto_id: item.produto.id,
-            quantidade: item.quantidade,
-            preco_unitario: item.produto.preco_venda,
-            desconto: item.desconto,
-            valor_total: item.valor_total
-          });
+        
+        // Aguardar a invalidação do cache e adicionar itens
+        if (venda && venda.id) {
+          // Aguardar um pouco para garantir que a venda foi propagada
+          await new Promise(resolve => setTimeout(resolve, 100));
+          
+          for (const item of carrinho) {
+            await addItem.mutateAsync({
+              venda_id: venda.id,
+              produto_id: item.produto.id,
+              quantidade: item.quantidade,
+              preco_unitario: item.produto.preco_venda,
+              desconto: item.desconto,
+              valor_total: item.valor_total
+            });
+          }
         }
         toast({
           title: "Venda salva!",
