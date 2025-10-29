@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Search, Plus, Eye, Trash2, ShoppingCart, Save, Users, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -58,6 +58,15 @@ export default function Vendas() {
   const [showClienteSearch, setShowClienteSearch] = useState(false);
   const [editandoVendaId, setEditandoVendaId] = useState<string | null>(null);
 
+  // Filtros state
+  const [filtros, setFiltros] = useState({
+    pipeline: "todos",
+    responsavel: "todos",
+    status: "todos",
+    periodo: "mes",
+    ordenacao: "recente"
+  });
+
   // Nova venda state
   const [numeroVenda, setNumeroVenda] = useState("");
   const [clienteSelecionado, setClienteSelecionado] = useState<Cliente | null>(null);
@@ -84,7 +93,90 @@ export default function Vendas() {
       setNumeroVenda(nextNumber);
     }
   }, [view]);
-  const filteredVendas = vendas.filter(v => v.numero_venda.toLowerCase().includes(searchTerm.toLowerCase()) || v.cliente_nome.toLowerCase().includes(searchTerm.toLowerCase()) || v.cliente_cnpj && v.cliente_cnpj.includes(searchTerm) || v.status.toLowerCase().includes(searchTerm.toLowerCase()));
+  // Lógica de filtragem otimizada com useMemo
+  const filteredVendas = useMemo(() => {
+    let resultado = [...vendas];
+
+    // Filtro de busca textual
+    if (searchTerm) {
+      resultado = resultado.filter(v => 
+        v.numero_venda.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        v.cliente_nome.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        (v.cliente_cnpj && v.cliente_cnpj.includes(searchTerm)) ||
+        v.status.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Filtro de status
+    if (filtros.status !== "todos") {
+      resultado = resultado.filter(v => v.status === filtros.status);
+    }
+
+    // Filtro de responsável (assumindo que há um campo responsavel_id)
+    if (filtros.responsavel === "eu") {
+      // Aqui você deve usar o ID do usuário logado
+      resultado = resultado.filter(v => v.responsavel_id);
+    } else if (filtros.responsavel === "sem") {
+      resultado = resultado.filter(v => !v.responsavel_id);
+    }
+
+    // Filtro de período
+    if (filtros.periodo !== "todos") {
+      const hoje = new Date();
+      const dataInicio = new Date();
+      
+      switch (filtros.periodo) {
+        case "hoje":
+          dataInicio.setHours(0, 0, 0, 0);
+          break;
+        case "semana":
+          dataInicio.setDate(hoje.getDate() - 7);
+          break;
+        case "mes":
+          dataInicio.setMonth(hoje.getMonth() - 1);
+          break;
+        case "trimestre":
+          dataInicio.setMonth(hoje.getMonth() - 3);
+          break;
+        case "ano":
+          dataInicio.setFullYear(hoje.getFullYear() - 1);
+          break;
+      }
+      
+      resultado = resultado.filter(v => {
+        const dataVenda = new Date(v.data_venda || v.created_at);
+        return dataVenda >= dataInicio;
+      });
+    }
+
+    // Ordenação
+    switch (filtros.ordenacao) {
+      case "recente":
+        resultado.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+        break;
+      case "antiga":
+        resultado.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+        break;
+      case "valor-maior":
+        resultado.sort((a, b) => (b.valor_total || 0) - (a.valor_total || 0));
+        break;
+      case "valor-menor":
+        resultado.sort((a, b) => (a.valor_total || 0) - (b.valor_total || 0));
+        break;
+      case "vencimento":
+        resultado.sort((a, b) => {
+          const dataA = a.data_fechamento_prevista ? new Date(a.data_fechamento_prevista).getTime() : 0;
+          const dataB = b.data_fechamento_prevista ? new Date(b.data_fechamento_prevista).getTime() : 0;
+          return dataA - dataB;
+        });
+        break;
+      case "probabilidade":
+        resultado.sort((a, b) => (b.probabilidade || 0) - (a.probabilidade || 0));
+        break;
+    }
+
+    return resultado;
+  }, [vendas, searchTerm, filtros]);
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {
       style: "currency",
@@ -614,10 +706,14 @@ export default function Vendas() {
   // Pipeline / List Views
   return <div className="p-8">
       {/* Filtros com toggle de view */}
-      <VendasFilters view={view as "pipeline" | "list"} onViewChange={v => setView(v)} onFilterChange={filters => console.log("Filtros aplicados:", filters)} />
+      <VendasFilters 
+        view={view as "pipeline" | "list"} 
+        onViewChange={v => setView(v)} 
+        onFilterChange={newFilters => setFiltros(prev => ({ ...prev, ...newFilters }))} 
+      />
 
       <div className="pt-6">
-        {view === "pipeline" ? <PipelineKanban vendas={vendas.map(v => ({
+        {view === "pipeline" ? <PipelineKanban vendas={filteredVendas.map(v => ({
         id: v.id,
         numero_venda: v.numero_venda,
         cliente_nome: v.cliente_nome,
