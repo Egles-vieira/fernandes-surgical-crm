@@ -32,7 +32,7 @@ export function VendasFilters({ view, onViewChange, onFilterChange }: VendasFilt
   };
 
   return (
-    <div className="sticky top-0 z-30 flex items-center gap-3 py-3 px-8 border-b bg-card shadow-sm -mx-8">
+    <div className="sticky top-0 z-30 flex items-center gap-3 py-3 px-8 border-b bg-card shadow-sm -mx-8 -mt-8">
       {/* Toggle de visualização Pipeline/Lista */}
       <ToggleGroup type="single" value={view} onValueChange={(value) => value && onViewChange(value as "pipeline" | "list")} className="border rounded-md">
         <ToggleGroupItem value="pipeline" aria-label="Visualização Pipeline" className="px-3">
