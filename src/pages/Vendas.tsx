@@ -326,12 +326,11 @@ export default function Vendas() {
           origem_lead: origemLead || null,
           responsavel_id: responsavelId || null
         });
-        
+
         // Aguardar a invalidação do cache e adicionar itens
         if (venda && venda.id) {
           // Aguardar um pouco para garantir que a venda foi propagada
           await new Promise(resolve => setTimeout(resolve, 100));
-          
           for (const item of carrinho) {
             await addItem.mutateAsync({
               venda_id: venda.id,
@@ -615,45 +614,28 @@ export default function Vendas() {
   // Pipeline / List Views
   return <div className="p-8">
       {/* Filtros com toggle de view */}
-      <VendasFilters 
-        view={view as "pipeline" | "list"} 
-        onViewChange={(v) => setView(v)} 
-        onFilterChange={(filters) => console.log("Filtros aplicados:", filters)} 
-      />
+      <VendasFilters view={view as "pipeline" | "list"} onViewChange={v => setView(v)} onFilterChange={filters => console.log("Filtros aplicados:", filters)} className="my-0 px-[15px] py-[4px]" />
 
       <div className="pt-6">
-        {view === "pipeline" ? (
-          <PipelineKanban 
-            vendas={vendas.map(v => ({
-              id: v.id,
-              numero_venda: v.numero_venda,
-              cliente_nome: v.cliente_nome,
-              valor_estimado: (v as any).valor_estimado || 0,
-              valor_total: v.valor_total,
-              probabilidade: (v as any).probabilidade || 50,
-              etapa_pipeline: (v as any).etapa_pipeline || 'prospeccao',
-              data_fechamento_prevista: (v as any).data_fechamento_prevista,
-              responsavel_id: (v as any).responsavel_id
-            }))} 
-            onMoverCard={handleMoverCard} 
-            onEditarVenda={venda => {
-              const vendaCompleta = vendas.find(v => v.id === venda.id);
-              if (vendaCompleta) handleEditarVenda(vendaCompleta);
-            }} 
-            onNovaVenda={() => setView("nova")} 
-          />
-        ) : (
-          <>
+        {view === "pipeline" ? <PipelineKanban vendas={vendas.map(v => ({
+        id: v.id,
+        numero_venda: v.numero_venda,
+        cliente_nome: v.cliente_nome,
+        valor_estimado: (v as any).valor_estimado || 0,
+        valor_total: v.valor_total,
+        probabilidade: (v as any).probabilidade || 50,
+        etapa_pipeline: (v as any).etapa_pipeline || 'prospeccao',
+        data_fechamento_prevista: (v as any).data_fechamento_prevista,
+        responsavel_id: (v as any).responsavel_id
+      }))} onMoverCard={handleMoverCard} onEditarVenda={venda => {
+        const vendaCompleta = vendas.find(v => v.id === venda.id);
+        if (vendaCompleta) handleEditarVenda(vendaCompleta);
+      }} onNovaVenda={() => setView("nova")} /> : <>
             {/* Search */}
             <div className="flex items-center gap-4 mb-6">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
-                <Input 
-                  placeholder="Buscar por número, cliente, CNPJ ou status..." 
-                  value={searchTerm} 
-                  onChange={e => setSearchTerm(e.target.value)} 
-                  className="pl-10" 
-                />
+                <Input placeholder="Buscar por número, cliente, CNPJ ou status..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-10" />
               </div>
               <span className="text-sm text-muted-foreground">
                 {filteredVendas.length} {filteredVendas.length === 1 ? "venda" : "vendas"}
@@ -676,15 +658,11 @@ export default function Vendas() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredVendas.length === 0 ? (
-                    <TableRow>
+                  {filteredVendas.length === 0 ? <TableRow>
                       <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                         Nenhuma venda encontrada
                       </TableCell>
-                    </TableRow>
-                  ) : (
-                    filteredVendas.map(venda => (
-                      <TableRow key={venda.id} className="hover:bg-muted/30">
+                    </TableRow> : filteredVendas.map(venda => <TableRow key={venda.id} className="hover:bg-muted/30">
                         <TableCell className="font-mono text-success font-semibold">
                           {venda.numero_venda}
                         </TableCell>
@@ -713,14 +691,11 @@ export default function Vendas() {
                             <Edit size={16} />
                           </Button>
                         </TableCell>
-                      </TableRow>
-                    ))
-                  )}
+                      </TableRow>)}
                 </TableBody>
               </Table>
             </Card>
-          </>
-        )}
+          </>}
       </div>
     </div>;
 }

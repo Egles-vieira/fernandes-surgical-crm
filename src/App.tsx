@@ -53,7 +53,7 @@ const App = () => <>
           </ProtectedRoute>} />
         <Route path="/vendas" element={<ProtectedRoute>
             <Layout>
-              <Vendas />
+              <Vendas className="mx-0" />
             </Layout>
           </ProtectedRoute>} />
         <Route path="/plataformas" element={<ProtectedRoute>
