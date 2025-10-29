@@ -8,6 +8,17 @@ import { Plus, TrendingUp, Users, DollarSign } from "lucide-react";
 import { KanbanCard } from "./KanbanCard";
 import { KanbanColumn } from "./KanbanColumn";
 export type EtapaPipeline = "prospeccao" | "qualificacao" | "proposta" | "negociacao" | "fechamento" | "ganho" | "perdido";
+
+// Mapa de conversão para garantir compatibilidade
+export const ETAPAS_CONFIG_MAP: Record<string, EtapaPipeline | null> = {
+  "prospeccao": "prospeccao",
+  "qualificacao": "qualificacao",
+  "proposta": "proposta",
+  "negociacao": "negociacao",
+  "fechamento": "fechamento",
+  "ganho": "ganho",
+  "perdido": "perdido"
+};
 export interface VendaPipeline {
   id: string;
   numero_venda: string;
@@ -87,10 +98,19 @@ export function PipelineKanban({
       active,
       over
     } = event;
+    
     if (over && active.id !== over.id) {
+      // Garantir que o ID do droppable é um valor válido do enum
       const novaEtapa = over.id as EtapaPipeline;
-      onMoverCard(active.id as string, novaEtapa);
+      
+      // Verificar se é uma etapa válida antes de mover
+      const etapasValidas: EtapaPipeline[] = ["prospeccao", "qualificacao", "proposta", "negociacao", "fechamento", "ganho", "perdido"];
+      
+      if (etapasValidas.includes(novaEtapa)) {
+        onMoverCard(active.id as string, novaEtapa);
+      }
     }
+    
     setActiveId(null);
   };
   const getVendasPorEtapa = (etapa: EtapaPipeline) => {

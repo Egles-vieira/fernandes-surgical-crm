@@ -87,6 +87,18 @@ export default function Vendas() {
   const [motivoPerda, setMotivoPerda] = useState<string>("");
   const [origemLead, setOrigemLead] = useState<string>("");
   const [responsavelId, setResponsavelId] = useState<string>("");
+
+  // Mapa de nomes das etapas para mensagens
+  const ETAPAS_LABELS: Record<EtapaPipeline, string> = {
+    prospeccao: "Prospecção",
+    qualificacao: "Qualificação",
+    proposta: "Proposta",
+    negociacao: "Negociação",
+    fechamento: "Fechamento",
+    ganho: "Ganho",
+    perdido: "Perdido"
+  };
+  
   useEffect(() => {
     if (view === "nova" && !numeroVenda) {
       const nextNumber = `V${Date.now().toString().slice(-8)}`;
@@ -447,16 +459,34 @@ export default function Vendas() {
   };
   const handleMoverCard = async (vendaId: string, novaEtapa: EtapaPipeline) => {
     try {
+      // Validar que a etapa é um valor válido do enum
+      const etapasValidas: EtapaPipeline[] = ["prospeccao", "qualificacao", "proposta", "negociacao", "fechamento", "ganho", "perdido"];
+      
+      if (!etapasValidas.includes(novaEtapa)) {
+        toast({
+          title: "Erro",
+          description: "Etapa inválida",
+          variant: "destructive"
+        });
+        return;
+      }
+
       await updateVenda.mutateAsync({
         id: vendaId,
         etapa_pipeline: novaEtapa
       });
+      
       toast({
         title: "Etapa atualizada!",
-        description: `Venda movida para ${novaEtapa}`
+        description: `Venda movida para ${ETAPAS_LABELS[novaEtapa] || novaEtapa}`
       });
     } catch (error: any) {
       console.error("Erro ao mover card:", error);
+      toast({
+        title: "Erro ao atualizar etapa",
+        description: error?.message || "Não foi possível mover a venda",
+        variant: "destructive"
+      });
     }
   };
   if (isLoading) {
