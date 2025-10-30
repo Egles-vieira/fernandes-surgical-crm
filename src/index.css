@@ -30,6 +30,9 @@ All colors MUST be HSL.
     --success: 142 71% 45%; /* #22C55E - Green */
     --success-foreground: 0 0% 100%;
 
+    --warning: 45 93% 47%; /* #F59E0B - Amber/Orange */
+    --warning-foreground: 0 0% 100%;
+
     --muted: 186 25% 94%; /* Very light cyan */
     --muted-foreground: 186 20% 40%;
 
@@ -92,6 +95,9 @@ All colors MUST be HSL.
 
     --tertiary: 186 80% 45%;
     --tertiary-foreground: 0 0% 100%;
+
+    --warning: 45 93% 47%;
+    --warning-foreground: 0 0% 100%;
 
     --muted: 186 40% 18%;
     --muted-foreground: 186 20% 70%;
@@ -204,5 +210,42 @@ All colors MUST be HSL.
 
   .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: hsl(var(--primary) / 0.5);
+  }
+
+  /* Toast customizations for Sonner */
+  [data-sonner-toast] {
+    @apply bg-card text-card-foreground border-border;
+  }
+
+  [data-sonner-toast][data-type="success"] {
+    border-left: 4px solid hsl(var(--success));
+  }
+
+  [data-sonner-toast][data-type="success"] [data-icon] {
+    color: hsl(var(--success)) !important;
+  }
+
+  [data-sonner-toast][data-type="error"] {
+    border-left: 4px solid hsl(var(--destructive));
+  }
+
+  [data-sonner-toast][data-type="error"] [data-icon] {
+    color: hsl(var(--destructive)) !important;
+  }
+
+  [data-sonner-toast][data-type="warning"] {
+    border-left: 4px solid hsl(var(--warning));
+  }
+
+  [data-sonner-toast][data-type="warning"] [data-icon] {
+    color: hsl(var(--warning)) !important;
+  }
+
+  [data-sonner-toast][data-type="info"] {
+    border-left: 4px solid hsl(var(--primary));
+  }
+
+  [data-sonner-toast][data-type="info"] [data-icon] {
+    color: hsl(var(--primary)) !important;
   }
 }

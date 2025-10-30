@@ -1,5 +1,4 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
+import { Toaster } from "@/components/ui/sonner";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Layout from "./components/Layout";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -42,7 +41,6 @@ import BaseConhecimento from "./pages/BaseConhecimento";
 import MeuPerfil from "./pages/MeuPerfil";
 const App = () => <>
     <Toaster />
-    <Sonner />
     <BrowserRouter>
       <Routes>
         <Route path="/auth" element={<Auth />} />
