@@ -119,7 +119,7 @@ export default function Clientes() {
   };
   return <div className="p-8 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between px-[199px] mx-[10px]">
+      <div className="flex items-center justify-between px-0 mx-0">
         
         <div className="flex gap-2">
           <Button onClick={() => navigate('/importar-clientes')} variant="outline">
