@@ -326,10 +326,6 @@ export default function Cotacoes() {
                               {cotacao.total_itens} {cotacao.total_itens === 1 ? 'Item' : 'Itens'}
                             </span>
                             
-                            <Badge variant={stepBadgeVariant(cotacao.step_atual)} className="text-xs">
-                              {stepLabel(cotacao.step_atual)}
-                            </Badge>
-                            
                             <span className="text-xs font-medium">
                               {cotacao.cidade_cliente}, {cotacao.uf_cliente}
                             </span>
@@ -340,6 +336,9 @@ export default function Cotacoes() {
                           {!cotacao.resgatada && abaAtiva === "novas" && <Button size="sm" onClick={() => handleResgatar(cotacao.id)} disabled={resgatarCotacao.isPending}>
                               Resgatar
                             </Button>}
+                          <Badge variant={stepBadgeVariant(cotacao.step_atual)} className="text-xs">
+                            {stepLabel(cotacao.step_atual)}
+                          </Badge>
                           <Button size="sm" variant="outline" onClick={() => navigate(`/plataformas/cotacoes/${cotacao.id}`)}>
                             Ver Detalhes
                           </Button>
