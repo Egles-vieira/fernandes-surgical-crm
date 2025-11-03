@@ -33,7 +33,7 @@ export function CotacoesFilters({
   };
 
   return (
-    <div className="sticky top-0 z-30 flex items-center gap-3 py-3 px-8 border-b bg-card shadow-sm -mx-8">
+    <div className="sticky top-0 z-30 flex items-center gap-3 py-3 px-8 border-b bg-card shadow-sm -mx-8 -mt-8">
       {/* Busca */}
       <div className="relative w-[280px]">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
