@@ -201,70 +201,70 @@ export default function Cotacoes() {
       <ImportarXMLDialog open={importarDialogOpen} onOpenChange={setImportarDialogOpen} plataformaId={null} tipoPlataforma="bionexo" />
 
       {/* Cards de Estatísticas */}
-      <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Novas</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 pt-3 px-4">
+            <CardTitle className="text-xs font-medium">Novas</CardTitle>
+            <FileText className="h-3.5 w-3.5 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{estatisticas.novas}</div>
-            <p className="text-xs text-muted-foreground">Aguardando resgate</p>
+          <CardContent className="px-4 pb-3">
+            <div className="text-xl font-bold">{estatisticas.novas}</div>
+            <p className="text-[10px] text-muted-foreground">Aguardando resgate</p>
           </CardContent>
         </Card>
 
         <Card className="border-primary/20 bg-primary/5">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Análise IA</CardTitle>
-            <Brain className="h-4 w-4 text-primary" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 pt-3 px-4">
+            <CardTitle className="text-xs font-medium">Análise IA</CardTitle>
+            <Brain className="h-3.5 w-3.5 text-primary" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-primary">{estatisticas.analiseIA}</div>
-            <p className="text-xs text-muted-foreground">IA analisando</p>
+          <CardContent className="px-4 pb-3">
+            <div className="text-xl font-bold text-primary">{estatisticas.analiseIA}</div>
+            <p className="text-[10px] text-muted-foreground">IA analisando</p>
           </CardContent>
         </Card>
 
         <Card className="border-green-500/20 bg-green-500/5">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Analisadas</CardTitle>
-            <Sparkles className="h-4 w-4 text-green-600" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 pt-3 px-4">
+            <CardTitle className="text-xs font-medium">Analisadas</CardTitle>
+            <Sparkles className="h-3.5 w-3.5 text-green-600" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">{estatisticas.analisadas}</div>
-            <p className="text-xs text-muted-foreground">Prontas para cotação</p>
+          <CardContent className="px-4 pb-3">
+            <div className="text-xl font-bold text-green-600">{estatisticas.analisadas}</div>
+            <p className="text-[10px] text-muted-foreground">Prontas para cotação</p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Aguardando</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 pt-3 px-4">
+            <CardTitle className="text-xs font-medium">Aguardando</CardTitle>
+            <Clock className="h-3.5 w-3.5 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{estatisticas.aguardando}</div>
-            <p className="text-xs text-muted-foreground">Para responder</p>
+          <CardContent className="px-4 pb-3">
+            <div className="text-xl font-bold">{estatisticas.aguardando}</div>
+            <p className="text-[10px] text-muted-foreground">Para responder</p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Respondidas</CardTitle>
-            <Building2 className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 pt-3 px-4">
+            <CardTitle className="text-xs font-medium">Respondidas</CardTitle>
+            <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{estatisticas.respondidas}</div>
-            <p className="text-xs text-muted-foreground">Enviadas</p>
+          <CardContent className="px-4 pb-3">
+            <div className="text-xl font-bold">{estatisticas.respondidas}</div>
+            <p className="text-[10px] text-muted-foreground">Enviadas</p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Confirmadas</CardTitle>
-            <Calculator className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 pt-3 px-4">
+            <CardTitle className="text-xs font-medium">Confirmadas</CardTitle>
+            <Calculator className="h-3.5 w-3.5 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{estatisticas.confirmadas}</div>
-            <p className="text-xs text-muted-foreground">Pedidos fechados</p>
+          <CardContent className="px-4 pb-3">
+            <div className="text-xl font-bold">{estatisticas.confirmadas}</div>
+            <p className="text-[10px] text-muted-foreground">Pedidos fechados</p>
           </CardContent>
         </Card>
       </div>
