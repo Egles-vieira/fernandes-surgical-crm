@@ -18,16 +18,18 @@ import { ClientesFilters } from "@/components/cliente/ClientesFilters";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useUserPreferences } from "@/hooks/useUserPreferences";
-
 export default function Clientes() {
   const navigate = useNavigate();
-  const { preferences, updatePreference, isLoading: loadingPreferences } = useUserPreferences();
+  const {
+    preferences,
+    updatePreference,
+    isLoading: loadingPreferences
+  } = useUserPreferences();
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [view, setView] = useState<"card" | "grid">(preferences.clientesView || "card");
   const pageSize = 50;
-
   const {
     clientes,
     total,
@@ -35,8 +37,11 @@ export default function Clientes() {
     createCliente,
     updateCliente,
     deleteCliente
-  } = useClientes({ page: currentPage, pageSize, searchTerm: debouncedSearch });
-
+  } = useClientes({
+    page: currentPage,
+    pageSize,
+    searchTerm: debouncedSearch
+  });
   const [selectedCliente, setSelectedCliente] = useState<any>(null);
   const [showDetails, setShowDetails] = useState(false);
   const [showForm, setShowForm] = useState(false);
@@ -57,7 +62,6 @@ export default function Clientes() {
       setDebouncedSearch(searchTerm);
       setCurrentPage(1); // Reset to first page on search
     }, 500);
-
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
@@ -66,7 +70,6 @@ export default function Clientes() {
     setView(newView);
     updatePreference("clientesView", newView);
   };
-
   const totalPages = Math.ceil(total / pageSize);
   const form = useForm<ClienteInput>({
     resolver: zodResolver(clienteSchema),
@@ -81,7 +84,6 @@ export default function Clientes() {
       observacoes: ""
     }
   });
-  
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {
       style: "currency",
@@ -157,20 +159,14 @@ export default function Clientes() {
   };
   return <div className="p-8">
       {/* Filters Bar */}
-      <ClientesFilters
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        view={view}
-        onViewChange={handleViewChange}
-        onFilterChange={(filters) => {
-          console.log("Filtros aplicados:", filters);
-          // Aqui você pode implementar a lógica de filtros quando necessário
-        }}
-      />
+      <ClientesFilters searchTerm={searchTerm} onSearchChange={setSearchTerm} view={view} onViewChange={handleViewChange} onFilterChange={filters => {
+      console.log("Filtros aplicados:", filters);
+      // Aqui você pode implementar a lógica de filtros quando necessário
+    }} />
 
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Clientes</h1>
+        
         <div className="flex gap-2">
           <Button onClick={() => navigate('/importar-clientes')} variant="outline">
             <Upload size={16} className="mr-2" />
@@ -197,8 +193,7 @@ export default function Clientes() {
             Cadastrar primeiro cliente
           </Button>
         </Card> : <>
-          {view === "card" ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {view === "card" ? <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {clientes.map(cliente => <Card key={cliente.id} className="p-6 shadow-elegant hover:shadow-lg transition-all">
                 <div className="space-y-4">
                   <div>
@@ -252,9 +247,7 @@ export default function Clientes() {
                   </div>
                 </div>
               </Card>)}
-            </div>
-          ) : (
-            <Card>
+            </div> : <Card>
               <Table>
                 <TableHeader>
                   <TableRow className="border-b border-border/50">
@@ -267,8 +260,7 @@ export default function Clientes() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {clientes.map(cliente => (
-                    <TableRow key={cliente.id} className="hover:bg-muted/50 border-b border-border/30">
+                  {clientes.map(cliente => <TableRow key={cliente.id} className="hover:bg-muted/50 border-b border-border/30">
                       <TableCell>
                         <div>
                           <p className="font-medium">{cliente.nome_abrev}</p>
@@ -280,18 +272,14 @@ export default function Clientes() {
                       </TableCell>
                       <TableCell>
                         <div className="space-y-1">
-                          {cliente.telefone1 && (
-                            <div className="flex items-center gap-1 text-sm">
+                          {cliente.telefone1 && <div className="flex items-center gap-1 text-sm">
                               <Phone size={12} className="text-muted-foreground" />
                               <span>{cliente.telefone1}</span>
-                            </div>
-                          )}
-                          {cliente.e_mail && (
-                            <div className="flex items-center gap-1 text-sm">
+                            </div>}
+                          {cliente.e_mail && <div className="flex items-center gap-1 text-sm">
                               <Mail size={12} className="text-muted-foreground" />
                               <span className="truncate max-w-[200px]">{cliente.e_mail}</span>
-                            </div>
-                          )}
+                            </div>}
                         </div>
                       </TableCell>
                       <TableCell className="text-right font-medium">
@@ -302,89 +290,62 @@ export default function Clientes() {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center justify-center gap-2">
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => navigate(`/clientes/${cliente.id}`)}
-                          >
+                          <Button size="sm" variant="outline" onClick={() => navigate(`/clientes/${cliente.id}`)}>
                             Detalhes
                           </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => openForm(cliente)}
-                          >
+                          <Button variant="outline" size="sm" onClick={() => openForm(cliente)}>
                             <Edit size={14} />
                           </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => {
-                              setClienteToDelete(cliente.id);
-                              setDeleteDialogOpen(true);
-                            }}
-                          >
+                          <Button variant="outline" size="sm" onClick={() => {
+                    setClienteToDelete(cliente.id);
+                    setDeleteDialogOpen(true);
+                  }}>
                             <Trash2 size={14} />
                           </Button>
                         </div>
                       </TableCell>
-                    </TableRow>
-                  ))}
+                    </TableRow>)}
                 </TableBody>
               </Table>
-            </Card>
-          )}
+            </Card>}
 
         {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-between mt-8">
+        {totalPages > 1 && <div className="flex items-center justify-between mt-8">
             <p className="text-sm text-muted-foreground">
-              Mostrando {((currentPage - 1) * pageSize) + 1} a {Math.min(currentPage * pageSize, total)} de {total} clientes
+              Mostrando {(currentPage - 1) * pageSize + 1} a {Math.min(currentPage * pageSize, total)} de {total} clientes
             </p>
             <Pagination>
               <PaginationContent>
                 <PaginationItem>
-                  <PaginationPrevious 
-                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                    className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                  />
+                  <PaginationPrevious onClick={() => setCurrentPage(p => Math.max(1, p - 1))} className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"} />
                 </PaginationItem>
                 
-                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  let pageNum;
-                  if (totalPages <= 5) {
-                    pageNum = i + 1;
-                  } else if (currentPage <= 3) {
-                    pageNum = i + 1;
-                  } else if (currentPage >= totalPages - 2) {
-                    pageNum = totalPages - 4 + i;
-                  } else {
-                    pageNum = currentPage - 2 + i;
-                  }
-                  
-                  return (
-                    <PaginationItem key={pageNum}>
-                      <PaginationLink
-                        onClick={() => setCurrentPage(pageNum)}
-                        isActive={currentPage === pageNum}
-                        className="cursor-pointer"
-                      >
+                {Array.from({
+              length: Math.min(5, totalPages)
+            }, (_, i) => {
+              let pageNum;
+              if (totalPages <= 5) {
+                pageNum = i + 1;
+              } else if (currentPage <= 3) {
+                pageNum = i + 1;
+              } else if (currentPage >= totalPages - 2) {
+                pageNum = totalPages - 4 + i;
+              } else {
+                pageNum = currentPage - 2 + i;
+              }
+              return <PaginationItem key={pageNum}>
+                      <PaginationLink onClick={() => setCurrentPage(pageNum)} isActive={currentPage === pageNum} className="cursor-pointer">
                         {pageNum}
                       </PaginationLink>
-                    </PaginationItem>
-                  );
-                })}
+                    </PaginationItem>;
+            })}
                 
                 <PaginationItem>
-                  <PaginationNext 
-                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                    className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                  />
+                  <PaginationNext onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"} />
                 </PaginationItem>
               </PaginationContent>
             </Pagination>
-          </div>
-        )}
+          </div>}
         </>}
 
       {/* Details Dialog */}
