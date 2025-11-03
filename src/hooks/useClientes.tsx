@@ -6,25 +6,46 @@ import { Tables, TablesInsert } from "@/integrations/supabase/types";
 type Cliente = Tables<"clientes">;
 type ClienteInsert = Omit<TablesInsert<"clientes">, "user_id">;
 
-export function useClientes() {
+interface UseClientesParams {
+  page?: number;
+  pageSize?: number;
+  searchTerm?: string;
+}
+
+export function useClientes({ page = 1, pageSize = 50, searchTerm = "" }: UseClientesParams = {}) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: clientes = [], isLoading } = useQuery({
-    queryKey: ["clientes"],
+  const { data, isLoading } = useQuery({
+    queryKey: ["clientes", page, pageSize, searchTerm],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Usuário não autenticado");
 
-      const { data, error } = await supabase
+      const from = (page - 1) * pageSize;
+      const to = from + pageSize - 1;
+
+      let query = supabase
         .from("clientes")
-        .select("*")
+        .select("*", { count: "exact" })
         .order("nome_emit");
 
+      // Aplicar filtro de busca se houver
+      if (searchTerm) {
+        query = query.or(`nome_abrev.ilike.%${searchTerm}%,cgc.ilike.%${searchTerm}%,nome_emit.ilike.%${searchTerm}%`);
+      }
+
+      query = query.range(from, to);
+
+      const { data, error, count } = await query;
+
       if (error) throw error;
-      return data as Cliente[];
+      return { clientes: data as Cliente[], total: count || 0 };
     },
   });
+
+  const clientes = data?.clientes || [];
+  const total = data?.total || 0;
 
   const createCliente = useMutation({
     mutationFn: async (cliente: ClienteInsert) => {
@@ -107,6 +128,7 @@ export function useClientes() {
 
   return {
     clientes,
+    total,
     isLoading,
     createCliente,
     updateCliente,

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, Plus, Edit, MapPin, Phone, Upload, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -14,22 +14,42 @@ import { clienteSchema, type ClienteInput } from "@/lib/validations/cliente";
 import { useClientes } from "@/hooks/useClientes";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+
 export default function Clientes() {
   const navigate = useNavigate();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const pageSize = 50;
+
   const {
     clientes,
+    total,
     isLoading,
     createCliente,
     updateCliente,
     deleteCliente
-  } = useClientes();
-  const [searchTerm, setSearchTerm] = useState("");
+  } = useClientes({ page: currentPage, pageSize, searchTerm: debouncedSearch });
+
   const [selectedCliente, setSelectedCliente] = useState<any>(null);
   const [showDetails, setShowDetails] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [clienteToDelete, setClienteToDelete] = useState<string | null>(null);
+
+  // Debounce search term
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+      setCurrentPage(1); // Reset to first page on search
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  const totalPages = Math.ceil(total / pageSize);
   const form = useForm<ClienteInput>({
     resolver: zodResolver(clienteSchema),
     defaultValues: {
@@ -43,7 +63,7 @@ export default function Clientes() {
       observacoes: ""
     }
   });
-  const filteredClientes = clientes.filter(c => (c.nome_abrev?.toLowerCase() || "").includes(searchTerm.toLowerCase()) || (c.cgc || "").includes(searchTerm) || (c.nome_emit?.toLowerCase() || "").includes(searchTerm.toLowerCase()));
+  
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {
       style: "currency",
@@ -147,13 +167,14 @@ export default function Clientes() {
               <Skeleton className="h-4 w-full mb-2" />
               <Skeleton className="h-4 w-full" />
             </Card>)}
-        </div> : filteredClientes.length === 0 ? <Card className="p-12 text-center">
+        </div> : clientes.length === 0 ? <Card className="p-12 text-center">
           <p className="text-muted-foreground">Nenhum cliente encontrado.</p>
           <Button onClick={() => openForm()} className="mt-4">
             Cadastrar primeiro cliente
           </Button>
-        </Card> : <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredClientes.map(cliente => <Card key={cliente.id} className="p-6 shadow-elegant hover:shadow-lg transition-all">
+        </Card> : <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {clientes.map(cliente => <Card key={cliente.id} className="p-6 shadow-elegant hover:shadow-lg transition-all">
               <div className="space-y-4">
                 <div>
                   <div className="flex items-start justify-between mb-2">
@@ -206,7 +227,59 @@ export default function Clientes() {
                 </div>
               </div>
             </Card>)}
-        </div>}
+        </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between mt-8">
+            <p className="text-sm text-muted-foreground">
+              Mostrando {((currentPage - 1) * pageSize) + 1} a {Math.min(currentPage * pageSize, total)} de {total} clientes
+            </p>
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious 
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                  />
+                </PaginationItem>
+                
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pageNum;
+                  if (totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i;
+                  } else {
+                    pageNum = currentPage - 2 + i;
+                  }
+                  
+                  return (
+                    <PaginationItem key={pageNum}>
+                      <PaginationLink
+                        onClick={() => setCurrentPage(pageNum)}
+                        isActive={currentPage === pageNum}
+                        className="cursor-pointer"
+                      >
+                        {pageNum}
+                      </PaginationLink>
+                    </PaginationItem>
+                  );
+                })}
+                
+                <PaginationItem>
+                  <PaginationNext 
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
+        )}
+        </>}
 
       {/* Details Dialog */}
       <Dialog open={showDetails} onOpenChange={setShowDetails}>
