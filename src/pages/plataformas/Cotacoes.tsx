@@ -190,23 +190,12 @@ export default function Cotacoes() {
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
         onFiltersChange={setFilters}
+        onImportarXML={() => setImportarDialogOpen(true)}
+        onHistoricoImportacoes={() => navigate("/plataformas/historico-importacoes")}
+        onCorrigirTravadas={handleCorrigirAnalisesTravadas}
+        mostrarCorrigirTravadas={abaAtiva === "analise_ia" && estatisticas.analiseIA > 0}
+        corrigindoAnalises={corrigindoAnalises}
       />
-
-      {/* Header com Ações */}
-      <div className="flex items-center justify-end gap-2 pt-4">
-        {abaAtiva === "analise_ia" && estatisticas.analiseIA > 0 && <Button variant="outline" size="lg" className="gap-2" onClick={handleCorrigirAnalisesTravadas} disabled={corrigindoAnalises}>
-            <RefreshCw className={`h-4 w-4 ${corrigindoAnalises ? 'animate-spin' : ''}`} />
-            Corrigir Travadas
-          </Button>}
-        <Button variant="outline" size="lg" className="gap-2" onClick={() => navigate("/plataformas/historico-importacoes")}>
-          <Database className="h-4 w-4" />
-          Histórico Importações
-        </Button>
-        <Button variant="outline" size="lg" className="gap-2" onClick={() => setImportarDialogOpen(true)}>
-          <Upload className="h-4 w-4" />
-          Importar XML
-        </Button>
-      </div>
 
       {/* Dialog de Importação */}
       <ImportarXMLDialog open={importarDialogOpen} onOpenChange={setImportarDialogOpen} plataformaId={null} tipoPlataforma="bionexo" />

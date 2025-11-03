@@ -1,4 +1,4 @@
-import { Search, Calendar, Building2, SlidersHorizontal, FileText, Filter } from "lucide-react";
+import { Search, Calendar, Building2, SlidersHorizontal, FileText, Filter, ChevronDown, Upload, Database, RefreshCw } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,11 +9,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 
 interface CotacoesFiltersProps {
   searchTerm: string;
   onSearchChange: (value: string) => void;
   onFiltersChange: (filters: FilterValues) => void;
+  onImportarXML?: () => void;
+  onHistoricoImportacoes?: () => void;
+  onCorrigirTravadas?: () => void;
+  mostrarCorrigirTravadas?: boolean;
+  corrigindoAnalises?: boolean;
 }
 
 interface FilterValues {
@@ -27,6 +39,11 @@ export function CotacoesFilters({
   searchTerm,
   onSearchChange,
   onFiltersChange,
+  onImportarXML,
+  onHistoricoImportacoes,
+  onCorrigirTravadas,
+  mostrarCorrigirTravadas = false,
+  corrigindoAnalises = false,
 }: CotacoesFiltersProps) {
   const handleFilterChange = (key: keyof FilterValues, value: string) => {
     onFiltersChange({ [key]: value });
@@ -112,13 +129,42 @@ export function CotacoesFilters({
       </Select>
 
       {/* Botão de Filtros Avançados */}
-      <Button variant="outline" size="sm" className="h-9 ml-auto">
+      <Button variant="outline" size="sm" className="h-9">
         <SlidersHorizontal className="h-4 w-4 mr-2" />
         Filtros
         <Badge variant="secondary" className="ml-2">
           0
         </Badge>
       </Button>
+
+      {/* Menu de Ações */}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="default" size="sm" className="h-9 ml-auto">
+            Ações
+            <ChevronDown className="h-4 w-4 ml-2" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuItem onClick={onImportarXML}>
+            <Upload className="h-4 w-4 mr-2" />
+            Importar XML
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={onHistoricoImportacoes}>
+            <Database className="h-4 w-4 mr-2" />
+            Histórico Importações
+          </DropdownMenuItem>
+          {mostrarCorrigirTravadas && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={onCorrigirTravadas} disabled={corrigindoAnalises}>
+                <RefreshCw className={`h-4 w-4 mr-2 ${corrigindoAnalises ? 'animate-spin' : ''}`} />
+                Corrigir Travadas
+              </DropdownMenuItem>
+            </>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 }
