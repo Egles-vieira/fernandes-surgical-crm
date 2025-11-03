@@ -299,46 +299,97 @@ export default function Cotacoes() {
               <div className="space-y-2">
                 {cotacoes.map(cotacao => <Card key={cotacao.id} className="hover:shadow-sm transition-shadow">
                     <CardContent className="p-4">
-                      <div className="flex items-center gap-4">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="text-xs text-muted-foreground">
-                              Origem: {cotacao.id_cotacao_externa}
-                            </span>
-                            {cotacao.plataformas_edi && <Badge variant="outline" className="text-xs">{cotacao.plataformas_edi.nome}</Badge>}
-                            <span className="text-xs text-muted-foreground">
-                              {cotacao.total_itens} {cotacao.total_itens === 1 ? 'Item' : 'Itens'}
-                            </span>
-                            <StatusAnaliseIABadge statusAnalise={cotacao.status_analise_ia} progresso={cotacao.progresso_analise_percent ?? 0} itensAnalisados={cotacao.itens_analisados ?? cotacao.total_itens_analisados ?? 0} totalItens={cotacao.total_itens_para_analise ?? cotacao.total_itens ?? 0} tempoEstimado={cotacao.tempo_analise_segundos ?? undefined} />
-                            {cotacao.tags && cotacao.tags.length > 0 && cotacao.tags.map(tag => <Badge key={tag} variant="destructive" className="text-xs">
-                                {tag}
-                              </Badge>)}
-                            <span className="text-xs text-muted-foreground">
-                              {format(new Date(cotacao.data_vencimento_atual), "dd/MM/yyyy | HH:mm", {
-                          locale: ptBR
-                        })}
-                            </span>
+                      <div className="flex items-center gap-3">
+                        {/* Plataforma */}
+                        {cotacao.plataformas_edi && (
+                          <div className="flex-shrink-0">
+                            <span className="text-sm font-medium">{cotacao.plataformas_edi.nome}</span>
                           </div>
-                          
-                          <div className="flex items-center gap-4">
-                            <button onClick={() => navigate(`/plataformas/cotacoes/${cotacao.id}`)} className="text-primary hover:underline font-medium text-sm truncate">
-                              {cotacao.nome_cliente}
-                            </button>
-                            
-                            <span className="text-xs font-medium">
-                              {cotacao.cidade_cliente}, {cotacao.uf_cliente}
-                            </span>
-                          </div>
+                        )}
+
+                        {/* ID Origem */}
+                        <div className="flex-shrink-0">
+                          <span className="text-xs text-muted-foreground">
+                            Origem: {cotacao.id_cotacao_externa}
+                          </span>
                         </div>
 
-                        <div className="flex items-center gap-2 flex-shrink-0">
-                          {!cotacao.resgatada && abaAtiva === "novas" && <Button size="sm" onClick={() => handleResgatar(cotacao.id)} disabled={resgatarCotacao.isPending}>
-                              Resgatar
-                            </Button>}
+                        {/* Nome do Cliente - clickable */}
+                        <div className="flex-1 min-w-0">
+                          <button 
+                            onClick={() => navigate(`/plataformas/cotacoes/${cotacao.id}`)} 
+                            className="text-sm hover:underline text-left truncate block w-full"
+                          >
+                            {cotacao.nome_cliente}
+                          </button>
+                        </div>
+
+                        {/* Data e Hora */}
+                        <div className="flex-shrink-0">
+                          <span className="text-xs text-muted-foreground">
+                            {format(new Date(cotacao.data_vencimento_atual), "dd/MM/yyyy | HH:mm", { locale: ptBR })}
+                          </span>
+                        </div>
+
+                        {/* Total de Itens */}
+                        <div className="flex-shrink-0">
+                          <span className="text-xs text-muted-foreground">
+                            {cotacao.total_itens} {cotacao.total_itens === 1 ? 'item' : 'itens'}
+                          </span>
+                        </div>
+
+                        {/* Localização */}
+                        <div className="flex-shrink-0">
+                          <span className="text-xs font-medium">
+                            {cotacao.cidade_cliente}, {cotacao.uf_cliente}
+                          </span>
+                        </div>
+
+                        {/* Status Análise IA */}
+                        <div className="flex-shrink-0">
+                          <StatusAnaliseIABadge 
+                            statusAnalise={cotacao.status_analise_ia} 
+                            progresso={cotacao.progresso_analise_percent ?? 0} 
+                            itensAnalisados={cotacao.itens_analisados ?? cotacao.total_itens_analisados ?? 0} 
+                            totalItens={cotacao.total_itens_para_analise ?? cotacao.total_itens ?? 0} 
+                            tempoEstimado={cotacao.tempo_analise_segundos ?? undefined} 
+                          />
+                        </div>
+
+                        {/* Tags */}
+                        {cotacao.tags && cotacao.tags.length > 0 && (
+                          <div className="flex items-center gap-1 flex-shrink-0">
+                            {cotacao.tags.map(tag => (
+                              <Badge key={tag} variant="destructive" className="text-xs">
+                                {tag}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Status Badge */}
+                        <div className="flex-shrink-0">
                           <Badge variant={stepBadgeVariant(cotacao.step_atual)} className="text-xs">
                             {stepLabel(cotacao.step_atual)}
                           </Badge>
-                          <Button size="sm" variant="outline" onClick={() => navigate(`/plataformas/cotacoes/${cotacao.id}`)}>
+                        </div>
+
+                        {/* Ações */}
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          {!cotacao.resgatada && abaAtiva === "novas" && (
+                            <Button 
+                              size="sm" 
+                              onClick={() => handleResgatar(cotacao.id)} 
+                              disabled={resgatarCotacao.isPending}
+                            >
+                              Resgatar
+                            </Button>
+                          )}
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            onClick={() => navigate(`/plataformas/cotacoes/${cotacao.id}`)}
+                          >
                             Ver Detalhes
                           </Button>
                         </div>
