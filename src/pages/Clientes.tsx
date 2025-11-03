@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Edit, Phone, Upload, Trash2 } from "lucide-react";
+import { Plus, Edit, Phone, Upload, Trash2, Mail } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -16,12 +16,14 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { ClientesFilters } from "@/components/cliente/ClientesFilters";
 import { Input } from "@/components/ui/input";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export default function Clientes() {
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [view, setView] = useState<"card" | "grid">("card");
   const pageSize = 50;
 
   const {
@@ -143,6 +145,8 @@ export default function Clientes() {
       <ClientesFilters
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
+        view={view}
+        onViewChange={setView}
         onFilterChange={(filters) => {
           console.log("Filtros aplicados:", filters);
           // Aqui você pode implementar a lógica de filtros quando necessário
@@ -178,61 +182,143 @@ export default function Clientes() {
             Cadastrar primeiro cliente
           </Button>
         </Card> : <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {clientes.map(cliente => <Card key={cliente.id} className="p-6 shadow-elegant hover:shadow-lg transition-all">
-              <div className="space-y-4">
-                <div>
-                  <div className="flex items-start justify-between mb-2">
-                    <h3 className="font-semibold text-lg">{cliente.nome_abrev}</h3>
-                    {cliente.cod_emitente && <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
-                        {cliente.cod_emitente}
-                      </span>}
+          {view === "card" ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {clientes.map(cliente => <Card key={cliente.id} className="p-6 shadow-elegant hover:shadow-lg transition-all">
+                <div className="space-y-4">
+                  <div>
+                    <div className="flex items-start justify-between mb-2">
+                      <h3 className="font-semibold text-lg">{cliente.nome_abrev}</h3>
+                      {cliente.cod_emitente && <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
+                          {cliente.cod_emitente}
+                        </span>}
+                    </div>
+                    {cliente.nome_emit && <p className="text-sm text-muted-foreground mb-1">{cliente.nome_emit}</p>}
+                    {cliente.cgc && <p className="text-sm text-muted-foreground">{cliente.cgc}</p>}
                   </div>
-                  {cliente.nome_emit && <p className="text-sm text-muted-foreground mb-1">{cliente.nome_emit}</p>}
-                  {cliente.cgc && <p className="text-sm text-muted-foreground">{cliente.cgc}</p>}
-                </div>
 
-                <div className="space-y-2 text-sm">
-                  {cliente.telefone1 && <div className="flex items-center gap-2 text-muted-foreground">
-                      <Phone size={14} />
-                      <span>{cliente.telefone1}</span>
-                    </div>}
-                  {cliente.e_mail && <div className="flex items-center gap-2 text-muted-foreground truncate">
-                      <span className="truncate">{cliente.e_mail}</span>
-                    </div>}
-                </div>
-
-                <div className="pt-4 border-t">
-                  <div className="flex items-center justify-between text-sm mb-1">
-                    <span className="text-muted-foreground">Limite:</span>
-                    <span className="font-semibold">{formatCurrency(cliente.lim_credito || 0)}</span>
+                  <div className="space-y-2 text-sm">
+                    {cliente.telefone1 && <div className="flex items-center gap-2 text-muted-foreground">
+                        <Phone size={14} />
+                        <span>{cliente.telefone1}</span>
+                      </div>}
+                    {cliente.e_mail && <div className="flex items-center gap-2 text-muted-foreground truncate">
+                        <span className="truncate">{cliente.e_mail}</span>
+                      </div>}
                   </div>
-                  <div className="flex items-center justify-between text-sm mb-2">
-                    <span className="text-muted-foreground">Disponível:</span>
-                    <span className="font-semibold text-success">
-                      {formatCurrency(cliente.limite_disponivel || 0)}
-                    </span>
+
+                  <div className="pt-4 border-t">
+                    <div className="flex items-center justify-between text-sm mb-1">
+                      <span className="text-muted-foreground">Limite:</span>
+                      <span className="font-semibold">{formatCurrency(cliente.lim_credito || 0)}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm mb-2">
+                      <span className="text-muted-foreground">Disponível:</span>
+                      <span className="font-semibold text-success">
+                        {formatCurrency(cliente.limite_disponivel || 0)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2 pt-2">
+                    <Button size="sm" className="flex-1" onClick={() => navigate(`/clientes/${cliente.id}`)}>
+                      Detalhes
+                    </Button>
+                    <Button variant="outline" size="sm" className="flex-1" onClick={() => openForm(cliente)}>
+                      <Edit size={14} className="mr-1" />
+                      Editar
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => {
+                setClienteToDelete(cliente.id);
+                setDeleteDialogOpen(true);
+              }}>
+                      <Trash2 size={14} />
+                    </Button>
                   </div>
                 </div>
-
-                <div className="flex gap-2 pt-2">
-                  <Button size="sm" className="flex-1" onClick={() => navigate(`/clientes/${cliente.id}`)}>
-                    Detalhes
-                  </Button>
-                  <Button variant="outline" size="sm" className="flex-1" onClick={() => openForm(cliente)}>
-                    <Edit size={14} className="mr-1" />
-                    Editar
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => {
-              setClienteToDelete(cliente.id);
-              setDeleteDialogOpen(true);
-            }}>
-                    <Trash2 size={14} />
-                  </Button>
-                </div>
-              </div>
-            </Card>)}
-        </div>
+              </Card>)}
+            </div>
+          ) : (
+            <Card>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Cliente</TableHead>
+                    <TableHead>CNPJ/CPF</TableHead>
+                    <TableHead>Contato</TableHead>
+                    <TableHead className="text-right">Limite de Crédito</TableHead>
+                    <TableHead className="text-right">Disponível</TableHead>
+                    <TableHead className="text-center">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {clientes.map(cliente => (
+                    <TableRow key={cliente.id} className="hover:bg-muted/50">
+                      <TableCell>
+                        <div>
+                          <p className="font-medium">{cliente.nome_abrev}</p>
+                          {cliente.nome_emit && <p className="text-sm text-muted-foreground">{cliente.nome_emit}</p>}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-sm">{cliente.cgc || "-"}</span>
+                      </TableCell>
+                      <TableCell>
+                        <div className="space-y-1">
+                          {cliente.telefone1 && (
+                            <div className="flex items-center gap-1 text-sm">
+                              <Phone size={12} className="text-muted-foreground" />
+                              <span>{cliente.telefone1}</span>
+                            </div>
+                          )}
+                          {cliente.e_mail && (
+                            <div className="flex items-center gap-1 text-sm">
+                              <Mail size={12} className="text-muted-foreground" />
+                              <span className="truncate max-w-[200px]">{cliente.e_mail}</span>
+                            </div>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right font-medium">
+                        {formatCurrency(cliente.lim_credito || 0)}
+                      </TableCell>
+                      <TableCell className="text-right font-medium text-success">
+                        {formatCurrency(cliente.limite_disponivel || 0)}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center justify-center gap-2">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => navigate(`/clientes/${cliente.id}`)}
+                          >
+                            Detalhes
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => openForm(cliente)}
+                          >
+                            <Edit size={14} />
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => {
+                              setClienteToDelete(cliente.id);
+                              setDeleteDialogOpen(true);
+                            }}
+                          >
+                            <Trash2 size={14} />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Card>
+          )}
 
         {/* Pagination */}
         {totalPages > 1 && (

@@ -1,4 +1,4 @@
-import { Filter, Building2, DollarSign, Calendar, SlidersHorizontal, Search } from "lucide-react";
+import { Filter, Building2, DollarSign, Calendar, SlidersHorizontal, Search, LayoutGrid, List } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -9,10 +9,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 interface ClientesFiltersProps {
   searchTerm: string;
   onSearchChange: (value: string) => void;
+  view: "card" | "grid";
+  onViewChange: (view: "card" | "grid") => void;
   onFilterChange?: (filters: FilterValues) => void;
 }
 
@@ -24,7 +27,7 @@ interface FilterValues {
   ordenacao?: string;
 }
 
-export function ClientesFilters({ searchTerm, onSearchChange, onFilterChange }: ClientesFiltersProps) {
+export function ClientesFilters({ searchTerm, onSearchChange, view, onViewChange, onFilterChange }: ClientesFiltersProps) {
   const handleFilterChange = (key: keyof FilterValues, value: string) => {
     if (onFilterChange) {
       onFilterChange({ [key]: value });
@@ -33,6 +36,18 @@ export function ClientesFilters({ searchTerm, onSearchChange, onFilterChange }: 
 
   return (
     <div className="sticky top-0 z-30 flex items-center gap-3 py-3 px-8 border-b bg-card shadow-sm -mx-8 -mt-8 mb-6">
+      {/* Toggle de visualização Card/Grid */}
+      <ToggleGroup type="single" value={view} onValueChange={(value) => value && onViewChange(value as "card" | "grid")} className="border rounded-md">
+        <ToggleGroupItem value="card" aria-label="Visualização Cards" className="px-3">
+          <LayoutGrid className="h-4 w-4" />
+        </ToggleGroupItem>
+        <ToggleGroupItem value="grid" aria-label="Visualização Grid" className="px-3">
+          <List className="h-4 w-4" />
+        </ToggleGroupItem>
+      </ToggleGroup>
+
+      <div className="h-6 w-px bg-border" />
+
       {/* Search Bar */}
       <div className="relative flex-1 max-w-md">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
