@@ -1,10 +1,15 @@
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { Calculator, Package, Link, BarChart3, Settings, Brain, TrendingUp } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { PlataformasFilters } from "@/components/plataformas/PlataformasFilters";
 
 export default function Plataformas() {
   const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [viewMode, setViewMode] = useState<"card" | "grid">("card");
+  const [filters, setFilters] = useState({});
 
   const modulos = [
     {
@@ -58,6 +63,11 @@ export default function Plataformas() {
     },
   ];
 
+  const filteredModulos = modulos.filter(modulo => 
+    modulo.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    modulo.descricao.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div className="p-8 space-y-6">
       <div>
@@ -65,8 +75,16 @@ export default function Plataformas() {
         <p className="text-muted-foreground">Gestão integrada de cotações e pedidos de múltiplas plataformas</p>
       </div>
 
+      <PlataformasFilters
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+        onFiltersChange={setFilters}
+      />
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {modulos.map((modulo) => (
+        {filteredModulos.map((modulo) => (
           <Card
             key={modulo.rota}
             className="hover:shadow-lg transition-all cursor-pointer group"
