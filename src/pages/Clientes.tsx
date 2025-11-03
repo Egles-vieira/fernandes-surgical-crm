@@ -257,7 +257,7 @@ export default function Clientes() {
             <Card>
               <Table>
                 <TableHeader>
-                  <TableRow>
+                  <TableRow className="border-b border-border/50">
                     <TableHead>Cliente</TableHead>
                     <TableHead>CNPJ/CPF</TableHead>
                     <TableHead>Contato</TableHead>
@@ -268,7 +268,7 @@ export default function Clientes() {
                 </TableHeader>
                 <TableBody>
                   {clientes.map(cliente => (
-                    <TableRow key={cliente.id} className="hover:bg-muted/50">
+                    <TableRow key={cliente.id} className="hover:bg-muted/50 border-b border-border/30">
                       <TableCell>
                         <div>
                           <p className="font-medium">{cliente.nome_abrev}</p>
