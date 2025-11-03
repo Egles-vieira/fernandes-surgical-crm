@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
-import { Search, Plus, Edit, MapPin, Phone, Upload, Trash2 } from "lucide-react";
+import { Plus, Edit, Phone, Upload, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -15,6 +14,8 @@ import { useClientes } from "@/hooks/useClientes";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+import { ClientesFilters } from "@/components/cliente/ClientesFilters";
+import { Input } from "@/components/ui/input";
 
 export default function Clientes() {
   const navigate = useNavigate();
@@ -137,10 +138,20 @@ export default function Clientes() {
       }
     }
   };
-  return <div className="p-8 space-y-6">
+  return <div className="p-8">
+      {/* Filters Bar */}
+      <ClientesFilters
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        onFilterChange={(filters) => {
+          console.log("Filtros aplicados:", filters);
+          // Aqui você pode implementar a lógica de filtros quando necessário
+        }}
+      />
+
       {/* Header */}
-      <div className="flex items-center justify-between px-0 mx-0">
-        
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold">Clientes</h1>
         <div className="flex gap-2">
           <Button onClick={() => navigate('/importar-clientes')} variant="outline">
             <Upload size={16} className="mr-2" />
@@ -151,12 +162,6 @@ export default function Clientes() {
             Novo Cliente
           </Button>
         </div>
-      </div>
-
-      {/* Search */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
-        <Input placeholder="Buscar por nome, CNPJ ou cidade..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-10" />
       </div>
 
       {/* Grid */}
