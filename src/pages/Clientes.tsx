@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Edit, Phone, Upload, Trash2, Mail } from "lucide-react";
+import { Plus, Edit, Phone, Upload, Trash2, Mail, FileText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -219,6 +219,10 @@ export default function Clientes() {
                     <Button size="sm" className="flex-1" onClick={() => navigate(`/clientes/${cliente.id}`)}>
                       Detalhes
                     </Button>
+                    <Button variant="outline" size="sm" onClick={() => navigate(`/vendas/contratos?cliente=${cliente.id}`)}>
+                      <FileText size={14} className="mr-1" />
+                      Contratos
+                    </Button>
                     <Button variant="outline" size="sm" className="flex-1" onClick={() => openForm(cliente)}>
                       <Edit size={14} className="mr-1" />
                       Editar
@@ -277,6 +281,9 @@ export default function Clientes() {
                         <div className="flex items-center justify-center gap-2">
                           <Button size="sm" variant="outline" onClick={() => navigate(`/clientes/${cliente.id}`)}>
                             Detalhes
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => navigate(`/vendas/contratos?cliente=${cliente.id}`)}>
+                            <FileText size={14} />
                           </Button>
                           <Button variant="outline" size="sm" onClick={() => openForm(cliente)}>
                             <Edit size={14} />
