@@ -306,10 +306,10 @@ export default function Cotacoes() {
                               Origem: {cotacao.id_cotacao_externa}
                             </span>
                             {cotacao.plataformas_edi && <Badge variant="outline" className="text-xs">{cotacao.plataformas_edi.nome}</Badge>}
-                            <StatusAnaliseIABadge statusAnalise={cotacao.status_analise_ia} progresso={cotacao.progresso_analise_percent ?? 0} itensAnalisados={cotacao.itens_analisados ?? cotacao.total_itens_analisados ?? 0} totalItens={cotacao.total_itens_para_analise ?? cotacao.total_itens ?? 0} tempoEstimado={cotacao.tempo_analise_segundos ?? undefined} />
                             <span className="text-xs text-muted-foreground">
                               {cotacao.total_itens} {cotacao.total_itens === 1 ? 'Item' : 'Itens'}
                             </span>
+                            <StatusAnaliseIABadge statusAnalise={cotacao.status_analise_ia} progresso={cotacao.progresso_analise_percent ?? 0} itensAnalisados={cotacao.itens_analisados ?? cotacao.total_itens_analisados ?? 0} totalItens={cotacao.total_itens_para_analise ?? cotacao.total_itens ?? 0} tempoEstimado={cotacao.tempo_analise_segundos ?? undefined} />
                             {cotacao.tags && cotacao.tags.length > 0 && cotacao.tags.map(tag => <Badge key={tag} variant="destructive" className="text-xs">
                                 {tag}
                               </Badge>)}
