@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import ImportarXMLDialog from "@/components/plataformas/ImportarXMLDialog";
 import { StatusAnaliseIABadge } from "@/components/plataformas/StatusAnaliseIABadge";
+import { CotacoesFilters } from "@/components/plataformas/CotacoesFilters";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 const stepBadgeVariant = (step: string) => {
@@ -48,6 +49,8 @@ export default function Cotacoes() {
   const [abaAtiva, setAbaAtiva] = useState<string>("novas");
   const [importarDialogOpen, setImportarDialogOpen] = useState(false);
   const [corrigindoAnalises, setCorrigindoAnalises] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filters, setFilters] = useState({});
   const [paginas, setPaginas] = useState<Record<string, number>>({
     novas: 0,
     analise_ia: 0,
@@ -116,10 +119,22 @@ export default function Cotacoes() {
     }));
   };
   const {
-    cotacoes,
+    cotacoes: cotacoesRaw,
     isLoading,
     resgatarCotacao
   } = useEDICotacoes(getFiltros());
+
+  // Filtrar cotações pela busca
+  const cotacoes = cotacoesRaw?.filter(cotacao => {
+    if (!searchTerm) return true;
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      cotacao.nome_cliente?.toLowerCase().includes(searchLower) ||
+      cotacao.id_cotacao_externa?.toLowerCase().includes(searchLower) ||
+      cotacao.cidade_cliente?.toLowerCase().includes(searchLower) ||
+      cotacao.uf_cliente?.toLowerCase().includes(searchLower)
+    );
+  });
   // Estatísticas calculadas de todas as cotações
   const estatisticas = {
     novas: todasCotacoes?.filter(c => c.step_atual === "nova" && !c.resgatada).length || 0,
@@ -170,28 +185,27 @@ export default function Cotacoes() {
       </div>;
   }
   return <div className="p-8 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          
-          <p className="text-muted-foreground">
-        </p>
-        </div>
-        <div className="flex gap-2">
-          {abaAtiva === "analise_ia" && estatisticas.analiseIA > 0 && <Button variant="outline" size="lg" className="gap-2" onClick={handleCorrigirAnalisesTravadas} disabled={corrigindoAnalises}>
-              <RefreshCw className={`h-4 w-4 ${corrigindoAnalises ? 'animate-spin' : ''}`} />
-              Corrigir Travadas
-            </Button>}
-          <Button variant="outline" size="lg" className="gap-2" onClick={() => navigate("/plataformas/historico-importacoes")}>
-            <Database className="h-4 w-4" />
-            Histórico Importações
-          </Button>
-          <Button variant="outline" size="lg" className="gap-2" onClick={() => setImportarDialogOpen(true)}>
-            <Upload className="h-4 w-4" />
-            Importar XML
-          </Button>
-          
-        </div>
+      {/* Filtros de Pesquisa */}
+      <CotacoesFilters
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        onFiltersChange={setFilters}
+      />
+
+      {/* Header com Ações */}
+      <div className="flex items-center justify-end gap-2">
+        {abaAtiva === "analise_ia" && estatisticas.analiseIA > 0 && <Button variant="outline" size="lg" className="gap-2" onClick={handleCorrigirAnalisesTravadas} disabled={corrigindoAnalises}>
+            <RefreshCw className={`h-4 w-4 ${corrigindoAnalises ? 'animate-spin' : ''}`} />
+            Corrigir Travadas
+          </Button>}
+        <Button variant="outline" size="lg" className="gap-2" onClick={() => navigate("/plataformas/historico-importacoes")}>
+          <Database className="h-4 w-4" />
+          Histórico Importações
+        </Button>
+        <Button variant="outline" size="lg" className="gap-2" onClick={() => setImportarDialogOpen(true)}>
+          <Upload className="h-4 w-4" />
+          Importar XML
+        </Button>
       </div>
 
       {/* Dialog de Importação */}
