@@ -30,7 +30,7 @@ export function useUserPreferences() {
         .from("profiles")
         .select("preferencias")
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error("Erro ao carregar preferências:", error);
@@ -38,7 +38,20 @@ export function useUserPreferences() {
         return;
       }
 
-      if (data?.preferencias) {
+      // Se o perfil não existe, criar um
+      if (!data) {
+        const { error: insertError } = await supabase
+          .from("profiles")
+          .insert({
+            id: user.id,
+            email: user.email,
+            preferencias: {}
+          });
+
+        if (insertError) {
+          console.error("Erro ao criar perfil:", insertError);
+        }
+      } else if (data?.preferencias) {
         setPreferences(data.preferencias as UserPreferences);
       }
       setIsLoading(false);
@@ -63,10 +76,16 @@ export function useUserPreferences() {
 
       const newPreferences = { ...preferences, [key]: value };
 
+      // Usar upsert para criar se não existir ou atualizar se existir
       const { error } = await supabase
         .from("profiles")
-        .update({ preferencias: newPreferences })
-        .eq("id", user.id);
+        .upsert({
+          id: user.id,
+          email: user.email,
+          preferencias: newPreferences
+        }, {
+          onConflict: 'id'
+        });
 
       if (error) {
         console.error("Erro ao salvar preferência:", error);
@@ -79,6 +98,10 @@ export function useUserPreferences() {
       }
 
       setPreferences(newPreferences);
+      toast({
+        title: "Preferência salva",
+        description: "Sua visualização foi salva com sucesso",
+      });
     } catch (error) {
       console.error("Erro ao salvar preferência:", error);
       toast({
