@@ -17,13 +17,15 @@ import { Pagination, PaginationContent, PaginationItem, PaginationLink, Paginati
 import { ClientesFilters } from "@/components/cliente/ClientesFilters";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useUserPreferences } from "@/hooks/useUserPreferences";
 
 export default function Clientes() {
   const navigate = useNavigate();
+  const { preferences, updatePreference, isLoading: loadingPreferences } = useUserPreferences();
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [view, setView] = useState<"card" | "grid">("card");
+  const [view, setView] = useState<"card" | "grid">(preferences.clientesView || "card");
   const pageSize = 50;
 
   const {
@@ -42,6 +44,13 @@ export default function Clientes() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [clienteToDelete, setClienteToDelete] = useState<string | null>(null);
 
+  // Sincronizar view com preferências do usuário
+  useEffect(() => {
+    if (preferences.clientesView) {
+      setView(preferences.clientesView);
+    }
+  }, [preferences.clientesView]);
+
   // Debounce search term
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -51,6 +60,12 @@ export default function Clientes() {
 
     return () => clearTimeout(timer);
   }, [searchTerm]);
+
+  // Função para atualizar view e salvar preferência
+  const handleViewChange = (newView: "card" | "grid") => {
+    setView(newView);
+    updatePreference("clientesView", newView);
+  };
 
   const totalPages = Math.ceil(total / pageSize);
   const form = useForm<ClienteInput>({
@@ -146,7 +161,7 @@ export default function Clientes() {
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
         view={view}
-        onViewChange={setView}
+        onViewChange={handleViewChange}
         onFilterChange={(filters) => {
           console.log("Filtros aplicados:", filters);
           // Aqui você pode implementar a lógica de filtros quando necessário
