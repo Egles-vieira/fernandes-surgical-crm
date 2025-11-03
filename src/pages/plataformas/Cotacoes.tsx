@@ -185,7 +185,7 @@ export default function Cotacoes() {
       </div>;
   }
   return <div className="p-8 space-y-6">
-      {/* Filtros de Pesquisa */}
+      {/* Filtros de Pesquisa - Sticky no topo */}
       <CotacoesFilters
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
@@ -193,7 +193,7 @@ export default function Cotacoes() {
       />
 
       {/* Header com Ações */}
-      <div className="flex items-center justify-end gap-2">
+      <div className="flex items-center justify-end gap-2 pt-4">
         {abaAtiva === "analise_ia" && estatisticas.analiseIA > 0 && <Button variant="outline" size="lg" className="gap-2" onClick={handleCorrigirAnalisesTravadas} disabled={corrigindoAnalises}>
             <RefreshCw className={`h-4 w-4 ${corrigindoAnalises ? 'animate-spin' : ''}`} />
             Corrigir Travadas
