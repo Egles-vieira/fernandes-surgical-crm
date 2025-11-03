@@ -159,25 +159,18 @@ export default function Clientes() {
   };
   return <div className="p-8">
       {/* Filters Bar */}
-      <ClientesFilters searchTerm={searchTerm} onSearchChange={setSearchTerm} view={view} onViewChange={handleViewChange} onFilterChange={filters => {
-      console.log("Filtros aplicados:", filters);
-      // Aqui você pode implementar a lógica de filtros quando necessário
-    }} />
-
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        
-        <div className="flex gap-2">
-          <Button onClick={() => navigate('/importar-clientes')} variant="outline">
-            <Upload size={16} className="mr-2" />
-            Importar CSV
-          </Button>
-          <Button onClick={() => openForm()} className="bg-primary hover:bg-primary/90">
-            <Plus size={16} className="mr-2" />
-            Novo Cliente
-          </Button>
-        </div>
-      </div>
+      <ClientesFilters 
+        searchTerm={searchTerm} 
+        onSearchChange={setSearchTerm} 
+        view={view} 
+        onViewChange={handleViewChange} 
+        onNovoCliente={() => openForm()}
+        onImportarCSV={() => navigate('/importar-clientes')}
+        onFilterChange={filters => {
+          console.log("Filtros aplicados:", filters);
+          // Aqui você pode implementar a lógica de filtros quando necessário
+        }} 
+      />
 
       {/* Grid */}
       {isLoading ? <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

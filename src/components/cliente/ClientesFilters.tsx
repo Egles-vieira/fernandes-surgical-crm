@@ -1,4 +1,4 @@
-import { Filter, Building2, DollarSign, Calendar, SlidersHorizontal, Search, LayoutGrid, List } from "lucide-react";
+import { Filter, Building2, DollarSign, Calendar, SlidersHorizontal, Search, LayoutGrid, List, Plus, Upload, ChevronDown } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -10,6 +10,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface ClientesFiltersProps {
   searchTerm: string;
@@ -17,6 +23,8 @@ interface ClientesFiltersProps {
   view: "card" | "grid";
   onViewChange: (view: "card" | "grid") => void;
   onFilterChange?: (filters: FilterValues) => void;
+  onNovoCliente: () => void;
+  onImportarCSV: () => void;
 }
 
 interface FilterValues {
@@ -27,7 +35,7 @@ interface FilterValues {
   ordenacao?: string;
 }
 
-export function ClientesFilters({ searchTerm, onSearchChange, view, onViewChange, onFilterChange }: ClientesFiltersProps) {
+export function ClientesFilters({ searchTerm, onSearchChange, view, onViewChange, onFilterChange, onNovoCliente, onImportarCSV }: ClientesFiltersProps) {
   const handleFilterChange = (key: keyof FilterValues, value: string) => {
     if (onFilterChange) {
       onFilterChange({ [key]: value });
@@ -136,6 +144,26 @@ export function ClientesFilters({ searchTerm, onSearchChange, view, onViewChange
           0
         </Badge>
       </Button>
+
+      {/* Botão de Ações */}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button size="sm" className="h-9 bg-primary hover:bg-primary/90">
+            Ações
+            <ChevronDown className="ml-2 h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={onImportarCSV}>
+            <Upload className="mr-2 h-4 w-4" />
+            Importar CSV
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={onNovoCliente}>
+            <Plus className="mr-2 h-4 w-4" />
+            Novo Cliente
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 }
