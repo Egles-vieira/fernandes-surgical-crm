@@ -157,16 +157,17 @@ export function formatarInscricaoSuframa(numero: string): string {
 }
 
 /**
- * Retorna cor para badge de incentivo fiscal
+ * Retorna cor para badge de incentivo fiscal usando design system
  */
 export function obterCorIncentivo(tribute: string): string {
-  const cores: Record<string, string> = {
-    'IPI': 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-    'ICMS': 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-    'PIS': 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
-    'COFINS': 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
+  // Usar apenas variants do badge, sem cores customizadas
+  const variantes: Record<string, string> = {
+    'IPI': 'default',
+    'ICMS': 'secondary', 
+    'PIS': 'outline',
+    'COFINS': 'outline',
   };
-  return cores[tribute] || 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200';
+  return variantes[tribute] || 'outline';
 }
 
 /**
