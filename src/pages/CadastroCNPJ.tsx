@@ -199,62 +199,12 @@ export default function CadastroCNPJ() {
               <DadosColetadosPreview dados={dadosColetados} />
             </TabsContent>
 
-            <TabsContent value="contatos" className="mt-4 space-y-4">
-              {/* Informações da API */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Dados de Contato (API)</CardTitle>
-                  <CardDescription>Informações coletadas automaticamente</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {dadosColetados.office?.phones && dadosColetados.office.phones.length > 0 && (
-                    <div>
-                      <p className="text-sm font-medium mb-2">Telefones:</p>
-                      <div className="flex flex-wrap gap-2">
-                        {dadosColetados.office.phones.map((phone, idx) => (
-                          <Badge key={idx} variant="outline" className="font-mono">
-                            ({phone.area}) {phone.number}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  {dadosColetados.office?.emails && dadosColetados.office.emails.length > 0 && (
-                    <div>
-                      <p className="text-sm font-medium mb-2">E-mails:</p>
-                      <div className="flex flex-wrap gap-2">
-                        {dadosColetados.office.emails.map((email, idx) => (
-                          <Badge key={idx} variant="outline">
-                            {email.address}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  {dadosColetados.office?.address && (
-                    <div>
-                      <p className="text-sm font-medium mb-2">Endereço:</p>
-                      <p className="text-sm text-muted-foreground">
-                        {dadosColetados.office.address.street}
-                        {dadosColetados.office.address.number && `, ${dadosColetados.office.address.number}`}
-                        {dadosColetados.office.address.details && ` - ${dadosColetados.office.address.details}`}
-                        <br />
-                        {dadosColetados.office.address.district && `${dadosColetados.office.address.district} - `}
-                        {dadosColetados.office.address.city}/{dadosColetados.office.address.state}
-                        <br />
-                        CEP: {dadosColetados.office.address.zip}
-                      </p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Contatos Manuais */}
+            <TabsContent value="contatos" className="mt-4">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                   <div>
-                    <CardTitle className="text-base">Contatos Adicionados ({contatos.length})</CardTitle>
-                    <CardDescription>Gerencie os contatos deste cliente</CardDescription>
+                    <CardTitle className="text-base">Contatos ({contatos.length + (dadosColetados.office?.emails?.length || 0) + (dadosColetados.office?.phones?.length || 0)})</CardTitle>
+                    <CardDescription>Contatos da API e adicionados manualmente</CardDescription>
                   </div>
                   <Button 
                     variant="ghost" 
@@ -265,15 +215,56 @@ export default function CadastroCNPJ() {
                     Novo Contato
                   </Button>
                 </CardHeader>
-                <CardContent className="space-y-3">
-                  {contatos.length > 0 ? (
-                    contatos.map((contato) => (
-                      <div key={contato.id} className="p-3 rounded-lg border space-y-3 hover:bg-accent/50 transition-colors">
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {/* Contatos da API - Emails */}
+                    {dadosColetados.office?.emails?.map((email, idx) => (
+                      <div key={`email-${idx}`} className="p-4 rounded-lg border space-y-3 hover:bg-accent/50 transition-colors h-full">
+                        <div className="flex items-start gap-3">
+                          <div className="h-10 w-10 rounded-full bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
+                            <Mail className="h-5 w-5" />
+                          </div>
+                          <div className="flex-1 min-w-0 space-y-2">
+                            <div className="flex items-center gap-2">
+                              <Badge variant="secondary" className="text-xs">API</Badge>
+                            </div>
+                            <div className="flex items-center gap-1 text-sm">
+                              <Mail className="h-3.5 w-3.5 text-muted-foreground" />
+                              <span className="truncate">{email.address}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+
+                    {/* Contatos da API - Telefones */}
+                    {dadosColetados.office?.phones?.map((phone, idx) => (
+                      <div key={`phone-${idx}`} className="p-4 rounded-lg border space-y-3 hover:bg-accent/50 transition-colors h-full">
+                        <div className="flex items-start gap-3">
+                          <div className="h-10 w-10 rounded-full bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
+                            <Phone className="h-5 w-5" />
+                          </div>
+                          <div className="flex-1 min-w-0 space-y-2">
+                            <div className="flex items-center gap-2">
+                              <Badge variant="secondary" className="text-xs">API</Badge>
+                            </div>
+                            <div className="flex items-center gap-1 text-sm font-mono">
+                              <Phone className="h-3.5 w-3.5 text-muted-foreground" />
+                              <span>({phone.area}) {phone.number}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+
+                    {/* Contatos Adicionados Manualmente */}
+                    {contatos.map((contato) => (
+                      <div key={contato.id} className="p-4 rounded-lg border space-y-3 hover:bg-accent/50 transition-colors h-full">
                         <div className="flex items-start gap-3">
                           <div className="h-10 w-10 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center font-medium text-sm flex-shrink-0">
                             {contato.primeiro_nome?.charAt(0)}{contato.sobrenome?.charAt(0)}
                           </div>
-                          <div className="flex-1 min-w-0 space-y-1">
+                          <div className="flex-1 min-w-0 space-y-2">
                             <div className="flex items-center justify-between gap-2">
                               <div className="flex items-center gap-2 flex-1 min-w-0">
                                 <p className="font-medium text-sm truncate">
@@ -340,14 +331,17 @@ export default function CadastroCNPJ() {
                           </div>
                         </div>
                       </div>
-                    ))
-                  ) : (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <UserPlus className="h-10 w-10 mx-auto mb-2 opacity-20" />
-                      <p className="text-sm">Nenhum contato adicionado</p>
-                      <p className="text-xs mt-1">Clique em "Novo Contato" para adicionar</p>
-                    </div>
-                  )}
+                    ))}
+
+                    {/* Mensagem quando não há contatos */}
+                    {contatos.length === 0 && !dadosColetados.office?.emails?.length && !dadosColetados.office?.phones?.length && (
+                      <div className="col-span-full text-center py-8 text-muted-foreground">
+                        <UserPlus className="h-10 w-10 mx-auto mb-2 opacity-20" />
+                        <p className="text-sm">Nenhum contato disponível</p>
+                        <p className="text-xs mt-1">Clique em "Novo Contato" para adicionar</p>
+                      </div>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>
