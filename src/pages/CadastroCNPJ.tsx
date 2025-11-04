@@ -201,143 +201,144 @@ export default function CadastroCNPJ() {
 
             <TabsContent value="contatos" className="mt-4">
               <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
                   <div>
-                    <CardTitle className="text-base">Contatos ({contatos.length + (dadosColetados.office?.emails?.length || 0) + (dadosColetados.office?.phones?.length || 0)})</CardTitle>
+                    <CardTitle className="text-lg">Contatos ({contatos.length + (dadosColetados.office?.emails?.length || 0) + (dadosColetados.office?.phones?.length || 0)})</CardTitle>
                     <CardDescription>Contatos da API e adicionados manualmente</CardDescription>
                   </div>
                   <Button 
-                    variant="ghost" 
-                    size="sm" 
                     onClick={() => setNovoContatoOpen(true)}
+                    size="sm"
                   >
                     <UserPlus className="h-4 w-4 mr-2" />
                     Novo Contato
                   </Button>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                     {/* Contatos da API - Emails */}
                     {dadosColetados.office?.emails?.map((email, idx) => (
-                      <div key={`email-${idx}`} className="p-4 rounded-lg border space-y-3 hover:bg-accent/50 transition-colors h-full">
-                        <div className="flex items-start gap-3">
-                          <div className="h-10 w-10 rounded-full bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
-                            <Mail className="h-5 w-5" />
-                          </div>
-                          <div className="flex-1 min-w-0 space-y-2">
-                            <div className="flex items-center gap-2">
-                              <Badge variant="secondary" className="text-xs">API</Badge>
+                      <Card key={`email-${idx}`} className="overflow-hidden hover:shadow-md transition-shadow">
+                        <CardContent className="p-4">
+                          <div className="flex items-start gap-3">
+                            <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                              <Mail className="h-5 w-5 text-primary" />
                             </div>
-                            <div className="flex items-center gap-1 text-sm">
-                              <Mail className="h-3.5 w-3.5 text-muted-foreground" />
-                              <span className="truncate">{email.address}</span>
+                            <div className="flex-1 min-w-0 space-y-1.5">
+                              <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5">
+                                API
+                              </Badge>
+                              <div className="space-y-1">
+                                <p className="text-xs font-medium text-muted-foreground">Email</p>
+                                <p className="text-sm font-medium truncate">{email.address}</p>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </div>
+                        </CardContent>
+                      </Card>
                     ))}
 
                     {/* Contatos da API - Telefones */}
                     {dadosColetados.office?.phones?.map((phone, idx) => (
-                      <div key={`phone-${idx}`} className="p-4 rounded-lg border space-y-3 hover:bg-accent/50 transition-colors h-full">
-                        <div className="flex items-start gap-3">
-                          <div className="h-10 w-10 rounded-full bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
-                            <Phone className="h-5 w-5" />
-                          </div>
-                          <div className="flex-1 min-w-0 space-y-2">
-                            <div className="flex items-center gap-2">
-                              <Badge variant="secondary" className="text-xs">API</Badge>
+                      <Card key={`phone-${idx}`} className="overflow-hidden hover:shadow-md transition-shadow">
+                        <CardContent className="p-4">
+                          <div className="flex items-start gap-3">
+                            <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                              <Phone className="h-5 w-5 text-primary" />
                             </div>
-                            <div className="flex items-center gap-1 text-sm font-mono">
-                              <Phone className="h-3.5 w-3.5 text-muted-foreground" />
-                              <span>({phone.area}) {phone.number}</span>
+                            <div className="flex-1 min-w-0 space-y-1.5">
+                              <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5">
+                                API
+                              </Badge>
+                              <div className="space-y-1">
+                                <p className="text-xs font-medium text-muted-foreground">Telefone</p>
+                                <p className="text-sm font-medium font-mono">
+                                  ({phone.area}) {phone.number}
+                                </p>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </div>
+                        </CardContent>
+                      </Card>
                     ))}
 
                     {/* Contatos Adicionados Manualmente */}
                     {contatos.map((contato) => (
-                      <div key={contato.id} className="p-4 rounded-lg border space-y-3 hover:bg-accent/50 transition-colors h-full">
-                        <div className="flex items-start gap-3">
-                          <div className="h-10 w-10 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center font-medium text-sm flex-shrink-0">
-                            {contato.primeiro_nome?.charAt(0)}{contato.sobrenome?.charAt(0)}
-                          </div>
-                          <div className="flex-1 min-w-0 space-y-2">
-                            <div className="flex items-center justify-between gap-2">
-                              <div className="flex items-center gap-2 flex-1 min-w-0">
-                                <p className="font-medium text-sm truncate">
-                                  {contato.primeiro_nome} {contato.sobrenome}
-                                </p>
-                              </div>
-                              <div className="flex gap-1 shrink-0">
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  className="h-7 w-7 p-0"
-                                  onClick={() => {
-                                    setContatoParaEditar(contato);
-                                    setEditarContatoOpen(true);
-                                  }}
-                                >
-                                  <Pencil className="h-3.5 w-3.5" />
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  className="h-7 w-7 p-0 text-destructive hover:text-destructive"
-                                  onClick={() => setContatoParaExcluir(contato)}
-                                >
-                                  <Trash2 className="h-3.5 w-3.5" />
-                                </Button>
-                              </div>
+                      <Card key={contato.id} className="overflow-hidden hover:shadow-md transition-shadow">
+                        <CardContent className="p-4">
+                          <div className="flex items-start gap-3 mb-3">
+                            <div className="h-12 w-12 rounded-full bg-gradient-to-br from-primary to-primary/70 text-primary-foreground flex items-center justify-center font-semibold text-base flex-shrink-0">
+                              {contato.primeiro_nome?.charAt(0)}{contato.sobrenome?.charAt(0)}
                             </div>
-                            
-                            {contato.cargo && (
-                              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                <Briefcase className="h-3 w-3" />
-                                <span className="truncate">{contato.cargo}</span>
+                            <div className="flex-1 min-w-0 space-y-1">
+                              <div className="flex items-start justify-between gap-2">
+                                <h4 className="font-semibold text-sm leading-tight">
+                                  {contato.primeiro_nome} {contato.sobrenome}
+                                </h4>
+                                <div className="flex gap-0.5 shrink-0">
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    className="h-7 w-7 p-0 hover:bg-accent"
+                                    onClick={() => {
+                                      setContatoParaEditar(contato);
+                                      setEditarContatoOpen(true);
+                                    }}
+                                  >
+                                    <Pencil className="h-3 w-3" />
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    className="h-7 w-7 p-0 hover:bg-destructive/10 text-destructive"
+                                    onClick={() => setContatoParaExcluir(contato)}
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                  </Button>
+                                </div>
                               </div>
-                            )}
-                            
-                            {contato.departamento && (
-                              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                <Building2 className="h-3 w-3" />
-                                <span className="truncate">{contato.departamento}</span>
-                              </div>
-                            )}
-                            
+                              {(contato.cargo || contato.departamento) && (
+                                <div className="space-y-0.5">
+                                  {contato.cargo && (
+                                    <p className="text-xs text-muted-foreground truncate">{contato.cargo}</p>
+                                  )}
+                                  {contato.departamento && (
+                                    <p className="text-xs text-muted-foreground truncate">{contato.departamento}</p>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          
+                          <div className="space-y-1.5 pt-2 border-t">
                             {contato.email && (
-                              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                <Mail className="h-3 w-3" />
-                                <span className="truncate">{contato.email}</span>
+                              <div className="flex items-center gap-2 text-xs">
+                                <Mail className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                                <span className="truncate text-muted-foreground">{contato.email}</span>
                               </div>
                             )}
-                            
                             {contato.telefone && (
-                              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                <Phone className="h-3 w-3" />
-                                <span>{contato.telefone}</span>
+                              <div className="flex items-center gap-2 text-xs">
+                                <Phone className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                                <span className="text-muted-foreground">{contato.telefone}</span>
                               </div>
                             )}
-
                             {contato.celular && (
-                              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                <Phone className="h-3 w-3" />
-                                <span>{contato.celular}</span>
+                              <div className="flex items-center gap-2 text-xs">
+                                <Phone className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                                <span className="text-muted-foreground">{contato.celular}</span>
                               </div>
                             )}
                           </div>
-                        </div>
-                      </div>
+                        </CardContent>
+                      </Card>
                     ))}
 
                     {/* Mensagem quando não há contatos */}
                     {contatos.length === 0 && !dadosColetados.office?.emails?.length && !dadosColetados.office?.phones?.length && (
-                      <div className="col-span-full text-center py-8 text-muted-foreground">
-                        <UserPlus className="h-10 w-10 mx-auto mb-2 opacity-20" />
-                        <p className="text-sm">Nenhum contato disponível</p>
+                      <div className="col-span-full text-center py-12 text-muted-foreground">
+                        <UserPlus className="h-12 w-12 mx-auto mb-3 opacity-20" />
+                        <p className="text-sm font-medium">Nenhum contato disponível</p>
                         <p className="text-xs mt-1">Clique em "Novo Contato" para adicionar</p>
                       </div>
                     )}
