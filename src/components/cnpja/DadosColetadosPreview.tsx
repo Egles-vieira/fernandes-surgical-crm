@@ -116,44 +116,6 @@ export function DadosColetadosPreview({ dados }: DadosColetadosPreviewProps) {
                 <Badge variant="outline">{office.company?.size?.text || "Sem informação"}</Badge>
               </div>
 
-              <div className="col-span-3">
-                <p className="text-sm text-muted-foreground mb-2">Inscrição Estadual</p>
-                {office.registrations && office.registrations.length > 0 ? (
-                  <div className="space-y-2">
-                    {office.registrations.map((reg, idx) => (
-                      <div key={idx} className="flex items-start gap-2 p-3 bg-primary/5 rounded-lg">
-                        <div className="flex-1 space-y-2">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <p className="font-medium font-mono">{reg.number}</p>
-                            <Badge variant="outline" className="text-xs">
-                              {reg.state}
-                            </Badge>
-                            <Badge variant={reg.enabled ? "default" : "destructive"} className="text-xs">
-                              {reg.enabled ? "Ativa" : "Inativa"}
-                            </Badge>
-                            {reg.type && (
-                              <Badge variant="secondary" className="text-xs">
-                                {reg.type.text}
-                              </Badge>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                            {reg.status && (
-                              <span>Status: {reg.status.text}</span>
-                            )}
-                            {reg.statusDate && (
-                              <span>Data: {formatarData(reg.statusDate)}</span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="font-medium text-muted-foreground">Sem informação</p>
-                )}
-              </div>
-
               <div>
                 <p className="text-sm text-muted-foreground">SIMPLES Nacional</p>
                 <div className="flex items-center gap-2">
@@ -238,37 +200,57 @@ export function DadosColetadosPreview({ dados }: DadosColetadosPreviewProps) {
       {/* Segunda linha: 3 colunas iguais */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Inscrições Estaduais */}
-        {office.registrations && office.registrations.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <ClipboardList className="h-4 w-4" />
-                Inscrições Estaduais
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <ClipboardList className="h-4 w-4" />
+              Inscrições Estaduais
+              {office.registrations && office.registrations.length > 0 && (
                 <Badge variant="secondary" className="text-xs">{office.registrations.length}</Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {office.registrations && office.registrations.length > 0 ? (
               <div className="space-y-3 max-h-[300px] overflow-y-auto">
                 {office.registrations.map((registration, index) => (
                   <div key={index} className="border rounded-lg p-3 hover:border-primary transition-colors">
                     <div className="flex items-start justify-between mb-2">
-                      <Badge variant="outline" className="font-mono text-xs">
-                        {registration.state}
-                      </Badge>
+                      <p className="font-mono font-semibold text-sm">{registration.number}</p>
                       <Badge variant={registration.enabled ? "default" : "destructive"} className="text-xs">
                         {registration.enabled ? "Ativa" : "Inativa"}
                       </Badge>
                     </div>
-                    <p className="font-mono font-semibold text-sm">{registration.number}</p>
-                    {registration.type && (
-                      <p className="text-xs text-muted-foreground mt-1">{registration.type.text}</p>
-                    )}
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="text-xs">
+                          {registration.state}
+                        </Badge>
+                        {registration.type && (
+                          <Badge variant="secondary" className="text-xs">
+                            {registration.type.text}
+                          </Badge>
+                        )}
+                      </div>
+                      {registration.status && (
+                        <p className="text-xs text-muted-foreground">
+                          Status: {registration.status.text}
+                        </p>
+                      )}
+                      {registration.statusDate && (
+                        <p className="text-xs text-muted-foreground">
+                          Data: {formatarData(registration.statusDate)}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
-            </CardContent>
-          </Card>
-        )}
+            ) : (
+              <p className="text-sm text-muted-foreground">Nenhuma inscrição estadual encontrada</p>
+            )}
+          </CardContent>
+        </Card>
 
         {/* SUFRAMA & Incentivos */}
         {dados.suframa && Array.isArray(dados.suframa) && dados.suframa.length > 0 && (
