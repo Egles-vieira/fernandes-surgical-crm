@@ -39,6 +39,7 @@ import TicketDetalhes from "./pages/TicketDetalhes";
 import TicketsDashboard from "./pages/TicketsDashboard";
 import BaseConhecimento from "./pages/BaseConhecimento";
 import MeuPerfil from "./pages/MeuPerfil";
+import CadastroCNPJ from "./pages/CadastroCNPJ";
 const App = () => <>
     <Toaster />
     <BrowserRouter>
@@ -72,6 +73,11 @@ const App = () => <>
         <Route path="/clientes/:id" element={<ProtectedRoute>
             <Layout>
               <ClienteDetalhes />
+            </Layout>
+          </ProtectedRoute>} />
+        <Route path="/clientes/cadastro-cnpj" element={<ProtectedRoute>
+            <Layout>
+              <CadastroCNPJ />
             </Layout>
           </ProtectedRoute>} />
         <Route path="/produtos" element={<ProtectedRoute>

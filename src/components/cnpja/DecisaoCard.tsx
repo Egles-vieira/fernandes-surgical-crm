@@ -1,4 +1,4 @@
-import { Decisao, DadosEndereco, DadosFilial, DadosSimples, DadosIE, DadosSuframa } from "@/types/cnpja";
+import { Decisao, DadosEndereco, DadosFilial, DadosSimples, DadosIE, DadosSuframa, DadosConsolidados } from "@/types/cnpja";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, XCircle, AlertCircle, ChevronDown, ChevronUp, MapPin, Building, FileText, Shield } from "lucide-react";
@@ -9,23 +9,27 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 interface DecisaoCardProps {
   titulo: string;
   decisao: Decisao;
-  dados?: DadosEndereco | DadosFilial[] | DadosSimples | DadosIE | DadosSuframa | null;
+  dados?: DadosConsolidados | null;
+  tipoConsulta?: 'endereco' | 'company' | 'simples' | 'ie' | 'suframa';
 }
 
-export function DecisaoCard({ titulo, decisao, dados }: DecisaoCardProps) {
+export function DecisaoCard({ titulo, decisao, dados, tipoConsulta }: DecisaoCardProps) {
   const [isOpen, setIsOpen] = useState(false);
 
-  const hasDados = dados && (
-    (Array.isArray(dados) && dados.length > 0) ||
-    (!Array.isArray(dados) && Object.keys(dados).length > 0)
+  const hasDados = dados && decisao.decisao && (
+    (tipoConsulta === 'endereco' && dados.endereco) ||
+    (tipoConsulta === 'company' && (dados.filiais || dados.socios)) ||
+    (tipoConsulta === 'simples' && dados.simples) ||
+    (tipoConsulta === 'ie' && dados.ie) ||
+    (tipoConsulta === 'suframa' && dados.suframa)
   );
 
   const renderDados = () => {
-    if (!dados) return null;
+    if (!dados || !tipoConsulta) return null;
 
     // Renderizar Endereço
-    if ('logradouro' in dados) {
-      const end = dados as DadosEndereco;
+    if (tipoConsulta === 'endereco' && dados.endereco) {
+      const end = dados.endereco;
       return (
         <div className="mt-3 p-3 bg-background/50 rounded-lg space-y-2">
           <div className="flex items-center gap-2 text-sm font-medium">
@@ -63,9 +67,10 @@ export function DecisaoCard({ titulo, decisao, dados }: DecisaoCardProps) {
       );
     }
 
-    // Renderizar Filiais
-    if (Array.isArray(dados)) {
-      const filiais = dados as DadosFilial[];
+    // Renderizar Filiais/Company
+    if (tipoConsulta === 'company') {
+      const filiais = dados.filiais;
+      const socios = dados.socios;
       return (
         <div className="mt-3 p-3 bg-background/50 rounded-lg space-y-2">
           <div className="flex items-center gap-2 text-sm font-medium mb-2">
@@ -95,8 +100,8 @@ export function DecisaoCard({ titulo, decisao, dados }: DecisaoCardProps) {
     }
 
     // Renderizar Simples Nacional
-    if ('simples' in dados || 'simplesNacional' in dados) {
-      const simples = dados as DadosSimples;
+    if (tipoConsulta === 'simples' && dados.simples) {
+      const simples = dados.simples;
       const isOptante = simples.simplesNacional?.optante || simples.simples?.optant;
       return (
         <div className="mt-3 p-3 bg-background/50 rounded-lg space-y-2">
@@ -122,8 +127,8 @@ export function DecisaoCard({ titulo, decisao, dados }: DecisaoCardProps) {
     }
 
     // Renderizar Inscrição Estadual
-    if ('stateRegistration' in dados) {
-      const ie = dados as DadosIE;
+    if (tipoConsulta === 'ie' && dados.ie) {
+      const ie = dados.ie;
       return (
         <div className="mt-3 p-3 bg-background/50 rounded-lg space-y-2">
           <div className="flex items-center gap-2 text-sm font-medium">
@@ -141,8 +146,8 @@ export function DecisaoCard({ titulo, decisao, dados }: DecisaoCardProps) {
     }
 
     // Renderizar Suframa
-    if ('registration' in dados) {
-      const suframa = dados as DadosSuframa;
+    if (tipoConsulta === 'suframa' && dados.suframa) {
+      const suframa = dados.suframa;
       return (
         <div className="mt-3 p-3 bg-background/50 rounded-lg space-y-2">
           <div className="flex items-center gap-2 text-sm font-medium">

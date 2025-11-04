@@ -161,7 +161,7 @@ export default function Clientes() {
   };
   return <div className="p-8">
       {/* Filters Bar */}
-      <ClientesFilters searchTerm={searchTerm} onSearchChange={setSearchTerm} view={view} onViewChange={handleViewChange} onNovoCliente={() => openForm()} onImportarCSV={() => navigate('/importar-clientes')} onCadastrarViaCNPJ={() => setShowCNPJDialog(true)} onFilterChange={filters => {
+      <ClientesFilters searchTerm={searchTerm} onSearchChange={setSearchTerm} view={view} onViewChange={handleViewChange} onNovoCliente={() => openForm()} onImportarCSV={() => navigate('/importar-clientes')} onFilterChange={filters => {
       console.log("Filtros aplicados:", filters);
       // Aqui você pode implementar a lógica de filtros quando necessário
     }} />

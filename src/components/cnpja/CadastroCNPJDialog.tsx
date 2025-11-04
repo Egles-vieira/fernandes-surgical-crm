@@ -282,27 +282,32 @@ export function CadastroCNPJDialog({ open, onOpenChange, onClienteCriado }: Cada
                 <DecisaoCard
                   titulo="Validar Endereço (CEP)"
                   decisao={decisoes.validarEndereco}
-                  dados={dadosColetados?.endereco}
+                  dados={dadosColetados}
+                  tipoConsulta="endereco"
                 />
                 <DecisaoCard
                   titulo="Buscar Filiais"
                   decisao={decisoes.buscarFiliais}
-                  dados={dadosColetados?.filiais}
+                  dados={dadosColetados}
+                  tipoConsulta="company"
                 />
                 <DecisaoCard
                   titulo="Verificar Simples Nacional"
                   decisao={decisoes.verificarSimples}
-                  dados={dadosColetados?.simples}
+                  dados={dadosColetados}
+                  tipoConsulta="simples"
                 />
                 <DecisaoCard
                   titulo="Validar Inscrição Estadual"
                   decisao={decisoes.validarIE}
-                  dados={dadosColetados?.ie}
+                  dados={dadosColetados}
+                  tipoConsulta="ie"
                 />
                 <DecisaoCard
                   titulo="Consultar Suframa"
                   decisao={decisoes.consultarSuframa}
-                  dados={dadosColetados?.suframa}
+                  dados={dadosColetados}
+                  tipoConsulta="suframa"
                 />
               </div>
             )}

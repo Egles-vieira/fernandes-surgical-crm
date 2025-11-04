@@ -131,6 +131,7 @@ export interface DadosConsolidados {
   office: DadosOffice;
   endereco?: DadosEndereco | null;
   filiais?: DadosFilial[] | null;
+  socios?: any[] | null;
   simples?: DadosSimples | null;
   ie?: DadosIE | null;
   suframa?: DadosSuframa | null;
