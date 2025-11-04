@@ -532,17 +532,19 @@ export default function ClienteDetalhes() {
               Novo
             </Button>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent>
             {/* Filtro de Contatos */}
-            <div className="relative">
+            <div className="relative mb-4">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input placeholder="Buscar contatos..." value={filtroContatos} onChange={e => setFiltroContatos(e.target.value)} className="pl-8 h-9 text-sm" />
             </div>
 
-            {cliente.contatos && cliente.contatos.length > 0 ? cliente.contatos.filter((contato: any) => {
-            const searchTerm = filtroContatos.toLowerCase();
-            return contato.nome_completo?.toLowerCase().includes(searchTerm) || contato.email?.toLowerCase().includes(searchTerm) || contato.cargo?.toLowerCase().includes(searchTerm) || contato.departamento?.toLowerCase().includes(searchTerm) || contato.telefone?.includes(searchTerm) || contato.celular?.includes(searchTerm);
-          }).map((contato: any) => <div key={contato.id} className="p-3 rounded-lg border space-y-3 hover:bg-accent/50 transition-colors">
+            {cliente.contatos && cliente.contatos.length > 0 ? (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                {cliente.contatos.filter((contato: any) => {
+                  const searchTerm = filtroContatos.toLowerCase();
+                  return contato.nome_completo?.toLowerCase().includes(searchTerm) || contato.email?.toLowerCase().includes(searchTerm) || contato.cargo?.toLowerCase().includes(searchTerm) || contato.departamento?.toLowerCase().includes(searchTerm) || contato.telefone?.includes(searchTerm) || contato.celular?.includes(searchTerm);
+                }).map((contato: any) => <div key={contato.id} className="p-3 rounded-lg border space-y-3 hover:bg-accent/50 transition-colors h-full">
                     <div className="flex items-start gap-3">
                       <div className="h-10 w-10 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center font-medium text-sm flex-shrink-0">
                         {contato.primeiro_nome?.charAt(0)}{contato.sobrenome?.charAt(0)}
@@ -638,10 +640,15 @@ export default function ClienteDetalhes() {
                           WhatsApp
                         </Button>}
                     </div>
-                  </div>) : <div className="text-center py-8 text-muted-foreground">
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
                 <Users className="h-12 w-12 mx-auto mb-2 opacity-20" />
                 <p className="text-sm">Nenhum contato cadastrado</p>
-              </div>}
+              </div>
+            )}
           </CardContent>
         </Card>
 
