@@ -39,6 +39,10 @@ function getCostFromHeaders(headers: Headers): number {
   return cost ? parseFloat(cost) : 0;
 }
 
+function delay(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -99,7 +103,7 @@ Deno.serve(async (req) => {
         }
       } catch (error) {
         console.error("Erro ao consultar CEP:", error);
-        logs.push({ tipo: 'endereco', sucesso: false, erro: error.message });
+        logs.push({ tipo: 'endereco', sucesso: false, erro: error instanceof Error ? error.message : String(error) });
       }
     }
 
@@ -139,7 +143,7 @@ Deno.serve(async (req) => {
         await delay(100); // Rate limit protection
       } catch (error) {
         console.error("Erro ao buscar company:", error);
-        logs.push({ tipo: 'company', sucesso: false, erro: error.message });
+        logs.push({ tipo: 'company', sucesso: false, erro: error instanceof Error ? error.message : String(error) });
       }
     }
 
@@ -176,7 +180,7 @@ Deno.serve(async (req) => {
         await delay(100);
       } catch (error) {
         console.error("Erro ao verificar Simples:", error);
-        logs.push({ tipo: 'simples', sucesso: false, erro: error.message });
+        logs.push({ tipo: 'simples', sucesso: false, erro: error instanceof Error ? error.message : String(error) });
       }
     }
 
@@ -221,7 +225,7 @@ Deno.serve(async (req) => {
           await delay(100);
         } catch (error) {
           console.error("Erro ao validar IE:", error);
-          logs.push({ tipo: 'ie', sucesso: false, erro: error.message });
+          logs.push({ tipo: 'ie', sucesso: false, erro: error instanceof Error ? error.message : String(error) });
         }
       }
     }
@@ -259,7 +263,7 @@ Deno.serve(async (req) => {
         await delay(100);
       } catch (error) {
         console.error("Erro ao consultar Suframa:", error);
-        logs.push({ tipo: 'suframa', sucesso: false, erro: error.message });
+        logs.push({ tipo: 'suframa', sucesso: false, erro: error instanceof Error ? error.message : String(error) });
       }
     }
 
@@ -292,7 +296,7 @@ Deno.serve(async (req) => {
     console.error("Erro ao executar consultas:", error);
     return new Response(
       JSON.stringify({
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
         details: "Erro interno ao executar consultas",
       }),
       {
@@ -302,7 +306,3 @@ Deno.serve(async (req) => {
     );
   }
 });
-
-function delay(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}

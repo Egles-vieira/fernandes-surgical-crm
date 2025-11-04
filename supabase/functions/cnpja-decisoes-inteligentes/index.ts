@@ -100,7 +100,7 @@ Deno.serve(async (req) => {
     console.error("Erro ao processar decisões:", error);
     return new Response(
       JSON.stringify({
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
         details: "Erro interno ao processar decisões",
       }),
       {
