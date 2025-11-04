@@ -158,5 +158,41 @@ export function DecisaoCard({
     }
     return null;
   };
-  return;
+
+  return (
+    <Card className="border-l-4" style={{
+      borderLeftColor: decisao.decisao ? 'hsl(var(--success))' : 'hsl(var(--destructive))'
+    }}>
+      <CardHeader className="pb-3">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-center gap-3">
+            {decisao.decisao ? (
+              <CheckCircle2 className="h-5 w-5 text-success" />
+            ) : (
+              <XCircle className="h-5 w-5 text-destructive" />
+            )}
+            <CardTitle className="text-base">{titulo}</CardTitle>
+          </div>
+          <Badge variant={decisao.decisao ? 'default' : 'destructive'}>
+            {decisao.decisao ? 'Aprovado' : 'Reprovado'}
+          </Badge>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <p className="text-sm text-muted-foreground">{decisao.motivo}</p>
+        
+        {hasDados && (
+          <Collapsible open={isOpen} onOpenChange={setIsOpen} className="mt-3">
+            <CollapsibleTrigger className="flex items-center gap-2 text-sm text-primary hover:underline">
+              {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              {isOpen ? 'Ocultar detalhes' : 'Ver detalhes coletados'}
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              {renderDados()}
+            </CollapsibleContent>
+          </Collapsible>
+        )}
+      </CardContent>
+    </Card>
+  );
 }

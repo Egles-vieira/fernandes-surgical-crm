@@ -167,6 +167,12 @@ export default function Header({ collapsed, onToggle }: HeaderProps) {
           description: "Gerencie reclamações e solicitações de clientes",
           breadcrumb: "Cirúrgica Fernandes / Tickets",
         };
+      case "/clientes/cadastro-cnpj":
+        return {
+          title: "Cadastro de cliente",
+          description: "Consulte e cadastre clientes via CNPJ",
+          breadcrumb: "Cirúrgica Fernandes / Clientes / Cadastro CNPJ",
+        };
       default:
         if (location.pathname.startsWith("/tickets/")) {
           return {
