@@ -93,6 +93,39 @@ export function useCNPJA() {
       console.log("Decisões tomadas:", decisoesTomadas);
       console.log("Custo estimado:", decisoesData.resumo.custoTotalCreditos, "créditos");
 
+      // Notificações individuais para cada decisão
+      if (decisoesTomadas.verificarSimples?.decisao) {
+        toast({
+          title: "Verificar Simples Nacional",
+          description: decisoesTomadas.verificarSimples.motivo,
+          variant: "default",
+        });
+      }
+
+      if (decisoesTomadas.validarIE?.decisao) {
+        toast({
+          title: "Validar Inscrição Estadual",
+          description: decisoesTomadas.validarIE.motivo,
+          variant: "default",
+        });
+      }
+
+      if (decisoesTomadas.consultarSuframa?.decisao) {
+        toast({
+          title: "Consultar Suframa",
+          description: decisoesTomadas.consultarSuframa.motivo,
+          variant: "default",
+        });
+      }
+
+      if (decisoesTomadas.buscarFiliais?.decisao) {
+        toast({
+          title: "Buscar Filiais",
+          description: decisoesTomadas.buscarFiliais.motivo,
+          variant: "default",
+        });
+      }
+
       // 4. EXECUTAR CONSULTAS COMPLEMENTARES
       setStatus('executando');
       setProgresso(65);
