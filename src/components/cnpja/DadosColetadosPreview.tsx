@@ -219,37 +219,35 @@ export function DadosColetadosPreview({ dados }: DadosColetadosPreviewProps) {
           </CardHeader>
           <CardContent>
             {office.registrations && office.registrations.length > 0 ? (
-              <div className="space-y-3 max-h-[300px] overflow-y-auto">
+              <div className="space-y-2 max-h-[300px] overflow-y-auto">
                 {office.registrations.map((registration, index) => (
-                  <div key={index} className="border rounded-lg p-3 hover:border-primary transition-colors">
-                    <div className="flex items-start justify-between mb-2">
-                      <p className="font-mono font-semibold text-sm">{registration.number}</p>
-                      <Badge variant={registration.enabled ? "default" : "destructive"} className="text-xs">
+                  <div
+                    key={index}
+                    className="bg-primary/5 rounded-lg p-3 space-y-1"
+                  >
+                    <div className="flex items-start justify-between gap-2 mb-1">
+                      <p className="font-semibold text-sm text-primary">
+                        {registration.number} - {registration.state}
+                      </p>
+                      <Badge variant={registration.enabled ? "default" : "destructive"} className="text-xs shrink-0">
                         {registration.enabled ? "Ativa" : "Inativa"}
                       </Badge>
                     </div>
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="text-xs">
-                          {registration.state}
-                        </Badge>
-                        {registration.type && (
-                          <Badge variant="secondary" className="text-xs">
-                            {registration.type.text}
-                          </Badge>
-                        )}
-                      </div>
-                      {registration.status && (
-                        <p className="text-xs text-muted-foreground">
-                          Status: {registration.status.text}
-                        </p>
-                      )}
-                      {registration.statusDate && (
-                        <p className="text-xs text-muted-foreground">
-                          Data: {formatarData(registration.statusDate)}
-                        </p>
-                      )}
-                    </div>
+                    {registration.type && (
+                      <p className="text-xs text-muted-foreground">
+                        {registration.type.text}
+                      </p>
+                    )}
+                    {registration.status && (
+                      <p className="text-xs text-muted-foreground">
+                        {registration.status.text}
+                      </p>
+                    )}
+                    {registration.statusDate && (
+                      <p className="text-xs text-muted-foreground">
+                        Data: {formatarData(registration.statusDate)}
+                      </p>
+                    )}
                   </div>
                 ))}
               </div>
