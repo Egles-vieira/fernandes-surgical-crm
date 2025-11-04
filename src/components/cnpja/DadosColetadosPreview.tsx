@@ -45,7 +45,7 @@ export function DadosColetadosPreview({ dados }: DadosColetadosPreviewProps) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <p className="text-sm text-muted-foreground">Razão Social</p>
                 <p className="font-medium">{office.company?.name || office.name}</p>
