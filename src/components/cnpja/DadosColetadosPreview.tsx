@@ -12,6 +12,9 @@ import {
   Shield,
   CheckCircle2,
   XCircle,
+  Calendar,
+  Globe,
+  Briefcase,
 } from "lucide-react";
 import {
   formatarCNPJ,
@@ -39,7 +42,7 @@ export function DadosColetadosPreview({ dados }: DadosColetadosPreviewProps) {
             Dados Cadastrais
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-4">
           <div>
             <label className="text-sm font-medium text-muted-foreground">Razão Social</label>
             <p className="text-base font-semibold">{office.name}</p>
@@ -52,7 +55,7 @@ export function DadosColetadosPreview({ dados }: DadosColetadosPreviewProps) {
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-medium text-muted-foreground">CNPJ</label>
               <p className="font-mono">{formatarCNPJ(office.taxId)}</p>
@@ -60,22 +63,51 @@ export function DadosColetadosPreview({ dados }: DadosColetadosPreviewProps) {
 
             <div>
               <label className="text-sm font-medium text-muted-foreground">Tipo</label>
-              <Badge variant={office.head ? "default" : "secondary"}>
-                {office.head ? "Matriz" : "Filial"}
-              </Badge>
+              <div>
+                <Badge variant={office.head ? "default" : "secondary"}>
+                  {office.head ? "Matriz" : "Filial"}
+                </Badge>
+              </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="text-sm font-medium text-muted-foreground">Situação</label>
-              <Badge variant={situacao.cor as any}>{situacao.texto}</Badge>
+              <label className="text-sm font-medium text-muted-foreground">Situação Cadastral</label>
+              <div>
+                <Badge variant={situacao.cor as any}>{situacao.texto}</Badge>
+              </div>
             </div>
 
+            {office.statusDate && (
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Data da Situação</label>
+                <p className="flex items-center gap-1 text-sm">
+                  <Calendar className="w-3 h-3" />
+                  {formatarData(office.statusDate)}
+                </p>
+              </div>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {office.founded && (
               <div>
-                <label className="text-sm font-medium text-muted-foreground">Abertura</label>
-                <p>{formatarData(office.founded)}</p>
+                <label className="text-sm font-medium text-muted-foreground">Data de Abertura</label>
+                <p className="flex items-center gap-1 text-sm">
+                  <Calendar className="w-3 h-3" />
+                  {formatarData(office.founded)}
+                </p>
+              </div>
+            )}
+
+            {office.company?.name && (
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Atividade Principal</label>
+                <p className="flex items-center gap-1 text-sm">
+                  <Briefcase className="w-3 h-3" />
+                  {office.company.name}
+                </p>
               </div>
             )}
           </div>
@@ -91,24 +123,63 @@ export function DadosColetadosPreview({ dados }: DadosColetadosPreviewProps) {
               Endereço
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2">
+          <CardContent className="space-y-3">
             <div>
+              <label className="text-sm font-medium text-muted-foreground">Logradouro</label>
               <p>
                 {office.address.street}, {office.address.number}
                 {office.address.details && ` - ${office.address.details}`}
               </p>
-              <p className="text-muted-foreground">
-                {office.address.district} - {office.address.city}/{office.address.state}
-              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Bairro</label>
+                <p>{office.address.district}</p>
+              </div>
+
               {office.address.zip && (
-                <p className="text-muted-foreground">CEP: {formatarCEP(office.address.zip)}</p>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">CEP</label>
+                  <p className="font-mono">{formatarCEP(office.address.zip)}</p>
+                </div>
               )}
             </div>
 
-            {endereco && endereco.ibge && (
-              <div className="pt-2 text-xs text-muted-foreground">
-                <p>Código IBGE: {endereco.ibge}</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Cidade</label>
+                <p>{office.address.city}</p>
               </div>
+
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Estado</label>
+                <p>{office.address.state}</p>
+              </div>
+            </div>
+
+            {(office.address.municipality || office.address.country || endereco?.ibge) && (
+              <>
+                <Separator />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  {(endereco?.ibge || office.address.municipality) && (
+                    <div>
+                      <label className="text-xs font-medium text-muted-foreground">Código IBGE</label>
+                      <p className="font-mono text-xs">{endereco?.ibge || office.address.municipality}</p>
+                    </div>
+                  )}
+
+                  {office.address.country && (
+                    <div>
+                      <label className="text-xs font-medium text-muted-foreground">País</label>
+                      <p className="flex items-center gap-1 text-xs">
+                        <Globe className="w-3 h-3" />
+                        {office.address.country.name}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </>
             )}
           </CardContent>
         </Card>
@@ -123,15 +194,16 @@ export function DadosColetadosPreview({ dados }: DadosColetadosPreviewProps) {
               Contatos
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="space-y-4">
             {office.phones && office.phones.length > 0 && (
               <div>
                 <label className="text-sm font-medium text-muted-foreground">Telefones</label>
-                <div className="space-y-1 mt-1">
-                  {office.phones.slice(0, 3).map((phone, idx) => (
-                    <p key={idx} className="font-mono">
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {office.phones.map((phone, idx) => (
+                    <Badge key={idx} variant="outline" className="font-mono">
+                      <Phone className="w-3 h-3 mr-1" />
                       {formatarTelefone(phone.area, phone.number)}
-                    </p>
+                    </Badge>
                   ))}
                 </div>
               </div>
@@ -140,11 +212,17 @@ export function DadosColetadosPreview({ dados }: DadosColetadosPreviewProps) {
             {office.emails && office.emails.length > 0 && (
               <div>
                 <label className="text-sm font-medium text-muted-foreground">E-mails</label>
-                <div className="space-y-1 mt-1">
-                  {office.emails.slice(0, 3).map((email, idx) => (
-                    <p key={idx} className="text-sm">
-                      {email.address}
-                    </p>
+                <div className="space-y-2 mt-2">
+                  {office.emails.map((email, idx) => (
+                    <div key={idx} className="flex items-center gap-2 text-sm">
+                      <Mail className="w-3 h-3 text-muted-foreground" />
+                      <span>{email.address}</span>
+                      {email.domain && (
+                        <Badge variant="secondary" className="text-xs">
+                          @{email.domain}
+                        </Badge>
+                      )}
+                    </div>
                   ))}
                 </div>
               </div>
@@ -159,28 +237,51 @@ export function DadosColetadosPreview({ dados }: DadosColetadosPreviewProps) {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Building className="w-5 h-5" />
-              Filiais ({filiais.length})
+              Filiais
+              <Badge variant="secondary" className="ml-2">
+                {filiais.length}
+              </Badge>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2">
-              {filiais.slice(0, 5).map((filial, idx) => (
-                <div key={idx} className="flex justify-between items-center py-2">
-                  <div>
-                    <p className="font-medium">{filial.alias || filial.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {filial.address?.city}/{filial.address?.state}
-                    </p>
+            <div className="space-y-3">
+              {filiais.slice(0, 10).map((filial, idx) => (
+                <div key={idx} className="p-3 border rounded-lg hover:bg-accent/50 transition-colors">
+                  <div className="flex justify-between items-start mb-2">
+                    <div className="flex-1">
+                      <p className="font-medium">{filial.name}</p>
+                      {filial.alias && filial.alias !== filial.name && (
+                        <p className="text-xs text-muted-foreground mt-1">{filial.alias}</p>
+                      )}
+                    </div>
+                    {filial.status && (
+                      <Badge 
+                        variant={filial.status.id === 2 ? "default" : "secondary"}
+                        className="ml-2"
+                      >
+                        {filial.status.text}
+                      </Badge>
+                    )}
                   </div>
-                  <Badge variant="outline" className="font-mono text-xs">
-                    {formatarCNPJ(filial.taxId)}
-                  </Badge>
+                  
+                  <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                    <span className="font-mono">{formatarCNPJ(filial.taxId)}</span>
+                    {filial.address && (
+                      <span className="flex items-center gap-1">
+                        <MapPin className="w-3 h-3" />
+                        {filial.address.city} - {filial.address.state}
+                      </span>
+                    )}
+                  </div>
                 </div>
               ))}
-              {filiais.length > 5 && (
-                <p className="text-sm text-muted-foreground pt-2">
-                  + {filiais.length - 5} filiais adicionais
-                </p>
+              
+              {filiais.length > 10 && (
+                <div className="text-center py-2">
+                  <Badge variant="outline">
+                    + {filiais.length - 10} filiais adicionais não exibidas
+                  </Badge>
+                </div>
               )}
             </div>
           </CardContent>
@@ -196,7 +297,7 @@ export function DadosColetadosPreview({ dados }: DadosColetadosPreviewProps) {
               Regime Tributário
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="space-y-4">
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium">Simples Nacional:</span>
               {simples.simplesNacional?.optante || simples.simples?.optant ? (
@@ -215,16 +316,29 @@ export function DadosColetadosPreview({ dados }: DadosColetadosPreviewProps) {
             {simples.mei?.optant && (
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium">MEI:</span>
-                <Badge className="bg-success/10 text-success border-success/20">Sim</Badge>
+                <Badge className="bg-success/10 text-success border-success/20">
+                  Microempreendedor Individual
+                </Badge>
               </div>
             )}
 
             {(simples.simplesNacional?.dataOpcao || simples.simples?.included) && (
-              <div>
-                <span className="text-sm text-muted-foreground">
-                  Data de opção:{" "}
-                  {formatarData(simples.simplesNacional?.dataOpcao || simples.simples?.included || '')}
-                </span>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Calendar className="w-3 h-3" />
+                  <span>
+                    Data de opção: {formatarData(simples.simplesNacional?.dataOpcao || simples.simples?.included || '')}
+                  </span>
+                </div>
+
+                {(simples.simplesNacional?.dataExclusao || simples.simples?.excluded) && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Calendar className="w-3 h-3" />
+                    <span>
+                      Data de exclusão: {formatarData(simples.simplesNacional?.dataExclusao || simples.simples?.excluded || '')}
+                    </span>
+                  </div>
+                )}
               </div>
             )}
           </CardContent>
@@ -241,12 +355,16 @@ export function DadosColetadosPreview({ dados }: DadosColetadosPreviewProps) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">{ie.stateRegistration}</p>
-                <p className="text-sm text-muted-foreground">{ie.situation || ie.status}</p>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium font-mono">{ie.stateRegistration}</p>
+                  {(ie.situation || ie.status) && (
+                    <p className="text-sm text-muted-foreground mt-1">{ie.situation || ie.status}</p>
+                  )}
+                </div>
+                <Badge variant="outline">IE</Badge>
               </div>
-              <Badge variant="outline">IE</Badge>
             </div>
           </CardContent>
         </Card>
@@ -262,12 +380,16 @@ export function DadosColetadosPreview({ dados }: DadosColetadosPreviewProps) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">{suframa.registration}</p>
-                <p className="text-sm text-muted-foreground">{suframa.situation || suframa.status}</p>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium font-mono">{suframa.registration}</p>
+                  {(suframa.situation || suframa.status) && (
+                    <p className="text-sm text-muted-foreground mt-1">{suframa.situation || suframa.status}</p>
+                  )}
+                </div>
+                <Badge variant="outline">Suframa</Badge>
               </div>
-              <Badge variant="outline">Suframa</Badge>
             </div>
           </CardContent>
         </Card>
