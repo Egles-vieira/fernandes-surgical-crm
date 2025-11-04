@@ -335,11 +335,16 @@ export function DadosColetadosPreview({ dados }: DadosColetadosPreviewProps) {
             <CardContent>
               <div className="space-y-2 max-h-[300px] overflow-y-auto">
                 {office.sideActivities.map((activity, index) => (
-                  <div key={index} className="border rounded-lg p-2 hover:border-primary transition-colors">
-                    <Badge variant="outline" className="text-xs mb-1">
-                      CNAE {formatarCNAE(activity.id)}
-                    </Badge>
-                    <p className="text-xs leading-relaxed">{activity.text}</p>
+                  <div
+                    key={index}
+                    className="bg-primary/5 rounded-lg p-3 space-y-1"
+                  >
+                    <p className="font-semibold text-sm text-primary">
+                      {formatarCNAE(activity.id)}
+                    </p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      {activity.text}
+                    </p>
                   </div>
                 ))}
               </div>
