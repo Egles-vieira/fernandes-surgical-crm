@@ -5,18 +5,46 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, XCircle } from "lucide-react";
+import { Search, XCircle, UserPlus, Pencil, Trash2, Mail, Phone, Briefcase, Building2 } from "lucide-react";
 import { ProgressoCNPJA } from "@/components/cnpja/ProgressoCNPJA";
 import { DadosColetadosPreview } from "@/components/cnpja/DadosColetadosPreview";
 import { CadastroActionBar } from "@/components/cnpja/CadastroActionBar";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+
+const contatoSchema = z.object({
+  primeiro_nome: z.string().min(1, "Nome obrigatório"),
+  sobrenome: z.string().min(1, "Sobrenome obrigatório"),
+  email: z.string().email("Email inválido").optional().or(z.literal("")),
+  telefone: z.string().optional(),
+  celular: z.string().optional(),
+  cargo: z.string().optional(),
+  departamento: z.string().optional(),
+  descricao: z.string().optional(),
+});
+
+type ContatoInput = z.infer<typeof contatoSchema>;
+
+interface ContatoLocal extends ContatoInput {
+  id: string;
+}
 export default function CadastroCNPJ() {
   const navigate = useNavigate();
-  const {
-    toast
-  } = useToast();
+  const { toast } = useToast();
   const [cnpj, setCnpj] = useState("");
+  const [contatos, setContatos] = useState<ContatoLocal[]>([]);
+  const [novoContatoOpen, setNovoContatoOpen] = useState(false);
+  const [editarContatoOpen, setEditarContatoOpen] = useState(false);
+  const [contatoParaEditar, setContatoParaEditar] = useState<ContatoLocal | null>(null);
+  const [contatoParaExcluir, setContatoParaExcluir] = useState<ContatoLocal | null>(null);
+  
   const {
     consultarCNPJ,
     resetar,
@@ -38,7 +66,36 @@ export default function CadastroCNPJ() {
   };
   const handleNovaConsulta = () => {
     setCnpj("");
+    setContatos([]);
     resetar();
+  };
+
+  const adicionarContato = (contato: ContatoInput) => {
+    const novoContato: ContatoLocal = {
+      ...contato,
+      id: crypto.randomUUID(),
+    };
+    setContatos([...contatos, novoContato]);
+    toast({
+      title: "Contato adicionado!",
+      description: "O contato foi incluído na lista.",
+    });
+  };
+
+  const editarContato = (id: string, contatoAtualizado: ContatoInput) => {
+    setContatos(contatos.map(c => c.id === id ? { ...contatoAtualizado, id } : c));
+    toast({
+      title: "Contato atualizado!",
+      description: "As alterações foram salvas.",
+    });
+  };
+
+  const excluirContato = (id: string) => {
+    setContatos(contatos.filter(c => c.id !== id));
+    toast({
+      title: "Contato excluído!",
+      description: "O contato foi removido da lista.",
+    });
   };
   const handleCriarCliente = () => {
     toast({
@@ -142,10 +199,12 @@ export default function CadastroCNPJ() {
               <DadosColetadosPreview dados={dadosColetados} />
             </TabsContent>
 
-            <TabsContent value="contatos" className="mt-4">
+            <TabsContent value="contatos" className="mt-4 space-y-4">
+              {/* Informações da API */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">Informações de Contato</CardTitle>
+                  <CardTitle className="text-base">Dados de Contato (API)</CardTitle>
+                  <CardDescription>Informações coletadas automaticamente</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {dadosColetados.office?.phones && dadosColetados.office.phones.length > 0 && (
@@ -189,6 +248,108 @@ export default function CadastroCNPJ() {
                   )}
                 </CardContent>
               </Card>
+
+              {/* Contatos Manuais */}
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <div>
+                    <CardTitle className="text-base">Contatos Adicionados ({contatos.length})</CardTitle>
+                    <CardDescription>Gerencie os contatos deste cliente</CardDescription>
+                  </div>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => setNovoContatoOpen(true)}
+                  >
+                    <UserPlus className="h-4 w-4 mr-2" />
+                    Novo Contato
+                  </Button>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {contatos.length > 0 ? (
+                    contatos.map((contato) => (
+                      <div key={contato.id} className="p-3 rounded-lg border space-y-3 hover:bg-accent/50 transition-colors">
+                        <div className="flex items-start gap-3">
+                          <div className="h-10 w-10 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center font-medium text-sm flex-shrink-0">
+                            {contato.primeiro_nome?.charAt(0)}{contato.sobrenome?.charAt(0)}
+                          </div>
+                          <div className="flex-1 min-w-0 space-y-1">
+                            <div className="flex items-center justify-between gap-2">
+                              <div className="flex items-center gap-2 flex-1 min-w-0">
+                                <p className="font-medium text-sm truncate">
+                                  {contato.primeiro_nome} {contato.sobrenome}
+                                </p>
+                              </div>
+                              <div className="flex gap-1 shrink-0">
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-7 w-7 p-0"
+                                  onClick={() => {
+                                    setContatoParaEditar(contato);
+                                    setEditarContatoOpen(true);
+                                  }}
+                                >
+                                  <Pencil className="h-3.5 w-3.5" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-7 w-7 p-0 text-destructive hover:text-destructive"
+                                  onClick={() => setContatoParaExcluir(contato)}
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </Button>
+                              </div>
+                            </div>
+                            
+                            {contato.cargo && (
+                              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                <Briefcase className="h-3 w-3" />
+                                <span className="truncate">{contato.cargo}</span>
+                              </div>
+                            )}
+                            
+                            {contato.departamento && (
+                              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                <Building2 className="h-3 w-3" />
+                                <span className="truncate">{contato.departamento}</span>
+                              </div>
+                            )}
+                            
+                            {contato.email && (
+                              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                <Mail className="h-3 w-3" />
+                                <span className="truncate">{contato.email}</span>
+                              </div>
+                            )}
+                            
+                            {contato.telefone && (
+                              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                <Phone className="h-3 w-3" />
+                                <span>{contato.telefone}</span>
+                              </div>
+                            )}
+
+                            {contato.celular && (
+                              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                <Phone className="h-3 w-3" />
+                                <span>{contato.celular}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <UserPlus className="h-10 w-10 mx-auto mb-2 opacity-20" />
+                      <p className="text-sm">Nenhum contato adicionado</p>
+                      <p className="text-xs mt-1">Clique em "Novo Contato" para adicionar</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </TabsContent>
 
             <TabsContent value="anotacoes" className="mt-4">
@@ -226,5 +387,199 @@ export default function CadastroCNPJ() {
           </Tabs>
         )}
       </div>
+
+      {/* Dialogs */}
+      <ContatoDialog
+        open={novoContatoOpen}
+        onOpenChange={setNovoContatoOpen}
+        onSave={(contato) => {
+          adicionarContato(contato);
+          setNovoContatoOpen(false);
+        }}
+        titulo="Novo Contato"
+      />
+
+      {contatoParaEditar && (
+        <ContatoDialog
+          open={editarContatoOpen}
+          onOpenChange={setEditarContatoOpen}
+          onSave={(contato) => {
+            editarContato(contatoParaEditar.id, contato);
+            setEditarContatoOpen(false);
+            setContatoParaEditar(null);
+          }}
+          titulo="Editar Contato"
+          contatoInicial={contatoParaEditar}
+        />
+      )}
+
+      <AlertDialog open={!!contatoParaExcluir} onOpenChange={(open) => !open && setContatoParaExcluir(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir Contato</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir o contato <strong>{contatoParaExcluir?.primeiro_nome} {contatoParaExcluir?.sobrenome}</strong>? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (contatoParaExcluir) {
+                  excluirContato(contatoParaExcluir.id);
+                  setContatoParaExcluir(null);
+                }
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>;
+}
+
+// Componente de Dialog Reutilizável
+function ContatoDialog({ 
+  open, 
+  onOpenChange, 
+  onSave, 
+  titulo, 
+  contatoInicial 
+}: { 
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSave: (contato: ContatoInput) => void;
+  titulo: string;
+  contatoInicial?: ContatoInput;
+}) {
+  const { register, handleSubmit, reset, formState: { errors } } = useForm<ContatoInput>({
+    resolver: zodResolver(contatoSchema),
+    defaultValues: contatoInicial || {
+      primeiro_nome: "",
+      sobrenome: "",
+      email: "",
+      telefone: "",
+      celular: "",
+      cargo: "",
+      departamento: "",
+      descricao: "",
+    },
+  });
+
+  const onSubmit = (data: ContatoInput) => {
+    onSave(data);
+    reset();
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{titulo}</DialogTitle>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="primeiro_nome">Nome *</Label>
+              <Input
+                id="primeiro_nome"
+                {...register("primeiro_nome")}
+                placeholder="João"
+              />
+              {errors.primeiro_nome && (
+                <p className="text-sm text-destructive mt-1">{errors.primeiro_nome.message}</p>
+              )}
+            </div>
+
+            <div>
+              <Label htmlFor="sobrenome">Sobrenome *</Label>
+              <Input
+                id="sobrenome"
+                {...register("sobrenome")}
+                placeholder="Silva"
+              />
+              {errors.sobrenome && (
+                <p className="text-sm text-destructive mt-1">{errors.sobrenome.message}</p>
+              )}
+            </div>
+
+            <div>
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                {...register("email")}
+                placeholder="joao.silva@exemplo.com"
+              />
+              {errors.email && (
+                <p className="text-sm text-destructive mt-1">{errors.email.message}</p>
+              )}
+            </div>
+
+            <div>
+              <Label htmlFor="telefone">Telefone</Label>
+              <Input
+                id="telefone"
+                {...register("telefone")}
+                placeholder="(11) 3456-7890"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="celular">Celular</Label>
+              <Input
+                id="celular"
+                {...register("celular")}
+                placeholder="(11) 98765-4321"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="cargo">Cargo</Label>
+              <Input
+                id="cargo"
+                {...register("cargo")}
+                placeholder="Gerente Comercial"
+              />
+            </div>
+
+            <div className="col-span-2">
+              <Label htmlFor="departamento">Departamento</Label>
+              <Input
+                id="departamento"
+                {...register("departamento")}
+                placeholder="Comercial"
+              />
+            </div>
+
+            <div className="col-span-2">
+              <Label htmlFor="descricao">Observações</Label>
+              <Textarea
+                id="descricao"
+                {...register("descricao")}
+                placeholder="Informações adicionais sobre o contato..."
+                rows={3}
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+            >
+              Cancelar
+            </Button>
+            <Button type="submit">
+              Salvar Contato
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
 }
