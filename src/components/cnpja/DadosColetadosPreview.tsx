@@ -253,45 +253,55 @@ export function DadosColetadosPreview({ dados }: DadosColetadosPreviewProps) {
         </Card>
 
         {/* SUFRAMA & Incentivos */}
-        {dados.suframa && Array.isArray(dados.suframa) && dados.suframa.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Globe className="h-4 w-4" />
-                SUFRAMA & Incentivos
-                <Badge variant="secondary" className="text-xs">{dados.suframa.length}</Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3 max-h-[300px] overflow-y-auto">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Globe className="h-4 w-4" />
+              SUFRAMA & Incentivos
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {dados.suframa && Array.isArray(dados.suframa) && dados.suframa.length > 0 ? (
+              <div className="space-y-4">
                 {dados.suframa.map((registro, index) => (
-                  <div key={index} className="border rounded-lg p-3 hover:border-primary transition-colors">
-                    <div className="mb-2">
-                      <p className="text-xs text-muted-foreground">Inscrição</p>
-                      <p className="font-mono font-semibold text-sm">
-                        {formatarInscricaoSuframa(registro.number)}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <Badge variant={registro.status.id === 1 ? "default" : "secondary"} className="text-xs">
+                  <div key={index} className="space-y-3">
+                    {/* Cabeçalho com número e status */}
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <p className="font-mono font-bold text-lg text-primary">
+                          {formatarInscricaoSuframa(registro.number)}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          Desde: {registro.since ? formatarData(registro.since) : "Pendente"}
+                        </p>
+                      </div>
+                      <Badge variant={registro.status.id === 1 ? "default" : "secondary"}>
                         {registro.status.text}
                       </Badge>
-                      {registro.approved && (
-                        <Badge variant="default" className="text-xs bg-green-600">
-                          Aprovada
-                        </Badge>
-                      )}
                     </div>
+
+                    {/* Incentivos fiscais */}
                     {registro.incentives && registro.incentives.length > 0 && (
-                      <div className="mt-2 pt-2 border-t">
-                        <p className="text-xs text-muted-foreground mb-1">
-                          {registro.incentives.length} incentivo(s)
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground mb-2">
+                          Incentivos fiscais:
                         </p>
-                        <div className="space-y-1">
-                          {registro.incentives.slice(0, 2).map((inc, idx) => (
-                            <Badge key={idx} variant="outline" className="text-xs mr-1">
-                              {inc.tribute}
-                            </Badge>
+                        <div className="space-y-2">
+                          {registro.incentives.map((incentivo, idx) => (
+                            <div
+                              key={idx}
+                              className="bg-primary/5 rounded-lg p-3 space-y-1"
+                            >
+                              <p className="font-semibold text-sm text-primary">
+                                {incentivo.tribute} - {incentivo.benefit}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {incentivo.purpose}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {incentivo.basis}
+                              </p>
+                            </div>
                           ))}
                         </div>
                       </div>
@@ -299,9 +309,11 @@ export function DadosColetadosPreview({ dados }: DadosColetadosPreviewProps) {
                   </div>
                 ))}
               </div>
-            </CardContent>
-          </Card>
-        )}
+            ) : (
+              <p className="text-sm text-muted-foreground">Nenhuma inscrição SUFRAMA encontrada</p>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Atividades Secundárias (CNAEs) */}
         {office.sideActivities && office.sideActivities.length > 0 && (
