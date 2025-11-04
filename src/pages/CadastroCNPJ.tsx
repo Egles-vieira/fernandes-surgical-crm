@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect, useCallback } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useCNPJA } from "@/hooks/useCNPJA";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, XCircle, UserPlus, Pencil, Trash2, Mail, Phone, Briefcase, Building2, User, MessageSquare, Target, Share2, FileText } from "lucide-react";
+import { Search, XCircle, UserPlus, Pencil, Trash2, Mail, Phone, Briefcase, Building2, User, MessageSquare, Target, Share2, FileText, Save } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ProgressoCNPJA } from "@/components/cnpja/ProgressoCNPJA";
@@ -23,12 +23,17 @@ import { Switch } from "@/components/ui/switch";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { contatoSchema, type ContatoInput } from "@/lib/validations/contato";
+import { useSolicitacoesCadastro } from "@/hooks/useSolicitacoesCadastro";
+import { AutoSaveIndicator } from "@/components/solicitacoes/AutoSaveIndicator";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ContatoLocal extends ContatoInput {
   id: string;
 }
 export default function CadastroCNPJ() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const solicitacaoId = searchParams.get("solicitacao");
   const { toast } = useToast();
   const [cnpj, setCnpj] = useState("");
   const [contatos, setContatos] = useState<ContatoLocal[]>([]);
@@ -37,6 +42,12 @@ export default function CadastroCNPJ() {
   const [contatoParaEditar, setContatoParaEditar] = useState<ContatoLocal | null>(null);
   const [contatoParaExcluir, setContatoParaExcluir] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [autoSaveStatus, setAutoSaveStatus] = useState<"salvando" | "salvo" | "erro">("salvo");
+  const [lastSaved, setLastSaved] = useState<Date>();
+  const [currentSolicitacaoId, setCurrentSolicitacaoId] = useState<string | null>(solicitacaoId);
+  
+  const { createSolicitacao, updateSolicitacao, useSolicitacao } = useSolicitacoesCadastro();
+  const { data: solicitacaoExistente, isLoading: loadingSolicitacao } = useSolicitacao(currentSolicitacaoId || undefined);
   
   const {
     consultarCNPJ,
@@ -47,6 +58,113 @@ export default function CadastroCNPJ() {
     dadosColetados,
     erro
   } = useCNPJA();
+  
+  // Carregar dados da solicitação existente
+  useEffect(() => {
+    if (solicitacaoExistente) {
+      setCnpj(solicitacaoExistente.cnpj);
+      if (solicitacaoExistente.contatos && Array.isArray(solicitacaoExistente.contatos)) {
+        setContatos(solicitacaoExistente.contatos as unknown as ContatoLocal[]);
+      }
+      // Se já temos dados coletados, não precisa consultar de novo
+      if (solicitacaoExistente.dados_coletados && Object.keys(solicitacaoExistente.dados_coletados as object).length > 0) {
+        // Aqui você poderia popular o estado com os dados coletados
+      }
+    }
+  }, [solicitacaoExistente]);
+
+  // Auto-save com debounce de 30 segundos
+  useEffect(() => {
+    if (!cnpj || status === 'idle') return;
+
+    const timer = setTimeout(async () => {
+      await handleAutoSave();
+    }, 30000); // 30 segundos
+
+    return () => clearTimeout(timer);
+  }, [cnpj, contatos, dadosColetados, status]);
+
+  const handleAutoSave = async () => {
+    try {
+      setAutoSaveStatus("salvando");
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        setAutoSaveStatus("erro");
+        return;
+      }
+
+      const dadosParaSalvar = {
+        cnpj,
+        dados_coletados: JSON.parse(JSON.stringify(dadosColetados || {})),
+        contatos: JSON.parse(JSON.stringify(contatos)),
+        criado_por: user.id,
+      };
+
+      if (currentSolicitacaoId) {
+        await updateSolicitacao.mutateAsync({
+          id: currentSolicitacaoId,
+          data: dadosParaSalvar,
+        });
+      } else {
+        const novaSolicitacao = await createSolicitacao.mutateAsync(dadosParaSalvar as any);
+        setCurrentSolicitacaoId(novaSolicitacao.id);
+        // Atualizar URL sem recarregar a página
+        window.history.replaceState(null, "", `/clientes/cadastro-cnpj?solicitacao=${novaSolicitacao.id}`);
+      }
+
+      setAutoSaveStatus("salvo");
+      setLastSaved(new Date());
+    } catch (error) {
+      console.error("Erro no auto-save:", error);
+      setAutoSaveStatus("erro");
+    }
+  };
+
+  const handleSalvarRascunho = async () => {
+    await handleAutoSave();
+    toast({
+      title: "Rascunho salvo",
+      description: "Você pode continuar depois.",
+    });
+    navigate("/clientes/solicitacoes");
+  };
+
+  const handleEnviarAnalise = async () => {
+    if (contatos.length === 0) {
+      toast({
+        title: "Atenção",
+        description: "Adicione pelo menos um contato antes de enviar para análise.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await handleAutoSave();
+      
+      if (currentSolicitacaoId) {
+        await updateSolicitacao.mutateAsync({
+          id: currentSolicitacaoId,
+          data: { status: "em_analise" },
+        });
+        
+        toast({
+          title: "Enviado para análise",
+          description: "A solicitação foi enviada para análise.",
+        });
+        navigate("/clientes/solicitacoes");
+      }
+    } catch (error) {
+      console.error("Erro ao enviar para análise:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível enviar para análise.",
+        variant: "destructive",
+      });
+    }
+  };
+  
   const handleConsultar = async () => {
     if (!cnpj.trim()) return;
     await consultarCNPJ(cnpj, {
@@ -60,6 +178,8 @@ export default function CadastroCNPJ() {
   const handleNovaConsulta = () => {
     setCnpj("");
     setContatos([]);
+    setCurrentSolicitacaoId(null);
+    window.history.replaceState(null, "", "/clientes/cadastro-cnpj");
     resetar();
   };
 
@@ -141,6 +261,25 @@ export default function CadastroCNPJ() {
       />
 
       <div className="py-6 px-4 space-y-0">
+        {/* Auto-save Indicator */}
+        {currentSolicitacaoId && status === 'concluido' && (
+          <div className="fixed top-20 right-4 z-40">
+            <AutoSaveIndicator status={autoSaveStatus} lastSaved={lastSaved} />
+          </div>
+        )}
+
+        {/* Botões de Ação para Solicitação */}
+        {status === 'concluido' && dadosColetados && (
+          <div className="fixed bottom-6 right-6 flex gap-3 z-40">
+            <Button variant="outline" size="lg" onClick={handleSalvarRascunho}>
+              <Save className="h-4 w-4 mr-2" />
+              Salvar Rascunho
+            </Button>
+            <Button size="lg" onClick={handleEnviarAnalise}>
+              Enviar para Análise
+            </Button>
+          </div>
+        )}
 
         {/* Barra de Status e Ações - Removida pois agora está fixa no topo */}
 

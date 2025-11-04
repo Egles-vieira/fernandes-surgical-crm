@@ -3736,6 +3736,54 @@ export type Database = {
         }
         Relationships: []
       }
+      solicitacoes_cadastro: {
+        Row: {
+          aprovado_em: string | null
+          aprovado_por: string | null
+          atualizado_em: string
+          cnpj: string
+          contatos: Json | null
+          criado_em: string
+          criado_por: string | null
+          dados_coletados: Json | null
+          excluido_em: string | null
+          id: string
+          motivo_rejeicao: string | null
+          observacoes: string | null
+          status: Database["public"]["Enums"]["status_solicitacao_cadastro"]
+        }
+        Insert: {
+          aprovado_em?: string | null
+          aprovado_por?: string | null
+          atualizado_em?: string
+          cnpj: string
+          contatos?: Json | null
+          criado_em?: string
+          criado_por?: string | null
+          dados_coletados?: Json | null
+          excluido_em?: string | null
+          id?: string
+          motivo_rejeicao?: string | null
+          observacoes?: string | null
+          status?: Database["public"]["Enums"]["status_solicitacao_cadastro"]
+        }
+        Update: {
+          aprovado_em?: string | null
+          aprovado_por?: string | null
+          atualizado_em?: string
+          cnpj?: string
+          contatos?: Json | null
+          criado_em?: string
+          criado_por?: string | null
+          dados_coletados?: Json | null
+          excluido_em?: string | null
+          id?: string
+          motivo_rejeicao?: string | null
+          observacoes?: string | null
+          status?: Database["public"]["Enums"]["status_solicitacao_cadastro"]
+        }
+        Relationships: []
+      }
       tags: {
         Row: {
           categoria: string | null
@@ -5664,6 +5712,11 @@ export type Database = {
         | "concluida"
         | "erro"
         | "cancelada"
+      status_solicitacao_cadastro:
+        | "rascunho"
+        | "em_analise"
+        | "aprovado"
+        | "rejeitado"
       status_ticket:
         | "aberto"
         | "em_andamento"
@@ -5836,6 +5889,12 @@ export const Constants = {
         "concluida",
         "erro",
         "cancelada",
+      ],
+      status_solicitacao_cadastro: [
+        "rascunho",
+        "em_analise",
+        "aprovado",
+        "rejeitado",
       ],
       status_ticket: [
         "aberto",

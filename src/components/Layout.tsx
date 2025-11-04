@@ -94,7 +94,15 @@ const menuItems: MenuItem[] = [
       { path: "/base-conhecimento", icon: BookOpen, label: "Base de Conhecimento" },
     ],
   },
-  { path: "/clientes", icon: Users, label: "Clientes" },
+  {
+    icon: Users,
+    label: "Clientes",
+    children: [
+      { path: "/clientes", icon: Users, label: "Lista de Clientes" },
+      { path: "/clientes/solicitacoes", icon: FileText, label: "Solicitações" },
+      { path: "/clientes/cadastro-cnpj", icon: ShoppingCart, label: "Novo Cadastro" },
+    ],
+  },
   {
     icon: Package,
     label: "Produtos",

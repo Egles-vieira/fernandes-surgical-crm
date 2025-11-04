@@ -40,6 +40,7 @@ import TicketsDashboard from "./pages/TicketsDashboard";
 import BaseConhecimento from "./pages/BaseConhecimento";
 import MeuPerfil from "./pages/MeuPerfil";
 import CadastroCNPJ from "./pages/CadastroCNPJ";
+import SolicitacoesCadastro from "./pages/SolicitacoesCadastro";
 const App = () => <>
     <Toaster />
     <BrowserRouter>
@@ -78,6 +79,11 @@ const App = () => <>
         <Route path="/clientes/cadastro-cnpj" element={<ProtectedRoute>
             <Layout>
               <CadastroCNPJ />
+            </Layout>
+          </ProtectedRoute>} />
+        <Route path="/clientes/solicitacoes" element={<ProtectedRoute>
+            <Layout>
+              <SolicitacoesCadastro />
             </Layout>
           </ProtectedRoute>} />
         <Route path="/produtos" element={<ProtectedRoute>
