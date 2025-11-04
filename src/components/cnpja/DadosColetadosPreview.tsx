@@ -116,17 +116,38 @@ export function DadosColetadosPreview({ dados }: DadosColetadosPreviewProps) {
                 <Badge variant="outline">{office.company?.size?.text || "Sem informação"}</Badge>
               </div>
 
-              <div>
-                <p className="text-sm text-muted-foreground">Inscrição Estadual</p>
+              <div className="col-span-3">
+                <p className="text-sm text-muted-foreground mb-2">Inscrição Estadual</p>
                 {office.registrations && office.registrations.length > 0 ? (
-                  <div className="flex items-center gap-2">
-                    <p className="font-medium font-mono">{office.registrations[0].number}</p>
-                    <Badge variant="outline" className="text-xs">
-                      {office.registrations[0].state}
-                    </Badge>
-                    <Badge variant={office.registrations[0].enabled ? "default" : "destructive"} className="text-xs">
-                      {office.registrations[0].enabled ? "Ativa" : "Inativa"}
-                    </Badge>
+                  <div className="space-y-2">
+                    {office.registrations.map((reg, idx) => (
+                      <div key={idx} className="flex items-start gap-2 p-3 bg-primary/5 rounded-lg">
+                        <div className="flex-1 space-y-2">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="font-medium font-mono">{reg.number}</p>
+                            <Badge variant="outline" className="text-xs">
+                              {reg.state}
+                            </Badge>
+                            <Badge variant={reg.enabled ? "default" : "destructive"} className="text-xs">
+                              {reg.enabled ? "Ativa" : "Inativa"}
+                            </Badge>
+                            {reg.type && (
+                              <Badge variant="secondary" className="text-xs">
+                                {reg.type.text}
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                            {reg.status && (
+                              <span>Status: {reg.status.text}</span>
+                            )}
+                            {reg.statusDate && (
+                              <span>Data: {formatarData(reg.statusDate)}</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 ) : (
                   <p className="font-medium text-muted-foreground">Sem informação</p>
