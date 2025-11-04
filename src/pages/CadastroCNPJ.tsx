@@ -14,7 +14,8 @@ import { CadastroActionBar } from "@/components/cnpja/CadastroActionBar";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -468,16 +469,24 @@ function ContatoDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto border-2">
-        <DialogHeader className="border-b pb-4">
-          <DialogTitle className="text-2xl font-bold flex items-center gap-2">
-            <UserPlus className="h-6 w-6 text-primary" />
-            {titulo}
-          </DialogTitle>
-        </DialogHeader>
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent className="sm:w-[700px] lg:w-[800px] sm:max-w-none">
+        <SheetHeader className="bg-gradient-to-r from-primary/10 to-secondary/10 -mx-6 -mt-6 px-6 py-4 mb-6 rounded-t-lg border-b shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg">
+              <UserPlus className="h-5 w-5 text-primary-foreground" />
+            </div>
+            <div>
+              <SheetTitle className="text-lg">{titulo}</SheetTitle>
+              <SheetDescription className="text-sm">
+                Preencha as informações do contato
+              </SheetDescription>
+            </div>
+          </div>
+        </SheetHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        <ScrollArea className="h-[calc(100vh-180px)] pr-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <Tabs defaultValue="basico" className="w-full">
             <TabsList className="grid w-full grid-cols-5 h-auto p-1 bg-muted/50">
               <TabsTrigger value="basico" className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm py-3">
@@ -763,7 +772,7 @@ function ContatoDialog({
             </TabsContent>
           </Tabs>
 
-          <DialogFooter className="border-t pt-6 flex gap-3">
+          <div className="border-t pt-6 flex gap-3 sticky bottom-0 bg-background pb-4 -mx-6 px-6">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="flex-1">
               Cancelar
             </Button>
@@ -771,9 +780,10 @@ function ContatoDialog({
               <UserPlus className="h-4 w-4 mr-2" />
               Salvar Contato
             </Button>
-          </DialogFooter>
+          </div>
         </form>
-      </DialogContent>
-    </Dialog>
+        </ScrollArea>
+      </SheetContent>
+    </Sheet>
   );
 }
