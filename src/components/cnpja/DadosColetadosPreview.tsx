@@ -205,9 +205,9 @@ export function DadosColetadosPreview({ dados }: DadosColetadosPreviewProps) {
       </div>
 
       {/* Segunda linha: 3 colunas iguais */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
         {/* Inscrições Estaduais */}
-        <Card>
+        <Card className="h-full flex flex-col">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <ClipboardList className="h-4 w-4" />
@@ -217,7 +217,7 @@ export function DadosColetadosPreview({ dados }: DadosColetadosPreviewProps) {
               )}
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex-1">
             {office.registrations && office.registrations.length > 0 ? (
               <div className="space-y-2 max-h-[300px] overflow-y-auto">
                 {office.registrations.map((registration, index) => (
@@ -258,14 +258,14 @@ export function DadosColetadosPreview({ dados }: DadosColetadosPreviewProps) {
         </Card>
 
         {/* SUFRAMA & Incentivos */}
-        <Card>
+        <Card className="h-full flex flex-col">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <Globe className="h-4 w-4" />
               SUFRAMA & Incentivos
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex-1">
             {dados.suframa && Array.isArray(dados.suframa) && dados.suframa.length > 0 ? (
               <div className="space-y-4">
                 {dados.suframa.map((registro, index) => (
@@ -322,7 +322,7 @@ export function DadosColetadosPreview({ dados }: DadosColetadosPreviewProps) {
 
         {/* Atividades Secundárias (CNAEs) */}
         {office.sideActivities && office.sideActivities.length > 0 && (
-          <Card>
+          <Card className="h-full flex flex-col">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
                 <Briefcase className="h-4 w-4" />
@@ -330,7 +330,7 @@ export function DadosColetadosPreview({ dados }: DadosColetadosPreviewProps) {
                 <Badge variant="secondary" className="text-xs">{office.sideActivities.length}</Badge>
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex-1">
               <div className="space-y-2 max-h-[300px] overflow-y-auto">
                 {office.sideActivities.map((activity, index) => (
                   <div
