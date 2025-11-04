@@ -161,10 +161,19 @@ export default function Clientes() {
   };
   return <div className="p-8">
       {/* Filters Bar */}
-      <ClientesFilters searchTerm={searchTerm} onSearchChange={setSearchTerm} view={view} onViewChange={handleViewChange} onNovoCliente={() => openForm()} onImportarCSV={() => navigate('/importar-clientes')} onFilterChange={filters => {
-      console.log("Filtros aplicados:", filters);
-      // Aqui você pode implementar a lógica de filtros quando necessário
-    }} />
+      <ClientesFilters 
+        searchTerm={searchTerm} 
+        onSearchChange={setSearchTerm} 
+        view={view} 
+        onViewChange={handleViewChange} 
+        onNovoCliente={() => openForm()} 
+        onImportarCSV={() => navigate('/importar-clientes')}
+        onCadastrarViaCNPJ={() => navigate('/clientes/cadastro-cnpj')}
+        onFilterChange={filters => {
+          console.log("Filtros aplicados:", filters);
+          // Aqui você pode implementar a lógica de filtros quando necessário
+        }} 
+      />
 
       {/* Grid */}
       {isLoading ? <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
