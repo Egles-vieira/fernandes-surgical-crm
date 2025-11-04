@@ -494,6 +494,7 @@ function ContatoDialog({
     },
   });
   
+  const { toast } = useToast();
   useEffect(() => {
     if (open) {
       reset({
@@ -532,8 +533,10 @@ function ContatoDialog({
   }, [open, contatoInicial, reset]);
 
   const onSubmit = (data: ContatoInput) => {
+    console.log("Contato submit:", data);
     onSave(data);
     reset();
+    toast({ title: "Contato salvo", description: "O contato foi adicionado à lista." });
   };
 
   return (
@@ -554,7 +557,7 @@ function ContatoDialog({
         </SheetHeader>
 
         <ScrollArea className="h-[calc(100vh-180px)] pr-4">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={handleSubmit(onSubmit, (errors) => { console.log('Form inválido', errors); toast({ title: 'Verifique os campos', description: 'Preencha os campos obrigatórios destacados.' }); })} className="space-y-6">
           <Tabs defaultValue="basico" className="w-full">
             <TabsList className="grid w-full grid-cols-5 h-auto p-1 bg-muted/50">
               <TabsTrigger value="basico" className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm py-3">
