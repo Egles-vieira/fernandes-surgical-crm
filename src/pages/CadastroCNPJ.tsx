@@ -86,12 +86,12 @@ export default function CadastroCNPJ() {
         onEfetivar={handleEfetivar}
       />
 
-      <div className="container mx-auto p-6 max-w-7xl space-y-4">
+      <div className="container mx-auto p-6 max-w-7xl space-y-0">
 
         {/* Barra de Status e Ações - Removida pois agora está fixa no topo */}
 
         {/* Formulário de consulta */}
-        {(status === 'idle' || status === 'erro') && <Card className="border-2">
+        {(status === 'idle' || status === 'erro') && <Card className="border-2 mt-4">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Search className="h-5 w-5" />
@@ -117,7 +117,7 @@ export default function CadastroCNPJ() {
           </Card>}
 
         {/* Progresso */}
-        {status !== 'idle' && status !== 'concluido' && status !== 'erro' && <Card>
+        {status !== 'idle' && status !== 'concluido' && status !== 'erro' && <Card className="mt-4">
             <CardContent className="pt-6">
               <ProgressoCNPJA status={status} progresso={progresso} />
             </CardContent>
@@ -125,7 +125,7 @@ export default function CadastroCNPJ() {
 
         {/* Dados Coletados com Tabs */}
         {status === 'concluido' && dadosColetados && (
-          <Tabs defaultValue="dados" className="w-full mt-2">
+          <Tabs defaultValue="dados" className="w-full">
             <TabsList className="w-full justify-start border-b rounded-none h-auto p-0 bg-transparent">
               <TabsTrigger value="dados" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary">
                 Dados Cadastrais
