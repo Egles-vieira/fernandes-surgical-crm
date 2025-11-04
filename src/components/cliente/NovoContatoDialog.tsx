@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { contatoSchema, type ContatoInput } from "@/lib/validations/contato";
+import { UserPlus, User, Phone, Target, Share2, FileText, Mail, Briefcase } from "lucide-react";
 
 interface NovoContatoDialogProps {
   open: boolean;
@@ -114,19 +115,37 @@ export default function NovoContatoDialog({ open, onOpenChange, clienteId, conta
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Novo Contato</DialogTitle>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto border-2">
+        <DialogHeader className="border-b pb-4">
+          <DialogTitle className="text-2xl font-bold flex items-center gap-2">
+            <UserPlus className="h-6 w-6 text-primary" />
+            Novo Contato
+          </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <Tabs defaultValue="basico" className="w-full">
-            <TabsList className="grid w-full grid-cols-5">
-              <TabsTrigger value="basico">Básico</TabsTrigger>
-              <TabsTrigger value="contato">Contato</TabsTrigger>
-              <TabsTrigger value="qualificacao">Qualificação</TabsTrigger>
-              <TabsTrigger value="social">Social</TabsTrigger>
-              <TabsTrigger value="observacoes">Observações</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-5 h-auto p-1 bg-muted/50">
+              <TabsTrigger value="basico" className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm py-3">
+                <User className="h-4 w-4" />
+                <span className="hidden sm:inline">Básico</span>
+              </TabsTrigger>
+              <TabsTrigger value="contato" className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm py-3">
+                <Phone className="h-4 w-4" />
+                <span className="hidden sm:inline">Contato</span>
+              </TabsTrigger>
+              <TabsTrigger value="qualificacao" className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm py-3">
+                <Target className="h-4 w-4" />
+                <span className="hidden sm:inline">Qualificação</span>
+              </TabsTrigger>
+              <TabsTrigger value="social" className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm py-3">
+                <Share2 className="h-4 w-4" />
+                <span className="hidden sm:inline">Social</span>
+              </TabsTrigger>
+              <TabsTrigger value="observacoes" className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm py-3">
+                <FileText className="h-4 w-4" />
+                <span className="hidden sm:inline">Notas</span>
+              </TabsTrigger>
             </TabsList>
 
             {/* Aba: Informações Básicas */}
@@ -363,11 +382,12 @@ export default function NovoContatoDialog({ open, onOpenChange, clienteId, conta
             </TabsContent>
           </Tabs>
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
+          <DialogFooter className="border-t pt-6 flex gap-3">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting} className="flex-1">
               Cancelar
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button type="submit" disabled={isSubmitting} className="flex-1">
+              <UserPlus className="h-4 w-4 mr-2" />
               {isSubmitting ? "Salvando..." : "Salvar Contato"}
             </Button>
           </DialogFooter>

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, XCircle, UserPlus, Pencil, Trash2, Mail, Phone, Briefcase, Building2 } from "lucide-react";
+import { Search, XCircle, UserPlus, Pencil, Trash2, Mail, Phone, Briefcase, Building2, User, MessageSquare, Target, Share2, FileText } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ProgressoCNPJA } from "@/components/cnpja/ProgressoCNPJA";
@@ -469,26 +469,49 @@ function ContatoDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{titulo}</DialogTitle>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto border-2">
+        <DialogHeader className="border-b pb-4">
+          <DialogTitle className="text-2xl font-bold flex items-center gap-2">
+            <UserPlus className="h-6 w-6 text-primary" />
+            {titulo}
+          </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <Tabs defaultValue="basico" className="w-full">
-            <TabsList className="grid w-full grid-cols-5">
-              <TabsTrigger value="basico">Básico</TabsTrigger>
-              <TabsTrigger value="contato">Contato</TabsTrigger>
-              <TabsTrigger value="qualificacao">Qualificação</TabsTrigger>
-              <TabsTrigger value="social">Social</TabsTrigger>
-              <TabsTrigger value="observacoes">Observações</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-5 h-auto p-1 bg-muted/50">
+              <TabsTrigger value="basico" className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm py-3">
+                <User className="h-4 w-4" />
+                <span className="hidden sm:inline">Básico</span>
+              </TabsTrigger>
+              <TabsTrigger value="contato" className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm py-3">
+                <Phone className="h-4 w-4" />
+                <span className="hidden sm:inline">Contato</span>
+              </TabsTrigger>
+              <TabsTrigger value="qualificacao" className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm py-3">
+                <Target className="h-4 w-4" />
+                <span className="hidden sm:inline">Qualificação</span>
+              </TabsTrigger>
+              <TabsTrigger value="social" className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm py-3">
+                <Share2 className="h-4 w-4" />
+                <span className="hidden sm:inline">Social</span>
+              </TabsTrigger>
+              <TabsTrigger value="observacoes" className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm py-3">
+                <FileText className="h-4 w-4" />
+                <span className="hidden sm:inline">Notas</span>
+              </TabsTrigger>
             </TabsList>
 
             {/* Aba: Informações Básicas */}
-            <TabsContent value="basico" className="space-y-4 mt-4">
-              <div className="grid grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="tratamento">Tratamento</Label>
+            <TabsContent value="basico" className="space-y-6 mt-6">
+              <div className="space-y-4">
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+                  <User className="h-4 w-4" />
+                  Identificação
+                </h3>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="tratamento" className="text-sm font-medium">Tratamento</Label>
                   <Select value={watch("tratamento") || ""} onValueChange={(value) => setValue("tratamento", value as any)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione" />
@@ -504,199 +527,248 @@ function ContatoDialog({
                   </Select>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="primeiro_nome">Nome *</Label>
-                  <Input id="primeiro_nome" {...register("primeiro_nome")} placeholder="João" />
-                  {errors.primeiro_nome && <p className="text-sm text-destructive">{errors.primeiro_nome.message}</p>}
-                </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="primeiro_nome" className="text-sm font-medium">
+                      Nome <span className="text-destructive">*</span>
+                    </Label>
+                    <Input id="primeiro_nome" {...register("primeiro_nome")} placeholder="João" className="border-2" />
+                    {errors.primeiro_nome && <p className="text-sm text-destructive font-medium">{errors.primeiro_nome.message}</p>}
+                  </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="sobrenome">Sobrenome *</Label>
-                  <Input id="sobrenome" {...register("sobrenome")} placeholder="Silva" />
-                  {errors.sobrenome && <p className="text-sm text-destructive">{errors.sobrenome.message}</p>}
+                  <div className="space-y-2">
+                    <Label htmlFor="sobrenome" className="text-sm font-medium">
+                      Sobrenome <span className="text-destructive">*</span>
+                    </Label>
+                    <Input id="sobrenome" {...register("sobrenome")} placeholder="Silva" className="border-2" />
+                    {errors.sobrenome && <p className="text-sm text-destructive font-medium">{errors.sobrenome.message}</p>}
+                  </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="cargo">Cargo</Label>
-                  <Input id="cargo" {...register("cargo")} placeholder="Ex: Gerente de Compras" />
+              <div className="space-y-4 pt-4 border-t">
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+                  <Briefcase className="h-4 w-4" />
+                  Informações Profissionais
+                </h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="cargo" className="text-sm font-medium">Cargo</Label>
+                    <Input id="cargo" {...register("cargo")} placeholder="Ex: Gerente de Compras" className="border-2" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="departamento" className="text-sm font-medium">Departamento</Label>
+                    <Input id="departamento" {...register("departamento")} placeholder="Ex: Compras" className="border-2" />
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="departamento">Departamento</Label>
-                  <Input id="departamento" {...register("departamento")} placeholder="Ex: Compras" />
-                </div>
-              </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="data_nascimento">Data de Nascimento</Label>
-                <Input id="data_nascimento" type="date" {...register("data_nascimento")} />
+                <div className="space-y-2">
+                  <Label htmlFor="data_nascimento" className="text-sm font-medium">Data de Nascimento</Label>
+                  <Input id="data_nascimento" type="date" {...register("data_nascimento")} className="border-2" />
+                </div>
               </div>
             </TabsContent>
 
             {/* Aba: Contato & Preferências */}
-            <TabsContent value="contato" className="space-y-4 mt-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" {...register("email")} placeholder="email@exemplo.com" />
-                  {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
+            <TabsContent value="contato" className="space-y-6 mt-6">
+              <div className="space-y-4">
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+                  <Mail className="h-4 w-4" />
+                  Informações de Contato
+                </h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="email" className="text-sm font-medium">Email</Label>
+                    <Input id="email" type="email" {...register("email")} placeholder="email@exemplo.com" className="border-2" />
+                    {errors.email && <p className="text-sm text-destructive font-medium">{errors.email.message}</p>}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="telefone" className="text-sm font-medium">Telefone</Label>
+                    <Input id="telefone" {...register("telefone")} placeholder="(11) 3333-4444" className="border-2" />
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="telefone">Telefone</Label>
-                  <Input id="telefone" {...register("telefone")} placeholder="(11) 3333-4444" />
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="celular" className="text-sm font-medium">Celular</Label>
+                    <Input id="celular" {...register("celular")} placeholder="(11) 99999-8888" className="border-2" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="whatsapp_numero" className="text-sm font-medium">WhatsApp</Label>
+                    <Input id="whatsapp_numero" {...register("whatsapp_numero")} placeholder="(11) 99999-8888" className="border-2" />
+                  </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="celular">Celular</Label>
-                  <Input id="celular" {...register("celular")} placeholder="(11) 99999-8888" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="whatsapp_numero">WhatsApp</Label>
-                  <Input id="whatsapp_numero" {...register("whatsapp_numero")} placeholder="(11) 99999-8888" />
-                </div>
-              </div>
+              <div className="space-y-4 pt-4 border-t">
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Preferências</h3>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="preferencia_contato">Preferência de Contato</Label>
-                  <Select value={watch("preferencia_contato") || ""} onValueChange={(value) => setValue("preferencia_contato", value as any)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="email">Email</SelectItem>
-                      <SelectItem value="telefone">Telefone</SelectItem>
-                      <SelectItem value="whatsapp">WhatsApp</SelectItem>
-                      <SelectItem value="linkedin">LinkedIn</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="melhor_horario_contato">Melhor Horário</Label>
-                  <Input id="melhor_horario_contato" {...register("melhor_horario_contato")} placeholder="Ex: 14h às 17h" />
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="preferencia_contato" className="text-sm font-medium">Preferência de Contato</Label>
+                    <Select value={watch("preferencia_contato") || ""} onValueChange={(value) => setValue("preferencia_contato", value as any)}>
+                      <SelectTrigger className="border-2">
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="email">Email</SelectItem>
+                        <SelectItem value="telefone">Telefone</SelectItem>
+                        <SelectItem value="whatsapp">WhatsApp</SelectItem>
+                        <SelectItem value="linkedin">LinkedIn</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="melhor_horario_contato" className="text-sm font-medium">Melhor Horário</Label>
+                    <Input id="melhor_horario_contato" {...register("melhor_horario_contato")} placeholder="Ex: 14h às 17h" className="border-2" />
+                  </div>
                 </div>
               </div>
 
               <div className="space-y-4 border-t pt-4">
-                <h4 className="text-sm font-medium">LGPD & Consentimentos</h4>
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="consentimento_lgpd">Consentimento LGPD</Label>
-                  <Switch id="consentimento_lgpd" checked={watch("consentimento_lgpd")} onCheckedChange={(checked) => setValue("consentimento_lgpd", checked)} />
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="aceita_marketing">Aceita Marketing</Label>
-                  <Switch id="aceita_marketing" checked={watch("aceita_marketing")} onCheckedChange={(checked) => setValue("aceita_marketing", checked)} />
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">LGPD & Consentimentos</h3>
+                <div className="bg-muted/30 p-4 rounded-lg space-y-3 border-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="consentimento_lgpd" className="text-sm font-medium">Consentimento LGPD</Label>
+                    <Switch id="consentimento_lgpd" checked={watch("consentimento_lgpd")} onCheckedChange={(checked) => setValue("consentimento_lgpd", checked)} />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="aceita_marketing" className="text-sm font-medium">Aceita Marketing</Label>
+                    <Switch id="aceita_marketing" checked={watch("aceita_marketing")} onCheckedChange={(checked) => setValue("aceita_marketing", checked)} />
+                  </div>
                 </div>
               </div>
             </TabsContent>
 
             {/* Aba: Qualificação & Vendas */}
-            <TabsContent value="qualificacao" className="space-y-4 mt-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="nivel_autoridade">Nível de Autoridade</Label>
-                  <Select value={watch("nivel_autoridade") || ""} onValueChange={(value) => setValue("nivel_autoridade", value as any)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="decisor">Decisor</SelectItem>
-                      <SelectItem value="influenciador">Influenciador</SelectItem>
-                      <SelectItem value="usuario_final">Usuário Final</SelectItem>
-                      <SelectItem value="bloqueador">Bloqueador</SelectItem>
-                    </SelectContent>
-                  </Select>
+            <TabsContent value="qualificacao" className="space-y-6 mt-6">
+              <div className="space-y-4">
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+                  <Target className="h-4 w-4" />
+                  Qualificação BANT
+                </h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="nivel_autoridade" className="text-sm font-medium">Nível de Autoridade</Label>
+                    <Select value={watch("nivel_autoridade") || ""} onValueChange={(value) => setValue("nivel_autoridade", value as any)}>
+                      <SelectTrigger className="border-2">
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="decisor">Decisor</SelectItem>
+                        <SelectItem value="influenciador">Influenciador</SelectItem>
+                        <SelectItem value="usuario_final">Usuário Final</SelectItem>
+                        <SelectItem value="bloqueador">Bloqueador</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="score_qualificacao" className="text-sm font-medium">Score (0-100)</Label>
+                    <Input id="score_qualificacao" type="number" min="0" max="100" {...register("score_qualificacao", { valueAsNumber: true })} className="border-2" />
+                  </div>
                 </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="budget_estimado" className="text-sm font-medium">Budget Estimado (R$)</Label>
+                    <Input id="budget_estimado" type="number" step="0.01" {...register("budget_estimado", { valueAsNumber: true })} className="border-2" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="timeline_decisao" className="text-sm font-medium">Timeline de Decisão</Label>
+                    <Input id="timeline_decisao" {...register("timeline_decisao")} placeholder="Ex: 3 meses" className="border-2" />
+                  </div>
+                </div>
+
                 <div className="space-y-2">
-                  <Label htmlFor="score_qualificacao">Score (0-100)</Label>
-                  <Input id="score_qualificacao" type="number" min="0" max="100" {...register("score_qualificacao", { valueAsNumber: true })} />
+                  <Label htmlFor="necessidade_identificada" className="text-sm font-medium">Necessidade Identificada</Label>
+                  <Textarea id="necessidade_identificada" {...register("necessidade_identificada")} rows={3} className="border-2" />
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="budget_estimado">Budget Estimado (R$)</Label>
-                  <Input id="budget_estimado" type="number" step="0.01" {...register("budget_estimado", { valueAsNumber: true })} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="timeline_decisao">Timeline de Decisão</Label>
-                  <Input id="timeline_decisao" {...register("timeline_decisao")} placeholder="Ex: 3 meses" />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="necessidade_identificada">Necessidade Identificada</Label>
-                <Textarea id="necessidade_identificada" {...register("necessidade_identificada")} rows={3} />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="origem_lead">Origem do Lead</Label>
-                  <Input id="origem_lead" {...register("origem_lead")} placeholder="Ex: Website, Indicação" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="campanha_origem">Campanha</Label>
-                  <Input id="campanha_origem" {...register("campanha_origem")} placeholder="Nome da campanha" />
+              <div className="space-y-4 pt-4 border-t">
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Origem & Campanha</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="origem_lead" className="text-sm font-medium">Origem do Lead</Label>
+                    <Input id="origem_lead" {...register("origem_lead")} placeholder="Ex: Website, Indicação" className="border-2" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="campanha_origem" className="text-sm font-medium">Campanha</Label>
+                    <Input id="campanha_origem" {...register("campanha_origem")} placeholder="Nome da campanha" className="border-2" />
+                  </div>
                 </div>
               </div>
             </TabsContent>
 
             {/* Aba: Redes Sociais */}
-            <TabsContent value="social" className="space-y-4 mt-4">
-              <div className="space-y-2">
-                <Label htmlFor="linkedin_url">LinkedIn</Label>
-                <Input id="linkedin_url" {...register("linkedin_url")} placeholder="https://linkedin.com/in/..." />
-                {errors.linkedin_url && <p className="text-sm text-destructive">{errors.linkedin_url.message}</p>}
-              </div>
+            <TabsContent value="social" className="space-y-6 mt-6">
+              <div className="space-y-4">
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+                  <Share2 className="h-4 w-4" />
+                  Redes Sociais & Contatos Online
+                </h3>
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="linkedin_url" className="text-sm font-medium">LinkedIn</Label>
+                    <Input id="linkedin_url" {...register("linkedin_url")} placeholder="https://linkedin.com/in/..." className="border-2" />
+                    {errors.linkedin_url && <p className="text-sm text-destructive font-medium">{errors.linkedin_url.message}</p>}
+                  </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="twitter_url">Twitter / X</Label>
-                <Input id="twitter_url" {...register("twitter_url")} placeholder="https://twitter.com/..." />
-              </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="twitter_url" className="text-sm font-medium">Twitter / X</Label>
+                    <Input id="twitter_url" {...register("twitter_url")} placeholder="https://twitter.com/..." className="border-2" />
+                  </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="facebook_url">Facebook</Label>
-                <Input id="facebook_url" {...register("facebook_url")} placeholder="https://facebook.com/..." />
-              </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="facebook_url" className="text-sm font-medium">Facebook</Label>
+                    <Input id="facebook_url" {...register("facebook_url")} placeholder="https://facebook.com/..." className="border-2" />
+                  </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="instagram_url">Instagram</Label>
-                <Input id="instagram_url" {...register("instagram_url")} placeholder="https://instagram.com/..." />
-              </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="instagram_url" className="text-sm font-medium">Instagram</Label>
+                    <Input id="instagram_url" {...register("instagram_url")} placeholder="https://instagram.com/..." className="border-2" />
+                  </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="skype_id">Skype</Label>
-                <Input id="skype_id" {...register("skype_id")} placeholder="usuario.skype" />
+                  <div className="space-y-2">
+                    <Label htmlFor="skype_id" className="text-sm font-medium">Skype</Label>
+                    <Input id="skype_id" {...register("skype_id")} placeholder="usuario.skype" className="border-2" />
+                  </div>
+                </div>
               </div>
             </TabsContent>
 
             {/* Aba: Observações */}
-            <TabsContent value="observacoes" className="space-y-4 mt-4">
-              <div className="space-y-2">
-                <Label htmlFor="dores_identificadas">Dores Identificadas</Label>
-                <Textarea id="dores_identificadas" {...register("dores_identificadas")} rows={4} placeholder="Quais problemas o contato enfrenta?" />
-              </div>
+            <TabsContent value="observacoes" className="space-y-6 mt-6">
+              <div className="space-y-4">
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  Notas & Observações
+                </h3>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="dores_identificadas" className="text-sm font-medium">Dores Identificadas</Label>
+                    <Textarea id="dores_identificadas" {...register("dores_identificadas")} rows={4} placeholder="Quais problemas o contato enfrenta?" className="border-2" />
+                  </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="objetivos_profissionais">Objetivos Profissionais</Label>
-                <Textarea id="objetivos_profissionais" {...register("objetivos_profissionais")} rows={4} placeholder="Metas e objetivos do contato" />
-              </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="objetivos_profissionais" className="text-sm font-medium">Objetivos Profissionais</Label>
+                    <Textarea id="objetivos_profissionais" {...register("objetivos_profissionais")} rows={4} placeholder="Metas e objetivos do contato" className="border-2" />
+                  </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="observacoes">Observações Gerais</Label>
-                <Textarea id="observacoes" {...register("observacoes")} rows={4} placeholder="Informações adicionais" />
+                  <div className="space-y-2">
+                    <Label htmlFor="observacoes" className="text-sm font-medium">Observações Gerais</Label>
+                    <Textarea id="observacoes" {...register("observacoes")} rows={4} placeholder="Informações adicionais" className="border-2" />
+                  </div>
+                </div>
               </div>
             </TabsContent>
           </Tabs>
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+          <DialogFooter className="border-t pt-6 flex gap-3">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="flex-1">
               Cancelar
             </Button>
-            <Button type="submit">
+            <Button type="submit" className="flex-1">
+              <UserPlus className="h-4 w-4 mr-2" />
               Salvar Contato
             </Button>
           </DialogFooter>
