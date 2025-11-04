@@ -46,10 +46,346 @@ export type Database = {
           },
         ]
       }
+      cliente_api_logs: {
+        Row: {
+          cliente_id: string | null
+          cnpj: string
+          created_at: string | null
+          custo_creditos: number | null
+          dados_resposta: Json | null
+          decisao_tomada: boolean | null
+          erro: string | null
+          id: string
+          motivo_decisao: string | null
+          sucesso: boolean | null
+          tempo_resposta_ms: number | null
+          tipo_consulta: string
+        }
+        Insert: {
+          cliente_id?: string | null
+          cnpj: string
+          created_at?: string | null
+          custo_creditos?: number | null
+          dados_resposta?: Json | null
+          decisao_tomada?: boolean | null
+          erro?: string | null
+          id?: string
+          motivo_decisao?: string | null
+          sucesso?: boolean | null
+          tempo_resposta_ms?: number | null
+          tipo_consulta: string
+        }
+        Update: {
+          cliente_id?: string | null
+          cnpj?: string
+          created_at?: string | null
+          custo_creditos?: number | null
+          dados_resposta?: Json | null
+          decisao_tomada?: boolean | null
+          erro?: string | null
+          id?: string
+          motivo_decisao?: string | null
+          sucesso?: boolean | null
+          tempo_resposta_ms?: number | null
+          tipo_consulta?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cliente_api_logs_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cliente_api_logs_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "vw_clientes_completo"
+            referencedColumns: ["cliente_id"]
+          },
+        ]
+      }
+      cliente_documentos: {
+        Row: {
+          arquivo_nome: string | null
+          arquivo_url: string | null
+          cliente_id: string | null
+          created_at: string | null
+          id: string
+          tamanho_bytes: number | null
+          tipo: string
+        }
+        Insert: {
+          arquivo_nome?: string | null
+          arquivo_url?: string | null
+          cliente_id?: string | null
+          created_at?: string | null
+          id?: string
+          tamanho_bytes?: number | null
+          tipo: string
+        }
+        Update: {
+          arquivo_nome?: string | null
+          arquivo_url?: string | null
+          cliente_id?: string | null
+          created_at?: string | null
+          id?: string
+          tamanho_bytes?: number | null
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cliente_documentos_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cliente_documentos_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "vw_clientes_completo"
+            referencedColumns: ["cliente_id"]
+          },
+        ]
+      }
+      cliente_enderecos: {
+        Row: {
+          bairro: string | null
+          cep: string | null
+          cidade: string | null
+          cliente_id: string | null
+          codigo_ibge: string | null
+          complemento: string | null
+          created_at: string | null
+          estado: string | null
+          id: string
+          latitude: number | null
+          logradouro: string | null
+          longitude: number | null
+          numero: string | null
+          pais: string | null
+          tipo: string
+          updated_at: string | null
+          validado: boolean | null
+        }
+        Insert: {
+          bairro?: string | null
+          cep?: string | null
+          cidade?: string | null
+          cliente_id?: string | null
+          codigo_ibge?: string | null
+          complemento?: string | null
+          created_at?: string | null
+          estado?: string | null
+          id?: string
+          latitude?: number | null
+          logradouro?: string | null
+          longitude?: number | null
+          numero?: string | null
+          pais?: string | null
+          tipo: string
+          updated_at?: string | null
+          validado?: boolean | null
+        }
+        Update: {
+          bairro?: string | null
+          cep?: string | null
+          cidade?: string | null
+          cliente_id?: string | null
+          codigo_ibge?: string | null
+          complemento?: string | null
+          created_at?: string | null
+          estado?: string | null
+          id?: string
+          latitude?: number | null
+          logradouro?: string | null
+          longitude?: number | null
+          numero?: string | null
+          pais?: string | null
+          tipo?: string
+          updated_at?: string | null
+          validado?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cliente_enderecos_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cliente_enderecos_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "vw_clientes_completo"
+            referencedColumns: ["cliente_id"]
+          },
+        ]
+      }
+      cliente_filiais: {
+        Row: {
+          cliente_matriz_id: string | null
+          cnpj: string
+          created_at: string | null
+          emails: Json | null
+          endereco: Json | null
+          id: string
+          nome_fantasia: string | null
+          razao_social: string | null
+          situacao: string | null
+          telefones: Json | null
+        }
+        Insert: {
+          cliente_matriz_id?: string | null
+          cnpj: string
+          created_at?: string | null
+          emails?: Json | null
+          endereco?: Json | null
+          id?: string
+          nome_fantasia?: string | null
+          razao_social?: string | null
+          situacao?: string | null
+          telefones?: Json | null
+        }
+        Update: {
+          cliente_matriz_id?: string | null
+          cnpj?: string
+          created_at?: string | null
+          emails?: Json | null
+          endereco?: Json | null
+          id?: string
+          nome_fantasia?: string | null
+          razao_social?: string | null
+          situacao?: string | null
+          telefones?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cliente_filiais_cliente_matriz_id_fkey"
+            columns: ["cliente_matriz_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cliente_filiais_cliente_matriz_id_fkey"
+            columns: ["cliente_matriz_id"]
+            isOneToOne: false
+            referencedRelation: "vw_clientes_completo"
+            referencedColumns: ["cliente_id"]
+          },
+        ]
+      }
+      cliente_inscricoes_estaduais: {
+        Row: {
+          ativo: boolean | null
+          cliente_id: string | null
+          created_at: string | null
+          data_fim: string | null
+          data_inicio: string | null
+          id: string
+          inscricao_estadual: string | null
+          situacao: string | null
+          uf: string
+        }
+        Insert: {
+          ativo?: boolean | null
+          cliente_id?: string | null
+          created_at?: string | null
+          data_fim?: string | null
+          data_inicio?: string | null
+          id?: string
+          inscricao_estadual?: string | null
+          situacao?: string | null
+          uf: string
+        }
+        Update: {
+          ativo?: boolean | null
+          cliente_id?: string | null
+          created_at?: string | null
+          data_fim?: string | null
+          data_inicio?: string | null
+          id?: string
+          inscricao_estadual?: string | null
+          situacao?: string | null
+          uf?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cliente_inscricoes_estaduais_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cliente_inscricoes_estaduais_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "vw_clientes_completo"
+            referencedColumns: ["cliente_id"]
+          },
+        ]
+      }
+      cliente_socios: {
+        Row: {
+          cliente_id: string | null
+          cpf_cnpj: string | null
+          created_at: string | null
+          data_entrada: string | null
+          id: string
+          nome: string
+          percentual_participacao: number | null
+          qualificacao: string | null
+        }
+        Insert: {
+          cliente_id?: string | null
+          cpf_cnpj?: string | null
+          created_at?: string | null
+          data_entrada?: string | null
+          id?: string
+          nome: string
+          percentual_participacao?: number | null
+          qualificacao?: string | null
+        }
+        Update: {
+          cliente_id?: string | null
+          cpf_cnpj?: string | null
+          created_at?: string | null
+          data_entrada?: string | null
+          id?: string
+          nome?: string
+          percentual_participacao?: number | null
+          qualificacao?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cliente_socios_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cliente_socios_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "vw_clientes_completo"
+            referencedColumns: ["cliente_id"]
+          },
+        ]
+      }
       clientes: {
         Row: {
           atividade: string | null
+          capital_social: number | null
           cgc: string | null
+          cnae_descricao: string | null
+          cnae_principal: string | null
           cod_cond_pag: number | null
           cod_emitente: number | null
           cod_gr_cli: number | null
@@ -59,7 +395,11 @@ export type Database = {
           cond_pag_fixa: Database["public"]["Enums"]["yes_no"] | null
           conta_id: string | null
           created_at: string
+          dados_cnpja: Json | null
+          data_abertura: string | null
+          data_opcao_simples: string | null
           e_mail: string | null
+          eh_matriz: boolean | null
           email_financeiro: string | null
           email_xml: string | null
           equipe_id: string | null
@@ -68,21 +408,35 @@ export type Database = {
           identific: Database["public"]["Enums"]["identificacao_tipo"]
           ind_cre_cli: string | null
           ins_estadual: string | null
+          inscricao_suframa: string | null
           lim_credito: number | null
           limite_disponivel: number | null
+          metadados_consulta: Json | null
           nat_operacao: string | null
           natureza: Database["public"]["Enums"]["natureza_tipo"]
+          natureza_juridica: string | null
           nome_abrev: string | null
           nome_emit: string | null
+          nome_fantasia: string | null
           observacoes: string | null
+          optante_mei: boolean | null
+          optante_simples: boolean | null
+          porte: string | null
+          regime_tributario: string | null
+          situacao_cadastral: string | null
+          situacao_suframa: string | null
           telefone1: string | null
+          ultima_consulta_cnpja: string | null
           updated_at: string
           user_id: string
           vendedor_id: string | null
         }
         Insert: {
           atividade?: string | null
+          capital_social?: number | null
           cgc?: string | null
+          cnae_descricao?: string | null
+          cnae_principal?: string | null
           cod_cond_pag?: number | null
           cod_emitente?: number | null
           cod_gr_cli?: number | null
@@ -92,7 +446,11 @@ export type Database = {
           cond_pag_fixa?: Database["public"]["Enums"]["yes_no"] | null
           conta_id?: string | null
           created_at?: string
+          dados_cnpja?: Json | null
+          data_abertura?: string | null
+          data_opcao_simples?: string | null
           e_mail?: string | null
+          eh_matriz?: boolean | null
           email_financeiro?: string | null
           email_xml?: string | null
           equipe_id?: string | null
@@ -101,21 +459,35 @@ export type Database = {
           identific?: Database["public"]["Enums"]["identificacao_tipo"]
           ind_cre_cli?: string | null
           ins_estadual?: string | null
+          inscricao_suframa?: string | null
           lim_credito?: number | null
           limite_disponivel?: number | null
+          metadados_consulta?: Json | null
           nat_operacao?: string | null
           natureza?: Database["public"]["Enums"]["natureza_tipo"]
+          natureza_juridica?: string | null
           nome_abrev?: string | null
           nome_emit?: string | null
+          nome_fantasia?: string | null
           observacoes?: string | null
+          optante_mei?: boolean | null
+          optante_simples?: boolean | null
+          porte?: string | null
+          regime_tributario?: string | null
+          situacao_cadastral?: string | null
+          situacao_suframa?: string | null
           telefone1?: string | null
+          ultima_consulta_cnpja?: string | null
           updated_at?: string
           user_id: string
           vendedor_id?: string | null
         }
         Update: {
           atividade?: string | null
+          capital_social?: number | null
           cgc?: string | null
+          cnae_descricao?: string | null
+          cnae_principal?: string | null
           cod_cond_pag?: number | null
           cod_emitente?: number | null
           cod_gr_cli?: number | null
@@ -125,7 +497,11 @@ export type Database = {
           cond_pag_fixa?: Database["public"]["Enums"]["yes_no"] | null
           conta_id?: string | null
           created_at?: string
+          dados_cnpja?: Json | null
+          data_abertura?: string | null
+          data_opcao_simples?: string | null
           e_mail?: string | null
+          eh_matriz?: boolean | null
           email_financeiro?: string | null
           email_xml?: string | null
           equipe_id?: string | null
@@ -134,14 +510,25 @@ export type Database = {
           identific?: Database["public"]["Enums"]["identificacao_tipo"]
           ind_cre_cli?: string | null
           ins_estadual?: string | null
+          inscricao_suframa?: string | null
           lim_credito?: number | null
           limite_disponivel?: number | null
+          metadados_consulta?: Json | null
           nat_operacao?: string | null
           natureza?: Database["public"]["Enums"]["natureza_tipo"]
+          natureza_juridica?: string | null
           nome_abrev?: string | null
           nome_emit?: string | null
+          nome_fantasia?: string | null
           observacoes?: string | null
+          optante_mei?: boolean | null
+          optante_simples?: boolean | null
+          porte?: string | null
+          regime_tributario?: string | null
+          situacao_cadastral?: string | null
+          situacao_suframa?: string | null
           telefone1?: string | null
+          ultima_consulta_cnpja?: string | null
           updated_at?: string
           user_id?: string
           vendedor_id?: string | null
@@ -169,6 +556,63 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      cnpja_configuracoes: {
+        Row: {
+          configs_extras: Json | null
+          created_at: string | null
+          emite_nf: boolean | null
+          gerar_comprovantes_automaticamente: boolean | null
+          id: string
+          limite_consultas_simultaneas: number | null
+          operacoes_interestaduais: boolean | null
+          sempre_validar_cep: boolean | null
+          tempo_cache_company_dias: number | null
+          tempo_cache_office_dias: number | null
+          tempo_cache_simples_dias: number | null
+          tempo_cache_sintegra_dias: number | null
+          tempo_cache_suframa_dias: number | null
+          trabalha_com_icms: boolean | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          configs_extras?: Json | null
+          created_at?: string | null
+          emite_nf?: boolean | null
+          gerar_comprovantes_automaticamente?: boolean | null
+          id?: string
+          limite_consultas_simultaneas?: number | null
+          operacoes_interestaduais?: boolean | null
+          sempre_validar_cep?: boolean | null
+          tempo_cache_company_dias?: number | null
+          tempo_cache_office_dias?: number | null
+          tempo_cache_simples_dias?: number | null
+          tempo_cache_sintegra_dias?: number | null
+          tempo_cache_suframa_dias?: number | null
+          trabalha_com_icms?: boolean | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          configs_extras?: Json | null
+          created_at?: string | null
+          emite_nf?: boolean | null
+          gerar_comprovantes_automaticamente?: boolean | null
+          id?: string
+          limite_consultas_simultaneas?: number | null
+          operacoes_interestaduais?: boolean | null
+          sempre_validar_cep?: boolean | null
+          tempo_cache_company_dias?: number | null
+          tempo_cache_office_dias?: number | null
+          tempo_cache_simples_dias?: number | null
+          tempo_cache_sintegra_dias?: number | null
+          tempo_cache_suframa_dias?: number | null
+          trabalha_com_icms?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       condicoes_pagamento: {
         Row: {
