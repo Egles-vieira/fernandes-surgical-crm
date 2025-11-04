@@ -265,10 +265,11 @@ export default function CadastroCNPJ() {
                     Novo Contato
                   </Button>
                 </CardHeader>
-                <CardContent className="space-y-3">
+                <CardContent>
                   {contatos.length > 0 ? (
-                    contatos.map((contato) => (
-                      <div key={contato.id} className="p-3 rounded-lg border space-y-3 hover:bg-accent/50 transition-colors">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {contatos.map((contato) => (
+                      <div key={contato.id} className="p-3 rounded-lg border space-y-3 hover:bg-accent/50 transition-colors h-full">
                         <div className="flex items-start gap-3">
                           <div className="h-10 w-10 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center font-medium text-sm flex-shrink-0">
                             {contato.primeiro_nome?.charAt(0)}{contato.sobrenome?.charAt(0)}
@@ -340,7 +341,8 @@ export default function CadastroCNPJ() {
                           </div>
                         </div>
                       </div>
-                    ))
+                      ))}
+                    </div>
                   ) : (
                     <div className="text-center py-8 text-muted-foreground">
                       <UserPlus className="h-10 w-10 mx-auto mb-2 opacity-20" />
