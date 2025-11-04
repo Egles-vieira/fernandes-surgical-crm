@@ -86,7 +86,7 @@ export default function CadastroCNPJ() {
         onEfetivar={handleEfetivar}
       />
 
-      <div className="container mx-auto p-6 max-w-7xl space-y-0">
+      <div className="container mx-auto py-6 max-w-7xl space-y-0">
 
         {/* Barra de Status e Ações - Removida pois agora está fixa no topo */}
 
@@ -125,7 +125,7 @@ export default function CadastroCNPJ() {
 
         {/* Dados Coletados com Tabs */}
         {status === 'concluido' && dadosColetados && (
-          <Tabs defaultValue="dados" className="w-full -mx-6">
+          <Tabs defaultValue="dados" className="w-full px-6">
             <TabsList className="w-full justify-start border-b rounded-none h-auto p-0 bg-transparent">
               <TabsTrigger value="dados" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary">
                 Dados Cadastrais
