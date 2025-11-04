@@ -106,30 +106,33 @@ export default function CadastroCNPJ() {
   return <div className="min-h-screen bg-background">
       <div className="container mx-auto p-6 max-w-7xl space-y-4">
 
-        {/* Status da Proposta */}
-        <div className="flex items-center gap-2 text-sm">
-          <span className="text-muted-foreground">Status da Proposta:</span>
-          {renderStatusBadge()}
-        </div>
-
-        {/* Barra de Ações */}
+        {/* Barra de Status e Ações */}
         {status === 'concluido' && dadosColetados && (
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" className="gap-2">
-              <Calculator className="h-4 w-4" />
-              Calcular
-            </Button>
-            <Button variant="outline" size="sm" className="gap-2" onClick={handleNovaConsulta}>
-              <X className="h-4 w-4" />
-              Cancelar
-            </Button>
-            <Button variant="outline" size="sm" className="gap-2">
-              Desistir
-            </Button>
-            <Button variant="default" size="sm" className="gap-2">
-              <Edit className="h-4 w-4" />
-              Editar
-            </Button>
+          <div className="flex items-center justify-between bg-muted/30 px-4 py-3 rounded-lg border">
+            {/* Status à esquerda */}
+            <div className="flex items-center gap-2 text-sm">
+              <span className="text-muted-foreground">Status da Proposta:</span>
+              {renderStatusBadge()}
+            </div>
+
+            {/* Botões à direita */}
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" className="gap-2">
+                <Calculator className="h-4 w-4" />
+                Calcular
+              </Button>
+              <Button variant="outline" size="sm" className="gap-2" onClick={handleNovaConsulta}>
+                <X className="h-4 w-4" />
+                Cancelar
+              </Button>
+              <Button variant="outline" size="sm" className="gap-2">
+                Desistir
+              </Button>
+              <Button variant="default" size="sm" className="gap-2">
+                <Edit className="h-4 w-4" />
+                Editar
+              </Button>
+            </div>
           </div>
         )}
 
