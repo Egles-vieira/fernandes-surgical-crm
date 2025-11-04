@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Plus, Edit, Phone, Upload, Trash2, Mail, FileText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { CadastroCNPJDialog } from "@/components/cnpja/CadastroCNPJDialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -48,6 +49,7 @@ export default function Clientes() {
   const [isEditing, setIsEditing] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [clienteToDelete, setClienteToDelete] = useState<string | null>(null);
+  const [showCNPJDialog, setShowCNPJDialog] = useState(false);
 
   // Sincronizar view com preferências do usuário
   useEffect(() => {
@@ -159,7 +161,7 @@ export default function Clientes() {
   };
   return <div className="p-8">
       {/* Filters Bar */}
-      <ClientesFilters searchTerm={searchTerm} onSearchChange={setSearchTerm} view={view} onViewChange={handleViewChange} onNovoCliente={() => openForm()} onImportarCSV={() => navigate('/importar-clientes')} onFilterChange={filters => {
+      <ClientesFilters searchTerm={searchTerm} onSearchChange={setSearchTerm} view={view} onViewChange={handleViewChange} onNovoCliente={() => openForm()} onImportarCSV={() => navigate('/importar-clientes')} onCadastrarViaCNPJ={() => setShowCNPJDialog(true)} onFilterChange={filters => {
       console.log("Filtros aplicados:", filters);
       // Aqui você pode implementar a lógica de filtros quando necessário
     }} />
@@ -548,5 +550,14 @@ export default function Clientes() {
           </Form>
         </DialogContent>
       </Dialog>
+
+      {/* CNPJ Dialog */}
+      <CadastroCNPJDialog 
+        open={showCNPJDialog} 
+        onOpenChange={setShowCNPJDialog}
+        onClienteCriado={(clienteId) => {
+          navigate(`/clientes/${clienteId}`);
+        }}
+      />
     </div>;
 }

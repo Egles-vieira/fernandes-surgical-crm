@@ -1,4 +1,4 @@
-import { Filter, Building2, DollarSign, Calendar, SlidersHorizontal, Search, LayoutGrid, List, Plus, Upload, ChevronDown } from "lucide-react";
+import { Filter, Building2, DollarSign, Calendar, SlidersHorizontal, Search, LayoutGrid, List, Plus, Upload, ChevronDown, FileSearch } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -25,6 +25,7 @@ interface ClientesFiltersProps {
   onFilterChange?: (filters: FilterValues) => void;
   onNovoCliente: () => void;
   onImportarCSV: () => void;
+  onCadastrarViaCNPJ?: () => void;
 }
 
 interface FilterValues {
@@ -35,7 +36,7 @@ interface FilterValues {
   ordenacao?: string;
 }
 
-export function ClientesFilters({ searchTerm, onSearchChange, view, onViewChange, onFilterChange, onNovoCliente, onImportarCSV }: ClientesFiltersProps) {
+export function ClientesFilters({ searchTerm, onSearchChange, view, onViewChange, onFilterChange, onNovoCliente, onImportarCSV, onCadastrarViaCNPJ }: ClientesFiltersProps) {
   const handleFilterChange = (key: keyof FilterValues, value: string) => {
     if (onFilterChange) {
       onFilterChange({ [key]: value });
@@ -154,6 +155,12 @@ export function ClientesFilters({ searchTerm, onSearchChange, view, onViewChange
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
+          {onCadastrarViaCNPJ && (
+            <DropdownMenuItem onClick={onCadastrarViaCNPJ}>
+              <FileSearch className="mr-2 h-4 w-4" />
+              Cadastrar via CNPJ
+            </DropdownMenuItem>
+          )}
           <DropdownMenuItem onClick={onImportarCSV}>
             <Upload className="mr-2 h-4 w-4" />
             Importar CSV
