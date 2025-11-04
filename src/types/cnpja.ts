@@ -27,6 +27,8 @@ export interface DadosOffice {
       name: string;
     };
     municipality?: number;
+    latitude?: number;      // Coordenadas geográficas
+    longitude?: number;     // Coordenadas geográficas
   };
   phones?: Array<{
     type?: string;
@@ -148,11 +150,23 @@ export interface DadosIE {
   situation?: string;
 }
 
+export interface IncentivoCNPJ {
+  tribute: string;       // IPI, ICMS, PIS, COFINS, etc.
+  benefit: string;       // Isenção, Redução, etc.
+  purpose: string;       // Finalidade do incentivo
+  basis: string;         // Base legal
+}
+
 export interface DadosSuframa {
-  taxId: string;
-  registration?: string;
-  status?: string;
-  situation?: string;
+  number: string;                    // Inscrição Suframa
+  since: string;                     // Data de cadastro
+  approved: boolean;                 // Se está aprovada
+  approvalDate: string | null;       // Data de aprovação
+  status: {
+    id: number;
+    text: string;
+  };
+  incentives: IncentivoCNPJ[];       // Array de incentivos fiscais
 }
 
 export interface Decisao {
@@ -191,7 +205,7 @@ export interface DadosConsolidados {
   socios?: any[] | null;
   simples?: DadosSimples | null;
   ie?: DadosIE | null;
-  suframa?: DadosSuframa | null;
+  suframa?: DadosSuframa[] | null;  // Array de registros Suframa
 }
 
 export interface ResultadoConsulta {

@@ -17,7 +17,8 @@ import {
   CheckCircle2,
   XCircle,
   ClipboardList,
-  Globe
+  Globe,
+  Navigation
 } from "lucide-react";
 import {
   formatarCNPJ,
@@ -26,7 +27,10 @@ import {
   formatarData,
   obterSituacaoCadastral,
   formatarCapitalSocial,
-  formatarCNAE
+  formatarCNAE,
+  formatarInscricaoSuframa,
+  obterCorIncentivo,
+  obterIconeIncentivo
 } from "@/lib/cnpja-utils";
 
 interface DadosColetadosPreviewProps {
@@ -481,27 +485,94 @@ export function DadosColetadosPreview({ dados }: DadosColetadosPreviewProps) {
         </Card>
       )}
 
-      {/* Suframa */}
-      {dados.suframa && dados.suframa.registration && (
-        <Card>
+      {/* Suframa - Zona Franca */}
+      {dados.suframa && Array.isArray(dados.suframa) && dados.suframa.length > 0 && (
+        <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5" />
-              Suframa
+              <Globe className="h-5 w-5" />
+              Suframa - Zona Franca de Manaus
+              <Badge variant="secondary">{dados.suframa.length}</Badge>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2">
-              <div>
-                <p className="text-sm text-muted-foreground">Inscrição</p>
-                <p className="font-medium font-mono">{dados.suframa.registration}</p>
-              </div>
-              {dados.suframa.situation && (
-                <div>
-                  <p className="text-sm text-muted-foreground">Situação</p>
-                  <Badge>{dados.suframa.situation}</Badge>
+            <div className="space-y-6">
+              {dados.suframa.map((registro, index) => (
+                <div key={index} className="border rounded-lg p-4 hover:border-primary/50 transition-colors">
+                  {/* Cabeçalho do Registro */}
+                  <div className="flex items-start justify-between mb-4 flex-wrap gap-3">
+                    <div className="flex-1 min-w-[200px]">
+                      <p className="text-sm text-muted-foreground">Inscrição Suframa</p>
+                      <p className="font-mono font-bold text-lg text-primary">
+                        {formatarInscricaoSuframa(registro.number)}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        Cadastrado em {formatarData(registro.since)}
+                      </p>
+                    </div>
+                    <div className="flex flex-col items-end gap-2">
+                      <Badge variant={registro.status.id === 1 ? "default" : "secondary"}>
+                        {registro.status.text}
+                      </Badge>
+                      <Badge variant={registro.approved ? "default" : "outline"}>
+                        {registro.approved ? "✓ Aprovada" : "⏳ Pendente"}
+                      </Badge>
+                    </div>
+                  </div>
+
+                  {registro.approvalDate && (
+                    <div className="mb-4 flex items-center gap-2 text-sm text-muted-foreground">
+                      <CheckCircle2 className="h-4 w-4 text-green-600" />
+                      Data de Aprovação: {formatarData(registro.approvalDate)}
+                    </div>
+                  )}
+
+                  {/* Incentivos Fiscais */}
+                  {registro.incentives && registro.incentives.length > 0 && (
+                    <>
+                      <div className="border-t pt-4 mt-4">
+                        <p className="font-semibold mb-3 flex items-center gap-2">
+                          <Scale className="h-4 w-4" />
+                          Incentivos Fiscais
+                          <Badge variant="secondary">{registro.incentives.length}</Badge>
+                        </p>
+                        <div className="space-y-3">
+                          {registro.incentives.map((incentivo, idx) => (
+                            <div 
+                              key={idx} 
+                              className="bg-accent/50 rounded-lg p-4 hover:bg-accent transition-colors"
+                            >
+                              {/* Cabeçalho do Incentivo */}
+                              <div className="flex items-center gap-2 mb-3 flex-wrap">
+                                <span className="text-2xl">{obterIconeIncentivo(incentivo.tribute)}</span>
+                                <Badge className={obterCorIncentivo(incentivo.tribute)}>
+                                  {incentivo.tribute}
+                                </Badge>
+                                <Badge variant="secondary">{incentivo.benefit}</Badge>
+                              </div>
+
+                              {/* Detalhes */}
+                              <div className="space-y-2 text-sm">
+                                <div>
+                                  <p className="text-muted-foreground text-xs font-medium mb-1">Finalidade</p>
+                                  <p className="text-foreground leading-relaxed">{incentivo.purpose}</p>
+                                </div>
+                                <div>
+                                  <p className="text-muted-foreground text-xs font-medium mb-1">Base Legal</p>
+                                  <p className="font-mono text-xs bg-background px-3 py-2 rounded border">
+                                    {incentivo.basis}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
-              )}
+              ))}
             </div>
           </CardContent>
         </Card>

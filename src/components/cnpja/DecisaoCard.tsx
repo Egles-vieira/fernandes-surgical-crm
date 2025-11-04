@@ -183,19 +183,24 @@ export function DecisaoCard({ titulo, decisao, dados, tipoConsulta }: DecisaoCar
     }
 
     // Renderizar Suframa
-    if (tipoConsulta === 'suframa' && dados.suframa) {
-      const suframa = dados.suframa;
+    if (tipoConsulta === 'suframa' && dados.suframa && Array.isArray(dados.suframa) && dados.suframa.length > 0) {
+      const suframa = dados.suframa[0]; // Pega o primeiro registro
       return (
         <div className="mt-3 p-3 bg-background/50 rounded-lg space-y-2">
           <div className="flex items-center gap-2 text-sm font-medium">
             <Shield className="h-4 w-4" />
             Suframa
           </div>
-          <div className="text-sm font-mono">{suframa.registration}</div>
-          {(suframa.status || suframa.situation) && (
+          <div className="text-sm font-mono">{suframa.number}</div>
+          {suframa.status && (
             <Badge variant="outline" className="text-xs">
-              {suframa.status || suframa.situation}
+              {suframa.status.text}
             </Badge>
+          )}
+          {suframa.since && (
+            <div className="text-xs text-muted-foreground">
+              Cadastrado em: {formatarData(suframa.since)}
+            </div>
           )}
         </div>
       );
