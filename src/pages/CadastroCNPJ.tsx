@@ -24,7 +24,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { contatoSchema, type ContatoInput } from "@/lib/validations/contato";
 import { useSolicitacoesCadastro } from "@/hooks/useSolicitacoesCadastro";
-import { AutoSaveIndicator } from "@/components/solicitacoes/AutoSaveIndicator";
 import { supabase } from "@/integrations/supabase/client";
 
 interface ContatoLocal extends ContatoInput {
@@ -42,8 +41,6 @@ export default function CadastroCNPJ() {
   const [contatoParaEditar, setContatoParaEditar] = useState<ContatoLocal | null>(null);
   const [contatoParaExcluir, setContatoParaExcluir] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [autoSaveStatus, setAutoSaveStatus] = useState<"salvando" | "salvo" | "erro">("salvo");
-  const [lastSaved, setLastSaved] = useState<Date>();
   const [currentSolicitacaoId, setCurrentSolicitacaoId] = useState<string | null>(solicitacaoId);
   
   const { createSolicitacao, updateSolicitacao, useSolicitacao } = useSolicitacoesCadastro();
@@ -59,20 +56,35 @@ export default function CadastroCNPJ() {
     erro
   } = useCNPJA();
 
-  const handleAutoSave = useCallback(async () => {
+  // Carregar dados da solicitação existente
+  useEffect(() => {
+    if (solicitacaoExistente) {
+      setCnpj(solicitacaoExistente.cnpj);
+      if (solicitacaoExistente.contatos && Array.isArray(solicitacaoExistente.contatos)) {
+        setContatos(solicitacaoExistente.contatos as unknown as ContatoLocal[]);
+      }
+    }
+  }, [solicitacaoExistente]);
+
+  const handleSalvar = async () => {
     if (!cnpj || status !== 'concluido') {
-      console.log('Auto-save cancelado: CNPJ ou status inválido', { cnpj, status });
+      toast({
+        title: "Atenção",
+        description: "Complete a consulta CNPJ antes de salvar.",
+        variant: "destructive",
+      });
       return;
     }
 
     try {
-      console.log('Iniciando auto-save...', { cnpj, currentSolicitacaoId });
-      setAutoSaveStatus("salvando");
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
-        console.error('Auto-save: usuário não autenticado');
-        setAutoSaveStatus("erro");
+        toast({
+          title: "Erro",
+          description: "Usuário não autenticado.",
+          variant: "destructive",
+        });
         return;
       }
 
@@ -83,74 +95,36 @@ export default function CadastroCNPJ() {
         criado_por: user.id,
       };
 
-      console.log('Dados para salvar:', dadosParaSalvar);
-
       if (currentSolicitacaoId) {
         await updateSolicitacao.mutateAsync({
           id: currentSolicitacaoId,
           data: dadosParaSalvar,
         });
-        console.log('Solicitação atualizada:', currentSolicitacaoId);
+        toast({
+          title: "Salvo",
+          description: "Solicitação atualizada com sucesso.",
+        });
       } else {
         const novaSolicitacao = await createSolicitacao.mutateAsync(dadosParaSalvar as any);
         setCurrentSolicitacaoId(novaSolicitacao.id);
-        console.log('Nova solicitação criada:', novaSolicitacao.id);
-        // Atualizar URL sem recarregar a página
         window.history.replaceState(null, "", `/clientes/cadastro-cnpj?solicitacao=${novaSolicitacao.id}`);
+        toast({
+          title: "Salvo",
+          description: "Solicitação criada com sucesso.",
+        });
       }
-
-      setAutoSaveStatus("salvo");
-      setLastSaved(new Date());
-      console.log('Auto-save concluído com sucesso');
     } catch (error) {
-      console.error("Erro no auto-save:", error);
-      setAutoSaveStatus("erro");
+      console.error("Erro ao salvar:", error);
       toast({
         title: "Erro ao salvar",
-        description: "Não foi possível salvar automaticamente. Tente novamente.",
+        description: "Não foi possível salvar. Tente novamente.",
         variant: "destructive",
       });
     }
-  }, [cnpj, status, dadosColetados, contatos, currentSolicitacaoId, updateSolicitacao, createSolicitacao, toast]);
-  
-  // Carregar dados da solicitação existente
-  useEffect(() => {
-    if (solicitacaoExistente) {
-      setCnpj(solicitacaoExistente.cnpj);
-      if (solicitacaoExistente.contatos && Array.isArray(solicitacaoExistente.contatos)) {
-        setContatos(solicitacaoExistente.contatos as unknown as ContatoLocal[]);
-      }
-      // Se já temos dados coletados, não precisa consultar de novo
-      if (solicitacaoExistente.dados_coletados && Object.keys(solicitacaoExistente.dados_coletados as object).length > 0) {
-        // Aqui você poderia popular o estado com os dados coletados
-      }
-    }
-  }, [solicitacaoExistente]);
-
-  // Auto-save imediato quando concluir consulta
-  useEffect(() => {
-    if (status === 'concluido' && dadosColetados && cnpj) {
-      handleAutoSave();
-    }
-  }, [status, handleAutoSave]);
-
-  // Auto-save com debounce quando modificar contatos
-  useEffect(() => {
-    if (!cnpj || status !== 'concluido') return;
-
-    const timer = setTimeout(async () => {
-      await handleAutoSave();
-    }, 5000); // 5 segundos após mudanças
-
-    return () => clearTimeout(timer);
-  }, [contatos, handleAutoSave]);
+  };
 
   const handleSalvarRascunho = async () => {
-    await handleAutoSave();
-    toast({
-      title: "Rascunho salvo",
-      description: "Você pode continuar depois.",
-    });
+    await handleSalvar();
     navigate("/clientes/solicitacoes");
   };
 
@@ -165,7 +139,7 @@ export default function CadastroCNPJ() {
     }
 
     try {
-      await handleAutoSave();
+      await handleSalvar();
       
       if (currentSolicitacaoId) {
         await updateSolicitacao.mutateAsync({
@@ -285,13 +259,6 @@ export default function CadastroCNPJ() {
       />
 
       <div className="py-6 px-4 space-y-0">
-        {/* Auto-save Indicator */}
-        {currentSolicitacaoId && status === 'concluido' && (
-          <div className="fixed top-20 right-4 z-40">
-            <AutoSaveIndicator status={autoSaveStatus} lastSaved={lastSaved} />
-          </div>
-        )}
-
         {/* Botões de Ação para Solicitação */}
         {status === 'concluido' && dadosColetados && (
           <div className="fixed bottom-6 right-6 flex gap-3 z-40">
