@@ -9,6 +9,7 @@ export interface DadosOffice {
   founded?: string;
   head: boolean;
   statusDate?: string;
+  updated?: string;
   status?: {
     id: number;
     text: string;
@@ -28,16 +29,72 @@ export interface DadosOffice {
     municipality?: number;
   };
   phones?: Array<{
+    type?: string;
     area: string;
     number: string;
   }>;
   emails?: Array<{
+    ownership?: string;
     address: string;
     domain: string;
+  }>;
+  mainActivity?: {
+    id: number;
+    text: string;
+  };
+  sideActivities?: Array<{
+    id: number;
+    text: string;
+  }>;
+  registrations?: Array<{
+    number: string;
+    state: string;
+    enabled: boolean;
+    statusDate?: string;
+    status?: {
+      id: number;
+      text: string;
+    };
+    type?: {
+      id: number;
+      text: string;
+    };
   }>;
   company?: {
     id: string;
     name: string;
+    equity?: number;
+    nature?: {
+      id: number;
+      text: string;
+    };
+    size?: {
+      id: number;
+      acronym: string;
+      text: string;
+    };
+    members?: Array<{
+      since: string;
+      role: {
+        id: number;
+        text: string;
+      };
+      person: {
+        id: string;
+        name: string;
+        type: string;
+        taxId: string;
+        age?: string;
+      };
+    }>;
+    simei?: {
+      optant: boolean;
+      since?: string;
+    };
+    simples?: {
+      optant: boolean;
+      since?: string;
+    };
   };
 }
 

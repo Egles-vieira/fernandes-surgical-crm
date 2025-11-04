@@ -128,6 +128,26 @@ export function formatarMoeda(valor: number): string {
 }
 
 /**
+ * Formata capital social com precisão
+ */
+export function formatarCapitalSocial(valor: number): string {
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(valor);
+}
+
+/**
+ * Formata código CNAE com máscara
+ */
+export function formatarCNAE(id: number): string {
+  const codigo = id.toString().padStart(7, '0');
+  return `${codigo.slice(0, 4)}-${codigo.slice(4, 5)}/${codigo.slice(5, 7)}`;
+}
+
+/**
  * Formata data no formato brasileiro
  */
 export function formatarData(data: string | Date): string {
