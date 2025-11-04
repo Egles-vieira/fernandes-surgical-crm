@@ -1,4 +1,4 @@
-import { Calculator, X, Edit } from "lucide-react";
+import { Calculator, X, Edit, Users, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -7,6 +7,8 @@ interface CadastroActionBarProps {
   onCalcular?: () => void;
   onCancelar: () => void;
   onEditar?: () => void;
+  onDiretoria?: () => void;
+  onEfetivar?: () => void;
 }
 
 export function CadastroActionBar({
@@ -14,6 +16,8 @@ export function CadastroActionBar({
   onCalcular,
   onCancelar,
   onEditar,
+  onDiretoria,
+  onEfetivar,
 }: CadastroActionBarProps) {
   const getStatusInfo = () => {
     switch (status) {
@@ -93,6 +97,18 @@ export function CadastroActionBar({
               </Button>
             )}
             
+            {onDiretoria && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onDiretoria}
+                className="gap-2"
+              >
+                <Users size={16} />
+                Diretoria
+              </Button>
+            )}
+            
             <Button
               variant="outline"
               size="sm"
@@ -103,23 +119,27 @@ export function CadastroActionBar({
               Cancelar
             </Button>
             
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-2"
-            >
-              Desistir
-            </Button>
-            
             {onEditar && (
               <Button
-                variant="default"
+                variant="outline"
                 size="sm"
                 onClick={onEditar}
                 className="gap-2"
               >
                 <Edit size={16} />
                 Editar
+              </Button>
+            )}
+            
+            {onEfetivar && (
+              <Button
+                variant="default"
+                size="sm"
+                onClick={onEfetivar}
+                className="gap-2 bg-green-600 hover:bg-green-700"
+              >
+                <CheckCircle size={16} />
+                Efetivar
               </Button>
             )}
           </div>

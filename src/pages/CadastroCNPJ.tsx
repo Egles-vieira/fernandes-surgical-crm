@@ -61,6 +61,20 @@ export default function CadastroCNPJ() {
     });
   };
 
+  const handleDiretoria = () => {
+    toast({
+      title: "Diretoria",
+      description: "Visualizando quadro societário"
+    });
+  };
+
+  const handleEfetivar = () => {
+    toast({
+      title: "Efetivar Cadastro",
+      description: "Cadastro será efetivado e cliente criado"
+    });
+  };
+
   return <div className="min-h-screen bg-background">
       {/* Barra de Ações Fixa */}
       <CadastroActionBar 
@@ -68,6 +82,8 @@ export default function CadastroCNPJ() {
         onCalcular={handleCalcular}
         onCancelar={handleNovaConsulta}
         onEditar={handleEditar}
+        onDiretoria={handleDiretoria}
+        onEfetivar={handleEfetivar}
       />
 
       <div className="container mx-auto p-6 max-w-7xl space-y-4">
@@ -114,12 +130,6 @@ export default function CadastroCNPJ() {
               <TabsTrigger value="dados" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary">
                 Dados Cadastrais
               </TabsTrigger>
-              <TabsTrigger value="atividades" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary">
-                Atividades
-              </TabsTrigger>
-              <TabsTrigger value="fiscais" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary">
-                Cadastros & Fiscais
-              </TabsTrigger>
               <TabsTrigger value="contatos" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary">
                 Contatos
               </TabsTrigger>
@@ -130,116 +140,6 @@ export default function CadastroCNPJ() {
 
             <TabsContent value="dados" className="mt-6">
               <DadosColetadosPreview dados={dadosColetados} />
-            </TabsContent>
-
-            <TabsContent value="atividades" className="mt-6">
-              <div className="grid gap-6 md:grid-cols-2">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base">Atividade Principal</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {dadosColetados.office?.mainActivity && (
-                      <div className="space-y-2">
-                        <div className="flex items-start gap-3">
-                          <Badge variant="outline" className="font-mono text-xs">
-                            {String(dadosColetados.office.mainActivity.id)}
-                          </Badge>
-                          <p className="text-sm flex-1">{dadosColetados.office.mainActivity.text}</p>
-                        </div>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base">Atividades Secundárias (CNAEs)</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {dadosColetados.office?.sideActivities && dadosColetados.office.sideActivities.length > 0 ? (
-                      <div className="space-y-3 max-h-[400px] overflow-y-auto">
-                        {dadosColetados.office.sideActivities.map((activity, idx) => (
-                          <div key={idx} className="flex items-start gap-3 pb-3 border-b last:border-0">
-                            <Badge variant="outline" className="font-mono text-xs">
-                              {String(activity.id)}
-                            </Badge>
-                            <p className="text-sm flex-1">{activity.text}</p>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-sm text-muted-foreground">Nenhuma atividade secundária cadastrada</p>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="fiscais" className="mt-6">
-              <div className="grid gap-6 md:grid-cols-2">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base">Inscrições Estaduais</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {dadosColetados.ie ? (
-                      <div className="space-y-2">
-                        <div className="p-3 border rounded-lg">
-                          <div>
-                            <p className="font-mono text-sm">{dadosColetados.ie.stateRegistration || 'N/A'}</p>
-                            <p className="text-xs text-muted-foreground">
-                              CNPJ: {dadosColetados.ie.taxId}
-                            </p>
-                          </div>
-                          <Badge variant={dadosColetados.ie.status === 'Ativa' ? "default" : "secondary"} className="mt-2">
-                            {dadosColetados.ie.status || dadosColetados.ie.situation || 'Sem informação'}
-                          </Badge>
-                        </div>
-                      </div>
-                    ) : (
-                      <p className="text-sm text-muted-foreground">Nenhuma inscrição estadual encontrada</p>
-                    )}
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base">SUFRAMA & Incentivos</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {dadosColetados.suframa && dadosColetados.suframa.length > 0 ? (
-                      dadosColetados.suframa.map((suf, idx) => (
-                        <div key={idx} className="space-y-3">
-                          <div className="flex items-center justify-between">
-                             <div>
-                               <p className="font-mono text-sm font-medium">{suf.number}</p>
-                               <p className="text-xs text-muted-foreground">
-                                 Desde: {suf.approvalDate ? new Date(suf.approvalDate).toLocaleDateString('pt-BR') : 'Pendente'}
-                               </p>
-                             </div>
-                            <Badge variant="default">{suf.status.text}</Badge>
-                          </div>
-                          {suf.incentives && suf.incentives.length > 0 && (
-                            <div className="space-y-2">
-                              <p className="text-xs font-medium">Incentivos fiscais:</p>
-                              {suf.incentives.map((inc, incIdx) => (
-                                <div key={incIdx} className="p-2 bg-muted rounded text-xs">
-                                  <p className="font-medium">{inc.tribute} - {inc.benefit}</p>
-                                  <p className="text-muted-foreground">{inc.purpose}</p>
-                                  <p className="text-xs text-muted-foreground mt-1">{inc.basis}</p>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-sm text-muted-foreground">Empresa não possui registro SUFRAMA</p>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
             </TabsContent>
 
             <TabsContent value="contatos" className="mt-6">
