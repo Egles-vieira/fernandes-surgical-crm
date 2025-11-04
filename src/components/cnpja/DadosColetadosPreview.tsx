@@ -128,8 +128,23 @@ export function DadosColetadosPreview({ dados }: DadosColetadosPreviewProps) {
                 </div>
               )}
 
+              {office.registrations && office.registrations.length > 0 && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Inscrição Estadual</p>
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium font-mono">{office.registrations[0].number}</p>
+                    <Badge variant="outline" className="text-xs">
+                      {office.registrations[0].state}
+                    </Badge>
+                    <Badge variant={office.registrations[0].enabled ? "default" : "destructive"} className="text-xs">
+                      {office.registrations[0].enabled ? "Ativa" : "Inativa"}
+                    </Badge>
+                  </div>
+                </div>
+              )}
+
               {office.mainActivity && (
-                <div className="col-span-2">
+                <div className="col-span-3">
                   <p className="text-sm text-muted-foreground mb-2">Atividade Principal</p>
                   <div className="flex items-start gap-2 p-3 bg-primary/5 rounded-lg">
                     <Badge variant="default">CNAE {formatarCNAE(office.mainActivity.id)}</Badge>
