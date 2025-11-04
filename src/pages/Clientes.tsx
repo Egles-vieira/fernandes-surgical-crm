@@ -219,20 +219,12 @@ export default function Clientes() {
                     <Button size="sm" className="flex-1" onClick={() => navigate(`/clientes/${cliente.id}`)}>
                       Detalhes
                     </Button>
-                    <Button variant="outline" size="sm" onClick={() => navigate(`/vendas/contratos?cliente=${cliente.id}`)}>
-                      <FileText size={14} className="mr-1" />
-                      Contratos
-                    </Button>
+                    
                     <Button variant="outline" size="sm" className="flex-1" onClick={() => openForm(cliente)}>
                       <Edit size={14} className="mr-1" />
                       Editar
                     </Button>
-                    <Button variant="outline" size="sm" onClick={() => {
-                setClienteToDelete(cliente.id);
-                setDeleteDialogOpen(true);
-              }}>
-                      <Trash2 size={14} />
-                    </Button>
+                    
                   </div>
                 </div>
               </Card>)}
