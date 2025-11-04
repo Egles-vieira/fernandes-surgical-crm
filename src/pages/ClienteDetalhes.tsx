@@ -10,13 +10,16 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Building2, Mail, Phone, MapPin, Edit, UserPlus, FileText, DollarSign, Users, Calendar, Briefcase, TrendingUp, CheckCircle2, Clock, MessageSquare, Target, Package, Search } from "lucide-react";
+import { ArrowLeft, Building2, Mail, Phone, MapPin, Edit, UserPlus, FileText, DollarSign, Users, Calendar, Briefcase, TrendingUp, CheckCircle2, Clock, MessageSquare, Target, Package, Search, Pencil, Trash2 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import NovoContatoDialog from "@/components/cliente/NovoContatoDialog";
+import EditarContatoDialog from "@/components/cliente/EditarContatoDialog";
 import NovaOportunidadeDialog from "@/components/cliente/NovaOportunidadeDialog";
 import WhatsAppChat from "@/components/cliente/WhatsAppChat";
 import HistoricoProdutos from "@/components/cliente/HistoricoProdutos";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { useContatos } from "@/hooks/useContatos";
 export default function ClienteDetalhes() {
   const {
     id
@@ -27,12 +30,17 @@ export default function ClienteDetalhes() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [novoContatoOpen, setNovoContatoOpen] = useState(false);
+  const [editarContatoOpen, setEditarContatoOpen] = useState(false);
+  const [contatoParaEditar, setContatoParaEditar] = useState<any>(null);
+  const [contatoParaExcluir, setContatoParaExcluir] = useState<any>(null);
   const [novaOportunidadeOpen, setNovaOportunidadeOpen] = useState(false);
   const [whatsappChatOpen, setWhatsappChatOpen] = useState(false);
   const [selectedContact, setSelectedContact] = useState<any>(null);
   const [historicoProdutosOpen, setHistoricoProdutosOpen] = useState(false);
   const [filtroContatos, setFiltroContatos] = useState("");
   const [iniciandoLigacao, setIniciandoLigacao] = useState(false);
+  
+  const { deleteContato } = useContatos(id);
   const {
     data: cliente,
     isLoading
@@ -540,11 +548,34 @@ export default function ClienteDetalhes() {
                         {contato.primeiro_nome?.charAt(0)}{contato.sobrenome?.charAt(0)}
                       </div>
                       <div className="flex-1 min-w-0 space-y-1">
-                        <div className="flex items-center gap-2">
-                          <p className="font-medium text-sm truncate">{contato.nome_completo}</p>
-                          {contato.esta_ativo && <Badge variant="outline" className="text-xs bg-success/10 text-success border-success/20">
-                              Ativo
-                            </Badge>}
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                            <p className="font-medium text-sm truncate">{contato.nome_completo}</p>
+                            {contato.esta_ativo && <Badge variant="outline" className="text-xs bg-success/10 text-success border-success/20">
+                                Ativo
+                              </Badge>}
+                          </div>
+                          <div className="flex gap-1 shrink-0">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-7 w-7 p-0"
+                              onClick={() => {
+                                setContatoParaEditar(contato);
+                                setEditarContatoOpen(true);
+                              }}
+                            >
+                              <Pencil className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-7 w-7 p-0 text-destructive hover:text-destructive"
+                              onClick={() => setContatoParaExcluir(contato)}
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
                         </div>
                         
                         {contato.cargo && <div className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -675,6 +706,40 @@ export default function ClienteDetalhes() {
 
       {/* Dialogs */}
       <NovoContatoDialog open={novoContatoOpen} onOpenChange={setNovoContatoOpen} clienteId={id!} contaId={cliente.conta_id} />
+
+      {contatoParaEditar && (
+        <EditarContatoDialog 
+          open={editarContatoOpen} 
+          onOpenChange={setEditarContatoOpen} 
+          contato={contatoParaEditar} 
+          clienteId={id!} 
+        />
+      )}
+
+      <AlertDialog open={!!contatoParaExcluir} onOpenChange={(open) => !open && setContatoParaExcluir(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir Contato</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir o contato <strong>{contatoParaExcluir?.nome_completo}</strong>? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                if (contatoParaExcluir) {
+                  await deleteContato.mutateAsync(contatoParaExcluir.id);
+                  setContatoParaExcluir(null);
+                }
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <NovaOportunidadeDialog open={novaOportunidadeOpen} onOpenChange={setNovaOportunidadeOpen} clienteId={id!} contaId={cliente.conta_id} />
 
