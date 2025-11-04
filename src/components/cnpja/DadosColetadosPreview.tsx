@@ -133,6 +133,34 @@ export function DadosColetadosPreview({ dados }: DadosColetadosPreviewProps) {
                 )}
               </div>
 
+              <div>
+                <p className="text-sm text-muted-foreground">SIMPLES Nacional</p>
+                <div className="flex items-center gap-2">
+                  <Badge variant={office.company?.simples?.optant ? "default" : "secondary"}>
+                    {office.company?.simples?.optant ? "Optante" : "Não Optante"}
+                  </Badge>
+                  {office.company?.simples?.since && (
+                    <span className="text-sm text-muted-foreground">
+                      desde {formatarData(office.company.simples.since)}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <p className="text-sm text-muted-foreground">SIMEI</p>
+                <div className="flex items-center gap-2">
+                  <Badge variant={office.company?.simei?.optant ? "default" : "secondary"}>
+                    {office.company?.simei?.optant ? "Optante" : "Não Optante"}
+                  </Badge>
+                  {office.company?.simei?.since && (
+                    <span className="text-sm text-muted-foreground">
+                      desde {formatarData(office.company.simei.since)}
+                    </span>
+                  )}
+                </div>
+              </div>
+
               <div className="col-span-3">
                 <p className="text-sm text-muted-foreground mb-2">Atividade Principal</p>
                 {office.mainActivity ? (
