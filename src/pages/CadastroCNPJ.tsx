@@ -185,7 +185,49 @@ export default function CadastroCNPJ() {
             </div>
 
             {/* Cards com Análise Inteligente */}
-            {decisoes}
+            {decisoes && (
+              <div className="grid gap-4">
+                {decisoes.validarEndereco && (
+                  <DecisaoCard
+                    titulo="Validar Endereço"
+                    decisao={decisoes.validarEndereco}
+                    dados={dadosColetados}
+                    tipoConsulta="endereco"
+                  />
+                )}
+                {decisoes.verificarSimples && (
+                  <DecisaoCard
+                    titulo="Verificar Simples Nacional"
+                    decisao={decisoes.verificarSimples}
+                    dados={dadosColetados}
+                    tipoConsulta="simples"
+                  />
+                )}
+                {decisoes.validarIE && (
+                  <DecisaoCard
+                    titulo="Validar Inscrição Estadual"
+                    decisao={decisoes.validarIE}
+                    dados={dadosColetados}
+                    tipoConsulta="ie"
+                  />
+                )}
+                {decisoes.consultarSuframa && (
+                  <DecisaoCard
+                    titulo="Consultar Suframa"
+                    decisao={decisoes.consultarSuframa}
+                    dados={dadosColetados}
+                    tipoConsulta="suframa"
+                  />
+                )}
+                {decisoes.buscarFiliais && (
+                  <DecisaoCard
+                    titulo="Buscar Filiais"
+                    decisao={decisoes.buscarFiliais}
+                    dados={dadosColetados}
+                  />
+                )}
+              </div>
+            )}
 
             {/* Preview completo dos dados */}
             <DadosColetadosPreview dados={dadosColetados} />
