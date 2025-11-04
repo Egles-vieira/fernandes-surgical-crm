@@ -125,7 +125,7 @@ export default function CadastroCNPJ() {
 
         {/* Dados Coletados com Tabs */}
         {status === 'concluido' && dadosColetados && (
-          <Tabs defaultValue="dados" className="w-full px-6">
+          <Tabs defaultValue="dados" className="w-full">
             <TabsList className="w-full justify-start border-b rounded-none h-auto p-0 bg-transparent">
               <TabsTrigger value="dados" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary">
                 Dados Cadastrais
