@@ -28,9 +28,18 @@ Deno.serve(async (req) => {
     console.log(`Consultando /office para CNPJ: ${cnpjLimpo}`);
     const startTime = Date.now();
 
+    // Construir URL com parâmetros de query
+    const params = new URLSearchParams({
+      simples: 'true',
+      registrations: 'BR',
+      suframa: 'true',
+      geocoding: 'true',
+      maxAge: '1'
+    });
+
     // Consulta à API CNPJA - endpoint /office (gratuito com cache)
     const response = await fetch(
-      `https://api.cnpja.com/office/${cnpjLimpo}`,
+      `https://api.cnpja.com/office/${cnpjLimpo}?${params.toString()}`,
       {
         headers: {
           "Authorization": CNPJA_API_KEY,
