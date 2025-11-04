@@ -3,8 +3,9 @@ import { z } from "zod";
 // Schema completo de contato com todos os campos do CRM
 export const contatoSchema = z.object({
   // Informações Básicas
-  nome: z.string().min(1, "Nome é obrigatório").max(200, "Nome muito longo"),
-  tratamento: z.enum(["Sr.", "Sra.", "Dr.", "Dra.", "Prof.", "Eng.", ""]).optional(),
+  primeiro_nome: z.string().min(1, "Nome é obrigatório").max(100, "Nome muito longo"),
+  sobrenome: z.string().min(1, "Sobrenome é obrigatório").max(100, "Sobrenome muito longo"),
+  tratamento: z.enum(["Sr.", "Sra.", "Dr.", "Dra.", "Prof.", "Eng."]).optional(),
   cargo: z.string().max(100, "Cargo muito longo").optional().or(z.literal("")),
   departamento: z.string().max(100, "Departamento muito longo").optional().or(z.literal("")),
   data_nascimento: z.string().optional().or(z.literal("")),
@@ -23,11 +24,11 @@ export const contatoSchema = z.object({
   skype_id: z.string().max(100).optional().or(z.literal("")),
   
   // Preferências
-  preferencia_contato: z.enum(["email", "telefone", "whatsapp", "linkedin", ""]).optional(),
+  preferencia_contato: z.enum(["email", "telefone", "whatsapp", "linkedin"]).optional(),
   idioma_preferido: z.string().max(10).optional().or(z.literal("")),
   timezone: z.string().max(50).optional().or(z.literal("")),
   melhor_horario_contato: z.string().max(100).optional().or(z.literal("")),
-  frequencia_contato_preferida: z.enum(["diaria", "semanal", "quinzenal", "mensal", ""]).optional(),
+  frequencia_contato_preferida: z.enum(["diaria", "semanal", "quinzenal", "mensal"]).optional(),
   
   // LGPD & Consentimentos
   consentimento_lgpd: z.boolean().optional().default(false),
@@ -35,7 +36,7 @@ export const contatoSchema = z.object({
   aceita_marketing: z.boolean().optional().default(false),
   
   // Qualificação & Vendas (BANT)
-  nivel_autoridade: z.enum(["decisor", "influenciador", "usuario_final", "bloqueador", ""]).optional(),
+  nivel_autoridade: z.enum(["decisor", "influenciador", "usuario_final", "bloqueador"]).optional(),
   budget_estimado: z.number().min(0).optional(),
   timeline_decisao: z.string().max(100).optional().or(z.literal("")),
   necessidade_identificada: z.string().max(500).optional().or(z.literal("")),
@@ -63,8 +64,8 @@ export const contatoSchema = z.object({
   
   // Status
   esta_ativo: z.boolean().optional().default(true),
-  status_lead: z.enum(["novo", "qualificado", "oportunidade", "cliente", "perdido", ""]).optional(),
-  estagio_ciclo_vida: z.enum(["lead", "mql", "sql", "oportunidade", "cliente", "evangelista", ""]).optional(),
+  status_lead: z.enum(["novo", "qualificado", "oportunidade", "cliente", "perdido"]).optional(),
+  estagio_ciclo_vida: z.enum(["lead", "mql", "sql", "oportunidade", "cliente", "evangelista"]).optional(),
 });
 
 export type ContatoInput = z.infer<typeof contatoSchema>;

@@ -741,103 +741,187 @@ export type Database = {
       }
       contatos: {
         Row: {
+          aceita_marketing: boolean | null
           atualizado_em: string | null
           atualizado_por: string | null
+          budget_estimado: number | null
+          campanha_origem: string | null
           cancelou_inscricao_email: boolean | null
           cargo: string | null
           celular: string | null
           cliente_id: string | null
+          consentimento_lgpd: boolean | null
           conta_id: string | null
           criado_em: string | null
           criado_por: string | null
+          data_consentimento_lgpd: string | null
           data_nascimento: string | null
           data_ultima_atividade: string | null
           departamento: string | null
           descricao: string | null
+          dores_identificadas: string | null
           email: string | null
           email_secundario: string | null
           endereco_correspondencia_id: string | null
           esta_ativo: boolean | null
           estagio_ciclo_vida: string | null
           excluido_em: string | null
+          facebook_url: string | null
+          frequencia_contato_preferida: string | null
           id: string
+          idioma_preferido: string | null
+          instagram_url: string | null
+          interesses: string[] | null
+          linkedin_url: string | null
+          melhor_horario_contato: string | null
           nao_enviar_email: boolean | null
           nao_ligar: boolean | null
+          necessidade_identificada: string | null
+          nivel_autoridade: string | null
           nome_completo: string | null
+          objetivos_profissionais: string | null
           origem_lead: string | null
           pontuacao_lead: number | null
+          preferencia_contato: string | null
           primeiro_nome: string
           proprietario_id: string | null
+          proximo_followup: string | null
+          relacionamento_com: string | null
           reporta_para_id: string | null
+          score_qualificacao: number | null
+          skype_id: string | null
           sobrenome: string
           status_lead: string | null
+          tags: string[] | null
           telefone: string | null
+          timeline_decisao: string | null
+          timezone: string | null
+          tratamento: string | null
+          twitter_url: string | null
+          ultimo_contato: string | null
+          whatsapp_numero: string | null
         }
         Insert: {
+          aceita_marketing?: boolean | null
           atualizado_em?: string | null
           atualizado_por?: string | null
+          budget_estimado?: number | null
+          campanha_origem?: string | null
           cancelou_inscricao_email?: boolean | null
           cargo?: string | null
           celular?: string | null
           cliente_id?: string | null
+          consentimento_lgpd?: boolean | null
           conta_id?: string | null
           criado_em?: string | null
           criado_por?: string | null
+          data_consentimento_lgpd?: string | null
           data_nascimento?: string | null
           data_ultima_atividade?: string | null
           departamento?: string | null
           descricao?: string | null
+          dores_identificadas?: string | null
           email?: string | null
           email_secundario?: string | null
           endereco_correspondencia_id?: string | null
           esta_ativo?: boolean | null
           estagio_ciclo_vida?: string | null
           excluido_em?: string | null
+          facebook_url?: string | null
+          frequencia_contato_preferida?: string | null
           id?: string
+          idioma_preferido?: string | null
+          instagram_url?: string | null
+          interesses?: string[] | null
+          linkedin_url?: string | null
+          melhor_horario_contato?: string | null
           nao_enviar_email?: boolean | null
           nao_ligar?: boolean | null
+          necessidade_identificada?: string | null
+          nivel_autoridade?: string | null
           nome_completo?: string | null
+          objetivos_profissionais?: string | null
           origem_lead?: string | null
           pontuacao_lead?: number | null
+          preferencia_contato?: string | null
           primeiro_nome: string
           proprietario_id?: string | null
+          proximo_followup?: string | null
+          relacionamento_com?: string | null
           reporta_para_id?: string | null
+          score_qualificacao?: number | null
+          skype_id?: string | null
           sobrenome: string
           status_lead?: string | null
+          tags?: string[] | null
           telefone?: string | null
+          timeline_decisao?: string | null
+          timezone?: string | null
+          tratamento?: string | null
+          twitter_url?: string | null
+          ultimo_contato?: string | null
+          whatsapp_numero?: string | null
         }
         Update: {
+          aceita_marketing?: boolean | null
           atualizado_em?: string | null
           atualizado_por?: string | null
+          budget_estimado?: number | null
+          campanha_origem?: string | null
           cancelou_inscricao_email?: boolean | null
           cargo?: string | null
           celular?: string | null
           cliente_id?: string | null
+          consentimento_lgpd?: boolean | null
           conta_id?: string | null
           criado_em?: string | null
           criado_por?: string | null
+          data_consentimento_lgpd?: string | null
           data_nascimento?: string | null
           data_ultima_atividade?: string | null
           departamento?: string | null
           descricao?: string | null
+          dores_identificadas?: string | null
           email?: string | null
           email_secundario?: string | null
           endereco_correspondencia_id?: string | null
           esta_ativo?: boolean | null
           estagio_ciclo_vida?: string | null
           excluido_em?: string | null
+          facebook_url?: string | null
+          frequencia_contato_preferida?: string | null
           id?: string
+          idioma_preferido?: string | null
+          instagram_url?: string | null
+          interesses?: string[] | null
+          linkedin_url?: string | null
+          melhor_horario_contato?: string | null
           nao_enviar_email?: boolean | null
           nao_ligar?: boolean | null
+          necessidade_identificada?: string | null
+          nivel_autoridade?: string | null
           nome_completo?: string | null
+          objetivos_profissionais?: string | null
           origem_lead?: string | null
           pontuacao_lead?: number | null
+          preferencia_contato?: string | null
           primeiro_nome?: string
           proprietario_id?: string | null
+          proximo_followup?: string | null
+          relacionamento_com?: string | null
           reporta_para_id?: string | null
+          score_qualificacao?: number | null
+          skype_id?: string | null
           sobrenome?: string
           status_lead?: string | null
+          tags?: string[] | null
           telefone?: string | null
+          timeline_decisao?: string | null
+          timezone?: string | null
+          tratamento?: string | null
+          twitter_url?: string | null
+          ultimo_contato?: string | null
+          whatsapp_numero?: string | null
         }
         Relationships: [
           {
@@ -873,6 +957,13 @@ export type Database = {
             columns: ["endereco_correspondencia_id"]
             isOneToOne: false
             referencedRelation: "enderecos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contatos_relacionamento_com_fkey"
+            columns: ["relacionamento_com"]
+            isOneToOne: false
+            referencedRelation: "contatos"
             referencedColumns: ["id"]
           },
           {
