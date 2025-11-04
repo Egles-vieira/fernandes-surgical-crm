@@ -58,6 +58,60 @@ export default function CadastroCNPJ() {
     dadosColetados,
     erro
   } = useCNPJA();
+
+  const handleAutoSave = useCallback(async () => {
+    if (!cnpj || status !== 'concluido') {
+      console.log('Auto-save cancelado: CNPJ ou status inválido', { cnpj, status });
+      return;
+    }
+
+    try {
+      console.log('Iniciando auto-save...', { cnpj, currentSolicitacaoId });
+      setAutoSaveStatus("salvando");
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        console.error('Auto-save: usuário não autenticado');
+        setAutoSaveStatus("erro");
+        return;
+      }
+
+      const dadosParaSalvar = {
+        cnpj,
+        dados_coletados: JSON.parse(JSON.stringify(dadosColetados || {})),
+        contatos: JSON.parse(JSON.stringify(contatos)),
+        criado_por: user.id,
+      };
+
+      console.log('Dados para salvar:', dadosParaSalvar);
+
+      if (currentSolicitacaoId) {
+        await updateSolicitacao.mutateAsync({
+          id: currentSolicitacaoId,
+          data: dadosParaSalvar,
+        });
+        console.log('Solicitação atualizada:', currentSolicitacaoId);
+      } else {
+        const novaSolicitacao = await createSolicitacao.mutateAsync(dadosParaSalvar as any);
+        setCurrentSolicitacaoId(novaSolicitacao.id);
+        console.log('Nova solicitação criada:', novaSolicitacao.id);
+        // Atualizar URL sem recarregar a página
+        window.history.replaceState(null, "", `/clientes/cadastro-cnpj?solicitacao=${novaSolicitacao.id}`);
+      }
+
+      setAutoSaveStatus("salvo");
+      setLastSaved(new Date());
+      console.log('Auto-save concluído com sucesso');
+    } catch (error) {
+      console.error("Erro no auto-save:", error);
+      setAutoSaveStatus("erro");
+      toast({
+        title: "Erro ao salvar",
+        description: "Não foi possível salvar automaticamente. Tente novamente.",
+        variant: "destructive",
+      });
+    }
+  }, [cnpj, status, dadosColetados, contatos, currentSolicitacaoId, updateSolicitacao, createSolicitacao, toast]);
   
   // Carregar dados da solicitação existente
   useEffect(() => {
@@ -73,53 +127,23 @@ export default function CadastroCNPJ() {
     }
   }, [solicitacaoExistente]);
 
-  // Auto-save com debounce de 30 segundos
+  // Auto-save imediato quando concluir consulta
   useEffect(() => {
-    if (!cnpj || status === 'idle') return;
+    if (status === 'concluido' && dadosColetados && cnpj) {
+      handleAutoSave();
+    }
+  }, [status, handleAutoSave]);
+
+  // Auto-save com debounce quando modificar contatos
+  useEffect(() => {
+    if (!cnpj || status !== 'concluido') return;
 
     const timer = setTimeout(async () => {
       await handleAutoSave();
-    }, 30000); // 30 segundos
+    }, 5000); // 5 segundos após mudanças
 
     return () => clearTimeout(timer);
-  }, [cnpj, contatos, dadosColetados, status]);
-
-  const handleAutoSave = async () => {
-    try {
-      setAutoSaveStatus("salvando");
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        setAutoSaveStatus("erro");
-        return;
-      }
-
-      const dadosParaSalvar = {
-        cnpj,
-        dados_coletados: JSON.parse(JSON.stringify(dadosColetados || {})),
-        contatos: JSON.parse(JSON.stringify(contatos)),
-        criado_por: user.id,
-      };
-
-      if (currentSolicitacaoId) {
-        await updateSolicitacao.mutateAsync({
-          id: currentSolicitacaoId,
-          data: dadosParaSalvar,
-        });
-      } else {
-        const novaSolicitacao = await createSolicitacao.mutateAsync(dadosParaSalvar as any);
-        setCurrentSolicitacaoId(novaSolicitacao.id);
-        // Atualizar URL sem recarregar a página
-        window.history.replaceState(null, "", `/clientes/cadastro-cnpj?solicitacao=${novaSolicitacao.id}`);
-      }
-
-      setAutoSaveStatus("salvo");
-      setLastSaved(new Date());
-    } catch (error) {
-      console.error("Erro no auto-save:", error);
-      setAutoSaveStatus("erro");
-    }
-  };
+  }, [contatos, handleAutoSave]);
 
   const handleSalvarRascunho = async () => {
     await handleAutoSave();
