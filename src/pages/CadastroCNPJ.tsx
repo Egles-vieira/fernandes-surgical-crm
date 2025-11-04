@@ -86,7 +86,7 @@ export default function CadastroCNPJ() {
         onEfetivar={handleEfetivar}
       />
 
-      <div className="py-6 space-y-0">
+      <div className="py-6 px-4 space-y-0">
 
         {/* Barra de Status e Ações - Removida pois agora está fixa no topo */}
 
