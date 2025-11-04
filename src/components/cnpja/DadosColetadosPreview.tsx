@@ -48,15 +48,13 @@ export function DadosColetadosPreview({ dados }: DadosColetadosPreviewProps) {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <p className="text-sm text-muted-foreground">Razão Social</p>
-                <p className="font-medium">{office.company?.name || office.name}</p>
+                <p className="font-medium">{office.company?.name || office.name || "Sem informação"}</p>
               </div>
 
-              {office.alias && (
-                <div>
-                  <p className="text-sm text-muted-foreground">Nome Fantasia</p>
-                  <p className="font-medium">{office.alias}</p>
-                </div>
-              )}
+              <div>
+                <p className="text-sm text-muted-foreground">Nome Fantasia</p>
+                <p className="font-medium">{office.alias || "Sem informação"}</p>
+              </div>
 
               <div>
                 <p className="text-sm text-muted-foreground">CNPJ</p>
@@ -90,47 +88,37 @@ export function DadosColetadosPreview({ dados }: DadosColetadosPreviewProps) {
                 </div>
               </div>
 
-              {office.founded && (
-                <div>
-                  <p className="text-sm text-muted-foreground">Data de Abertura</p>
-                  <p className="font-medium">{formatarData(office.founded)}</p>
-                </div>
-              )}
+              <div>
+                <p className="text-sm text-muted-foreground">Data de Abertura</p>
+                <p className="font-medium">{office.founded ? formatarData(office.founded) : "Sem informação"}</p>
+              </div>
 
-              {office.updated && (
-                <div>
-                  <p className="text-sm text-muted-foreground">Última Atualização</p>
-                  <p className="font-medium">{formatarData(office.updated)}</p>
-                </div>
-              )}
+              <div>
+                <p className="text-sm text-muted-foreground">Última Atualização</p>
+                <p className="font-medium">{office.updated ? formatarData(office.updated) : "Sem informação"}</p>
+              </div>
 
-              {office.company?.equity && (
-                <div>
-                  <p className="text-sm text-muted-foreground">Capital Social</p>
-                  <p className="font-semibold text-lg flex items-center gap-1">
-                    <DollarSign className="h-4 w-4" />
-                    {formatarCapitalSocial(office.company.equity)}
-                  </p>
-                </div>
-              )}
+              <div>
+                <p className="text-sm text-muted-foreground">Capital Social</p>
+                <p className="font-semibold text-lg flex items-center gap-1">
+                  <DollarSign className="h-4 w-4" />
+                  {office.company?.equity ? formatarCapitalSocial(office.company.equity) : "Sem informação"}
+                </p>
+              </div>
 
-              {office.company?.nature && (
-                <div>
-                  <p className="text-sm text-muted-foreground">Natureza Jurídica</p>
-                  <p className="font-medium">{office.company.nature.text}</p>
-                </div>
-              )}
+              <div>
+                <p className="text-sm text-muted-foreground">Natureza Jurídica</p>
+                <p className="font-medium">{office.company?.nature?.text || "Sem informação"}</p>
+              </div>
 
-              {office.company?.size && (
-                <div>
-                  <p className="text-sm text-muted-foreground">Porte da Empresa</p>
-                  <Badge variant="outline">{office.company.size.text}</Badge>
-                </div>
-              )}
+              <div>
+                <p className="text-sm text-muted-foreground">Porte da Empresa</p>
+                <Badge variant="outline">{office.company?.size?.text || "Sem informação"}</Badge>
+              </div>
 
-              {office.registrations && office.registrations.length > 0 && (
-                <div>
-                  <p className="text-sm text-muted-foreground">Inscrição Estadual</p>
+              <div>
+                <p className="text-sm text-muted-foreground">Inscrição Estadual</p>
+                {office.registrations && office.registrations.length > 0 ? (
                   <div className="flex items-center gap-2">
                     <p className="font-medium font-mono">{office.registrations[0].number}</p>
                     <Badge variant="outline" className="text-xs">
@@ -140,18 +128,22 @@ export function DadosColetadosPreview({ dados }: DadosColetadosPreviewProps) {
                       {office.registrations[0].enabled ? "Ativa" : "Inativa"}
                     </Badge>
                   </div>
-                </div>
-              )}
+                ) : (
+                  <p className="font-medium text-muted-foreground">Sem informação</p>
+                )}
+              </div>
 
-              {office.mainActivity && (
-                <div className="col-span-3">
-                  <p className="text-sm text-muted-foreground mb-2">Atividade Principal</p>
+              <div className="col-span-3">
+                <p className="text-sm text-muted-foreground mb-2">Atividade Principal</p>
+                {office.mainActivity ? (
                   <div className="flex items-start gap-2 p-3 bg-primary/5 rounded-lg">
                     <Badge variant="default">CNAE {formatarCNAE(office.mainActivity.id)}</Badge>
                     <p className="font-medium flex-1">{office.mainActivity.text}</p>
                   </div>
-                </div>
-              )}
+                ) : (
+                  <p className="font-medium text-muted-foreground">Sem informação</p>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>
