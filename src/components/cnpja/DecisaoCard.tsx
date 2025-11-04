@@ -158,46 +158,5 @@ export function DecisaoCard({
     }
     return null;
   };
-
-  return (
-    <Card className={`border-l-4 ${decisao.decisao ? 'border-l-green-500' : 'border-l-muted'}`}>
-      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              {decisao.decisao ? (
-                <CheckCircle2 className="h-5 w-5 text-green-500" />
-              ) : (
-                <XCircle className="h-5 w-5 text-muted-foreground" />
-              )}
-              <div>
-                <CardTitle className="text-base">{titulo}</CardTitle>
-                {decisao.motivo && (
-                  <p className="text-xs text-muted-foreground mt-1">{decisao.motivo}</p>
-                )}
-              </div>
-            </div>
-            {hasDados && (
-              <CollapsibleTrigger asChild>
-                <button className="p-1 hover:bg-muted rounded">
-                  {isOpen ? (
-                    <ChevronUp className="h-4 w-4" />
-                  ) : (
-                    <ChevronDown className="h-4 w-4" />
-                  )}
-                </button>
-              </CollapsibleTrigger>
-            )}
-          </div>
-        </CardHeader>
-        {hasDados && (
-          <CollapsibleContent>
-            <CardContent className="pt-0">
-              {renderDados()}
-            </CardContent>
-          </CollapsibleContent>
-        )}
-      </Collapsible>
-    </Card>
-  );
+  return;
 }

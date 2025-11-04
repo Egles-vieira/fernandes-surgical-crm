@@ -188,7 +188,7 @@ export default function Header({ collapsed, onToggle }: HeaderProps) {
       <div className="flex items-center gap-6 w-full">
         {/* Título da Página */}
         <div>
-          <h2 className="text-lg font-bold text-foreground italic">{pageInfo.title}</h2>
+          <h2 className="text-lg font-bold text-foreground">{pageInfo.title}</h2>
           <p className="text-xs text-muted-foreground">{pageInfo.description}</p>
         </div>
 
