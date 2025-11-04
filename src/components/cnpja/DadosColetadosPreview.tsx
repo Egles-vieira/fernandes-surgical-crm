@@ -172,30 +172,32 @@ export function DadosColetadosPreview({ dados }: DadosColetadosPreviewProps) {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3 max-h-[400px] overflow-y-auto">
+              <div className="space-y-2 max-h-[400px] overflow-y-auto">
                 {office.company.members.map((member, index) => (
-                  <div key={index} className="border-b last:border-b-0 pb-3 last:pb-0">
+                  <div
+                    key={index}
+                    className="bg-primary/5 rounded-lg p-3 space-y-1"
+                  >
                     <div className="flex items-start justify-between gap-2 mb-1">
-                      <div className="flex-1">
-                        <div className="flex items-baseline gap-2 mb-1">
-                          <p className="font-semibold text-primary">
-                            {member.person.name}
-                          </p>
-                          {member.person.age && (
-                            <span className="text-xs text-muted-foreground">
-                              {member.person.age} anos
-                            </span>
-                          )}
-                        </div>
-                        <div className="space-y-0.5">
-                          <p className="text-xs text-muted-foreground">CPF/CNPJ</p>
-                          <p className="font-mono text-sm">{member.person.taxId}</p>
-                        </div>
-                      </div>
-                      <Badge variant="default" className="bg-green-600 hover:bg-green-700 shrink-0">
+                      <p className="font-semibold text-sm text-primary">
+                        {member.person.name}
+                        {member.person.age && (
+                          <span className="text-xs text-muted-foreground ml-2">
+                            {member.person.age} anos
+                          </span>
+                        )}
+                      </p>
+                      <Badge variant="default" className="bg-green-600 hover:bg-green-700 shrink-0 text-xs">
                         {member.role.text}
                       </Badge>
                     </div>
+                    <p className="text-xs text-muted-foreground">CPF/CNPJ</p>
+                    <p className="font-mono text-sm">{member.person.taxId}</p>
+                    {member.since && (
+                      <p className="text-xs text-muted-foreground">
+                        Data: {formatarData(member.since)}
+                      </p>
+                    )}
                   </div>
                 ))}
               </div>
