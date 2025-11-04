@@ -125,7 +125,7 @@ export default function CadastroCNPJ() {
 
         {/* Dados Coletados com Tabs */}
         {status === 'concluido' && dadosColetados && (
-          <Tabs defaultValue="dados" className="w-full">
+          <Tabs defaultValue="dados" className="w-full mt-2">
             <TabsList className="w-full justify-start border-b rounded-none h-auto p-0 bg-transparent">
               <TabsTrigger value="dados" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary">
                 Dados Cadastrais
@@ -138,11 +138,11 @@ export default function CadastroCNPJ() {
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="dados" className="mt-6">
+            <TabsContent value="dados" className="mt-4">
               <DadosColetadosPreview dados={dadosColetados} />
             </TabsContent>
 
-            <TabsContent value="contatos" className="mt-6">
+            <TabsContent value="contatos" className="mt-4">
               <Card>
                 <CardHeader>
                   <CardTitle className="text-base">Informações de Contato</CardTitle>
@@ -191,7 +191,7 @@ export default function CadastroCNPJ() {
               </Card>
             </TabsContent>
 
-            <TabsContent value="anotacoes" className="mt-6">
+            <TabsContent value="anotacoes" className="mt-4">
               <Card>
                 <CardHeader>
                   <CardTitle className="text-base">Observações Internas</CardTitle>
