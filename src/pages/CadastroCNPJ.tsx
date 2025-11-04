@@ -45,7 +45,8 @@ export default function CadastroCNPJ() {
   const [novoContatoOpen, setNovoContatoOpen] = useState(false);
   const [editarContatoOpen, setEditarContatoOpen] = useState(false);
   const [contatoParaEditar, setContatoParaEditar] = useState<ContatoLocal | null>(null);
-  const [contatoParaExcluir, setContatoParaExcluir] = useState<ContatoLocal | null>(null);
+  const [contatoParaExcluir, setContatoParaExcluir] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   
   const {
     consultarCNPJ,
@@ -92,12 +93,16 @@ export default function CadastroCNPJ() {
     });
   };
 
-  const excluirContato = (id: string) => {
-    setContatos(contatos.filter(c => c.id !== id));
+  const handleConfirmarExclusao = () => {
+    if (!contatoParaExcluir) return;
+    
+    setContatos(contatos.filter(c => c.id !== contatoParaExcluir));
     toast({
       title: "Contato excluído!",
       description: "O contato foi removido da lista.",
     });
+    setDeleteDialogOpen(false);
+    setContatoParaExcluir(null);
   };
   const handleCriarCliente = () => {
     toast({
@@ -317,11 +322,12 @@ export default function CadastroCNPJ() {
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  className="h-8 w-8 p-0"
+                                  className="h-8 w-8 p-0 hover:bg-accent"
                                   onClick={() => {
                                     setContatoParaEditar(contato);
                                     setEditarContatoOpen(true);
                                   }}
+                                  title="Editar contato"
                                 >
                                   <Pencil className="h-3.5 w-3.5" />
                                 </Button>
@@ -329,7 +335,11 @@ export default function CadastroCNPJ() {
                                   variant="ghost"
                                   size="sm"
                                   className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-                                  onClick={() => setContatoParaExcluir(contato)}
+                                  onClick={() => {
+                                    setContatoParaExcluir(contato.id);
+                                    setDeleteDialogOpen(true);
+                                  }}
+                                  title="Excluir contato"
                                 >
                                   <Trash2 className="h-3.5 w-3.5" />
                                 </Button>
@@ -420,23 +430,20 @@ export default function CadastroCNPJ() {
         />
       )}
 
-      <AlertDialog open={!!contatoParaExcluir} onOpenChange={(open) => !open && setContatoParaExcluir(null)}>
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir Contato</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir o contato <strong>{contatoParaExcluir?.primeiro_nome} {contatoParaExcluir?.sobrenome}</strong>? Esta ação não pode ser desfeita.
+              Tem certeza que deseja excluir este contato? Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel onClick={() => setContatoParaExcluir(null)}>
+              Cancelar
+            </AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => {
-                if (contatoParaExcluir) {
-                  excluirContato(contatoParaExcluir.id);
-                  setContatoParaExcluir(null);
-                }
-              }}
+              onClick={handleConfirmarExclusao}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Excluir
