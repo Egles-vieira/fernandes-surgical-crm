@@ -58,7 +58,12 @@ export function useCNPJA() {
       }
 
       const dadosOffice: DadosOffice = officeData.data;
-      console.log("Dados /office obtidos:", dadosOffice.name);
+      console.log("Dados /office obtidos:", {
+        nome: dadosOffice.name,
+        cnpj: dadosOffice.taxId,
+        cidade: dadosOffice.address?.city,
+        estado: dadosOffice.address?.state
+      });
 
       // 3. ANÁLISE INTELIGENTE (decisões)
       setStatus('decidindo');
@@ -112,14 +117,28 @@ export function useCNPJA() {
       setStatus('consolidando');
       setProgresso(85);
 
+      // Garantir que suframa seja sempre array
+      let suframaArray = null;
+      if (consultasData?.resultados?.suframa) {
+        const suframaData = consultasData.resultados.suframa;
+        suframaArray = Array.isArray(suframaData) ? suframaData : [suframaData];
+      }
+
       const dadosFinais: DadosConsolidados = {
         office: dadosOffice,
         endereco: consultasData?.resultados?.endereco || null,
         filiais: consultasData?.resultados?.filiais || null,
         simples: consultasData?.resultados?.simples || null,
         ie: consultasData?.resultados?.ie || null,
-        suframa: consultasData?.resultados?.suframa || null,
+        suframa: suframaArray,
       };
+
+      console.log("Dados consolidados:", {
+        temOffice: !!dadosFinais.office,
+        temEndereco: !!dadosFinais.endereco,
+        temSuframa: !!dadosFinais.suframa,
+        suframaLength: dadosFinais.suframa?.length || 0
+      });
 
       setDadosColetados(dadosFinais);
 
