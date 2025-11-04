@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCNPJA } from "@/hooks/useCNPJA";
 import { Button } from "@/components/ui/button";
@@ -460,8 +460,76 @@ function ContatoDialog({
 }) {
   const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<ContatoInput>({
     resolver: zodResolver(contatoSchema),
-    defaultValues: contatoInicial,
+    defaultValues: {
+      primeiro_nome: "",
+      sobrenome: "",
+      email: "",
+      telefone: "",
+      celular: "",
+      cargo: "",
+      departamento: "",
+      data_nascimento: "",
+      preferencia_contato: undefined,
+      melhor_horario_contato: "",
+      frequencia_contato_preferida: undefined,
+      idioma_preferido: "Português",
+      timezone: "America/Sao_Paulo",
+      consentimento_lgpd: false,
+      aceita_marketing: false,
+      nivel_autoridade: undefined,
+      status_lead: "novo",
+      estagio_ciclo_vida: "lead",
+      origem_lead: "",
+      campanha_origem: "",
+      linkedin_url: "",
+      twitter_url: "",
+      facebook_url: "",
+      instagram_url: "",
+      skype_id: "",
+      dores_identificadas: "",
+      objetivos_profissionais: "",
+      observacoes: "",
+      esta_ativo: true,
+      ...contatoInicial,
+    },
   });
+  
+  useEffect(() => {
+    if (open) {
+      reset({
+        primeiro_nome: "",
+        sobrenome: "",
+        email: "",
+        telefone: "",
+        celular: "",
+        cargo: "",
+        departamento: "",
+        data_nascimento: "",
+        preferencia_contato: undefined,
+        melhor_horario_contato: "",
+        frequencia_contato_preferida: undefined,
+        idioma_preferido: "Português",
+        timezone: "America/Sao_Paulo",
+        consentimento_lgpd: false,
+        aceita_marketing: false,
+        nivel_autoridade: undefined,
+        status_lead: "novo",
+        estagio_ciclo_vida: "lead",
+        origem_lead: "",
+        campanha_origem: "",
+        linkedin_url: "",
+        twitter_url: "",
+        facebook_url: "",
+        instagram_url: "",
+        skype_id: "",
+        dores_identificadas: "",
+        objetivos_profissionais: "",
+        observacoes: "",
+        esta_ativo: true,
+        ...contatoInicial,
+      });
+    }
+  }, [open, contatoInicial, reset]);
 
   const onSubmit = (data: ContatoInput) => {
     onSave(data);
