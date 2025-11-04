@@ -4,11 +4,12 @@ import { useCNPJA } from "@/hooks/useCNPJA";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, AlertCircle, CheckCircle2, XCircle, Loader2, ArrowLeft, Calculator, X, Edit, Users } from "lucide-react";
+import { Search, XCircle } from "lucide-react";
 import { ProgressoCNPJA } from "@/components/cnpja/ProgressoCNPJA";
 import { DadosColetadosPreview } from "@/components/cnpja/DadosColetadosPreview";
+import { CadastroActionBar } from "@/components/cnpja/CadastroActionBar";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 export default function CadastroCNPJ() {
   const navigate = useNavigate();
@@ -45,96 +46,33 @@ export default function CadastroCNPJ() {
       description: "Em breve você poderá criar clientes a partir dos dados coletados"
     });
   };
-  const renderStatusBadge = () => {
-    const statusMap = {
-      idle: {
-        label: "Aguardando",
-        variant: "secondary" as const,
-        icon: AlertCircle,
-        color: "text-muted-foreground"
-      },
-      validando: {
-        label: "Validando",
-        variant: "default" as const,
-        icon: Loader2,
-        color: "text-blue-500"
-      },
-      consultando: {
-        label: "Consultando",
-        variant: "default" as const,
-        icon: Loader2,
-        color: "text-blue-500"
-      },
-      decidindo: {
-        label: "Analisando",
-        variant: "default" as const,
-        icon: Loader2,
-        color: "text-purple-500"
-      },
-      executando: {
-        label: "Coletando",
-        variant: "default" as const,
-        icon: Loader2,
-        color: "text-orange-500"
-      },
-      consolidando: {
-        label: "Consolidando",
-        variant: "default" as const,
-        icon: Loader2,
-        color: "text-indigo-500"
-      },
-      concluido: {
-        label: "Concluído",
-        variant: "default" as const,
-        icon: CheckCircle2,
-        color: "text-green-500"
-      },
-      erro: {
-        label: "Erro",
-        variant: "destructive" as const,
-        icon: XCircle,
-        color: "text-destructive"
-      }
-    };
-    const current = statusMap[status];
-    const Icon = current.icon;
-    return <Badge variant={current.variant} className="gap-1.5 px-3 py-1.5">
-        <Icon className={`h-4 w-4 ${current.color} ${status !== 'concluido' && status !== 'erro' && status !== 'idle' ? 'animate-spin' : ''}`} />
-        {current.label}
-      </Badge>;
+
+  const handleCalcular = () => {
+    toast({
+      title: "Calcular",
+      description: "Função de cálculo em desenvolvimento"
+    });
   };
+
+  const handleEditar = () => {
+    toast({
+      title: "Editar",
+      description: "Função de edição em desenvolvimento"
+    });
+  };
+
   return <div className="min-h-screen bg-background">
+      {/* Barra de Ações Fixa */}
+      <CadastroActionBar 
+        status={status}
+        onCalcular={handleCalcular}
+        onCancelar={handleNovaConsulta}
+        onEditar={handleEditar}
+      />
+
       <div className="container mx-auto p-6 max-w-7xl space-y-4">
 
-        {/* Barra de Status e Ações */}
-        {status === 'concluido' && dadosColetados && (
-          <div className="flex items-center justify-between bg-muted/30 px-4 py-3 rounded-lg border">
-            {/* Status à esquerda */}
-            <div className="flex items-center gap-2 text-sm">
-              <span className="text-muted-foreground">Status da Proposta:</span>
-              {renderStatusBadge()}
-            </div>
-
-            {/* Botões à direita */}
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" className="gap-2">
-                <Calculator className="h-4 w-4" />
-                Calcular
-              </Button>
-              <Button variant="outline" size="sm" className="gap-2" onClick={handleNovaConsulta}>
-                <X className="h-4 w-4" />
-                Cancelar
-              </Button>
-              <Button variant="outline" size="sm" className="gap-2">
-                Desistir
-              </Button>
-              <Button variant="default" size="sm" className="gap-2">
-                <Edit className="h-4 w-4" />
-                Editar
-              </Button>
-            </div>
-          </div>
-        )}
+        {/* Barra de Status e Ações - Removida pois agora está fixa no topo */}
 
         {/* Formulário de consulta */}
         {(status === 'idle' || status === 'erro') && <Card className="border-2">
