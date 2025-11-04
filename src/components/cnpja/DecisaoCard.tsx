@@ -18,7 +18,7 @@ export function DecisaoCard({ titulo, decisao, dados, tipoConsulta }: DecisaoCar
 
   const hasDados = dados && decisao.decisao && (
     (tipoConsulta === 'endereco' && dados.endereco) ||
-    (tipoConsulta === 'company' && (dados.filiais || dados.socios)) ||
+    (tipoConsulta === 'company' && ((dados.filiais && dados.filiais.length > 0) || (dados.socios && dados.socios.length > 0))) ||
     (tipoConsulta === 'simples' && dados.simples) ||
     (tipoConsulta === 'ie' && dados.ie) ||
     (tipoConsulta === 'suframa' && dados.suframa)
@@ -69,32 +69,69 @@ export function DecisaoCard({ titulo, decisao, dados, tipoConsulta }: DecisaoCar
 
     // Renderizar Filiais/Company
     if (tipoConsulta === 'company') {
-      const filiais = dados.filiais;
-      const socios = dados.socios;
-      return (
-        <div className="mt-3 p-3 bg-background/50 rounded-lg space-y-2">
-          <div className="flex items-center gap-2 text-sm font-medium mb-2">
-            <Building className="h-4 w-4" />
-            Filiais Encontradas ({filiais.length})
+      const filiais = dados.filiais || [];
+      const socios = dados.socios || [];
+      
+      if (filiais.length === 0 && socios.length === 0) {
+        return (
+          <div className="mt-3 p-3 bg-background/50 rounded-lg text-sm text-muted-foreground">
+            Nenhuma filial ou sócio encontrado.
           </div>
-          <div className="space-y-2 max-h-48 overflow-y-auto">
-            {filiais.slice(0, 5).map((filial, idx) => (
-              <div key={idx} className="p-2 bg-background rounded border text-xs">
-                <div className="font-medium">{filial.name}</div>
-                <div className="text-muted-foreground font-mono">{formatarCNPJ(filial.taxId)}</div>
-                {filial.address && (
-                  <div className="text-muted-foreground">
-                    {filial.address.city} - {filial.address.state}
+        );
+      }
+      
+      return (
+        <div className="mt-3 p-3 bg-background/50 rounded-lg space-y-3">
+          {filiais.length > 0 && (
+            <div>
+              <div className="flex items-center gap-2 text-sm font-medium mb-2">
+                <Building className="h-4 w-4" />
+                Filiais Encontradas ({filiais.length})
+              </div>
+              <div className="space-y-2 max-h-48 overflow-y-auto">
+                {filiais.slice(0, 5).map((filial, idx) => (
+                  <div key={idx} className="p-2 bg-background rounded border text-xs">
+                    <div className="font-medium">{filial.name}</div>
+                    <div className="text-muted-foreground font-mono">{formatarCNPJ(filial.taxId)}</div>
+                    {filial.address && (
+                      <div className="text-muted-foreground">
+                        {filial.address.city} - {filial.address.state}
+                      </div>
+                    )}
+                  </div>
+                ))}
+                {filiais.length > 5 && (
+                  <div className="text-xs text-muted-foreground text-center py-1">
+                    + {filiais.length - 5} filiais não exibidas
                   </div>
                 )}
               </div>
-            ))}
-            {filiais.length > 5 && (
-              <div className="text-xs text-muted-foreground text-center py-1">
-                + {filiais.length - 5} filiais não exibidas
+            </div>
+          )}
+          
+          {socios.length > 0 && (
+            <div>
+              <div className="flex items-center gap-2 text-sm font-medium mb-2">
+                <Building className="h-4 w-4" />
+                Sócios ({socios.length})
               </div>
-            )}
-          </div>
+              <div className="space-y-2 max-h-48 overflow-y-auto">
+                {socios.slice(0, 5).map((socio: any, idx: number) => (
+                  <div key={idx} className="p-2 bg-background rounded border text-xs">
+                    <div className="font-medium">{socio.name}</div>
+                    {socio.qualification && (
+                      <div className="text-muted-foreground">{socio.qualification}</div>
+                    )}
+                  </div>
+                ))}
+                {socios.length > 5 && (
+                  <div className="text-xs text-muted-foreground text-center py-1">
+                    + {socios.length - 5} sócios não exibidos
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       );
     }
