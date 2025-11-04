@@ -32,13 +32,9 @@ export default function Header({ collapsed, onToggle }: HeaderProps) {
     queryKey: ["user-profile", user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
-      
-      const { data, error } = await supabase
-        .from("perfis_usuario")
-        .select("*")
-        .eq("id", user.id)
-        .single();
-      
+
+      const { data, error } = await supabase.from("perfis_usuario").select("*").eq("id", user.id).single();
+
       if (error) throw error;
       return data;
     },
@@ -50,12 +46,9 @@ export default function Header({ collapsed, onToggle }: HeaderProps) {
     queryKey: ["user-roles", user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
-      
-      const { data, error } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", user.id);
-      
+
+      const { data, error } = await supabase.from("user_roles").select("role").eq("user_id", user.id);
+
       if (error) throw error;
       return data || [];
     },
@@ -63,14 +56,15 @@ export default function Header({ collapsed, onToggle }: HeaderProps) {
   });
 
   // Garantir que roles é sempre um array de strings
-  const roles = rolesData?.map((item: any) => {
-    // Se item for um objeto, extrair a propriedade role
-    if (typeof item === 'object' && item !== null) {
-      return typeof item.role === 'string' ? item.role : String(item.role);
-    }
-    // Se item já for uma string, retornar diretamente
-    return String(item);
-  }) || [];
+  const roles =
+    rolesData?.map((item: any) => {
+      // Se item for um objeto, extrair a propriedade role
+      if (typeof item === "object" && item !== null) {
+        return typeof item.role === "string" ? item.role : String(item.role);
+      }
+      // Se item já for uma string, retornar diretamente
+      return String(item);
+    }) || [];
   const handleLogout = async () => {
     await signOut();
     navigate("/auth");
@@ -169,8 +163,8 @@ export default function Header({ collapsed, onToggle }: HeaderProps) {
         };
       case "/clientes/cadastro-cnpj":
         return {
-          title: "Cadastro de cliente",
-          description: "Consulte e cadastre clientes via CNPJ",
+          title: "Cadastro de Empresas",
+          description: "Cadastre clientes com apoio da IA",
           breadcrumb: "Cirúrgica Fernandes / Clientes / Cadastro CNPJ",
         };
       default:
@@ -228,27 +222,31 @@ export default function Header({ collapsed, onToggle }: HeaderProps) {
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 className="flex items-center gap-3 hover:bg-muted/50 transition-all h-auto py-2 px-3 rounded-lg"
               >
                 <Avatar className="h-10 w-10 border-2 border-primary/20 shadow-sm">
                   {perfil?.foto_perfil_url ? (
-                    <AvatarImage src={perfil.foto_perfil_url} alt={`${perfil.primeiro_nome} ${perfil.sobrenome}` || "Usuário"} />
+                    <AvatarImage
+                      src={perfil.foto_perfil_url}
+                      alt={`${perfil.primeiro_nome} ${perfil.sobrenome}` || "Usuário"}
+                    />
                   ) : null}
                   <AvatarFallback className="gradient-primary text-white text-sm font-semibold">
-                    {perfil?.primeiro_nome?.substring(0, 1).toUpperCase() || ""}{perfil?.sobrenome?.substring(0, 1).toUpperCase() || ""}
+                    {perfil?.primeiro_nome?.substring(0, 1).toUpperCase() || ""}
+                    {perfil?.sobrenome?.substring(0, 1).toUpperCase() || ""}
                     {!perfil?.primeiro_nome && (user?.email?.substring(0, 2).toUpperCase() || "U")}
                   </AvatarFallback>
                 </Avatar>
                 <div className="text-sm leading-tight text-left">
                   <p className="font-semibold text-foreground">
-                    {perfil?.primeiro_nome ? `${perfil.primeiro_nome} ${perfil.sobrenome || ''}`.trim() : user?.email?.split('@')[0] || "Usuário"}
+                    {perfil?.primeiro_nome
+                      ? `${perfil.primeiro_nome} ${perfil.sobrenome || ""}`.trim()
+                      : user?.email?.split("@")[0] || "Usuário"}
                   </p>
                   <div className="flex items-center gap-1.5 mt-0.5">
-                    <p className="text-xs text-muted-foreground">
-                      {perfil?.cargo || "Sem cargo"}
-                    </p>
+                    <p className="text-xs text-muted-foreground">{perfil?.cargo || "Sem cargo"}</p>
                     {roles && roles.length > 0 && (
                       <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4">
                         {roles[0]}
@@ -263,35 +261,31 @@ export default function Header({ collapsed, onToggle }: HeaderProps) {
                 <div className="flex items-center gap-3">
                   <Avatar className="h-12 w-12 border-2 border-primary/20">
                     {perfil?.foto_perfil_url ? (
-                      <AvatarImage src={perfil.foto_perfil_url} alt={`${perfil.primeiro_nome} ${perfil.sobrenome}` || "Usuário"} />
+                      <AvatarImage
+                        src={perfil.foto_perfil_url}
+                        alt={`${perfil.primeiro_nome} ${perfil.sobrenome}` || "Usuário"}
+                      />
                     ) : null}
                     <AvatarFallback className="gradient-primary text-white font-semibold">
-                      {perfil?.primeiro_nome?.substring(0, 1).toUpperCase() || ""}{perfil?.sobrenome?.substring(0, 1).toUpperCase() || ""}
+                      {perfil?.primeiro_nome?.substring(0, 1).toUpperCase() || ""}
+                      {perfil?.sobrenome?.substring(0, 1).toUpperCase() || ""}
                       {!perfil?.primeiro_nome && (user?.email?.substring(0, 2).toUpperCase() || "U")}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-foreground truncate">
-                      {perfil?.primeiro_nome ? `${perfil.primeiro_nome} ${perfil.sobrenome || ''}`.trim() : user?.email?.split('@')[0] || "Usuário"}
+                      {perfil?.primeiro_nome
+                        ? `${perfil.primeiro_nome} ${perfil.sobrenome || ""}`.trim()
+                        : user?.email?.split("@")[0] || "Usuário"}
                     </p>
-                    <p className="text-xs text-muted-foreground truncate">
-                      {user?.email}
-                    </p>
-                    {perfil?.cargo && (
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {perfil.cargo}
-                      </p>
-                    )}
+                    <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+                    {perfil?.cargo && <p className="text-xs text-muted-foreground mt-1">{perfil.cargo}</p>}
                   </div>
                 </div>
                 {roles && roles.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 mt-3">
                     {roles.map((role) => (
-                      <Badge 
-                        key={role} 
-                        variant="secondary" 
-                        className="text-xs px-2 py-0.5"
-                      >
+                      <Badge key={role} variant="secondary" className="text-xs px-2 py-0.5">
                         {role}
                       </Badge>
                     ))}
@@ -314,7 +308,7 @@ export default function Header({ collapsed, onToggle }: HeaderProps) {
                 </DropdownMenuItem>
               )}
               <DropdownMenuSeparator />
-              <DropdownMenuItem 
+              <DropdownMenuItem
                 onClick={handleLogout}
                 className="cursor-pointer py-2.5 text-destructive focus:text-destructive focus:bg-destructive/10"
               >
