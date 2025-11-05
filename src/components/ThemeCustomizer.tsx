@@ -61,18 +61,13 @@ const presetSchemes: ColorScheme[] = [
 ];
 
 const fontOptions: FontOption[] = [
+  // Modernas
   { name: "Inter (Padrão)", family: "Inter", category: "sans-serif" },
-  { name: "Roboto", family: "Roboto", category: "sans-serif" },
-  { name: "Open Sans", family: "Open Sans", category: "sans-serif" },
-  { name: "Lato", family: "Lato", category: "sans-serif" },
-  { name: "Montserrat", family: "Montserrat", category: "sans-serif" },
   { name: "Poppins", family: "Poppins", category: "sans-serif" },
-  { name: "Raleway", family: "Raleway", category: "sans-serif" },
-  { name: "Nunito", family: "Nunito", category: "sans-serif" },
-  { name: "Work Sans", family: "Work Sans", category: "sans-serif" },
-  { name: "DM Sans", family: "DM Sans", category: "sans-serif" },
+  { name: "Montserrat", family: "Montserrat", category: "sans-serif" },
   { name: "Space Grotesk", family: "Space Grotesk", category: "sans-serif" },
   { name: "Plus Jakarta Sans", family: "Plus Jakarta Sans", category: "sans-serif" },
+  { name: "DM Sans", family: "DM Sans", category: "sans-serif" },
   { name: "Manrope", family: "Manrope", category: "sans-serif" },
   { name: "Urbanist", family: "Urbanist", category: "sans-serif" },
   { name: "Outfit", family: "Outfit", category: "sans-serif" },
@@ -85,15 +80,31 @@ const fontOptions: FontOption[] = [
   { name: "Rubik", family: "Rubik", category: "sans-serif" },
   { name: "Archivo", family: "Archivo", category: "sans-serif" },
   { name: "Karla", family: "Karla", category: "sans-serif" },
+  { name: "Raleway", family: "Raleway", category: "sans-serif" },
+  { name: "Nunito", family: "Nunito", category: "sans-serif" },
+  { name: "Work Sans", family: "Work Sans", category: "sans-serif" },
+  
+  // Clássicas
+  { name: "Roboto", family: "Roboto", category: "serif" },
+  { name: "Open Sans", family: "Open Sans", category: "serif" },
+  { name: "Lato", family: "Lato", category: "serif" },
   { name: "Playfair Display", family: "Playfair Display", category: "serif" },
   { name: "Merriweather", family: "Merriweather", category: "serif" },
   { name: "Lora", family: "Lora", category: "serif" },
   { name: "PT Serif", family: "PT Serif", category: "serif" },
   { name: "Crimson Text", family: "Crimson Text", category: "serif" },
+  
+  // Monoespaçadas
   { name: "Source Code Pro", family: "Source Code Pro", category: "monospace" },
   { name: "JetBrains Mono", family: "JetBrains Mono", category: "monospace" },
   { name: "Fira Code", family: "Fira Code", category: "monospace" },
 ];
+
+const fontCategories = {
+  modernas: fontOptions.filter(f => f.category === "sans-serif"),
+  classicas: fontOptions.filter(f => f.category === "serif"),
+  monoespacadas: fontOptions.filter(f => f.category === "monospace"),
+};
 
 export default function ThemeCustomizer() {
   const [open, setOpen] = useState(false);
@@ -390,36 +401,106 @@ export default function ThemeCustomizer() {
           </TabsContent>
 
           <TabsContent value="fonts" className="space-y-4">
-            <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
-              {fontOptions.map((font) => (
-                <button
-                  key={font.family}
-                  onClick={() => handleFontChange(font.family)}
-                  className={`w-full p-4 border-2 rounded-lg hover:border-primary transition-all text-left ${
-                    selectedFont === font.family ? "border-primary bg-primary/5" : ""
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-medium text-sm">{font.name}</span>
-                    {selectedFont === font.family && (
-                      <Check className="text-primary" size={16} />
-                    )}
-                  </div>
-                  <p
-                    className="text-base"
-                    style={{ fontFamily: `"${font.family}", ${font.category}` }}
+            <Tabs defaultValue="modernas" className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="modernas">Modernas</TabsTrigger>
+                <TabsTrigger value="classicas">Clássicas</TabsTrigger>
+                <TabsTrigger value="monoespacadas">Monoespaçadas</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="modernas" className="space-y-3 max-h-[400px] overflow-y-auto pr-2 mt-4">
+                {fontCategories.modernas.map((font) => (
+                  <button
+                    key={font.family}
+                    onClick={() => handleFontChange(font.family)}
+                    className={`w-full p-4 border-2 rounded-lg hover:border-primary transition-all text-left ${
+                      selectedFont === font.family ? "border-primary bg-primary/5" : ""
+                    }`}
                   >
-                    The quick brown fox jumps over the lazy dog
-                  </p>
-                  <p
-                    className="text-sm text-muted-foreground mt-1"
-                    style={{ fontFamily: `"${font.family}", ${font.category}` }}
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-medium text-sm">{font.name}</span>
+                      {selectedFont === font.family && (
+                        <Check className="text-primary" size={16} />
+                      )}
+                    </div>
+                    <p
+                      className="text-base"
+                      style={{ fontFamily: `"${font.family}", ${font.category}` }}
+                    >
+                      The quick brown fox jumps over the lazy dog
+                    </p>
+                    <p
+                      className="text-sm text-muted-foreground mt-1"
+                      style={{ fontFamily: `"${font.family}", ${font.category}` }}
+                    >
+                      0123456789 - ABCDEFGabcdefg
+                    </p>
+                  </button>
+                ))}
+              </TabsContent>
+
+              <TabsContent value="classicas" className="space-y-3 max-h-[400px] overflow-y-auto pr-2 mt-4">
+                {fontCategories.classicas.map((font) => (
+                  <button
+                    key={font.family}
+                    onClick={() => handleFontChange(font.family)}
+                    className={`w-full p-4 border-2 rounded-lg hover:border-primary transition-all text-left ${
+                      selectedFont === font.family ? "border-primary bg-primary/5" : ""
+                    }`}
                   >
-                    0123456789 - ABCDEFGabcdefg
-                  </p>
-                </button>
-              ))}
-            </div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-medium text-sm">{font.name}</span>
+                      {selectedFont === font.family && (
+                        <Check className="text-primary" size={16} />
+                      )}
+                    </div>
+                    <p
+                      className="text-base"
+                      style={{ fontFamily: `"${font.family}", ${font.category}` }}
+                    >
+                      The quick brown fox jumps over the lazy dog
+                    </p>
+                    <p
+                      className="text-sm text-muted-foreground mt-1"
+                      style={{ fontFamily: `"${font.family}", ${font.category}` }}
+                    >
+                      0123456789 - ABCDEFGabcdefg
+                    </p>
+                  </button>
+                ))}
+              </TabsContent>
+
+              <TabsContent value="monoespacadas" className="space-y-3 max-h-[400px] overflow-y-auto pr-2 mt-4">
+                {fontCategories.monoespacadas.map((font) => (
+                  <button
+                    key={font.family}
+                    onClick={() => handleFontChange(font.family)}
+                    className={`w-full p-4 border-2 rounded-lg hover:border-primary transition-all text-left ${
+                      selectedFont === font.family ? "border-primary bg-primary/5" : ""
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-medium text-sm">{font.name}</span>
+                      {selectedFont === font.family && (
+                        <Check className="text-primary" size={16} />
+                      )}
+                    </div>
+                    <p
+                      className="text-base"
+                      style={{ fontFamily: `"${font.family}", ${font.category}` }}
+                    >
+                      The quick brown fox jumps over the lazy dog
+                    </p>
+                    <p
+                      className="text-sm text-muted-foreground mt-1"
+                      style={{ fontFamily: `"${font.family}", ${font.category}` }}
+                    >
+                      0123456789 - ABCDEFGabcdefg
+                    </p>
+                  </button>
+                ))}
+              </TabsContent>
+            </Tabs>
           </TabsContent>
 
           <TabsContent value="logo" className="space-y-4">
