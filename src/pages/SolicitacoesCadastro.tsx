@@ -140,14 +140,11 @@ export default function SolicitacoesCadastro() {
   const totalPages = Math.ceil((total || 0) / itemsPerPage);
   const canPreviousPage = page > 1;
   const canNextPage = page < totalPages;
-  return <div className="h-full overflow-hidden flex flex-col">
+  return <div className="p-6 space-y-6 h-full overflow-hidden flex flex-col">
       {/* Filtros */}
-      <div className="sticky top-0 z-30 flex items-center gap-3 py-3 px-6 border-b bg-card shadow-sm">
-        <SolicitacoesFilters searchTerm={search} onSearchChange={setSearch} statusFilter={statusFilter} onStatusChange={value => setStatusFilter(value as StatusSolicitacao | "todos")} onNovaSolicitacao={() => navigate("/clientes/cadastro-cnpj")} />
-      </div>
+      <SolicitacoesFilters searchTerm={search} onSearchChange={setSearch} statusFilter={statusFilter} onStatusChange={value => setStatusFilter(value as StatusSolicitacao | "todos")} onNovaSolicitacao={() => navigate("/clientes/cadastro-cnpj")} />
 
       {/* Estatísticas */}
-      <div className="p-6 space-y-6">
       <div className="grid gap-3 md:grid-cols-5">
         <Card className="border-border/40 shadow-sm rounded-xl bg-card/50 backdrop-blur-sm">
           <CardHeader className="pb-1 pt-3 px-4">
@@ -439,6 +436,5 @@ export default function SolicitacoesCadastro() {
 
       {/* Barra de Ações em Massa */}
       <AcoesMassaBar selectedCount={selectedRows.size} onAprovar={handleAcaoMassaAprovar} onRejeitar={handleAcaoMassaRejeitar} onExcluir={handleAcaoMassaExcluir} onCancelar={() => setSelectedRows(new Set())} isLoading={aprovarSolicitacao.isPending || rejeitarSolicitacao.isPending || deleteSolicitacao.isPending} showAprovar={solicitacoes.some(s => selectedRows.has(s.id) && s.status === "em_analise")} />
-      </div>
     </div>;
 }
