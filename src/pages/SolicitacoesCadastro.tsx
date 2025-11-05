@@ -16,6 +16,8 @@ import { SolicitacoesFilters } from "@/components/solicitacoes/SolicitacoesFilte
 import { format } from "date-fns";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { AcoesMassaBar } from "@/components/solicitacoes/AcoesMassaBar";
+
 export default function SolicitacoesCadastro() {
   const navigate = useNavigate();
   const [statusFilter, setStatusFilter] = useState<StatusSolicitacao | "todos">("todos");
@@ -49,6 +51,36 @@ export default function SolicitacoesCadastro() {
       return next;
     });
   };
+
+  const toggleSelectAll = () => {
+    if (selectedRows.size === solicitacoes.length) {
+      setSelectedRows(new Set());
+    } else {
+      setSelectedRows(new Set(solicitacoes.map(s => s.id)));
+    }
+  };
+
+  const handleAcaoMassaAprovar = () => {
+    const idsToApprove = Array.from(selectedRows);
+    idsToApprove.forEach(id => {
+      aprovarSolicitacao.mutate(id);
+    });
+    setSelectedRows(new Set());
+  };
+
+  const handleAcaoMassaRejeitar = () => {
+    const firstId = Array.from(selectedRows)[0];
+    if (firstId) {
+      setRejeitarDialog(firstId);
+    }
+  };
+
+  const handleAcaoMassaExcluir = () => {
+    const firstId = Array.from(selectedRows)[0];
+    if (firstId) {
+      setDeleteDialog(firstId);
+    }
+  };
   const {
     solicitacoes,
     total,
@@ -75,17 +107,40 @@ export default function SolicitacoesCadastro() {
     });
   };
   const handleRejeitar = (id: string, motivo: string) => {
-    rejeitarSolicitacao.mutate({
-      id,
-      motivo
-    }, {
-      onSuccess: () => setRejeitarDialog(null)
-    });
+    if (selectedRows.size > 1) {
+      // Ação em massa
+      Array.from(selectedRows).forEach(selectedId => {
+        rejeitarSolicitacao.mutate({
+          id: selectedId,
+          motivo
+        });
+      });
+      setSelectedRows(new Set());
+      setRejeitarDialog(null);
+    } else {
+      // Ação individual
+      rejeitarSolicitacao.mutate({
+        id,
+        motivo
+      }, {
+        onSuccess: () => setRejeitarDialog(null)
+      });
+    }
   };
   const handleDelete = (id: string) => {
-    deleteSolicitacao.mutate(id, {
-      onSuccess: () => setDeleteDialog(null)
-    });
+    if (selectedRows.size > 1) {
+      // Ação em massa
+      Array.from(selectedRows).forEach(selectedId => {
+        deleteSolicitacao.mutate(selectedId);
+      });
+      setSelectedRows(new Set());
+      setDeleteDialog(null);
+    } else {
+      // Ação individual
+      deleteSolicitacao.mutate(id, {
+        onSuccess: () => setDeleteDialog(null)
+      });
+    }
   };
 
   const totalPages = Math.ceil((total || 0) / itemsPerPage);
@@ -175,7 +230,11 @@ export default function SolicitacoesCadastro() {
               <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-primary/30 scrollbar-track-transparent hover:scrollbar-thumb-primary/40">
               {/* Table Header */}
               <div className="sticky top-0 z-10 flex items-center gap-4 p-4 border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 font-medium text-sm text-muted-foreground">
-                <div className="w-10"></div> {/* Checkbox space */}
+                <Checkbox 
+                  checked={selectedRows.size === solicitacoes.length && solicitacoes.length > 0}
+                  onCheckedChange={toggleSelectAll}
+                  className="ml-2"
+                />
                 <div className="flex-1 min-w-0">Razão Social / CNPJ</div>
                 <div className="w-32">Status</div>
                 <div className="w-24 text-center">Contatos</div>
@@ -396,7 +455,10 @@ export default function SolicitacoesCadastro() {
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir Solicitação</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir esta solicitação? Esta ação não pode ser desfeita.
+              {selectedRows.size > 1 
+                ? `Tem certeza que deseja excluir ${selectedRows.size} solicitações? Esta ação não pode ser desfeita.`
+                : "Tem certeza que deseja excluir esta solicitação? Esta ação não pode ser desfeita."
+              }
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -407,5 +469,16 @@ export default function SolicitacoesCadastro() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Barra de Ações em Massa */}
+      <AcoesMassaBar
+        selectedCount={selectedRows.size}
+        onAprovar={handleAcaoMassaAprovar}
+        onRejeitar={handleAcaoMassaRejeitar}
+        onExcluir={handleAcaoMassaExcluir}
+        onCancelar={() => setSelectedRows(new Set())}
+        isLoading={aprovarSolicitacao.isPending || rejeitarSolicitacao.isPending || deleteSolicitacao.isPending}
+        showAprovar={solicitacoes.some(s => selectedRows.has(s.id) && s.status === "em_analise")}
+      />
     </div>;
 }
