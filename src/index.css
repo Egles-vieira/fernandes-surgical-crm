@@ -77,6 +77,11 @@ All colors MUST be HSL.
     --sidebar-border: 220 13% 91%;
 
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Menu/Sidebar Customization */
+    --menu-background: 186 60% 56%;
+    --menu-icon: 0 0% 100%;
+    --menu-text: 0 0% 100%;
   }
 
   .dark {
@@ -230,6 +235,15 @@ All colors MUST be HSL.
 
   .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: hsl(var(--primary) / 0.5);
+  }
+
+  /* Menu customization - apply color variables */
+  .menu-icon {
+    color: hsl(var(--menu-icon)) !important;
+  }
+
+  .menu-text {
+    color: hsl(var(--menu-text)) !important;
   }
 
   /* Toast customizations for Sonner */

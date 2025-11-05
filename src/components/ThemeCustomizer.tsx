@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Palette, Check, Upload, Image as ImageIcon, Type, Shapes } from "lucide-react";
+import { Palette, Check, Upload, Image as ImageIcon, Type, Shapes, LayoutDashboard } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -498,6 +498,12 @@ export default function ThemeCustomizer() {
   const [selectedFont, setSelectedFont] = useState("Inter");
   const [selectedRadius, setSelectedRadius] = useState("0.75rem");
   const [selectedBorder, setSelectedBorder] = useState("2px");
+  const [menuColors, setMenuColors] = useState({
+    background: "#47ccd8",
+    icon: "#ffffff",
+    text: "#ffffff",
+  });
+  const [menuPreviewCollapsed, setMenuPreviewCollapsed] = useState(false);
   const [selectedShadow, setSelectedShadow] = useState("md");
   const [selectedIconStroke, setSelectedIconStroke] = useState("default");
   const [selectedIconVisual, setSelectedIconVisual] = useState("lucide");
@@ -549,6 +555,13 @@ export default function ThemeCustomizer() {
     if (savedIconVisual) {
       setSelectedIconVisual(savedIconVisual);
       applyIconVisual(savedIconVisual);
+    }
+
+    const savedMenuColors = localStorage.getItem("theme-menu-colors");
+    if (savedMenuColors) {
+      const colors = JSON.parse(savedMenuColors);
+      setMenuColors(colors);
+      applyMenuColors(colors);
     }
   }, []);
 
@@ -743,6 +756,20 @@ export default function ThemeCustomizer() {
     window.dispatchEvent(new Event('icon-style-changed'));
   };
 
+  const applyMenuColors = (colors: typeof menuColors) => {
+    const root = document.documentElement;
+    root.style.setProperty("--menu-background", hexToHSL(colors.background));
+    root.style.setProperty("--menu-icon", hexToHSL(colors.icon));
+    root.style.setProperty("--menu-text", hexToHSL(colors.text));
+  };
+
+  const handleMenuColorChange = (color: keyof typeof menuColors, value: string) => {
+    const newColors = { ...menuColors, [color]: value };
+    setMenuColors(newColors);
+    applyMenuColors(newColors);
+    localStorage.setItem("theme-menu-colors", JSON.stringify(newColors));
+  };
+
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
@@ -759,12 +786,13 @@ export default function ThemeCustomizer() {
         </SheetHeader>
 
         <Tabs defaultValue="presets" className="w-full mt-6">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="presets">Temas</TabsTrigger>
             <TabsTrigger value="custom">Cores</TabsTrigger>
             <TabsTrigger value="fonts">Fontes</TabsTrigger>
             <TabsTrigger value="icons">Ícones</TabsTrigger>
             <TabsTrigger value="styles">Estilos</TabsTrigger>
+            <TabsTrigger value="menu">Menu</TabsTrigger>
             <TabsTrigger value="logo">Logo</TabsTrigger>
           </TabsList>
 
@@ -1377,6 +1405,170 @@ export default function ThemeCustomizer() {
                       </div>
                     </button>
                   ))}
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="menu" className="space-y-4">
+            <div className="space-y-6">
+              <h3 className="text-lg font-semibold">Personalizar Menu Lateral</h3>
+              <p className="text-sm text-muted-foreground">
+                Customize as cores do menu lateral (ícones, texto e fundo)
+              </p>
+
+              {/* Controles de Cor */}
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="menu-background">Cor de Fundo do Menu</Label>
+                  <div className="flex gap-2 mt-2">
+                    <Input
+                      id="menu-background"
+                      type="color"
+                      value={menuColors.background}
+                      onChange={(e) => handleMenuColorChange("background", e.target.value)}
+                      className="w-20 h-10 p-1 cursor-pointer"
+                    />
+                    <Input
+                      type="text"
+                      value={menuColors.background}
+                      onChange={(e) => handleMenuColorChange("background", e.target.value)}
+                      className="flex-1"
+                      placeholder="#47ccd8"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="menu-icon">Cor dos Ícones</Label>
+                  <div className="flex gap-2 mt-2">
+                    <Input
+                      id="menu-icon"
+                      type="color"
+                      value={menuColors.icon}
+                      onChange={(e) => handleMenuColorChange("icon", e.target.value)}
+                      className="w-20 h-10 p-1 cursor-pointer"
+                    />
+                    <Input
+                      type="text"
+                      value={menuColors.icon}
+                      onChange={(e) => handleMenuColorChange("icon", e.target.value)}
+                      className="flex-1"
+                      placeholder="#ffffff"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="menu-text">Cor do Texto</Label>
+                  <div className="flex gap-2 mt-2">
+                    <Input
+                      id="menu-text"
+                      type="color"
+                      value={menuColors.text}
+                      onChange={(e) => handleMenuColorChange("text", e.target.value)}
+                      className="w-20 h-10 p-1 cursor-pointer"
+                    />
+                    <Input
+                      type="text"
+                      value={menuColors.text}
+                      onChange={(e) => handleMenuColorChange("text", e.target.value)}
+                      className="flex-1"
+                      placeholder="#ffffff"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Preview do Menu */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label>Preview do Menu</Label>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant={!menuPreviewCollapsed ? "default" : "outline"}
+                      onClick={() => setMenuPreviewCollapsed(false)}
+                    >
+                      Aberto
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={menuPreviewCollapsed ? "default" : "outline"}
+                      onClick={() => setMenuPreviewCollapsed(true)}
+                    >
+                      Fechado
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="border rounded-lg p-4 bg-muted/30">
+                  <div className="flex gap-4">
+                    {/* Preview Menu */}
+                    <div
+                      className={`${menuPreviewCollapsed ? "w-16" : "w-56"} transition-all duration-300 rounded-lg overflow-hidden shadow-lg`}
+                      style={{
+                        backgroundColor: menuColors.background,
+                        color: menuColors.text,
+                      }}
+                    >
+                      {/* Header */}
+                      <div className="p-3 border-b border-white/10 h-16 flex items-center justify-center">
+                        {menuPreviewCollapsed ? (
+                          <div className="w-8 h-8 bg-white/20 rounded"></div>
+                        ) : (
+                          <div className="w-32 h-6 bg-white/20 rounded"></div>
+                        )}
+                      </div>
+
+                      {/* Menu Items */}
+                      <div className="p-2 space-y-1">
+                        {[1, 2, 3, 4].map((item) => (
+                          <div
+                            key={item}
+                            className={`${
+                              menuPreviewCollapsed
+                                ? "flex flex-col items-center py-3 px-1"
+                                : "flex items-center gap-2 px-3 py-2"
+                            } rounded-lg transition-all`}
+                            style={{
+                              backgroundColor: item === 1 ? "rgba(255,255,255,0.2)" : "transparent",
+                            }}
+                          >
+                            <LayoutDashboard
+                              size={menuPreviewCollapsed ? 20 : 18}
+                              style={{ color: menuColors.icon }}
+                            />
+                            {!menuPreviewCollapsed && (
+                              <span className="text-sm font-medium" style={{ color: menuColors.text }}>
+                                Item {item}
+                              </span>
+                            )}
+                            {menuPreviewCollapsed && (
+                              <span
+                                className="text-[9px] text-center mt-1"
+                                style={{ color: menuColors.text }}
+                              >
+                                Item
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Descrição */}
+                    <div className="flex-1 flex items-center justify-center text-center p-4">
+                      <div>
+                        <p className="text-sm text-muted-foreground mb-2">
+                          {menuPreviewCollapsed ? "Menu Fechado (Compacto)" : "Menu Aberto (Expandido)"}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Alterne entre os estados para ver como as cores ficam em cada modo
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

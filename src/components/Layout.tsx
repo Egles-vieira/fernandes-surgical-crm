@@ -143,7 +143,8 @@ export default function Layout({ children }: LayoutProps) {
       <aside
         className={`${
           collapsed ? "w-16" : "w-56"
-        } gradient-primary text-white flex flex-col fixed left-0 top-0 h-full z-50 shadow-elegant transition-all duration-300`}
+        } flex flex-col fixed left-0 top-0 h-full z-50 shadow-elegant transition-all duration-300 menu-sidebar`}
+        style={{ backgroundColor: `hsl(var(--menu-background))` }}
       >
         {/* Logo Header com Toggle */}
         <div className="p-3 flex items-center justify-center border-b border-white/10 h-20 relative">
@@ -187,12 +188,12 @@ export default function Layout({ children }: LayoutProps) {
                     return (
                       <HoverCard key={item.label} openDelay={200}>
                         <HoverCardTrigger asChild>
-                          <div
+                           <div
                             className={`group flex flex-col items-center justify-center py-3 px-1 transition-all duration-200 relative cursor-pointer
                           ${
                             isAnyChildActive
-                              ? "bg-white/20 text-white"
-                              : "hover:bg-white/10 text-white/70 hover:text-white"
+                              ? "bg-white/20"
+                              : "hover:bg-white/10"
                           }`}
                           >
                             {isAnyChildActive && (
@@ -200,9 +201,9 @@ export default function Layout({ children }: LayoutProps) {
                             )}
                             <item.icon
                               size={24}
-                              className="mb-1.5 transition-transform duration-200 group-hover:scale-110"
+                              className="mb-1.5 transition-transform duration-200 group-hover:scale-110 menu-icon"
                             />
-                            <span className="text-[10px] font-medium text-center leading-tight">{item.label}</span>
+                            <span className="text-[10px] font-medium text-center leading-tight menu-text">{item.label}</span>
                           </div>
                         </HoverCardTrigger>
                         <HoverCardContent side="right" align="start" className="w-48 bg-card border-border p-2 ml-2">
@@ -238,18 +239,18 @@ export default function Layout({ children }: LayoutProps) {
                       <CollapsibleTrigger
                         className={`group flex items-center gap-2 px-3 py-2 rounded-xl mx-2 transition-all duration-200 relative w-[calc(100%-16px)]
                       ${
-                        isAnyChildActive ? "bg-white/20 text-white" : "hover:bg-white/10 text-white/80 hover:text-white"
+                        isAnyChildActive ? "bg-white/20" : "hover:bg-white/10"
                       }`}
                       >
                         <item.icon
                           size={20}
-                          className="flex-shrink-0 transition-transform duration-200 group-hover:scale-110"
+                          className="flex-shrink-0 transition-transform duration-200 group-hover:scale-110 menu-icon"
                         />
-                        <span className="font-medium text-sm flex-1 text-left">{item.label}</span>
+                        <span className="font-medium text-sm flex-1 text-left menu-text">{item.label}</span>
                         {isOpen ? (
-                          <ChevronDown size={16} className="transition-transform" />
+                          <ChevronDown size={16} className="transition-transform menu-icon" />
                         ) : (
-                          <ChevronRight size={16} className="transition-transform" />
+                          <ChevronRight size={16} className="transition-transform menu-icon" />
                         )}
                       </CollapsibleTrigger>
 
@@ -262,11 +263,11 @@ export default function Layout({ children }: LayoutProps) {
                                 <div
                                   className={`group flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all duration-200 relative
                               ${
-                                isActive ? "bg-white/15 text-white" : "hover:bg-white/5 text-white/70 hover:text-white"
+                                isActive ? "bg-white/15" : "hover:bg-white/5"
                               }`}
                                 >
-                                  <child.icon size={16} className="flex-shrink-0" />
-                                  <span className="text-sm">{child.label}</span>
+                                  <child.icon size={16} className="flex-shrink-0 menu-icon" />
+                                  <span className="text-sm menu-text">{child.label}</span>
                                 </div>
                               )}
                             </NavLink>
@@ -285,7 +286,7 @@ export default function Layout({ children }: LayoutProps) {
                       end={item.path === "/"}
                       className={({ isActive }) =>
                         `group flex flex-col items-center justify-center py-3 px-1 transition-all duration-200 relative
-                      ${isActive ? "bg-white/20 text-white" : "hover:bg-white/10 text-white/70 hover:text-white"}`
+                      ${isActive ? "bg-white/20" : "hover:bg-white/10"}`
                       }
                     >
                       {({ isActive }) => (
@@ -295,9 +296,9 @@ export default function Layout({ children }: LayoutProps) {
                           )}
                           <item.icon
                             size={24}
-                            className="mb-1.5 transition-transform duration-200 group-hover:scale-110"
+                            className="mb-1.5 transition-transform duration-200 group-hover:scale-110 menu-icon"
                           />
-                          <span className="text-[10px] font-medium text-center leading-tight px-1">{item.label}</span>
+                          <span className="text-[10px] font-medium text-center leading-tight px-1 menu-text">{item.label}</span>
                         </>
                       )}
                     </NavLink>
@@ -311,7 +312,7 @@ export default function Layout({ children }: LayoutProps) {
                     end={item.path === "/"}
                     className={({ isActive }) =>
                       `group flex items-center gap-2 px-3 py-2 rounded-xl mx-2 transition-all duration-200 relative
-                    ${isActive ? "bg-white/20 text-white" : "hover:bg-white/10 text-white/80 hover:text-white"}`
+                    ${isActive ? "bg-white/20" : "hover:bg-white/10"}`
                     }
                   >
                     {({ isActive }) => (
@@ -321,9 +322,9 @@ export default function Layout({ children }: LayoutProps) {
                         )}
                         <item.icon
                           size={20}
-                          className="flex-shrink-0 transition-transform duration-200 group-hover:scale-110"
+                          className="flex-shrink-0 transition-transform duration-200 group-hover:scale-110 menu-icon"
                         />
-                        <span className="font-medium text-sm">{item.label}</span>
+                        <span className="font-medium text-sm menu-text">{item.label}</span>
                       </>
                     )}
                   </NavLink>
@@ -335,7 +336,7 @@ export default function Layout({ children }: LayoutProps) {
         {/* Footer */}
         <div className="border-t border-white/10 p-3">
           <div className="flex justify-center">
-            <div className="text-[9px] text-white/40 text-center">{collapsed ? "v1.0" : "CRM v1.0.0 © 2025"}</div>
+            <div className="text-[9px] opacity-40 text-center menu-text">{collapsed ? "v1.0" : "CRM v1.0.0 © 2025"}</div>
           </div>
         </div>
       </aside>
