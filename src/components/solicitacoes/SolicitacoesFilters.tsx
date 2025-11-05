@@ -27,7 +27,7 @@ export function SolicitacoesFilters({
   onNovaSolicitacao 
 }: SolicitacoesFiltersProps) {
   return (
-    <div className="sticky top-0 z-30 flex items-center gap-3 py-2 px-8 border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 -mx-8 -mt-8 mb-4">
+    <div className="sticky top-0 z-30 flex items-center gap-3 py-3 px-8 border-b bg-card shadow-sm -mx-8 -mt-8 mb-6">
       {/* Search Bar */}
       <div className="relative flex-1 max-w-md">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
