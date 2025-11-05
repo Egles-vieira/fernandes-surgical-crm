@@ -91,7 +91,7 @@ export default function SolicitacoesCadastro() {
   const totalPages = Math.ceil((total || 0) / itemsPerPage);
   const canPreviousPage = page > 1;
   const canNextPage = page < totalPages;
-  return <div className="p-6 space-y-6">
+  return <div className="p-6 space-y-6 h-full overflow-hidden flex flex-col">
       {/* Filtros */}
       <SolicitacoesFilters 
         searchTerm={search}
@@ -147,8 +147,8 @@ export default function SolicitacoesCadastro() {
 
 
       {/* Tabela */}
-      <Card className="flex flex-col h-[calc(100vh-28rem)]">
-        <CardContent className="pt-6 flex-1 flex flex-col overflow-hidden">
+      <Card className="flex flex-col flex-1 min-h-0 overflow-hidden">
+        <CardContent className="pt-6 flex-1 flex flex-col min-h-0 overflow-hidden">
           {isLoading ? <div className="space-y-3">
               <p className="text-sm text-muted-foreground mb-2">Carregando solicitações...</p>
               {[1, 2, 3].map(i => <Skeleton key={i} className="h-12 w-full" />)}
