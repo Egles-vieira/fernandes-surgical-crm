@@ -17,7 +17,6 @@ import { format } from "date-fns";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AcoesMassaBar } from "@/components/solicitacoes/AcoesMassaBar";
-
 export default function SolicitacoesCadastro() {
   const navigate = useNavigate();
   const [statusFilter, setStatusFilter] = useState<StatusSolicitacao | "todos">("todos");
@@ -51,7 +50,6 @@ export default function SolicitacoesCadastro() {
       return next;
     });
   };
-
   const toggleSelectAll = () => {
     if (selectedRows.size === solicitacoes.length) {
       setSelectedRows(new Set());
@@ -59,7 +57,6 @@ export default function SolicitacoesCadastro() {
       setSelectedRows(new Set(solicitacoes.map(s => s.id)));
     }
   };
-
   const handleAcaoMassaAprovar = () => {
     const idsToApprove = Array.from(selectedRows);
     idsToApprove.forEach(id => {
@@ -67,14 +64,12 @@ export default function SolicitacoesCadastro() {
     });
     setSelectedRows(new Set());
   };
-
   const handleAcaoMassaRejeitar = () => {
     const firstId = Array.from(selectedRows)[0];
     if (firstId) {
       setRejeitarDialog(firstId);
     }
   };
-
   const handleAcaoMassaExcluir = () => {
     const firstId = Array.from(selectedRows)[0];
     if (firstId) {
@@ -142,19 +137,12 @@ export default function SolicitacoesCadastro() {
       });
     }
   };
-
   const totalPages = Math.ceil((total || 0) / itemsPerPage);
   const canPreviousPage = page > 1;
   const canNextPage = page < totalPages;
   return <div className="p-6 space-y-6 h-full overflow-hidden flex flex-col">
       {/* Filtros */}
-      <SolicitacoesFilters 
-        searchTerm={search}
-        onSearchChange={setSearch}
-        statusFilter={statusFilter}
-        onStatusChange={(value) => setStatusFilter(value as StatusSolicitacao | "todos")}
-        onNovaSolicitacao={() => navigate("/clientes/cadastro-cnpj")}
-      />
+      <SolicitacoesFilters searchTerm={search} onSearchChange={setSearch} statusFilter={statusFilter} onStatusChange={value => setStatusFilter(value as StatusSolicitacao | "todos")} onNovaSolicitacao={() => navigate("/clientes/cadastro-cnpj")} />
 
       {/* Estatísticas */}
       <div className="grid gap-4 md:grid-cols-5">
@@ -203,7 +191,7 @@ export default function SolicitacoesCadastro() {
 
       {/* Tabela */}
       <Card className="flex flex-col flex-1 min-h-0 overflow-hidden">
-        <CardContent className="pt-6 flex-1 flex flex-col min-h-0 overflow-hidden">
+        <CardContent className="pt-6 flex-1 flex flex-col min-h-0 overflow-hidden mx-0 my-0 px-0 py-0">
           {isLoading ? <div className="space-y-3">
               <p className="text-sm text-muted-foreground mb-2">Carregando solicitações...</p>
               {[1, 2, 3].map(i => <Skeleton key={i} className="h-12 w-full" />)}
@@ -230,11 +218,7 @@ export default function SolicitacoesCadastro() {
               <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-primary/30 scrollbar-track-transparent hover:scrollbar-thumb-primary/40">
               {/* Table Header */}
               <div className="sticky top-0 z-10 flex items-center gap-4 p-4 border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 font-medium text-sm text-muted-foreground">
-                <Checkbox 
-                  checked={selectedRows.size === solicitacoes.length && solicitacoes.length > 0}
-                  onCheckedChange={toggleSelectAll}
-                  className="ml-2"
-                />
+                <Checkbox checked={selectedRows.size === solicitacoes.length && solicitacoes.length > 0} onCheckedChange={toggleSelectAll} className="ml-2" />
                 <div className="flex-1 min-w-0">Razão Social / CNPJ</div>
                 <div className="w-32">Status</div>
                 <div className="w-24 text-center">Contatos</div>
@@ -245,11 +229,11 @@ export default function SolicitacoesCadastro() {
               </div>
 
               {solicitacoes.map(solicitacao => {
-            const dadosColetados = solicitacao.dados_coletados as any;
-            const contatos = solicitacao.contatos as any[] || [];
-            const isExpanded = expandedRows.has(solicitacao.id);
-            const isSelected = selectedRows.has(solicitacao.id);
-            return <div key={solicitacao.id} className={`border-b border-border transition-colors ${isSelected ? "bg-accent/5" : "hover:bg-muted/30"}`}>
+              const dadosColetados = solicitacao.dados_coletados as any;
+              const contatos = solicitacao.contatos as any[] || [];
+              const isExpanded = expandedRows.has(solicitacao.id);
+              const isSelected = selectedRows.has(solicitacao.id);
+              return <div key={solicitacao.id} className={`border-b border-border transition-colors ${isSelected ? "bg-accent/5" : "hover:bg-muted/30"}`}>
                     {/* Main Row */}
                     <div className="flex items-center gap-4 p-4 relative">
                       {/* Left Border Indicator */}
@@ -370,7 +354,7 @@ export default function SolicitacoesCadastro() {
                           </div>}
                       </div>}
                   </div>;
-          })}
+            })}
               </div>
 
               {/* Paginação */}
@@ -380,48 +364,31 @@ export default function SolicitacoesCadastro() {
                 </div>
                 
                 <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setPage(p => Math.max(1, p - 1))}
-                    disabled={!canPreviousPage}
-                  >
+                  <Button variant="outline" size="sm" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={!canPreviousPage}>
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
                   
                   <div className="flex items-center gap-1">
-                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                      let pageNum;
-                      if (totalPages <= 5) {
-                        pageNum = i + 1;
-                      } else if (page <= 3) {
-                        pageNum = i + 1;
-                      } else if (page >= totalPages - 2) {
-                        pageNum = totalPages - 4 + i;
-                      } else {
-                        pageNum = page - 2 + i;
-                      }
-                      
-                      return (
-                        <Button
-                          key={pageNum}
-                          variant={page === pageNum ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setPage(pageNum)}
-                          className="w-9"
-                        >
+                    {Array.from({
+                  length: Math.min(5, totalPages)
+                }, (_, i) => {
+                  let pageNum;
+                  if (totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (page <= 3) {
+                    pageNum = i + 1;
+                  } else if (page >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i;
+                  } else {
+                    pageNum = page - 2 + i;
+                  }
+                  return <Button key={pageNum} variant={page === pageNum ? "default" : "outline"} size="sm" onClick={() => setPage(pageNum)} className="w-9">
                           {pageNum}
-                        </Button>
-                      );
-                    })}
+                        </Button>;
+                })}
                   </div>
                   
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                    disabled={!canNextPage}
-                  >
+                  <Button variant="outline" size="sm" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={!canNextPage}>
                     <ChevronRight className="h-4 w-4" />
                   </Button>
                 </div>
@@ -455,10 +422,7 @@ export default function SolicitacoesCadastro() {
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir Solicitação</AlertDialogTitle>
             <AlertDialogDescription>
-              {selectedRows.size > 1 
-                ? `Tem certeza que deseja excluir ${selectedRows.size} solicitações? Esta ação não pode ser desfeita.`
-                : "Tem certeza que deseja excluir esta solicitação? Esta ação não pode ser desfeita."
-              }
+              {selectedRows.size > 1 ? `Tem certeza que deseja excluir ${selectedRows.size} solicitações? Esta ação não pode ser desfeita.` : "Tem certeza que deseja excluir esta solicitação? Esta ação não pode ser desfeita."}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -471,14 +435,6 @@ export default function SolicitacoesCadastro() {
       </AlertDialog>
 
       {/* Barra de Ações em Massa */}
-      <AcoesMassaBar
-        selectedCount={selectedRows.size}
-        onAprovar={handleAcaoMassaAprovar}
-        onRejeitar={handleAcaoMassaRejeitar}
-        onExcluir={handleAcaoMassaExcluir}
-        onCancelar={() => setSelectedRows(new Set())}
-        isLoading={aprovarSolicitacao.isPending || rejeitarSolicitacao.isPending || deleteSolicitacao.isPending}
-        showAprovar={solicitacoes.some(s => selectedRows.has(s.id) && s.status === "em_analise")}
-      />
+      <AcoesMassaBar selectedCount={selectedRows.size} onAprovar={handleAcaoMassaAprovar} onRejeitar={handleAcaoMassaRejeitar} onExcluir={handleAcaoMassaExcluir} onCancelar={() => setSelectedRows(new Set())} isLoading={aprovarSolicitacao.isPending || rejeitarSolicitacao.isPending || deleteSolicitacao.isPending} showAprovar={solicitacoes.some(s => selectedRows.has(s.id) && s.status === "em_analise")} />
     </div>;
 }
