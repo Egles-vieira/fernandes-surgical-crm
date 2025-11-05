@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FileText, Search, Eye, Edit, CheckCircle, XCircle, Trash2, Plus, ChevronDown, ChevronUp, MoreVertical } from "lucide-react";
+import { FileText, Search, Eye, Edit, CheckCircle, XCircle, Trash2, Plus, ChevronDown, ChevronUp, MoreVertical, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,6 +21,7 @@ export default function SolicitacoesCadastro() {
   const [statusFilter, setStatusFilter] = useState<StatusSolicitacao | "todos">("todos");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const itemsPerPage = 10;
   const [rejeitarDialog, setRejeitarDialog] = useState<string | null>(null);
   const [deleteDialog, setDeleteDialog] = useState<string | null>(null);
   const [aprovarDialog, setAprovarDialog] = useState<string | null>(null);
@@ -86,6 +87,10 @@ export default function SolicitacoesCadastro() {
       onSuccess: () => setDeleteDialog(null)
     });
   };
+
+  const totalPages = Math.ceil((total || 0) / itemsPerPage);
+  const canPreviousPage = page > 1;
+  const canNextPage = page < totalPages;
   return <div className="p-6 space-y-6">
       {/* Filtros */}
       <SolicitacoesFilters 
@@ -142,8 +147,8 @@ export default function SolicitacoesCadastro() {
 
 
       {/* Tabela */}
-      <Card>
-        <CardContent className="pt-6">
+      <Card className="flex flex-col h-[calc(100vh-28rem)]">
+        <CardContent className="pt-6 flex-1 flex flex-col overflow-hidden">
           {isLoading ? <div className="space-y-3">
               <p className="text-sm text-muted-foreground mb-2">Carregando solicitações...</p>
               {[1, 2, 3].map(i => <Skeleton key={i} className="h-12 w-full" />)}
@@ -166,7 +171,8 @@ export default function SolicitacoesCadastro() {
                 <Plus className="h-4 w-4 mr-2" />
                 Criar Nova Solicitação
               </Button>
-            </div> : <div className="space-y-0">
+            </div> : <div className="flex-1 flex flex-col overflow-hidden">
+              <div className="flex-1 overflow-y-auto">
               {/* Table Header */}
               <div className="flex items-center gap-4 p-4 border-b bg-muted/30 font-medium text-sm text-muted-foreground">
                 <div className="w-10"></div> {/* Checkbox space */}
@@ -306,6 +312,61 @@ export default function SolicitacoesCadastro() {
                       </div>}
                   </div>;
           })}
+              </div>
+
+              {/* Paginação */}
+              <div className="border-t bg-card p-4 flex items-center justify-between">
+                <div className="text-sm text-muted-foreground">
+                  Mostrando {solicitacoes.length === 0 ? 0 : (page - 1) * itemsPerPage + 1} a {Math.min(page * itemsPerPage, total || 0)} de {total || 0} solicitações
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                    disabled={!canPreviousPage}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      let pageNum;
+                      if (totalPages <= 5) {
+                        pageNum = i + 1;
+                      } else if (page <= 3) {
+                        pageNum = i + 1;
+                      } else if (page >= totalPages - 2) {
+                        pageNum = totalPages - 4 + i;
+                      } else {
+                        pageNum = page - 2 + i;
+                      }
+                      
+                      return (
+                        <Button
+                          key={pageNum}
+                          variant={page === pageNum ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setPage(pageNum)}
+                          className="w-9"
+                        >
+                          {pageNum}
+                        </Button>
+                      );
+                    })}
+                  </div>
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                    disabled={!canNextPage}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
             </div>}
         </CardContent>
       </Card>
