@@ -167,6 +167,12 @@ export default function Header({ collapsed, onToggle }: HeaderProps) {
           description: "Cadastre clientes com apoio da IA",
           breadcrumb: "Cirúrgica Fernandes / Clientes / Cadastro CNPJ",
         };
+      case "/clientes/solicitacoes":
+        return {
+          title: "Solicitações de Cadastro",
+          description: "Gerencie as solicitações de cadastro de clientes",
+          breadcrumb: "Cirúrgica Fernandes / Clientes / Solicitações",
+        };
       default:
         if (location.pathname.startsWith("/tickets/")) {
           return {
