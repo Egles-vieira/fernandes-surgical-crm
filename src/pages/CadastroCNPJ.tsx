@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Search, XCircle, UserPlus, Pencil, Trash2, Mail, Phone, Briefcase, Building2, User, MessageSquare, Target, Share2, FileText, Save, Loader2 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { ProgressoCNPJA } from "@/components/cnpja/ProgressoCNPJA";
+import { ConsultaCNPJLoadingModal } from "@/components/cnpja/ConsultaCNPJLoadingModal";
 import { DadosColetadosPreview } from "@/components/cnpja/DadosColetadosPreview";
 import { CadastroActionBar } from "@/components/cnpja/CadastroActionBar";
 import { Badge } from "@/components/ui/badge";
@@ -350,12 +350,12 @@ export default function CadastroCNPJ() {
             </CardContent>
           </Card>}
 
-        {/* Progresso */}
-        {status !== 'idle' && status !== 'concluido' && status !== 'erro' && <Card className="mt-4">
-            <CardContent className="pt-6">
-              <ProgressoCNPJA status={status} progresso={progresso} />
-            </CardContent>
-          </Card>}
+        {/* Modal de Loading */}
+        <ConsultaCNPJLoadingModal 
+          open={status !== 'idle' && status !== 'concluido' && status !== 'erro'}
+          status={status}
+          progresso={progresso}
+        />
 
         {/* Dados Coletados com Tabs */}
         {status === 'concluido' && dadosColetados && (
