@@ -100,7 +100,7 @@ const menuItems: MenuItem[] = [
     children: [
       { path: "/clientes", icon: Users, label: "Lista de Clientes" },
       { path: "/clientes/solicitacoes", icon: FileText, label: "Solicitações" },
-      { path: "/clientes/cadastro-cnpj", icon: ShoppingCart, label: "Novo Cadastro" },
+
     ],
   },
   {
