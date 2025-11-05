@@ -34,8 +34,9 @@ export function ConsultaCNPJLoadingModal({
 
   return (
     <Dialog open={open}>
-      <DialogContent className="sm:max-w-md [&>button]:hidden border-none shadow-2xl">
-        <div className="space-y-8 py-8">
+      <DialogContent className="max-w-full w-full h-full [&>button]:hidden border-none p-0 m-0">
+        <div className="w-full h-full bg-background/95 backdrop-blur-md flex items-center justify-center">
+          <div className="w-full max-w-md space-y-8 py-8 px-6">
           {/* Animação Central Inspirada no iFood */}
           <div className="relative flex items-center justify-center">
             {/* Ondas de Pulso */}
@@ -156,6 +157,7 @@ export function ConsultaCNPJLoadingModal({
               );
             })}
           </div>
+        </div>
         </div>
 
         <style dangerouslySetInnerHTML={{ __html: `
