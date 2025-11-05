@@ -174,7 +174,7 @@ export default function SolicitacoesCadastro() {
             </div> : <div className="flex-1 flex flex-col overflow-hidden">
               <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-primary/30 scrollbar-track-transparent hover:scrollbar-thumb-primary/40">
               {/* Table Header */}
-              <div className="flex items-center gap-4 p-4 border-b bg-muted/30 font-medium text-sm text-muted-foreground">
+              <div className="sticky top-0 z-10 flex items-center gap-4 p-4 border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 font-medium text-sm text-muted-foreground">
                 <div className="w-10"></div> {/* Checkbox space */}
                 <div className="flex-1 min-w-0">Razão Social / CNPJ</div>
                 <div className="w-32">Status</div>
