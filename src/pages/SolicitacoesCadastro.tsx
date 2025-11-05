@@ -146,17 +146,20 @@ export default function SolicitacoesCadastro() {
   const totalPages = Math.ceil((total || 0) / itemsPerPage);
   const canPreviousPage = page > 1;
   const canNextPage = page < totalPages;
-  return <div className="p-6 space-y-6 h-full overflow-hidden flex flex-col">
+  return <div className="h-full overflow-hidden flex flex-col">
       {/* Filtros */}
-      <SolicitacoesFilters 
+      <div className="sticky top-0 z-30 flex items-center gap-3 py-3 px-8 border-b bg-card shadow-sm">
+      <SolicitacoesFilters
         searchTerm={search}
         onSearchChange={setSearch}
         statusFilter={statusFilter}
         onStatusChange={(value) => setStatusFilter(value as StatusSolicitacao | "todos")}
         onNovaSolicitacao={() => navigate("/clientes/cadastro-cnpj")}
       />
+      </div>
 
       {/* Estatísticas */}
+      <div className="px-6 pt-6 space-y-6 flex-1 overflow-auto">
       <div className="grid gap-4 md:grid-cols-5">
         <Card>
           <CardHeader className="pb-2">
@@ -480,5 +483,6 @@ export default function SolicitacoesCadastro() {
         isLoading={aprovarSolicitacao.isPending || rejeitarSolicitacao.isPending || deleteSolicitacao.isPending}
         showAprovar={solicitacoes.some(s => selectedRows.has(s.id) && s.status === "em_analise")}
       />
+      </div>
     </div>;
 }
