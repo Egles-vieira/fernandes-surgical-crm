@@ -1,4 +1,4 @@
-import { Calculator, X, Edit, Users, CheckCircle } from "lucide-react";
+import { Calculator, X, Edit, Users, CheckCircle, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -9,6 +9,8 @@ interface CadastroActionBarProps {
   onEditar?: () => void;
   onDiretoria?: () => void;
   onEfetivar?: () => void;
+  onSalvarRascunho?: () => void;
+  onEnviarAnalise?: () => void;
 }
 
 export function CadastroActionBar({
@@ -18,6 +20,8 @@ export function CadastroActionBar({
   onEditar,
   onDiretoria,
   onEfetivar,
+  onSalvarRascunho,
+  onEnviarAnalise,
 }: CadastroActionBarProps) {
   const getStatusInfo = () => {
     switch (status) {
@@ -128,6 +132,29 @@ export function CadastroActionBar({
               >
                 <Edit size={16} />
                 Editar
+              </Button>
+            )}
+            
+            {onSalvarRascunho && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onSalvarRascunho}
+                className="gap-2"
+              >
+                <Save size={16} />
+                Salvar Rascunho
+              </Button>
+            )}
+            
+            {onEnviarAnalise && (
+              <Button
+                variant="default"
+                size="sm"
+                onClick={onEnviarAnalise}
+                className="gap-2"
+              >
+                Enviar para Análise
               </Button>
             )}
             

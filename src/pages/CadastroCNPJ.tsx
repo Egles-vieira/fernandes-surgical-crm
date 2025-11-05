@@ -318,23 +318,11 @@ export default function CadastroCNPJ() {
         onEditar={handleEditar}
         onDiretoria={handleDiretoria}
         onEfetivar={handleEfetivar}
+        onSalvarRascunho={handleSalvarRascunho}
+        onEnviarAnalise={handleEnviarAnalise}
       />
 
       <div className="py-6 px-4 space-y-0">
-        {/* Botões de Ação para Solicitação */}
-        {status === 'concluido' && dadosColetados && (
-          <div className="fixed bottom-6 right-6 flex gap-3 z-40">
-            <Button variant="outline" size="lg" onClick={handleSalvarRascunho}>
-              <Save className="h-4 w-4 mr-2" />
-              Salvar Rascunho
-            </Button>
-            <Button size="lg" onClick={handleEnviarAnalise}>
-              Enviar para Análise
-            </Button>
-          </div>
-        )}
-
-        {/* Barra de Status e Ações - Removida pois agora está fixa no topo */}
 
         {/* Formulário de consulta */}
         {(status === 'idle' || status === 'erro') && <Card className="border-2 mt-4">
