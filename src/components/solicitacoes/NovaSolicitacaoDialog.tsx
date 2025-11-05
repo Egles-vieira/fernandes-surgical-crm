@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -27,41 +27,67 @@ export function NovaSolicitacaoDialog({ open, onOpenChange }: NovaSolicitacaoDia
     razao_social?: string;
   } | null>(null);
 
-  const verificarCNPJExistente = async (cnpjLimpo: string) => {
-    setVerificando(true);
-    try {
-      const { data, error } = await supabase
-        .from("solicitacoes_cadastro")
-        .select("id, status, dados_coletados")
-        .eq("cnpj", cnpjLimpo)
-        .is("excluido_em", null)
-        .in("status", ["rascunho", "em_analise"])
-        .maybeSingle();
-
-      if (error) {
-        console.error("Erro ao verificar CNPJ:", error);
-        return null;
+  // Verificar CNPJ automaticamente quando válido
+  useEffect(() => {
+    const verificarAutomatico = async () => {
+      if (!cnpj.trim() || cnpj.length < 14) {
+        setSolicitacaoExistente(null);
+        return;
       }
 
-      if (data) {
-        const razaoSocial = (data.dados_coletados as any)?.razao_social || 
-                           (data.dados_coletados as any)?.office?.name;
-        return {
-          id: data.id,
-          status: data.status,
-          razao_social: razaoSocial
-        };
+      if (!validarCNPJ(cnpj)) {
+        return;
       }
 
-      return null;
-    } finally {
-      setVerificando(false);
-    }
-  };
+      const cnpjLimpo = limparCNPJ(cnpj);
+      setVerificando(true);
+      
+      try {
+        const { data, error } = await supabase
+          .from("solicitacoes_cadastro")
+          .select("id, status, dados_coletados")
+          .eq("cnpj", cnpjLimpo)
+          .is("excluido_em", null)
+          .in("status", ["rascunho", "em_analise"])
+          .maybeSingle();
+
+        if (error) {
+          console.error("Erro ao verificar CNPJ:", error);
+          setSolicitacaoExistente(null);
+          return;
+        }
+
+        if (data) {
+          const razaoSocial = (data.dados_coletados as any)?.razao_social || 
+                             (data.dados_coletados as any)?.office?.name;
+          const existente = {
+            id: data.id,
+            status: data.status,
+            razao_social: razaoSocial
+          };
+          
+          setSolicitacaoExistente(existente);
+          
+          const statusLabel = existente.status === "rascunho" ? "Rascunho" : "Em Análise";
+          toast({
+            title: "⚠️ Solicitação já existe",
+            description: `Já existe uma solicitação ${statusLabel} para este CNPJ${existente.razao_social ? `: ${existente.razao_social}` : ''}`,
+            variant: "default",
+          });
+        } else {
+          setSolicitacaoExistente(null);
+        }
+      } finally {
+        setVerificando(false);
+      }
+    };
+
+    const timeoutId = setTimeout(verificarAutomatico, 500);
+    return () => clearTimeout(timeoutId);
+  }, [cnpj, toast]);
 
   const handleIniciar = async () => {
     setErro("");
-    setSolicitacaoExistente(null);
     
     if (!cnpj.trim()) {
       setErro("Digite um CNPJ");
@@ -73,24 +99,13 @@ export function NovaSolicitacaoDialog({ open, onOpenChange }: NovaSolicitacaoDia
       return;
     }
 
-    const cnpjLimpo = limparCNPJ(cnpj);
-    
-    // Verificar se já existe solicitação
-    const existente = await verificarCNPJExistente(cnpjLimpo);
-    
-    if (existente) {
-      setSolicitacaoExistente(existente);
-      
-      const statusLabel = existente.status === "rascunho" ? "Rascunho" : "Em Análise";
-      toast({
-        title: "⚠️ Solicitação já existe",
-        description: `Já existe uma solicitação ${statusLabel} para este CNPJ${existente.razao_social ? `: ${existente.razao_social}` : ''}`,
-        variant: "default",
-      });
+    // Se já existe solicitação, não permite criar nova
+    if (solicitacaoExistente) {
       return;
     }
 
     // Não existe, pode criar nova
+    const cnpjLimpo = limparCNPJ(cnpj);
     navigate(`/clientes/cadastro-cnpj?cnpj=${cnpjLimpo}`);
     handleClose();
   };
@@ -109,11 +124,23 @@ export function NovaSolicitacaoDialog({ open, onOpenChange }: NovaSolicitacaoDia
   };
 
   const handleClose = () => {
+    // Resetar todos os estados ao fechar
     setCnpj("");
     setErro("");
     setSolicitacaoExistente(null);
+    setVerificando(false);
     onOpenChange(false);
   };
+
+  // Resetar estados quando o modal abrir
+  useEffect(() => {
+    if (open) {
+      setCnpj("");
+      setErro("");
+      setSolicitacaoExistente(null);
+      setVerificando(false);
+    }
+  }, [open]);
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
