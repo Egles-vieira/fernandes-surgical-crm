@@ -9,6 +9,9 @@ import {
   XCircle,
   Trash2,
   Plus,
+  ChevronDown,
+  ChevronUp,
+  MoreVertical,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,6 +47,13 @@ import { useSolicitacoesCadastro, type StatusSolicitacao } from "@/hooks/useSoli
 import { StatusBadgeSolicitacao } from "@/components/solicitacoes/StatusBadgeSolicitacao";
 import { RejeitarSolicitacaoDialog } from "@/components/solicitacoes/RejeitarSolicitacaoDialog";
 import { format } from "date-fns";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export default function SolicitacoesCadastro() {
   const navigate = useNavigate();
@@ -53,6 +63,32 @@ export default function SolicitacoesCadastro() {
   const [rejeitarDialog, setRejeitarDialog] = useState<string | null>(null);
   const [deleteDialog, setDeleteDialog] = useState<string | null>(null);
   const [aprovarDialog, setAprovarDialog] = useState<string | null>(null);
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+  const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
+
+  const toggleRow = (id: string) => {
+    setExpandedRows(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const toggleSelection = (id: string) => {
+    setSelectedRows(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
 
   const {
     solicitacoes,
@@ -221,86 +257,178 @@ export default function SolicitacoesCadastro() {
               </Button>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>CNPJ</TableHead>
-                  <TableHead>Nome/Razão Social</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-center">Contatos</TableHead>
-                  <TableHead>Criado em</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {solicitacoes.map((solicitacao) => {
-                  const dadosColetados = solicitacao.dados_coletados as any;
-                  const contatos = (solicitacao.contatos as any[]) || [];
-                  
-                  return (
-                    <TableRow key={solicitacao.id}>
-                      <TableCell className="font-mono">{solicitacao.cnpj}</TableCell>
-                      <TableCell>
-                        {dadosColetados?.razao_social || 
-                         dadosColetados?.nome_fantasia || 
-                         dadosColetados?.office?.name || 
-                         dadosColetados?.office?.alias || 
-                         "-"}
-                      </TableCell>
-                      <TableCell>
-                        <StatusBadgeSolicitacao status={solicitacao.status} />
-                      </TableCell>
-                      <TableCell className="text-center">{contatos.length}</TableCell>
-                      <TableCell>
-                        {format(new Date(solicitacao.criado_em), "dd/MM/yyyy HH:mm")}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center justify-end gap-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() =>
-                              navigate(`/clientes/cadastro-cnpj?solicitacao=${solicitacao.id}`)
-                            }
-                            title="Editar"
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          {solicitacao.status === "em_analise" && (
-                            <>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => setAprovarDialog(solicitacao.id)}
-                                title="Aprovar"
-                              >
-                                <CheckCircle className="h-4 w-4 text-success" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => setRejeitarDialog(solicitacao.id)}
-                                title="Rejeitar"
-                              >
-                                <XCircle className="h-4 w-4 text-destructive" />
-                              </Button>
-                            </>
-                          )}
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setDeleteDialog(solicitacao.id)}
-                            title="Excluir"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+            <div className="space-y-0">
+              {solicitacoes.map((solicitacao) => {
+                const dadosColetados = solicitacao.dados_coletados as any;
+                const contatos = (solicitacao.contatos as any[]) || [];
+                const isExpanded = expandedRows.has(solicitacao.id);
+                const isSelected = selectedRows.has(solicitacao.id);
+                
+                return (
+                  <div
+                    key={solicitacao.id}
+                    className={`border-b border-border transition-colors ${
+                      isSelected ? "bg-accent/5" : "hover:bg-muted/30"
+                    }`}
+                  >
+                    {/* Main Row */}
+                    <div className="flex items-center gap-4 p-4 relative">
+                      {/* Left Border Indicator */}
+                      {isSelected && (
+                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary" />
+                      )}
+                      
+                      {/* Checkbox */}
+                      <Checkbox
+                        checked={isSelected}
+                        onCheckedChange={() => toggleSelection(solicitacao.id)}
+                        className="ml-2"
+                      />
+
+                      {/* Nome/Razão Social */}
+                      <div className="flex-1 min-w-0">
+                        <div className="text-primary font-medium">
+                          {dadosColetados?.razao_social || 
+                           dadosColetados?.nome_fantasia || 
+                           dadosColetados?.office?.name || 
+                           dadosColetados?.office?.alias || 
+                           "-"}
                         </div>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+                        <div className="text-sm text-muted-foreground">
+                          {solicitacao.cnpj}
+                        </div>
+                      </div>
+
+                      {/* Status */}
+                      <div className="w-32">
+                        <StatusBadgeSolicitacao status={solicitacao.status} />
+                      </div>
+
+                      {/* Contatos */}
+                      <div className="w-24 text-center text-sm text-muted-foreground">
+                        {contatos.length}
+                      </div>
+
+                      {/* Data */}
+                      <div className="w-40 text-sm text-muted-foreground">
+                        {format(new Date(solicitacao.criado_em), "dd MMM yyyy")}
+                      </div>
+
+                      {/* Email */}
+                      <div className="w-48 text-sm text-primary truncate">
+                        {contatos[0]?.email || "-"}
+                      </div>
+
+                      {/* Address */}
+                      <div className="w-48 text-sm text-muted-foreground truncate">
+                        {dadosColetados?.endereco?.logradouro || "-"}
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex items-center gap-2">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={() =>
+                                navigate(`/clientes/cadastro-cnpj?solicitacao=${solicitacao.id}`)
+                              }
+                            >
+                              <Edit className="h-4 w-4 mr-2" />
+                              Editar
+                            </DropdownMenuItem>
+                            {solicitacao.status === "em_analise" && (
+                              <>
+                                <DropdownMenuItem
+                                  onClick={() => setAprovarDialog(solicitacao.id)}
+                                >
+                                  <CheckCircle className="h-4 w-4 mr-2 text-success" />
+                                  Aprovar
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => setRejeitarDialog(solicitacao.id)}
+                                >
+                                  <XCircle className="h-4 w-4 mr-2 text-destructive" />
+                                  Rejeitar
+                                </DropdownMenuItem>
+                              </>
+                            )}
+                            <DropdownMenuItem
+                              onClick={() => setDeleteDialog(solicitacao.id)}
+                              className="text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Excluir
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => toggleRow(solicitacao.id)}
+                        >
+                          {isExpanded ? (
+                            <ChevronUp className="h-4 w-4" />
+                          ) : (
+                            <ChevronDown className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Expanded Content */}
+                    {isExpanded && (
+                      <div className="px-4 pb-4 pt-2 bg-muted/20 border-t">
+                        <div className="grid grid-cols-5 gap-4 text-sm">
+                          <div>
+                            <div className="text-muted-foreground mb-1">Status</div>
+                            <StatusBadgeSolicitacao status={solicitacao.status} />
+                          </div>
+                          <div>
+                            <div className="text-muted-foreground mb-1">Contatos</div>
+                            <div className="font-medium">{contatos.length}</div>
+                          </div>
+                          <div>
+                            <div className="text-muted-foreground mb-1">Criado em</div>
+                            <div className="font-medium">
+                              {format(new Date(solicitacao.criado_em), "dd/MM/yyyy HH:mm")}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-muted-foreground mb-1">Email</div>
+                            <div className="font-medium text-primary">
+                              {contatos[0]?.email || "-"}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-muted-foreground mb-1">Telefone</div>
+                            <div className="font-medium">
+                              {contatos[0]?.telefone || "-"}
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {dadosColetados?.endereco && (
+                          <div className="mt-3 pt-3 border-t">
+                            <div className="text-muted-foreground mb-1">Endereço Completo</div>
+                            <div className="font-medium">
+                              {dadosColetados.endereco.logradouro}, {dadosColetados.endereco.numero || "S/N"}
+                              {dadosColetados.endereco.complemento && `, ${dadosColetados.endereco.complemento}`}
+                              {` - ${dadosColetados.endereco.bairro}, ${dadosColetados.endereco.cidade} - ${dadosColetados.endereco.estado}, CEP: ${dadosColetados.endereco.cep}`}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           )}
         </CardContent>
       </Card>
