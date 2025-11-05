@@ -1,6 +1,6 @@
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
-import { Building2, CheckCircle2, Sparkles, Shield, FileSearch, Brain, BarChart3, PackageCheck } from "lucide-react";
+import { CheckCircle2, Sparkles, Shield, FileSearch, Brain, BarChart3, PackageCheck } from "lucide-react";
 import { StatusConsulta } from "@/types/cnpja";
 
 interface ConsultaCNPJLoadingModalProps {
@@ -37,31 +37,33 @@ export function ConsultaCNPJLoadingModal({
       <DialogContent className="max-w-full w-full h-full [&>button]:hidden border-none p-0 m-0">
         <div className="w-full h-full bg-background/95 backdrop-blur-md flex items-center justify-center">
           <div className="w-full max-w-md space-y-8 py-8 px-6">
-          {/* Animação Central Inspirada no iFood */}
+          {/* Loader Circular Profissional */}
           <div className="relative flex items-center justify-center">
-            {/* Ondas de Pulso */}
+            {/* Círculos Concêntricos Animados */}
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="absolute w-32 h-32 rounded-full bg-primary/10 animate-ping" 
+              <div className="absolute w-32 h-32 rounded-full border-2 border-primary/20" />
+              <div className="absolute w-32 h-32 rounded-full border-t-2 border-primary animate-spin" 
                    style={{ animationDuration: '2s' }} />
-              <div className="absolute w-24 h-24 rounded-full bg-primary/20 animate-ping" 
-                   style={{ animationDuration: '1.5s', animationDelay: '0.3s' }} />
-              <div className="absolute w-16 h-16 rounded-full bg-primary/30 animate-ping" 
-                   style={{ animationDuration: '1s', animationDelay: '0.6s' }} />
+              
+              <div className="absolute w-24 h-24 rounded-full border-2 border-primary/30" />
+              <div className="absolute w-24 h-24 rounded-full border-t-2 border-primary/80 animate-spin" 
+                   style={{ animationDuration: '1.5s', animationDirection: 'reverse' }} />
+              
+              <div className="absolute w-16 h-16 rounded-full border-2 border-primary/40" />
+              <div className="absolute w-16 h-16 rounded-full border-t-2 border-primary animate-spin" 
+                   style={{ animationDuration: '1s' }} />
             </div>
             
-            {/* Ícone Central Animado */}
-            <div className="relative z-10 w-20 h-20 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-lg animate-pulse">
-              <Building2 className="h-10 w-10 text-primary-foreground animate-bounce" 
-                         style={{ animationDuration: '2s' }} />
-            </div>
+            {/* Núcleo Central com Pulso */}
+            <div className="relative z-10 w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary/70 animate-pulse shadow-lg shadow-primary/50" />
             
-            {/* Partículas Flutuantes */}
-            <Sparkles className="absolute top-0 right-0 h-5 w-5 text-primary animate-pulse" 
-                      style={{ animationDelay: '0s' }} />
-            <Sparkles className="absolute bottom-0 left-0 h-4 w-4 text-primary/70 animate-pulse" 
-                      style={{ animationDelay: '0.5s' }} />
-            <Sparkles className="absolute top-1/2 right-2 h-3 w-3 text-primary/50 animate-pulse" 
-                      style={{ animationDelay: '1s' }} />
+            {/* Partículas Orbitantes */}
+            <div className="absolute w-3 h-3 rounded-full bg-primary/60 animate-orbit-1" 
+                 style={{ top: '10%', left: '50%' }} />
+            <div className="absolute w-2 h-2 rounded-full bg-primary/40 animate-orbit-2" 
+                 style={{ top: '50%', right: '10%' }} />
+            <div className="absolute w-2.5 h-2.5 rounded-full bg-primary/50 animate-orbit-3" 
+                 style={{ bottom: '15%', left: '20%' }} />
           </div>
 
           {/* Título com Animação */}
@@ -180,6 +182,33 @@ export function ConsultaCNPJLoadingModal({
           @keyframes fade-in {
             from { opacity: 0; }
             to { opacity: 1; }
+          }
+          
+          @keyframes orbit-1 {
+            0% { transform: rotate(0deg) translateX(60px) rotate(0deg); }
+            100% { transform: rotate(360deg) translateX(60px) rotate(-360deg); }
+          }
+          
+          @keyframes orbit-2 {
+            0% { transform: rotate(120deg) translateX(50px) rotate(-120deg); }
+            100% { transform: rotate(480deg) translateX(50px) rotate(-480deg); }
+          }
+          
+          @keyframes orbit-3 {
+            0% { transform: rotate(240deg) translateX(55px) rotate(-240deg); }
+            100% { transform: rotate(600deg) translateX(55px) rotate(-600deg); }
+          }
+          
+          .animate-orbit-1 {
+            animation: orbit-1 3s linear infinite;
+          }
+          
+          .animate-orbit-2 {
+            animation: orbit-2 4s linear infinite;
+          }
+          
+          .animate-orbit-3 {
+            animation: orbit-3 3.5s linear infinite;
           }
         ` }} />
       </DialogContent>
