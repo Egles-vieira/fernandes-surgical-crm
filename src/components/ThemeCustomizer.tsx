@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
 import { Palette, Check, Upload, Image as ImageIcon, Type } from "lucide-react";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -376,21 +376,21 @@ export default function ThemeCustomizer() {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
         <Button variant="ghost" size="sm" title="Personalizar Cores">
           <Palette size={18} />
         </Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>Personalizar Cores do Sistema</DialogTitle>
-          <DialogDescription>
+      </SheetTrigger>
+      <SheetContent side="right" className="w-full sm:max-w-2xl overflow-y-auto">
+        <SheetHeader>
+          <SheetTitle>Personalizar Cores do Sistema</SheetTitle>
+          <SheetDescription>
             Escolha um tema predefinido ou personalize as cores manualmente
-          </DialogDescription>
-        </DialogHeader>
+          </SheetDescription>
+        </SheetHeader>
 
-        <Tabs defaultValue="presets" className="w-full">
+        <Tabs defaultValue="presets" className="w-full mt-6">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="presets">Temas</TabsTrigger>
             <TabsTrigger value="custom">Cores</TabsTrigger>
@@ -745,7 +745,7 @@ export default function ThemeCustomizer() {
             </div>
           </TabsContent>
         </Tabs>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }
