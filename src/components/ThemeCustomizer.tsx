@@ -170,6 +170,13 @@ const presetSchemes: ColorScheme[] = [
 
 const categories = ["Todos", "Profissional", "Vibrante", "Neutro", "Elegante"] as const;
 
+const radiusPresets = [
+  { name: "Nenhum", value: "0rem", description: "Sem arredondamento" },
+  { name: "Suave", value: "0.375rem", description: "Levemente arredondado" },
+  { name: "Médio", value: "0.75rem", description: "Arredondamento padrão" },
+  { name: "Alto", value: "1.5rem", description: "Muito arredondado" },
+];
+
 const fontOptions: FontOption[] = [
   // Modernas
   { name: "Inter (Padrão)", family: "Inter", category: "sans-serif" },
@@ -229,6 +236,7 @@ export default function ThemeCustomizer() {
     background: "#f0f9f7",
   });
   const [selectedFont, setSelectedFont] = useState("Inter");
+  const [selectedRadius, setSelectedRadius] = useState("0.75rem");
   const { empresa, uploadLogo, isUploading } = useEmpresa();
 
   const filteredSchemes = selectedCategory === "Todos" 
@@ -247,6 +255,12 @@ export default function ThemeCustomizer() {
     if (savedFont) {
       setSelectedFont(savedFont);
       applyFont(savedFont);
+    }
+
+    const savedRadius = localStorage.getItem("theme-radius");
+    if (savedRadius) {
+      setSelectedRadius(savedRadius);
+      applyRadius(savedRadius);
     }
   }, []);
 
@@ -375,6 +389,16 @@ export default function ThemeCustomizer() {
     localStorage.setItem("theme-font", fontFamily);
   };
 
+  const applyRadius = (radius: string) => {
+    document.documentElement.style.setProperty("--radius", radius);
+  };
+
+  const handleRadiusChange = (radius: string) => {
+    setSelectedRadius(radius);
+    applyRadius(radius);
+    localStorage.setItem("theme-radius", radius);
+  };
+
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
@@ -391,10 +415,11 @@ export default function ThemeCustomizer() {
         </SheetHeader>
 
         <Tabs defaultValue="presets" className="w-full mt-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="presets">Temas</TabsTrigger>
             <TabsTrigger value="custom">Cores</TabsTrigger>
             <TabsTrigger value="fonts">Fontes</TabsTrigger>
+            <TabsTrigger value="styles">Estilos</TabsTrigger>
             <TabsTrigger value="logo">Logo</TabsTrigger>
           </TabsList>
 
@@ -668,6 +693,59 @@ export default function ThemeCustomizer() {
                 ))}
               </TabsContent>
             </Tabs>
+          </TabsContent>
+
+          <TabsContent value="styles" className="space-y-4">
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-lg font-semibold mb-2">Arredondamento dos Componentes</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Escolha o nível de arredondamento aplicado globalmente aos botões, cards e outros componentes
+                </p>
+
+                <div className="grid grid-cols-1 gap-3">
+                  {radiusPresets.map((preset) => (
+                    <button
+                      key={preset.value}
+                      onClick={() => handleRadiusChange(preset.value)}
+                      className={`relative p-4 border-2 rounded-lg transition-all text-left ${
+                        selectedRadius === preset.value
+                          ? "border-primary bg-primary/5"
+                          : "border-border hover:border-primary/50"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <div>
+                          <span className="font-medium">{preset.name}</span>
+                          <p className="text-sm text-muted-foreground">{preset.description}</p>
+                        </div>
+                        {selectedRadius === preset.value && (
+                          <Check className="text-primary" size={20} />
+                        )}
+                      </div>
+                      
+                      {/* Preview visual do arredondamento */}
+                      <div className="flex gap-3 mt-3">
+                        <div 
+                          className="w-16 h-16 bg-primary"
+                          style={{ borderRadius: preset.value }}
+                        />
+                        <div 
+                          className="w-24 h-16 bg-secondary flex items-center justify-center text-xs text-white font-medium"
+                          style={{ borderRadius: preset.value }}
+                        >
+                          Preview
+                        </div>
+                        <div 
+                          className="flex-1 h-16 bg-accent"
+                          style={{ borderRadius: preset.value }}
+                        />
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
           </TabsContent>
 
           <TabsContent value="logo" className="space-y-4">
