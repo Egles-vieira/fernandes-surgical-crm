@@ -90,7 +90,7 @@ const menuItems: MenuItem[] = [
     icon: Users,
     label: "Clientes",
     children: [
-      { path: "/clientes", icon: Users, label: "Lista de Clientes" },
+      { path: "/clientes", icon: Users, label: "Minha Carteira" },
       { path: "/clientes/solicitacoes", icon: FileText, label: "Solicitações" },
     ],
   },
