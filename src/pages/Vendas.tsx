@@ -98,7 +98,6 @@ export default function Vendas() {
     ganho: "Ganho",
     perdido: "Perdido"
   };
-  
   useEffect(() => {
     if (view === "nova" && !numeroVenda) {
       const nextNumber = `V${Date.now().toString().slice(-8)}`;
@@ -111,12 +110,7 @@ export default function Vendas() {
 
     // Filtro de busca textual
     if (searchTerm) {
-      resultado = resultado.filter(v => 
-        v.numero_venda.toLowerCase().includes(searchTerm.toLowerCase()) || 
-        v.cliente_nome.toLowerCase().includes(searchTerm.toLowerCase()) || 
-        (v.cliente_cnpj && v.cliente_cnpj.includes(searchTerm)) ||
-        v.status.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+      resultado = resultado.filter(v => v.numero_venda.toLowerCase().includes(searchTerm.toLowerCase()) || v.cliente_nome.toLowerCase().includes(searchTerm.toLowerCase()) || v.cliente_cnpj && v.cliente_cnpj.includes(searchTerm) || v.status.toLowerCase().includes(searchTerm.toLowerCase()));
     }
 
     // Filtro de status
@@ -136,7 +130,6 @@ export default function Vendas() {
     if (filtros.periodo !== "todos") {
       const hoje = new Date();
       const dataInicio = new Date();
-      
       switch (filtros.periodo) {
         case "hoje":
           dataInicio.setHours(0, 0, 0, 0);
@@ -154,7 +147,6 @@ export default function Vendas() {
           dataInicio.setFullYear(hoje.getFullYear() - 1);
           break;
       }
-      
       resultado = resultado.filter(v => {
         const dataVenda = new Date(v.data_venda || v.created_at);
         return dataVenda >= dataInicio;
@@ -186,7 +178,6 @@ export default function Vendas() {
         resultado.sort((a, b) => (b.probabilidade || 0) - (a.probabilidade || 0));
         break;
     }
-
     return resultado;
   }, [vendas, searchTerm, filtros]);
   const formatCurrency = (value: number) => {
@@ -461,7 +452,6 @@ export default function Vendas() {
     try {
       // Validar que a etapa é um valor válido do enum
       const etapasValidas: EtapaPipeline[] = ["prospeccao", "qualificacao", "proposta", "negociacao", "fechamento", "ganho", "perdido"];
-      
       if (!etapasValidas.includes(novaEtapa)) {
         toast({
           title: "Erro",
@@ -470,12 +460,10 @@ export default function Vendas() {
         });
         return;
       }
-
       await updateVenda.mutateAsync({
         id: vendaId,
         etapa_pipeline: novaEtapa
       });
-      
       toast({
         title: "Etapa atualizada!",
         description: `Venda movida para ${ETAPAS_LABELS[novaEtapa] || novaEtapa}`
@@ -499,29 +487,11 @@ export default function Vendas() {
   }
   if (view === "nova") {
     return <>
-        <VendasActionBar 
-          status={status} 
-          onCalcular={handleCalcular} 
-          onCancelar={handleCancelarProposta} 
-          onDiretoria={handleDiretoria} 
-          onEfetivar={handleEfetivar}
-          onSalvar={handleSalvarVenda}
-          isSaving={createVenda.isPending || updateVenda.isPending}
-          editandoVendaId={editandoVendaId}
-        />
+        <VendasActionBar status={status} onCalcular={handleCalcular} onCancelar={handleCancelarProposta} onDiretoria={handleDiretoria} onEfetivar={handleEfetivar} onSalvar={handleSalvarVenda} isSaving={createVenda.isPending || updateVenda.isPending} editandoVendaId={editandoVendaId} />
         
         <div className="pt-20 p-8 space-y-6">
           {/* Header */}
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-primary">
-                {editandoVendaId ? "Editar Venda" : "Nova Venda"}
-              </h1>
-              <p className="text-muted-foreground">
-                {editandoVendaId ? "Altere os dados da proposta" : "Crie uma nova proposta de venda"}
-              </p>
-            </div>
-          </div>
+          
 
           {/* Dados do Cliente */}
           <Card className="p-6">
@@ -733,11 +703,10 @@ export default function Vendas() {
   // Pipeline / List Views
   return <div className="p-8">
       {/* Filtros com toggle de view */}
-      <VendasFilters 
-        view={view as "pipeline" | "list"} 
-        onViewChange={v => setView(v)} 
-        onFilterChange={newFilters => setFiltros(prev => ({ ...prev, ...newFilters }))} 
-      />
+      <VendasFilters view={view as "pipeline" | "list"} onViewChange={v => setView(v)} onFilterChange={newFilters => setFiltros(prev => ({
+      ...prev,
+      ...newFilters
+    }))} />
 
       <div className="pt-6">
         {view === "pipeline" ? <PipelineKanban vendas={filteredVendas.map(v => ({
