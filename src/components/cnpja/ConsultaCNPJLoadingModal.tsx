@@ -1,6 +1,6 @@
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
-import { Building2, CheckCircle2, Sparkles } from "lucide-react";
+import { Building2, CheckCircle2, Sparkles, Shield, FileSearch, Brain, BarChart3, PackageCheck } from "lucide-react";
 import { StatusConsulta } from "@/types/cnpja";
 
 interface ConsultaCNPJLoadingModalProps {
@@ -15,11 +15,11 @@ export function ConsultaCNPJLoadingModal({
   progresso 
 }: ConsultaCNPJLoadingModalProps) {
   const etapas = [
-    { id: 'validando', label: 'Validando CNPJ', icon: '🔍' },
-    { id: 'consultando', label: 'Consultando dados', icon: '📋' },
-    { id: 'decidindo', label: 'Analisando necessidades', icon: '🤖' },
-    { id: 'executando', label: 'Coletando informações', icon: '📊' },
-    { id: 'consolidando', label: 'Finalizando', icon: '✨' },
+    { id: 'validando', label: 'Validando CNPJ', Icon: Shield },
+    { id: 'consultando', label: 'Consultando dados', Icon: FileSearch },
+    { id: 'decidindo', label: 'Analisando necessidades', Icon: Brain },
+    { id: 'executando', label: 'Coletando informações', Icon: BarChart3 },
+    { id: 'consolidando', label: 'Finalizando', Icon: PackageCheck },
   ];
 
   const getEtapaStatus = (etapaId: string) => {
@@ -105,6 +105,7 @@ export function ConsultaCNPJLoadingModal({
           <div className="space-y-3">
             {etapas.map((etapa, index) => {
               const etapaStatus = getEtapaStatus(etapa.id);
+              const IconComponent = etapa.Icon;
               return (
                 <div 
                   key={etapa.id}
@@ -127,7 +128,7 @@ export function ConsultaCNPJLoadingModal({
                     {etapaStatus === 'concluido' ? (
                       <CheckCircle2 className="h-4 w-4 text-white" />
                     ) : (
-                      <span className="text-base">{etapa.icon}</span>
+                      <IconComponent className={`h-4 w-4 ${etapaStatus === 'ativo' ? 'text-primary-foreground' : 'text-muted-foreground'}`} />
                     )}
                   </div>
                   <span className={`
