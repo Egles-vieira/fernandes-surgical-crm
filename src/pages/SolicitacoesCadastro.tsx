@@ -12,6 +12,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useSolicitacoesCadastro, type StatusSolicitacao } from "@/hooks/useSolicitacoesCadastro";
 import { StatusBadgeSolicitacao } from "@/components/solicitacoes/StatusBadgeSolicitacao";
 import { RejeitarSolicitacaoDialog } from "@/components/solicitacoes/RejeitarSolicitacaoDialog";
+import { SolicitacoesFilters } from "@/components/solicitacoes/SolicitacoesFilters";
 import { format } from "date-fns";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -86,13 +87,14 @@ export default function SolicitacoesCadastro() {
     });
   };
   return <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        
-        <Button onClick={() => navigate("/clientes/cadastro-cnpj")}>
-          <Plus className="h-4 w-4 mr-2" />
-          Nova Solicitação
-        </Button>
-      </div>
+      {/* Filtros */}
+      <SolicitacoesFilters 
+        searchTerm={search}
+        onSearchChange={setSearch}
+        statusFilter={statusFilter}
+        onStatusChange={(value) => setStatusFilter(value as StatusSolicitacao | "todos")}
+        onNovaSolicitacao={() => navigate("/clientes/cadastro-cnpj")}
+      />
 
       {/* Estatísticas */}
       <div className="grid gap-4 md:grid-cols-5">
@@ -138,31 +140,6 @@ export default function SolicitacoesCadastro() {
         </Card>
       </div>
 
-      {/* Filtros */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Buscar por CNPJ ou razão social..." value={search} onChange={e => setSearch(e.target.value)} className="pl-8" />
-              </div>
-            </div>
-            <Select value={statusFilter} onValueChange={value => setStatusFilter(value as StatusSolicitacao | "todos")}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Filtrar por status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todos">Todos</SelectItem>
-                <SelectItem value="rascunho">Rascunho</SelectItem>
-                <SelectItem value="em_analise">Em Análise</SelectItem>
-                <SelectItem value="aprovado">Aprovado</SelectItem>
-                <SelectItem value="rejeitado">Rejeitado</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Tabela */}
       <Card>
