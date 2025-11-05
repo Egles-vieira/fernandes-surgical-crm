@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Palette, Check, Upload, Image as ImageIcon, Type } from "lucide-react";
+import { Palette, Check, Upload, Image as ImageIcon, Type, Shapes } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -398,6 +398,45 @@ const fontCategories = {
   monoespacadas: fontOptions.filter(f => f.category === "monospace"),
 };
 
+interface IconStyle {
+  name: string;
+  value: string;
+  description: string;
+  strokeWidth: number;
+  example: string;
+}
+
+const iconStyles: IconStyle[] = [
+  { 
+    name: "Padrão", 
+    value: "default", 
+    description: "Estilo equilibrado, ideal para uso geral",
+    strokeWidth: 2,
+    example: "Lucide Icons padrão"
+  },
+  { 
+    name: "Fino", 
+    value: "thin", 
+    description: "Ícones delicados e minimalistas",
+    strokeWidth: 1.5,
+    example: "Estilo leve e elegante"
+  },
+  { 
+    name: "Grosso", 
+    value: "thick", 
+    description: "Ícones fortes e destacados",
+    strokeWidth: 2.5,
+    example: "Máxima visibilidade"
+  },
+  { 
+    name: "Muito Grosso", 
+    value: "bold", 
+    description: "Ícones robustos e chamativos",
+    strokeWidth: 3,
+    example: "Estilo bold e impactante"
+  },
+];
+
 export default function ThemeCustomizer() {
   const [open, setOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("colors");
@@ -414,6 +453,7 @@ export default function ThemeCustomizer() {
   const [selectedRadius, setSelectedRadius] = useState("0.75rem");
   const [selectedBorder, setSelectedBorder] = useState("2px");
   const [selectedShadow, setSelectedShadow] = useState("md");
+  const [selectedIconStyle, setSelectedIconStyle] = useState("default");
   const { empresa, uploadLogo, isUploading } = useEmpresa();
 
   const filteredSchemes = selectedCategory === "Todos" 
@@ -450,6 +490,12 @@ export default function ThemeCustomizer() {
     if (savedShadow) {
       setSelectedShadow(savedShadow);
       applyShadow(savedShadow);
+    }
+
+    const savedIconStyle = localStorage.getItem("theme-icon-style");
+    if (savedIconStyle) {
+      setSelectedIconStyle(savedIconStyle);
+      applyIconStyle(savedIconStyle);
     }
   }, []);
 
@@ -615,6 +661,21 @@ export default function ThemeCustomizer() {
     localStorage.setItem("theme-shadow", shadow);
   };
 
+  const applyIconStyle = (style: string) => {
+    const iconStyle = iconStyles.find(s => s.value === style);
+    if (iconStyle) {
+      document.documentElement.style.setProperty("--icon-stroke-width", iconStyle.strokeWidth.toString());
+    }
+  };
+
+  const handleIconStyleChange = (style: string) => {
+    setSelectedIconStyle(style);
+    applyIconStyle(style);
+    localStorage.setItem("theme-icon-style", style);
+    // Forçar re-render para aplicar os ícones
+    window.dispatchEvent(new Event('icon-style-changed'));
+  };
+
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
@@ -631,10 +692,11 @@ export default function ThemeCustomizer() {
         </SheetHeader>
 
         <Tabs defaultValue="presets" className="w-full mt-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="presets">Temas</TabsTrigger>
             <TabsTrigger value="custom">Cores</TabsTrigger>
             <TabsTrigger value="fonts">Fontes</TabsTrigger>
+            <TabsTrigger value="icons">Ícones</TabsTrigger>
             <TabsTrigger value="styles">Estilos</TabsTrigger>
             <TabsTrigger value="logo">Logo</TabsTrigger>
           </TabsList>
@@ -909,6 +971,64 @@ export default function ThemeCustomizer() {
                 ))}
               </TabsContent>
             </Tabs>
+          </TabsContent>
+
+          <TabsContent value="icons" className="space-y-4">
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
+                  <Shapes className="w-5 h-5" />
+                  Estilo dos Ícones
+                </h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Escolha a espessura dos ícones aplicada globalmente em todo o sistema
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 gap-3">
+                {iconStyles.map((style) => (
+                  <button
+                    key={style.value}
+                    onClick={() => handleIconStyleChange(style.value)}
+                    className={`relative p-4 border-2 rounded-lg transition-all text-left ${
+                      selectedIconStyle === style.value
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-primary/50"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-3">
+                        <div className="flex gap-2">
+                          <Check className="text-primary" size={20} strokeWidth={style.strokeWidth} />
+                          <Palette className="text-primary" size={20} strokeWidth={style.strokeWidth} />
+                          <Upload className="text-primary" size={20} strokeWidth={style.strokeWidth} />
+                        </div>
+                        <div>
+                          <span className="font-medium block">{style.name}</span>
+                          <span className="text-xs text-muted-foreground">{style.example}</span>
+                        </div>
+                      </div>
+                      {selectedIconStyle === style.value && (
+                        <Check className="text-primary" size={20} strokeWidth={style.strokeWidth} />
+                      )}
+                    </div>
+                    <p className="text-sm text-muted-foreground">{style.description}</p>
+                  </button>
+                ))}
+              </div>
+
+              <div className="p-4 border rounded-lg bg-muted/50 space-y-2">
+                <p className="text-sm font-medium">Prévia de Ícones</p>
+                <div className="flex gap-4 items-center justify-center p-4 bg-background rounded">
+                  <Palette size={24} strokeWidth={iconStyles.find(s => s.value === selectedIconStyle)?.strokeWidth} />
+                  <Type size={24} strokeWidth={iconStyles.find(s => s.value === selectedIconStyle)?.strokeWidth} />
+                  <Upload size={24} strokeWidth={iconStyles.find(s => s.value === selectedIconStyle)?.strokeWidth} />
+                  <ImageIcon size={24} strokeWidth={iconStyles.find(s => s.value === selectedIconStyle)?.strokeWidth} />
+                  <Check size={24} strokeWidth={iconStyles.find(s => s.value === selectedIconStyle)?.strokeWidth} />
+                  <Shapes size={24} strokeWidth={iconStyles.find(s => s.value === selectedIconStyle)?.strokeWidth} />
+                </div>
+              </div>
+            </div>
           </TabsContent>
 
           <TabsContent value="styles" className="space-y-4">
