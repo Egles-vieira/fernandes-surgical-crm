@@ -30,12 +30,16 @@ export function NovaSolicitacaoDialog({ open, onOpenChange }: NovaSolicitacaoDia
   // Verificar CNPJ automaticamente quando válido
   useEffect(() => {
     const verificarAutomatico = async () => {
-      if (!cnpj.trim() || cnpj.length < 14) {
+      // Resetar se CNPJ inválido ou muito curto
+      if (!cnpj.trim() || cnpj.replace(/\D/g, '').length < 14) {
         setSolicitacaoExistente(null);
+        setVerificando(false);
         return;
       }
 
       if (!validarCNPJ(cnpj)) {
+        setSolicitacaoExistente(null);
+        setVerificando(false);
         return;
       }
 
@@ -49,11 +53,14 @@ export function NovaSolicitacaoDialog({ open, onOpenChange }: NovaSolicitacaoDia
           .eq("cnpj", cnpjLimpo)
           .is("excluido_em", null)
           .in("status", ["rascunho", "em_analise"])
+          .order("criado_em", { ascending: false })
+          .limit(1)
           .maybeSingle();
 
         if (error) {
           console.error("Erro ao verificar CNPJ:", error);
           setSolicitacaoExistente(null);
+          setVerificando(false);
           return;
         }
 
@@ -77,6 +84,9 @@ export function NovaSolicitacaoDialog({ open, onOpenChange }: NovaSolicitacaoDia
         } else {
           setSolicitacaoExistente(null);
         }
+      } catch (err) {
+        console.error("Erro na verificação:", err);
+        setSolicitacaoExistente(null);
       } finally {
         setVerificando(false);
       }
@@ -160,11 +170,17 @@ export function NovaSolicitacaoDialog({ open, onOpenChange }: NovaSolicitacaoDia
               placeholder="00.000.000/0000-00"
               value={cnpj}
               onChange={(e) => {
-                setCnpj(e.target.value);
+                const value = e.target.value;
+                setCnpj(value);
                 setErro("");
-                setSolicitacaoExistente(null);
+                // Não resetar solicitacaoExistente aqui - deixar o useEffect controlar
               }}
-              onKeyDown={(e) => e.key === "Enter" && handleIniciar()}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  handleIniciar();
+                }
+              }}
               autoFocus
               disabled={verificando}
             />
@@ -216,10 +232,13 @@ export function NovaSolicitacaoDialog({ open, onOpenChange }: NovaSolicitacaoDia
           </Button>
           <Button 
             onClick={handleIniciar} 
-            disabled={verificando || !!solicitacaoExistente}
+            disabled={verificando || !!solicitacaoExistente || !cnpj.trim()}
           >
             {verificando ? (
-              <>Verificando...</>
+              <>
+                <div className="h-4 w-4 mr-2 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
+                Verificando...
+              </>
             ) : (
               <>
                 <Search className="h-4 w-4 mr-2" />
