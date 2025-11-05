@@ -21,7 +21,7 @@ import {
   formatarCNAE,
   formatarInscricaoSuframa,
   obterCorIncentivo,
-  obterIconeIncentivo
+  obterIconeIncentivo,
 } from "@/lib/cnpja-utils";
 
 interface DadosColetadosPreviewProps {
@@ -60,9 +60,7 @@ export function DadosColetadosPreview({ dados }: DadosColetadosPreviewProps) {
                 <p className="text-sm text-muted-foreground">CNPJ</p>
                 <div className="flex items-center gap-2">
                   <p className="font-medium font-mono">{formatarCNPJ(office.taxId)}</p>
-                  <Badge variant={office.head ? "default" : "secondary"}>
-                    {office.head ? "Matriz" : "Filial"}
-                  </Badge>
+                  <Badge variant={office.head ? "default" : "secondary"}>{office.head ? "Matriz" : "Filial"}</Badge>
                 </div>
               </div>
 
@@ -74,16 +72,14 @@ export function DadosColetadosPreview({ dados }: DadosColetadosPreviewProps) {
                       situacaoCadastral.cor === "success"
                         ? "default"
                         : situacaoCadastral.cor === "warning"
-                        ? "secondary"
-                        : "destructive"
+                          ? "secondary"
+                          : "destructive"
                     }
                   >
                     {situacaoCadastral.texto}
                   </Badge>
                   {office.statusDate && (
-                    <span className="text-sm text-muted-foreground">
-                      {formatarData(office.statusDate)}
-                    </span>
+                    <span className="text-sm text-muted-foreground">{formatarData(office.statusDate)}</span>
                   )}
                 </div>
               </div>
@@ -101,7 +97,6 @@ export function DadosColetadosPreview({ dados }: DadosColetadosPreviewProps) {
               <div>
                 <p className="text-sm text-muted-foreground">Capital Social</p>
                 <p className="font-semibold text-lg flex items-center gap-1">
-                  <DollarSign className="h-4 w-4" />
                   {office.company?.equity ? formatarCapitalSocial(office.company.equity) : "Sem informação"}
                 </p>
               </div>
@@ -174,17 +169,12 @@ export function DadosColetadosPreview({ dados }: DadosColetadosPreviewProps) {
             <CardContent>
               <div className="space-y-2 max-h-[400px] overflow-y-auto">
                 {office.company.members.map((member, index) => (
-                  <div
-                    key={index}
-                    className="bg-primary/5 rounded-lg p-3 space-y-1"
-                  >
+                  <div key={index} className="bg-primary/5 rounded-lg p-3 space-y-1">
                     <div className="flex items-start justify-between gap-2 mb-1">
                       <p className="font-semibold text-sm text-primary">
                         {member.person.name}
                         {member.person.age && (
-                          <span className="text-xs text-muted-foreground ml-2">
-                            {member.person.age} anos
-                          </span>
+                          <span className="text-xs text-muted-foreground ml-2">{member.person.age} anos</span>
                         )}
                       </p>
                       <Badge variant="default" className="bg-green-600 hover:bg-green-700 shrink-0 text-xs">
@@ -194,9 +184,7 @@ export function DadosColetadosPreview({ dados }: DadosColetadosPreviewProps) {
                     <p className="text-xs text-muted-foreground">CPF/CNPJ</p>
                     <p className="font-mono text-sm">{member.person.taxId}</p>
                     {member.since && (
-                      <p className="text-xs text-muted-foreground">
-                        Data: {formatarData(member.since)}
-                      </p>
+                      <p className="text-xs text-muted-foreground">Data: {formatarData(member.since)}</p>
                     )}
                   </div>
                 ))}
@@ -215,7 +203,9 @@ export function DadosColetadosPreview({ dados }: DadosColetadosPreviewProps) {
               <ClipboardList className="h-4 w-4" />
               Inscrições Estaduais
               {office.registrations && office.registrations.length > 0 && (
-                <Badge variant="secondary" className="text-xs">{office.registrations.length}</Badge>
+                <Badge variant="secondary" className="text-xs">
+                  {office.registrations.length}
+                </Badge>
               )}
             </CardTitle>
           </CardHeader>
@@ -223,10 +213,7 @@ export function DadosColetadosPreview({ dados }: DadosColetadosPreviewProps) {
             {office.registrations && office.registrations.length > 0 ? (
               <div className="space-y-2 max-h-[300px] overflow-y-auto">
                 {office.registrations.map((registration, index) => (
-                  <div
-                    key={index}
-                    className="bg-primary/5 rounded-lg p-3 space-y-1"
-                  >
+                  <div key={index} className="bg-primary/5 rounded-lg p-3 space-y-1">
                     <div className="flex items-start justify-between gap-2 mb-1">
                       <p className="font-semibold text-sm text-primary">
                         {registration.number} - {registration.state}
@@ -235,20 +222,10 @@ export function DadosColetadosPreview({ dados }: DadosColetadosPreviewProps) {
                         {registration.enabled ? "Ativa" : "Inativa"}
                       </Badge>
                     </div>
-                    {registration.type && (
-                      <p className="text-xs text-muted-foreground">
-                        {registration.type.text}
-                      </p>
-                    )}
-                    {registration.status && (
-                      <p className="text-xs text-muted-foreground">
-                        {registration.status.text}
-                      </p>
-                    )}
+                    {registration.type && <p className="text-xs text-muted-foreground">{registration.type.text}</p>}
+                    {registration.status && <p className="text-xs text-muted-foreground">{registration.status.text}</p>}
                     {registration.statusDate && (
-                      <p className="text-xs text-muted-foreground">
-                        Data: {formatarData(registration.statusDate)}
-                      </p>
+                      <p className="text-xs text-muted-foreground">Data: {formatarData(registration.statusDate)}</p>
                     )}
                   </div>
                 ))}
@@ -282,32 +259,21 @@ export function DadosColetadosPreview({ dados }: DadosColetadosPreviewProps) {
                           Desde: {registro.since ? formatarData(registro.since) : "Pendente"}
                         </p>
                       </div>
-                      <Badge variant={registro.status.id === 1 ? "default" : "secondary"}>
-                        {registro.status.text}
-                      </Badge>
+                      <Badge variant={registro.status.id === 1 ? "default" : "secondary"}>{registro.status.text}</Badge>
                     </div>
 
                     {/* Incentivos fiscais */}
                     {registro.incentives && registro.incentives.length > 0 && (
                       <div>
-                        <p className="text-sm font-medium text-muted-foreground mb-2">
-                          Incentivos fiscais:
-                        </p>
+                        <p className="text-sm font-medium text-muted-foreground mb-2">Incentivos fiscais:</p>
                         <div className="space-y-2">
                           {registro.incentives.map((incentivo, idx) => (
-                            <div
-                              key={idx}
-                              className="bg-primary/5 rounded-lg p-3 space-y-1"
-                            >
+                            <div key={idx} className="bg-primary/5 rounded-lg p-3 space-y-1">
                               <p className="font-semibold text-sm text-primary">
                                 {incentivo.tribute} - {incentivo.benefit}
                               </p>
-                              <p className="text-xs text-muted-foreground">
-                                {incentivo.purpose}
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                {incentivo.basis}
-                              </p>
+                              <p className="text-xs text-muted-foreground">{incentivo.purpose}</p>
+                              <p className="text-xs text-muted-foreground">{incentivo.basis}</p>
                             </div>
                           ))}
                         </div>
@@ -329,22 +295,17 @@ export function DadosColetadosPreview({ dados }: DadosColetadosPreviewProps) {
               <CardTitle className="flex items-center gap-2 text-base">
                 <Briefcase className="h-4 w-4" />
                 Atividades Secundárias (CNAEs)
-                <Badge variant="secondary" className="text-xs">{office.sideActivities.length}</Badge>
+                <Badge variant="secondary" className="text-xs">
+                  {office.sideActivities.length}
+                </Badge>
               </CardTitle>
             </CardHeader>
             <CardContent className="flex-1">
               <div className="space-y-2 max-h-[300px] overflow-y-auto">
                 {office.sideActivities.map((activity, index) => (
-                  <div
-                    key={index}
-                    className="bg-primary/5 rounded-lg p-3 space-y-1"
-                  >
-                    <p className="font-semibold text-sm text-primary">
-                      {formatarCNAE(activity.id)}
-                    </p>
-                    <p className="text-xs text-muted-foreground leading-relaxed">
-                      {activity.text}
-                    </p>
+                  <div key={index} className="bg-primary/5 rounded-lg p-3 space-y-1">
+                    <p className="font-semibold text-sm text-primary">{formatarCNAE(activity.id)}</p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">{activity.text}</p>
                   </div>
                 ))}
               </div>
