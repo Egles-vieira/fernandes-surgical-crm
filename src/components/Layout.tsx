@@ -12,6 +12,7 @@ import {
   ChevronRight,
   Menu,
   MessageSquare,
+  MessageCircle,
   Phone,
   TicketCheck,
   BarChart3,
@@ -80,7 +81,7 @@ const menuItems: MenuItem[] = [
     icon: MessageSquare,
     label: "Comunicação",
     children: [
-      { path: "/whatsapp", icon: MessageSquare, label: "WhatsApp" },
+      { path: "/whatsapp", icon: MessageCircle, label: "WhatsApp" },
       { path: "/uras", icon: Phone, label: "URAs" },
       { path: "/whatsapp/configuracoes", icon: Shield, label: "Configurações", adminOnly: true },
     ],
