@@ -499,7 +499,16 @@ export default function Vendas() {
   }
   if (view === "nova") {
     return <>
-        <VendasActionBar status={status} onCalcular={handleCalcular} onCancelar={handleCancelarProposta} onDiretoria={handleDiretoria} onEfetivar={handleEfetivar} />
+        <VendasActionBar 
+          status={status} 
+          onCalcular={handleCalcular} 
+          onCancelar={handleCancelarProposta} 
+          onDiretoria={handleDiretoria} 
+          onEfetivar={handleEfetivar}
+          onSalvar={handleSalvarVenda}
+          isSaving={createVenda.isPending || updateVenda.isPending}
+          editandoVendaId={editandoVendaId}
+        />
         
         <div className="pt-20 p-8 space-y-6">
           {/* Header */}
@@ -511,18 +520,6 @@ export default function Vendas() {
               <p className="text-muted-foreground">
                 {editandoVendaId ? "Altere os dados da proposta" : "Crie uma nova proposta de venda"}
               </p>
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={() => {
-              limparFormulario();
-              setView("pipeline");
-            }}>
-                Cancelar
-              </Button>
-              <Button onClick={handleSalvarVenda} disabled={createVenda.isPending || updateVenda.isPending}>
-                <Save size={16} className="mr-2" />
-                {editandoVendaId ? "Atualizar Venda" : "Salvar Venda"}
-              </Button>
             </div>
           </div>
 

@@ -1,4 +1,4 @@
-import { Calculator, X, ShieldCheck, CheckCircle } from "lucide-react";
+import { Calculator, X, ShieldCheck, CheckCircle, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -8,6 +8,9 @@ interface VendasActionBarProps {
   onCancelar: () => void;
   onDiretoria: () => void;
   onEfetivar: () => void;
+  onSalvar?: () => void;
+  isSaving?: boolean;
+  editandoVendaId?: string | null;
 }
 
 export function VendasActionBar({
@@ -16,6 +19,9 @@ export function VendasActionBar({
   onCancelar,
   onDiretoria,
   onEfetivar,
+  onSalvar,
+  isSaving = false,
+  editandoVendaId = null,
 }: VendasActionBarProps) {
   const getStatusInfo = () => {
     switch (status) {
@@ -76,6 +82,19 @@ export function VendasActionBar({
             <X size={16} />
             Cancelar
           </Button>
+          
+          {onSalvar && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onSalvar}
+              disabled={isSaving}
+              className="gap-2"
+            >
+              <Save size={16} />
+              {editandoVendaId ? "Atualizar Venda" : "Salvar Venda"}
+            </Button>
+          )}
           
           <Button
             variant="outline"
