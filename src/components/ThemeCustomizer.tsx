@@ -20,7 +20,7 @@ interface ColorScheme {
   secondary: string;
   accent: string;
   background: string;
-  category: "Profissional" | "Vibrante" | "Neutro" | "Elegante";
+  category: "Profissional" | "Vibrante" | "Neutro" | "Elegante" | "Pastel" | "Tech";
 }
 
 interface FontOption {
@@ -166,9 +166,169 @@ const presetSchemes: ColorScheme[] = [
     background: "345 28% 96%",
     category: "Elegante",
   },
+  {
+    name: "Pastel Rosa",
+    primary: "340 70% 75%",
+    secondary: "320 65% 80%",
+    accent: "350 60% 70%",
+    background: "340 40% 98%",
+    category: "Pastel",
+  },
+  {
+    name: "Pastel Azul",
+    primary: "210 60% 75%",
+    secondary: "200 55% 80%",
+    accent: "220 65% 70%",
+    background: "210 35% 98%",
+    category: "Pastel",
+  },
+  {
+    name: "Pastel Lavanda",
+    primary: "270 50% 75%",
+    secondary: "280 45% 80%",
+    accent: "260 55% 70%",
+    background: "270 30% 98%",
+    category: "Pastel",
+  },
+  {
+    name: "Pastel Verde",
+    primary: "150 50% 70%",
+    secondary: "160 45% 75%",
+    accent: "140 55% 65%",
+    background: "150 30% 98%",
+    category: "Pastel",
+  },
+  {
+    name: "Tech Neon Azul",
+    primary: "200 100% 50%",
+    secondary: "180 95% 55%",
+    accent: "210 100% 45%",
+    background: "200 20% 10%",
+    category: "Tech",
+  },
+  {
+    name: "Tech Neon Verde",
+    primary: "150 100% 45%",
+    secondary: "165 95% 50%",
+    accent: "140 100% 40%",
+    background: "150 15% 10%",
+    category: "Tech",
+  },
+  {
+    name: "Tech Cyber Rosa",
+    primary: "330 100% 55%",
+    secondary: "310 95% 60%",
+    accent: "340 100% 50%",
+    background: "330 15% 10%",
+    category: "Tech",
+  },
+  {
+    name: "Terra Natural",
+    primary: "35 60% 45%",
+    secondary: "25 55% 55%",
+    accent: "45 65% 40%",
+    background: "35 30% 95%",
+    category: "Neutro",
+  },
+  {
+    name: "Floresta Escura",
+    primary: "140 45% 35%",
+    secondary: "150 40% 45%",
+    accent: "130 50% 30%",
+    background: "140 25% 96%",
+    category: "Neutro",
+  },
+  {
+    name: "Areia do Deserto",
+    primary: "40 55% 60%",
+    secondary: "45 50% 70%",
+    accent: "35 60% 55%",
+    background: "40 35% 97%",
+    category: "Neutro",
+  },
+  {
+    name: "Oceano Profundo",
+    primary: "200 95% 25%",
+    secondary: "190 85% 35%",
+    accent: "210 90% 30%",
+    background: "200 30% 96%",
+    category: "Profissional",
+  },
+  {
+    name: "Pôr do Sol",
+    primary: "15 90% 60%",
+    secondary: "30 85% 65%",
+    accent: "5 95% 55%",
+    background: "20 40% 97%",
+    category: "Vibrante",
+  },
+  {
+    name: "Aurora Boreal",
+    primary: "180 85% 50%",
+    secondary: "160 80% 55%",
+    accent: "190 90% 45%",
+    background: "180 30% 97%",
+    category: "Elegante",
+  },
+  {
+    name: "Monochrome Preto",
+    primary: "0 0% 15%",
+    secondary: "0 0% 30%",
+    accent: "0 0% 45%",
+    background: "0 0% 98%",
+    category: "Neutro",
+  },
+  {
+    name: "Violeta Místico",
+    primary: "280 85% 45%",
+    secondary: "270 75% 55%",
+    accent: "290 90% 40%",
+    background: "280 30% 97%",
+    category: "Elegante",
+  },
+  {
+    name: "Âmbar Quente",
+    primary: "38 92% 50%",
+    secondary: "45 88% 60%",
+    accent: "30 95% 45%",
+    background: "40 35% 97%",
+    category: "Vibrante",
+  },
+  {
+    name: "Tech Roxo",
+    primary: "270 100% 60%",
+    secondary: "280 95% 65%",
+    accent: "260 100% 55%",
+    background: "270 15% 10%",
+    category: "Tech",
+  },
+  {
+    name: "Pastel Pêssego",
+    primary: "20 80% 75%",
+    secondary: "30 75% 80%",
+    accent: "15 85% 70%",
+    background: "25 40% 98%",
+    category: "Pastel",
+  },
+  {
+    name: "Safira Profunda",
+    primary: "220 90% 35%",
+    secondary: "210 85% 45%",
+    accent: "230 85% 40%",
+    background: "220 30% 96%",
+    category: "Profissional",
+  },
+  {
+    name: "Limão Neon",
+    primary: "65 100% 50%",
+    secondary: "75 95% 55%",
+    accent: "60 100% 45%",
+    background: "70 20% 97%",
+    category: "Vibrante",
+  },
 ];
 
-const categories = ["Todos", "Profissional", "Vibrante", "Neutro", "Elegante"] as const;
+const categories = ["Todos", "Profissional", "Vibrante", "Neutro", "Elegante", "Pastel", "Tech"] as const;
 
 const radiusPresets = [
   { name: "Nenhum", value: "0rem", description: "Sem arredondamento" },
