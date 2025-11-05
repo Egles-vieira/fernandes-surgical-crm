@@ -152,16 +152,16 @@ export default function Layout({ children }: LayoutProps) {
       {/* Sidebar - Responsivo com Collapse */}
       <aside
         className={`${
-          collapsed ? "w-16" : "w-56"
-        } gradient-primary text-white flex flex-col fixed left-0 top-0 h-full z-50 shadow-elegant transition-all duration-300`}
+          collapsed ? "w-16" : "w-64"
+        } gradient-primary text-white flex flex-col fixed left-0 top-0 h-full z-50 shadow-lg transition-all duration-300 ease-in-out`}
       >
         {/* Logo Header com Toggle */}
-        <div className="p-3 flex items-center justify-center border-b border-white/10 h-20 relative">
+        <div className="p-4 flex items-center justify-center border-b border-white/10 h-20 relative">
           {!collapsed ? (
             <img 
               src={empresa?.url_logo_expandido || empresa?.url_logo || logo} 
               alt={empresa?.nome || "Cirúrgica Fernandes"} 
-              className="h-10 object-contain animate-fade-in" 
+              className="h-12 object-contain animate-fade-in" 
             />
           ) : (
             <img 
@@ -174,16 +174,16 @@ export default function Layout({ children }: LayoutProps) {
           {/* Botão de Toggle */}
           <button
             onClick={() => setCollapsed(!collapsed)}
-            className="absolute -right-3 top-1/2 -translate-y-1/2 bg-white text-primary rounded-full p-1.5 shadow-lg hover:scale-110 transition-transform"
+            className="absolute -right-3 top-1/2 -translate-y-1/2 bg-white text-primary rounded-full p-1.5 shadow-lg hover:scale-110 hover:shadow-xl transition-all duration-200"
             aria-label={collapsed ? "Expandir menu" : "Recolher menu"}
           >
-            {collapsed ? <ChevronRight size={14} /> : <Menu size={14} />}
+            {collapsed ? <ChevronRight size={16} /> : <Menu size={16} />}
           </button>
         </div>
 
         {/* Menu Items - Vertical */}
-        <nav className="flex-1 py-4 overflow-y-auto">
-          <div className="space-y-1">
+        <nav className="flex-1 py-4 overflow-y-auto custom-scrollbar">
+          <div className="space-y-1 px-2">
             {menuItems.filter(item => !item.adminOnly || isAdmin).map((item, index) => {
               // Itens com children (sub-menus)
               if (item.children) {
@@ -196,21 +196,21 @@ export default function Layout({ children }: LayoutProps) {
                     <HoverCard key={item.label} openDelay={200}>
                       <HoverCardTrigger asChild>
                         <div
-                          className={`group flex flex-col items-center justify-center py-3 px-1 transition-all duration-200 relative cursor-pointer
+                          className={`group flex flex-col items-center justify-center py-3.5 px-1 transition-all duration-200 relative cursor-pointer rounded-xl mx-1
                           ${
                             isAnyChildActive
-                              ? "bg-white/20 text-white"
-                              : "hover:bg-white/10 text-white/70 hover:text-white"
+                              ? "bg-white/20 text-white shadow-sm"
+                              : "hover:bg-white/10 text-white/80 hover:text-white"
                           }`}
                         >
                           {isAnyChildActive && (
-                            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-10 bg-white rounded-r-full" />
+                            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-10 bg-white rounded-r-full shadow-md" />
                           )}
                           <item.icon 
-                            size={24} 
+                            size={22} 
                             className="mb-1.5 transition-transform duration-200 group-hover:scale-110" 
                           />
-                          <span className="text-[10px] font-medium text-center leading-tight">
+                          <span className="text-[10px] font-semibold text-center leading-tight">
                             {item.label}
                           </span>
                         </div>
@@ -258,18 +258,18 @@ export default function Layout({ children }: LayoutProps) {
                     onOpenChange={() => toggleMenu(item.label)}
                   >
                     <CollapsibleTrigger
-                      className={`group flex items-center gap-2 px-3 py-2 rounded-xl mx-2 transition-all duration-200 relative w-[calc(100%-16px)]
+                      className={`group flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 relative w-full
                       ${
                         isAnyChildActive
-                          ? "bg-white/20 text-white"
-                          : "hover:bg-white/10 text-white/80 hover:text-white"
+                          ? "bg-white/20 text-white shadow-sm"
+                          : "hover:bg-white/10 text-white/90 hover:text-white"
                       }`}
                     >
                       <item.icon 
                         size={20} 
                         className="flex-shrink-0 transition-transform duration-200 group-hover:scale-110" 
                       />
-                      <span className="font-medium text-sm flex-1 text-left">
+                      <span className="font-semibold text-sm flex-1 text-left tracking-wide">
                         {item.label}
                       </span>
                       {isOpen ? (
@@ -279,7 +279,7 @@ export default function Layout({ children }: LayoutProps) {
                       )}
                     </CollapsibleTrigger>
 
-                    <CollapsibleContent className="mt-1 space-y-1 pl-5 pr-2">
+                    <CollapsibleContent className="mt-1 space-y-0.5 pl-6 pr-1">
                       {item.children
                         .filter(child => !child.adminOnly || isAdmin)
                         .map((child) => (
@@ -290,11 +290,11 @@ export default function Layout({ children }: LayoutProps) {
                         >
                           {({ isActive }) => (
                             <div
-                              className={`group flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all duration-200 relative
+                              className={`group flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 relative
                               ${
                                 isActive
-                                  ? "bg-white/15 text-white"
-                                  : "hover:bg-white/5 text-white/70 hover:text-white"
+                                  ? "bg-white/15 text-white font-medium"
+                                  : "hover:bg-white/5 text-white/80 hover:text-white"
                               }`}
                             >
                               <child.icon size={16} className="flex-shrink-0" />
@@ -316,24 +316,24 @@ export default function Layout({ children }: LayoutProps) {
                     to={item.path!}
                     end={item.path === "/"}
                     className={({ isActive }) =>
-                      `group flex flex-col items-center justify-center py-3 px-1 transition-all duration-200 relative
+                      `group flex flex-col items-center justify-center py-3.5 px-1 transition-all duration-200 relative rounded-xl mx-1
                       ${
                         isActive
-                          ? "bg-white/20 text-white"
-                          : "hover:bg-white/10 text-white/70 hover:text-white"
+                          ? "bg-white/20 text-white shadow-sm"
+                          : "hover:bg-white/10 text-white/80 hover:text-white"
                       }`
                     }
                   >
                     {({ isActive }) => (
                       <>
                         {isActive && (
-                          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-10 bg-white rounded-r-full" />
+                          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-10 bg-white rounded-r-full shadow-md" />
                         )}
                         <item.icon 
-                          size={24} 
+                          size={22} 
                           className="mb-1.5 transition-transform duration-200 group-hover:scale-110" 
                         />
-                        <span className="text-[10px] font-medium text-center leading-tight px-1">
+                        <span className="text-[10px] font-semibold text-center leading-tight px-1">
                           {item.label}
                         </span>
                       </>
@@ -348,24 +348,24 @@ export default function Layout({ children }: LayoutProps) {
                   to={item.path!}
                   end={item.path === "/"}
                   className={({ isActive }) =>
-                    `group flex items-center gap-2 px-3 py-2 rounded-xl mx-2 transition-all duration-200 relative
+                    `group flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 relative
                     ${
                       isActive
-                        ? "bg-white/20 text-white"
-                        : "hover:bg-white/10 text-white/80 hover:text-white"
+                        ? "bg-white/20 text-white shadow-sm"
+                        : "hover:bg-white/10 text-white/90 hover:text-white"
                     }`
                   }
                 >
                   {({ isActive }) => (
                     <>
                       {isActive && (
-                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-white rounded-r-full" />
+                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-white rounded-r-full shadow-md" />
                       )}
                       <item.icon 
                         size={20} 
                         className="flex-shrink-0 transition-transform duration-200 group-hover:scale-110" 
                       />
-                      <span className="font-medium text-sm">
+                      <span className="font-semibold text-sm tracking-wide">
                         {item.label}
                       </span>
                     </>
@@ -377,10 +377,15 @@ export default function Layout({ children }: LayoutProps) {
         </nav>
 
         {/* Footer */}
-        <div className="border-t border-white/10 p-3">
+        <div className="border-t border-white/10 p-4 bg-white/5">
           <div className="flex justify-center">
-            <div className="text-[9px] text-white/40 text-center">
-              {collapsed ? "v1.0" : "CRM v1.0.0 © 2025"}
+            <div className={`text-white/50 text-center transition-all duration-300 ${collapsed ? 'text-[9px]' : 'text-xs'}`}>
+              {collapsed ? "v1.0" : (
+                <div className="space-y-0.5">
+                  <div className="font-semibold">CRM v1.0.0</div>
+                  <div className="text-[10px]">© 2025</div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -389,11 +394,11 @@ export default function Layout({ children }: LayoutProps) {
       {/* Main Content */}
       <div 
         className={`${
-          collapsed ? "ml-16" : "ml-56"
-        } flex-1 flex flex-col h-screen overflow-hidden transition-all duration-300`}
+          collapsed ? "ml-16" : "ml-64"
+        } flex-1 flex flex-col h-screen overflow-hidden transition-all duration-300 ease-in-out`}
       >
         {/* Header */}
-        <div className="fixed top-0 right-0 left-0 z-40" style={{ marginLeft: collapsed ? '4rem' : '14rem' }}>
+        <div className="fixed top-0 right-0 left-0 z-40 transition-all duration-300 ease-in-out" style={{ marginLeft: collapsed ? '4rem' : '16rem' }}>
           <Header collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
         </div>
         
