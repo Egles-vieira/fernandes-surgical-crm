@@ -83,23 +83,17 @@ export function CadastroActionBar({
         </div>
 
         {status === "concluido" && <div className="flex items-center gap-2">
-            {onCalcular}
-            
-            {onDiretoria}
-            
             <Button variant="outline" size="sm" onClick={onCancelar} className="gap-2">
               <X size={16} />
               Cancelar
             </Button>
-            
-            {onEditar}
             
             {onSalvarRascunho && <Button variant="outline" size="sm" onClick={onSalvarRascunho} className="gap-2">
                 <Save size={16} />
                 Salvar Rascunho
               </Button>}
             
-            {onEnviarAnalise && <Button variant="default" size="sm" onClick={onEnviarAnalise} className="gap-2">
+            {onEnviarAnalise && <Button variant="default" size="sm" onClick={onEnviarAnalise} className="gap-2 bg-green-600 hover:bg-green-700">
                 Enviar para Análise
               </Button>}
             
