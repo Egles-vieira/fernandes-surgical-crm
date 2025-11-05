@@ -24,9 +24,14 @@ export const useSolicitacoesCadastro = (params?: UseSolicitacoesParams) => {
   const { data, isLoading, error } = useQuery({
     queryKey: ["solicitacoes-cadastro", status, page, search],
     queryFn: async () => {
+      console.log("=== DEBUG QUERY SOLICITAÇÕES ===");
+      console.log("Status:", status);
+      console.log("Page:", page);
+      console.log("Search:", search);
+
       let query = supabase
         .from("solicitacoes_cadastro")
-        .select("*, criado_por(email)", { count: "exact" })
+        .select("*", { count: "exact" })
         .is("excluido_em", null)
         .order("criado_em", { ascending: false });
 
@@ -35,7 +40,11 @@ export const useSolicitacoesCadastro = (params?: UseSolicitacoesParams) => {
       }
 
       if (search) {
-        query = query.or(`cnpj.ilike.%${search}%,dados_coletados->>razao_social.ilike.%${search}%`);
+        query = query.or(
+          `cnpj.ilike.%${search}%,` +
+          `dados_coletados->>'razao_social'.ilike.%${search}%,` +
+          `dados_coletados->>'nome_fantasia'.ilike.%${search}%`
+        );
       }
 
       const from = (page - 1) * pageSize;
@@ -44,7 +53,13 @@ export const useSolicitacoesCadastro = (params?: UseSolicitacoesParams) => {
 
       const { data, error, count } = await query;
 
-      if (error) throw error;
+      if (error) {
+        console.error("❌ Erro na query:", error);
+        throw new Error(`Falha ao buscar solicitações: ${error.message}`);
+      }
+
+      console.log("✅ Resultado:", data?.length, "solicitações");
+      console.log("Total:", count);
 
       return {
         solicitacoes: data as SolicitacaoCadastro[],
@@ -75,24 +90,36 @@ export const useSolicitacoesCadastro = (params?: UseSolicitacoesParams) => {
   // Mutation para criar solicitação
   const createSolicitacao = useMutation({
     mutationFn: async (data: SolicitacaoCadastroInsert) => {
+      console.log("=== DEBUG CREATE SOLICITAÇÃO ===");
+      console.log("Dados enviados:", data);
+
       const { data: result, error } = await supabase
         .from("solicitacoes_cadastro")
         .insert(data)
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("❌ Erro ao criar:", error);
+        throw error;
+      }
+
+      console.log("✅ Solicitação criada:", result);
       return result;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log("✅ Sucesso - ID:", data.id);
       queryClient.invalidateQueries({ queryKey: ["solicitacoes-cadastro"] });
-      toast({ title: "Solicitação criada", description: "A solicitação foi criada com sucesso." });
-    },
-    onError: (error) => {
-      console.error("Erro ao criar solicitação:", error);
       toast({ 
-        title: "Erro ao criar solicitação", 
-        description: "Não foi possível criar a solicitação. Tente novamente.",
+        title: "✅ Solicitação criada", 
+        description: `ID: ${data.id.substring(0, 8)}...` 
+      });
+    },
+    onError: (error: any) => {
+      console.error("❌ Erro completo:", error);
+      toast({ 
+        title: "❌ Erro ao criar solicitação", 
+        description: error.message || "Não foi possível criar a solicitação.",
         variant: "destructive" 
       });
     },
@@ -101,6 +128,10 @@ export const useSolicitacoesCadastro = (params?: UseSolicitacoesParams) => {
   // Mutation para atualizar solicitação
   const updateSolicitacao = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: SolicitacaoCadastroUpdate }) => {
+      console.log("=== DEBUG UPDATE SOLICITAÇÃO ===");
+      console.log("ID:", id);
+      console.log("Dados:", data);
+
       const { data: result, error } = await supabase
         .from("solicitacoes_cadastro")
         .update(data)
@@ -108,18 +139,28 @@ export const useSolicitacoesCadastro = (params?: UseSolicitacoesParams) => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("❌ Erro ao atualizar:", error);
+        throw error;
+      }
+
+      console.log("✅ Solicitação atualizada:", result);
       return result;
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (data, variables) => {
+      console.log("✅ Atualização bem-sucedida");
       queryClient.invalidateQueries({ queryKey: ["solicitacoes-cadastro"] });
       queryClient.invalidateQueries({ queryKey: ["solicitacao-cadastro", variables.id] });
-    },
-    onError: (error) => {
-      console.error("Erro ao atualizar solicitação:", error);
       toast({ 
-        title: "Erro ao salvar", 
-        description: "Não foi possível salvar as alterações.",
+        title: "✅ Alterações salvas", 
+        description: "Solicitação atualizada com sucesso." 
+      });
+    },
+    onError: (error: any) => {
+      console.error("❌ Erro completo:", error);
+      toast({ 
+        title: "❌ Erro ao salvar", 
+        description: error.message || "Não foi possível salvar as alterações.",
         variant: "destructive" 
       });
     },

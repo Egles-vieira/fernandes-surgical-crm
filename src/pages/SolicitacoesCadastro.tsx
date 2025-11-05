@@ -29,6 +29,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AlertCircle } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -57,6 +58,7 @@ export default function SolicitacoesCadastro() {
     solicitacoes,
     total,
     isLoading,
+    error,
     aprovarSolicitacao,
     rejeitarSolicitacao,
     deleteSolicitacao,
@@ -190,9 +192,21 @@ export default function SolicitacoesCadastro() {
         <CardContent className="pt-6">
           {isLoading ? (
             <div className="space-y-3">
+              <p className="text-sm text-muted-foreground mb-2">Carregando solicitações...</p>
               {[1, 2, 3].map((i) => (
                 <Skeleton key={i} className="h-12 w-full" />
               ))}
+            </div>
+          ) : error ? (
+            <div className="text-center py-12">
+              <AlertCircle className="h-12 w-12 mx-auto text-destructive mb-4" />
+              <h3 className="text-lg font-semibold mb-2">Erro ao carregar</h3>
+              <p className="text-muted-foreground mb-4">
+                {error instanceof Error ? error.message : "Não foi possível carregar as solicitações."}
+              </p>
+              <Button onClick={() => window.location.reload()}>
+                Tentar Novamente
+              </Button>
             </div>
           ) : solicitacoes.length === 0 ? (
             <div className="text-center py-12">
@@ -227,7 +241,11 @@ export default function SolicitacoesCadastro() {
                     <TableRow key={solicitacao.id}>
                       <TableCell className="font-mono">{solicitacao.cnpj}</TableCell>
                       <TableCell>
-                        {dadosColetados?.razao_social || dadosColetados?.nome || "-"}
+                        {dadosColetados?.razao_social || 
+                         dadosColetados?.nome_fantasia || 
+                         dadosColetados?.office?.name || 
+                         dadosColetados?.office?.alias || 
+                         "-"}
                       </TableCell>
                       <TableCell>
                         <StatusBadgeSolicitacao status={solicitacao.status} />

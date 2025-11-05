@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, XCircle, UserPlus, Pencil, Trash2, Mail, Phone, Briefcase, Building2, User, MessageSquare, Target, Share2, FileText, Save } from "lucide-react";
+import { Search, XCircle, UserPlus, Pencil, Trash2, Mail, Phone, Briefcase, Building2, User, MessageSquare, Target, Share2, FileText, Save, Loader2 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ProgressoCNPJA } from "@/components/cnpja/ProgressoCNPJA";
@@ -67,10 +67,25 @@ export default function CadastroCNPJ() {
   }, [solicitacaoExistente]);
 
   const handleSalvar = async () => {
+    console.log("=== DEBUG SALVAR ===");
+    console.log("CNPJ:", cnpj);
+    console.log("Status:", status);
+    console.log("dadosColetados:", dadosColetados);
+    console.log("contatos:", contatos);
+
     if (!cnpj || status !== 'concluido') {
       toast({
         title: "Atenção",
         description: "Complete a consulta CNPJ antes de salvar.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!dadosColetados || !dadosColetados.office) {
+      toast({
+        title: "Erro",
+        description: "Dados da consulta CNPJ não encontrados.",
         variant: "destructive",
       });
       return;
@@ -88,36 +103,38 @@ export default function CadastroCNPJ() {
         return;
       }
 
+      // Estruturar dados corretamente com razao_social no primeiro nível para busca
+      const dadosCompletos = {
+        ...dadosColetados,
+        razao_social: dadosColetados.office?.name || "",
+        nome_fantania: dadosColetados.office?.alias || "",
+        decisoes: decisoes,
+      };
+
       const dadosParaSalvar = {
         cnpj,
-        dados_coletados: JSON.parse(JSON.stringify(dadosColetados || {})),
-        contatos: JSON.parse(JSON.stringify(contatos)),
+        dados_coletados: dadosCompletos as any,
+        contatos: contatos as any,
         criado_por: user.id,
       };
+
+      console.log("dadosParaSalvar:", dadosParaSalvar);
 
       if (currentSolicitacaoId) {
         await updateSolicitacao.mutateAsync({
           id: currentSolicitacaoId,
           data: dadosParaSalvar,
         });
-        toast({
-          title: "Salvo",
-          description: "Solicitação atualizada com sucesso.",
-        });
       } else {
         const novaSolicitacao = await createSolicitacao.mutateAsync(dadosParaSalvar as any);
         setCurrentSolicitacaoId(novaSolicitacao.id);
         window.history.replaceState(null, "", `/clientes/cadastro-cnpj?solicitacao=${novaSolicitacao.id}`);
-        toast({
-          title: "Salvo",
-          description: "Solicitação criada com sucesso.",
-        });
       }
     } catch (error) {
-      console.error("Erro ao salvar:", error);
+      console.error("❌ Erro ao salvar:", error);
       toast({
-        title: "Erro ao salvar",
-        description: "Não foi possível salvar. Tente novamente.",
+        title: "❌ Erro ao salvar",
+        description: error instanceof Error ? error.message : "Não foi possível salvar. Tente novamente.",
         variant: "destructive",
       });
     }
@@ -174,6 +191,14 @@ export default function CadastroCNPJ() {
     });
   };
   const handleNovaConsulta = () => {
+    // Confirmar antes de resetar se houver dados
+    if (dadosColetados && currentSolicitacaoId) {
+      const confirmar = window.confirm(
+        "Você tem dados não salvos. Deseja realmente iniciar nova consulta?"
+      );
+      if (!confirmar) return;
+    }
+    
     setCnpj("");
     setContatos([]);
     setCurrentSolicitacaoId(null);
@@ -248,8 +273,20 @@ export default function CadastroCNPJ() {
   };
 
   return <div className="min-h-screen bg-background">
+      {/* Loading Indicator para Solicitação Existente */}
+      {loadingSolicitacao && (
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
+          <Card className="p-6 shadow-elegant">
+            <div className="flex items-center gap-3">
+              <Loader2 className="h-5 w-5 animate-spin text-primary" />
+              <p className="font-medium">Carregando solicitação...</p>
+            </div>
+          </Card>
+        </div>
+      )}
+
       {/* Barra de Ações Fixa */}
-      <CadastroActionBar 
+      <CadastroActionBar
         status={status}
         onCalcular={handleCalcular}
         onCancelar={handleNovaConsulta}
