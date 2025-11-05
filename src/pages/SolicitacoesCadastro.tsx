@@ -172,7 +172,7 @@ export default function SolicitacoesCadastro() {
                 Criar Nova Solicitação
               </Button>
             </div> : <div className="flex-1 flex flex-col overflow-hidden">
-              <div className="flex-1 overflow-y-auto">
+              <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-primary/30 scrollbar-track-transparent hover:scrollbar-thumb-primary/40">
               {/* Table Header */}
               <div className="flex items-center gap-4 p-4 border-b bg-muted/30 font-medium text-sm text-muted-foreground">
                 <div className="w-10"></div> {/* Checkbox space */}
