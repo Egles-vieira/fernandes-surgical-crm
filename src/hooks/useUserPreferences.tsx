@@ -4,6 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 
 interface UserPreferences {
   clientesView?: "card" | "grid";
+  iconLibrary?: string;
   [key: string]: any;
 }
 

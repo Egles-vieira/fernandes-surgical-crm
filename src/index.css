@@ -8,6 +8,12 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
+    /* Icon System */
+    --icon-stroke-width: 2;
+    --icon-border-radius: 0;
+    --icon-fill-opacity: 0;
+    --icon-scale: 1;
+
     --background: 0 0% 95%; /* #F3F3F3 */
     --foreground: 186 80% 15%;
 
@@ -267,5 +273,33 @@ All colors MUST be HSL.
 
   [data-sonner-toast][data-type="info"] [data-icon] {
     color: hsl(var(--primary)) !important;
+  }
+
+  /* Icon Library Styles */
+  svg {
+    stroke-width: var(--icon-stroke-width);
+  }
+
+  .icon-lucide svg {
+    stroke-width: 2;
+  }
+
+  .icon-heroicons svg {
+    stroke-width: 1.5;
+  }
+
+  .icon-feather svg {
+    stroke-width: 2;
+    transform: scale(0.95);
+  }
+
+  .icon-material svg {
+    stroke-width: 2.5;
+    fill-opacity: 0.15;
+  }
+
+  .icon-phosphor svg {
+    stroke-width: 1.5;
+    fill-opacity: 0.1;
   }
 }
