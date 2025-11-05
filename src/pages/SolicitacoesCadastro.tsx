@@ -148,19 +148,21 @@ export default function SolicitacoesCadastro() {
   const canNextPage = page < totalPages;
   return <div className="h-full overflow-hidden flex flex-col">
       {/* Filtros */}
-      <div className="sticky top-0 z-30 flex items-center gap-3 py-3 px-8 border-b bg-card shadow-sm">
-      <SolicitacoesFilters
-        searchTerm={search}
-        onSearchChange={setSearch}
-        statusFilter={statusFilter}
-        onStatusChange={(value) => setStatusFilter(value as StatusSolicitacao | "todos")}
-        onNovaSolicitacao={() => navigate("/clientes/cadastro-cnpj")}
-      />
+      <div className="sticky top-0 z-30 border-b bg-card shadow-sm">
+        <SolicitacoesFilters
+          searchTerm={search}
+          onSearchChange={setSearch}
+          statusFilter={statusFilter}
+          onStatusChange={(value) => setStatusFilter(value as StatusSolicitacao | "todos")}
+          onNovaSolicitacao={() => navigate("/clientes/cadastro-cnpj")}
+        />
       </div>
 
-      {/* Estatísticas */}
-      <div className="px-6 pt-6 space-y-6 flex-1 overflow-auto">
-      <div className="grid gap-4 md:grid-cols-5">
+      {/* Conteúdo com scroll */}
+      <div className="flex-1 overflow-auto">
+        <div className="p-6 space-y-6">
+          {/* Estatísticas */}
+          <div className="grid gap-4 md:grid-cols-5">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Total</CardTitle>
@@ -201,12 +203,11 @@ export default function SolicitacoesCadastro() {
             <div className="text-2xl font-bold">{stats.rejeitado}</div>
           </CardContent>
         </Card>
-      </div>
+          </div>
 
-
-      {/* Tabela */}
-      <Card className="flex flex-col flex-1 min-h-0 overflow-hidden">
-        <CardContent className="pt-6 flex-1 flex flex-col min-h-0 overflow-hidden">
+          {/* Tabela */}
+          <Card>
+        <CardContent className="pt-6">
           {isLoading ? <div className="space-y-3">
               <p className="text-sm text-muted-foreground mb-2">Carregando solicitações...</p>
               {[1, 2, 3].map(i => <Skeleton key={i} className="h-12 w-full" />)}
@@ -229,10 +230,10 @@ export default function SolicitacoesCadastro() {
                 <Plus className="h-4 w-4 mr-2" />
                 Criar Nova Solicitação
               </Button>
-            </div> : <div className="flex-1 flex flex-col overflow-hidden">
-              <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-primary/30 scrollbar-track-transparent hover:scrollbar-thumb-primary/40">
-              {/* Table Header */}
-              <div className="sticky top-0 z-10 flex items-center gap-4 p-4 border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 font-medium text-sm text-muted-foreground">
+            </div> : <div>
+              <div>
+                {/* Table Header */}
+                <div className="flex items-center gap-4 p-4 border-b bg-muted/30 font-medium text-sm text-muted-foreground">
                 <Checkbox 
                   checked={selectedRows.size === solicitacoes.length && solicitacoes.length > 0}
                   onCheckedChange={toggleSelectAll}
@@ -244,194 +245,196 @@ export default function SolicitacoesCadastro() {
                 <div className="w-40">Data</div>
                 <div className="w-48">Email</div>
                 <div className="w-48">Endereço</div>
-                <div className="w-24"></div> {/* Actions space */}
-              </div>
+                  <div className="w-24"></div> {/* Actions space */}
+                </div>
 
-              {solicitacoes.map(solicitacao => {
+                {solicitacoes.map(solicitacao => {
             const dadosColetados = solicitacao.dados_coletados as any;
             const contatos = solicitacao.contatos as any[] || [];
-            const isExpanded = expandedRows.has(solicitacao.id);
-            const isSelected = selectedRows.has(solicitacao.id);
-            return <div key={solicitacao.id} className={`border-b border-border transition-colors ${isSelected ? "bg-accent/5" : "hover:bg-muted/30"}`}>
-                    {/* Main Row */}
-                    <div className="flex items-center gap-4 p-4 relative">
-                      {/* Left Border Indicator */}
-                      {isSelected && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary" />}
-                      
-                      {/* Checkbox */}
-                      <Checkbox checked={isSelected} onCheckedChange={() => toggleSelection(solicitacao.id)} className="ml-2" />
-
-                      {/* Nome/Razão Social */}
-                      <div className="flex-1 min-w-0">
-                        <div className="text-primary font-medium">
-                          {dadosColetados?.razao_social || dadosColetados?.nome_fantasia || dadosColetados?.office?.name || dadosColetados?.office?.alias || "-"}
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          {solicitacao.cnpj}
-                        </div>
-                      </div>
-
-                      {/* Status */}
-                      <div className="w-32">
-                        <StatusBadgeSolicitacao status={solicitacao.status} />
-                      </div>
-
-                      {/* Contatos */}
-                      <div className="w-24 text-center text-sm text-muted-foreground">
-                        {contatos.length}
-                      </div>
-
-                      {/* Data */}
-                      <div className="w-40 text-sm text-muted-foreground">
-                        {format(new Date(solicitacao.criado_em), "dd MMM yyyy")}
-                      </div>
-
-                      {/* Email */}
-                      <div className="w-48 text-sm text-primary truncate">
-                        {contatos[0]?.email || "-"}
-                      </div>
-
-                      {/* Address */}
-                      <div className="w-48 text-sm text-muted-foreground truncate">
-                        {dadosColetados?.endereco?.logradouro || "-"}
-                      </div>
-
-                      {/* Actions */}
-                      <div className="flex items-center gap-2">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => navigate(`/clientes/cadastro-cnpj?solicitacao=${solicitacao.id}`)}>
-                              <Edit className="h-4 w-4 mr-2" />
-                              Editar
-                            </DropdownMenuItem>
-                            {solicitacao.status === "em_analise" && <>
-                                <DropdownMenuItem onClick={() => setAprovarDialog(solicitacao.id)}>
-                                  <CheckCircle className="h-4 w-4 mr-2 text-success" />
-                                  Aprovar
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => setRejeitarDialog(solicitacao.id)}>
-                                  <XCircle className="h-4 w-4 mr-2 text-destructive" />
-                                  Rejeitar
-                                </DropdownMenuItem>
-                              </>}
-                            <DropdownMenuItem onClick={() => setDeleteDialog(solicitacao.id)} className="text-destructive">
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Excluir
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-
-                        <Button variant="ghost" size="icon" onClick={() => toggleRow(solicitacao.id)}>
-                          {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                        </Button>
-                      </div>
-                    </div>
-
-                    {/* Expanded Content */}
-                    {isExpanded && <div className="px-4 pb-4 pt-2 bg-muted/20 border-t">
-                        <div className="grid grid-cols-5 gap-4 text-sm">
-                          <div>
-                            <div className="text-muted-foreground mb-1">Status</div>
-                            <StatusBadgeSolicitacao status={solicitacao.status} />
-                          </div>
-                          <div>
-                            <div className="text-muted-foreground mb-1">Contatos</div>
-                            <div className="font-medium">{contatos.length}</div>
-                          </div>
-                          <div>
-                            <div className="text-muted-foreground mb-1">Criado em</div>
-                            <div className="font-medium">
-                              {format(new Date(solicitacao.criado_em), "dd/MM/yyyy HH:mm")}
-                            </div>
-                          </div>
-                          <div>
-                            <div className="text-muted-foreground mb-1">Email</div>
-                            <div className="font-medium text-primary">
-                              {contatos[0]?.email || "-"}
-                            </div>
-                          </div>
-                          <div>
-                            <div className="text-muted-foreground mb-1">Telefone</div>
-                            <div className="font-medium">
-                              {contatos[0]?.telefone || "-"}
-                            </div>
-                          </div>
-                        </div>
+                  const isExpanded = expandedRows.has(solicitacao.id);
+                  const isSelected = selectedRows.has(solicitacao.id);
+                  return <div key={solicitacao.id} className={`border-b border-border transition-colors ${isSelected ? "bg-accent/5" : "hover:bg-muted/30"}`}>
+                      {/* Main Row */}
+                      <div className="flex items-center gap-4 p-4 relative">
+                        {/* Left Border Indicator */}
+                        {isSelected && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary" />}
                         
-                        {dadosColetados?.endereco && <div className="mt-3 pt-3 border-t">
-                            <div className="text-muted-foreground mb-1">Endereço Completo</div>
-                            <div className="font-medium">
-                              {dadosColetados.endereco.logradouro}, {dadosColetados.endereco.numero || "S/N"}
-                              {dadosColetados.endereco.complemento && `, ${dadosColetados.endereco.complemento}`}
-                              {` - ${dadosColetados.endereco.bairro}, ${dadosColetados.endereco.cidade} - ${dadosColetados.endereco.estado}, CEP: ${dadosColetados.endereco.cep}`}
+                        {/* Checkbox */}
+                        <Checkbox checked={isSelected} onCheckedChange={() => toggleSelection(solicitacao.id)} className="ml-2" />
+
+                        {/* Nome/Razão Social */}
+                        <div className="flex-1 min-w-0">
+                          <div className="text-primary font-medium">
+                            {dadosColetados?.razao_social || dadosColetados?.nome_fantasia || dadosColetados?.office?.name || dadosColetados?.office?.alias || "-"}
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            {solicitacao.cnpj}
+                          </div>
+                        </div>
+
+                        {/* Status */}
+                        <div className="w-32">
+                          <StatusBadgeSolicitacao status={solicitacao.status} />
+                        </div>
+
+                        {/* Contatos */}
+                        <div className="w-24 text-center text-sm text-muted-foreground">
+                          {contatos.length}
+                        </div>
+
+                        {/* Data */}
+                        <div className="w-40 text-sm text-muted-foreground">
+                          {format(new Date(solicitacao.criado_em), "dd MMM yyyy")}
+                        </div>
+
+                        {/* Email */}
+                        <div className="w-48 text-sm text-primary truncate">
+                          {contatos[0]?.email || "-"}
+                        </div>
+
+                        {/* Address */}
+                        <div className="w-48 text-sm text-muted-foreground truncate">
+                          {dadosColetados?.endereco?.logradouro || "-"}
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex items-center gap-2">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => navigate(`/clientes/cadastro-cnpj?solicitacao=${solicitacao.id}`)}>
+                                <Edit className="h-4 w-4 mr-2" />
+                                Editar
+                              </DropdownMenuItem>
+                              {solicitacao.status === "em_analise" && <>
+                                  <DropdownMenuItem onClick={() => setAprovarDialog(solicitacao.id)}>
+                                    <CheckCircle className="h-4 w-4 mr-2 text-success" />
+                                    Aprovar
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => setRejeitarDialog(solicitacao.id)}>
+                                    <XCircle className="h-4 w-4 mr-2 text-destructive" />
+                                    Rejeitar
+                                  </DropdownMenuItem>
+                                </>}
+                              <DropdownMenuItem onClick={() => setDeleteDialog(solicitacao.id)} className="text-destructive">
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Excluir
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+
+                          <Button variant="ghost" size="icon" onClick={() => toggleRow(solicitacao.id)}>
+                            {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Expanded Content */}
+                      {isExpanded && <div className="px-4 pb-4 pt-2 bg-muted/20 border-t">
+                          <div className="grid grid-cols-5 gap-4 text-sm">
+                            <div>
+                              <div className="text-muted-foreground mb-1">Status</div>
+                              <StatusBadgeSolicitacao status={solicitacao.status} />
                             </div>
-                          </div>}
-                      </div>}
-                  </div>;
-          })}
+                            <div>
+                              <div className="text-muted-foreground mb-1">Contatos</div>
+                              <div className="font-medium">{contatos.length}</div>
+                            </div>
+                            <div>
+                              <div className="text-muted-foreground mb-1">Criado em</div>
+                              <div className="font-medium">
+                                {format(new Date(solicitacao.criado_em), "dd/MM/yyyy HH:mm")}
+                              </div>
+                            </div>
+                            <div>
+                              <div className="text-muted-foreground mb-1">Email</div>
+                              <div className="font-medium text-primary">
+                                {contatos[0]?.email || "-"}
+                              </div>
+                            </div>
+                            <div>
+                              <div className="text-muted-foreground mb-1">Telefone</div>
+                              <div className="font-medium">
+                                {contatos[0]?.telefone || "-"}
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {dadosColetados?.endereco && <div className="mt-3 pt-3 border-t">
+                              <div className="text-muted-foreground mb-1">Endereço Completo</div>
+                              <div className="font-medium">
+                                {dadosColetados.endereco.logradouro}, {dadosColetados.endereco.numero || "S/N"}
+                                {dadosColetados.endereco.complemento && `, ${dadosColetados.endereco.complemento}`}
+                                {` - ${dadosColetados.endereco.bairro}, ${dadosColetados.endereco.cidade} - ${dadosColetados.endereco.estado}, CEP: ${dadosColetados.endereco.cep}`}
+                              </div>
+                            </div>}
+                        </div>}
+                    </div>;
+                })}
               </div>
 
               {/* Paginação */}
-              <div className="border-t bg-card p-4 flex items-center justify-between">
-                <div className="text-sm text-muted-foreground">
-                  Mostrando {solicitacoes.length === 0 ? 0 : (page - 1) * itemsPerPage + 1} a {Math.min(page * itemsPerPage, total || 0)} de {total || 0} solicitações
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setPage(p => Math.max(1, p - 1))}
-                    disabled={!canPreviousPage}
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  
-                  <div className="flex items-center gap-1">
-                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                      let pageNum;
-                      if (totalPages <= 5) {
-                        pageNum = i + 1;
-                      } else if (page <= 3) {
-                        pageNum = i + 1;
-                      } else if (page >= totalPages - 2) {
-                        pageNum = totalPages - 4 + i;
-                      } else {
-                        pageNum = page - 2 + i;
-                      }
-                      
-                      return (
-                        <Button
-                          key={pageNum}
-                          variant={page === pageNum ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setPage(pageNum)}
-                          className="w-9"
-                        >
-                          {pageNum}
-                        </Button>
-                      );
-                    })}
+              <div className="mt-4 border-t bg-card p-4 flex items-center justify-between">
+                  <div className="text-sm text-muted-foreground">
+                    Mostrando {solicitacoes.length === 0 ? 0 : (page - 1) * itemsPerPage + 1} a {Math.min(page * itemsPerPage, total || 0)} de {total || 0} solicitações
                   </div>
                   
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                    disabled={!canNextPage}
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPage(p => Math.max(1, p - 1))}
+                      disabled={!canPreviousPage}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        let pageNum;
+                        if (totalPages <= 5) {
+                          pageNum = i + 1;
+                        } else if (page <= 3) {
+                          pageNum = i + 1;
+                        } else if (page >= totalPages - 2) {
+                          pageNum = totalPages - 4 + i;
+                        } else {
+                          pageNum = page - 2 + i;
+                        }
+                        
+                        return (
+                          <Button
+                            key={pageNum}
+                            variant={page === pageNum ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setPage(pageNum)}
+                            className="w-9"
+                          >
+                            {pageNum}
+                          </Button>
+                        );
+                      })}
+                    </div>
+                    
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                      disabled={!canNextPage}
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            </div>}
-        </CardContent>
-      </Card>
+              </div>}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
 
       {/* Dialogs */}
       <RejeitarSolicitacaoDialog open={!!rejeitarDialog} onOpenChange={open => !open && setRejeitarDialog(null)} onConfirm={motivo => rejeitarDialog && handleRejeitar(rejeitarDialog, motivo)} isLoading={rejeitarSolicitacao.isPending} />
@@ -483,6 +486,5 @@ export default function SolicitacoesCadastro() {
         isLoading={aprovarSolicitacao.isPending || rejeitarSolicitacao.isPending || deleteSolicitacao.isPending}
         showAprovar={solicitacoes.some(s => selectedRows.has(s.id) && s.status === "em_analise")}
       />
-      </div>
-    </div>;
+    </div>
 }
