@@ -161,6 +161,20 @@ All colors MUST be HSL.
     background: var(--gradient-success);
   }
 
+  /* Aplicar sombra padrão aos cards e elementos elevados */
+  .card,
+  [class*="card-"],
+  .shadow,
+  .shadow-md {
+    box-shadow: var(--shadow-default) !important;
+  }
+
+  /* Aplicar espessura de borda padrão */
+  .border:not([class*="border-"]),
+  .border-default {
+    border-width: var(--border-width) !important;
+  }
+
   .gradient-subtle {
     background: var(--gradient-subtle);
   }

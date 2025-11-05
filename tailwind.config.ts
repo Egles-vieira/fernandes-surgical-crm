@@ -71,6 +71,21 @@ export default {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      borderWidth: {
+        DEFAULT: "var(--border-width)",
+        0: "0",
+        2: "2px",
+        4: "4px",
+        8: "8px",
+      },
+      boxShadow: {
+        sm: "0 1px 2px rgba(0,0,0,0.05)",
+        DEFAULT: "var(--shadow-default)",
+        md: "var(--shadow-default)",
+        lg: "0 10px 15px rgba(0,0,0,0.15)",
+        xl: "0 20px 25px rgba(0,0,0,0.2)",
+        none: "none",
+      },
       keyframes: {
         "accordion-down": {
           from: {
