@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useCNPJA } from "@/hooks/useCNPJA";
 import { Button } from "@/components/ui/button";
@@ -42,6 +42,7 @@ export default function CadastroCNPJ() {
   const [contatoParaExcluir, setContatoParaExcluir] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [currentSolicitacaoId, setCurrentSolicitacaoId] = useState<string | null>(solicitacaoId);
+  const jaCarregouRef = useRef(false);
   
   const { createSolicitacao, updateSolicitacao, useSolicitacao } = useSolicitacoesCadastro();
   const { data: solicitacaoExistente, isLoading: loadingSolicitacao } = useSolicitacao(currentSolicitacaoId || undefined);
@@ -57,9 +58,9 @@ export default function CadastroCNPJ() {
     erro
   } = useCNPJA();
 
-  // Carregar dados da solicitação existente
+  // Carregar dados da solicitação existente (apenas uma vez)
   useEffect(() => {
-    if (solicitacaoExistente) {
+    if (solicitacaoExistente && !jaCarregouRef.current) {
       console.log("📂 Carregando solicitação existente:", solicitacaoExistente);
       
       setCnpj(solicitacaoExistente.cnpj);
@@ -78,12 +79,9 @@ export default function CadastroCNPJ() {
           dadosSalvos,
           dadosSalvos.decisoes
         );
-
-        toast({
-          title: "✅ Solicitação carregada",
-          description: `CNPJ ${solicitacaoExistente.cnpj} - Status: ${solicitacaoExistente.status}`
-        });
       }
+
+      jaCarregouRef.current = true;
     }
   }, [solicitacaoExistente, carregarDadosExistentes]);
 
@@ -135,11 +133,16 @@ export default function CadastroCNPJ() {
       const dadosParaSalvar = {
         cnpj,
         dados_coletados: dadosCompletos as any,
-        contatos: contatos as any,
+        contatos: (contatos.length > 0 ? contatos : []) as any,
         criado_por: user.id,
       };
 
-      console.log("dadosParaSalvar:", dadosParaSalvar);
+      console.log("📦 dadosParaSalvar:", {
+        cnpj: dadosParaSalvar.cnpj,
+        num_contatos: Array.isArray(dadosParaSalvar.contatos) ? dadosParaSalvar.contatos.length : 0,
+        tem_dados: !!dadosParaSalvar.dados_coletados,
+        contatos: dadosParaSalvar.contatos
+      });
 
       if (currentSolicitacaoId) {
         await updateSolicitacao.mutateAsync({
@@ -223,6 +226,7 @@ export default function CadastroCNPJ() {
     setCnpj("");
     setContatos([]);
     setCurrentSolicitacaoId(null);
+    jaCarregouRef.current = false;
     window.history.replaceState(null, "", "/clientes/cadastro-cnpj");
     resetar();
   };
