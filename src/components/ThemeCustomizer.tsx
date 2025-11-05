@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Palette, Check, Upload, Image as ImageIcon, Type, Shapes, Library } from "lucide-react";
+import { Palette, Check, Upload, Image as ImageIcon, Type, Shapes } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -13,7 +13,6 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useEmpresa } from "@/hooks/useEmpresa";
-import { useIconLibrary, IconLibrary } from "@/hooks/useIconLibrary";
 
 interface ColorScheme {
   name: string;
@@ -480,48 +479,8 @@ const iconVisualStyles: IconVisualStyle[] = [
     value: "soft",
     description: "Ícones com preenchimento suave e translúcido",
     borderRadius: "2px",
-  fillOpacity: 0.2
+    fillOpacity: 0.2
   },
-];
-
-interface IconLibraryOption {
-  name: string;
-  value: IconLibrary;
-  description: string;
-  preview: string;
-}
-
-const iconLibraries: IconLibraryOption[] = [
-  {
-    name: "Lucide (Padrão)",
-    value: "lucide",
-    description: "Ícones limpos e modernos, linha consistente",
-    preview: "Estilo original, balanceado e profissional"
-  },
-  {
-    name: "Heroicons",
-    value: "heroicons",
-    description: "Estilo Tailwind UI, linhas mais finas",
-    preview: "Visual minimalista e elegante"
-  },
-  {
-    name: "Feather",
-    value: "feather",
-    description: "Ícones simplificados e delicados",
-    preview: "Leveza e simplicidade"
-  },
-  {
-    name: "Material Design",
-    value: "material",
-    description: "Estilo Google Material, mais robusto",
-    preview: "Visual preenchido e moderno"
-  },
-  {
-    name: "Phosphor",
-    value: "phosphor",
-    description: "Ícones versáteis com preenchimento suave",
-    preview: "Flexível e contemporâneo"
-  }
 ];
 
 export default function ThemeCustomizer() {
@@ -543,7 +502,6 @@ export default function ThemeCustomizer() {
   const [selectedIconStroke, setSelectedIconStroke] = useState("default");
   const [selectedIconVisual, setSelectedIconVisual] = useState("lucide");
   const { empresa, uploadLogo, isUploading } = useEmpresa();
-  const { library: currentLibrary, changeLibrary } = useIconLibrary();
 
   const filteredSchemes = selectedCategory === "Todos" 
     ? presetSchemes 
@@ -1083,56 +1041,6 @@ export default function ThemeCustomizer() {
           </TabsContent>
 
           <TabsContent value="icons" className="space-y-6">
-            {/* Biblioteca de Ícones */}
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
-                  <Library className="w-5 h-5" />
-                  Biblioteca de Ícones
-                </h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Escolha a biblioteca de ícones para todo o sistema
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 gap-3">
-                {iconLibraries.map((lib) => (
-                  <button
-                    key={lib.value}
-                    onClick={() => changeLibrary(lib.value)}
-                    className={`relative p-4 border-2 rounded-lg transition-all text-left ${
-                      currentLibrary === lib.value
-                        ? "border-primary bg-primary/5"
-                        : "border-border hover:border-primary/50"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <div>
-                        <span className="font-medium block">{lib.name}</span>
-                        <span className="text-xs text-muted-foreground block mt-1">{lib.preview}</span>
-                      </div>
-                      {currentLibrary === lib.value && (
-                        <Check className="text-primary" size={20} />
-                      )}
-                    </div>
-                    <p className="text-sm text-muted-foreground">{lib.description}</p>
-                  </button>
-                ))}
-              </div>
-
-              <div className="p-4 border rounded-lg bg-muted/50 space-y-3">
-                <p className="text-sm font-medium">Prévia da Biblioteca Selecionada</p>
-                <div className="flex gap-4 items-center justify-center p-6 bg-background rounded">
-                  <Palette size={28} />
-                  <Type size={28} />
-                  <Upload size={28} />
-                  <ImageIcon size={28} />
-                  <Check size={28} />
-                  <Library size={28} />
-                </div>
-              </div>
-            </div>
-
             {/* Estilo Visual */}
             <div className="space-y-4">
               <div>
