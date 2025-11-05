@@ -49,6 +49,7 @@ export default function CadastroCNPJ() {
   const {
     consultarCNPJ,
     resetar,
+    carregarDadosExistentes,
     status,
     progresso,
     decisoes,
@@ -59,12 +60,32 @@ export default function CadastroCNPJ() {
   // Carregar dados da solicitação existente
   useEffect(() => {
     if (solicitacaoExistente) {
+      console.log("📂 Carregando solicitação existente:", solicitacaoExistente);
+      
       setCnpj(solicitacaoExistente.cnpj);
+      
       if (solicitacaoExistente.contatos && Array.isArray(solicitacaoExistente.contatos)) {
         setContatos(solicitacaoExistente.contatos as unknown as ContatoLocal[]);
       }
+
+      // Carregar dados coletados se existirem
+      if (solicitacaoExistente.dados_coletados) {
+        const dadosSalvos = solicitacaoExistente.dados_coletados as any;
+        console.log("📋 Dados coletados encontrados:", dadosSalvos);
+        
+        // Carregar dados no hook useCNPJA
+        carregarDadosExistentes(
+          dadosSalvos,
+          dadosSalvos.decisoes
+        );
+
+        toast({
+          title: "✅ Solicitação carregada",
+          description: `CNPJ ${solicitacaoExistente.cnpj} - Status: ${solicitacaoExistente.status}`
+        });
+      }
     }
-  }, [solicitacaoExistente]);
+  }, [solicitacaoExistente, carregarDadosExistentes]);
 
   const handleSalvar = async () => {
     console.log("=== DEBUG SALVAR ===");

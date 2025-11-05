@@ -229,9 +229,19 @@ export function useCNPJA() {
     setErro(null);
   };
 
+  const carregarDadosExistentes = (dados: DadosConsolidados, decisoesExistentes?: Decisoes) => {
+    console.log("🔄 Carregando dados existentes:", dados);
+    setDadosColetados(dados);
+    setDecisoes(decisoesExistentes || null);
+    setStatus('concluido');
+    setProgresso(100);
+    setErro(null);
+  };
+
   return {
     consultarCNPJ,
     resetar,
+    carregarDadosExistentes,
     status,
     progresso,
     decisoes,
