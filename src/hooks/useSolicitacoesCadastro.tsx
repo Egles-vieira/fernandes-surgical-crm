@@ -41,9 +41,7 @@ export const useSolicitacoesCadastro = (params?: UseSolicitacoesParams) => {
 
       if (search) {
         query = query.or(
-          `cnpj.ilike.%${search}%,` +
-          `dados_coletados->>'razao_social'.ilike.%${search}%,` +
-          `dados_coletados->>'nome_fantasia'.ilike.%${search}%`
+          `cnpj.ilike.%${search}%`
         );
       }
 
