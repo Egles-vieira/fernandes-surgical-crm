@@ -1,7 +1,8 @@
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
-import { CheckCircle2, Sparkles, Shield, FileSearch, Brain, BarChart3, PackageCheck } from "lucide-react";
+import { CheckCircle2, Sparkles, Shield, FileSearch, Brain, BarChart3, PackageCheck, PartyPopper } from "lucide-react";
 import { StatusConsulta } from "@/types/cnpja";
+import { useEffect, useState } from "react";
 
 interface ConsultaCNPJLoadingModalProps {
   open: boolean;
@@ -14,6 +15,9 @@ export function ConsultaCNPJLoadingModal({
   status, 
   progresso 
 }: ConsultaCNPJLoadingModalProps) {
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+
   const etapas = [
     { id: 'validando', label: 'Validando CNPJ', Icon: Shield },
     { id: 'consultando', label: 'Consultando dados', Icon: FileSearch },
@@ -21,6 +25,19 @@ export function ConsultaCNPJLoadingModal({
     { id: 'executando', label: 'Coletando informações', Icon: BarChart3 },
     { id: 'consolidando', label: 'Finalizando', Icon: PackageCheck },
   ];
+
+  // Detectar conclusão e mostrar confete
+  useEffect(() => {
+    if (progresso === 100 && status === 'consolidando') {
+      setTimeout(() => {
+        setShowSuccess(true);
+        setShowConfetti(true);
+      }, 500);
+    } else {
+      setShowSuccess(false);
+      setShowConfetti(false);
+    }
+  }, [progresso, status]);
 
   const getEtapaStatus = (etapaId: string) => {
     const etapaIndex = etapas.findIndex(e => e.id === etapaId);
@@ -35,8 +52,61 @@ export function ConsultaCNPJLoadingModal({
   return (
     <Dialog open={open}>
       <DialogContent className="max-w-full w-full h-full [&>button]:hidden border-none p-0 m-0">
-        <div className="w-full h-full bg-background/95 backdrop-blur-md flex items-center justify-center">
-          <div className="w-full max-w-md space-y-8 py-8 px-6">
+        <div className="w-full h-full bg-background/95 backdrop-blur-md flex items-center justify-center overflow-hidden relative">
+          {/* Confete Verde Animado */}
+          {showConfetti && (
+            <div className="absolute inset-0 pointer-events-none z-50">
+              {Array.from({ length: 50 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="absolute w-2 h-2 bg-green-500 animate-confetti"
+                  style={{
+                    left: `${Math.random() * 100}%`,
+                    top: `-${Math.random() * 20}%`,
+                    animationDelay: `${Math.random() * 2}s`,
+                    animationDuration: `${2 + Math.random() * 2}s`,
+                    opacity: 0.7 + Math.random() * 0.3,
+                    transform: `rotate(${Math.random() * 360}deg)`,
+                  }}
+                />
+              ))}
+              {Array.from({ length: 30 }).map((_, i) => (
+                <div
+                  key={`circle-${i}`}
+                  className="absolute w-3 h-3 rounded-full bg-green-400 animate-confetti"
+                  style={{
+                    left: `${Math.random() * 100}%`,
+                    top: `-${Math.random() * 20}%`,
+                    animationDelay: `${Math.random() * 2}s`,
+                    animationDuration: `${2 + Math.random() * 2}s`,
+                    opacity: 0.6 + Math.random() * 0.4,
+                  }}
+                />
+              ))}
+              {Array.from({ length: 20 }).map((_, i) => (
+                <div
+                  key={`rect-${i}`}
+                  className="absolute w-4 h-1 bg-green-600 animate-confetti"
+                  style={{
+                    left: `${Math.random() * 100}%`,
+                    top: `-${Math.random() * 20}%`,
+                    animationDelay: `${Math.random() * 2}s`,
+                    animationDuration: `${2.5 + Math.random() * 1.5}s`,
+                    opacity: 0.5 + Math.random() * 0.5,
+                    transform: `rotate(${Math.random() * 360}deg)`,
+                  }}
+                />
+              ))}
+            </div>
+          )}
+
+          <div className="w-full max-w-md space-y-8 py-8 px-6 relative z-10">{showSuccess && (
+              <div className="absolute inset-0 flex items-center justify-center -mt-32 animate-scale-in">
+                <div className="bg-green-500 rounded-full p-6 shadow-2xl shadow-green-500/50">
+                  <PartyPopper className="h-16 w-16 text-white animate-bounce" />
+                </div>
+              </div>
+            )}
           {/* Loader Circular Profissional */}
           <div className="relative flex items-center justify-center">
             {/* Círculos Concêntricos Animados */}
@@ -199,6 +269,17 @@ export function ConsultaCNPJLoadingModal({
             100% { transform: rotate(600deg) translateX(55px) rotate(-600deg); }
           }
           
+          @keyframes confetti {
+            0% {
+              transform: translateY(0) rotateZ(0deg);
+              opacity: 1;
+            }
+            100% {
+              transform: translateY(100vh) rotateZ(720deg);
+              opacity: 0;
+            }
+          }
+          
           .animate-orbit-1 {
             animation: orbit-1 3s linear infinite;
           }
@@ -209,6 +290,10 @@ export function ConsultaCNPJLoadingModal({
           
           .animate-orbit-3 {
             animation: orbit-3 3.5s linear infinite;
+          }
+          
+          .animate-confetti {
+            animation: confetti linear forwards;
           }
         ` }} />
       </DialogContent>
