@@ -25,12 +25,14 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/h
 import favicon from "@/assets/favicon-cfernandes.png";
 import logo from "@/assets/logo-cfernandes.webp";
 import Header from "./Header";
+import React from "react";
 import { useRoles } from "@/hooks/useRoles";
 import { useEmpresa } from "@/hooks/useEmpresa";
 import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 
 interface LayoutProps {
   children: React.ReactNode;
+  customHeaderActions?: React.ReactNode;
 }
 
 interface MenuItem {
@@ -102,7 +104,7 @@ const menuItems: MenuItem[] = [
   { path: "/usuarios", icon: Shield, label: "Admin", adminOnly: true },
 ];
 
-export default function Layout({ children }: LayoutProps) {
+export default function Layout({ children, customHeaderActions }: LayoutProps) {
   const location = useLocation();
   const { isAdmin } = useRoles();
   const { empresa } = useEmpresa();
@@ -349,7 +351,7 @@ export default function Layout({ children }: LayoutProps) {
       >
         {/* Header */}
         <div className="fixed top-0 right-0 left-0 z-40" style={{ marginLeft: collapsed ? "4rem" : "14rem" }}>
-          <Header collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
+          <Header collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} customActions={customHeaderActions} />
         </div>
 
         {/* Content */}
