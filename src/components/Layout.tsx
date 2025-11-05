@@ -20,16 +20,8 @@ import {
   Settings,
   Brain,
 } from "lucide-react";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "@/components/ui/hover-card";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import favicon from "@/assets/favicon-cfernandes.png";
 import logo from "@/assets/logo-cfernandes.webp";
 import Header from "./Header";
@@ -74,12 +66,10 @@ const menuItems: MenuItem[] = [
   {
     icon: Gavel,
     label: "Licitações",
-    children: [
-      { path: "/licitacoes", icon: Gavel, label: "Licitações" },
-    ],
+    children: [{ path: "/licitacoes", icon: Gavel, label: "Licitações" }],
   },
   {
-    icon: MessageSquare,
+    icon: WhatsAppIcon,
     label: "Comunicação",
     children: [
       { path: "/whatsapp", icon: WhatsAppIcon, label: "WhatsApp" },
@@ -102,15 +92,12 @@ const menuItems: MenuItem[] = [
     children: [
       { path: "/clientes", icon: Users, label: "Lista de Clientes" },
       { path: "/clientes/solicitacoes", icon: FileText, label: "Solicitações" },
-
     ],
   },
   {
     icon: Package,
     label: "Produtos",
-    children: [
-      { path: "/produtos", icon: Package, label: "Produtos" },
-    ],
+    children: [{ path: "/produtos", icon: Package, label: "Produtos" }],
   },
   { path: "/usuarios", icon: Shield, label: "Admin", adminOnly: true },
 ];
@@ -133,9 +120,7 @@ export default function Layout({ children }: LayoutProps) {
   }, [empresa?.url_logo]);
 
   const toggleMenu = (label: string) => {
-    setOpenMenus(prev =>
-      prev.includes(label) ? prev.filter(l => l !== label) : [...prev, label]
-    );
+    setOpenMenus((prev) => (prev.includes(label) ? prev.filter((l) => l !== label) : [...prev, label]));
   };
 
   const isPathActive = (path: string) => {
@@ -144,13 +129,16 @@ export default function Layout({ children }: LayoutProps) {
 
   const hasActiveChild = (item: MenuItem): boolean => {
     if (item.children) {
-      return item.children.some(child => child.path && isPathActive(child.path));
+      return item.children.some((child) => child.path && isPathActive(child.path));
     }
     return false;
   };
 
   return (
-    <div className="flex h-screen w-full overflow-hidden" style={{ '--sidebar-width': collapsed ? '4rem' : '14rem' } as React.CSSProperties}>
+    <div
+      className="flex h-screen w-full overflow-hidden"
+      style={{ "--sidebar-width": collapsed ? "4rem" : "14rem" } as React.CSSProperties}
+    >
       {/* Sidebar - Responsivo com Collapse */}
       <aside
         className={`${
@@ -160,19 +148,19 @@ export default function Layout({ children }: LayoutProps) {
         {/* Logo Header com Toggle */}
         <div className="p-3 flex items-center justify-center border-b border-white/10 h-20 relative">
           {!collapsed ? (
-            <img 
-              src={empresa?.url_logo_expandido || empresa?.url_logo || logo} 
-              alt={empresa?.nome || "Cirúrgica Fernandes"} 
-              className="h-10 object-contain animate-fade-in" 
+            <img
+              src={empresa?.url_logo_expandido || empresa?.url_logo || logo}
+              alt={empresa?.nome || "Cirúrgica Fernandes"}
+              className="h-10 object-contain animate-fade-in"
             />
           ) : (
-            <img 
-              src={empresa?.url_logo || favicon} 
-              alt={empresa?.nome || "CF"} 
-              className="h-12 w-12 object-contain animate-fade-in rounded-lg" 
+            <img
+              src={empresa?.url_logo || favicon}
+              alt={empresa?.nome || "CF"}
+              className="h-12 w-12 object-contain animate-fade-in rounded-lg"
             />
           )}
-          
+
           {/* Botão de Toggle */}
           <button
             onClick={() => setCollapsed(!collapsed)}
@@ -186,223 +174,185 @@ export default function Layout({ children }: LayoutProps) {
         {/* Menu Items - Vertical */}
         <nav className="flex-1 py-4 overflow-y-auto">
           <div className="space-y-1">
-            {menuItems.filter(item => !item.adminOnly || isAdmin).map((item, index) => {
-              // Itens com children (sub-menus)
-              if (item.children) {
-                const isAnyChildActive = hasActiveChild(item);
-                const isOpen = openMenus.includes(item.label) || isAnyChildActive;
-                
-                if (collapsed) {
-                  // Modo compacto: mostrar hover card com submenus
-                  return (
-                    <HoverCard key={item.label} openDelay={200}>
-                      <HoverCardTrigger asChild>
-                        <div
-                          className={`group flex flex-col items-center justify-center py-3 px-1 transition-all duration-200 relative cursor-pointer
+            {menuItems
+              .filter((item) => !item.adminOnly || isAdmin)
+              .map((item, index) => {
+                // Itens com children (sub-menus)
+                if (item.children) {
+                  const isAnyChildActive = hasActiveChild(item);
+                  const isOpen = openMenus.includes(item.label) || isAnyChildActive;
+
+                  if (collapsed) {
+                    // Modo compacto: mostrar hover card com submenus
+                    return (
+                      <HoverCard key={item.label} openDelay={200}>
+                        <HoverCardTrigger asChild>
+                          <div
+                            className={`group flex flex-col items-center justify-center py-3 px-1 transition-all duration-200 relative cursor-pointer
                           ${
                             isAnyChildActive
                               ? "bg-white/20 text-white"
                               : "hover:bg-white/10 text-white/70 hover:text-white"
                           }`}
-                        >
-                          {isAnyChildActive && (
-                            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-10 bg-white rounded-r-full" />
-                          )}
-                          <item.icon 
-                            size={24} 
-                            className="mb-1.5 transition-transform duration-200 group-hover:scale-110" 
-                          />
-                          <span className="text-[10px] font-medium text-center leading-tight">
-                            {item.label}
-                          </span>
-                        </div>
-                      </HoverCardTrigger>
-                      <HoverCardContent 
-                        side="right" 
-                        align="start"
-                        className="w-48 bg-card border-border p-2 ml-2"
-                      >
-                        <div className="space-y-1">
-                          <p className="text-xs font-semibold text-muted-foreground mb-2 px-2">
-                            {item.label}
-                          </p>
-                          {item.children
-                            .filter(child => !child.adminOnly || isAdmin)
-                            .map((child) => (
-                            <NavLink
-                              key={child.path}
-                              to={child.path!}
-                              end={child.path === "/"}
-                              className={({ isActive }) =>
-                                `flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200
+                          >
+                            {isAnyChildActive && (
+                              <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-10 bg-white rounded-r-full" />
+                            )}
+                            <item.icon
+                              size={24}
+                              className="mb-1.5 transition-transform duration-200 group-hover:scale-110"
+                            />
+                            <span className="text-[10px] font-medium text-center leading-tight">{item.label}</span>
+                          </div>
+                        </HoverCardTrigger>
+                        <HoverCardContent side="right" align="start" className="w-48 bg-card border-border p-2 ml-2">
+                          <div className="space-y-1">
+                            <p className="text-xs font-semibold text-muted-foreground mb-2 px-2">{item.label}</p>
+                            {item.children
+                              .filter((child) => !child.adminOnly || isAdmin)
+                              .map((child) => (
+                                <NavLink
+                                  key={child.path}
+                                  to={child.path!}
+                                  end={child.path === "/"}
+                                  className={({ isActive }) =>
+                                    `flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200
                                 ${
-                                  isActive
-                                    ? "bg-primary/10 text-primary font-medium"
-                                    : "hover:bg-muted text-foreground"
+                                  isActive ? "bg-primary/10 text-primary font-medium" : "hover:bg-muted text-foreground"
                                 }`
-                              }
-                            >
-                              <child.icon size={16} className="flex-shrink-0" />
-                              <span className="text-sm">{child.label}</span>
+                                  }
+                                >
+                                  <child.icon size={16} className="flex-shrink-0" />
+                                  <span className="text-sm">{child.label}</span>
+                                </NavLink>
+                              ))}
+                          </div>
+                        </HoverCardContent>
+                      </HoverCard>
+                    );
+                  }
+
+                  // Modo expandido: mostrar collapsible com sub-itens
+                  return (
+                    <Collapsible key={item.label} open={isOpen} onOpenChange={() => toggleMenu(item.label)}>
+                      <CollapsibleTrigger
+                        className={`group flex items-center gap-2 px-3 py-2 rounded-xl mx-2 transition-all duration-200 relative w-[calc(100%-16px)]
+                      ${
+                        isAnyChildActive ? "bg-white/20 text-white" : "hover:bg-white/10 text-white/80 hover:text-white"
+                      }`}
+                      >
+                        <item.icon
+                          size={20}
+                          className="flex-shrink-0 transition-transform duration-200 group-hover:scale-110"
+                        />
+                        <span className="font-medium text-sm flex-1 text-left">{item.label}</span>
+                        {isOpen ? (
+                          <ChevronDown size={16} className="transition-transform" />
+                        ) : (
+                          <ChevronRight size={16} className="transition-transform" />
+                        )}
+                      </CollapsibleTrigger>
+
+                      <CollapsibleContent className="mt-1 space-y-1 pl-5 pr-2">
+                        {item.children
+                          .filter((child) => !child.adminOnly || isAdmin)
+                          .map((child) => (
+                            <NavLink key={child.path} to={child.path!} end={child.path === "/"}>
+                              {({ isActive }) => (
+                                <div
+                                  className={`group flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all duration-200 relative
+                              ${
+                                isActive ? "bg-white/15 text-white" : "hover:bg-white/5 text-white/70 hover:text-white"
+                              }`}
+                                >
+                                  <child.icon size={16} className="flex-shrink-0" />
+                                  <span className="text-sm">{child.label}</span>
+                                </div>
+                              )}
                             </NavLink>
                           ))}
-                        </div>
-                      </HoverCardContent>
-                    </HoverCard>
+                      </CollapsibleContent>
+                    </Collapsible>
                   );
                 }
-                
-                // Modo expandido: mostrar collapsible com sub-itens
-                return (
-                  <Collapsible
-                    key={item.label}
-                    open={isOpen}
-                    onOpenChange={() => toggleMenu(item.label)}
-                  >
-                    <CollapsibleTrigger
-                      className={`group flex items-center gap-2 px-3 py-2 rounded-xl mx-2 transition-all duration-200 relative w-[calc(100%-16px)]
-                      ${
-                        isAnyChildActive
-                          ? "bg-white/20 text-white"
-                          : "hover:bg-white/10 text-white/80 hover:text-white"
-                      }`}
+
+                // Itens simples (sem children)
+                if (collapsed) {
+                  return (
+                    <NavLink
+                      key={item.path}
+                      to={item.path!}
+                      end={item.path === "/"}
+                      className={({ isActive }) =>
+                        `group flex flex-col items-center justify-center py-3 px-1 transition-all duration-200 relative
+                      ${isActive ? "bg-white/20 text-white" : "hover:bg-white/10 text-white/70 hover:text-white"}`
+                      }
                     >
-                      <item.icon 
-                        size={20} 
-                        className="flex-shrink-0 transition-transform duration-200 group-hover:scale-110" 
-                      />
-                      <span className="font-medium text-sm flex-1 text-left">
-                        {item.label}
-                      </span>
-                      {isOpen ? (
-                        <ChevronDown size={16} className="transition-transform" />
-                      ) : (
-                        <ChevronRight size={16} className="transition-transform" />
-                      )}
-                    </CollapsibleTrigger>
-
-                    <CollapsibleContent className="mt-1 space-y-1 pl-5 pr-2">
-                      {item.children
-                        .filter(child => !child.adminOnly || isAdmin)
-                        .map((child) => (
-                        <NavLink
-                          key={child.path}
-                          to={child.path!}
-                          end={child.path === "/"}
-                        >
-                          {({ isActive }) => (
-                            <div
-                              className={`group flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all duration-200 relative
-                              ${
-                                isActive
-                                  ? "bg-white/15 text-white"
-                                  : "hover:bg-white/5 text-white/70 hover:text-white"
-                              }`}
-                            >
-                              <child.icon size={16} className="flex-shrink-0" />
-                              <span className="text-sm">{child.label}</span>
-                            </div>
+                      {({ isActive }) => (
+                        <>
+                          {isActive && (
+                            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-10 bg-white rounded-r-full" />
                           )}
-                        </NavLink>
-                      ))}
-                    </CollapsibleContent>
-                  </Collapsible>
-                );
-              }
+                          <item.icon
+                            size={24}
+                            className="mb-1.5 transition-transform duration-200 group-hover:scale-110"
+                          />
+                          <span className="text-[10px] font-medium text-center leading-tight px-1">{item.label}</span>
+                        </>
+                      )}
+                    </NavLink>
+                  );
+                }
 
-              // Itens simples (sem children)
-              if (collapsed) {
                 return (
                   <NavLink
                     key={item.path}
                     to={item.path!}
                     end={item.path === "/"}
                     className={({ isActive }) =>
-                      `group flex flex-col items-center justify-center py-3 px-1 transition-all duration-200 relative
-                      ${
-                        isActive
-                          ? "bg-white/20 text-white"
-                          : "hover:bg-white/10 text-white/70 hover:text-white"
-                      }`
+                      `group flex items-center gap-2 px-3 py-2 rounded-xl mx-2 transition-all duration-200 relative
+                    ${isActive ? "bg-white/20 text-white" : "hover:bg-white/10 text-white/80 hover:text-white"}`
                     }
                   >
                     {({ isActive }) => (
                       <>
                         {isActive && (
-                          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-10 bg-white rounded-r-full" />
+                          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-white rounded-r-full" />
                         )}
-                        <item.icon 
-                          size={24} 
-                          className="mb-1.5 transition-transform duration-200 group-hover:scale-110" 
+                        <item.icon
+                          size={20}
+                          className="flex-shrink-0 transition-transform duration-200 group-hover:scale-110"
                         />
-                        <span className="text-[10px] font-medium text-center leading-tight px-1">
-                          {item.label}
-                        </span>
+                        <span className="font-medium text-sm">{item.label}</span>
                       </>
                     )}
                   </NavLink>
                 );
-              }
-
-              return (
-                <NavLink
-                  key={item.path}
-                  to={item.path!}
-                  end={item.path === "/"}
-                  className={({ isActive }) =>
-                    `group flex items-center gap-2 px-3 py-2 rounded-xl mx-2 transition-all duration-200 relative
-                    ${
-                      isActive
-                        ? "bg-white/20 text-white"
-                        : "hover:bg-white/10 text-white/80 hover:text-white"
-                    }`
-                  }
-                >
-                  {({ isActive }) => (
-                    <>
-                      {isActive && (
-                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-white rounded-r-full" />
-                      )}
-                      <item.icon 
-                        size={20} 
-                        className="flex-shrink-0 transition-transform duration-200 group-hover:scale-110" 
-                      />
-                      <span className="font-medium text-sm">
-                        {item.label}
-                      </span>
-                    </>
-                  )}
-                </NavLink>
-              );
-            })}
+              })}
           </div>
         </nav>
 
         {/* Footer */}
         <div className="border-t border-white/10 p-3">
           <div className="flex justify-center">
-            <div className="text-[9px] text-white/40 text-center">
-              {collapsed ? "v1.0" : "CRM v1.0.0 © 2025"}
-            </div>
+            <div className="text-[9px] text-white/40 text-center">{collapsed ? "v1.0" : "CRM v1.0.0 © 2025"}</div>
           </div>
         </div>
       </aside>
 
       {/* Main Content */}
-      <div 
+      <div
         className={`${
           collapsed ? "ml-16" : "ml-56"
         } flex-1 flex flex-col h-screen overflow-hidden transition-all duration-300`}
       >
         {/* Header */}
-        <div className="fixed top-0 right-0 left-0 z-40" style={{ marginLeft: collapsed ? '4rem' : '14rem' }}>
+        <div className="fixed top-0 right-0 left-0 z-40" style={{ marginLeft: collapsed ? "4rem" : "14rem" }}>
           <Header collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
         </div>
-        
+
         {/* Content */}
-        <main className="flex-1 overflow-auto mt-16">
-          {children}
-        </main>
+        <main className="flex-1 overflow-auto mt-16">{children}</main>
       </div>
     </div>
   );
