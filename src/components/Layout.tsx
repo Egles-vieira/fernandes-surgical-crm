@@ -35,6 +35,7 @@ import logo from "@/assets/logo-cfernandes.webp";
 import Header from "./Header";
 import { useRoles } from "@/hooks/useRoles";
 import { useEmpresa } from "@/hooks/useEmpresa";
+import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -81,7 +82,7 @@ const menuItems: MenuItem[] = [
     icon: MessageSquare,
     label: "Comunicação",
     children: [
-      { path: "/whatsapp", icon: MessageCircle, label: "WhatsApp" },
+      { path: "/whatsapp", icon: WhatsAppIcon, label: "WhatsApp" },
       { path: "/uras", icon: Phone, label: "URAs" },
       { path: "/whatsapp/configuracoes", icon: Shield, label: "Configurações", adminOnly: true },
     ],
