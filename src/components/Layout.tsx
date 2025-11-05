@@ -70,7 +70,7 @@ const menuItems: MenuItem[] = [
   },
   {
     icon: WhatsAppIcon,
-    label: "Comunicação",
+    label: "Whatsapp",
     children: [
       { path: "/whatsapp", icon: WhatsAppIcon, label: "WhatsApp" },
       { path: "/uras", icon: Phone, label: "URAs" },
