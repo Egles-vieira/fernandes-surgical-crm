@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Palette, Check, Upload, Image as ImageIcon } from "lucide-react";
+import { Palette, Check, Upload, Image as ImageIcon, Type } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -19,6 +19,12 @@ interface ColorScheme {
   primary: string;
   secondary: string;
   accent: string;
+}
+
+interface FontOption {
+  name: string;
+  family: string;
+  category: string;
 }
 
 const presetSchemes: ColorScheme[] = [
@@ -54,6 +60,21 @@ const presetSchemes: ColorScheme[] = [
   },
 ];
 
+const fontOptions: FontOption[] = [
+  { name: "Inter (Padrão)", family: "Inter", category: "sans-serif" },
+  { name: "Roboto", family: "Roboto", category: "sans-serif" },
+  { name: "Open Sans", family: "Open Sans", category: "sans-serif" },
+  { name: "Lato", family: "Lato", category: "sans-serif" },
+  { name: "Montserrat", family: "Montserrat", category: "sans-serif" },
+  { name: "Poppins", family: "Poppins", category: "sans-serif" },
+  { name: "Raleway", family: "Raleway", category: "sans-serif" },
+  { name: "Nunito", family: "Nunito", category: "sans-serif" },
+  { name: "Work Sans", family: "Work Sans", category: "sans-serif" },
+  { name: "Playfair Display", family: "Playfair Display", category: "serif" },
+  { name: "Merriweather", family: "Merriweather", category: "serif" },
+  { name: "Source Code Pro", family: "Source Code Pro", category: "monospace" },
+];
+
 export default function ThemeCustomizer() {
   const [open, setOpen] = useState(false);
   const [customColors, setCustomColors] = useState({
@@ -61,6 +82,7 @@ export default function ThemeCustomizer() {
     secondary: "#aacb55",
     accent: "#3e867f",
   });
+  const [selectedFont, setSelectedFont] = useState("Inter");
   const { empresa, uploadLogo, isUploading } = useEmpresa();
 
   useEffect(() => {
@@ -69,6 +91,12 @@ export default function ThemeCustomizer() {
       const colors = JSON.parse(saved);
       setCustomColors(colors);
       applyColors(colors);
+    }
+
+    const savedFont = localStorage.getItem("theme-font");
+    if (savedFont) {
+      setSelectedFont(savedFont);
+      applyFont(savedFont);
     }
   }, []);
 
@@ -167,6 +195,32 @@ export default function ThemeCustomizer() {
     }
   };
 
+  const applyFont = (fontFamily: string) => {
+    // Remove fonte anterior do head
+    const existingLink = document.getElementById("custom-font-link");
+    if (existingLink) {
+      existingLink.remove();
+    }
+
+    // Adiciona nova fonte do Google Fonts
+    if (fontFamily !== "Inter") {
+      const link = document.createElement("link");
+      link.id = "custom-font-link";
+      link.rel = "stylesheet";
+      link.href = `https://fonts.googleapis.com/css2?family=${fontFamily.replace(/ /g, "+")}:wght@300;400;500;600;700&display=swap`;
+      document.head.appendChild(link);
+    }
+
+    // Aplica a fonte no body
+    document.body.style.fontFamily = `"${fontFamily}", system-ui, -apple-system, sans-serif`;
+  };
+
+  const handleFontChange = (fontFamily: string) => {
+    setSelectedFont(fontFamily);
+    applyFont(fontFamily);
+    localStorage.setItem("theme-font", fontFamily);
+  };
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -183,10 +237,11 @@ export default function ThemeCustomizer() {
         </DialogHeader>
 
         <Tabs defaultValue="presets" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="presets">Temas Predefinidos</TabsTrigger>
-            <TabsTrigger value="custom">Cores Personalizadas</TabsTrigger>
-            <TabsTrigger value="logo">Logo da Empresa</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="presets">Temas</TabsTrigger>
+            <TabsTrigger value="custom">Cores</TabsTrigger>
+            <TabsTrigger value="fonts">Fontes</TabsTrigger>
+            <TabsTrigger value="logo">Logo</TabsTrigger>
           </TabsList>
 
           <TabsContent value="presets" className="space-y-4">
@@ -311,6 +366,39 @@ export default function ThemeCustomizer() {
                   </div>
                 </div>
               </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="fonts" className="space-y-4">
+            <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
+              {fontOptions.map((font) => (
+                <button
+                  key={font.family}
+                  onClick={() => handleFontChange(font.family)}
+                  className={`w-full p-4 border-2 rounded-lg hover:border-primary transition-all text-left ${
+                    selectedFont === font.family ? "border-primary bg-primary/5" : ""
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-medium text-sm">{font.name}</span>
+                    {selectedFont === font.family && (
+                      <Check className="text-primary" size={16} />
+                    )}
+                  </div>
+                  <p
+                    className="text-base"
+                    style={{ fontFamily: `"${font.family}", ${font.category}` }}
+                  >
+                    The quick brown fox jumps over the lazy dog
+                  </p>
+                  <p
+                    className="text-sm text-muted-foreground mt-1"
+                    style={{ fontFamily: `"${font.family}", ${font.category}` }}
+                  >
+                    0123456789 - ABCDEFGabcdefg
+                  </p>
+                </button>
+              ))}
             </div>
           </TabsContent>
 
