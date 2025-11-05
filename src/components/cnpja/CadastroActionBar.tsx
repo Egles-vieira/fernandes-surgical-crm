@@ -19,89 +19,96 @@ export function CadastroActionBar({
   onDiretoria,
   onEfetivar,
   onSalvarRascunho,
-  onEnviarAnalise
+  onEnviarAnalise,
 }: CadastroActionBarProps) {
   const getStatusInfo = () => {
     switch (status) {
       case "concluido":
         return {
           label: "Concluído",
-          className: "bg-success/10 text-success border-success/20"
+          className: "bg-success/10 text-success border-success/20",
         };
       case "erro":
         return {
           label: "Erro",
-          className: "bg-destructive/10 text-destructive border-destructive/20"
+          className: "bg-destructive/10 text-destructive border-destructive/20",
         };
       case "idle":
         return {
           label: "Aguardando",
-          className: "bg-secondary/10 text-secondary border-secondary/20"
+          className: "bg-secondary/10 text-secondary border-secondary/20",
         };
       case "validando":
         return {
           label: "Validando",
-          className: "bg-blue-500/10 text-blue-500 border-blue-500/20"
+          className: "bg-blue-500/10 text-blue-500 border-blue-500/20",
         };
       case "consultando":
         return {
           label: "Consultando",
-          className: "bg-blue-500/10 text-blue-500 border-blue-500/20"
+          className: "bg-blue-500/10 text-blue-500 border-blue-500/20",
         };
       case "decidindo":
         return {
           label: "Analisando",
-          className: "bg-purple-500/10 text-purple-500 border-purple-500/20"
+          className: "bg-purple-500/10 text-purple-500 border-purple-500/20",
         };
       case "executando":
         return {
           label: "Coletando",
-          className: "bg-orange-500/10 text-orange-500 border-orange-500/20"
+          className: "bg-orange-500/10 text-orange-500 border-orange-500/20",
         };
       case "consolidando":
         return {
           label: "Consolidando",
-          className: "bg-indigo-500/10 text-indigo-500 border-indigo-500/20"
+          className: "bg-indigo-500/10 text-indigo-500 border-indigo-500/20",
         };
       default:
         return {
           label: status,
-          className: "bg-muted"
+          className: "bg-muted",
         };
     }
   };
   const statusInfo = getStatusInfo();
-  return <div className="sticky top-0 z-30 bg-card border-b shadow-sm px-8 py-3">
+  return (
+    <div className="sticky top-0 z-30 bg-card border-b shadow-sm px-8 py-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <span className="text-sm font-medium text-muted-foreground">
-            Status da Proposta:
-          </span>
+          <span className="text-sm font-medium text-muted-foreground">Status da Proposta:</span>
           <Badge variant="outline" className={statusInfo.className}>
             {statusInfo.label}
           </Badge>
         </div>
 
-        {status === "concluido" && <div className="flex items-center gap-2">
+        {status === "concluido" && (
+          <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={onCancelar} className="gap-2">
               <X size={16} />
               Cancelar
             </Button>
-            
-            {onSalvarRascunho && <Button variant="outline" size="sm" onClick={onSalvarRascunho} className="gap-2">
+
+            {onSalvarRascunho && (
+              <Button variant="outline" size="sm" onClick={onSalvarRascunho} className="gap-2">
                 <Save size={16} />
                 Salvar Rascunho
-              </Button>}
-            
-            {onEnviarAnalise && <Button variant="default" size="sm" onClick={onEnviarAnalise} className="gap-2 bg-green-600 hover:bg-green-700">
-                Enviar para Análise
-              </Button>}
-            
-            {onEfetivar && <Button variant="default" size="sm" onClick={onEfetivar} className="gap-2 bg-green-600 hover:bg-green-700">
+              </Button>
+            )}
+
+            {onEnviarAnalise && (
+              <Button
+                variant="default"
+                size="sm"
+                onClick={onEnviarAnalise}
+                className="gap-2 bg-green-600 hover:bg-green-700"
+              >
                 <CheckCircle size={16} />
-                Efetivar
-              </Button>}
-          </div>}
+                Enviar para Análise
+              </Button>
+            )}
+          </div>
+        )}
       </div>
-    </div>;
+    </div>
+  );
 }
