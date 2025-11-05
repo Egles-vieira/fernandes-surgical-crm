@@ -167,6 +167,18 @@ export default function SolicitacoesCadastro() {
                 Criar Nova Solicitação
               </Button>
             </div> : <div className="space-y-0">
+              {/* Table Header */}
+              <div className="flex items-center gap-4 p-4 border-b bg-muted/30 font-medium text-sm text-muted-foreground">
+                <div className="w-10"></div> {/* Checkbox space */}
+                <div className="flex-1 min-w-0">Razão Social / CNPJ</div>
+                <div className="w-32">Status</div>
+                <div className="w-24 text-center">Contatos</div>
+                <div className="w-40">Data</div>
+                <div className="w-48">Email</div>
+                <div className="w-48">Endereço</div>
+                <div className="w-24"></div> {/* Actions space */}
+              </div>
+
               {solicitacoes.map(solicitacao => {
             const dadosColetados = solicitacao.dados_coletados as any;
             const contatos = solicitacao.contatos as any[] || [];
