@@ -19,7 +19,6 @@ import { VendasFilters } from "@/components/vendas/VendasFilters";
 import { PipelineKanban, EtapaPipeline } from "@/components/vendas/PipelineKanban";
 import { Tables } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
-import Layout from "@/components/Layout";
 type Produto = Tables<"produtos">;
 type Cliente = Tables<"clientes">;
 interface ItemCarrinho {
@@ -499,22 +498,7 @@ export default function Vendas() {
       </div>;
   }
   if (view === "nova") {
-    const headerActions = (
-      <>
-        <Button variant="outline" onClick={() => {
-          limparFormulario();
-          setView("pipeline");
-        }}>
-          Cancelar
-        </Button>
-        <Button onClick={handleSalvarVenda} disabled={createVenda.isPending || updateVenda.isPending}>
-          <Save size={16} className="mr-2" />
-          {editandoVendaId ? "Atualizar Venda" : "Salvar Venda"}
-        </Button>
-      </>
-    );
-
-    return <Layout customHeaderActions={headerActions}>
+    return <>
         <VendasActionBar status={status} onCalcular={handleCalcular} onCancelar={handleCancelarProposta} onDiretoria={handleDiretoria} onEfetivar={handleEfetivar} />
         
         <div className="pt-20 p-8 space-y-6">
@@ -527,6 +511,18 @@ export default function Vendas() {
               <p className="text-muted-foreground">
                 {editandoVendaId ? "Altere os dados da proposta" : "Crie uma nova proposta de venda"}
               </p>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => {
+              limparFormulario();
+              setView("pipeline");
+            }}>
+                Cancelar
+              </Button>
+              <Button onClick={handleSalvarVenda} disabled={createVenda.isPending || updateVenda.isPending}>
+                <Save size={16} className="mr-2" />
+                {editandoVendaId ? "Atualizar Venda" : "Salvar Venda"}
+              </Button>
             </div>
           </div>
 
@@ -734,7 +730,7 @@ export default function Vendas() {
           
           <ClienteSearchDialog open={showClienteSearch} onOpenChange={setShowClienteSearch} onSelectCliente={handleSelectCliente} />
         </div>
-      </Layout>;
+      </>;
   }
 
   // Pipeline / List Views

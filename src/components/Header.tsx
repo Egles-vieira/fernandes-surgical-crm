@@ -20,9 +20,8 @@ import ThemeCustomizer from "./ThemeCustomizer";
 interface HeaderProps {
   collapsed: boolean;
   onToggle: () => void;
-  customActions?: React.ReactNode;
 }
-export default function Header({ collapsed, onToggle, customActions }: HeaderProps) {
+export default function Header({ collapsed, onToggle }: HeaderProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
@@ -209,8 +208,6 @@ export default function Header({ collapsed, onToggle, customActions }: HeaderPro
 
         {/* Ações e Usuário */}
         <div className="flex items-center gap-4 ml-auto">
-          {customActions}
-          
           {location.pathname.startsWith("/whatsapp") && (
             <Button variant="outline" size="sm" onClick={() => navigate("/whatsapp/configuracoes")}>
               <Settings className="w-4 h-4 mr-2" />
