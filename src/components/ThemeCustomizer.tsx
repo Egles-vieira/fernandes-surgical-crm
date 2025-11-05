@@ -398,7 +398,7 @@ const fontCategories = {
   monoespacadas: fontOptions.filter(f => f.category === "monospace"),
 };
 
-interface IconStyle {
+interface IconStrokeStyle {
   name: string;
   value: string;
   description: string;
@@ -406,7 +406,15 @@ interface IconStyle {
   example: string;
 }
 
-const iconStyles: IconStyle[] = [
+interface IconVisualStyle {
+  name: string;
+  value: string;
+  description: string;
+  borderRadius: string;
+  fillOpacity: number;
+}
+
+const iconStrokeStyles: IconStrokeStyle[] = [
   { 
     name: "Padrão", 
     value: "default", 
@@ -437,6 +445,44 @@ const iconStyles: IconStyle[] = [
   },
 ];
 
+const iconVisualStyles: IconVisualStyle[] = [
+  {
+    name: "Padrão (Lucide)",
+    value: "lucide",
+    description: "Ícones lineares clássicos do Lucide",
+    borderRadius: "0",
+    fillOpacity: 0
+  },
+  {
+    name: "Arredondado",
+    value: "rounded",
+    description: "Ícones com cantos suavemente arredondados",
+    borderRadius: "4px",
+    fillOpacity: 0
+  },
+  {
+    name: "Circular",
+    value: "circular",
+    description: "Ícones com máximo arredondamento",
+    borderRadius: "50%",
+    fillOpacity: 0
+  },
+  {
+    name: "Preenchido",
+    value: "filled",
+    description: "Ícones com preenchimento sólido",
+    borderRadius: "0",
+    fillOpacity: 1
+  },
+  {
+    name: "Suave",
+    value: "soft",
+    description: "Ícones com preenchimento suave e translúcido",
+    borderRadius: "2px",
+    fillOpacity: 0.2
+  },
+];
+
 export default function ThemeCustomizer() {
   const [open, setOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("colors");
@@ -453,7 +499,8 @@ export default function ThemeCustomizer() {
   const [selectedRadius, setSelectedRadius] = useState("0.75rem");
   const [selectedBorder, setSelectedBorder] = useState("2px");
   const [selectedShadow, setSelectedShadow] = useState("md");
-  const [selectedIconStyle, setSelectedIconStyle] = useState("default");
+  const [selectedIconStroke, setSelectedIconStroke] = useState("default");
+  const [selectedIconVisual, setSelectedIconVisual] = useState("lucide");
   const { empresa, uploadLogo, isUploading } = useEmpresa();
 
   const filteredSchemes = selectedCategory === "Todos" 
@@ -492,10 +539,16 @@ export default function ThemeCustomizer() {
       applyShadow(savedShadow);
     }
 
-    const savedIconStyle = localStorage.getItem("theme-icon-style");
-    if (savedIconStyle) {
-      setSelectedIconStyle(savedIconStyle);
-      applyIconStyle(savedIconStyle);
+    const savedIconStroke = localStorage.getItem("theme-icon-stroke");
+    if (savedIconStroke) {
+      setSelectedIconStroke(savedIconStroke);
+      applyIconStroke(savedIconStroke);
+    }
+
+    const savedIconVisual = localStorage.getItem("theme-icon-visual");
+    if (savedIconVisual) {
+      setSelectedIconVisual(savedIconVisual);
+      applyIconVisual(savedIconVisual);
     }
   }, []);
 
@@ -661,18 +714,32 @@ export default function ThemeCustomizer() {
     localStorage.setItem("theme-shadow", shadow);
   };
 
-  const applyIconStyle = (style: string) => {
-    const iconStyle = iconStyles.find(s => s.value === style);
+  const applyIconStroke = (style: string) => {
+    const iconStyle = iconStrokeStyles.find(s => s.value === style);
     if (iconStyle) {
       document.documentElement.style.setProperty("--icon-stroke-width", iconStyle.strokeWidth.toString());
     }
   };
 
-  const handleIconStyleChange = (style: string) => {
-    setSelectedIconStyle(style);
-    applyIconStyle(style);
-    localStorage.setItem("theme-icon-style", style);
-    // Forçar re-render para aplicar os ícones
+  const handleIconStrokeChange = (style: string) => {
+    setSelectedIconStroke(style);
+    applyIconStroke(style);
+    localStorage.setItem("theme-icon-stroke", style);
+    window.dispatchEvent(new Event('icon-style-changed'));
+  };
+
+  const applyIconVisual = (style: string) => {
+    const visualStyle = iconVisualStyles.find(s => s.value === style);
+    if (visualStyle) {
+      document.documentElement.style.setProperty("--icon-border-radius", visualStyle.borderRadius);
+      document.documentElement.style.setProperty("--icon-fill-opacity", visualStyle.fillOpacity.toString());
+    }
+  };
+
+  const handleIconVisualChange = (style: string) => {
+    setSelectedIconVisual(style);
+    applyIconVisual(style);
+    localStorage.setItem("theme-icon-visual", style);
     window.dispatchEvent(new Event('icon-style-changed'));
   };
 
@@ -973,25 +1040,106 @@ export default function ThemeCustomizer() {
             </Tabs>
           </TabsContent>
 
-          <TabsContent value="icons" className="space-y-4">
+          <TabsContent value="icons" className="space-y-6">
+            {/* Estilo Visual */}
             <div className="space-y-4">
               <div>
                 <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
                   <Shapes className="w-5 h-5" />
-                  Estilo dos Ícones
+                  Estilo Visual dos Ícones
                 </h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Escolha a espessura dos ícones aplicada globalmente em todo o sistema
+                  Escolha o tipo visual dos ícones
                 </p>
               </div>
 
               <div className="grid grid-cols-1 gap-3">
-                {iconStyles.map((style) => (
+                {iconVisualStyles.map((style) => (
                   <button
                     key={style.value}
-                    onClick={() => handleIconStyleChange(style.value)}
+                    onClick={() => handleIconVisualChange(style.value)}
                     className={`relative p-4 border-2 rounded-lg transition-all text-left ${
-                      selectedIconStyle === style.value
+                      selectedIconVisual === style.value
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-primary/50"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-3">
+                        <div className="flex gap-2 items-center">
+                          <div 
+                            className="p-2 bg-primary/10 transition-all"
+                            style={{ 
+                              borderRadius: style.borderRadius,
+                            }}
+                          >
+                            <Check 
+                              className="text-primary" 
+                              size={20} 
+                              strokeWidth={iconStrokeStyles.find(s => s.value === selectedIconStroke)?.strokeWidth}
+                              fill={style.fillOpacity > 0 ? "currentColor" : "none"}
+                              fillOpacity={style.fillOpacity}
+                            />
+                          </div>
+                          <div 
+                            className="p-2 bg-primary/10 transition-all"
+                            style={{ 
+                              borderRadius: style.borderRadius,
+                            }}
+                          >
+                            <Palette 
+                              className="text-primary" 
+                              size={20} 
+                              strokeWidth={iconStrokeStyles.find(s => s.value === selectedIconStroke)?.strokeWidth}
+                              fill={style.fillOpacity > 0 ? "currentColor" : "none"}
+                              fillOpacity={style.fillOpacity}
+                            />
+                          </div>
+                          <div 
+                            className="p-2 bg-primary/10 transition-all"
+                            style={{ 
+                              borderRadius: style.borderRadius,
+                            }}
+                          >
+                            <Upload 
+                              className="text-primary" 
+                              size={20} 
+                              strokeWidth={iconStrokeStyles.find(s => s.value === selectedIconStroke)?.strokeWidth}
+                              fill={style.fillOpacity > 0 ? "currentColor" : "none"}
+                              fillOpacity={style.fillOpacity}
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <span className="font-medium block">{style.name}</span>
+                          <span className="text-xs text-muted-foreground">{style.description}</span>
+                        </div>
+                      </div>
+                      {selectedIconVisual === style.value && (
+                        <Check className="text-primary" size={20} />
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Espessura */}
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-lg font-semibold mb-2">Espessura dos Ícones</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Ajuste a espessura das linhas dos ícones
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 gap-3">
+                {iconStrokeStyles.map((style) => (
+                  <button
+                    key={style.value}
+                    onClick={() => handleIconStrokeChange(style.value)}
+                    className={`relative p-4 border-2 rounded-lg transition-all text-left ${
+                      selectedIconStroke === style.value
                         ? "border-primary bg-primary/5"
                         : "border-border hover:border-primary/50"
                     }`}
@@ -1008,7 +1156,7 @@ export default function ThemeCustomizer() {
                           <span className="text-xs text-muted-foreground">{style.example}</span>
                         </div>
                       </div>
-                      {selectedIconStyle === style.value && (
+                      {selectedIconStroke === style.value && (
                         <Check className="text-primary" size={20} strokeWidth={style.strokeWidth} />
                       )}
                     </div>
@@ -1016,16 +1164,81 @@ export default function ThemeCustomizer() {
                   </button>
                 ))}
               </div>
+            </div>
 
-              <div className="p-4 border rounded-lg bg-muted/50 space-y-2">
-                <p className="text-sm font-medium">Prévia de Ícones</p>
-                <div className="flex gap-4 items-center justify-center p-4 bg-background rounded">
-                  <Palette size={24} strokeWidth={iconStyles.find(s => s.value === selectedIconStyle)?.strokeWidth} />
-                  <Type size={24} strokeWidth={iconStyles.find(s => s.value === selectedIconStyle)?.strokeWidth} />
-                  <Upload size={24} strokeWidth={iconStyles.find(s => s.value === selectedIconStyle)?.strokeWidth} />
-                  <ImageIcon size={24} strokeWidth={iconStyles.find(s => s.value === selectedIconStyle)?.strokeWidth} />
-                  <Check size={24} strokeWidth={iconStyles.find(s => s.value === selectedIconStyle)?.strokeWidth} />
-                  <Shapes size={24} strokeWidth={iconStyles.find(s => s.value === selectedIconStyle)?.strokeWidth} />
+            {/* Prévia Completa */}
+            <div className="p-4 border rounded-lg bg-muted/50 space-y-3">
+              <p className="text-sm font-medium">Prévia Combinada (Visual + Espessura)</p>
+              <div className="flex gap-4 items-center justify-center p-6 bg-background rounded">
+                <div 
+                  className="p-3 bg-primary/10 transition-all"
+                  style={{ 
+                    borderRadius: iconVisualStyles.find(s => s.value === selectedIconVisual)?.borderRadius,
+                  }}
+                >
+                  <Palette 
+                    size={28} 
+                    strokeWidth={iconStrokeStyles.find(s => s.value === selectedIconStroke)?.strokeWidth}
+                    fill={iconVisualStyles.find(s => s.value === selectedIconVisual)?.fillOpacity ? "currentColor" : "none"}
+                    fillOpacity={iconVisualStyles.find(s => s.value === selectedIconVisual)?.fillOpacity}
+                    className="text-primary"
+                  />
+                </div>
+                <div 
+                  className="p-3 bg-primary/10 transition-all"
+                  style={{ 
+                    borderRadius: iconVisualStyles.find(s => s.value === selectedIconVisual)?.borderRadius,
+                  }}
+                >
+                  <Type 
+                    size={28} 
+                    strokeWidth={iconStrokeStyles.find(s => s.value === selectedIconStroke)?.strokeWidth}
+                    fill={iconVisualStyles.find(s => s.value === selectedIconVisual)?.fillOpacity ? "currentColor" : "none"}
+                    fillOpacity={iconVisualStyles.find(s => s.value === selectedIconVisual)?.fillOpacity}
+                    className="text-primary"
+                  />
+                </div>
+                <div 
+                  className="p-3 bg-primary/10 transition-all"
+                  style={{ 
+                    borderRadius: iconVisualStyles.find(s => s.value === selectedIconVisual)?.borderRadius,
+                  }}
+                >
+                  <Upload 
+                    size={28} 
+                    strokeWidth={iconStrokeStyles.find(s => s.value === selectedIconStroke)?.strokeWidth}
+                    fill={iconVisualStyles.find(s => s.value === selectedIconVisual)?.fillOpacity ? "currentColor" : "none"}
+                    fillOpacity={iconVisualStyles.find(s => s.value === selectedIconVisual)?.fillOpacity}
+                    className="text-primary"
+                  />
+                </div>
+                <div 
+                  className="p-3 bg-primary/10 transition-all"
+                  style={{ 
+                    borderRadius: iconVisualStyles.find(s => s.value === selectedIconVisual)?.borderRadius,
+                  }}
+                >
+                  <ImageIcon 
+                    size={28} 
+                    strokeWidth={iconStrokeStyles.find(s => s.value === selectedIconStroke)?.strokeWidth}
+                    fill={iconVisualStyles.find(s => s.value === selectedIconVisual)?.fillOpacity ? "currentColor" : "none"}
+                    fillOpacity={iconVisualStyles.find(s => s.value === selectedIconVisual)?.fillOpacity}
+                    className="text-primary"
+                  />
+                </div>
+                <div 
+                  className="p-3 bg-primary/10 transition-all"
+                  style={{ 
+                    borderRadius: iconVisualStyles.find(s => s.value === selectedIconVisual)?.borderRadius,
+                  }}
+                >
+                  <Check 
+                    size={28} 
+                    strokeWidth={iconStrokeStyles.find(s => s.value === selectedIconStroke)?.strokeWidth}
+                    fill={iconVisualStyles.find(s => s.value === selectedIconVisual)?.fillOpacity ? "currentColor" : "none"}
+                    fillOpacity={iconVisualStyles.find(s => s.value === selectedIconVisual)?.fillOpacity}
+                    className="text-primary"
+                  />
                 </div>
               </div>
             </div>
