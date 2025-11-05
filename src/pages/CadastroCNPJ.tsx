@@ -33,8 +33,9 @@ export default function CadastroCNPJ() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const solicitacaoId = searchParams.get("solicitacao");
+  const cnpjFromUrl = searchParams.get("cnpj");
   const { toast } = useToast();
-  const [cnpj, setCnpj] = useState("");
+  const [cnpj, setCnpj] = useState(cnpjFromUrl || "");
   const [contatos, setContatos] = useState<ContatoLocal[]>([]);
   const [novoContatoOpen, setNovoContatoOpen] = useState(false);
   const [editarContatoOpen, setEditarContatoOpen] = useState(false);
@@ -43,6 +44,7 @@ export default function CadastroCNPJ() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [currentSolicitacaoId, setCurrentSolicitacaoId] = useState<string | null>(solicitacaoId);
   const jaCarregouRef = useRef(false);
+  const jaConsultouRef = useRef(false);
   
   const { createSolicitacao, updateSolicitacao, useSolicitacao } = useSolicitacoesCadastro();
   const { data: solicitacaoExistente, isLoading: loadingSolicitacao } = useSolicitacao(currentSolicitacaoId || undefined);
@@ -214,6 +216,15 @@ export default function CadastroCNPJ() {
       sempreValidarCEP: true
     });
   };
+
+  // Consultar CNPJ automaticamente se vier da URL (após definir handleConsultar)
+  useEffect(() => {
+    if (cnpjFromUrl && !jaConsultouRef.current && !solicitacaoExistente) {
+      jaConsultouRef.current = true;
+      handleConsultar();
+    }
+  }, [cnpjFromUrl, solicitacaoExistente]);
+  
   const handleNovaConsulta = () => {
     // Confirmar antes de resetar se houver dados
     if (dadosColetados && currentSolicitacaoId) {

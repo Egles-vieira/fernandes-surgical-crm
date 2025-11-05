@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FileText, Search, Eye, Edit, CheckCircle, XCircle, Trash2, Plus, ChevronDown, ChevronUp, MoreVertical, ChevronLeft, ChevronRight } from "lucide-react";
+import { NovaSolicitacaoDialog } from "@/components/solicitacoes/NovaSolicitacaoDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,6 +29,7 @@ export default function SolicitacoesCadastro() {
   const [aprovarDialog, setAprovarDialog] = useState<string | null>(null);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
+  const [novaSolicitacaoOpen, setNovaSolicitacaoOpen] = useState(false);
   const toggleRow = (id: string) => {
     setExpandedRows(prev => {
       const next = new Set(prev);
@@ -142,7 +144,13 @@ export default function SolicitacoesCadastro() {
   const canNextPage = page < totalPages;
   return <div className="p-6 space-y-6 h-full overflow-hidden flex flex-col">
       {/* Filtros */}
-      <SolicitacoesFilters searchTerm={search} onSearchChange={setSearch} statusFilter={statusFilter} onStatusChange={value => setStatusFilter(value as StatusSolicitacao | "todos")} onNovaSolicitacao={() => navigate("/clientes/cadastro-cnpj")} />
+      <SolicitacoesFilters searchTerm={search} onSearchChange={setSearch} statusFilter={statusFilter} onStatusChange={value => setStatusFilter(value as StatusSolicitacao | "todos")} onNovaSolicitacao={() => setNovaSolicitacaoOpen(true)} />
+
+      {/* Modal Nova Solicitação */}
+      <NovaSolicitacaoDialog 
+        open={novaSolicitacaoOpen} 
+        onOpenChange={setNovaSolicitacaoOpen} 
+      />
 
       {/* Estatísticas */}
       <div className="grid gap-3 md:grid-cols-5">
