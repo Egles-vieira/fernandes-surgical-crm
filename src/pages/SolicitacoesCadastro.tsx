@@ -145,45 +145,45 @@ export default function SolicitacoesCadastro() {
       <SolicitacoesFilters searchTerm={search} onSearchChange={setSearch} statusFilter={statusFilter} onStatusChange={value => setStatusFilter(value as StatusSolicitacao | "todos")} onNovaSolicitacao={() => navigate("/clientes/cadastro-cnpj")} />
 
       {/* Estatísticas */}
-      <div className="grid gap-4 md:grid-cols-5">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total</CardTitle>
+      <div className="grid gap-3 md:grid-cols-5">
+        <Card className="border-border/40 shadow-sm rounded-xl bg-card/50 backdrop-blur-sm">
+          <CardHeader className="pb-1 pt-3 px-4">
+            <CardTitle className="text-xs font-medium text-muted-foreground">Total</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.total}</div>
+          <CardContent className="px-4 pb-3">
+            <div className="text-xl font-semibold">{stats.total}</div>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Rascunhos</CardTitle>
+        <Card className="border-border/40 shadow-sm rounded-xl bg-card/50 backdrop-blur-sm">
+          <CardHeader className="pb-1 pt-3 px-4">
+            <CardTitle className="text-xs font-medium text-muted-foreground">Rascunhos</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.rascunho}</div>
+          <CardContent className="px-4 pb-3">
+            <div className="text-xl font-semibold">{stats.rascunho}</div>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Em Análise</CardTitle>
+        <Card className="border-border/40 shadow-sm rounded-xl bg-card/50 backdrop-blur-sm">
+          <CardHeader className="pb-1 pt-3 px-4">
+            <CardTitle className="text-xs font-medium text-muted-foreground">Em Análise</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.em_analise}</div>
+          <CardContent className="px-4 pb-3">
+            <div className="text-xl font-semibold">{stats.em_analise}</div>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Aprovados</CardTitle>
+        <Card className="border-border/40 shadow-sm rounded-xl bg-card/50 backdrop-blur-sm">
+          <CardHeader className="pb-1 pt-3 px-4">
+            <CardTitle className="text-xs font-medium text-muted-foreground">Aprovados</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.aprovado}</div>
+          <CardContent className="px-4 pb-3">
+            <div className="text-xl font-semibold">{stats.aprovado}</div>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Rejeitados</CardTitle>
+        <Card className="border-border/40 shadow-sm rounded-xl bg-card/50 backdrop-blur-sm">
+          <CardHeader className="pb-1 pt-3 px-4">
+            <CardTitle className="text-xs font-medium text-muted-foreground">Rejeitados</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.rejeitado}</div>
+          <CardContent className="px-4 pb-3">
+            <div className="text-xl font-semibold">{stats.rejeitado}</div>
           </CardContent>
         </Card>
       </div>
