@@ -19,6 +19,7 @@ interface ColorScheme {
   primary: string;
   secondary: string;
   accent: string;
+  background: string;
 }
 
 interface FontOption {
@@ -33,30 +34,35 @@ const presetSchemes: ColorScheme[] = [
     primary: "176 95% 19%",
     secondary: "73 53% 57%",
     accent: "174 37% 38%",
+    background: "176 30% 95%",
   },
   {
     name: "Azul Oceano",
     primary: "210 100% 40%",
     secondary: "195 100% 60%",
     accent: "220 80% 50%",
+    background: "210 40% 96%",
   },
   {
     name: "Roxo Moderno",
     primary: "270 70% 45%",
     secondary: "280 60% 60%",
     accent: "260 65% 50%",
+    background: "270 30% 97%",
   },
   {
     name: "Laranja Energia",
     primary: "25 95% 50%",
     secondary: "40 90% 60%",
     accent: "15 85% 55%",
+    background: "30 40% 96%",
   },
   {
     name: "Vermelho Intenso",
     primary: "0 80% 45%",
     secondary: "10 75% 60%",
     accent: "355 70% 50%",
+    background: "0 30% 97%",
   },
 ];
 
@@ -112,6 +118,7 @@ export default function ThemeCustomizer() {
     primary: "#045c53",
     secondary: "#aacb55",
     accent: "#3e867f",
+    background: "#f0f9f7",
   });
   const [selectedFont, setSelectedFont] = useState("Inter");
   const { empresa, uploadLogo, isUploading } = useEmpresa();
@@ -165,6 +172,7 @@ export default function ThemeCustomizer() {
     root.style.setProperty("--primary", hexToHSL(colors.primary));
     root.style.setProperty("--secondary", hexToHSL(colors.secondary));
     root.style.setProperty("--accent", hexToHSL(colors.accent));
+    root.style.setProperty("--background", hexToHSL(colors.background));
     root.style.setProperty("--ring", hexToHSL(colors.primary));
     
     // Update gradients
@@ -201,10 +209,13 @@ export default function ThemeCustomizer() {
     const secondary = parseHSL(scheme.secondary);
     const accent = parseHSL(scheme.accent);
 
+    const background = parseHSL(scheme.background);
+
     const newColors = {
       primary: hslToHex(primary.h, primary.s, primary.l),
       secondary: hslToHex(secondary.h, secondary.s, secondary.l),
       accent: hslToHex(accent.h, accent.s, accent.l),
+      background: hslToHex(background.h, background.s, background.l),
     };
 
     setCustomColors(newColors);
@@ -300,6 +311,10 @@ export default function ThemeCustomizer() {
                       className="h-8 flex-1 rounded"
                       style={{ backgroundColor: `hsl(${scheme.accent})` }}
                     />
+                    <div
+                      className="h-8 flex-1 rounded"
+                      style={{ backgroundColor: `hsl(${scheme.background})` }}
+                    />
                   </div>
                 </button>
               ))}
@@ -368,10 +383,30 @@ export default function ThemeCustomizer() {
                 </div>
               </div>
 
+              <div>
+                <Label htmlFor="background">Cor de Fundo</Label>
+                <div className="flex gap-2 mt-2">
+                  <Input
+                    id="background"
+                    type="color"
+                    value={customColors.background}
+                    onChange={(e) => handleColorChange("background", e.target.value)}
+                    className="w-20 h-10 p-1 cursor-pointer"
+                  />
+                  <Input
+                    type="text"
+                    value={customColors.background}
+                    onChange={(e) => handleColorChange("background", e.target.value)}
+                    className="flex-1"
+                    placeholder="#f0f9f7"
+                  />
+                </div>
+              </div>
+
               <div className="p-4 border rounded-lg bg-muted/50">
                 <p className="text-sm font-medium mb-3">Prévia das Cores</p>
-                <div className="flex gap-3">
-                  <div className="flex-1 space-y-2">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
                     <div
                       className="h-16 rounded flex items-center justify-center text-white text-sm font-medium"
                       style={{ backgroundColor: customColors.primary }}
@@ -379,7 +414,7 @@ export default function ThemeCustomizer() {
                       Primária
                     </div>
                   </div>
-                  <div className="flex-1 space-y-2">
+                  <div className="space-y-2">
                     <div
                       className="h-16 rounded flex items-center justify-center text-white text-sm font-medium"
                       style={{ backgroundColor: customColors.secondary }}
@@ -387,12 +422,20 @@ export default function ThemeCustomizer() {
                       Secundária
                     </div>
                   </div>
-                  <div className="flex-1 space-y-2">
+                  <div className="space-y-2">
                     <div
                       className="h-16 rounded flex items-center justify-center text-white text-sm font-medium"
                       style={{ backgroundColor: customColors.accent }}
                     >
                       Destaque
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <div
+                      className="h-16 rounded flex items-center justify-center text-sm font-medium"
+                      style={{ backgroundColor: customColors.background, color: customColors.primary }}
+                    >
+                      Fundo
                     </div>
                   </div>
                 </div>
