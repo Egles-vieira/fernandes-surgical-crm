@@ -20,6 +20,7 @@ interface ColorScheme {
   secondary: string;
   accent: string;
   background: string;
+  category: "Profissional" | "Vibrante" | "Neutro" | "Elegante";
 }
 
 interface FontOption {
@@ -35,6 +36,7 @@ const presetSchemes: ColorScheme[] = [
     secondary: "73 53% 57%",
     accent: "174 37% 38%",
     background: "176 30% 95%",
+    category: "Profissional",
   },
   {
     name: "Azul Oceano",
@@ -42,6 +44,7 @@ const presetSchemes: ColorScheme[] = [
     secondary: "195 100% 60%",
     accent: "220 80% 50%",
     background: "210 40% 96%",
+    category: "Profissional",
   },
   {
     name: "Roxo Moderno",
@@ -49,6 +52,7 @@ const presetSchemes: ColorScheme[] = [
     secondary: "280 60% 60%",
     accent: "260 65% 50%",
     background: "270 30% 97%",
+    category: "Elegante",
   },
   {
     name: "Laranja Energia",
@@ -56,6 +60,7 @@ const presetSchemes: ColorScheme[] = [
     secondary: "40 90% 60%",
     accent: "15 85% 55%",
     background: "30 40% 96%",
+    category: "Vibrante",
   },
   {
     name: "Vermelho Intenso",
@@ -63,6 +68,7 @@ const presetSchemes: ColorScheme[] = [
     secondary: "10 75% 60%",
     accent: "355 70% 50%",
     background: "0 30% 97%",
+    category: "Vibrante",
   },
   {
     name: "Rosa Profissional",
@@ -70,6 +76,7 @@ const presetSchemes: ColorScheme[] = [
     secondary: "340 70% 65%",
     accent: "320 65% 55%",
     background: "330 30% 97%",
+    category: "Profissional",
   },
   {
     name: "Azul Marinho",
@@ -77,6 +84,7 @@ const presetSchemes: ColorScheme[] = [
     secondary: "210 70% 50%",
     accent: "230 75% 40%",
     background: "220 35% 96%",
+    category: "Profissional",
   },
   {
     name: "Verde Esmeralda",
@@ -84,6 +92,7 @@ const presetSchemes: ColorScheme[] = [
     secondary: "150 70% 55%",
     accent: "170 75% 45%",
     background: "160 30% 96%",
+    category: "Elegante",
   },
   {
     name: "Dourado Premium",
@@ -91,6 +100,7 @@ const presetSchemes: ColorScheme[] = [
     secondary: "50 85% 60%",
     accent: "40 80% 50%",
     background: "48 35% 96%",
+    category: "Elegante",
   },
   {
     name: "Ciano Tech",
@@ -98,6 +108,7 @@ const presetSchemes: ColorScheme[] = [
     secondary: "175 75% 60%",
     accent: "195 70% 50%",
     background: "185 30% 97%",
+    category: "Profissional",
   },
   {
     name: "Coral Vibrante",
@@ -105,6 +116,7 @@ const presetSchemes: ColorScheme[] = [
     secondary: "25 85% 70%",
     accent: "10 80% 60%",
     background: "18 35% 97%",
+    category: "Vibrante",
   },
   {
     name: "Índigo Profundo",
@@ -112,6 +124,7 @@ const presetSchemes: ColorScheme[] = [
     secondary: "250 65% 60%",
     accent: "235 70% 50%",
     background: "240 30% 97%",
+    category: "Elegante",
   },
   {
     name: "Turquesa Tropical",
@@ -119,6 +132,7 @@ const presetSchemes: ColorScheme[] = [
     secondary: "170 75% 58%",
     accent: "180 80% 48%",
     background: "175 32% 96%",
+    category: "Vibrante",
   },
   {
     name: "Cinza Elegante",
@@ -126,6 +140,7 @@ const presetSchemes: ColorScheme[] = [
     secondary: "210 20% 55%",
     accent: "220 22% 45%",
     background: "210 15% 97%",
+    category: "Neutro",
   },
   {
     name: "Verde Menta",
@@ -133,6 +148,7 @@ const presetSchemes: ColorScheme[] = [
     secondary: "145 60% 65%",
     accent: "165 55% 55%",
     background: "155 28% 96%",
+    category: "Vibrante",
   },
   {
     name: "Roxo Royal",
@@ -140,6 +156,7 @@ const presetSchemes: ColorScheme[] = [
     secondary: "275 70% 58%",
     accent: "295 75% 48%",
     background: "285 32% 97%",
+    category: "Elegante",
   },
   {
     name: "Vinho Sofisticado",
@@ -147,8 +164,11 @@ const presetSchemes: ColorScheme[] = [
     secondary: "355 65% 55%",
     accent: "340 70% 45%",
     background: "345 28% 96%",
+    category: "Elegante",
   },
 ];
+
+const categories = ["Todos", "Profissional", "Vibrante", "Neutro", "Elegante"] as const;
 
 const fontOptions: FontOption[] = [
   // Modernas
@@ -198,6 +218,10 @@ const fontCategories = {
 
 export default function ThemeCustomizer() {
   const [open, setOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("colors");
+  const [colorTab, setColorTab] = useState("presets");
+  const [fontTab, setFontTab] = useState("modernas");
+  const [selectedCategory, setSelectedCategory] = useState<typeof categories[number]>("Todos");
   const [customColors, setCustomColors] = useState({
     primary: "#045c53",
     secondary: "#aacb55",
@@ -206,6 +230,10 @@ export default function ThemeCustomizer() {
   });
   const [selectedFont, setSelectedFont] = useState("Inter");
   const { empresa, uploadLogo, isUploading } = useEmpresa();
+
+  const filteredSchemes = selectedCategory === "Todos" 
+    ? presetSchemes 
+    : presetSchemes.filter(scheme => scheme.category === selectedCategory);
 
   useEffect(() => {
     const saved = localStorage.getItem("theme-colors");
@@ -371,8 +399,20 @@ export default function ThemeCustomizer() {
           </TabsList>
 
           <TabsContent value="presets" className="space-y-4">
+            <div className="flex gap-2 mb-4 flex-wrap">
+              {categories.map((cat) => (
+                <Button
+                  key={cat}
+                  variant={selectedCategory === cat ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSelectedCategory(cat)}
+                >
+                  {cat}
+                </Button>
+              ))}
+            </div>
             <div className="grid grid-cols-2 gap-4">
-              {presetSchemes.map((scheme) => (
+              {filteredSchemes.map((scheme) => (
                 <button
                   key={scheme.name}
                   onClick={() => handlePresetClick(scheme)}
