@@ -177,6 +177,21 @@ const radiusPresets = [
   { name: "Alto", value: "1.5rem", description: "Muito arredondado" },
 ];
 
+const borderPresets = [
+  { name: "Fina", value: "1px", description: "Borda sutil e discreta" },
+  { name: "Normal", value: "2px", description: "Borda padrão" },
+  { name: "Média", value: "3px", description: "Borda destacada" },
+  { name: "Grossa", value: "4px", description: "Borda proeminente" },
+];
+
+const shadowPresets = [
+  { name: "Nenhuma", value: "none", description: "Sem sombra", preview: "0 0 0 transparent" },
+  { name: "Suave", value: "sm", description: "Sombra leve e sutil", preview: "0 1px 2px rgba(0,0,0,0.05)" },
+  { name: "Média", value: "md", description: "Sombra moderada", preview: "0 4px 6px rgba(0,0,0,0.1)" },
+  { name: "Forte", value: "lg", description: "Sombra pronunciada", preview: "0 10px 15px rgba(0,0,0,0.15)" },
+  { name: "Extra", value: "xl", description: "Sombra muito intensa", preview: "0 20px 25px rgba(0,0,0,0.2)" },
+];
+
 const fontOptions: FontOption[] = [
   // Modernas
   { name: "Inter (Padrão)", family: "Inter", category: "sans-serif" },
@@ -237,6 +252,8 @@ export default function ThemeCustomizer() {
   });
   const [selectedFont, setSelectedFont] = useState("Inter");
   const [selectedRadius, setSelectedRadius] = useState("0.75rem");
+  const [selectedBorder, setSelectedBorder] = useState("2px");
+  const [selectedShadow, setSelectedShadow] = useState("md");
   const { empresa, uploadLogo, isUploading } = useEmpresa();
 
   const filteredSchemes = selectedCategory === "Todos" 
@@ -261,6 +278,18 @@ export default function ThemeCustomizer() {
     if (savedRadius) {
       setSelectedRadius(savedRadius);
       applyRadius(savedRadius);
+    }
+
+    const savedBorder = localStorage.getItem("theme-border");
+    if (savedBorder) {
+      setSelectedBorder(savedBorder);
+      applyBorder(savedBorder);
+    }
+
+    const savedShadow = localStorage.getItem("theme-shadow");
+    if (savedShadow) {
+      setSelectedShadow(savedShadow);
+      applyShadow(savedShadow);
     }
   }, []);
 
@@ -397,6 +426,33 @@ export default function ThemeCustomizer() {
     setSelectedRadius(radius);
     applyRadius(radius);
     localStorage.setItem("theme-radius", radius);
+  };
+
+  const applyBorder = (border: string) => {
+    document.documentElement.style.setProperty("--border-width", border);
+  };
+
+  const handleBorderChange = (border: string) => {
+    setSelectedBorder(border);
+    applyBorder(border);
+    localStorage.setItem("theme-border", border);
+  };
+
+  const applyShadow = (shadow: string) => {
+    const shadowMap: Record<string, string> = {
+      none: "none",
+      sm: "0 1px 2px rgba(0,0,0,0.05)",
+      md: "0 4px 6px rgba(0,0,0,0.1)",
+      lg: "0 10px 15px rgba(0,0,0,0.15)",
+      xl: "0 20px 25px rgba(0,0,0,0.2)",
+    };
+    document.documentElement.style.setProperty("--shadow-default", shadowMap[shadow] || shadowMap.md);
+  };
+
+  const handleShadowChange = (shadow: string) => {
+    setSelectedShadow(shadow);
+    applyShadow(shadow);
+    localStorage.setItem("theme-shadow", shadow);
   };
 
   return (
@@ -696,7 +752,8 @@ export default function ThemeCustomizer() {
           </TabsContent>
 
           <TabsContent value="styles" className="space-y-4">
-            <div className="space-y-6">
+            <div className="space-y-8">
+              {/* Arredondamento */}
               <div>
                 <h3 className="text-lg font-semibold mb-2">Arredondamento dos Componentes</h3>
                 <p className="text-sm text-muted-foreground mb-4">
@@ -740,6 +797,90 @@ export default function ThemeCustomizer() {
                           className="flex-1 h-16 bg-accent"
                           style={{ borderRadius: preset.value }}
                         />
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Espessura da Borda */}
+              <div>
+                <h3 className="text-lg font-semibold mb-2">Espessura das Bordas</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Defina a espessura padrão das bordas dos componentes
+                </p>
+
+                <div className="grid grid-cols-2 gap-3">
+                  {borderPresets.map((preset) => (
+                    <button
+                      key={preset.value}
+                      onClick={() => handleBorderChange(preset.value)}
+                      className={`relative p-4 border-2 rounded-lg transition-all text-left ${
+                        selectedBorder === preset.value
+                          ? "border-primary bg-primary/5"
+                          : "border-border hover:border-primary/50"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <div>
+                          <span className="font-medium">{preset.name}</span>
+                          <p className="text-xs text-muted-foreground">{preset.description}</p>
+                        </div>
+                        {selectedBorder === preset.value && (
+                          <Check className="text-primary" size={18} />
+                        )}
+                      </div>
+                      
+                      {/* Preview visual da borda */}
+                      <div 
+                        className="w-full h-12 bg-background border-primary rounded-md"
+                        style={{ borderWidth: preset.value }}
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Sombras */}
+              <div>
+                <h3 className="text-lg font-semibold mb-2">Sombras dos Componentes</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Escolha a intensidade das sombras aplicadas aos cards e elementos elevados
+                </p>
+
+                <div className="grid grid-cols-1 gap-3">
+                  {shadowPresets.map((preset) => (
+                    <button
+                      key={preset.value}
+                      onClick={() => handleShadowChange(preset.value)}
+                      className={`relative p-4 border-2 rounded-lg transition-all text-left ${
+                        selectedShadow === preset.value
+                          ? "border-primary bg-primary/5"
+                          : "border-border hover:border-primary/50"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <div>
+                          <span className="font-medium">{preset.name}</span>
+                          <p className="text-sm text-muted-foreground">{preset.description}</p>
+                        </div>
+                        {selectedShadow === preset.value && (
+                          <Check className="text-primary" size={20} />
+                        )}
+                      </div>
+                      
+                      {/* Preview visual da sombra */}
+                      <div className="flex gap-3 mt-3">
+                        <div 
+                          className="w-20 h-20 bg-white rounded-lg border"
+                          style={{ boxShadow: preset.preview }}
+                        />
+                        <div 
+                          className="flex-1 h-20 bg-card rounded-lg border flex items-center justify-center text-sm font-medium"
+                          style={{ boxShadow: preset.preview }}
+                        >
+                          Card Preview
+                        </div>
                       </div>
                     </button>
                   ))}
