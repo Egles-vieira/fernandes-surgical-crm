@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { LogIn, AlertCircle, User, Lock, Mail } from "lucide-react";
 import { loginSchema, signupSchema, LoginInput, SignupInput } from "@/lib/validations/auth";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import logo from "@/assets/logo-cfernandes.webp";
+import logo from "@/assets/logo-convertiai.png";
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -134,7 +134,7 @@ export default function Auth() {
         <div className="relative z-10 text-white max-w-lg px-16 flex flex-col justify-center">
           {/* Logo */}
           <div className="mb-16 animate-fade-in">
-            <img src={logo} alt="Cirúrgica Fernandes" className="h-12 object-contain opacity-95 drop-shadow-lg" />
+            <img src={logo} alt="ConvertiAI" className="h-16 object-contain opacity-95 drop-shadow-lg" />
           </div>
           
           {/* Title with gradient text */}
