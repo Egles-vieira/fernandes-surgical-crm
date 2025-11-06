@@ -46,21 +46,49 @@ export function useNotificacoes() {
   // Marcar como lida
   const marcarComoLida = useMutation({
     mutationFn: async (notificacaoId: string) => {
-      const { error } = await supabase
+      console.log('Marcando notificação como lida:', notificacaoId);
+      
+      const { data, error } = await supabase
         .from('notificacoes')
         .update({ 
           lida: true, 
           lida_em: new Date().toISOString() 
         })
-        .eq('id', notificacaoId);
+        .eq('id', notificacaoId)
+        .select()
+        .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro no UPDATE:', error);
+        throw error;
+      }
+      
+      console.log('Notificação marcada com sucesso:', data);
+      return data;
+    },
+    onMutate: async (notificacaoId) => {
+      // Optimistic update para feedback imediato
+      await queryClient.cancelQueries({ queryKey: ['notificacoes'] });
+      
+      const previousNotificacoes = queryClient.getQueryData(['notificacoes', user?.id]);
+      
+      queryClient.setQueryData(['notificacoes', user?.id], (old: Notificacao[] = []) => {
+        return old.map(n => 
+          n.id === notificacaoId 
+            ? { ...n, lida: true, lida_em: new Date().toISOString() }
+            : n
+        );
+      });
+      
+      return { previousNotificacoes };
+    },
+    onError: (error: any, notificacaoId, context) => {
+      console.error('Erro ao marcar notificação como lida:', error);
+      queryClient.setQueryData(['notificacoes', user?.id], context?.previousNotificacoes);
+      toast.error('Erro ao marcar notificação como lida');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notificacoes'] });
-    },
-    onError: (error: any) => {
-      console.error('Erro ao marcar notificação como lida:', error);
     },
   });
 
