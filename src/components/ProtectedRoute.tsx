@@ -9,6 +9,7 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
   const navigate = useNavigate();
   const [showSplash, setShowSplash] = useState(false);
   const [fadeOut, setFadeOut] = useState(false);
+  const [splashComplete, setSplashComplete] = useState(false);
   const { themeConfig, isLoading: themeLoading } = useThemeConfig();
 
   // Redirecionar para login se não autenticado
@@ -28,10 +29,10 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
     }
   }, [themeConfig, themeLoading]);
 
-  // Mostrar splash sempre após login (limpa flag ao sair)
+  // Mostrar splash sempre após login
   useEffect(() => {
-    if (!loading && user) {
-      // Verifica se acabou de fazer login (primeira renderização com user)
+    if (!loading && user && !splashComplete) {
+      // Verifica se acabou de fazer login
       const justLoggedIn = !sessionStorage.getItem('user_session_active');
       
       if (justLoggedIn) {
@@ -41,24 +42,32 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
         // Timer para iniciar fade-out
         const fadeTimer = setTimeout(() => {
           setFadeOut(true);
-        }, 2700); // Inicia fade 300ms antes do fim
+        }, 2700);
         
         // Timer para esconder completamente
         const hideTimer = setTimeout(() => {
           setShowSplash(false);
-          setFadeOut(false);
+          setSplashComplete(true);
         }, 3000);
         
         return () => {
           clearTimeout(fadeTimer);
           clearTimeout(hideTimer);
         };
+      } else {
+        // Se já estava logado, não mostra splash
+        setSplashComplete(true);
       }
-    } else if (!user) {
-      // Limpa flag quando usuário faz logout
-      sessionStorage.removeItem('user_session_active');
     }
-  }, [user, loading]);
+    
+    // Limpa flag quando usuário faz logout
+    if (!loading && !user) {
+      sessionStorage.removeItem('user_session_active');
+      setSplashComplete(false);
+      setShowSplash(false);
+      setFadeOut(false);
+    }
+  }, [user, loading, splashComplete]);
 
   if (loading) {
     return (
