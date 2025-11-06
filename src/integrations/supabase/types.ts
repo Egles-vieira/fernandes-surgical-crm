@@ -3096,6 +3096,48 @@ export type Database = {
           },
         ]
       }
+      notificacoes: {
+        Row: {
+          criada_em: string | null
+          descricao: string
+          entidade_id: string | null
+          entidade_tipo: string | null
+          id: string
+          lida: boolean | null
+          lida_em: string | null
+          metadata: Json | null
+          tipo: string
+          titulo: string
+          usuario_id: string
+        }
+        Insert: {
+          criada_em?: string | null
+          descricao: string
+          entidade_id?: string | null
+          entidade_tipo?: string | null
+          id?: string
+          lida?: boolean | null
+          lida_em?: string | null
+          metadata?: Json | null
+          tipo: string
+          titulo: string
+          usuario_id: string
+        }
+        Update: {
+          criada_em?: string | null
+          descricao?: string
+          entidade_id?: string | null
+          entidade_tipo?: string | null
+          id?: string
+          lida?: boolean | null
+          lida_em?: string | null
+          metadata?: Json | null
+          tipo?: string
+          titulo?: string
+          usuario_id?: string
+        }
+        Relationships: []
+      }
       oportunidades: {
         Row: {
           atualizado_em: string | null
@@ -5663,6 +5705,7 @@ export type Database = {
         Args: { _equipe_id: string; _user_id: string }
         Returns: boolean
       }
+      limpar_notificacoes_antigas: { Args: never; Returns: undefined }
       list_users_with_roles: {
         Args: never
         Returns: {
