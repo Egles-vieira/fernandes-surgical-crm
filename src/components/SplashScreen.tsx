@@ -15,7 +15,11 @@ export default function SplashScreen({ fadeOut = false }: SplashScreenProps) {
         <img 
           src={logo} 
           alt="ConvertiAI" 
-          className="h-24 w-auto object-contain drop-shadow-2xl"
+          className="h-24 w-auto object-contain drop-shadow-2xl animate-pulse"
+          style={{
+            animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite, glow 2s ease-in-out infinite',
+            filter: 'drop-shadow(0 0 20px rgba(63, 179, 157, 0.3))'
+          }}
         />
         <h1 className="text-4xl font-bold text-white tracking-wide">
           ConvertiAI
