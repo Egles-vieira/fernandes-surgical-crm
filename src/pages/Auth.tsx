@@ -185,6 +185,11 @@ export default function Auth() {
         <div className="w-full max-w-[460px]">
           {/* Glass card */}
           <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-200/50 dark:border-gray-700/50 p-10">
+            {/* Logo */}
+            <div className="flex justify-center mb-8">
+              <img src={logo} alt="ConvertiAI" className="h-12 object-contain" />
+            </div>
+            
             {/* Header */}
             <div className="mb-8">
               <div className="flex items-center gap-2 mb-4">
