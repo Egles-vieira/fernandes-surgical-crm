@@ -1,5 +1,6 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { Search, Bell, User, ChevronRight, Menu, LogOut, Settings, UserCog, Shield } from "lucide-react";
+import { NotificationsSheet } from "@/components/NotificationsSheet";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -217,12 +218,7 @@ export default function Header({ collapsed, onToggle }: HeaderProps) {
 
           <ThemeCustomizer />
 
-          <Button variant="ghost" size="sm" className="relative">
-            <Bell size={18} />
-            <span className="absolute -top-1 -right-1 h-4 w-4 bg-destructive rounded-full text-[10px] text-white flex items-center justify-center">
-              3
-            </span>
-          </Button>
+          <NotificationsSheet />
 
           <div className="h-8 w-px bg-border"></div>
 
