@@ -118,161 +118,186 @@ export default function Auth() {
   return (
     <div className="min-h-screen flex">
       {/* Left Side - Brand Section */}
-      <div className="hidden lg:flex lg:w-1/2 gradient-primary p-16 items-center justify-center relative overflow-hidden">
-        {/* Subtle gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-br from-transparent via-black/5 to-black/10"></div>
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-[#1e3a5f] via-[#2d5f7f] to-[#3fb39d]">
+        {/* Animated gradient orbs */}
+        <div className="absolute top-20 right-20 w-72 h-72 bg-[#3fb39d]/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-20 left-20 w-96 h-96 bg-[#1e3a5f]/30 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
         
-        {/* Minimal geometric pattern */}
-        <div className="absolute inset-0 opacity-5">
-          <div className="absolute top-0 right-0 w-96 h-96 border border-primary-foreground rounded-full -translate-y-1/2 translate-x-1/2"></div>
-          <div className="absolute bottom-0 left-0 w-96 h-96 border border-primary-foreground rounded-full translate-y-1/2 -translate-x-1/2"></div>
-        </div>
+        {/* Grid pattern overlay */}
+        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px)', backgroundSize: '50px 50px' }}></div>
         
-        <div className="relative z-10 text-primary-foreground max-w-lg space-y-12">
-          {/* Logo Section */}
-          <div className="space-y-8">
-            <img src={logo} alt="Cirúrgica Fernandes" className="h-14 object-contain opacity-95" />
-            
-            <div className="w-12 h-1 bg-accent rounded-full"></div>
+        {/* Floating geometric shapes */}
+        <div className="absolute top-40 left-40 w-4 h-4 border-2 border-white/30 rotate-45"></div>
+        <div className="absolute top-60 right-60 w-3 h-3 bg-[#3fb39d]/40 rounded-full"></div>
+        <div className="absolute bottom-40 right-40 w-6 h-6 border-2 border-white/20 rounded-full"></div>
+        
+        <div className="relative z-10 text-white max-w-lg px-16 flex flex-col justify-center">
+          {/* Logo */}
+          <div className="mb-16 animate-fade-in">
+            <img src={logo} alt="Cirúrgica Fernandes" className="h-12 object-contain opacity-95 drop-shadow-lg" />
           </div>
           
-          {/* Title Section */}
-          <div className="space-y-4">
-            <h1 className="text-5xl font-bold leading-tight tracking-tight">
-              Sistema de Gestão Empresarial
-            </h1>
-            <p className="text-xl text-primary-foreground/70 leading-relaxed font-light">
-              Centralize a gestão comercial, operacional e relacionamento com clientes em uma única plataforma integrada.
+          {/* Title with gradient text */}
+          <div className="space-y-6 mb-12">
+            <div className="inline-block">
+              <h1 className="text-6xl font-bold leading-tight tracking-tight mb-2 bg-gradient-to-r from-white to-white/80 bg-clip-text text-transparent">
+                Gestão Inteligente
+              </h1>
+              <div className="h-1.5 w-32 bg-gradient-to-r from-[#3fb39d] to-transparent rounded-full"></div>
+            </div>
+            <p className="text-xl text-white/70 leading-relaxed font-light">
+              Tecnologia e IA aplicadas à gestão comercial e operacional para impulsionar resultados.
             </p>
           </div>
           
-          {/* Features List */}
-          <div className="space-y-3 text-primary-foreground/80">
-            <div className="flex items-center gap-3">
-              <div className="w-1.5 h-1.5 rounded-full bg-accent"></div>
-              <span className="text-base">CRM e gestão de vendas</span>
+          {/* Modern features grid */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10 hover:bg-white/10 transition-all">
+              <div className="w-8 h-8 rounded-lg bg-[#3fb39d]/20 flex items-center justify-center mb-3">
+                <div className="w-4 h-4 rounded bg-[#3fb39d]"></div>
+              </div>
+              <p className="text-sm font-medium">CRM Avançado</p>
             </div>
-            <div className="flex items-center gap-3">
-              <div className="w-1.5 h-1.5 rounded-full bg-accent"></div>
-              <span className="text-base">Cotações EDI com IA</span>
+            <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10 hover:bg-white/10 transition-all">
+              <div className="w-8 h-8 rounded-lg bg-[#3fb39d]/20 flex items-center justify-center mb-3">
+                <div className="w-4 h-4 rounded bg-[#3fb39d]"></div>
+              </div>
+              <p className="text-sm font-medium">IA & Automação</p>
             </div>
-            <div className="flex items-center gap-3">
-              <div className="w-1.5 h-1.5 rounded-full bg-accent"></div>
-              <span className="text-base">Atendimento e tickets</span>
+            <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10 hover:bg-white/10 transition-all">
+              <div className="w-8 h-8 rounded-lg bg-[#3fb39d]/20 flex items-center justify-center mb-3">
+                <div className="w-4 h-4 rounded bg-[#3fb39d]"></div>
+              </div>
+              <p className="text-sm font-medium">Cotações EDI</p>
             </div>
-            <div className="flex items-center gap-3">
-              <div className="w-1.5 h-1.5 rounded-full bg-accent"></div>
-              <span className="text-base">Integração WhatsApp</span>
+            <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10 hover:bg-white/10 transition-all">
+              <div className="w-8 h-8 rounded-lg bg-[#3fb39d]/20 flex items-center justify-center mb-3">
+                <div className="w-4 h-4 rounded bg-[#3fb39d]"></div>
+              </div>
+              <p className="text-sm font-medium">WhatsApp</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Right Side - Login Form */}
-      <div className="flex-1 flex items-center justify-center p-8 bg-background">
-        <div className="w-full max-w-[440px] space-y-8">
-          {/* Header */}
-          <div className="space-y-2">
-            <h2 className="text-3xl font-semibold tracking-tight text-foreground">
-              {isLogin ? "Acesse sua conta" : "Criar nova conta"}
-            </h2>
-            <p className="text-muted-foreground">
-              {isLogin ? "Entre com suas credenciais para continuar" : "Preencha os dados para começar"}
-            </p>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium text-foreground">E-mail corporativo</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="seu.email@empresa.com"
-                  className="pl-10 h-11 bg-background border-input focus:border-primary"
-                  {...(isLogin ? loginForm.register("email") : signupForm.register("email"))}
-                />
+      <div className="flex-1 flex items-center justify-center p-8 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-950 dark:to-gray-900">
+        <div className="w-full max-w-[460px]">
+          {/* Glass card */}
+          <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-200/50 dark:border-gray-700/50 p-10">
+            {/* Header */}
+            <div className="mb-8">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#1e3a5f] to-[#3fb39d] flex items-center justify-center shadow-lg">
+                  <LogIn className="text-white" size={20} />
+                </div>
+                <h2 className="text-2xl font-bold tracking-tight text-foreground">
+                  {isLogin ? "Bem-vindo" : "Criar conta"}
+                </h2>
               </div>
-              {(isLogin ? loginForm.formState.errors.email : signupForm.formState.errors.email) && (
-                <p className="text-sm text-destructive flex items-center gap-1">
-                  <AlertCircle className="h-3 w-3" />
-                  {isLogin ? loginForm.formState.errors.email?.message : signupForm.formState.errors.email?.message}
-                </p>
-              )}
+              <p className="text-muted-foreground text-sm">
+                {isLogin ? "Acesse sua conta para continuar" : "Preencha os dados para começar"}
+              </p>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm font-medium text-foreground">Senha</Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  className="pl-10 h-11 bg-background border-input focus:border-primary"
-                  {...(isLogin ? loginForm.register("password") : signupForm.register("password"))}
-                />
-              </div>
-              {(isLogin ? loginForm.formState.errors.password : signupForm.formState.errors.password) && (
-                <p className="text-sm text-destructive flex items-center gap-1">
-                  <AlertCircle className="h-3 w-3" />
-                  {isLogin ? loginForm.formState.errors.password?.message : signupForm.formState.errors.password?.message}
-                </p>
-              )}
-            </div>
-
-            {!isLogin && (
+            <form onSubmit={handleSubmit} className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword" className="text-sm font-medium text-foreground">Confirmar senha</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Label htmlFor="email" className="text-sm font-medium text-foreground">E-mail</Label>
+                <div className="relative group">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transition-colors group-focus-within:text-[#3fb39d]" />
                   <Input
-                    id="confirmPassword"
-                    type="password"
-                    placeholder="••••••••"
-                    className="pl-10 h-11 bg-background border-input focus:border-primary"
-                    {...signupForm.register("confirmPassword")}
+                    id="email"
+                    type="email"
+                    placeholder="seu.email@empresa.com"
+                    className="pl-10 h-11 bg-background/50 border-input focus:border-[#3fb39d] focus:ring-1 focus:ring-[#3fb39d] transition-all"
+                    {...(isLogin ? loginForm.register("email") : signupForm.register("email"))}
                   />
                 </div>
-                {signupForm.formState.errors.confirmPassword && (
-                  <p className="text-sm text-destructive flex items-center gap-1">
+                {(isLogin ? loginForm.formState.errors.email : signupForm.formState.errors.email) && (
+                  <p className="text-xs text-destructive flex items-center gap-1">
                     <AlertCircle className="h-3 w-3" />
-                    {signupForm.formState.errors.confirmPassword.message}
+                    {isLogin ? loginForm.formState.errors.email?.message : signupForm.formState.errors.email?.message}
                   </p>
                 )}
               </div>
-            )}
 
-            <Button
-              type="submit"
-              className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
-              disabled={loading}
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-sm font-medium text-foreground">Senha</Label>
+                <div className="relative group">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transition-colors group-focus-within:text-[#3fb39d]" />
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="••••••••"
+                    className="pl-10 h-11 bg-background/50 border-input focus:border-[#3fb39d] focus:ring-1 focus:ring-[#3fb39d] transition-all"
+                    {...(isLogin ? loginForm.register("password") : signupForm.register("password"))}
+                  />
+                </div>
+                {(isLogin ? loginForm.formState.errors.password : signupForm.formState.errors.password) && (
+                  <p className="text-xs text-destructive flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3" />
+                    {isLogin ? loginForm.formState.errors.password?.message : signupForm.formState.errors.password?.message}
+                  </p>
+                )}
+              </div>
+
+              {!isLogin && (
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword" className="text-sm font-medium text-foreground">Confirmar senha</Label>
+                  <div className="relative group">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transition-colors group-focus-within:text-[#3fb39d]" />
+                    <Input
+                      id="confirmPassword"
+                      type="password"
+                      placeholder="••••••••"
+                      className="pl-10 h-11 bg-background/50 border-input focus:border-[#3fb39d] focus:ring-1 focus:ring-[#3fb39d] transition-all"
+                      {...signupForm.register("confirmPassword")}
+                    />
+                  </div>
+                  {signupForm.formState.errors.confirmPassword && (
+                    <p className="text-xs text-destructive flex items-center gap-1">
+                      <AlertCircle className="h-3 w-3" />
+                      {signupForm.formState.errors.confirmPassword.message}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              <Button
+                type="submit"
+                className="w-full h-11 bg-gradient-to-r from-[#1e3a5f] to-[#3fb39d] hover:from-[#1a3251] hover:to-[#38a68f] text-white font-medium shadow-lg transition-all hover:shadow-xl"
+                disabled={loading}
+              >
+                {loading ? "Processando..." : isLogin ? "Entrar" : "Criar conta"}
+              </Button>
+            </form>
+
+            {/* Divider */}
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-border"></div>
+              </div>
+              <div className="relative flex justify-center text-xs">
+                <span className="bg-white dark:bg-gray-900 px-2 text-muted-foreground">
+                  {isLogin ? "Novo por aqui?" : "Já possui conta?"}
+                </span>
+              </div>
+            </div>
+
+            {/* Toggle Button */}
+            <button
+              type="button"
+              onClick={() => setIsLogin(!isLogin)}
+              className="w-full text-center text-sm font-medium transition-colors py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
             >
-              {loading ? "Processando..." : isLogin ? "Entrar" : "Criar conta"}
-            </Button>
-          </form>
-
-          {/* Divider */}
-          <div className="relative my-8">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-border"></div>
-            </div>
-            <div className="relative flex justify-center text-xs">
-              <span className="bg-background px-2 text-muted-foreground">
-                {isLogin ? "Não tem uma conta?" : "Já possui conta?"}
-              </span>
-            </div>
+              <span className="text-muted-foreground">{isLogin ? "Criar nova conta" : "Fazer login"}</span>
+            </button>
           </div>
-
-          {/* Toggle Button */}
-          <button
-            type="button"
-            onClick={() => setIsLogin(!isLogin)}
-            className="w-full text-center text-sm text-primary hover:underline font-medium transition-colors"
-          >
-            {isLogin ? "Criar nova conta" : "Fazer login"}
-          </button>
+          
+          {/* Footer text */}
+          <p className="text-center text-xs text-muted-foreground mt-6">
+            Ao continuar, você concorda com nossos Termos de Serviço
+          </p>
         </div>
       </div>
     </div>
