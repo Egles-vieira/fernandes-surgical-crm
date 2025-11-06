@@ -8,52 +8,57 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [showSplash, setShowSplash] = useState(false);
-  const [configsLoaded, setConfigsLoaded] = useState(false);
-  const [minTimeElapsed, setMinTimeElapsed] = useState(false);
+  const [fadeOut, setFadeOut] = useState(false);
   const { themeConfig, isLoading: themeLoading } = useThemeConfig();
 
-  // Mostrar splash após login bem-sucedido
-  useEffect(() => {
-    if (!loading && user && !showSplash) {
-      setShowSplash(true);
-    }
-  }, [user, loading, showSplash]);
-
-  // Garantir tempo mínimo de 3 segundos para o splash
-  useEffect(() => {
-    if (showSplash) {
-      const timer = setTimeout(() => {
-        setMinTimeElapsed(true);
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [showSplash]);
-
-  // Carregar configurações do tema
-  useEffect(() => {
-    if (!themeLoading && themeConfig) {
-      if (themeConfig.colors) {
-        const root = document.documentElement;
-        Object.entries(themeConfig.colors).forEach(([key, value]) => {
-          if (value) root.style.setProperty(`--${key}`, value);
-        });
-      }
-      setConfigsLoaded(true);
-    }
-  }, [themeConfig, themeLoading]);
-
-  // Esconder splash quando tudo estiver pronto
-  useEffect(() => {
-    if (showSplash && minTimeElapsed && (configsLoaded || !themeLoading)) {
-      setShowSplash(false);
-    }
-  }, [showSplash, minTimeElapsed, configsLoaded, themeLoading]);
-
+  // Redirecionar para login se não autenticado
   useEffect(() => {
     if (!loading && !user) {
       navigate("/auth");
     }
   }, [user, loading, navigate]);
+
+  // Carregar configurações do tema em background
+  useEffect(() => {
+    if (!themeLoading && themeConfig?.colors) {
+      const root = document.documentElement;
+      Object.entries(themeConfig.colors).forEach(([key, value]) => {
+        if (value) root.style.setProperty(`--${key}`, value);
+      });
+    }
+  }, [themeConfig, themeLoading]);
+
+  // Mostrar splash sempre após login (limpa flag ao sair)
+  useEffect(() => {
+    if (!loading && user) {
+      // Verifica se acabou de fazer login (primeira renderização com user)
+      const justLoggedIn = !sessionStorage.getItem('user_session_active');
+      
+      if (justLoggedIn) {
+        setShowSplash(true);
+        sessionStorage.setItem('user_session_active', 'true');
+        
+        // Timer para iniciar fade-out
+        const fadeTimer = setTimeout(() => {
+          setFadeOut(true);
+        }, 2700); // Inicia fade 300ms antes do fim
+        
+        // Timer para esconder completamente
+        const hideTimer = setTimeout(() => {
+          setShowSplash(false);
+          setFadeOut(false);
+        }, 3000);
+        
+        return () => {
+          clearTimeout(fadeTimer);
+          clearTimeout(hideTimer);
+        };
+      }
+    } else if (!user) {
+      // Limpa flag quando usuário faz logout
+      sessionStorage.removeItem('user_session_active');
+    }
+  }, [user, loading]);
 
   if (loading) {
     return (
@@ -71,7 +76,7 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
   }
 
   if (showSplash) {
-    return <SplashScreen onComplete={() => {}} />;
+    return <SplashScreen fadeOut={fadeOut} />;
   }
 
   return <>{children}</>;

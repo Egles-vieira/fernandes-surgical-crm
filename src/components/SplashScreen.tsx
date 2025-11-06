@@ -2,10 +2,10 @@ import { useEffect, useState } from "react";
 import logo from "@/assets/logo-convertiai.png";
 
 interface SplashScreenProps {
-  onComplete: () => void;
+  fadeOut: boolean;
 }
 
-export default function SplashScreen({ onComplete }: SplashScreenProps) {
+export default function SplashScreen({ fadeOut }: SplashScreenProps) {
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
@@ -19,7 +19,6 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
         const next = prev + increment;
         if (next >= 100) {
           clearInterval(timer);
-          setTimeout(onComplete, 300);
           return 100;
         }
         return next;
@@ -27,10 +26,14 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
     }, interval);
 
     return () => clearInterval(timer);
-  }, [onComplete]);
+  }, []);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-[#1e3a5f] via-[#2d5f7f] to-[#3fb39d]">
+    <div 
+      className={`fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-[#1e3a5f] via-[#2d5f7f] to-[#3fb39d] transition-opacity duration-300 ${
+        fadeOut ? 'opacity-0' : 'opacity-100'
+      }`}
+    >
       {/* Animated background orbs */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-[#3fb39d] rounded-full opacity-20 blur-3xl animate-pulse" />
