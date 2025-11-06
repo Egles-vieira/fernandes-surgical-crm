@@ -12,91 +12,94 @@ import { LogIn, AlertCircle, User, Lock, Mail } from "lucide-react";
 import { loginSchema, signupSchema, LoginInput, SignupInput } from "@/lib/validations/auth";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import logo from "@/assets/logo-convertiai.png";
-
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { toast } = useToast();
-
+  const {
+    toast
+  } = useToast();
   const loginForm = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       email: "",
-      password: "",
-    },
+      password: ""
+    }
   });
-
   const signupForm = useForm<SignupInput>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
       email: "",
       password: "",
-      confirmPassword: "",
-    },
+      confirmPassword: ""
+    }
   });
-
   useEffect(() => {
     // Check if user is already logged in
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({
+      data: {
+        session
+      }
+    }) => {
       if (session) {
         navigate("/");
       }
     });
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const {
+      data: {
+        subscription
+      }
+    } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
         navigate("/");
       }
     });
-
     return () => subscription.unsubscribe();
   }, [navigate]);
-
   const handleLogin = async (data: LoginInput) => {
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const {
+        error
+      } = await supabase.auth.signInWithPassword({
         email: data.email,
-        password: data.password,
+        password: data.password
       });
-
       if (error) throw error;
-
       toast({
         title: "Login realizado com sucesso!",
-        description: "Bem-vindo de volta.",
+        description: "Bem-vindo de volta."
       });
     } catch (error: any) {
       toast({
         title: "Erro ao fazer login",
         description: error.message || "Verifique suas credenciais e tente novamente.",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setLoading(false);
     }
   };
-
   const handleSignup = async (data: SignupInput) => {
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signUp({
+      const {
+        error
+      } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
         options: {
-          emailRedirectTo: `${window.location.origin}/`,
-        },
+          emailRedirectTo: `${window.location.origin}/`
+        }
       });
-
       if (error) throw error;
-
       toast({
         title: "Cadastro realizado com sucesso!",
-        description: "Você já pode fazer login.",
+        description: "Você já pode fazer login."
       });
-      
+
       // Limpar formulário e alternar para login
       signupForm.reset();
       setIsLogin(true);
@@ -104,27 +107,27 @@ export default function Auth() {
       toast({
         title: "Erro ao cadastrar",
         description: error.message || "Não foi possível criar sua conta. Tente novamente.",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setLoading(false);
     }
   };
-
-  const handleSubmit = isLogin 
-    ? loginForm.handleSubmit(handleLogin)
-    : signupForm.handleSubmit(handleSignup);
-
-  return (
-    <div className="min-h-screen flex">
+  const handleSubmit = isLogin ? loginForm.handleSubmit(handleLogin) : signupForm.handleSubmit(handleSignup);
+  return <div className="min-h-screen flex">
       {/* Left Side - Brand Section */}
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-[#1e3a5f] via-[#2d5f7f] to-[#3fb39d]">
         {/* Animated gradient orbs */}
         <div className="absolute top-20 right-20 w-72 h-72 bg-[#3fb39d]/20 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-20 left-20 w-96 h-96 bg-[#1e3a5f]/30 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute bottom-20 left-20 w-96 h-96 bg-[#1e3a5f]/30 rounded-full blur-3xl animate-pulse" style={{
+        animationDelay: '1s'
+      }}></div>
         
         {/* Grid pattern overlay */}
-        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px)', backgroundSize: '50px 50px' }}></div>
+        <div className="absolute inset-0 opacity-10" style={{
+        backgroundImage: 'linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px)',
+        backgroundSize: '50px 50px'
+      }}></div>
         
         {/* Floating geometric shapes */}
         <div className="absolute top-40 left-40 w-4 h-4 border-2 border-white/30 rotate-45"></div>
@@ -193,9 +196,7 @@ export default function Auth() {
             {/* Header */}
             <div className="mb-8">
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#1e3a5f] to-[#3fb39d] flex items-center justify-center shadow-lg">
-                  <LogIn className="text-white" size={20} />
-                </div>
+                
                 <h2 className="text-2xl font-bold tracking-tight text-foreground">
                   {isLogin ? "Bem-vindo" : "Criar conta"}
                 </h2>
@@ -210,69 +211,39 @@ export default function Auth() {
                 <Label htmlFor="email" className="text-sm font-medium text-foreground">E-mail</Label>
                 <div className="relative group">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transition-colors group-focus-within:text-[#3fb39d]" />
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="seu.email@empresa.com"
-                    className="pl-10 h-11 bg-background/50 border-input focus:border-[#3fb39d] focus:ring-1 focus:ring-[#3fb39d] transition-all"
-                    {...(isLogin ? loginForm.register("email") : signupForm.register("email"))}
-                  />
+                  <Input id="email" type="email" placeholder="seu.email@empresa.com" className="pl-10 h-11 bg-background/50 border-input focus:border-[#3fb39d] focus:ring-1 focus:ring-[#3fb39d] transition-all" {...isLogin ? loginForm.register("email") : signupForm.register("email")} />
                 </div>
-                {(isLogin ? loginForm.formState.errors.email : signupForm.formState.errors.email) && (
-                  <p className="text-xs text-destructive flex items-center gap-1">
+                {(isLogin ? loginForm.formState.errors.email : signupForm.formState.errors.email) && <p className="text-xs text-destructive flex items-center gap-1">
                     <AlertCircle className="h-3 w-3" />
                     {isLogin ? loginForm.formState.errors.email?.message : signupForm.formState.errors.email?.message}
-                  </p>
-                )}
+                  </p>}
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-sm font-medium text-foreground">Senha</Label>
                 <div className="relative group">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transition-colors group-focus-within:text-[#3fb39d]" />
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="••••••••"
-                    className="pl-10 h-11 bg-background/50 border-input focus:border-[#3fb39d] focus:ring-1 focus:ring-[#3fb39d] transition-all"
-                    {...(isLogin ? loginForm.register("password") : signupForm.register("password"))}
-                  />
+                  <Input id="password" type="password" placeholder="••••••••" className="pl-10 h-11 bg-background/50 border-input focus:border-[#3fb39d] focus:ring-1 focus:ring-[#3fb39d] transition-all" {...isLogin ? loginForm.register("password") : signupForm.register("password")} />
                 </div>
-                {(isLogin ? loginForm.formState.errors.password : signupForm.formState.errors.password) && (
-                  <p className="text-xs text-destructive flex items-center gap-1">
+                {(isLogin ? loginForm.formState.errors.password : signupForm.formState.errors.password) && <p className="text-xs text-destructive flex items-center gap-1">
                     <AlertCircle className="h-3 w-3" />
                     {isLogin ? loginForm.formState.errors.password?.message : signupForm.formState.errors.password?.message}
-                  </p>
-                )}
+                  </p>}
               </div>
 
-              {!isLogin && (
-                <div className="space-y-2">
+              {!isLogin && <div className="space-y-2">
                   <Label htmlFor="confirmPassword" className="text-sm font-medium text-foreground">Confirmar senha</Label>
                   <div className="relative group">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transition-colors group-focus-within:text-[#3fb39d]" />
-                    <Input
-                      id="confirmPassword"
-                      type="password"
-                      placeholder="••••••••"
-                      className="pl-10 h-11 bg-background/50 border-input focus:border-[#3fb39d] focus:ring-1 focus:ring-[#3fb39d] transition-all"
-                      {...signupForm.register("confirmPassword")}
-                    />
+                    <Input id="confirmPassword" type="password" placeholder="••••••••" className="pl-10 h-11 bg-background/50 border-input focus:border-[#3fb39d] focus:ring-1 focus:ring-[#3fb39d] transition-all" {...signupForm.register("confirmPassword")} />
                   </div>
-                  {signupForm.formState.errors.confirmPassword && (
-                    <p className="text-xs text-destructive flex items-center gap-1">
+                  {signupForm.formState.errors.confirmPassword && <p className="text-xs text-destructive flex items-center gap-1">
                       <AlertCircle className="h-3 w-3" />
                       {signupForm.formState.errors.confirmPassword.message}
-                    </p>
-                  )}
-                </div>
-              )}
+                    </p>}
+                </div>}
 
-              <Button
-                type="submit"
-                className="w-full h-11 bg-gradient-to-r from-[#1e3a5f] to-[#3fb39d] hover:from-[#1a3251] hover:to-[#38a68f] text-white font-medium shadow-lg transition-all hover:shadow-xl"
-                disabled={loading}
-              >
+              <Button type="submit" className="w-full h-11 bg-gradient-to-r from-[#1e3a5f] to-[#3fb39d] hover:from-[#1a3251] hover:to-[#38a68f] text-white font-medium shadow-lg transition-all hover:shadow-xl" disabled={loading}>
                 {loading ? "Processando..." : isLogin ? "Entrar" : "Criar conta"}
               </Button>
             </form>
@@ -290,11 +261,7 @@ export default function Auth() {
             </div>
 
             {/* Toggle Button */}
-            <button
-              type="button"
-              onClick={() => setIsLogin(!isLogin)}
-              className="w-full text-center text-sm font-medium transition-colors py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
-            >
+            <button type="button" onClick={() => setIsLogin(!isLogin)} className="w-full text-center text-sm font-medium transition-colors py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
               <span className="text-muted-foreground">{isLogin ? "Criar nova conta" : "Fazer login"}</span>
             </button>
           </div>
@@ -305,6 +272,5 @@ export default function Auth() {
           </p>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 }
