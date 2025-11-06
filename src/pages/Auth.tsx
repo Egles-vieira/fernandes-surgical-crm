@@ -118,19 +118,19 @@ export default function Auth() {
   return (
     <div className="min-h-screen flex">
       {/* Left Side - Welcome Section */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary via-primary/90 to-primary/80 p-12 items-center justify-center relative overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 gradient-primary p-12 items-center justify-center relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNnoiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLW9wYWNpdHk9Ii4xIi8+PC9nPjwvc3ZnPg==')] opacity-20"></div>
         
-        <div className="relative z-10 text-white max-w-md">
+        <div className="relative z-10 text-primary-foreground max-w-md">
           <img src={logo} alt="Cirúrgica Fernandes" className="h-12 mb-12 object-contain" />
           
           <h1 className="text-4xl font-bold mb-4">
             Sistema de Gestão
           </h1>
-          <h2 className="text-5xl font-bold mb-6 text-yellow-300">
+          <h2 className="text-5xl font-bold mb-6 text-accent">
             Cirúrgica Fernandes
           </h2>
-          <p className="text-white/90 text-lg leading-relaxed">
+          <p className="text-primary-foreground/90 text-lg leading-relaxed">
             Plataforma completa para gestão de clientes, vendas, cotações e muito mais.
           </p>
         </div>
@@ -219,7 +219,7 @@ export default function Auth() {
 
             <Button
               type="submit"
-              className="w-full h-12 bg-yellow-500 hover:bg-yellow-600 text-black font-semibold text-base"
+              className="w-full h-12 bg-accent hover:bg-accent/90 text-accent-foreground font-semibold text-base"
               disabled={loading}
             >
               {loading ? "Carregando..." : isLogin ? "LOGIN" : "CADASTRAR"}
