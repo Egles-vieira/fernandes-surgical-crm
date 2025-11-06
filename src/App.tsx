@@ -1,7 +1,10 @@
+import { useState, useEffect } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Layout from "./components/Layout";
 import ProtectedRoute from "./components/ProtectedRoute";
+import SplashScreen from "./components/SplashScreen";
+import { useThemeConfig } from "@/hooks/useThemeConfig";
 import Dashboard from "./pages/Dashboard";
 import Vendas from "./pages/Vendas";
 import Plataformas from "./pages/Plataformas";
@@ -41,7 +44,36 @@ import BaseConhecimento from "./pages/BaseConhecimento";
 import MeuPerfil from "./pages/MeuPerfil";
 import CadastroCNPJ from "./pages/CadastroCNPJ";
 import SolicitacoesCadastro from "./pages/SolicitacoesCadastro";
-const App = () => <>
+const App = () => {
+  const [showSplash, setShowSplash] = useState(true);
+  const [configsLoaded, setConfigsLoaded] = useState(false);
+  const { themeConfig, isLoading } = useThemeConfig();
+
+  // Apply theme configurations when loaded
+  useEffect(() => {
+    if (!isLoading && themeConfig) {
+      // Apply theme colors to CSS variables if they exist
+      if (themeConfig.colors) {
+        const root = document.documentElement;
+        Object.entries(themeConfig.colors).forEach(([key, value]) => {
+          if (value) root.style.setProperty(`--${key}`, value);
+        });
+      }
+      setConfigsLoaded(true);
+    }
+  }, [themeConfig, isLoading]);
+
+  const handleSplashComplete = () => {
+    if (configsLoaded || !isLoading) {
+      setShowSplash(false);
+    }
+  };
+
+  if (showSplash) {
+    return <SplashScreen onComplete={handleSplashComplete} />;
+  }
+
+  return <>
     <Toaster />
     <BrowserRouter>
       <Routes>
@@ -236,4 +268,5 @@ const App = () => <>
       </Routes>
     </BrowserRouter>
   </>;
+};
 export default App;
