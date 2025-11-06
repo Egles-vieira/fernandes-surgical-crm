@@ -47,7 +47,17 @@ import SolicitacoesCadastro from "./pages/SolicitacoesCadastro";
 const App = () => {
   const [showSplash, setShowSplash] = useState(true);
   const [configsLoaded, setConfigsLoaded] = useState(false);
+  const [minTimeElapsed, setMinTimeElapsed] = useState(false);
   const { themeConfig, isLoading } = useThemeConfig();
+
+  // Garantir tempo mínimo de 3 segundos para o splash
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setMinTimeElapsed(true);
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   // Apply theme configurations when loaded
   useEffect(() => {
@@ -63,14 +73,15 @@ const App = () => {
     }
   }, [themeConfig, isLoading]);
 
-  const handleSplashComplete = () => {
-    if (configsLoaded || !isLoading) {
+  // Esconder splash apenas quando ambos estiverem prontos
+  useEffect(() => {
+    if (minTimeElapsed && (configsLoaded || !isLoading)) {
       setShowSplash(false);
     }
-  };
+  }, [minTimeElapsed, configsLoaded, isLoading]);
 
   if (showSplash) {
-    return <SplashScreen onComplete={handleSplashComplete} />;
+    return <SplashScreen onComplete={() => {}} />;
   }
 
   return <>
