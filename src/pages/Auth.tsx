@@ -171,13 +171,13 @@ export default function Auth() {
               <div className="w-8 h-8 rounded-lg bg-[#3fb39d]/20 flex items-center justify-center mb-3">
                 <div className="w-4 h-4 rounded bg-[#3fb39d]"></div>
               </div>
-              <p className="text-sm font-medium">Cotações EDI</p>
+              <p className="text-sm font-medium">Portais de vendas da Saúde</p>
             </div>
             <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10 hover:bg-white/10 transition-all">
               <div className="w-8 h-8 rounded-lg bg-[#3fb39d]/20 flex items-center justify-center mb-3">
                 <div className="w-4 h-4 rounded bg-[#3fb39d]"></div>
               </div>
-              <p className="text-sm font-medium">WhatsApp</p>
+              <p className="text-sm font-medium">Vendas no WhatsApp </p>
             </div>
           </div>
         </div>
