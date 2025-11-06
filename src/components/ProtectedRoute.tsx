@@ -9,7 +9,6 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
   const navigate = useNavigate();
   const [showSplash, setShowSplash] = useState(false);
   const [fadeOut, setFadeOut] = useState(false);
-  const [splashComplete, setSplashComplete] = useState(false);
   const { themeConfig, isLoading: themeLoading } = useThemeConfig();
 
   // Redirecionar para login se não autenticado
@@ -29,45 +28,25 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
     }
   }, [themeConfig, themeLoading]);
 
-  // Mostrar splash sempre após login
+  // Mostrar splash quando acabou de logar
   useEffect(() => {
-    if (!loading && user && !splashComplete) {
-      // Verifica se acabou de fazer login
-      const justLoggedIn = !sessionStorage.getItem('user_session_active');
-      
-      if (justLoggedIn) {
+    if (!loading && user) {
+      const justLoggedIn = sessionStorage.getItem('just_logged_in') === 'true';
+      if (justLoggedIn && !showSplash) {
+        // Consome a flag para não repetir
+        sessionStorage.removeItem('just_logged_in');
         setShowSplash(true);
-        sessionStorage.setItem('user_session_active', 'true');
-        
-        // Timer para iniciar fade-out
-        const fadeTimer = setTimeout(() => {
-          setFadeOut(true);
-        }, 2700);
-        
-        // Timer para esconder completamente
-        const hideTimer = setTimeout(() => {
-          setShowSplash(false);
-          setSplashComplete(true);
-        }, 3000);
-        
+        setFadeOut(false);
+
+        const fadeTimer = setTimeout(() => setFadeOut(true), 2700);
+        const hideTimer = setTimeout(() => setShowSplash(false), 3000);
         return () => {
           clearTimeout(fadeTimer);
           clearTimeout(hideTimer);
         };
-      } else {
-        // Se já estava logado, não mostra splash
-        setSplashComplete(true);
       }
     }
-    
-    // Limpa flag quando usuário faz logout
-    if (!loading && !user) {
-      sessionStorage.removeItem('user_session_active');
-      setSplashComplete(false);
-      setShowSplash(false);
-      setFadeOut(false);
-    }
-  }, [user, loading, splashComplete]);
+  }, [loading, user, showSplash]);
 
   if (loading) {
     return (
