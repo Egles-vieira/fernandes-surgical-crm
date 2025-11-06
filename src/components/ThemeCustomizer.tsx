@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useEmpresa } from "@/hooks/useEmpresa";
+import { useThemeConfig } from "@/hooks/useThemeConfig";
 
 interface ColorScheme {
   name: string;
@@ -508,62 +509,64 @@ export default function ThemeCustomizer() {
   const [selectedIconStroke, setSelectedIconStroke] = useState("default");
   const [selectedIconVisual, setSelectedIconVisual] = useState("lucide");
   const { empresa, uploadLogo, isUploading } = useEmpresa();
+  const { themeConfig, updateThemeConfig, isLoading: isLoadingTheme } = useThemeConfig();
 
   const filteredSchemes = selectedCategory === "Todos" 
     ? presetSchemes 
     : presetSchemes.filter(scheme => scheme.category === selectedCategory);
 
+  // Carregar configurações do banco de dados
   useEffect(() => {
-    const saved = localStorage.getItem("theme-colors");
-    if (saved) {
-      const colors = JSON.parse(saved);
-      setCustomColors(colors);
-      applyColors(colors);
+    if (isLoadingTheme) return;
+    
+    // Aplicar cores
+    if (themeConfig.colors) {
+      setCustomColors(themeConfig.colors);
+      applyColors(themeConfig.colors);
     }
 
-    const savedFont = localStorage.getItem("theme-font");
-    if (savedFont) {
-      setSelectedFont(savedFont);
-      applyFont(savedFont);
+    // Aplicar fonte
+    if (themeConfig.font) {
+      setSelectedFont(themeConfig.font);
+      applyFont(themeConfig.font);
     }
 
-    const savedRadius = localStorage.getItem("theme-radius");
-    if (savedRadius) {
-      setSelectedRadius(savedRadius);
-      applyRadius(savedRadius);
+    // Aplicar radius
+    if (themeConfig.radius) {
+      setSelectedRadius(themeConfig.radius);
+      applyRadius(themeConfig.radius);
     }
 
-    const savedBorder = localStorage.getItem("theme-border");
-    if (savedBorder) {
-      setSelectedBorder(savedBorder);
-      applyBorder(savedBorder);
+    // Aplicar border
+    if (themeConfig.border) {
+      setSelectedBorder(themeConfig.border);
+      applyBorder(themeConfig.border);
     }
 
-    const savedShadow = localStorage.getItem("theme-shadow");
-    if (savedShadow) {
-      setSelectedShadow(savedShadow);
-      applyShadow(savedShadow);
+    // Aplicar shadow
+    if (themeConfig.shadow) {
+      setSelectedShadow(themeConfig.shadow);
+      applyShadow(themeConfig.shadow);
     }
 
-    const savedIconStroke = localStorage.getItem("theme-icon-stroke");
-    if (savedIconStroke) {
-      setSelectedIconStroke(savedIconStroke);
-      applyIconStroke(savedIconStroke);
+    // Aplicar icon stroke
+    if (themeConfig.iconStroke) {
+      setSelectedIconStroke(themeConfig.iconStroke);
+      applyIconStroke(themeConfig.iconStroke);
     }
 
-    const savedIconVisual = localStorage.getItem("theme-icon-visual");
-    if (savedIconVisual) {
-      setSelectedIconVisual(savedIconVisual);
-      applyIconVisual(savedIconVisual);
+    // Aplicar icon visual
+    if (themeConfig.iconVisual) {
+      setSelectedIconVisual(themeConfig.iconVisual);
+      applyIconVisual(themeConfig.iconVisual);
     }
 
-    const savedMenuColors = localStorage.getItem("theme-menu-colors");
-    if (savedMenuColors) {
-      const colors = JSON.parse(savedMenuColors);
-      setMenuColors(colors);
-      applyMenuColors(colors);
+    // Aplicar cores do menu
+    if (themeConfig.menuColors) {
+      setMenuColors(themeConfig.menuColors);
+      applyMenuColors(themeConfig.menuColors);
     }
-  }, []);
+  }, [themeConfig, isLoadingTheme]);
 
   const hexToHSL = (hex: string): string => {
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -647,14 +650,14 @@ export default function ThemeCustomizer() {
 
     setCustomColors(newColors);
     applyColors(newColors);
-    localStorage.setItem("theme-colors", JSON.stringify(newColors));
+    updateThemeConfig({ colors: newColors });
   };
 
   const handleColorChange = (color: keyof typeof customColors, value: string) => {
     const newColors = { ...customColors, [color]: value };
     setCustomColors(newColors);
     applyColors(newColors);
-    localStorage.setItem("theme-colors", JSON.stringify(newColors));
+    updateThemeConfig({ colors: newColors });
   };
 
   const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>, tipo: 'fechado' | 'aberto') => {
@@ -687,7 +690,7 @@ export default function ThemeCustomizer() {
   const handleFontChange = (fontFamily: string) => {
     setSelectedFont(fontFamily);
     applyFont(fontFamily);
-    localStorage.setItem("theme-font", fontFamily);
+    updateThemeConfig({ font: fontFamily });
   };
 
   const applyRadius = (radius: string) => {
@@ -697,7 +700,7 @@ export default function ThemeCustomizer() {
   const handleRadiusChange = (radius: string) => {
     setSelectedRadius(radius);
     applyRadius(radius);
-    localStorage.setItem("theme-radius", radius);
+    updateThemeConfig({ radius });
   };
 
   const applyBorder = (border: string) => {
@@ -707,7 +710,7 @@ export default function ThemeCustomizer() {
   const handleBorderChange = (border: string) => {
     setSelectedBorder(border);
     applyBorder(border);
-    localStorage.setItem("theme-border", border);
+    updateThemeConfig({ border });
   };
 
   const applyShadow = (shadow: string) => {
@@ -724,7 +727,7 @@ export default function ThemeCustomizer() {
   const handleShadowChange = (shadow: string) => {
     setSelectedShadow(shadow);
     applyShadow(shadow);
-    localStorage.setItem("theme-shadow", shadow);
+    updateThemeConfig({ shadow });
   };
 
   const applyIconStroke = (style: string) => {
@@ -737,7 +740,7 @@ export default function ThemeCustomizer() {
   const handleIconStrokeChange = (style: string) => {
     setSelectedIconStroke(style);
     applyIconStroke(style);
-    localStorage.setItem("theme-icon-stroke", style);
+    updateThemeConfig({ iconStroke: style });
     window.dispatchEvent(new Event('icon-style-changed'));
   };
 
@@ -752,7 +755,7 @@ export default function ThemeCustomizer() {
   const handleIconVisualChange = (style: string) => {
     setSelectedIconVisual(style);
     applyIconVisual(style);
-    localStorage.setItem("theme-icon-visual", style);
+    updateThemeConfig({ iconVisual: style });
     window.dispatchEvent(new Event('icon-style-changed'));
   };
 
@@ -767,7 +770,7 @@ export default function ThemeCustomizer() {
     const newColors = { ...menuColors, [color]: value };
     setMenuColors(newColors);
     applyMenuColors(newColors);
-    localStorage.setItem("theme-menu-colors", JSON.stringify(newColors));
+    updateThemeConfig({ menuColors: newColors });
   };
 
   return (

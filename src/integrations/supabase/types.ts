@@ -635,6 +635,30 @@ export type Database = {
         }
         Relationships: []
       }
+      configuracoes_sistema: {
+        Row: {
+          atualizado_em: string | null
+          chave: string
+          criado_em: string | null
+          id: string
+          valor: Json
+        }
+        Insert: {
+          atualizado_em?: string | null
+          chave: string
+          criado_em?: string | null
+          id?: string
+          valor: Json
+        }
+        Update: {
+          atualizado_em?: string | null
+          chave?: string
+          criado_em?: string | null
+          id?: string
+          valor?: Json
+        }
+        Relationships: []
+      }
       contas: {
         Row: {
           atualizado_em: string | null
