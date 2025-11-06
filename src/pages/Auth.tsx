@@ -47,10 +47,12 @@ export default function Auth() {
     });
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const {
+      data: {
+        subscription
+      }
+    } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
-        // Marca que acabou de logar para exibir o splash na próxima tela
-        sessionStorage.setItem('just_logged_in', 'true');
         navigate("/");
       }
     });
@@ -59,15 +61,13 @@ export default function Auth() {
   const handleLogin = async (data: LoginInput) => {
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const {
+        error
+      } = await supabase.auth.signInWithPassword({
         email: data.email,
         password: data.password
       });
       if (error) throw error;
-
-      // Garante que o splash será exibido após o redirecionamento
-      sessionStorage.setItem('just_logged_in', 'true');
-
       toast({
         title: "Login realizado com sucesso!",
         description: "Bem-vindo de volta."

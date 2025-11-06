@@ -41,8 +41,7 @@ import BaseConhecimento from "./pages/BaseConhecimento";
 import MeuPerfil from "./pages/MeuPerfil";
 import CadastroCNPJ from "./pages/CadastroCNPJ";
 import SolicitacoesCadastro from "./pages/SolicitacoesCadastro";
-const App = () => (
-  <>
+const App = () => <>
     <Toaster />
     <BrowserRouter>
       <Routes>
@@ -236,7 +235,5 @@ const App = () => (
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
-  </>
-);
-
+  </>;
 export default App;
