@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { LogIn, AlertCircle, User, Lock, Mail } from "lucide-react";
 import { loginSchema, signupSchema, LoginInput, SignupInput } from "@/lib/validations/auth";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import favicon from "@/assets/favicon-cfernandes.png";
+import logo from "@/assets/logo-cfernandes.webp";
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -122,7 +122,7 @@ export default function Auth() {
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNnoiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLW9wYWNpdHk9Ii4xIi8+PC9nPjwvc3ZnPg==')] opacity-20"></div>
         
         <div className="relative z-10 text-primary-foreground max-w-md">
-          <img src={favicon} alt="Cirúrgica Fernandes" className="h-16 mb-12 object-contain" />
+          <img src={logo} alt="Cirúrgica Fernandes" className="h-10 mb-12 object-contain" />
           
           <h1 className="text-4xl font-bold mb-4">
             Sistema de Gestão
