@@ -119,32 +119,65 @@ export default function Auth() {
     <div className="min-h-screen flex">
       {/* Left Side - Welcome Section */}
       <div className="hidden lg:flex lg:w-1/2 gradient-primary p-12 items-center justify-center relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNnoiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLW9wYWNpdHk9Ii4xIi8+PC9nPjwvc3ZnPg==')] opacity-20"></div>
+        {/* Padrão de fundo decorativo com círculos */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-20 left-20 w-32 h-32 rounded-full border-4 border-primary-foreground"></div>
+          <div className="absolute top-40 right-32 w-24 h-24 rounded-full border-4 border-primary-foreground"></div>
+          <div className="absolute bottom-32 left-40 w-40 h-40 rounded-full border-4 border-primary-foreground"></div>
+          <div className="absolute bottom-20 right-20 w-20 h-20 rounded-full border-4 border-primary-foreground"></div>
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full border-4 border-primary-foreground"></div>
+        </div>
         
-        <div className="relative z-10 text-primary-foreground max-w-md">
-          <img src={logo} alt="Cirúrgica Fernandes" className="h-10 mb-12 object-contain" />
+        {/* Grid pattern overlay */}
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0wIDBoNDB2NDBIMHoiLz48cGF0aCBkPSJNMjAgMGgxdjQwaC0xek0wIDIwdjFoNDB2LTF6IiBzdHJva2U9IiNmZmYiIHN0cm9rZS1vcGFjaXR5PSIuMDUiLz48L2c+PC9zdmc+')] opacity-30"></div>
+        
+        <div className="relative z-10 text-primary-foreground max-w-lg">
+          {/* Logo com destaque */}
+          <div className="mb-12 animate-fade-in">
+            <div className="inline-block p-4 bg-white/10 backdrop-blur-sm rounded-2xl shadow-elegant">
+              <img src={logo} alt="Cirúrgica Fernandes" className="h-12 object-contain" />
+            </div>
+          </div>
           
-          <h1 className="text-4xl font-bold mb-4">
-            Sistema de Gestão
-          </h1>
-          <h2 className="text-5xl font-bold mb-6 text-accent">
-            Cirúrgica Fernandes
-          </h2>
-          <p className="text-primary-foreground/90 text-lg leading-relaxed">
-            Plataforma completa para gestão de clientes, vendas, cotações e muito mais.
+          {/* Título principal */}
+          <div className="space-y-2 mb-8">
+            <h1 className="text-3xl font-semibold tracking-tight text-primary-foreground/80 animate-fade-in" style={{ animationDelay: '0.1s' }}>
+              Bem-vindo ao
+            </h1>
+            <h2 className="text-6xl font-bold leading-tight animate-fade-in" style={{ animationDelay: '0.2s' }}>
+              Sistema de Gestão
+            </h2>
+            <h3 className="text-5xl font-bold text-accent drop-shadow-lg animate-fade-in" style={{ animationDelay: '0.3s' }}>
+              Cirúrgica Fernandes
+            </h3>
+          </div>
+          
+          {/* Descrição */}
+          <p className="text-primary-foreground/80 text-lg leading-relaxed animate-fade-in" style={{ animationDelay: '0.4s' }}>
+            Plataforma completa para gestão de clientes, vendas, cotações EDI, licitações e muito mais. 
+            Tudo integrado em um único lugar.
           </p>
+          
+          {/* Features badges */}
+          <div className="flex flex-wrap gap-2 mt-8 animate-fade-in" style={{ animationDelay: '0.5s' }}>
+            <span className="px-3 py-1 bg-white/10 backdrop-blur-sm rounded-full text-sm font-medium">CRM</span>
+            <span className="px-3 py-1 bg-white/10 backdrop-blur-sm rounded-full text-sm font-medium">EDI</span>
+            <span className="px-3 py-1 bg-white/10 backdrop-blur-sm rounded-full text-sm font-medium">IA</span>
+            <span className="px-3 py-1 bg-white/10 backdrop-blur-sm rounded-full text-sm font-medium">WhatsApp</span>
+            <span className="px-3 py-1 bg-white/10 backdrop-blur-sm rounded-full text-sm font-medium">Tickets</span>
+          </div>
         </div>
       </div>
 
       {/* Right Side - Login Form */}
       <div className="flex-1 flex items-center justify-center p-8 bg-gradient-subtle">
-        <Card className="w-full max-w-md p-8 shadow-elegant bg-card/95 backdrop-blur">
-          <div className="text-center mb-8">
-            <h3 className="text-2xl font-bold text-foreground mb-2">
+        <Card className="w-full max-w-md p-10 shadow-elegant bg-card/95 backdrop-blur border-border/50">
+          <div className="text-center mb-10">
+            <h3 className="text-3xl font-bold text-foreground mb-2">
               {isLogin ? "Login" : "Criar Conta"}
             </h3>
-            <p className="text-muted-foreground">
-              {isLogin ? "Entre com suas credenciais" : "Preencha os dados para cadastro"}
+            <p className="text-muted-foreground text-base">
+              {isLogin ? "Entre com suas credenciais para acessar" : "Preencha os dados para criar sua conta"}
             </p>
           </div>
 
@@ -226,17 +259,24 @@ export default function Auth() {
             </Button>
           </form>
 
-          <div className="mt-6 text-center">
-            <span className="text-muted-foreground text-sm">
-              {isLogin ? "Novo aqui? " : "Já tem conta? "}
+          <div className="mt-8 text-center">
+            <span className="text-muted-foreground">
+              {isLogin ? "Novo por aqui? " : "Já tem uma conta? "}
             </span>
             <button
               type="button"
               onClick={() => setIsLogin(!isLogin)}
-              className="text-sm text-primary hover:underline font-medium"
+              className="text-primary hover:underline font-semibold transition-colors"
             >
-              {isLogin ? "Sign Up" : "Entrar"}
+              {isLogin ? "Criar conta" : "Fazer login"}
             </button>
+          </div>
+          
+          {/* Footer */}
+          <div className="mt-8 pt-6 border-t border-border text-center">
+            <p className="text-xs text-muted-foreground">
+              © 2025 Cirúrgica Fernandes. Todos os direitos reservados.
+            </p>
           </div>
         </Card>
       </div>
