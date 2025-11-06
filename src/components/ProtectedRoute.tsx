@@ -15,11 +15,7 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
   // Mostrar splash após login bem-sucedido
   useEffect(() => {
     if (!loading && user && !showSplash) {
-      const hasSeenSplash = sessionStorage.getItem('splash_shown');
-      if (!hasSeenSplash) {
-        setShowSplash(true);
-        sessionStorage.setItem('splash_shown', 'true');
-      }
+      setShowSplash(true);
     }
   }, [user, loading, showSplash]);
 
