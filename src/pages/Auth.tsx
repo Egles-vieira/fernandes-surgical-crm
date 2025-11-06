@@ -52,7 +52,8 @@ export default function Auth() {
         subscription
       }
     } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session) {
+      if (session && event === 'SIGNED_IN') {
+        sessionStorage.setItem('just_logged_in', 'true');
         navigate("/");
       }
     });
@@ -68,6 +69,9 @@ export default function Auth() {
         password: data.password
       });
       if (error) throw error;
+      
+      sessionStorage.setItem('just_logged_in', 'true');
+      
       toast({
         title: "Login realizado com sucesso!",
         description: "Bem-vindo de volta."
