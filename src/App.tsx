@@ -1,10 +1,7 @@
-import { useState, useEffect } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Layout from "./components/Layout";
 import ProtectedRoute from "./components/ProtectedRoute";
-import SplashScreen from "./components/SplashScreen";
-import { useThemeConfig } from "@/hooks/useThemeConfig";
 import Dashboard from "./pages/Dashboard";
 import Vendas from "./pages/Vendas";
 import Plataformas from "./pages/Plataformas";
@@ -44,47 +41,8 @@ import BaseConhecimento from "./pages/BaseConhecimento";
 import MeuPerfil from "./pages/MeuPerfil";
 import CadastroCNPJ from "./pages/CadastroCNPJ";
 import SolicitacoesCadastro from "./pages/SolicitacoesCadastro";
-const App = () => {
-  const [showSplash, setShowSplash] = useState(true);
-  const [configsLoaded, setConfigsLoaded] = useState(false);
-  const [minTimeElapsed, setMinTimeElapsed] = useState(false);
-  const { themeConfig, isLoading } = useThemeConfig();
-
-  // Garantir tempo mínimo de 3 segundos para o splash
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setMinTimeElapsed(true);
-    }, 3000);
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Apply theme configurations when loaded
-  useEffect(() => {
-    if (!isLoading && themeConfig) {
-      // Apply theme colors to CSS variables if they exist
-      if (themeConfig.colors) {
-        const root = document.documentElement;
-        Object.entries(themeConfig.colors).forEach(([key, value]) => {
-          if (value) root.style.setProperty(`--${key}`, value);
-        });
-      }
-      setConfigsLoaded(true);
-    }
-  }, [themeConfig, isLoading]);
-
-  // Esconder splash apenas quando ambos estiverem prontos
-  useEffect(() => {
-    if (minTimeElapsed && (configsLoaded || !isLoading)) {
-      setShowSplash(false);
-    }
-  }, [minTimeElapsed, configsLoaded, isLoading]);
-
-  if (showSplash) {
-    return <SplashScreen onComplete={() => {}} />;
-  }
-
-  return <>
+const App = () => (
+  <>
     <Toaster />
     <BrowserRouter>
       <Routes>
@@ -278,6 +236,7 @@ const App = () => {
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
-  </>;
-};
+  </>
+);
+
 export default App;
