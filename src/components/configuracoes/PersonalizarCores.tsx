@@ -218,12 +218,50 @@ const shadowPresets = [
 ];
 
 const fontOptions: FontOption[] = [
+  // Modernas
   { name: "Inter (Padrão)", family: "Inter", category: "modernas" },
   { name: "Poppins", family: "Poppins", category: "modernas" },
   { name: "Montserrat", family: "Montserrat", category: "modernas" },
+  { name: "Space Grotesk", family: "Space Grotesk", category: "modernas" },
+  { name: "Plus Jakarta Sans", family: "Plus Jakarta Sans", category: "modernas" },
+  { name: "DM Sans", family: "DM Sans", category: "modernas" },
+  { name: "Manrope", family: "Manrope", category: "modernas" },
+  { name: "Urbanist", family: "Urbanist", category: "modernas" },
+  { name: "Outfit", family: "Outfit", category: "modernas" },
+  { name: "Sora", family: "Sora", category: "modernas" },
+  { name: "League Spartan", family: "League Spartan", category: "modernas" },
+  { name: "Lexend", family: "Lexend", category: "modernas" },
+  { name: "IBM Plex Sans", family: "IBM Plex Sans", category: "modernas" },
+  { name: "Red Hat Display", family: "Red Hat Display", category: "modernas" },
+  { name: "Quicksand", family: "Quicksand", category: "modernas" },
+  { name: "Rubik", family: "Rubik", category: "modernas" },
+  { name: "Archivo", family: "Archivo", category: "modernas" },
+  { name: "Karla", family: "Karla", category: "modernas" },
+  { name: "Raleway", family: "Raleway", category: "modernas" },
+  { name: "Nunito", family: "Nunito", category: "modernas" },
+  { name: "Work Sans", family: "Work Sans", category: "modernas" },
+  
+  // Clássicas
   { name: "Roboto", family: "Roboto", category: "classicas" },
   { name: "Open Sans", family: "Open Sans", category: "classicas" },
+  { name: "Lato", family: "Lato", category: "classicas" },
+  { name: "Playfair Display", family: "Playfair Display", category: "classicas" },
+  { name: "Merriweather", family: "Merriweather", category: "classicas" },
+  { name: "Lora", family: "Lora", category: "classicas" },
+  { name: "PT Serif", family: "PT Serif", category: "classicas" },
+  { name: "Crimson Text", family: "Crimson Text", category: "classicas" },
+  
+  // Monoespaçadas
+  { name: "Source Code Pro", family: "Source Code Pro", category: "monoespacadas" },
+  { name: "JetBrains Mono", family: "JetBrains Mono", category: "monoespacadas" },
+  { name: "Fira Code", family: "Fira Code", category: "monoespacadas" },
 ];
+
+const fontCategories = {
+  modernas: fontOptions.filter(f => f.category === "modernas"),
+  classicas: fontOptions.filter(f => f.category === "classicas"),
+  monoespacadas: fontOptions.filter(f => f.category === "monoespacadas"),
+};
 
 export function PersonalizarCores() {
   const [selectedCategory, setSelectedCategory] = useState<typeof categories[number]>("Todos");
@@ -649,22 +687,58 @@ export function PersonalizarCores() {
         </TabsContent>
 
         <TabsContent value="fonts" className="space-y-4">
-          <div className="space-y-4">
-            <Label>Selecione uma Fonte</Label>
-            <div className="grid grid-cols-2 gap-3">
-              {fontOptions.map((font) => (
-                <Button
-                  key={font.family}
-                  variant={selectedFont === font.family ? "default" : "outline"}
-                  className="h-auto py-4"
-                  onClick={() => handleFontChange(font.family)}
-                  style={{ fontFamily: font.family }}
-                >
-                  {font.name}
-                </Button>
-              ))}
-            </div>
-          </div>
+          <Tabs defaultValue="modernas" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="modernas">Modernas</TabsTrigger>
+              <TabsTrigger value="classicas">Clássicas</TabsTrigger>
+              <TabsTrigger value="monoespacadas">Mono</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="modernas" className="space-y-3 mt-4">
+              <div className="grid grid-cols-2 gap-3">
+                {fontCategories.modernas.map((font) => (
+                  <Button
+                    key={font.family}
+                    variant={selectedFont === font.family ? "default" : "outline"}
+                    className="h-auto py-4 justify-start"
+                    onClick={() => handleFontChange(font.family)}
+                  >
+                    <span style={{ fontFamily: font.family }}>{font.name}</span>
+                  </Button>
+                ))}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="classicas" className="space-y-3 mt-4">
+              <div className="grid grid-cols-2 gap-3">
+                {fontCategories.classicas.map((font) => (
+                  <Button
+                    key={font.family}
+                    variant={selectedFont === font.family ? "default" : "outline"}
+                    className="h-auto py-4 justify-start"
+                    onClick={() => handleFontChange(font.family)}
+                  >
+                    <span style={{ fontFamily: font.family }}>{font.name}</span>
+                  </Button>
+                ))}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="monoespacadas" className="space-y-3 mt-4">
+              <div className="grid grid-cols-2 gap-3">
+                {fontCategories.monoespacadas.map((font) => (
+                  <Button
+                    key={font.family}
+                    variant={selectedFont === font.family ? "default" : "outline"}
+                    className="h-auto py-4 justify-start"
+                    onClick={() => handleFontChange(font.family)}
+                  >
+                    <span style={{ fontFamily: font.family }}>{font.name}</span>
+                  </Button>
+                ))}
+              </div>
+            </TabsContent>
+          </Tabs>
         </TabsContent>
 
         <TabsContent value="styles" className="space-y-6">
