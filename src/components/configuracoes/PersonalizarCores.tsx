@@ -589,6 +589,18 @@ export function PersonalizarCores() {
     if (visualStyle) {
       document.documentElement.style.setProperty("--icon-border-radius", visualStyle.borderRadius);
       document.documentElement.style.setProperty("--icon-fill-opacity", visualStyle.fillOpacity.toString());
+      
+      // Aplicar ou remover fill nos ícones lucide
+      const lucideIcons = document.querySelectorAll('svg[class*="lucide"]');
+      lucideIcons.forEach((icon) => {
+        if (visualStyle.fillOpacity > 0) {
+          icon.setAttribute('fill', 'currentColor');
+          icon.setAttribute('fill-opacity', visualStyle.fillOpacity.toString());
+        } else {
+          icon.setAttribute('fill', 'none');
+          icon.removeAttribute('fill-opacity');
+        }
+      });
     }
   };
 
@@ -596,7 +608,6 @@ export function PersonalizarCores() {
     setSelectedIconVisual(style);
     applyIconVisual(style);
     updateThemeConfig({ iconVisual: style });
-    window.dispatchEvent(new Event('icon-style-changed'));
   };
 
   const applyMenuColors = (colors: typeof menuColors) => {
@@ -612,6 +623,40 @@ export function PersonalizarCores() {
     applyMenuColors(newColors);
     updateThemeConfig({ menuColors: newColors });
   };
+
+  // Aplicar estilos de ícone em todos os ícones Lucide do DOM
+  useEffect(() => {
+    const applyIconStylesToAll = () => {
+      const lucideIcons = document.querySelectorAll('svg[class*="lucide"]');
+      lucideIcons.forEach((icon) => {
+        const visualStyle = iconVisualStyles.find(s => s.value === selectedIconVisual);
+        if (visualStyle) {
+          if (visualStyle.fillOpacity > 0) {
+            icon.setAttribute('fill', 'currentColor');
+            icon.setAttribute('fill-opacity', visualStyle.fillOpacity.toString());
+          } else {
+            icon.setAttribute('fill', 'none');
+            icon.removeAttribute('fill-opacity');
+          }
+        }
+      });
+    };
+
+    // Aplicar estilos inicialmente
+    applyIconStylesToAll();
+
+    // Observar mudanças no DOM para aplicar estilos em novos ícones
+    const observer = new MutationObserver(() => {
+      applyIconStylesToAll();
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
+
+    return () => observer.disconnect();
+  }, [selectedIconVisual, selectedIconStroke]);
 
   const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>, tipo: 'fechado' | 'aberto') => {
     const file = event.target.files?.[0];
