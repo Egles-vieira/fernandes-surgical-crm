@@ -122,17 +122,44 @@ export function EmpresaConfig() {
       return;
     }
 
-    const resultado = await consultarCNPJ(cnpjLimpo);
+    // Consultar com contexto completo igual ao cadastro de clientes
+    const resultado = await consultarCNPJ(cnpjLimpo, {
+      tipoCliente: 'comum',
+      emiteNF: true,
+      trabalhaComICMS: true,
+      operacoesInterestaduais: true,
+      sempreValidarCEP: true
+    });
     
     if (resultado?.dados) {
-      const office = resultado.dados.office;
+      const { office, ie, endereco } = resultado.dados;
+      
+      // Preencher CNPJ formatado
+      setValue("cnpj", formatarCNPJ(cnpjLimpo), { shouldDirty: true });
       
       // Preencher campos básicos
-      setValue("razao_social", office.company?.name || "", { shouldDirty: true });
+      setValue("razao_social", office.company?.name || office.name || "", { shouldDirty: true });
       setValue("nome_fantasia", office.alias || "", { shouldDirty: true });
       
-      // Preencher endereço
-      if (office.address) {
+      // Preencher inscrições
+      if (ie?.stateRegistration) {
+        setValue("inscricao_estadual", ie.stateRegistration, { shouldDirty: true });
+      }
+      
+      // Usar endereço detalhado (ViaCEP) se disponível
+      if (endereco) {
+        setValue("endereco", endereco.logradouro || "", { shouldDirty: true });
+        setValue("complemento", endereco.complemento || "", { shouldDirty: true });
+        setValue("bairro", endereco.bairro || "", { shouldDirty: true });
+        setValue("cidade", endereco.localidade || "", { shouldDirty: true });
+        setValue("estado", endereco.uf || "", { shouldDirty: true });
+        setValue("cep", endereco.cep || "", { shouldDirty: true });
+        // Número vem do office.address
+        if (office.address?.number) {
+          setValue("numero", office.address.number, { shouldDirty: true });
+        }
+      } else if (office.address) {
+        // Fallback para endereço do office
         setValue("endereco", office.address.street || "", { shouldDirty: true });
         setValue("numero", office.address.number || "", { shouldDirty: true });
         setValue("complemento", office.address.details || "", { shouldDirty: true });
@@ -144,8 +171,13 @@ export function EmpresaConfig() {
 
       // Preencher contatos
       if (office.phones && office.phones.length > 0) {
-        const phone = office.phones[0];
-        setValue("telefone", `(${phone.area}) ${phone.number}`, { shouldDirty: true });
+        const mainPhone = office.phones.find(p => !p.area || p.area.length === 2) || office.phones[0];
+        const cellPhone = office.phones.find(p => p.number?.length === 9) || office.phones[1];
+        
+        setValue("telefone", mainPhone ? `(${mainPhone.area}) ${mainPhone.number}` : "", { shouldDirty: true });
+        if (cellPhone && cellPhone !== mainPhone) {
+          setValue("celular", `(${cellPhone.area}) ${cellPhone.number}`, { shouldDirty: true });
+        }
       }
 
       if (office.emails && office.emails.length > 0) {
