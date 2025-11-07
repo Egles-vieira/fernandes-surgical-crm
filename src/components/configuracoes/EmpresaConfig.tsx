@@ -142,8 +142,27 @@ export function EmpresaConfig() {
       setValue("nome_fantasia", office.alias || "", { shouldDirty: true });
       
       // Preencher inscrições
+      // Inscrição Estadual - buscar de múltiplas fontes
       if (ie?.stateRegistration) {
         setValue("inscricao_estadual", ie.stateRegistration, { shouldDirty: true });
+      } else if (office.registrations && office.registrations.length > 0) {
+        // Buscar IE nas registrations do office
+        const ieReg = office.registrations.find(r => r.state && r.number);
+        if (ieReg) {
+          setValue("inscricao_estadual", ieReg.number, { shouldDirty: true });
+        }
+      }
+      
+      // Inscrição Municipal - buscar nas registrations
+      if (office.registrations && office.registrations.length > 0) {
+        // Procurar por registro municipal (geralmente não tem state ou é municipal)
+        const imReg = office.registrations.find(r => 
+          r.type?.text?.toLowerCase().includes('municipal') || 
+          (!r.state && r.number)
+        );
+        if (imReg) {
+          setValue("inscricao_municipal", imReg.number, { shouldDirty: true });
+        }
       }
       
       // Usar endereço detalhado (ViaCEP) se disponível
