@@ -5803,6 +5803,13 @@ export type Database = {
         | "support"
         | "lider"
         | "backoffice"
+        | "diretor_comercial"
+        | "gerente_comercial"
+        | "coordenador_comercial"
+        | "gestor_equipe"
+        | "representante_comercial"
+        | "executivo_contas"
+        | "consultor_vendas"
       etapa_pipeline:
         | "prospeccao"
         | "qualificacao"
@@ -5978,6 +5985,13 @@ export const Constants = {
         "support",
         "lider",
         "backoffice",
+        "diretor_comercial",
+        "gerente_comercial",
+        "coordenador_comercial",
+        "gestor_equipe",
+        "representante_comercial",
+        "executivo_contas",
+        "consultor_vendas",
       ],
       etapa_pipeline: [
         "prospeccao",
