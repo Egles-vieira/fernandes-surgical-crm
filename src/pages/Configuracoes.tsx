@@ -1,7 +1,8 @@
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Building2, Settings as SettingsIcon } from "lucide-react";
+import { Building2, Settings as SettingsIcon, Palette } from "lucide-react";
 import { EmpresaConfig } from "@/components/configuracoes/EmpresaConfig";
+import { PersonalizarCores } from "@/components/configuracoes/PersonalizarCores";
 
 export default function Configuracoes() {
   return (
@@ -20,16 +21,23 @@ export default function Configuracoes() {
 
       <Card className="p-6">
         <Tabs defaultValue="empresa" className="space-y-6">
-          <TabsList className="grid w-full max-w-2xl grid-cols-1 sm:grid-cols-3 lg:grid-cols-4">
+          <TabsList className="grid w-full max-w-2xl grid-cols-2">
             <TabsTrigger value="empresa" className="gap-2">
               <Building2 className="h-4 w-4" />
               Empresa
             </TabsTrigger>
-            {/* Futuras abas serão adicionadas aqui */}
+            <TabsTrigger value="cores" className="gap-2">
+              <Palette className="h-4 w-4" />
+              Personalizar Cores
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="empresa">
             <EmpresaConfig />
+          </TabsContent>
+
+          <TabsContent value="cores">
+            <PersonalizarCores />
           </TabsContent>
         </Tabs>
       </Card>
