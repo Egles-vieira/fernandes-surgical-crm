@@ -2416,6 +2416,7 @@ export type Database = {
           descricao: string | null
           esta_ativa: boolean | null
           excluido_em: string | null
+          gestor_id: string | null
           id: string
           lider_equipe_id: string | null
           nome: string
@@ -2427,6 +2428,7 @@ export type Database = {
           descricao?: string | null
           esta_ativa?: boolean | null
           excluido_em?: string | null
+          gestor_id?: string | null
           id?: string
           lider_equipe_id?: string | null
           nome: string
@@ -2438,6 +2440,7 @@ export type Database = {
           descricao?: string | null
           esta_ativa?: boolean | null
           excluido_em?: string | null
+          gestor_id?: string | null
           id?: string
           lider_equipe_id?: string | null
           nome?: string
@@ -3844,6 +3847,33 @@ export type Database = {
         }
         Relationships: []
       }
+      role_hierarquia: {
+        Row: {
+          criado_em: string | null
+          descricao: string | null
+          id: string
+          nivel: number
+          pode_acessar_menu_tecnico: boolean
+          role: Database["public"]["Enums"]["app_role"]
+        }
+        Insert: {
+          criado_em?: string | null
+          descricao?: string | null
+          id?: string
+          nivel: number
+          pode_acessar_menu_tecnico?: boolean
+          role: Database["public"]["Enums"]["app_role"]
+        }
+        Update: {
+          criado_em?: string | null
+          descricao?: string | null
+          id?: string
+          nivel?: number
+          pode_acessar_menu_tecnico?: boolean
+          role?: Database["public"]["Enums"]["app_role"]
+        }
+        Relationships: []
+      }
       solicitacoes_cadastro: {
         Row: {
           aprovado_em: string | null
@@ -4532,6 +4562,96 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      usuario_clientes_vinculo: {
+        Row: {
+          ativo: boolean | null
+          atualizado_em: string | null
+          cliente_id: string
+          criado_em: string | null
+          criado_por: string | null
+          data_fim: string | null
+          data_inicio: string | null
+          id: string
+          tipo_vinculo: string | null
+          usuario_id: string
+        }
+        Insert: {
+          ativo?: boolean | null
+          atualizado_em?: string | null
+          cliente_id: string
+          criado_em?: string | null
+          criado_por?: string | null
+          data_fim?: string | null
+          data_inicio?: string | null
+          id?: string
+          tipo_vinculo?: string | null
+          usuario_id: string
+        }
+        Update: {
+          ativo?: boolean | null
+          atualizado_em?: string | null
+          cliente_id?: string
+          criado_em?: string | null
+          criado_por?: string | null
+          data_fim?: string | null
+          data_inicio?: string | null
+          id?: string
+          tipo_vinculo?: string | null
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "usuario_clientes_vinculo_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "usuario_clientes_vinculo_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "vw_clientes_completo"
+            referencedColumns: ["cliente_id"]
+          },
+        ]
+      }
+      usuario_hierarquia: {
+        Row: {
+          ativo: boolean | null
+          atualizado_em: string | null
+          criado_em: string | null
+          criado_por: string | null
+          data_fim: string | null
+          data_inicio: string | null
+          id: string
+          subordinado_id: string
+          superior_id: string
+        }
+        Insert: {
+          ativo?: boolean | null
+          atualizado_em?: string | null
+          criado_em?: string | null
+          criado_por?: string | null
+          data_fim?: string | null
+          data_inicio?: string | null
+          id?: string
+          subordinado_id: string
+          superior_id: string
+        }
+        Update: {
+          ativo?: boolean | null
+          atualizado_em?: string | null
+          criado_em?: string | null
+          criado_por?: string | null
+          data_fim?: string | null
+          data_inicio?: string | null
+          id?: string
+          subordinado_id?: string
+          superior_id?: string
+        }
+        Relationships: []
       }
       vendas: {
         Row: {
@@ -5718,11 +5838,13 @@ export type Database = {
         Args: { _cliente_id: string; _user_id: string }
         Returns: boolean
       }
+      can_access_menu_tecnico: { Args: { _user_id: string }; Returns: boolean }
       gerar_numero_ticket: { Args: never; Returns: string }
       get_linked_seller: {
         Args: { _backoffice_user_id: string }
         Returns: string
       }
+      get_nivel_hierarquico: { Args: { _user_id: string }; Returns: number }
       get_pending_items: {
         Args: never
         Returns: {
