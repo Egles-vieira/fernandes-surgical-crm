@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Check, Upload, Palette } from "lucide-react";
+import { Check, Upload, Palette, Type, Image as ImageIcon, Shapes } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -263,6 +263,91 @@ const fontCategories = {
   monoespacadas: fontOptions.filter(f => f.category === "monoespacadas"),
 };
 
+interface IconStrokeStyle {
+  name: string;
+  value: string;
+  description: string;
+  strokeWidth: number;
+  example: string;
+}
+
+interface IconVisualStyle {
+  name: string;
+  value: string;
+  description: string;
+  borderRadius: string;
+  fillOpacity: number;
+}
+
+const iconStrokeStyles: IconStrokeStyle[] = [
+  { 
+    name: "Padrão", 
+    value: "default", 
+    description: "Estilo equilibrado, ideal para uso geral",
+    strokeWidth: 2,
+    example: "Lucide Icons padrão"
+  },
+  { 
+    name: "Fino", 
+    value: "thin", 
+    description: "Ícones delicados e minimalistas",
+    strokeWidth: 1.5,
+    example: "Estilo leve e elegante"
+  },
+  { 
+    name: "Grosso", 
+    value: "thick", 
+    description: "Ícones fortes e destacados",
+    strokeWidth: 2.5,
+    example: "Máxima visibilidade"
+  },
+  { 
+    name: "Muito Grosso", 
+    value: "bold", 
+    description: "Ícones robustos e chamativos",
+    strokeWidth: 3,
+    example: "Estilo bold e impactante"
+  },
+];
+
+const iconVisualStyles: IconVisualStyle[] = [
+  {
+    name: "Padrão (Lucide)",
+    value: "lucide",
+    description: "Ícones lineares clássicos do Lucide",
+    borderRadius: "0",
+    fillOpacity: 0
+  },
+  {
+    name: "Arredondado",
+    value: "rounded",
+    description: "Ícones com cantos suavemente arredondados",
+    borderRadius: "4px",
+    fillOpacity: 0
+  },
+  {
+    name: "Circular",
+    value: "circular",
+    description: "Ícones com máximo arredondamento",
+    borderRadius: "50%",
+    fillOpacity: 0
+  },
+  {
+    name: "Preenchido",
+    value: "filled",
+    description: "Ícones com preenchimento sólido",
+    borderRadius: "0",
+    fillOpacity: 1
+  },
+  {
+    name: "Suave",
+    value: "soft",
+    description: "Ícones com preenchimento suave e translúcido",
+    borderRadius: "2px",
+    fillOpacity: 0.2
+  },
+];
+
 export function PersonalizarCores() {
   const [selectedCategory, setSelectedCategory] = useState<typeof categories[number]>("Todos");
   const [customColors, setCustomColors] = useState({
@@ -275,6 +360,8 @@ export function PersonalizarCores() {
   const [selectedRadius, setSelectedRadius] = useState("0.75rem");
   const [selectedBorder, setSelectedBorder] = useState("2px");
   const [selectedShadow, setSelectedShadow] = useState("md");
+  const [selectedIconStroke, setSelectedIconStroke] = useState("default");
+  const [selectedIconVisual, setSelectedIconVisual] = useState("lucide");
   const [menuColors, setMenuColors] = useState({
     background: "#47ccd8",
     icon: "#ffffff",
@@ -315,6 +402,16 @@ export function PersonalizarCores() {
     if (themeConfig.shadow) {
       setSelectedShadow(themeConfig.shadow);
       applyShadow(themeConfig.shadow);
+    }
+
+    if (themeConfig.iconStroke) {
+      setSelectedIconStroke(themeConfig.iconStroke);
+      applyIconStroke(themeConfig.iconStroke);
+    }
+
+    if (themeConfig.iconVisual) {
+      setSelectedIconVisual(themeConfig.iconVisual);
+      applyIconVisual(themeConfig.iconVisual);
     }
 
     if (themeConfig.menuColors) {
@@ -473,6 +570,35 @@ export function PersonalizarCores() {
     updateThemeConfig({ shadow });
   };
 
+  const applyIconStroke = (style: string) => {
+    const iconStyle = iconStrokeStyles.find(s => s.value === style);
+    if (iconStyle) {
+      document.documentElement.style.setProperty("--icon-stroke-width", iconStyle.strokeWidth.toString());
+    }
+  };
+
+  const handleIconStrokeChange = (style: string) => {
+    setSelectedIconStroke(style);
+    applyIconStroke(style);
+    updateThemeConfig({ iconStroke: style });
+    window.dispatchEvent(new Event('icon-style-changed'));
+  };
+
+  const applyIconVisual = (style: string) => {
+    const visualStyle = iconVisualStyles.find(s => s.value === style);
+    if (visualStyle) {
+      document.documentElement.style.setProperty("--icon-border-radius", visualStyle.borderRadius);
+      document.documentElement.style.setProperty("--icon-fill-opacity", visualStyle.fillOpacity.toString());
+    }
+  };
+
+  const handleIconVisualChange = (style: string) => {
+    setSelectedIconVisual(style);
+    applyIconVisual(style);
+    updateThemeConfig({ iconVisual: style });
+    window.dispatchEvent(new Event('icon-style-changed'));
+  };
+
   const applyMenuColors = (colors: typeof menuColors) => {
     const root = document.documentElement;
     root.style.setProperty("--menu-background", hexToHSL(colors.background));
@@ -509,10 +635,11 @@ export function PersonalizarCores() {
       </div>
 
       <Tabs defaultValue="presets" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="presets">Temas</TabsTrigger>
           <TabsTrigger value="custom">Cores</TabsTrigger>
           <TabsTrigger value="fonts">Fontes</TabsTrigger>
+          <TabsTrigger value="icons">Ícones</TabsTrigger>
           <TabsTrigger value="styles">Estilos</TabsTrigger>
           <TabsTrigger value="logo">Logo</TabsTrigger>
         </TabsList>
@@ -694,102 +821,438 @@ export function PersonalizarCores() {
               <TabsTrigger value="monoespacadas">Mono</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="modernas" className="space-y-3 mt-4">
-              <div className="grid grid-cols-2 gap-3">
-                {fontCategories.modernas.map((font) => (
-                  <Button
-                    key={font.family}
-                    variant={selectedFont === font.family ? "default" : "outline"}
-                    className="h-auto py-4 justify-start"
-                    onClick={() => handleFontChange(font.family)}
+            <TabsContent value="modernas" className="space-y-3 max-h-[400px] overflow-y-auto pr-2 mt-4">
+              {fontCategories.modernas.map((font) => (
+                <button
+                  key={font.family}
+                  onClick={() => handleFontChange(font.family)}
+                  className={`w-full p-4 border-2 rounded-lg hover:border-primary transition-all text-left ${
+                    selectedFont === font.family ? "border-primary bg-primary/5" : ""
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-medium text-sm">{font.name}</span>
+                    {selectedFont === font.family && (
+                      <Check className="text-primary" size={16} />
+                    )}
+                  </div>
+                  <p
+                    className="text-base"
+                    style={{ fontFamily: `"${font.family}", sans-serif` }}
                   >
-                    <span style={{ fontFamily: font.family }}>{font.name}</span>
-                  </Button>
-                ))}
-              </div>
+                    The quick brown fox jumps over the lazy dog
+                  </p>
+                  <p
+                    className="text-sm text-muted-foreground mt-1"
+                    style={{ fontFamily: `"${font.family}", sans-serif` }}
+                  >
+                    0123456789 - ABCDEFGabcdefg
+                  </p>
+                </button>
+              ))}
             </TabsContent>
 
-            <TabsContent value="classicas" className="space-y-3 mt-4">
-              <div className="grid grid-cols-2 gap-3">
-                {fontCategories.classicas.map((font) => (
-                  <Button
-                    key={font.family}
-                    variant={selectedFont === font.family ? "default" : "outline"}
-                    className="h-auto py-4 justify-start"
-                    onClick={() => handleFontChange(font.family)}
+            <TabsContent value="classicas" className="space-y-3 max-h-[400px] overflow-y-auto pr-2 mt-4">
+              {fontCategories.classicas.map((font) => (
+                <button
+                  key={font.family}
+                  onClick={() => handleFontChange(font.family)}
+                  className={`w-full p-4 border-2 rounded-lg hover:border-primary transition-all text-left ${
+                    selectedFont === font.family ? "border-primary bg-primary/5" : ""
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-medium text-sm">{font.name}</span>
+                    {selectedFont === font.family && (
+                      <Check className="text-primary" size={16} />
+                    )}
+                  </div>
+                  <p
+                    className="text-base"
+                    style={{ fontFamily: `"${font.family}", serif` }}
                   >
-                    <span style={{ fontFamily: font.family }}>{font.name}</span>
-                  </Button>
-                ))}
-              </div>
+                    The quick brown fox jumps over the lazy dog
+                  </p>
+                  <p
+                    className="text-sm text-muted-foreground mt-1"
+                    style={{ fontFamily: `"${font.family}", serif` }}
+                  >
+                    0123456789 - ABCDEFGabcdefg
+                  </p>
+                </button>
+              ))}
             </TabsContent>
 
-            <TabsContent value="monoespacadas" className="space-y-3 mt-4">
-              <div className="grid grid-cols-2 gap-3">
-                {fontCategories.monoespacadas.map((font) => (
-                  <Button
-                    key={font.family}
-                    variant={selectedFont === font.family ? "default" : "outline"}
-                    className="h-auto py-4 justify-start"
-                    onClick={() => handleFontChange(font.family)}
+            <TabsContent value="monoespacadas" className="space-y-3 max-h-[400px] overflow-y-auto pr-2 mt-4">
+              {fontCategories.monoespacadas.map((font) => (
+                <button
+                  key={font.family}
+                  onClick={() => handleFontChange(font.family)}
+                  className={`w-full p-4 border-2 rounded-lg hover:border-primary transition-all text-left ${
+                    selectedFont === font.family ? "border-primary bg-primary/5" : ""
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-medium text-sm">{font.name}</span>
+                    {selectedFont === font.family && (
+                      <Check className="text-primary" size={16} />
+                    )}
+                  </div>
+                  <p
+                    className="text-base"
+                    style={{ fontFamily: `"${font.family}", monospace` }}
                   >
-                    <span style={{ fontFamily: font.family }}>{font.name}</span>
-                  </Button>
-                ))}
-              </div>
+                    The quick brown fox jumps over the lazy dog
+                  </p>
+                  <p
+                    className="text-sm text-muted-foreground mt-1"
+                    style={{ fontFamily: `"${font.family}", monospace` }}
+                  >
+                    0123456789 - ABCDEFGabcdefg
+                  </p>
+                </button>
+              ))}
             </TabsContent>
           </Tabs>
         </TabsContent>
 
+        <TabsContent value="icons" className="space-y-6">
+          {/* Estilo Visual */}
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
+                <Shapes className="w-5 h-5" />
+                Estilo Visual dos Ícones
+              </h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Escolha o tipo visual dos ícones
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 gap-3">
+              {iconVisualStyles.map((style) => (
+                <button
+                  key={style.value}
+                  onClick={() => handleIconVisualChange(style.value)}
+                  className={`relative p-4 border-2 rounded-lg transition-all text-left ${
+                    selectedIconVisual === style.value
+                      ? "border-primary bg-primary/5"
+                      : "border-border hover:border-primary/50"
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-3">
+                      <div className="flex gap-2 items-center">
+                        <div 
+                          className="p-2 bg-primary/10 transition-all"
+                          style={{ 
+                            borderRadius: style.borderRadius,
+                          }}
+                        >
+                          <Check 
+                            className="text-primary" 
+                            size={20} 
+                            strokeWidth={iconStrokeStyles.find(s => s.value === selectedIconStroke)?.strokeWidth}
+                            fill={style.fillOpacity > 0 ? "currentColor" : "none"}
+                            fillOpacity={style.fillOpacity}
+                          />
+                        </div>
+                        <div 
+                          className="p-2 bg-primary/10 transition-all"
+                          style={{ 
+                            borderRadius: style.borderRadius,
+                          }}
+                        >
+                          <Palette 
+                            className="text-primary" 
+                            size={20} 
+                            strokeWidth={iconStrokeStyles.find(s => s.value === selectedIconStroke)?.strokeWidth}
+                            fill={style.fillOpacity > 0 ? "currentColor" : "none"}
+                            fillOpacity={style.fillOpacity}
+                          />
+                        </div>
+                        <div 
+                          className="p-2 bg-primary/10 transition-all"
+                          style={{ 
+                            borderRadius: style.borderRadius,
+                          }}
+                        >
+                          <Upload 
+                            className="text-primary" 
+                            size={20} 
+                            strokeWidth={iconStrokeStyles.find(s => s.value === selectedIconStroke)?.strokeWidth}
+                            fill={style.fillOpacity > 0 ? "currentColor" : "none"}
+                            fillOpacity={style.fillOpacity}
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <span className="font-medium block">{style.name}</span>
+                        <span className="text-xs text-muted-foreground">{style.description}</span>
+                      </div>
+                    </div>
+                    {selectedIconVisual === style.value && (
+                      <Check className="text-primary" size={20} />
+                    )}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Espessura */}
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-lg font-semibold mb-2">Espessura dos Ícones</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Ajuste a espessura das linhas dos ícones
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 gap-3">
+              {iconStrokeStyles.map((style) => (
+                <button
+                  key={style.value}
+                  onClick={() => handleIconStrokeChange(style.value)}
+                  className={`relative p-4 border-2 rounded-lg transition-all text-left ${
+                    selectedIconStroke === style.value
+                      ? "border-primary bg-primary/5"
+                      : "border-border hover:border-primary/50"
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-3">
+                      <div className="flex gap-2">
+                        <Check className="text-primary" size={20} strokeWidth={style.strokeWidth} />
+                        <Palette className="text-primary" size={20} strokeWidth={style.strokeWidth} />
+                        <Upload className="text-primary" size={20} strokeWidth={style.strokeWidth} />
+                      </div>
+                      <div>
+                        <span className="font-medium block">{style.name}</span>
+                        <span className="text-xs text-muted-foreground">{style.example}</span>
+                      </div>
+                    </div>
+                    {selectedIconStroke === style.value && (
+                      <Check className="text-primary" size={20} strokeWidth={style.strokeWidth} />
+                    )}
+                  </div>
+                  <p className="text-sm text-muted-foreground">{style.description}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Prévia Completa */}
+          <div className="p-4 border rounded-lg bg-muted/50 space-y-3">
+            <p className="text-sm font-medium">Prévia Combinada (Visual + Espessura)</p>
+            <div className="flex gap-4 items-center justify-center p-6 bg-background rounded">
+              <div 
+                className="p-3 bg-primary/10 transition-all"
+                style={{ 
+                  borderRadius: iconVisualStyles.find(s => s.value === selectedIconVisual)?.borderRadius,
+                }}
+              >
+                <Palette 
+                  size={28} 
+                  strokeWidth={iconStrokeStyles.find(s => s.value === selectedIconStroke)?.strokeWidth}
+                  fill={iconVisualStyles.find(s => s.value === selectedIconVisual)?.fillOpacity ? "currentColor" : "none"}
+                  fillOpacity={iconVisualStyles.find(s => s.value === selectedIconVisual)?.fillOpacity}
+                  className="text-primary"
+                />
+              </div>
+              <div 
+                className="p-3 bg-primary/10 transition-all"
+                style={{ 
+                  borderRadius: iconVisualStyles.find(s => s.value === selectedIconVisual)?.borderRadius,
+                }}
+              >
+                <Type 
+                  size={28} 
+                  strokeWidth={iconStrokeStyles.find(s => s.value === selectedIconStroke)?.strokeWidth}
+                  fill={iconVisualStyles.find(s => s.value === selectedIconVisual)?.fillOpacity ? "currentColor" : "none"}
+                  fillOpacity={iconVisualStyles.find(s => s.value === selectedIconVisual)?.fillOpacity}
+                  className="text-primary"
+                />
+              </div>
+              <div 
+                className="p-3 bg-primary/10 transition-all"
+                style={{ 
+                  borderRadius: iconVisualStyles.find(s => s.value === selectedIconVisual)?.borderRadius,
+                }}
+              >
+                <Upload 
+                  size={28} 
+                  strokeWidth={iconStrokeStyles.find(s => s.value === selectedIconStroke)?.strokeWidth}
+                  fill={iconVisualStyles.find(s => s.value === selectedIconVisual)?.fillOpacity ? "currentColor" : "none"}
+                  fillOpacity={iconVisualStyles.find(s => s.value === selectedIconVisual)?.fillOpacity}
+                  className="text-primary"
+                />
+              </div>
+              <div 
+                className="p-3 bg-primary/10 transition-all"
+                style={{ 
+                  borderRadius: iconVisualStyles.find(s => s.value === selectedIconVisual)?.borderRadius,
+                }}
+              >
+                <ImageIcon 
+                  size={28} 
+                  strokeWidth={iconStrokeStyles.find(s => s.value === selectedIconStroke)?.strokeWidth}
+                  fill={iconVisualStyles.find(s => s.value === selectedIconVisual)?.fillOpacity ? "currentColor" : "none"}
+                  fillOpacity={iconVisualStyles.find(s => s.value === selectedIconVisual)?.fillOpacity}
+                  className="text-primary"
+                />
+              </div>
+              <div 
+                className="p-3 bg-primary/10 transition-all"
+                style={{ 
+                  borderRadius: iconVisualStyles.find(s => s.value === selectedIconVisual)?.borderRadius,
+                }}
+              >
+                <Check 
+                  size={28} 
+                  strokeWidth={iconStrokeStyles.find(s => s.value === selectedIconStroke)?.strokeWidth}
+                  fill={iconVisualStyles.find(s => s.value === selectedIconVisual)?.fillOpacity ? "currentColor" : "none"}
+                  fillOpacity={iconVisualStyles.find(s => s.value === selectedIconVisual)?.fillOpacity}
+                  className="text-primary"
+                />
+              </div>
+            </div>
+          </div>
+        </TabsContent>
+
         <TabsContent value="styles" className="space-y-6">
-          <div>
-            <Label className="text-base font-semibold">Arredondamento</Label>
-            <div className="grid grid-cols-2 gap-3 mt-3">
-              {radiusPresets.map((preset) => (
-                <Button
-                  key={preset.value}
-                  variant={selectedRadius === preset.value ? "default" : "outline"}
-                  onClick={() => handleRadiusChange(preset.value)}
-                  className="h-auto flex-col items-start p-4"
-                >
-                  <span className="font-medium">{preset.name}</span>
-                  <span className="text-xs text-muted-foreground">{preset.description}</span>
-                </Button>
-              ))}
-            </div>
-          </div>
+          <div className="space-y-8">
+            {/* Arredondamento */}
+            <div>
+              <h3 className="text-lg font-semibold mb-2">Arredondamento dos Componentes</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Escolha o nível de arredondamento aplicado globalmente aos botões, cards e outros componentes
+              </p>
 
-          <div>
-            <Label className="text-base font-semibold">Espessura da Borda</Label>
-            <div className="grid grid-cols-2 gap-3 mt-3">
-              {borderPresets.map((preset) => (
-                <Button
-                  key={preset.value}
-                  variant={selectedBorder === preset.value ? "default" : "outline"}
-                  onClick={() => handleBorderChange(preset.value)}
-                  className="h-auto flex-col items-start p-4"
-                >
-                  <span className="font-medium">{preset.name}</span>
-                  <span className="text-xs text-muted-foreground">{preset.description}</span>
-                </Button>
-              ))}
+              <div className="grid grid-cols-1 gap-3">
+                {radiusPresets.map((preset) => (
+                  <button
+                    key={preset.value}
+                    onClick={() => handleRadiusChange(preset.value)}
+                    className={`relative p-4 border-2 rounded-lg transition-all text-left ${
+                      selectedRadius === preset.value
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-primary/50"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div>
+                        <span className="font-medium">{preset.name}</span>
+                        <p className="text-sm text-muted-foreground">{preset.description}</p>
+                      </div>
+                      {selectedRadius === preset.value && (
+                        <Check className="text-primary" size={20} />
+                      )}
+                    </div>
+                    
+                    {/* Preview visual do arredondamento */}
+                    <div className="flex gap-3 mt-3">
+                      <div 
+                        className="w-16 h-16 bg-primary"
+                        style={{ borderRadius: preset.value }}
+                      />
+                      <div 
+                        className="w-24 h-16 bg-secondary flex items-center justify-center text-xs text-white font-medium"
+                        style={{ borderRadius: preset.value }}
+                      >
+                        Preview
+                      </div>
+                      <div 
+                        className="flex-1 h-16 bg-accent"
+                        style={{ borderRadius: preset.value }}
+                      />
+                    </div>
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
 
-          <div>
-            <Label className="text-base font-semibold">Sombra</Label>
-            <div className="grid grid-cols-2 gap-3 mt-3">
-              {shadowPresets.map((preset) => (
-                <Button
-                  key={preset.value}
-                  variant={selectedShadow === preset.value ? "default" : "outline"}
-                  onClick={() => handleShadowChange(preset.value)}
-                  className="h-auto flex-col items-start p-4"
-                >
-                  <span className="font-medium">{preset.name}</span>
-                  <span className="text-xs text-muted-foreground">{preset.description}</span>
-                </Button>
-              ))}
+            {/* Espessura da Borda */}
+            <div>
+              <h3 className="text-lg font-semibold mb-2">Espessura das Bordas</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Defina a espessura padrão das bordas dos componentes
+              </p>
+
+              <div className="grid grid-cols-2 gap-3">
+                {borderPresets.map((preset) => (
+                  <button
+                    key={preset.value}
+                    onClick={() => handleBorderChange(preset.value)}
+                    className={`relative p-4 border-2 rounded-lg transition-all text-left ${
+                      selectedBorder === preset.value
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-primary/50"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <span className="font-medium">{preset.name}</span>
+                        <p className="text-xs text-muted-foreground">{preset.description}</p>
+                      </div>
+                      {selectedBorder === preset.value && (
+                        <Check className="text-primary" size={18} />
+                      )}
+                    </div>
+                    
+                    {/* Preview visual da borda */}
+                    <div 
+                      className="w-full h-12 bg-background border-primary rounded-md"
+                      style={{ borderWidth: preset.value }}
+                    />
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Sombras */}
+            <div>
+              <h3 className="text-lg font-semibold mb-2">Sombras dos Componentes</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Escolha a intensidade das sombras aplicadas aos cards e elementos elevados
+              </p>
+
+              <div className="grid grid-cols-1 gap-3">
+                {shadowPresets.map((preset) => (
+                  <button
+                    key={preset.value}
+                    onClick={() => handleShadowChange(preset.value)}
+                    className={`relative p-4 border-2 rounded-lg transition-all text-left ${
+                      selectedShadow === preset.value
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-primary/50"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <span className="font-medium">{preset.name}</span>
+                        <p className="text-sm text-muted-foreground">{preset.description}</p>
+                      </div>
+                      {selectedShadow === preset.value && (
+                        <Check className="text-primary" size={20} />
+                      )}
+                    </div>
+                    
+                    {/* Preview visual da sombra */}
+                    <div className="flex gap-3 mt-3">
+                      <div 
+                        className="w-20 h-20 bg-white rounded-lg border"
+                        style={{ boxShadow: preset.preview }}
+                      />
+                      <div className="flex-1 flex items-center">
+                        <p className="text-sm text-muted-foreground">
+                          Exemplo de card com esta sombra aplicada
+                        </p>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </TabsContent>
