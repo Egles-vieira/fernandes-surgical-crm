@@ -7,8 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, Upload, Image as ImageIcon } from "lucide-react";
+import { Loader2, Upload, Image as ImageIcon, Search } from "lucide-react";
 import { useEmpresa } from "@/hooks/useEmpresa";
+import { useCNPJA } from "@/hooks/useCNPJA";
+import { limparCNPJ, formatarCNPJ } from "@/lib/cnpja-utils";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -36,16 +38,21 @@ type EmpresaFormData = z.infer<typeof empresaSchema>;
 
 export function EmpresaConfig() {
   const { empresa, isLoading, uploadLogo, isUploading } = useEmpresa();
+  const { consultarCNPJ, status: cnpjaStatus, dadosColetados } = useCNPJA();
   const [isSaving, setIsSaving] = useState(false);
 
   const {
     register,
     handleSubmit,
     reset,
+    setValue,
+    watch,
     formState: { errors, isDirty },
   } = useForm<EmpresaFormData>({
     resolver: zodResolver(empresaSchema),
   });
+
+  const cnpjValue = watch("cnpj");
 
   useEffect(() => {
     if (empresa) {
@@ -100,6 +107,52 @@ export function EmpresaConfig() {
     const file = event.target.files?.[0];
     if (file) {
       uploadLogo({ file, tipo });
+    }
+  };
+
+  const handleBuscarCNPJ = async () => {
+    if (!cnpjValue) {
+      toast.error("Digite um CNPJ para buscar");
+      return;
+    }
+
+    const cnpjLimpo = limparCNPJ(cnpjValue);
+    if (cnpjLimpo.length !== 14) {
+      toast.error("CNPJ inválido");
+      return;
+    }
+
+    const resultado = await consultarCNPJ(cnpjLimpo);
+    
+    if (resultado?.dados) {
+      const office = resultado.dados.office;
+      
+      // Preencher campos básicos
+      setValue("razao_social", office.company?.name || "", { shouldDirty: true });
+      setValue("nome_fantasia", office.alias || "", { shouldDirty: true });
+      
+      // Preencher endereço
+      if (office.address) {
+        setValue("endereco", office.address.street || "", { shouldDirty: true });
+        setValue("numero", office.address.number || "", { shouldDirty: true });
+        setValue("complemento", office.address.details || "", { shouldDirty: true });
+        setValue("bairro", office.address.district || "", { shouldDirty: true });
+        setValue("cidade", office.address.city || "", { shouldDirty: true });
+        setValue("estado", office.address.state || "", { shouldDirty: true });
+        setValue("cep", office.address.zip || "", { shouldDirty: true });
+      }
+
+      // Preencher contatos
+      if (office.phones && office.phones.length > 0) {
+        const phone = office.phones[0];
+        setValue("telefone", `(${phone.area}) ${phone.number}`, { shouldDirty: true });
+      }
+
+      if (office.emails && office.emails.length > 0) {
+        setValue("email", office.emails[0].address || "", { shouldDirty: true });
+      }
+
+      toast.success("Dados da empresa preenchidos com sucesso!");
     }
   };
 
@@ -219,11 +272,28 @@ export function EmpresaConfig() {
 
           <div className="space-y-2">
             <Label htmlFor="cnpj">CNPJ</Label>
-            <Input
-              id="cnpj"
-              {...register("cnpj")}
-              placeholder="00.000.000/0000-00"
-            />
+            <div className="flex gap-2">
+              <Input
+                id="cnpj"
+                {...register("cnpj")}
+                placeholder="00.000.000/0000-00"
+                className="flex-1"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={handleBuscarCNPJ}
+                disabled={cnpjaStatus === 'consultando' || cnpjaStatus === 'decidindo' || cnpjaStatus === 'executando'}
+                title="Buscar dados do CNPJ"
+              >
+                {cnpjaStatus === 'consultando' || cnpjaStatus === 'decidindo' || cnpjaStatus === 'executando' ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Search className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
           </div>
 
           <div className="space-y-2">
