@@ -5840,6 +5840,18 @@ export type Database = {
       }
       can_access_menu_tecnico: { Args: { _user_id: string }; Returns: boolean }
       gerar_numero_ticket: { Args: never; Returns: string }
+      get_clientes_acessiveis: {
+        Args: { _user_id: string }
+        Returns: {
+          cliente_id: string
+        }[]
+      }
+      get_equipes_gerenciadas: {
+        Args: { _user_id: string }
+        Returns: {
+          equipe_id: string
+        }[]
+      }
       get_linked_seller: {
         Args: { _backoffice_user_id: string }
         Returns: string
@@ -5874,6 +5886,19 @@ export type Database = {
         }[]
       }
       get_user_team: { Args: { _user_id: string }; Returns: string }
+      get_usuarios_subordinados: {
+        Args: { _user_id: string }
+        Returns: {
+          nivel_distancia: number
+          subordinado_id: string
+        }[]
+      }
+      get_vendas_acessiveis: {
+        Args: { _user_id: string }
+        Returns: {
+          venda_id: string
+        }[]
+      }
       has_any_role: {
         Args: {
           _roles: Database["public"]["Enums"]["app_role"][]
@@ -5901,6 +5926,14 @@ export type Database = {
           roles: Database["public"]["Enums"]["app_role"][]
           user_id: string
         }[]
+      }
+      pode_acessar_cliente: {
+        Args: { _cliente_id: string; _user_id: string }
+        Returns: boolean
+      }
+      pode_acessar_venda: {
+        Args: { _user_id: string; _venda_id: string }
+        Returns: boolean
       }
       registrar_feedback_ia: {
         Args: {
