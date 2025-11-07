@@ -41,6 +41,7 @@ import BaseConhecimento from "./pages/BaseConhecimento";
 import MeuPerfil from "./pages/MeuPerfil";
 import CadastroCNPJ from "./pages/CadastroCNPJ";
 import SolicitacoesCadastro from "./pages/SolicitacoesCadastro";
+import Configuracoes from "./pages/Configuracoes";
 const App = () => <>
     <Toaster />
     <BrowserRouter>
@@ -229,6 +230,11 @@ const App = () => <>
         <Route path="/perfil" element={<ProtectedRoute>
             <Layout>
               <MeuPerfil />
+            </Layout>
+          </ProtectedRoute>} />
+        <Route path="/configuracoes" element={<ProtectedRoute>
+            <Layout>
+              <Configuracoes />
             </Layout>
           </ProtectedRoute>} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

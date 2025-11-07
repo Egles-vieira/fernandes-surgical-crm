@@ -12,7 +12,7 @@ export function useEmpresa() {
         .from("empresas")
         .select("*")
         .eq("esta_ativa", true)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       return data;

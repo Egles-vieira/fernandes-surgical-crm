@@ -2190,52 +2190,94 @@ export type Database = {
       empresas: {
         Row: {
           atualizado_em: string | null
+          bairro: string | null
+          celular: string | null
+          cep: string | null
+          cidade: string | null
           cnpj: string | null
+          complemento: string | null
           cor_primaria: string | null
           cor_secundaria: string | null
           criado_em: string | null
+          email: string | null
+          endereco: string | null
           esta_ativa: boolean | null
+          estado: string | null
           excluido_em: string | null
           id: string
+          inscricao_estadual: string | null
+          inscricao_municipal: string | null
           nome: string
+          nome_empresa: string
+          nome_fantasia: string | null
+          numero: string | null
           razao_social: string | null
           setor: string | null
           site: string | null
           tamanho_empresa: string | null
+          telefone: string | null
           url_logo: string | null
           url_logo_expandido: string | null
         }
         Insert: {
           atualizado_em?: string | null
+          bairro?: string | null
+          celular?: string | null
+          cep?: string | null
+          cidade?: string | null
           cnpj?: string | null
+          complemento?: string | null
           cor_primaria?: string | null
           cor_secundaria?: string | null
           criado_em?: string | null
+          email?: string | null
+          endereco?: string | null
           esta_ativa?: boolean | null
+          estado?: string | null
           excluido_em?: string | null
           id?: string
+          inscricao_estadual?: string | null
+          inscricao_municipal?: string | null
           nome: string
+          nome_empresa: string
+          nome_fantasia?: string | null
+          numero?: string | null
           razao_social?: string | null
           setor?: string | null
           site?: string | null
           tamanho_empresa?: string | null
+          telefone?: string | null
           url_logo?: string | null
           url_logo_expandido?: string | null
         }
         Update: {
           atualizado_em?: string | null
+          bairro?: string | null
+          celular?: string | null
+          cep?: string | null
+          cidade?: string | null
           cnpj?: string | null
+          complemento?: string | null
           cor_primaria?: string | null
           cor_secundaria?: string | null
           criado_em?: string | null
+          email?: string | null
+          endereco?: string | null
           esta_ativa?: boolean | null
+          estado?: string | null
           excluido_em?: string | null
           id?: string
+          inscricao_estadual?: string | null
+          inscricao_municipal?: string | null
           nome?: string
+          nome_empresa?: string
+          nome_fantasia?: string | null
+          numero?: string | null
           razao_social?: string | null
           setor?: string | null
           site?: string | null
           tamanho_empresa?: string | null
+          telefone?: string | null
           url_logo?: string | null
           url_logo_expandido?: string | null
         }
