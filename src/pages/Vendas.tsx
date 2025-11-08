@@ -499,6 +499,21 @@ export default function Vendas() {
       setView("pipeline");
     } catch (error: any) {
       console.error("Erro ao salvar venda:", error);
+      
+      // Tratamento especial para erro de RLS (Row Level Security)
+      if (error?.code === '42501' || error?.message?.includes('row-level security')) {
+        toast({
+          title: "Permissão negada",
+          description: "Você não tem permissão para criar uma venda com o vendedor selecionado. Verifique se é o seu usuário, um subordinado seu ou se você possui as permissões corretas.",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Erro ao salvar venda",
+          description: error?.message || "Não foi possível salvar a venda. Tente novamente.",
+          variant: "destructive"
+        });
+      }
     }
   };
   const handleMoverCard = async (vendaId: string, novaEtapa: EtapaPipeline) => {
