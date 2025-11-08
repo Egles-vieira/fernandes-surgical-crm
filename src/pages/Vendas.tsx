@@ -23,6 +23,7 @@ import { PipelineKanban, EtapaPipeline } from "@/components/vendas/PipelineKanba
 import { AprovarVendaDialog } from "@/components/vendas/AprovarVendaDialog";
 import { Tables } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 type Produto = Tables<"produtos">;
 type Cliente = Tables<"clientes">;
 
@@ -62,7 +63,8 @@ export default function Vendas() {
     isLoading: isLoadingTiposPedido
   } = useTiposPedido();
   const { vendedores, isLoading: isLoadingVendedores } = useVendedores();
-  const { ehGestor } = useHierarquia();
+  const { ehGestor, subordinados, nivelHierarquico } = useHierarquia();
+  const { user } = useAuth();
   const {
     toast
   } = useToast();
@@ -103,6 +105,15 @@ export default function Vendas() {
   const [origemLead, setOrigemLead] = useState<string>("");
   const [responsavelId, setResponsavelId] = useState<string>("");
   const [vendedorId, setVendedorId] = useState<string>("");
+
+  // Opções de vendedor permitidas conforme RLS (eu + subordinados; níveis altos veem todos)
+  const vendedorOptions = useMemo(() => {
+    if ((nivelHierarquico as number) && (nivelHierarquico as number) <= 3) return vendedores;
+    const ids = new Set<string>();
+    if (user?.id) ids.add(user.id);
+    (subordinados || []).forEach((s: any) => ids.add(s.subordinado_id));
+    return vendedores.filter(v => ids.has(v.id));
+  }, [vendedores, subordinados, user?.id, nivelHierarquico]);
 
   // Mapa de nomes das etapas para mensagens
   const ETAPAS_LABELS: Record<EtapaPipeline, string> = {
@@ -430,6 +441,7 @@ export default function Vendas() {
           desconto: 0,
           valor_final: valorTotal,
           status,
+          data_venda: new Date().toISOString(),
           condicao_pagamento_id: condicaoPagamentoId || null,
           tipo_frete_id: tipoFreteId || null,
           tipo_pedido_id: tipoPedidoId || null,
@@ -660,9 +672,9 @@ export default function Vendas() {
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione o vendedor" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="z-50">
                       <SelectItem value="current">Eu mesmo</SelectItem>
-                      {vendedores.map((vendedor) => (
+                      {vendedorOptions.map((vendedor) => (
                         <SelectItem key={vendedor.id} value={vendedor.id}>
                           {vendedor.nome}
                         </SelectItem>
