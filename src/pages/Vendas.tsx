@@ -656,12 +656,12 @@ export default function Vendas() {
               {ehGestor && (
                 <div>
                   <Label>Vendedor Responsável</Label>
-                  <Select value={vendedorId} onValueChange={setVendedorId}>
+                  <Select value={vendedorId || "current"} onValueChange={(v) => setVendedorId(v === "current" ? "" : v)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione o vendedor" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Eu mesmo</SelectItem>
+                      <SelectItem value="current">Eu mesmo</SelectItem>
                       {vendedores.map((vendedor) => (
                         <SelectItem key={vendedor.id} value={vendedor.id}>
                           {vendedor.nome}
