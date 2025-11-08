@@ -22,6 +22,12 @@ import { EditarMembroDialog } from "@/components/equipes/EditarMembroDialog";
 import { TransferirMembroDialog as TransferirMembroEntreEquipesDialog } from "@/components/equipes/TransferirMembroDialog";
 import { HistoricoMembroDialog } from "@/components/equipes/HistoricoMembroDialog";
 import { RemoverMembroDialog } from "@/components/equipes/RemoverMembroDialog";
+import { NovaMetaDialog } from "@/components/equipes/NovaMetaDialog";
+import { MetaDetalhesDialog } from "@/components/equipes/MetaDetalhesDialog";
+import { AtualizarProgressoDialog } from "@/components/equipes/AtualizarProgressoDialog";
+import { MetasEquipeContent } from "@/components/equipes/MetasEquipeContent";
+import { useMetasEquipe } from "@/hooks/useMetasEquipe";
+import { Target } from "lucide-react";
 
 interface NovaEquipeForm {
   nome: string;
@@ -65,6 +71,14 @@ export default function Equipes() {
   const [selectedMembro, setSelectedMembro] = useState<any>(null);
   const [selectedUsuario, setSelectedUsuario] = useState<string>("");
   const { register, handleSubmit, reset, formState: { errors }, control } = useForm<NovaEquipeForm>();
+
+  // Estados para metas
+  const [equipeMetasId, setEquipeMetasId] = useState<string | null>(null);
+  const [novaMetaOpen, setNovaMetaOpen] = useState(false);
+  const [metaSelecionada, setMetaSelecionada] = useState<any>(null);
+  const [metaDetalhesOpen, setMetaDetalhesOpen] = useState(false);
+  const [atualizarProgressoOpen, setAtualizarProgressoOpen] = useState(false);
+  const { criarMeta, atualizarProgresso } = useMetasEquipe();
 
   const { data: membros } = useMembrosEquipe(selectedEquipe || undefined);
 
@@ -382,6 +396,16 @@ export default function Equipes() {
                           Membros
                         </Button>
                         <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setEquipeMetasId(equipe.id);
+                          }}
+                        >
+                          <Target className="h-4 w-4 mr-2" />
+                          Metas
+                        </Button>
+                        <Button
                           variant="ghost"
                           size="icon"
                           onClick={() => {
@@ -638,6 +662,49 @@ export default function Equipes() {
           open={removerMembroOpen}
           onOpenChange={setRemoverMembroOpen}
           onConfirm={handleRemoverMembro}
+        />
+
+        {/* Dialogs de Metas */}
+        <Dialog open={!!equipeMetasId} onOpenChange={(open) => !open && setEquipeMetasId(null)}>
+          <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
+            <DialogHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <DialogTitle>Metas da Equipe</DialogTitle>
+                  <DialogDescription>
+                    {equipes?.find(e => e.id === equipeMetasId)?.nome}
+                  </DialogDescription>
+                </div>
+                <Button onClick={() => setNovaMetaOpen(true)}>
+                  <Target className="h-4 w-4 mr-2" />
+                  Nova Meta
+                </Button>
+              </div>
+            </DialogHeader>
+            <MetasEquipeContent equipeId={equipeMetasId} />
+          </DialogContent>
+        </Dialog>
+
+        <NovaMetaDialog
+          open={novaMetaOpen}
+          onOpenChange={setNovaMetaOpen}
+          equipeId={equipeMetasId || ""}
+          onCriar={(meta) => criarMeta.mutate(meta)}
+        />
+
+        <MetaDetalhesDialog
+          meta={metaSelecionada}
+          open={metaDetalhesOpen}
+          onOpenChange={setMetaDetalhesOpen}
+        />
+
+        <AtualizarProgressoDialog
+          meta={metaSelecionada}
+          open={atualizarProgressoOpen}
+          onOpenChange={setAtualizarProgressoOpen}
+          onAtualizar={(metaId, novoValor, observacao) => {
+            atualizarProgresso.mutate({ metaId, novoValor, observacao });
+          }}
         />
       </div>
     </Layout>

@@ -14,6 +14,67 @@ export type Database = {
   }
   public: {
     Tables: {
+      alertas_metas: {
+        Row: {
+          criado_em: string | null
+          expira_em: string | null
+          id: string
+          lido: boolean | null
+          lido_em: string | null
+          lido_por: string | null
+          mensagem: string
+          meta_id: string
+          severidade: string
+          tipo_alerta: string
+        }
+        Insert: {
+          criado_em?: string | null
+          expira_em?: string | null
+          id?: string
+          lido?: boolean | null
+          lido_em?: string | null
+          lido_por?: string | null
+          mensagem: string
+          meta_id: string
+          severidade: string
+          tipo_alerta: string
+        }
+        Update: {
+          criado_em?: string | null
+          expira_em?: string | null
+          id?: string
+          lido?: boolean | null
+          lido_em?: string | null
+          lido_por?: string | null
+          mensagem?: string
+          meta_id?: string
+          severidade?: string
+          tipo_alerta?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alertas_metas_lido_por_fkey"
+            columns: ["lido_por"]
+            isOneToOne: false
+            referencedRelation: "perfis_usuario"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "alertas_metas_meta_id_fkey"
+            columns: ["meta_id"]
+            isOneToOne: false
+            referencedRelation: "metas_equipe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "alertas_metas_meta_id_fkey"
+            columns: ["meta_id"]
+            isOneToOne: false
+            referencedRelation: "vw_metas_com_progresso"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_assistente_mensagens: {
         Row: {
           content: string
@@ -554,6 +615,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "equipes"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clientes_equipe_id_fkey"
+            columns: ["equipe_id"]
+            isOneToOne: false
+            referencedRelation: "vw_estatisticas_metas_equipe"
+            referencedColumns: ["equipe_id"]
           },
           {
             foreignKeyName: "clientes_equipe_id_fkey"
@@ -2673,6 +2741,13 @@ export type Database = {
             foreignKeyName: "historico_atividades_equipe_equipe_id_fkey"
             columns: ["equipe_id"]
             isOneToOne: false
+            referencedRelation: "vw_estatisticas_metas_equipe"
+            referencedColumns: ["equipe_id"]
+          },
+          {
+            foreignKeyName: "historico_atividades_equipe_equipe_id_fkey"
+            columns: ["equipe_id"]
+            isOneToOne: false
             referencedRelation: "vw_turnover_equipes"
             referencedColumns: ["equipe_id"]
           },
@@ -2768,6 +2843,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "equipes"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "historico_lideranca_equipe_equipe_id_fkey"
+            columns: ["equipe_id"]
+            isOneToOne: false
+            referencedRelation: "vw_estatisticas_metas_equipe"
+            referencedColumns: ["equipe_id"]
           },
           {
             foreignKeyName: "historico_lideranca_equipe_equipe_id_fkey"
@@ -2927,6 +3009,13 @@ export type Database = {
             foreignKeyName: "historico_membros_equipe_equipe_destino_id_fkey"
             columns: ["equipe_destino_id"]
             isOneToOne: false
+            referencedRelation: "vw_estatisticas_metas_equipe"
+            referencedColumns: ["equipe_id"]
+          },
+          {
+            foreignKeyName: "historico_membros_equipe_equipe_destino_id_fkey"
+            columns: ["equipe_destino_id"]
+            isOneToOne: false
             referencedRelation: "vw_turnover_equipes"
             referencedColumns: ["equipe_id"]
           },
@@ -2936,6 +3025,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "equipes"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "historico_membros_equipe_equipe_id_fkey"
+            columns: ["equipe_id"]
+            isOneToOne: false
+            referencedRelation: "vw_estatisticas_metas_equipe"
+            referencedColumns: ["equipe_id"]
           },
           {
             foreignKeyName: "historico_membros_equipe_equipe_id_fkey"
@@ -2950,6 +3046,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "equipes"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "historico_membros_equipe_equipe_origem_id_fkey"
+            columns: ["equipe_origem_id"]
+            isOneToOne: false
+            referencedRelation: "vw_estatisticas_metas_equipe"
+            referencedColumns: ["equipe_id"]
           },
           {
             foreignKeyName: "historico_membros_equipe_equipe_origem_id_fkey"
@@ -3382,6 +3485,111 @@ export type Database = {
             foreignKeyName: "membros_equipe_equipe_id_fkey"
             columns: ["equipe_id"]
             isOneToOne: false
+            referencedRelation: "vw_estatisticas_metas_equipe"
+            referencedColumns: ["equipe_id"]
+          },
+          {
+            foreignKeyName: "membros_equipe_equipe_id_fkey"
+            columns: ["equipe_id"]
+            isOneToOne: false
+            referencedRelation: "vw_turnover_equipes"
+            referencedColumns: ["equipe_id"]
+          },
+        ]
+      }
+      metas_equipe: {
+        Row: {
+          alerta_percentual: number | null
+          atualizado_em: string | null
+          cancelado_em: string | null
+          concluido_em: string | null
+          criado_em: string | null
+          criado_por: string | null
+          descricao: string | null
+          equipe_id: string
+          id: string
+          metrica: string
+          motivo_cancelamento: string | null
+          nome: string
+          periodo_fim: string
+          periodo_inicio: string
+          prioridade: string | null
+          status: string | null
+          tipo_meta: string
+          unidade_medida: string | null
+          valor_atual: number | null
+          valor_objetivo: number
+        }
+        Insert: {
+          alerta_percentual?: number | null
+          atualizado_em?: string | null
+          cancelado_em?: string | null
+          concluido_em?: string | null
+          criado_em?: string | null
+          criado_por?: string | null
+          descricao?: string | null
+          equipe_id: string
+          id?: string
+          metrica: string
+          motivo_cancelamento?: string | null
+          nome: string
+          periodo_fim: string
+          periodo_inicio: string
+          prioridade?: string | null
+          status?: string | null
+          tipo_meta: string
+          unidade_medida?: string | null
+          valor_atual?: number | null
+          valor_objetivo: number
+        }
+        Update: {
+          alerta_percentual?: number | null
+          atualizado_em?: string | null
+          cancelado_em?: string | null
+          concluido_em?: string | null
+          criado_em?: string | null
+          criado_por?: string | null
+          descricao?: string | null
+          equipe_id?: string
+          id?: string
+          metrica?: string
+          motivo_cancelamento?: string | null
+          nome?: string
+          periodo_fim?: string
+          periodo_inicio?: string
+          prioridade?: string | null
+          status?: string | null
+          tipo_meta?: string
+          unidade_medida?: string | null
+          valor_atual?: number | null
+          valor_objetivo?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "metas_equipe_criado_por_fkey"
+            columns: ["criado_por"]
+            isOneToOne: false
+            referencedRelation: "perfis_usuario"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "metas_equipe_equipe_id_fkey"
+            columns: ["equipe_id"]
+            isOneToOne: false
+            referencedRelation: "equipes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "metas_equipe_equipe_id_fkey"
+            columns: ["equipe_id"]
+            isOneToOne: false
+            referencedRelation: "vw_estatisticas_metas_equipe"
+            referencedColumns: ["equipe_id"]
+          },
+          {
+            foreignKeyName: "metas_equipe_equipe_id_fkey"
+            columns: ["equipe_id"]
+            isOneToOne: false
             referencedRelation: "vw_turnover_equipes"
             referencedColumns: ["equipe_id"]
           },
@@ -3551,6 +3759,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "equipes"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "oportunidades_equipe_id_fkey"
+            columns: ["equipe_id"]
+            isOneToOne: false
+            referencedRelation: "vw_estatisticas_metas_equipe"
+            referencedColumns: ["equipe_id"]
           },
           {
             foreignKeyName: "oportunidades_equipe_id_fkey"
@@ -4075,6 +4290,70 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      progresso_metas: {
+        Row: {
+          diferenca: number | null
+          id: string
+          meta_id: string
+          observacao: string | null
+          origem: string | null
+          percentual_conclusao: number | null
+          referencia_id: string | null
+          registrado_em: string | null
+          registrado_por: string | null
+          valor_anterior: number
+          valor_novo: number
+        }
+        Insert: {
+          diferenca?: number | null
+          id?: string
+          meta_id: string
+          observacao?: string | null
+          origem?: string | null
+          percentual_conclusao?: number | null
+          referencia_id?: string | null
+          registrado_em?: string | null
+          registrado_por?: string | null
+          valor_anterior: number
+          valor_novo: number
+        }
+        Update: {
+          diferenca?: number | null
+          id?: string
+          meta_id?: string
+          observacao?: string | null
+          origem?: string | null
+          percentual_conclusao?: number | null
+          referencia_id?: string | null
+          registrado_em?: string | null
+          registrado_por?: string | null
+          valor_anterior?: number
+          valor_novo?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "progresso_metas_meta_id_fkey"
+            columns: ["meta_id"]
+            isOneToOne: false
+            referencedRelation: "metas_equipe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "progresso_metas_meta_id_fkey"
+            columns: ["meta_id"]
+            isOneToOne: false
+            referencedRelation: "vw_metas_com_progresso"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "progresso_metas_registrado_por_fkey"
+            columns: ["registrado_por"]
+            isOneToOne: false
+            referencedRelation: "perfis_usuario"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       role_hierarquia: {
         Row: {
@@ -4794,6 +5073,13 @@ export type Database = {
             foreignKeyName: "user_roles_equipe_id_fkey"
             columns: ["equipe_id"]
             isOneToOne: false
+            referencedRelation: "vw_estatisticas_metas_equipe"
+            referencedColumns: ["equipe_id"]
+          },
+          {
+            foreignKeyName: "user_roles_equipe_id_fkey"
+            columns: ["equipe_id"]
+            isOneToOne: false
             referencedRelation: "vw_turnover_equipes"
             referencedColumns: ["equipe_id"]
           },
@@ -4994,6 +5280,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "equipes"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendas_equipe_id_fkey"
+            columns: ["equipe_id"]
+            isOneToOne: false
+            referencedRelation: "vw_estatisticas_metas_equipe"
+            referencedColumns: ["equipe_id"]
           },
           {
             foreignKeyName: "vendas_equipe_id_fkey"
@@ -6019,6 +6312,82 @@ export type Database = {
         }
         Relationships: []
       }
+      vw_estatisticas_metas_equipe: {
+        Row: {
+          equipe_id: string | null
+          equipe_nome: string | null
+          media_conclusao: number | null
+          metas_atingidas: number | null
+          metas_ativas: number | null
+          metas_concluidas: number | null
+          metas_vencidas: number | null
+          total_metas: number | null
+        }
+        Relationships: []
+      }
+      vw_metas_com_progresso: {
+        Row: {
+          alerta_percentual: number | null
+          alertas_nao_lidos: number | null
+          atualizado_em: string | null
+          cancelado_em: string | null
+          concluido_em: string | null
+          criado_em: string | null
+          criado_por: string | null
+          descricao: string | null
+          dias_decorridos: number | null
+          dias_restantes: number | null
+          equipe_id: string | null
+          equipe_nome: string | null
+          id: string | null
+          lider_equipe_id: string | null
+          meta_atingida: boolean | null
+          metrica: string | null
+          motivo_cancelamento: string | null
+          nome: string | null
+          percentual_conclusao: number | null
+          periodo_fim: string | null
+          periodo_inicio: string | null
+          prioridade: string | null
+          situacao_prazo: string | null
+          status: string | null
+          tipo_meta: string | null
+          total_dias: number | null
+          unidade_medida: string | null
+          valor_atual: number | null
+          valor_objetivo: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "metas_equipe_criado_por_fkey"
+            columns: ["criado_por"]
+            isOneToOne: false
+            referencedRelation: "perfis_usuario"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "metas_equipe_equipe_id_fkey"
+            columns: ["equipe_id"]
+            isOneToOne: false
+            referencedRelation: "equipes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "metas_equipe_equipe_id_fkey"
+            columns: ["equipe_id"]
+            isOneToOne: false
+            referencedRelation: "vw_estatisticas_metas_equipe"
+            referencedColumns: ["equipe_id"]
+          },
+          {
+            foreignKeyName: "metas_equipe_equipe_id_fkey"
+            columns: ["equipe_id"]
+            isOneToOne: false
+            referencedRelation: "vw_turnover_equipes"
+            referencedColumns: ["equipe_id"]
+          },
+        ]
+      }
       vw_produtos_mais_sugeridos_ia: {
         Row: {
           id: string | null
@@ -6052,6 +6421,16 @@ export type Database = {
           p_score_original: number
         }
         Returns: undefined
+      }
+      atualizar_progresso_meta: {
+        Args: {
+          _meta_id: string
+          _novo_valor: number
+          _observacao?: string
+          _origem?: string
+          _referencia_id?: string
+        }
+        Returns: Json
       }
       buscar_produtos_hibrido: {
         Args: { p_descricao: string; p_limite?: number; p_numeros?: string[] }
@@ -6218,6 +6597,7 @@ export type Database = {
         Returns: Json
       }
       unaccent: { Args: { "": string }; Returns: string }
+      verificar_alertas_metas: { Args: never; Returns: undefined }
     }
     Enums: {
       app_role:
