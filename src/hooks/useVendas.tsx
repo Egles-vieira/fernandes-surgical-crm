@@ -188,7 +188,7 @@ export function useVendas() {
       const { data, error } = await supabase
         .from("vendas")
         .update({ 
-          status: 'concluida',
+          status: 'aprovada',
           aprovado_em: new Date().toISOString()
         })
         .eq("id", id)

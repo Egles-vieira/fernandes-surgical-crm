@@ -67,7 +67,7 @@ export function AprovarVendaDialog({
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Novo Status:</span>
-              <span className="font-semibold text-success">Concluída</span>
+              <span className="font-semibold text-success">Aprovada</span>
             </div>
           </div>
         </div>
