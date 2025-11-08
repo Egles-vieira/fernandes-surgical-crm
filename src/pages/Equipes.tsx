@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Users, Plus, UserPlus, X, Loader2, Crown, Network, ArrowRightLeft, Eye, Edit, Power, PowerOff } from "lucide-react";
+import { Users, Plus, UserPlus, X, Loader2, Crown, Network, ArrowRightLeft, Eye, Edit, Power, PowerOff, History, Settings2 } from "lucide-react";
 import { useForm, Controller } from "react-hook-form";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { OrganigramaEquipes } from "@/components/equipes/OrganigramaEquipes";
@@ -18,6 +18,10 @@ import { TransferirLiderancaDialog } from "@/components/equipes/TransferirLidera
 import { EditarEquipeDialog } from "@/components/equipes/EditarEquipeDialog";
 import { DetalhesEquipeDialog } from "@/components/equipes/DetalhesEquipeDialog";
 import { DesativarEquipeDialog } from "@/components/equipes/DesativarEquipeDialog";
+import { EditarMembroDialog } from "@/components/equipes/EditarMembroDialog";
+import { TransferirMembroDialog as TransferirMembroEntreEquipesDialog } from "@/components/equipes/TransferirMembroDialog";
+import { HistoricoMembroDialog } from "@/components/equipes/HistoricoMembroDialog";
+import { RemoverMembroDialog } from "@/components/equipes/RemoverMembroDialog";
 
 interface NovaEquipeForm {
   nome: string;
@@ -37,7 +41,9 @@ export default function Equipes() {
     desativarEquipe,
     reativarEquipe,
     adicionarMembro, 
-    removerMembro, 
+    removerMembro,
+    editarMembro,
+    transferirMembro,
     transferirLideranca, 
     useMembrosEquipe 
   } = useEquipes();
@@ -50,8 +56,13 @@ export default function Equipes() {
   const [editarEquipeOpen, setEditarEquipeOpen] = useState(false);
   const [detalhesEquipeOpen, setDetalhesEquipeOpen] = useState(false);
   const [desativarEquipeOpen, setDesativarEquipeOpen] = useState(false);
+  const [editarMembroOpen, setEditarMembroOpen] = useState(false);
+  const [transferirMembroOpen, setTransferirMembroOpen] = useState(false);
+  const [historicoMembroOpen, setHistoricoMembroOpen] = useState(false);
+  const [removerMembroOpen, setRemoverMembroOpen] = useState(false);
   const [acaoDesativacao, setAcaoDesativacao] = useState<"desativar" | "reativar">("desativar");
   const [selectedEquipe, setSelectedEquipe] = useState<string | null>(null);
+  const [selectedMembro, setSelectedMembro] = useState<any>(null);
   const [selectedUsuario, setSelectedUsuario] = useState<string>("");
   const { register, handleSubmit, reset, formState: { errors }, control } = useForm<NovaEquipeForm>();
 
@@ -88,15 +99,37 @@ export default function Equipes() {
     setSelectedUsuario("");
   };
 
-  const handleRemoverMembro = async (usuarioId: string) => {
-    if (!selectedEquipe) return;
+  const handleRemoverMembro = async (motivo: string) => {
+    if (!selectedEquipe || !selectedMembro) return;
     
-    if (confirm("Tem certeza que deseja remover este membro da equipe?")) {
-      await removerMembro.mutateAsync({
-        equipeId: selectedEquipe,
-        usuarioId,
-      });
-    }
+    await removerMembro.mutateAsync({
+      equipeId: selectedEquipe,
+      usuarioId: selectedMembro.usuario_id,
+      motivo,
+    });
+  };
+
+  const handleEditarMembro = async (dados: any) => {
+    if (!selectedEquipe || !selectedMembro) return;
+    
+    await editarMembro.mutateAsync({
+      equipeId: selectedEquipe,
+      usuarioId: selectedMembro.usuario_id,
+      dados,
+    });
+  };
+
+  const handleTransferirMembro = async (dados: any) => {
+    if (!selectedEquipe || !selectedMembro) return;
+    
+    await transferirMembro.mutateAsync({
+      usuarioId: selectedMembro.usuario_id,
+      equipeOrigemId: selectedEquipe,
+      equipeDestinoId: dados.equipe_destino_id,
+      manterPapel: dados.manter_papel,
+      novoPapel: dados.novo_papel,
+      motivo: dados.motivo,
+    });
   };
 
   const handleTransferirLideranca = async (novoLiderId: string, motivo?: string) => {
@@ -448,7 +481,7 @@ export default function Equipes() {
                         return (
                           <div key={membro.usuario_id} className="flex items-center justify-between p-3 hover:bg-muted/50 transition-colors">
                             <div className="flex items-center gap-3 flex-1">
-                              <div className="flex flex-col flex-1">
+                              <div className="flex flex-col flex-1 gap-1">
                                 <div className="flex items-center gap-2">
                                   <span className="font-medium truncate">{display}</span>
                                   {isLider && (
@@ -457,19 +490,74 @@ export default function Equipes() {
                                       Líder
                                     </Badge>
                                   )}
+                                  {membro.papel && (
+                                    <Badge variant="outline" className="text-xs">
+                                      {membro.papel.replace(/_/g, ' ')}
+                                    </Badge>
+                                  )}
                                 </div>
+                                {membro.carga_trabalho && (
+                                  <span className="text-xs text-muted-foreground">
+                                    Carga: {membro.carga_trabalho}%
+                                  </span>
+                                )}
                               </div>
                             </div>
-                            {!isLider && (
+                            
+                            <div className="flex items-center gap-1">
                               <Button
                                 variant="ghost"
-                                size="sm"
-                                onClick={() => handleRemoverMembro(membro.usuario_id)}
-                                className="hover:bg-destructive/10 hover:text-destructive"
+                                size="icon"
+                                onClick={() => {
+                                  setSelectedMembro(membro);
+                                  setEditarMembroOpen(true);
+                                }}
+                                title="Editar perfil"
                               >
-                                <X className="h-4 w-4" />
+                                <Settings2 className="h-4 w-4" />
                               </Button>
-                            )}
+                              
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => {
+                                  setSelectedMembro(membro);
+                                  setHistoricoMembroOpen(true);
+                                }}
+                                title="Ver histórico"
+                              >
+                                <History className="h-4 w-4" />
+                              </Button>
+                              
+                              {!isLider && (
+                                <>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => {
+                                      setSelectedMembro(membro);
+                                      setTransferirMembroOpen(true);
+                                    }}
+                                    title="Transferir para outra equipe"
+                                  >
+                                    <ArrowRightLeft className="h-4 w-4 text-primary" />
+                                  </Button>
+                                  
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => {
+                                      setSelectedMembro(membro);
+                                      setRemoverMembroOpen(true);
+                                    }}
+                                    className="hover:bg-destructive/10 hover:text-destructive"
+                                    title="Remover da equipe"
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </Button>
+                                </>
+                              )}
+                            </div>
                           </div>
                         );
                       })}
@@ -521,12 +609,35 @@ export default function Equipes() {
           onOpenChange={setDetalhesEquipeOpen}
         />
 
-        <DesativarEquipeDialog
+        <EditarMembroDialog
+          membro={selectedMembro}
+          open={editarMembroOpen}
+          onOpenChange={setEditarMembroOpen}
+          onSubmit={handleEditarMembro}
+        />
+
+        <TransferirMembroEntreEquipesDialog
+          membro={selectedMembro}
+          equipeAtual={equipes?.find(e => e.id === selectedEquipe)}
+          equipesDisponiveis={equipes || []}
+          open={transferirMembroOpen}
+          onOpenChange={setTransferirMembroOpen}
+          onSubmit={handleTransferirMembro}
+        />
+
+        <HistoricoMembroDialog
+          usuarioId={selectedMembro?.usuario_id || ""}
+          usuarioEmail={allUsers?.find(u => u.user_id === selectedMembro?.usuario_id)?.email || ""}
+          open={historicoMembroOpen}
+          onOpenChange={setHistoricoMembroOpen}
+        />
+
+        <RemoverMembroDialog
+          membro={selectedMembro}
           equipe={equipes?.find(e => e.id === selectedEquipe)}
-          open={desativarEquipeOpen}
-          onOpenChange={setDesativarEquipeOpen}
-          onConfirm={handleDesativarReativar}
-          acao={acaoDesativacao}
+          open={removerMembroOpen}
+          onOpenChange={setRemoverMembroOpen}
+          onConfirm={handleRemoverMembro}
         />
       </div>
     </Layout>

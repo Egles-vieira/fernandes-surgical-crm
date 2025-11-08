@@ -147,12 +147,24 @@ export function useEquipes() {
     },
   });
 
-  // Remover membro da equipe
+  // Remover membro da equipe (soft delete com motivo)
   const removerMembro = useMutation({
-    mutationFn: async ({ equipeId, usuarioId }: { equipeId: string; usuarioId: string }) => {
+    mutationFn: async ({ 
+      equipeId, 
+      usuarioId,
+      motivo
+    }: { 
+      equipeId: string; 
+      usuarioId: string;
+      motivo: string;
+    }) => {
       const { error } = await supabase
         .from("membros_equipe")
-        .delete()
+        .update({
+          saiu_em: new Date().toISOString(),
+          esta_ativo: false,
+          motivo_saida: motivo,
+        })
         .eq("equipe_id", equipeId)
         .eq("usuario_id", usuarioId);
 
@@ -160,6 +172,7 @@ export function useEquipes() {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["membros-equipe", variables.equipeId] });
+      queryClient.invalidateQueries({ queryKey: ["equipes"] });
       toast({
         title: "Membro removido",
         description: "O usuário foi removido da equipe",
@@ -206,6 +219,93 @@ export function useEquipes() {
       toast({
         variant: "destructive",
         title: "Erro ao transferir liderança",
+        description: error.message,
+      });
+    },
+  });
+
+  // Editar membro da equipe
+  const editarMembro = useMutation({
+    mutationFn: async ({
+      equipeId,
+      usuarioId,
+      dados,
+    }: {
+      equipeId: string;
+      usuarioId: string;
+      dados: {
+        papel?: string;
+        carga_trabalho?: number;
+        nivel_acesso?: string;
+        observacoes?: string;
+      };
+    }) => {
+      const { error } = await supabase
+        .from("membros_equipe")
+        .update(dados)
+        .eq("equipe_id", equipeId)
+        .eq("usuario_id", usuarioId);
+
+      if (error) throw error;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["membros-equipe", variables.equipeId] });
+      toast({
+        title: "Membro atualizado",
+        description: "As informações do membro foram atualizadas",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        variant: "destructive",
+        title: "Erro ao editar membro",
+        description: error.message,
+      });
+    },
+  });
+
+  // Transferir membro entre equipes
+  const transferirMembro = useMutation({
+    mutationFn: async ({
+      usuarioId,
+      equipeOrigemId,
+      equipeDestinoId,
+      manterPapel,
+      novoPapel,
+      motivo,
+    }: {
+      usuarioId: string;
+      equipeOrigemId: string;
+      equipeDestinoId: string;
+      manterPapel: boolean;
+      novoPapel?: string;
+      motivo: string;
+    }) => {
+      const { data, error } = await supabase.rpc("transferir_membro_equipe", {
+        _usuario_id: usuarioId,
+        _equipe_origem_id: equipeOrigemId,
+        _equipe_destino_id: equipeDestinoId,
+        _manter_papel: manterPapel,
+        _novo_papel: novoPapel,
+        _motivo: motivo,
+      });
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["membros-equipe", variables.equipeOrigemId] });
+      queryClient.invalidateQueries({ queryKey: ["membros-equipe", variables.equipeDestinoId] });
+      queryClient.invalidateQueries({ queryKey: ["equipes"] });
+      toast({
+        title: "Membro transferido",
+        description: "O membro foi transferido entre equipes com sucesso",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        variant: "destructive",
+        title: "Erro ao transferir membro",
         description: error.message,
       });
     },
@@ -302,6 +402,8 @@ export function useEquipes() {
     reativarEquipe,
     adicionarMembro,
     removerMembro,
+    editarMembro,
+    transferirMembro,
     transferirLideranca,
     useMembrosEquipe,
   };

@@ -555,6 +555,13 @@ export type Database = {
             referencedRelation: "equipes"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "clientes_equipe_id_fkey"
+            columns: ["equipe_id"]
+            isOneToOne: false
+            referencedRelation: "vw_turnover_equipes"
+            referencedColumns: ["equipe_id"]
+          },
         ]
       }
       cnpja_configuracoes: {
@@ -2662,6 +2669,13 @@ export type Database = {
             referencedRelation: "equipes"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "historico_atividades_equipe_equipe_id_fkey"
+            columns: ["equipe_id"]
+            isOneToOne: false
+            referencedRelation: "vw_turnover_equipes"
+            referencedColumns: ["equipe_id"]
+          },
         ]
       }
       historico_estagio_oportunidade: {
@@ -2755,6 +2769,13 @@ export type Database = {
             referencedRelation: "equipes"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "historico_lideranca_equipe_equipe_id_fkey"
+            columns: ["equipe_id"]
+            isOneToOne: false
+            referencedRelation: "vw_turnover_equipes"
+            referencedColumns: ["equipe_id"]
+          },
         ]
       }
       historico_ligacoes: {
@@ -2842,6 +2863,100 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "contatos"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      historico_membros_equipe: {
+        Row: {
+          carga_trabalho_anterior: number | null
+          carga_trabalho_nova: number | null
+          dias_na_equipe: number | null
+          equipe_destino_id: string | null
+          equipe_id: string
+          equipe_origem_id: string | null
+          id: string
+          motivo: string | null
+          papel_anterior: string | null
+          papel_novo: string | null
+          realizado_em: string
+          realizado_por: string | null
+          tipo_evento: string
+          usuario_id: string
+        }
+        Insert: {
+          carga_trabalho_anterior?: number | null
+          carga_trabalho_nova?: number | null
+          dias_na_equipe?: number | null
+          equipe_destino_id?: string | null
+          equipe_id: string
+          equipe_origem_id?: string | null
+          id?: string
+          motivo?: string | null
+          papel_anterior?: string | null
+          papel_novo?: string | null
+          realizado_em?: string
+          realizado_por?: string | null
+          tipo_evento: string
+          usuario_id: string
+        }
+        Update: {
+          carga_trabalho_anterior?: number | null
+          carga_trabalho_nova?: number | null
+          dias_na_equipe?: number | null
+          equipe_destino_id?: string | null
+          equipe_id?: string
+          equipe_origem_id?: string | null
+          id?: string
+          motivo?: string | null
+          papel_anterior?: string | null
+          papel_novo?: string | null
+          realizado_em?: string
+          realizado_por?: string | null
+          tipo_evento?: string
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "historico_membros_equipe_equipe_destino_id_fkey"
+            columns: ["equipe_destino_id"]
+            isOneToOne: false
+            referencedRelation: "equipes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "historico_membros_equipe_equipe_destino_id_fkey"
+            columns: ["equipe_destino_id"]
+            isOneToOne: false
+            referencedRelation: "vw_turnover_equipes"
+            referencedColumns: ["equipe_id"]
+          },
+          {
+            foreignKeyName: "historico_membros_equipe_equipe_id_fkey"
+            columns: ["equipe_id"]
+            isOneToOne: false
+            referencedRelation: "equipes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "historico_membros_equipe_equipe_id_fkey"
+            columns: ["equipe_id"]
+            isOneToOne: false
+            referencedRelation: "vw_turnover_equipes"
+            referencedColumns: ["equipe_id"]
+          },
+          {
+            foreignKeyName: "historico_membros_equipe_equipe_origem_id_fkey"
+            columns: ["equipe_origem_id"]
+            isOneToOne: false
+            referencedRelation: "equipes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "historico_membros_equipe_equipe_origem_id_fkey"
+            columns: ["equipe_origem_id"]
+            isOneToOne: false
+            referencedRelation: "vw_turnover_equipes"
+            referencedColumns: ["equipe_id"]
           },
         ]
       }
@@ -3220,18 +3335,39 @@ export type Database = {
       }
       membros_equipe: {
         Row: {
+          carga_trabalho: number | null
           entrou_em: string | null
           equipe_id: string
+          esta_ativo: boolean | null
+          motivo_saida: string | null
+          nivel_acesso: string | null
+          observacoes: string | null
+          papel: string | null
+          saiu_em: string | null
           usuario_id: string
         }
         Insert: {
+          carga_trabalho?: number | null
           entrou_em?: string | null
           equipe_id: string
+          esta_ativo?: boolean | null
+          motivo_saida?: string | null
+          nivel_acesso?: string | null
+          observacoes?: string | null
+          papel?: string | null
+          saiu_em?: string | null
           usuario_id: string
         }
         Update: {
+          carga_trabalho?: number | null
           entrou_em?: string | null
           equipe_id?: string
+          esta_ativo?: boolean | null
+          motivo_saida?: string | null
+          nivel_acesso?: string | null
+          observacoes?: string | null
+          papel?: string | null
+          saiu_em?: string | null
           usuario_id?: string
         }
         Relationships: [
@@ -3241,6 +3377,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "equipes"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "membros_equipe_equipe_id_fkey"
+            columns: ["equipe_id"]
+            isOneToOne: false
+            referencedRelation: "vw_turnover_equipes"
+            referencedColumns: ["equipe_id"]
           },
         ]
       }
@@ -3408,6 +3551,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "equipes"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "oportunidades_equipe_id_fkey"
+            columns: ["equipe_id"]
+            isOneToOne: false
+            referencedRelation: "vw_turnover_equipes"
+            referencedColumns: ["equipe_id"]
           },
           {
             foreignKeyName: "oportunidades_estagio_id_fkey"
@@ -4640,6 +4790,13 @@ export type Database = {
             referencedRelation: "equipes"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "user_roles_equipe_id_fkey"
+            columns: ["equipe_id"]
+            isOneToOne: false
+            referencedRelation: "vw_turnover_equipes"
+            referencedColumns: ["equipe_id"]
+          },
         ]
       }
       usuario_clientes_vinculo: {
@@ -4837,6 +4994,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "equipes"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendas_equipe_id_fkey"
+            columns: ["equipe_id"]
+            isOneToOne: false
+            referencedRelation: "vw_turnover_equipes"
+            referencedColumns: ["equipe_id"]
           },
           {
             foreignKeyName: "vendas_tipo_frete_id_fkey"
@@ -5867,6 +6031,18 @@ export type Database = {
         }
         Relationships: []
       }
+      vw_turnover_equipes: {
+        Row: {
+          equipe_id: string | null
+          equipe_nome: string | null
+          membros_ativos: number | null
+          membros_saidos: number | null
+          taxa_turnover_percent: number | null
+          tempo_medio_permanencia_dias: number | null
+          total_membros_historico: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       ajustar_score_aprendizado: {
@@ -6028,6 +6204,17 @@ export type Database = {
       show_trgm: { Args: { "": string }; Returns: string[] }
       transferir_lideranca_equipe: {
         Args: { _equipe_id: string; _motivo?: string; _novo_lider_id: string }
+        Returns: Json
+      }
+      transferir_membro_equipe: {
+        Args: {
+          _equipe_destino_id: string
+          _equipe_origem_id: string
+          _manter_papel?: boolean
+          _motivo?: string
+          _novo_papel?: string
+          _usuario_id: string
+        }
         Returns: Json
       }
       unaccent: { Args: { "": string }; Returns: string }
