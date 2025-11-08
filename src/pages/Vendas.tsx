@@ -444,6 +444,14 @@ export default function Vendas() {
         // Define vendedor_id: se gestor selecionou alguém, usa o selecionado; senão, usa o próprio
         const finalVendedorId = vendedorId || currentUser.id;
         
+        console.log('DEBUG - Criando venda:', {
+          vendedorId,
+          currentUserId: currentUser.id,
+          finalVendedorId,
+          etapaPipeline,
+          status
+        });
+        
         const venda = await createVenda.mutateAsync({
           numero_venda: numeroVenda,
           cliente_nome: clienteNome,
