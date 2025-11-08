@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Users, Plus, UserPlus, X, Loader2, Crown, Network } from "lucide-react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { OrganigramaEquipes } from "@/components/equipes/OrganigramaEquipes";
 
@@ -30,7 +30,7 @@ export default function Equipes() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedEquipe, setSelectedEquipe] = useState<string | null>(null);
   const [selectedUsuario, setSelectedUsuario] = useState<string>("");
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<NovaEquipeForm>();
+  const { register, handleSubmit, reset, formState: { errors }, control } = useForm<NovaEquipeForm>();
 
   const { data: membros } = useMembrosEquipe(selectedEquipe || undefined);
 
@@ -134,40 +134,49 @@ export default function Equipes() {
 
                     <div className="space-y-2">
                       <Label htmlFor="lider">Líder da Equipe*</Label>
-                      <Select
-                        onValueChange={(value) => register("lider_equipe_id").onChange({ target: { value } })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione um líder" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {lideres.map((user) => (
-                            <SelectItem key={user.user_id} value={user.user_id}>
-                              {user.email}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <Controller
+                        name="lider_equipe_id"
+                        control={control}
+                        rules={{ required: "Líder é obrigatório" }}
+                        render={({ field }) => (
+                          <Select value={field.value} onValueChange={field.onChange}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione um líder" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {lideres.map((user) => (
+                                <SelectItem key={user.user_id} value={user.user_id}>
+                                  {user.email}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                      />
                       {errors.lider_equipe_id && (
-                        <p className="text-sm text-destructive">{errors.lider_equipe_id.message}</p>
+                        <p className="text-sm text-destructive">{errors.lider_equipe_id.message as string}</p>
                       )}
                     </div>
 
                     <div className="space-y-2">
                       <Label htmlFor="tipo">Tipo de Equipe</Label>
-                      <Select
-                        onValueChange={(value) => register("tipo_equipe").onChange({ target: { value } })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione o tipo" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="vendas">Vendas</SelectItem>
-                          <SelectItem value="suporte">Suporte</SelectItem>
-                          <SelectItem value="operacional">Operacional</SelectItem>
-                          <SelectItem value="marketing">Marketing</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <Controller
+                        name="tipo_equipe"
+                        control={control}
+                        render={({ field }) => (
+                          <Select value={field.value} onValueChange={field.onChange}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione o tipo" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="vendas">Vendas</SelectItem>
+                              <SelectItem value="suporte">Suporte</SelectItem>
+                              <SelectItem value="operacional">Operacional</SelectItem>
+                              <SelectItem value="marketing">Marketing</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        )}
+                      />
                     </div>
                   </div>
 
