@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Users, Plus, UserPlus, X, Loader2 } from "lucide-react";
+import { Users, Plus, UserPlus, X, Loader2, Crown } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
@@ -264,20 +264,35 @@ export default function Equipes() {
                         const user = allUsers?.find(u => u.user_id === membro.usuario_id);
                         const perfil = membro.perfis_usuario;
                         const nome = perfil ? `${perfil.primeiro_nome || ''} ${perfil.sobrenome || ''}`.trim() : '';
+                        const equipe = equipes?.find(e => e.id === selectedEquipe);
+                        const isLider = equipe?.lider_equipe_id === membro.usuario_id;
                         
                         return (
-                          <div key={membro.usuario_id} className="flex items-center justify-between p-3">
-                            <div className="flex flex-col">
-                              {nome && <span className="font-medium">{nome}</span>}
-                              <span className="text-sm text-muted-foreground">{user?.email || membro.usuario_id}</span>
+                          <div key={membro.usuario_id} className="flex items-center justify-between p-3 hover:bg-muted/50 transition-colors">
+                            <div className="flex items-center gap-3 flex-1">
+                              <div className="flex flex-col flex-1">
+                                <div className="flex items-center gap-2">
+                                  {nome && <span className="font-medium">{nome}</span>}
+                                  {isLider && (
+                                    <Badge variant="default" className="bg-amber-500 hover:bg-amber-600 text-white flex items-center gap-1 px-2 py-0.5">
+                                      <Crown className="h-3 w-3" />
+                                      Líder
+                                    </Badge>
+                                  )}
+                                </div>
+                                <span className="text-sm text-muted-foreground">{user?.email || membro.usuario_id}</span>
+                              </div>
                             </div>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleRemoverMembro(membro.usuario_id)}
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
+                            {!isLider && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleRemoverMembro(membro.usuario_id)}
+                                className="hover:bg-destructive/10 hover:text-destructive"
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            )}
                           </div>
                         );
                       })}
