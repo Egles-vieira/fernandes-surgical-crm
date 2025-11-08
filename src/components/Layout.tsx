@@ -99,7 +99,15 @@ const menuItems: MenuItem[] = [
     label: "Produtos",
     children: [{ path: "/produtos", icon: Package, label: "Produtos" }],
   },
-  { path: "/usuarios", icon: Shield, label: "Admin", adminOnly: true },
+  {
+    icon: Shield,
+    label: "Admin",
+    adminOnly: true,
+    children: [
+      { path: "/usuarios", icon: Shield, label: "Usuários" },
+      { path: "/equipes", icon: Users, label: "Equipes" },
+    ],
+  },
 ];
 
 export default function Layout({ children }: LayoutProps) {
