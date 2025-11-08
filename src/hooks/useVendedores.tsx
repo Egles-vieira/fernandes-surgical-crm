@@ -5,7 +5,6 @@ import { useAuth } from "./useAuth";
 export interface Vendedor {
   id: string;
   nome: string;
-  email: string;
 }
 
 export function useVendedores() {
@@ -44,8 +43,7 @@ export function useVendedores() {
         id: perfil.id,
         nome: perfil.sobrenome 
           ? `${perfil.primeiro_nome} ${perfil.sobrenome}` 
-          : perfil.primeiro_nome || 'Usuário',
-        email: '' // Email não está na tabela perfis_usuario
+          : perfil.primeiro_nome || 'Usuário'
       }));
     },
     enabled: !!user?.id,
