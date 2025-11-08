@@ -181,6 +181,43 @@ export function useEquipes() {
     },
   });
 
+  // Transferir liderança da equipe
+  const transferirLideranca = useMutation({
+    mutationFn: async ({ 
+      equipeId, 
+      novoLiderId, 
+      motivo 
+    }: { 
+      equipeId: string; 
+      novoLiderId: string; 
+      motivo?: string;
+    }) => {
+      const { data, error } = await supabase.rpc("transferir_lideranca_equipe", {
+        _equipe_id: equipeId,
+        _novo_lider_id: novoLiderId,
+        _motivo: motivo || null,
+      });
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["equipes"] });
+      queryClient.invalidateQueries({ queryKey: ["membros-equipe"] });
+      toast({
+        title: "Liderança transferida",
+        description: "A liderança da equipe foi transferida com sucesso",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        variant: "destructive",
+        title: "Erro ao transferir liderança",
+        description: error.message,
+      });
+    },
+  });
+
   return {
     equipes,
     isLoading,
@@ -188,6 +225,7 @@ export function useEquipes() {
     atualizarEquipe,
     adicionarMembro,
     removerMembro,
+    transferirLideranca,
     useMembrosEquipe,
   };
 }

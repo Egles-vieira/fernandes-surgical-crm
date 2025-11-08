@@ -10,10 +10,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Users, Plus, UserPlus, X, Loader2, Crown, Network } from "lucide-react";
+import { Users, Plus, UserPlus, X, Loader2, Crown, Network, ArrowRightLeft } from "lucide-react";
 import { useForm, Controller } from "react-hook-form";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { OrganigramaEquipes } from "@/components/equipes/OrganigramaEquipes";
+import { TransferirLiderancaDialog } from "@/components/equipes/TransferirLiderancaDialog";
 
 interface NovaEquipeForm {
   nome: string;
@@ -25,9 +26,10 @@ interface NovaEquipeForm {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function Equipes() {
-  const { equipes, isLoading, criarEquipe, adicionarMembro, removerMembro, useMembrosEquipe } = useEquipes();
+  const { equipes, isLoading, criarEquipe, adicionarMembro, removerMembro, transferirLideranca, useMembrosEquipe } = useEquipes();
   const { allUsers, isAdmin, isLider } = useRoles();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [transferirLiderancaOpen, setTransferirLiderancaOpen] = useState(false);
   const [selectedEquipe, setSelectedEquipe] = useState<string | null>(null);
   const [selectedUsuario, setSelectedUsuario] = useState<string>("");
   const { register, handleSubmit, reset, formState: { errors }, control } = useForm<NovaEquipeForm>();
@@ -74,6 +76,17 @@ export default function Equipes() {
         usuarioId,
       });
     }
+  };
+
+  const handleTransferirLideranca = async (novoLiderId: string, motivo: string) => {
+    if (!selectedEquipe) return;
+    
+    await transferirLideranca.mutateAsync({
+      equipeId: selectedEquipe,
+      novoLiderId,
+      motivo,
+    });
+    setTransferirLiderancaOpen(false);
   };
 
   // Filtrar apenas usuários com role de lider para seleção de líder
@@ -262,6 +275,17 @@ export default function Equipes() {
               </DialogHeader>
 
               <div className="space-y-4">
+                {/* Botão Transferir Liderança */}
+                {isAdmin && (
+                  <Button
+                    onClick={() => setTransferirLiderancaOpen(true)}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    <ArrowRightLeft className="h-4 w-4 mr-2" />
+                    Transferir Liderança
+                  </Button>
+                )}
                 {/* Adicionar Membro */}
                 <div className="flex items-end gap-2">
                   <div className="flex-1 space-y-2">
@@ -343,6 +367,21 @@ export default function Equipes() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+        )}
+
+        {/* Dialog de Transferir Liderança */}
+        {selectedEquipe && membros && (
+          <TransferirLiderancaDialog
+            open={transferirLiderancaOpen}
+            onOpenChange={setTransferirLiderancaOpen}
+            equipeId={selectedEquipe}
+            equipeNome={equipes?.find(e => e.id === selectedEquipe)?.nome || ''}
+            liderAtualId={equipes?.find(e => e.id === selectedEquipe)?.lider_equipe_id || null}
+            membros={membros as any}
+            allUsers={allUsers || []}
+            onTransferir={handleTransferirLideranca}
+            isLoading={transferirLideranca.isPending}
+          />
         )}
       </div>
     </Layout>

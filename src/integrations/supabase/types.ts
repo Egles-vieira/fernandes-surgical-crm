@@ -2678,6 +2678,44 @@ export type Database = {
           },
         ]
       }
+      historico_lideranca_equipe: {
+        Row: {
+          alterado_em: string
+          alterado_por: string
+          equipe_id: string
+          id: string
+          lider_anterior_id: string | null
+          lider_novo_id: string
+          motivo: string | null
+        }
+        Insert: {
+          alterado_em?: string
+          alterado_por: string
+          equipe_id: string
+          id?: string
+          lider_anterior_id?: string | null
+          lider_novo_id: string
+          motivo?: string | null
+        }
+        Update: {
+          alterado_em?: string
+          alterado_por?: string
+          equipe_id?: string
+          id?: string
+          lider_anterior_id?: string | null
+          lider_novo_id?: string
+          motivo?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "historico_lideranca_equipe_equipe_id_fkey"
+            columns: ["equipe_id"]
+            isOneToOne: false
+            referencedRelation: "equipes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       historico_ligacoes: {
         Row: {
           atendida: boolean | null
@@ -5947,6 +5985,10 @@ export type Database = {
       }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
+      transferir_lideranca_equipe: {
+        Args: { _equipe_id: string; _motivo?: string; _novo_lider_id: string }
+        Returns: Json
+      }
       unaccent: { Args: { "": string }; Returns: string }
     }
     Enums: {
