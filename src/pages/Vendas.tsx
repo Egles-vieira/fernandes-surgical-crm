@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { supabase } from "@/integrations/supabase/client";
 import { useVendas } from "@/hooks/useVendas";
 import { useCondicoesPagamento } from "@/hooks/useCondicoesPagamento";
 import { useTiposFrete } from "@/hooks/useTiposFrete";
@@ -411,6 +412,8 @@ export default function Vendas() {
         });
       } else {
         // Criar nova venda
+        const { data: { user } } = await supabase.auth.getUser();
+        
         const venda = await createVenda.mutateAsync({
           numero_venda: numeroVenda,
           cliente_nome: clienteNome,
@@ -429,7 +432,8 @@ export default function Vendas() {
           data_fechamento_prevista: dataFechamentoPrevista || null,
           motivo_perda: motivoPerda || null,
           origem_lead: origemLead || null,
-          responsavel_id: responsavelId || null
+          responsavel_id: responsavelId || null,
+          vendedor_id: responsavelId || user?.id || null, // Usa responsável ou usuário atual
         });
 
         // Aguardar a invalidação do cache e adicionar itens
