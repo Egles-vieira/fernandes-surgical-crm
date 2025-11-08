@@ -431,7 +431,18 @@ export default function Vendas() {
         });
       } else {
         // Criar nova venda
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user: currentUser } } = await supabase.auth.getUser();
+        if (!currentUser) {
+          toast({
+            title: "Erro",
+            description: "Usuário não autenticado",
+            variant: "destructive"
+          });
+          return;
+        }
+
+        // Define vendedor_id: se gestor selecionou alguém, usa o selecionado; senão, usa o próprio
+        const finalVendedorId = vendedorId || currentUser.id;
         
         const venda = await createVenda.mutateAsync({
           numero_venda: numeroVenda,
@@ -453,7 +464,7 @@ export default function Vendas() {
           motivo_perda: motivoPerda || null,
           origem_lead: origemLead || null,
           responsavel_id: responsavelId || null,
-          vendedor_id: vendedorId || user?.id || null, // Usa vendedor selecionado ou usuário atual
+          vendedor_id: finalVendedorId, // Sempre tem valor: selecionado ou atual
         });
 
         // Aguardar a invalidação do cache e adicionar itens
