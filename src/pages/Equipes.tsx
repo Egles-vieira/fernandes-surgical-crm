@@ -2,7 +2,7 @@ import { useState } from "react";
 import Layout from "@/components/Layout";
 import { useEquipes } from "@/hooks/useEquipes";
 import { useRoles } from "@/hooks/useRoles";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -10,11 +10,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Users, Plus, UserPlus, X, Loader2, Crown, Network, ArrowRightLeft } from "lucide-react";
+import { Users, Plus, UserPlus, X, Loader2, Crown, Network, ArrowRightLeft, Eye, Edit, Power, PowerOff } from "lucide-react";
 import { useForm, Controller } from "react-hook-form";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { OrganigramaEquipes } from "@/components/equipes/OrganigramaEquipes";
 import { TransferirLiderancaDialog } from "@/components/equipes/TransferirLiderancaDialog";
+import { EditarEquipeDialog } from "@/components/equipes/EditarEquipeDialog";
+import { DetalhesEquipeDialog } from "@/components/equipes/DetalhesEquipeDialog";
+import { DesativarEquipeDialog } from "@/components/equipes/DesativarEquipeDialog";
 
 interface NovaEquipeForm {
   nome: string;
@@ -26,10 +29,28 @@ interface NovaEquipeForm {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function Equipes() {
-  const { equipes, isLoading, criarEquipe, adicionarMembro, removerMembro, transferirLideranca, useMembrosEquipe } = useEquipes();
+  const { 
+    equipes, 
+    isLoading, 
+    criarEquipe, 
+    editarEquipe,
+    desativarEquipe,
+    reativarEquipe,
+    adicionarMembro, 
+    removerMembro, 
+    transferirLideranca, 
+    useMembrosEquipe 
+  } = useEquipes();
   const { allUsers, isAdmin, isLider } = useRoles();
+  
+  const [filtroAtivas, setFiltroAtivas] = useState<"ativas" | "inativas" | "todas">("ativas");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [membrosDialogOpen, setMembrosDialogOpen] = useState(false);
   const [transferirLiderancaOpen, setTransferirLiderancaOpen] = useState(false);
+  const [editarEquipeOpen, setEditarEquipeOpen] = useState(false);
+  const [detalhesEquipeOpen, setDetalhesEquipeOpen] = useState(false);
+  const [desativarEquipeOpen, setDesativarEquipeOpen] = useState(false);
+  const [acaoDesativacao, setAcaoDesativacao] = useState<"desativar" | "reativar">("desativar");
   const [selectedEquipe, setSelectedEquipe] = useState<string | null>(null);
   const [selectedUsuario, setSelectedUsuario] = useState<string>("");
   const { register, handleSubmit, reset, formState: { errors }, control } = useForm<NovaEquipeForm>();
@@ -78,16 +99,41 @@ export default function Equipes() {
     }
   };
 
-  const handleTransferirLideranca = async (novoLiderId: string, motivo: string) => {
+  const handleTransferirLideranca = async (novoLiderId: string, motivo?: string) => {
     if (!selectedEquipe) return;
-    
     await transferirLideranca.mutateAsync({
       equipeId: selectedEquipe,
       novoLiderId,
       motivo,
     });
-    setTransferirLiderancaOpen(false);
   };
+
+  const handleEditarEquipe = async (dados: any) => {
+    if (!selectedEquipe) return;
+    await editarEquipe.mutateAsync({
+      equipeId: selectedEquipe,
+      dados,
+    });
+  };
+
+  const handleDesativarReativar = async (motivo?: string) => {
+    if (!selectedEquipe) return;
+    
+    const equipe = equipes?.find(e => e.id === selectedEquipe);
+    if (!equipe) return;
+
+    if (equipe.esta_ativa) {
+      await desativarEquipe.mutateAsync({ equipeId: selectedEquipe, motivo });
+    } else {
+      await reativarEquipe.mutateAsync(selectedEquipe);
+    }
+  };
+
+  const equipesFiltradas = equipes?.filter((equipe) => {
+    if (filtroAtivas === "ativas") return equipe.esta_ativa;
+    if (filtroAtivas === "inativas") return !equipe.esta_ativa;
+    return true;
+  });
 
   // Filtrar apenas usuários com role de lider para seleção de líder
   const lideres = allUsers?.filter(user => user.roles?.includes('lider')) || [];
@@ -209,49 +255,128 @@ export default function Equipes() {
          </div>
 
         <Tabs defaultValue="lista" className="space-y-6">
-          <TabsList className="grid w-full max-w-md grid-cols-2">
-            <TabsTrigger value="lista" className="gap-2">
-              <Users className="h-4 w-4" />
-              Lista de Equipes
-            </TabsTrigger>
-            <TabsTrigger value="organograma" className="gap-2">
-              <Network className="h-4 w-4" />
-              Organograma
-            </TabsTrigger>
-          </TabsList>
+          <div className="flex items-center justify-between">
+            <TabsList className="grid w-full max-w-md grid-cols-2">
+              <TabsTrigger value="lista" className="gap-2">
+                <Users className="h-4 w-4" />
+                Lista de Equipes
+              </TabsTrigger>
+              <TabsTrigger value="organograma" className="gap-2">
+                <Network className="h-4 w-4" />
+                Organograma
+              </TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="lista" className="space-y-6">
+            <TabsList className="grid grid-cols-3">
+              <TabsTrigger
+                value="ativas"
+                onClick={() => setFiltroAtivas("ativas")}
+              >
+                Ativas
+              </TabsTrigger>
+              <TabsTrigger
+                value="inativas"
+                onClick={() => setFiltroAtivas("inativas")}
+              >
+                Inativas
+              </TabsTrigger>
+              <TabsTrigger
+                value="todas"
+                onClick={() => setFiltroAtivas("todas")}
+              >
+                Todas
+              </TabsTrigger>
+            </TabsList>
+          </div>
+
+          <TabsContent value="lista" className="space-y-6 mt-6">
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {equipes?.map((equipe) => (
-                  <Card key={equipe.id} className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setSelectedEquipe(equipe.id)}>
-                    <CardHeader>
-                      <CardTitle className="flex items-center justify-between">
-                        {equipe.nome}
-                        {equipe.tipo_equipe && (
-                          <Badge variant="outline">{equipe.tipo_equipe}</Badge>
-                        )}
-                      </CardTitle>
-                      <CardDescription>
-                        {equipe.descricao || "Sem descrição"}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex items-center gap-2">
-                          <Users className="h-4 w-4 text-muted-foreground" />
-                          <span>
-                            {selectedEquipe === equipe.id ? membros?.length || 0 : "..."} membros
-                          </span>
+                {equipesFiltradas?.map((equipe) => {
+                  const totalMembros = selectedEquipe === equipe.id ? membros?.length || 0 : 0;
+                  
+                  return (
+                    <Card key={equipe.id} className="hover:shadow-lg transition-shadow">
+                      <CardHeader>
+                        <CardTitle className="flex items-center justify-between gap-2">
+                          <span className="truncate">{equipe.nome}</span>
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            <Badge variant={equipe.esta_ativa ? "default" : "secondary"}>
+                              {equipe.esta_ativa ? "Ativa" : "Inativa"}
+                            </Badge>
+                            {equipe.tipo_equipe && (
+                              <Badge variant="outline">{equipe.tipo_equipe}</Badge>
+                            )}
+                          </div>
+                        </CardTitle>
+                        <CardDescription>
+                          {equipe.descricao || "Sem descrição"}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex items-center gap-2">
+                            <Users className="h-4 w-4 text-muted-foreground" />
+                            <span>{totalMembros} membros</span>
+                          </div>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                      </CardContent>
+                      <CardFooter className="flex gap-2 pt-4">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedEquipe(equipe.id);
+                            setDetalhesEquipeOpen(true);
+                          }}
+                        >
+                          <Eye className="h-4 w-4 mr-2" />
+                          Detalhes
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedEquipe(equipe.id);
+                            setMembrosDialogOpen(true);
+                          }}
+                        >
+                          <Users className="h-4 w-4 mr-2" />
+                          Membros
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => {
+                            setSelectedEquipe(equipe.id);
+                            setEditarEquipeOpen(true);
+                          }}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => {
+                            setSelectedEquipe(equipe.id);
+                            setAcaoDesativacao(equipe.esta_ativa ? "desativar" : "reativar");
+                            setDesativarEquipeOpen(true);
+                          }}
+                        >
+                          {equipe.esta_ativa ? (
+                            <PowerOff className="h-4 w-4 text-destructive" />
+                          ) : (
+                            <Power className="h-4 w-4 text-success" />
+                          )}
+                        </Button>
+                      </CardFooter>
+                    </Card>
+                  );
+                })}
               </div>
             )}
           </TabsContent>
@@ -262,17 +387,16 @@ export default function Equipes() {
         </Tabs>
 
         {/* Dialog de Membros da Equipe */}
-        {selectedEquipe && (
-          <Dialog open={!!selectedEquipe} onOpenChange={() => setSelectedEquipe(null)}>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>
-                  Membros da Equipe: {equipes?.find(e => e.id === selectedEquipe)?.nome}
-                </DialogTitle>
-                <DialogDescription>
-                  Gerencie os membros desta equipe
-                </DialogDescription>
-              </DialogHeader>
+        <Dialog open={membrosDialogOpen} onOpenChange={setMembrosDialogOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>
+                Membros da Equipe: {equipes?.find(e => e.id === selectedEquipe)?.nome}
+              </DialogTitle>
+              <DialogDescription>
+                Gerencie os membros desta equipe
+              </DialogDescription>
+            </DialogHeader>
 
               <div className="space-y-4">
                 {/* Botão Transferir Liderança */}
@@ -359,13 +483,12 @@ export default function Equipes() {
               </div>
 
               <DialogFooter>
-                <Button onClick={() => setSelectedEquipe(null)}>
+                <Button onClick={() => setMembrosDialogOpen(false)}>
                   Fechar
                 </Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
-        )}
 
         {/* Dialog de Transferir Liderança */}
         {selectedEquipe && membros && (
@@ -381,6 +504,30 @@ export default function Equipes() {
             isLoading={transferirLideranca.isPending}
           />
         )}
+
+        <EditarEquipeDialog
+          equipe={equipes?.find(e => e.id === selectedEquipe)}
+          usuarios={allUsers || []}
+          open={editarEquipeOpen}
+          onOpenChange={setEditarEquipeOpen}
+          onSubmit={handleEditarEquipe}
+        />
+
+        <DetalhesEquipeDialog
+          equipe={equipes?.find(e => e.id === selectedEquipe)}
+          membros={membros || []}
+          usuarios={allUsers || []}
+          open={detalhesEquipeOpen}
+          onOpenChange={setDetalhesEquipeOpen}
+        />
+
+        <DesativarEquipeDialog
+          equipe={equipes?.find(e => e.id === selectedEquipe)}
+          open={desativarEquipeOpen}
+          onOpenChange={setDesativarEquipeOpen}
+          onConfirm={handleDesativarReativar}
+          acao={acaoDesativacao}
+        />
       </div>
     </Layout>
   );

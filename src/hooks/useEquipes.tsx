@@ -211,11 +211,95 @@ export function useEquipes() {
     },
   });
 
+  // Mutation para editar equipe
+  const editarEquipe = useMutation({
+    mutationFn: async ({ equipeId, dados }: { equipeId: string; dados: Partial<Equipe> }) => {
+      const { error } = await supabase
+        .from("equipes")
+        .update({
+          ...dados,
+          atualizado_em: new Date().toISOString(),
+        })
+        .eq("id", equipeId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["equipes"] });
+      toast.success("Equipe atualizada com sucesso!");
+    },
+    onError: (error: any) => {
+      console.error("Erro ao editar equipe:", error);
+      toast.error(error.message || "Erro ao atualizar equipe");
+    },
+  });
+
+  // Mutation para desativar equipe
+  const desativarEquipe = useMutation({
+    mutationFn: async ({ equipeId, motivo }: { equipeId: string; motivo?: string }) => {
+      const { error } = await supabase
+        .from("equipes")
+        .update({
+          esta_ativa: false,
+          excluido_em: new Date().toISOString(),
+          atualizado_em: new Date().toISOString(),
+        })
+        .eq("id", equipeId);
+
+      if (error) throw error;
+
+      // Registrar no histórico manualmente
+      if (motivo) {
+        await supabase.from("historico_atividades_equipe").insert({
+          equipe_id: equipeId,
+          tipo_atividade: "desativacao",
+          descricao: `Equipe desativada: ${motivo}`,
+          dados_novos: { motivo },
+        });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["equipes"] });
+      toast.success("Equipe desativada com sucesso!");
+    },
+    onError: (error: any) => {
+      console.error("Erro ao desativar equipe:", error);
+      toast.error(error.message || "Erro ao desativar equipe");
+    },
+  });
+
+  // Mutation para reativar equipe
+  const reativarEquipe = useMutation({
+    mutationFn: async (equipeId: string) => {
+      const { error } = await supabase
+        .from("equipes")
+        .update({
+          esta_ativa: true,
+          excluido_em: null,
+          atualizado_em: new Date().toISOString(),
+        })
+        .eq("id", equipeId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["equipes"] });
+      toast.success("Equipe reativada com sucesso!");
+    },
+    onError: (error: any) => {
+      console.error("Erro ao reativar equipe:", error);
+      toast.error(error.message || "Erro ao reativar equipe");
+    },
+  });
+
   return {
     equipes,
     isLoading,
     criarEquipe,
     atualizarEquipe,
+    editarEquipe,
+    desativarEquipe,
+    reativarEquipe,
     adicionarMembro,
     removerMembro,
     transferirLideranca,

@@ -2623,6 +2623,47 @@ export type Database = {
         }
         Relationships: []
       }
+      historico_atividades_equipe: {
+        Row: {
+          dados_anteriores: Json | null
+          dados_novos: Json | null
+          descricao: string
+          equipe_id: string
+          id: string
+          realizado_em: string
+          realizado_por: string | null
+          tipo_atividade: string
+        }
+        Insert: {
+          dados_anteriores?: Json | null
+          dados_novos?: Json | null
+          descricao: string
+          equipe_id: string
+          id?: string
+          realizado_em?: string
+          realizado_por?: string | null
+          tipo_atividade: string
+        }
+        Update: {
+          dados_anteriores?: Json | null
+          dados_novos?: Json | null
+          descricao?: string
+          equipe_id?: string
+          id?: string
+          realizado_em?: string
+          realizado_por?: string | null
+          tipo_atividade?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "historico_atividades_equipe_equipe_id_fkey"
+            columns: ["equipe_id"]
+            isOneToOne: false
+            referencedRelation: "equipes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       historico_estagio_oportunidade: {
         Row: {
           alterado_em: string | null
