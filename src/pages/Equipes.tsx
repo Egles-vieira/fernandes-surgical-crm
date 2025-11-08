@@ -260,18 +260,27 @@ export default function Equipes() {
                   <Label>Membros Atuais</Label>
                   {membros && membros.length > 0 ? (
                     <div className="border rounded-lg divide-y">
-                      {membros.map((membro: any) => (
-                        <div key={membro.usuario_id} className="flex items-center justify-between p-3">
-                          <span>{membro.usuario?.email || membro.usuario_id}</span>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleRemoverMembro(membro.usuario_id)}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ))}
+                      {membros.map((membro: any) => {
+                        const user = allUsers?.find(u => u.user_id === membro.usuario_id);
+                        const perfil = membro.perfis_usuario;
+                        const nome = perfil ? `${perfil.primeiro_nome || ''} ${perfil.sobrenome || ''}`.trim() : '';
+                        
+                        return (
+                          <div key={membro.usuario_id} className="flex items-center justify-between p-3">
+                            <div className="flex flex-col">
+                              {nome && <span className="font-medium">{nome}</span>}
+                              <span className="text-sm text-muted-foreground">{user?.email || membro.usuario_id}</span>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleRemoverMembro(membro.usuario_id)}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        );
+                      })}
                     </div>
                   ) : (
                     <p className="text-sm text-muted-foreground py-4 text-center">

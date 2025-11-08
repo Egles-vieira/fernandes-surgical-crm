@@ -51,9 +51,10 @@ export function useEquipes() {
           .from("membros_equipe")
           .select(`
             *,
-            usuario:usuario_id (
+            perfis_usuario!usuario_id (
               id,
-              email
+              primeiro_nome,
+              sobrenome
             )
           `)
           .eq("equipe_id", equipeId);
