@@ -10,9 +10,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Users, Plus, UserPlus, X, Loader2, Crown } from "lucide-react";
+import { Users, Plus, UserPlus, X, Loader2, Crown, Network } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { OrganigramaEquipes } from "@/components/equipes/OrganigramaEquipes";
 
 interface NovaEquipeForm {
   nome: string;
@@ -20,6 +21,8 @@ interface NovaEquipeForm {
   lider_equipe_id: string;
   tipo_equipe: string;
 }
+
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function Equipes() {
   const { equipes, isLoading, criarEquipe, adicionarMembro, removerMembro, useMembrosEquipe } = useEquipes();
@@ -181,41 +184,60 @@ export default function Equipes() {
               </DialogContent>
             </Dialog>
           )}
-        </div>
+         </div>
 
-        {isLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {equipes?.map((equipe) => (
-              <Card key={equipe.id} className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setSelectedEquipe(equipe.id)}>
-                <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
-                    {equipe.nome}
-                    {equipe.tipo_equipe && (
-                      <Badge variant="outline">{equipe.tipo_equipe}</Badge>
-                    )}
-                  </CardTitle>
-                  <CardDescription>
-                    {equipe.descricao || "Sem descrição"}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex items-center gap-2">
-                      <Users className="h-4 w-4 text-muted-foreground" />
-                      <span>
-                        {selectedEquipe === equipe.id ? membros?.length || 0 : "..."} membros
-                      </span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
+        <Tabs defaultValue="lista" className="space-y-6">
+          <TabsList className="grid w-full max-w-md grid-cols-2">
+            <TabsTrigger value="lista" className="gap-2">
+              <Users className="h-4 w-4" />
+              Lista de Equipes
+            </TabsTrigger>
+            <TabsTrigger value="organograma" className="gap-2">
+              <Network className="h-4 w-4" />
+              Organograma
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="lista" className="space-y-6">
+            {isLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {equipes?.map((equipe) => (
+                  <Card key={equipe.id} className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setSelectedEquipe(equipe.id)}>
+                    <CardHeader>
+                      <CardTitle className="flex items-center justify-between">
+                        {equipe.nome}
+                        {equipe.tipo_equipe && (
+                          <Badge variant="outline">{equipe.tipo_equipe}</Badge>
+                        )}
+                      </CardTitle>
+                      <CardDescription>
+                        {equipe.descricao || "Sem descrição"}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex items-center gap-2">
+                          <Users className="h-4 w-4 text-muted-foreground" />
+                          <span>
+                            {selectedEquipe === equipe.id ? membros?.length || 0 : "..."} membros
+                          </span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="organograma">
+            <OrganigramaEquipes />
+          </TabsContent>
+        </Tabs>
 
         {/* Dialog de Membros da Equipe */}
         {selectedEquipe && (
