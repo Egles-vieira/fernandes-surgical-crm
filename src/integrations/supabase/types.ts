@@ -6569,6 +6569,11 @@ export type Database = {
         Args: { _user_id: string; _venda_id: string }
         Returns: boolean
       }
+      recalcular_todas_metas_vendas: { Args: never; Returns: number }
+      recalcular_valor_meta_vendas: {
+        Args: { _meta_id: string }
+        Returns: undefined
+      }
       registrar_feedback_ia: {
         Args: {
           p_feedback_tipo: string
