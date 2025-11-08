@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useRoles, AppRole } from "@/hooks/useRoles";
+import { useHierarquia } from "@/hooks/useHierarquia";
 import Layout from "@/components/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -19,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Shield, X, Loader2 } from "lucide-react";
+import { Shield, X, Loader2, Users, TrendingUp, Briefcase, UserCheck } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CriarUsuarioDialog } from "@/components/usuario/CriarUsuarioDialog";
 import { EditarUsuarioDialog } from "@/components/usuario/EditarUsuarioDialog";
@@ -71,6 +72,16 @@ const AVAILABLE_ROLES: { value: AppRole; label: string; description: string; col
 
 export default function Usuarios() {
   const { allUsers, isLoadingAllUsers, addRole, removeRole, isAdmin } = useRoles();
+  const { 
+    subordinados, 
+    equipesGerenciadas, 
+    clientesAcessiveis,
+    vendasAcessiveis,
+    nivelHierarquico,
+    isLoading: isLoadingHierarquia,
+    temSubordinados,
+    ehGestor
+  } = useHierarquia();
   const [selectedRole, setSelectedRole] = useState<{ [key: string]: AppRole }>({}); 
 
   if (!isAdmin) {
@@ -124,6 +135,157 @@ export default function Usuarios() {
             <CriarUsuarioDialog />
           </div>
         </div>
+
+        {/* Hierarquia Visual */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 animate-slide-in-up">
+          <Card className="border-0 shadow-elegant hover:shadow-2xl transition-all">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                <TrendingUp className="h-4 w-4" />
+                Nível Hierárquico
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-primary">
+                {isLoadingHierarquia ? (
+                  <Loader2 className="h-8 w-8 animate-spin" />
+                ) : (
+                  nivelHierarquico || 0
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                {ehGestor ? "Você é um gestor" : "Seu nível na hierarquia"}
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-elegant hover:shadow-2xl transition-all">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                Subordinados
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-primary">
+                {isLoadingHierarquia ? (
+                  <Loader2 className="h-8 w-8 animate-spin" />
+                ) : (
+                  subordinados?.length || 0
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                {temSubordinados ? "Usuários sob sua gestão" : "Nenhum subordinado"}
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-elegant hover:shadow-2xl transition-all">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                <Briefcase className="h-4 w-4" />
+                Equipes Gerenciadas
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-primary">
+                {isLoadingHierarquia ? (
+                  <Loader2 className="h-8 w-8 animate-spin" />
+                ) : (
+                  equipesGerenciadas?.length || 0
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                Equipes que você gerencia
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-elegant hover:shadow-2xl transition-all">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                <UserCheck className="h-4 w-4" />
+                Clientes Acessíveis
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-primary">
+                {isLoadingHierarquia ? (
+                  <Loader2 className="h-8 w-8 animate-spin" />
+                ) : (
+                  clientesAcessiveis?.length || 0
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                Clientes que você pode acessar
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Detalhes da Hierarquia */}
+        {temSubordinados && (
+          <Card className="border-0 shadow-elegant animate-slide-in-left">
+            <CardHeader className="gradient-subtle border-b">
+              <CardTitle className="text-xl flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                Sua Equipe
+              </CardTitle>
+              <CardDescription>
+                Usuários subordinados em sua hierarquia comercial
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pt-6">
+              {isLoadingHierarquia ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {subordinados?.map((subordinado) => {
+                    const userData = allUsers?.find(u => u.user_id === subordinado.subordinado_id);
+                    return (
+                      <div 
+                        key={subordinado.subordinado_id}
+                        className="flex items-center justify-between p-4 border rounded-lg hover:shadow-md transition-all bg-gradient-to-r from-card to-muted/20"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                            <UserCheck className="h-5 w-5 text-primary" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-foreground">
+                              {userData?.email || 'Usuário desconhecido'}
+                            </p>
+                            <div className="flex items-center gap-2 mt-1">
+                              <Badge variant="outline" className="text-xs">
+                                Nível {subordinado.nivel_distancia}
+                              </Badge>
+                              {userData?.roles && userData.roles.length > 0 && (
+                                <div className="flex gap-1">
+                                  {userData.roles.map((role) => {
+                                    const roleInfo = AVAILABLE_ROLES.find(r => r.value === role);
+                                    return (
+                                      <div 
+                                        key={role}
+                                        className={`w-2 h-2 rounded-full ${roleInfo?.color}`}
+                                        title={roleInfo?.label}
+                                      />
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Legenda de Roles */}
         <Card className="border-0 shadow-elegant animate-slide-in-left">
@@ -185,7 +347,17 @@ export default function Usuarios() {
                 <TableBody>
                   {allUsers?.map((user) => (
                     <TableRow key={user.user_id} className="hover:bg-muted/50 transition-colors">
-                      <TableCell className="font-medium text-foreground">{user.email}</TableCell>
+                       <TableCell>
+                        <div className="flex items-center gap-2">
+                          <div className="font-medium text-foreground">{user.email}</div>
+                          {subordinados?.some(s => s.subordinado_id === user.user_id) && (
+                            <Badge variant="outline" className="text-xs border-primary/30 text-primary">
+                              <UserCheck className="h-3 w-3 mr-1" />
+                              Subordinado
+                            </Badge>
+                          )}
+                        </div>
+                      </TableCell>
                       <TableCell>
                         <div className="flex flex-wrap gap-2">
                           {user.roles && user.roles.length > 0 ? (
