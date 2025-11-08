@@ -317,17 +317,16 @@ export default function Equipes() {
                     <div className="border rounded-lg divide-y">
                       {membros.map((membro: any) => {
                         const user = allUsers?.find(u => u.user_id === membro.usuario_id);
-                        const perfil = membro.perfis_usuario;
-                        const nome = perfil ? `${perfil.primeiro_nome || ''} ${perfil.sobrenome || ''}`.trim() : '';
                         const equipe = equipes?.find(e => e.id === selectedEquipe);
                         const isLider = equipe?.lider_equipe_id === membro.usuario_id;
+                        const display = user?.email || membro.usuario_id;
                         
                         return (
                           <div key={membro.usuario_id} className="flex items-center justify-between p-3 hover:bg-muted/50 transition-colors">
                             <div className="flex items-center gap-3 flex-1">
                               <div className="flex flex-col flex-1">
                                 <div className="flex items-center gap-2">
-                                  {nome && <span className="font-medium">{nome}</span>}
+                                  <span className="font-medium truncate">{display}</span>
                                   {isLider && (
                                     <Badge variant="default" className="bg-amber-500 hover:bg-amber-600 text-white flex items-center gap-1 px-2 py-0.5">
                                       <Crown className="h-3 w-3" />
@@ -335,7 +334,6 @@ export default function Equipes() {
                                     </Badge>
                                   )}
                                 </div>
-                                <span className="text-sm text-muted-foreground">{user?.email || membro.usuario_id}</span>
                               </div>
                             </div>
                             {!isLider && (

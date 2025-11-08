@@ -49,14 +49,7 @@ export function useEquipes() {
         
         const { data, error } = await supabase
           .from("membros_equipe")
-          .select(`
-            *,
-            perfis_usuario!usuario_id (
-              id,
-              primeiro_nome,
-              sobrenome
-            )
-          `)
+          .select("equipe_id, usuario_id, entrou_em")
           .eq("equipe_id", equipeId);
 
         if (error) throw error;
