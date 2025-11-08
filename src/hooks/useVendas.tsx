@@ -183,6 +183,37 @@ export function useVendas() {
     },
   });
 
+  const aprovarVenda = useMutation({
+    mutationFn: async (id: string) => {
+      const { data, error } = await supabase
+        .from("vendas")
+        .update({ 
+          status: 'concluida',
+          aprovado_em: new Date().toISOString()
+        })
+        .eq("id", id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["vendas"] });
+      toast({
+        title: "Venda aprovada!",
+        description: "A venda foi aprovada e agora conta nas metas da equipe.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro ao aprovar venda",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   return {
     vendas,
     isLoading,
@@ -192,5 +223,6 @@ export function useVendas() {
     addItem,
     removeItem,
     updateItem,
+    aprovarVenda,
   };
 }

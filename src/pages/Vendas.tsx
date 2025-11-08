@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Search, Plus, Eye, Trash2, ShoppingCart, Save, Users, Edit } from "lucide-react";
+import { Search, Plus, Eye, Trash2, ShoppingCart, Save, Users, Edit, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -17,10 +17,18 @@ import { ClienteSearchDialog } from "@/components/ClienteSearchDialog";
 import { VendasActionBar } from "@/components/VendasActionBar";
 import { VendasFilters } from "@/components/vendas/VendasFilters";
 import { PipelineKanban, EtapaPipeline } from "@/components/vendas/PipelineKanban";
+import { AprovarVendaDialog } from "@/components/vendas/AprovarVendaDialog";
 import { Tables } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
 type Produto = Tables<"produtos">;
 type Cliente = Tables<"clientes">;
+
+interface VendaWithItems extends Tables<"vendas"> {
+  vendas_itens?: (Tables<"vendas_itens"> & {
+    produtos?: Produto;
+  })[];
+}
+
 interface ItemCarrinho {
   produto: Produto;
   quantidade: number;
@@ -35,7 +43,8 @@ export default function Vendas() {
     addItem,
     updateVenda,
     updateItem,
-    removeItem
+    removeItem,
+    aprovarVenda
   } = useVendas();
   const {
     condicoes,
@@ -57,6 +66,7 @@ export default function Vendas() {
   const [showProdutoSearch, setShowProdutoSearch] = useState(false);
   const [showClienteSearch, setShowClienteSearch] = useState(false);
   const [editandoVendaId, setEditandoVendaId] = useState<string | null>(null);
+  const [vendaParaAprovar, setVendaParaAprovar] = useState<{ id: string; numero: string; valor: number } | null>(null);
 
   // Filtros state
   const [filtros, setFiltros] = useState({
@@ -477,6 +487,25 @@ export default function Vendas() {
       });
     }
   };
+
+  const handleAprovarVenda = (venda: VendaWithItems) => {
+    setVendaParaAprovar({
+      id: venda.id,
+      numero: venda.numero_venda,
+      valor: venda.valor_final
+    });
+  };
+
+  const confirmarAprovacao = async () => {
+    if (!vendaParaAprovar) return;
+    
+    try {
+      await aprovarVenda.mutateAsync(vendaParaAprovar.id);
+      setVendaParaAprovar(null);
+    } catch (error) {
+      console.error("Erro ao aprovar venda:", error);
+    }
+  };
   if (isLoading) {
     return <div className="p-8 flex items-center justify-center min-h-[400px]">
         <div className="text-center">
@@ -779,9 +808,32 @@ export default function Vendas() {
                           </Badge>
                         </TableCell>
                         <TableCell className="text-center">
-                          <Button variant="ghost" size="sm" onClick={() => handleEditarVenda(venda)}>
-                            <Edit size={16} />
-                          </Button>
+                          <div className="flex items-center justify-center gap-2">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => handleEditarVenda(venda)}
+                              title="Editar venda"
+                            >
+                              <Edit size={16} />
+                            </Button>
+                            {venda.status === 'rascunho' && !venda.aprovado_em && (
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                className="text-success hover:text-success hover:bg-success/10"
+                                onClick={() => handleAprovarVenda(venda)}
+                                title="Aprovar venda"
+                              >
+                                <CheckCircle size={16} />
+                              </Button>
+                            )}
+                            {venda.aprovado_em && (
+                              <Badge variant="outline" className="text-success border-success">
+                                ✓ Aprovada
+                              </Badge>
+                            )}
+                          </div>
                         </TableCell>
                       </TableRow>)}
                 </TableBody>
@@ -789,5 +841,17 @@ export default function Vendas() {
             </Card>
           </>}
       </div>
+
+      {/* Dialogs */}
+      <ProdutoSearchDialog open={showProdutoSearch} onOpenChange={setShowProdutoSearch} onSelectProduto={handleAddProduto} />
+      <ClienteSearchDialog open={showClienteSearch} onOpenChange={setShowClienteSearch} onSelectCliente={handleSelectCliente} />
+      <AprovarVendaDialog
+        open={!!vendaParaAprovar}
+        onOpenChange={(open) => !open && setVendaParaAprovar(null)}
+        onConfirm={confirmarAprovacao}
+        vendaNumero={vendaParaAprovar?.numero || ""}
+        vendaValor={vendaParaAprovar?.valor || 0}
+        isLoading={aprovarVenda.isPending}
+      />
     </div>;
 }
