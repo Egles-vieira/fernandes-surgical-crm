@@ -13,6 +13,8 @@ import { useVendas } from "@/hooks/useVendas";
 import { useCondicoesPagamento } from "@/hooks/useCondicoesPagamento";
 import { useTiposFrete } from "@/hooks/useTiposFrete";
 import { useTiposPedido } from "@/hooks/useTiposPedido";
+import { useVendedores } from "@/hooks/useVendedores";
+import { useHierarquia } from "@/hooks/useHierarquia";
 import { ProdutoSearchDialog } from "@/components/ProdutoSearchDialog";
 import { ClienteSearchDialog } from "@/components/ClienteSearchDialog";
 import { VendasActionBar } from "@/components/VendasActionBar";
@@ -59,6 +61,8 @@ export default function Vendas() {
     tipos: tiposPedido,
     isLoading: isLoadingTiposPedido
   } = useTiposPedido();
+  const { vendedores, isLoading: isLoadingVendedores } = useVendedores();
+  const { ehGestor } = useHierarquia();
   const {
     toast
   } = useToast();
@@ -98,6 +102,7 @@ export default function Vendas() {
   const [motivoPerda, setMotivoPerda] = useState<string>("");
   const [origemLead, setOrigemLead] = useState<string>("");
   const [responsavelId, setResponsavelId] = useState<string>("");
+  const [vendedorId, setVendedorId] = useState<string>("");
 
   // Mapa de nomes das etapas para mensagens
   const ETAPAS_LABELS: Record<EtapaPipeline, string> = {
@@ -277,6 +282,7 @@ export default function Vendas() {
     setMotivoPerda(venda.motivo_perda || "");
     setOrigemLead(venda.origem_lead || "");
     setResponsavelId(venda.responsavel_id || "");
+    setVendedorId(venda.vendedor_id || "");
 
     // Carregar itens da venda
     const itensCarrinho: ItemCarrinho[] = (venda.vendas_itens || []).map((item: any) => ({
@@ -309,6 +315,7 @@ export default function Vendas() {
     setMotivoPerda("");
     setOrigemLead("");
     setResponsavelId("");
+    setVendedorId("");
   };
   const handleCalcular = () => {
     toast({
@@ -386,7 +393,8 @@ export default function Vendas() {
           data_fechamento_prevista: dataFechamentoPrevista || null,
           motivo_perda: motivoPerda || null,
           origem_lead: origemLead || null,
-          responsavel_id: responsavelId || null
+          responsavel_id: responsavelId || null,
+          vendedor_id: vendedorId || null
         });
 
         // Remover itens antigos e adicionar novos
@@ -433,7 +441,7 @@ export default function Vendas() {
           motivo_perda: motivoPerda || null,
           origem_lead: origemLead || null,
           responsavel_id: responsavelId || null,
-          vendedor_id: responsavelId || user?.id || null, // Usa responsável ou usuário atual
+          vendedor_id: vendedorId || user?.id || null, // Usa vendedor selecionado ou usuário atual
         });
 
         // Aguardar a invalidação do cache e adicionar itens
@@ -644,6 +652,25 @@ export default function Vendas() {
                 <Label>Origem do Lead</Label>
                 <Input value={origemLead} onChange={e => setOrigemLead(e.target.value)} placeholder="Ex: Indicação, Site, Cold Call" />
               </div>
+
+              {ehGestor && (
+                <div>
+                  <Label>Vendedor Responsável</Label>
+                  <Select value={vendedorId} onValueChange={setVendedorId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o vendedor" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Eu mesmo</SelectItem>
+                      {vendedores.map((vendedor) => (
+                        <SelectItem key={vendedor.id} value={vendedor.id}>
+                          {vendedor.nome}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
 
               {etapaPipeline === "perdido" && <div className="md:col-span-3">
                   <Label>Motivo da Perda</Label>
