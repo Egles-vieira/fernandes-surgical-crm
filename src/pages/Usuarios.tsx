@@ -22,51 +22,51 @@ import {
 } from "@/components/ui/select";
 import { Shield, X, Loader2, Users, TrendingUp, Briefcase, UserCheck } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { CriarUsuarioDialog } from "@/components/usuario/CriarUsuarioDialog";
-import { EditarUsuarioDialog } from "@/components/usuario/EditarUsuarioDialog";
+import { CriarUsuarioSheet } from "@/components/usuario/CriarUsuarioSheet";
+import { EditarUsuarioSheet } from "@/components/usuario/EditarUsuarioSheet";
 
 const AVAILABLE_ROLES: { value: AppRole; label: string; description: string; color: string }[] = [
   {
     value: "admin",
     label: "Administrador",
     description: "Acesso total ao sistema",
-    color: "bg-red-500",
+    color: "bg-destructive",
   },
   {
     value: "lider",
     label: "Líder de Equipe",
     description: "Gerenciar equipe de vendas, aprovar descontos",
-    color: "bg-indigo-500",
+    color: "bg-secondary",
   },
   {
     value: "manager",
     label: "Gerente",
     description: "Gerenciar produtos, relatórios e equipe",
-    color: "bg-purple-500",
+    color: "bg-accent",
   },
   {
     value: "sales",
     label: "Vendedor",
     description: "Gerenciar clientes e oportunidades",
-    color: "bg-blue-500",
+    color: "bg-primary",
   },
   {
     value: "backoffice",
     label: "Backoffice",
     description: "Suporte operacional ao vendedor",
-    color: "bg-cyan-500",
+    color: "bg-[hsl(var(--tertiary))]",
   },
   {
     value: "warehouse",
     label: "Estoque",
     description: "Gerenciar inventário",
-    color: "bg-green-500",
+    color: "bg-[hsl(var(--success))]",
   },
   {
     value: "support",
     label: "Suporte",
     description: "Atendimento ao cliente",
-    color: "bg-orange-500",
+    color: "bg-[hsl(var(--warning))]",
   },
 ];
 
@@ -119,26 +119,24 @@ export default function Usuarios() {
 
   return (
     <Layout>
-      <div className="container mx-auto p-6 space-y-6 animate-fade-in">
-        {/* Header com gradiente */}
-        <div className="gradient-primary rounded-xl p-8 shadow-elegant text-white">
+      <div className="container mx-auto p-6 space-y-6">
+        <div className="bg-gradient-to-r from-primary to-primary/80 rounded-xl p-8 text-primary-foreground">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-4xl font-bold flex items-center gap-3 mb-2">
                 <Shield className="h-10 w-10" />
                 Gestão de Usuários
               </h1>
-              <p className="text-white/90 text-lg">
+              <p className="text-primary-foreground/90 text-lg">
                 Gerencie usuários, permissões e equipes do sistema
               </p>
             </div>
-            <CriarUsuarioDialog />
+            <CriarUsuarioSheet />
           </div>
         </div>
 
-        {/* Hierarquia Visual */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 animate-slide-in-up">
-          <Card className="border-0 shadow-elegant hover:shadow-2xl transition-all">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card className="hover:shadow-lg transition-all">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                 <TrendingUp className="h-4 w-4" />
@@ -159,7 +157,7 @@ export default function Usuarios() {
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-elegant hover:shadow-2xl transition-all">
+          <Card className="hover:shadow-lg transition-all">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                 <Users className="h-4 w-4" />
@@ -180,7 +178,7 @@ export default function Usuarios() {
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-elegant hover:shadow-2xl transition-all">
+          <Card className="hover:shadow-lg transition-all">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                 <Briefcase className="h-4 w-4" />
@@ -201,7 +199,7 @@ export default function Usuarios() {
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-elegant hover:shadow-2xl transition-all">
+          <Card className="hover:shadow-lg transition-all">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                 <UserCheck className="h-4 w-4" />
@@ -223,10 +221,9 @@ export default function Usuarios() {
           </Card>
         </div>
 
-        {/* Detalhes da Hierarquia */}
         {temSubordinados && (
-          <Card className="border-0 shadow-elegant animate-slide-in-left">
-            <CardHeader className="gradient-subtle border-b">
+          <Card>
+            <CardHeader className="bg-muted/30 border-b">
               <CardTitle className="text-xl flex items-center gap-2">
                 <Users className="h-5 w-5" />
                 Sua Equipe
@@ -247,7 +244,7 @@ export default function Usuarios() {
                     return (
                       <div 
                         key={subordinado.subordinado_id}
-                        className="flex items-center justify-between p-4 border rounded-lg hover:shadow-md transition-all bg-gradient-to-r from-card to-muted/20"
+                        className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-all"
                       >
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
@@ -287,9 +284,8 @@ export default function Usuarios() {
           </Card>
         )}
 
-        {/* Legenda de Roles */}
-        <Card className="border-0 shadow-elegant animate-slide-in-left">
-          <CardHeader className="gradient-subtle border-b">
+        <Card>
+          <CardHeader className="bg-muted/30 border-b">
             <CardTitle className="text-xl">Roles Disponíveis</CardTitle>
             <CardDescription>
               Cada usuário pode ter múltiplos roles com diferentes permissões
@@ -300,7 +296,7 @@ export default function Usuarios() {
               {AVAILABLE_ROLES.map((role) => (
                 <div 
                   key={role.value} 
-                  className="flex items-start gap-3 p-4 border rounded-lg hover:shadow-md transition-all hover:scale-105 bg-gradient-to-br from-card to-muted/20"
+                  className="flex items-start gap-3 p-4 border rounded-lg hover:bg-muted/50 transition-all"
                 >
                   <div className={`w-4 h-4 rounded-full ${role.color} mt-1 shadow-sm`} />
                   <div className="flex-1">
@@ -313,9 +309,8 @@ export default function Usuarios() {
           </CardContent>
         </Card>
 
-        {/* Tabela de Usuários */}
-        <Card className="border-0 shadow-elegant animate-fade-in">
-          <CardHeader className="gradient-subtle border-b">
+        <Card>
+          <CardHeader className="bg-muted/30 border-b">
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle className="text-xl">Usuários Cadastrados</CardTitle>
@@ -346,12 +341,12 @@ export default function Usuarios() {
                 </TableHeader>
                 <TableBody>
                   {allUsers?.map((user) => (
-                    <TableRow key={user.user_id} className="hover:bg-muted/50 transition-colors">
+                    <TableRow key={user.user_id} className="hover:bg-muted/30 transition-colors">
                        <TableCell>
                         <div className="flex items-center gap-2">
-                          <div className="font-medium text-foreground">{user.email}</div>
+                          <div className="font-medium">{user.email}</div>
                           {subordinados?.some(s => s.subordinado_id === user.user_id) && (
-                            <Badge variant="outline" className="text-xs border-primary/30 text-primary">
+                            <Badge variant="outline" className="text-xs">
                               <UserCheck className="h-3 w-3 mr-1" />
                               Subordinado
                             </Badge>
@@ -367,14 +362,14 @@ export default function Usuarios() {
                                 <Badge
                                   key={role}
                                   variant="secondary"
-                                  className="flex items-center gap-2 px-3 py-1.5 hover:shadow-md transition-all"
+                                  className="flex items-center gap-2 px-3 py-1.5"
                                 >
-                                  <div className={`w-2.5 h-2.5 rounded-full ${roleInfo?.color} shadow-sm`} />
-                                  <span className="font-medium">{roleInfo?.label}</span>
+                                  <div className={`w-2.5 h-2.5 rounded-full ${roleInfo?.color}`} />
+                                  <span>{roleInfo?.label}</span>
                                   <Button
                                     variant="ghost"
                                     size="sm"
-                                    className="h-5 w-5 p-0 ml-1 hover:bg-destructive/20 hover:text-destructive rounded-full"
+                                    className="h-5 w-5 p-0 ml-1 hover:bg-destructive/10 hover:text-destructive rounded-full"
                                     onClick={() => handleRemoveRole(user.user_id, role)}
                                   >
                                     <X className="h-3.5 w-3.5" />
@@ -397,17 +392,17 @@ export default function Usuarios() {
                               setSelectedRole({ ...selectedRole, [user.user_id]: value as AppRole })
                             }
                           >
-                            <SelectTrigger className="w-[220px] border-primary/20 focus:border-primary">
+                            <SelectTrigger className="w-[220px]">
                               <SelectValue placeholder="Selecione uma role..." />
                             </SelectTrigger>
-                            <SelectContent className="bg-popover">
+                            <SelectContent>
                               {AVAILABLE_ROLES.filter(
                                 (role) => !user.roles?.includes(role.value)
                               ).map((role) => (
-                                <SelectItem key={role.value} value={role.value} className="hover:bg-muted">
+                                <SelectItem key={role.value} value={role.value}>
                                   <div className="flex items-center gap-2.5">
-                                    <div className={`w-3 h-3 rounded-full ${role.color} shadow-sm`} />
-                                    <span className="font-medium">{role.label}</span>
+                                    <div className={`w-3 h-3 rounded-full ${role.color}`} />
+                                    <span>{role.label}</span>
                                   </div>
                                 </SelectItem>
                               ))}
@@ -417,14 +412,13 @@ export default function Usuarios() {
                             size="sm"
                             onClick={() => handleAddRole(user.user_id)}
                             disabled={!selectedRole[user.user_id]}
-                            className="bg-primary hover:bg-primary/90 shadow-sm"
                           >
                             Adicionar
                           </Button>
                         </div>
                       </TableCell>
                       <TableCell>
-                        <EditarUsuarioDialog
+                        <EditarUsuarioSheet
                           userId={user.user_id}
                           userEmail={user.email}
                           currentRoles={user.roles || []}
