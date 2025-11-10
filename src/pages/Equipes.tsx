@@ -25,8 +25,9 @@ import { RemoverMembroDialog } from "@/components/equipes/RemoverMembroDialog";
 import { NovaMetaSheet } from "@/components/equipes/NovaMetaSheet";
 import { MetasEquipeContent } from "@/components/equipes/MetasEquipeContent";
 import { useMetasEquipe } from "@/hooks/useMetasEquipe";
-import { Target, BarChart3 } from "lucide-react";
+import { Target, BarChart3, Users as UsersIcon } from "lucide-react";
 import { DashboardVisaoGeral } from "@/components/equipes/DashboardVisaoGeral";
+import { AnaliseVendedores } from "@/components/equipes/AnaliseVendedores";
 
 interface NovaEquipeForm {
   nome: string;
@@ -302,14 +303,18 @@ export default function Equipes() {
 
         <Tabs defaultValue="dashboard" className="space-y-6">
           <div className="flex items-center justify-between">
-            <TabsList className="grid w-full max-w-2xl grid-cols-3">
+            <TabsList className="grid w-full max-w-3xl grid-cols-4">
               <TabsTrigger value="dashboard" className="gap-2">
                 <BarChart3 className="h-4 w-4" />
                 Dashboard
               </TabsTrigger>
+              <TabsTrigger value="vendedores" className="gap-2">
+                <UsersIcon className="h-4 w-4" />
+                Vendedores
+              </TabsTrigger>
               <TabsTrigger value="lista" className="gap-2">
                 <Users className="h-4 w-4" />
-                Lista de Equipes
+                Equipes
               </TabsTrigger>
               <TabsTrigger value="organograma" className="gap-2">
                 <Network className="h-4 w-4" />
@@ -341,6 +346,10 @@ export default function Equipes() {
 
           <TabsContent value="dashboard" className="space-y-6 mt-6">
             <DashboardVisaoGeral />
+          </TabsContent>
+
+          <TabsContent value="vendedores" className="space-y-6 mt-6">
+            <AnaliseVendedores />
           </TabsContent>
 
           <TabsContent value="lista" className="space-y-6 mt-6">
