@@ -26,35 +26,67 @@
     
     <!-- Script inline para aplicar tema do cache antes do bundle JS carregar -->
     <script>
-      try {
-        const cached = localStorage.getItem('theme-config-cache');
-        if (cached) {
-          const config = JSON.parse(cached);
-          const root = document.documentElement;
-          
-          if (config.colors) {
-            if (config.colors.primary) root.style.setProperty('--primary', config.colors.primary);
-            if (config.colors.secondary) root.style.setProperty('--secondary', config.colors.secondary);
-            if (config.colors.accent) root.style.setProperty('--accent', config.colors.accent);
-            if (config.colors.background) root.style.setProperty('--background', config.colors.background);
+      (function() {
+        function hexToHSL(hex) {
+          if (!hex || typeof hex !== 'string') return hex;
+          if (!hex.startsWith('#')) return hex; // já é HSL
+          const res = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+          if (!res) return hex;
+          let r = parseInt(res[1], 16) / 255;
+          let g = parseInt(res[2], 16) / 255;
+          let b = parseInt(res[3], 16) / 255;
+          const max = Math.max(r, g, b);
+          const min = Math.min(r, g, b);
+          let h = 0, s = 0, l = (max + min) / 2;
+          if (max !== min) {
+            const d = max - min;
+            s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+            switch (max) {
+              case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+              case g: h = ((b - r) / d + 2) / 6; break;
+              case b: h = ((r - g) / d + 4) / 6; break;
+            }
           }
-          if (config.font) {
-            root.style.setProperty('--font-family', config.font);
-            document.body.style.fontFamily = config.font;
-          }
-          if (config.radius) root.style.setProperty('--radius', config.radius);
-          if (config.border) root.style.setProperty('--border-width', config.border);
-          if (config.shadow) root.style.setProperty('--shadow-default', config.shadow);
-          if (config.iconStroke) root.style.setProperty('--icon-stroke-width', config.iconStroke);
-          if (config.menuColors) {
-            if (config.menuColors.background) root.style.setProperty('--menu-bg', config.menuColors.background);
-            if (config.menuColors.icon) root.style.setProperty('--menu-icon', config.menuColors.icon);
-            if (config.menuColors.text) root.style.setProperty('--menu-text', config.menuColors.text);
-          }
+          h = Math.round(h * 360);
+          s = Math.round(s * 100);
+          l = Math.round(l * 100);
+          return `${h} ${s}% ${l}%`;
         }
-      } catch (e) {
-        console.warn('Failed to apply cached theme');
-      }
+
+        try {
+          const cached = localStorage.getItem('theme-config-cache');
+          if (cached) {
+            const config = JSON.parse(cached);
+            const root = document.documentElement;
+            
+            if (config.colors) {
+              if (config.colors.primary) root.style.setProperty('--primary', hexToHSL(config.colors.primary));
+              if (config.colors.secondary) root.style.setProperty('--secondary', hexToHSL(config.colors.secondary));
+              if (config.colors.accent) root.style.setProperty('--accent', hexToHSL(config.colors.accent));
+              if (config.colors.background) root.style.setProperty('--background', hexToHSL(config.colors.background));
+            }
+            if (config.font) {
+              root.style.setProperty('--font-family', config.font);
+              document.body.style.fontFamily = config.font;
+            }
+            if (config.radius) root.style.setProperty('--radius', config.radius);
+            if (config.border) root.style.setProperty('--border-width', config.border);
+            if (config.shadow) root.style.setProperty('--shadow-default', config.shadow);
+            // iconStroke aqui não é aplicado por não ser necessariamente numérico
+            if (config.menuColors) {
+              if (config.menuColors.background) {
+                const val = hexToHSL(config.menuColors.background);
+                root.style.setProperty('--menu-bg', val);
+                root.style.setProperty('--menu-background', val); // retrocompatibilidade
+              }
+              if (config.menuColors.icon) root.style.setProperty('--menu-icon', hexToHSL(config.menuColors.icon));
+              if (config.menuColors.text) root.style.setProperty('--menu-text', hexToHSL(config.menuColors.text));
+            }
+          }
+        } catch (e) {
+          console.warn('Failed to apply cached theme');
+        }
+      })();
     </script>
     
     <script type="module" src="/src/main.tsx"></script>
