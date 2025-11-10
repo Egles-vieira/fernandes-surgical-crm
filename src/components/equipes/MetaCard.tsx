@@ -17,45 +17,45 @@ export function MetaCard({ meta, onVerDetalhes, onAtualizarProgresso }: MetaCard
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'ativa':
-        return 'bg-blue-500/10 text-blue-700 dark:text-blue-400';
+        return 'bg-primary/10 text-primary';
       case 'concluida':
-        return 'bg-green-500/10 text-green-700 dark:text-green-400';
+        return 'bg-primary/20 text-primary';
       case 'cancelada':
-        return 'bg-gray-500/10 text-gray-700 dark:text-gray-400';
+        return 'bg-muted text-muted-foreground';
       case 'pausada':
-        return 'bg-orange-500/10 text-orange-700 dark:text-orange-400';
+        return 'bg-warning/10 text-warning';
       default:
-        return 'bg-gray-500/10 text-gray-700 dark:text-gray-400';
+        return 'bg-muted text-muted-foreground';
     }
   };
 
   const getPrioridadeColor = (prioridade: string) => {
     switch (prioridade) {
       case 'critica':
-        return 'bg-red-500/10 text-red-700 dark:text-red-400';
+        return 'bg-destructive/10 text-destructive';
       case 'alta':
-        return 'bg-orange-500/10 text-orange-700 dark:text-orange-400';
+        return 'bg-warning/10 text-warning';
       case 'media':
-        return 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-400';
+        return 'bg-accent/10 text-accent-foreground';
       case 'baixa':
-        return 'bg-green-500/10 text-green-700 dark:text-green-400';
+        return 'bg-primary/10 text-primary';
       default:
-        return 'bg-gray-500/10 text-gray-700 dark:text-gray-400';
+        return 'bg-muted text-muted-foreground';
     }
   };
 
   const getSituacaoIcon = () => {
     switch (meta.situacao_prazo) {
       case 'concluida':
-        return <CheckCircle className="h-5 w-5 text-green-600" />;
+        return <CheckCircle className="h-5 w-5 text-primary" />;
       case 'urgente':
-        return <AlertTriangle className="h-5 w-5 text-red-600" />;
+        return <AlertTriangle className="h-5 w-5 text-destructive" />;
       case 'atencao':
-        return <AlertCircle className="h-5 w-5 text-orange-600" />;
+        return <AlertCircle className="h-5 w-5 text-warning" />;
       case 'vencida':
-        return <AlertTriangle className="h-5 w-5 text-red-600" />;
+        return <AlertTriangle className="h-5 w-5 text-destructive" />;
       default:
-        return <Clock className="h-5 w-5 text-blue-600" />;
+        return <Clock className="h-5 w-5 text-primary" />;
     }
   };
 
@@ -105,7 +105,7 @@ export function MetaCard({ meta, onVerDetalhes, onAtualizarProgresso }: MetaCard
           <div className="flex items-center justify-between text-xs text-muted-foreground">
             <span>{meta.percentual_conclusao.toFixed(1)}% concluído</span>
             {meta.meta_atingida && (
-              <span className="text-green-600 font-semibold flex items-center gap-1">
+              <span className="text-primary font-semibold flex items-center gap-1">
                 <CheckCircle className="h-3 w-3" />
                 Meta Atingida!
               </span>

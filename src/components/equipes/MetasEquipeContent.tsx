@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useMetasEquipe } from "@/hooks/useMetasEquipe";
 import { MetaCard } from "./MetaCard";
-import { MetaDetalhesDialog } from "./MetaDetalhesDialog";
-import { AtualizarProgressoDialog } from "./AtualizarProgressoDialog";
+import { MetaDetalhesSheet } from "./MetaDetalhesSheet";
+import { AtualizarProgressoSheet } from "./AtualizarProgressoSheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Target } from "lucide-react";
@@ -120,13 +120,13 @@ export function MetasEquipeContent({ equipeId }: MetasEquipeContentProps) {
         </TabsContent>
       </Tabs>
 
-      <MetaDetalhesDialog
+      <MetaDetalhesSheet
         meta={metaSelecionada}
         open={metaDetalhesOpen}
         onOpenChange={setMetaDetalhesOpen}
       />
 
-      <AtualizarProgressoDialog
+      <AtualizarProgressoSheet
         meta={metaSelecionada}
         open={atualizarProgressoOpen}
         onOpenChange={setAtualizarProgressoOpen}

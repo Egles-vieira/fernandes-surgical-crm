@@ -22,9 +22,7 @@ import { EditarMembroDialog } from "@/components/equipes/EditarMembroDialog";
 import { TransferirMembroDialog as TransferirMembroEntreEquipesDialog } from "@/components/equipes/TransferirMembroDialog";
 import { HistoricoMembroDialog } from "@/components/equipes/HistoricoMembroDialog";
 import { RemoverMembroDialog } from "@/components/equipes/RemoverMembroDialog";
-import { NovaMetaDialog } from "@/components/equipes/NovaMetaDialog";
-import { MetaDetalhesDialog } from "@/components/equipes/MetaDetalhesDialog";
-import { AtualizarProgressoDialog } from "@/components/equipes/AtualizarProgressoDialog";
+import { NovaMetaSheet } from "@/components/equipes/NovaMetaSheet";
 import { MetasEquipeContent } from "@/components/equipes/MetasEquipeContent";
 import { useMetasEquipe } from "@/hooks/useMetasEquipe";
 import { Target } from "lucide-react";
@@ -685,26 +683,11 @@ export default function Equipes() {
           </DialogContent>
         </Dialog>
 
-        <NovaMetaDialog
+        <NovaMetaSheet
           open={novaMetaOpen}
           onOpenChange={setNovaMetaOpen}
           equipeId={equipeMetasId || ""}
           onCriar={(meta) => criarMeta.mutate(meta)}
-        />
-
-        <MetaDetalhesDialog
-          meta={metaSelecionada}
-          open={metaDetalhesOpen}
-          onOpenChange={setMetaDetalhesOpen}
-        />
-
-        <AtualizarProgressoDialog
-          meta={metaSelecionada}
-          open={atualizarProgressoOpen}
-          onOpenChange={setAtualizarProgressoOpen}
-          onAtualizar={(metaId, novoValor, observacao) => {
-            atualizarProgresso.mutate({ metaId, novoValor, observacao });
-          }}
         />
       </div>
     </Layout>
