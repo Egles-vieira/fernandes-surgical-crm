@@ -444,6 +444,18 @@ export default function Vendas() {
         // Define vendedor_id: se gestor selecionou alguém, usa o selecionado; senão, usa o próprio
         const finalVendedorId = vendedorId || currentUser.id;
         
+        // Buscar equipe do vendedor
+        const { data: membroEquipe } = await supabase
+          .from('membros_equipe')
+          .select('equipe_id, equipes!inner(esta_ativa)')
+          .eq('usuario_id', finalVendedorId)
+          .eq('esta_ativo', true)
+          .eq('equipes.esta_ativa', true)
+          .limit(1)
+          .single();
+        
+        const equipeId = membroEquipe?.equipe_id || null;
+        
         // Verificar role do usuário para diagnóstico
         const { data: userRoles } = await supabase
           .from('user_roles')
@@ -481,6 +493,7 @@ export default function Vendas() {
           origem_lead: origemLead || null,
           responsavel_id: responsavelId || null,
           vendedor_id: finalVendedorId, // Sempre tem valor: selecionado ou atual
+          equipe_id: equipeId, // Equipe do vendedor
         });
 
         // Aguardar a invalidação do cache e adicionar itens
