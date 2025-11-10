@@ -1,5 +1,6 @@
 import { Toaster } from "@/components/ui/sonner";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ThemeProvider } from "@/components/ThemeProvider";
 import Layout from "./components/Layout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
@@ -42,7 +43,8 @@ import MeuPerfil from "./pages/MeuPerfil";
 import CadastroCNPJ from "./pages/CadastroCNPJ";
 import SolicitacoesCadastro from "./pages/SolicitacoesCadastro";
 import Configuracoes from "./pages/Configuracoes";
-const App = () => <>
+const App = () => (
+  <ThemeProvider>
     <Toaster />
     <BrowserRouter>
       <Routes>
@@ -241,5 +243,6 @@ const App = () => <>
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
-  </>;
+  </ThemeProvider>
+);
 export default App;
