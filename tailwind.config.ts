@@ -65,6 +65,15 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        warning: {
+          DEFAULT: "hsl(var(--warning))",
+          foreground: "hsl(var(--warning-foreground))",
+        },
+        menu: {
+          bg: "hsl(var(--menu-bg))",
+          icon: "hsl(var(--menu-icon))",
+          text: "hsl(var(--menu-text))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",

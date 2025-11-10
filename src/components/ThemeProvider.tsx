@@ -4,26 +4,59 @@ import { useThemeConfig } from "@/hooks/useThemeConfig";
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const { themeConfig, isLoading } = useThemeConfig();
 
+  // Função para converter HEX para HSL
+  const hexToHSL = (hex: string): string => {
+    // Se já está em formato HSL, retorna como está
+    if (!hex.startsWith('#')) return hex;
+
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    if (!result) return hex;
+
+    let r = parseInt(result[1], 16) / 255;
+    let g = parseInt(result[2], 16) / 255;
+    let b = parseInt(result[3], 16) / 255;
+
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    let h = 0, s = 0, l = (max + min) / 2;
+
+    if (max !== min) {
+      const d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      switch (max) {
+        case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+        case g: h = ((b - r) / d + 2) / 6; break;
+        case b: h = ((r - g) / d + 4) / 6; break;
+      }
+    }
+
+    h = Math.round(h * 360);
+    s = Math.round(s * 100);
+    l = Math.round(l * 100);
+
+    return `${h} ${s}% ${l}%`;
+  };
+
   useEffect(() => {
     if (isLoading || !themeConfig) return;
 
     const root = document.documentElement;
 
-    // Aplicar cores
+    // Aplicar cores (convertendo HEX para HSL se necessário)
     if (themeConfig.colors) {
       const { primary, secondary, accent, background } = themeConfig.colors;
       
       if (primary) {
-        root.style.setProperty('--primary', primary);
+        root.style.setProperty('--primary', hexToHSL(primary));
       }
       if (secondary) {
-        root.style.setProperty('--secondary', secondary);
+        root.style.setProperty('--secondary', hexToHSL(secondary));
       }
       if (accent) {
-        root.style.setProperty('--accent', accent);
+        root.style.setProperty('--accent', hexToHSL(accent));
       }
       if (background) {
-        root.style.setProperty('--background', background);
+        root.style.setProperty('--background', hexToHSL(background));
       }
     }
 
@@ -143,18 +176,18 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       return () => observer.disconnect();
     }
 
-    // Aplicar cores do menu
+    // Aplicar cores do menu (convertendo HEX para HSL se necessário)
     if (themeConfig.menuColors) {
       const { background, icon, text } = themeConfig.menuColors;
       
       if (background) {
-        root.style.setProperty('--menu-bg', background);
+        root.style.setProperty('--menu-bg', hexToHSL(background));
       }
       if (icon) {
-        root.style.setProperty('--menu-icon', icon);
+        root.style.setProperty('--menu-icon', hexToHSL(icon));
       }
       if (text) {
-        root.style.setProperty('--menu-text', text);
+        root.style.setProperty('--menu-text', hexToHSL(text));
       }
     }
   }, [themeConfig, isLoading]);
