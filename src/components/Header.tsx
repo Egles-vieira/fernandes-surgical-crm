@@ -156,6 +156,12 @@ export default function Header({ collapsed, onToggle }: HeaderProps) {
           description: "Gerencie usuários e permissões do sistema",
           breadcrumb: "Cirúrgica Fernandes / Usuários",
         };
+      case "/equipes":
+        return {
+          title: "Equipes",
+          description: "Gerencie equipes, membros e metas",
+          breadcrumb: "Cirúrgica Fernandes / Equipes",
+        };
       case "/tickets":
         return {
           title: "SAC - Atendimento ao cliente",
