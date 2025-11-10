@@ -84,7 +84,8 @@ All colors MUST be HSL.
     --sidebar-ring: 217.2 91.2% 59.8%;
 
     /* Menu/Sidebar Customization */
-    --menu-background: 186 60% 56%;
+    --menu-bg: 186 60% 56%; /* Primary cyan for menu background */
+    --menu-background: 186 60% 56%; /* Backward compatibility */
     --menu-icon: 0 0% 100%;
     --menu-text: 0 0% 100%;
   }
@@ -142,6 +143,12 @@ All colors MUST be HSL.
     --shadow-sm: 0 2px 8px hsla(0, 0%, 0%, 0.3);
     --shadow-md: 0 4px 16px hsla(0, 0%, 0%, 0.4);
     --shadow-lg: 0 8px 32px hsla(0, 0%, 0%, 0.5);
+
+    /* Menu/Sidebar Customization */
+    --menu-bg: 186 60% 56%; /* Primary cyan for menu background */
+    --menu-background: 186 60% 56%; /* Backward compatibility */
+    --menu-icon: 0 0% 100%;
+    --menu-text: 0 0% 100%;
   }
 }
 

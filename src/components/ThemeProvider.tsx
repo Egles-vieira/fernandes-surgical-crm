@@ -41,6 +41,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     if (isLoading || !themeConfig) return;
 
     const root = document.documentElement;
+    const observers: MutationObserver[] = [];
 
     // Aplicar cores (convertendo HEX para HSL se necessário)
     if (themeConfig.colors) {
@@ -92,7 +93,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       });
 
       // Observer para ícones adicionados dinamicamente
-      const observer = new MutationObserver((mutations) => {
+      const iconStrokeObserver = new MutationObserver((mutations) => {
         mutations.forEach((mutation) => {
           mutation.addedNodes.forEach((node) => {
             if (node instanceof HTMLElement) {
@@ -108,12 +109,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         });
       });
 
-      observer.observe(document.body, {
+      iconStrokeObserver.observe(document.body, {
         childList: true,
         subtree: true,
       });
 
-      return () => observer.disconnect();
+      observers.push(iconStrokeObserver);
     }
 
     // Aplicar icon visual
@@ -133,7 +134,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       });
 
       // Observer para ícones adicionados dinamicamente
-      const observer = new MutationObserver((mutations) => {
+      const iconVisualObserver = new MutationObserver((mutations) => {
         mutations.forEach((mutation) => {
           mutation.addedNodes.forEach((node) => {
             if (node instanceof HTMLElement) {
@@ -168,12 +169,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         });
       });
 
-      observer.observe(document.body, {
+      iconVisualObserver.observe(document.body, {
         childList: true,
         subtree: true,
       });
 
-      return () => observer.disconnect();
+      observers.push(iconVisualObserver);
     }
 
     // Aplicar cores do menu (convertendo HEX para HSL se necessário)
@@ -190,6 +191,24 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         root.style.setProperty('--menu-text', hexToHSL(text));
       }
     }
+
+    // Telemetria em dev
+    if (import.meta.env.DEV) {
+      console.log('🎨 Theme applied:', {
+        primary: themeConfig.colors?.primary,
+        secondary: themeConfig.colors?.secondary,
+        accent: themeConfig.colors?.accent,
+        background: themeConfig.colors?.background,
+        font: themeConfig.font,
+        radius: themeConfig.radius,
+        menuColors: themeConfig.menuColors,
+      });
+    }
+
+    // Cleanup: desconectar todos os observers
+    return () => {
+      observers.forEach(observer => observer.disconnect());
+    };
   }, [themeConfig, isLoading]);
 
   return <>{children}</>;

@@ -23,6 +23,40 @@
 
   <body>
     <div id="root"></div>
+    
+    <!-- Script inline para aplicar tema do cache antes do bundle JS carregar -->
+    <script>
+      try {
+        const cached = localStorage.getItem('theme-config-cache');
+        if (cached) {
+          const config = JSON.parse(cached);
+          const root = document.documentElement;
+          
+          if (config.colors) {
+            if (config.colors.primary) root.style.setProperty('--primary', config.colors.primary);
+            if (config.colors.secondary) root.style.setProperty('--secondary', config.colors.secondary);
+            if (config.colors.accent) root.style.setProperty('--accent', config.colors.accent);
+            if (config.colors.background) root.style.setProperty('--background', config.colors.background);
+          }
+          if (config.font) {
+            root.style.setProperty('--font-family', config.font);
+            document.body.style.fontFamily = config.font;
+          }
+          if (config.radius) root.style.setProperty('--radius', config.radius);
+          if (config.border) root.style.setProperty('--border-width', config.border);
+          if (config.shadow) root.style.setProperty('--shadow-default', config.shadow);
+          if (config.iconStroke) root.style.setProperty('--icon-stroke-width', config.iconStroke);
+          if (config.menuColors) {
+            if (config.menuColors.background) root.style.setProperty('--menu-bg', config.menuColors.background);
+            if (config.menuColors.icon) root.style.setProperty('--menu-icon', config.menuColors.icon);
+            if (config.menuColors.text) root.style.setProperty('--menu-text', config.menuColors.text);
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to apply cached theme');
+      }
+    </script>
+    
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

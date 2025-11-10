@@ -30,6 +30,30 @@ export function useThemeConfig() {
   const { data: themeConfig, isLoading } = useQuery({
     queryKey: ['theme-config'],
     queryFn: async () => {
+      // Tentar carregar do cache primeiro
+      const cached = localStorage.getItem('theme-config-cache');
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached);
+          // Retornar cache enquanto busca atualização
+          setTimeout(async () => {
+            const { data } = await supabase
+              .from('configuracoes_sistema')
+              .select('valor')
+              .eq('chave', 'theme_customization')
+              .maybeSingle();
+            
+            if (data?.valor) {
+              localStorage.setItem('theme-config-cache', JSON.stringify(data.valor));
+              queryClient.setQueryData(['theme-config'], data.valor);
+            }
+          }, 0);
+          return parsed as ThemeConfig;
+        } catch (e) {
+          console.warn('Failed to parse theme cache');
+        }
+      }
+
       const { data, error } = await supabase
         .from('configuracoes_sistema')
         .select('valor')
@@ -41,7 +65,9 @@ export function useThemeConfig() {
         return {} as ThemeConfig;
       }
 
-      return (data?.valor || {}) as ThemeConfig;
+      const config = (data?.valor || {}) as ThemeConfig;
+      localStorage.setItem('theme-config-cache', JSON.stringify(config));
+      return config;
     },
   });
 
@@ -53,14 +79,23 @@ export function useThemeConfig() {
 
       const { error } = await supabase
         .from('configuracoes_sistema')
-        .update({ valor: updatedConfig })
-        .eq('chave', 'theme_customization');
+        .upsert(
+          { 
+            chave: 'theme_customization', 
+            valor: updatedConfig 
+          },
+          { 
+            onConflict: 'chave'
+          }
+        );
 
       if (error) throw error;
 
       return updatedConfig;
     },
     onSuccess: (updatedConfig) => {
+      // Atualizar cache local imediatamente
+      localStorage.setItem('theme-config-cache', JSON.stringify(updatedConfig));
       queryClient.setQueryData(['theme-config'], updatedConfig);
       toast({
         title: "Tema atualizado",
