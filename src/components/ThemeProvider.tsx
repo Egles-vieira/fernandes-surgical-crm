@@ -43,6 +43,14 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const root = document.documentElement;
     const observers: MutationObserver[] = [];
 
+    // Map iconStroke values to numeric stroke widths
+    const strokeMap: Record<string, string> = {
+      default: "2",
+      thin: "1.5",
+      thick: "2.5",
+      bold: "3"
+    };
+
     // Aplicar cores (convertendo HEX para HSL se necessário)
     if (themeConfig.colors) {
       const { primary, secondary, accent, background } = themeConfig.colors;
@@ -82,14 +90,15 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       root.style.setProperty('--shadow-default', themeConfig.shadow);
     }
 
-    // Aplicar icon stroke
+    // Aplicar icon stroke (convertendo string para valor numérico)
     if (themeConfig.iconStroke) {
-      root.style.setProperty('--icon-stroke-width', themeConfig.iconStroke);
+      const stroke = strokeMap[themeConfig.iconStroke] || strokeMap.default || "2";
+      root.style.setProperty('--icon-stroke-width', stroke);
       
       // Aplicar a todos os ícones existentes
       const icons = document.querySelectorAll('svg');
       icons.forEach(icon => {
-        icon.style.strokeWidth = themeConfig.iconStroke;
+        (icon as SVGElement).style.strokeWidth = stroke;
       });
 
       // Observer para ícones adicionados dinamicamente
@@ -99,10 +108,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
             if (node instanceof HTMLElement) {
               const newIcons = node.querySelectorAll('svg');
               newIcons.forEach(icon => {
-                (icon as SVGElement).style.strokeWidth = themeConfig.iconStroke!;
+                (icon as SVGElement).style.strokeWidth = stroke;
               });
               if (node.tagName === 'svg' && node instanceof SVGElement) {
-                node.style.strokeWidth = themeConfig.iconStroke!;
+                node.style.strokeWidth = stroke;
               }
             }
           });
@@ -178,11 +187,14 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     }
 
     // Aplicar cores do menu (convertendo HEX para HSL se necessário)
+    // Set both --menu-bg and --menu-background for compatibility
     if (themeConfig.menuColors) {
       const { background, icon, text } = themeConfig.menuColors;
       
       if (background) {
-        root.style.setProperty('--menu-bg', hexToHSL(background));
+        const bgHSL = hexToHSL(background);
+        root.style.setProperty('--menu-bg', bgHSL);
+        root.style.setProperty('--menu-background', bgHSL); // Alias for backward compatibility
       }
       if (icon) {
         root.style.setProperty('--menu-icon', hexToHSL(icon));
@@ -190,6 +202,21 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       if (text) {
         root.style.setProperty('--menu-text', hexToHSL(text));
       }
+    }
+
+    // Apply ring color based on primary
+    if (themeConfig.colors?.primary) {
+      root.style.setProperty('--ring', hexToHSL(themeConfig.colors.primary));
+    }
+
+    // Apply gradient based on primary and accent
+    if (themeConfig.colors?.primary && themeConfig.colors?.accent) {
+      const primaryHSL = hexToHSL(themeConfig.colors.primary);
+      const accentHSL = hexToHSL(themeConfig.colors.accent);
+      root.style.setProperty(
+        '--gradient-primary',
+        `linear-gradient(135deg, hsl(${primaryHSL}), hsl(${accentHSL}))`
+      );
     }
 
     // Telemetria em dev

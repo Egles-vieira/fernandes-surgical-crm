@@ -612,7 +612,9 @@ export function PersonalizarCores() {
 
   const applyMenuColors = (colors: typeof menuColors) => {
     const root = document.documentElement;
-    root.style.setProperty("--menu-background", hexToHSL(colors.background));
+    const bgHSL = hexToHSL(colors.background);
+    root.style.setProperty("--menu-bg", bgHSL);
+    root.style.setProperty("--menu-background", bgHSL); // Alias for backward compatibility
     root.style.setProperty("--menu-icon", hexToHSL(colors.icon));
     root.style.setProperty("--menu-text", hexToHSL(colors.text));
   };

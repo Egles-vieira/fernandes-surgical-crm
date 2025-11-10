@@ -106,6 +106,7 @@ const menuItems: MenuItem[] = [
     children: [
       { path: "/usuarios", icon: Shield, label: "Usuários" },
       { path: "/equipes", icon: Users, label: "Equipes" },
+      { path: "/configuracoes", icon: Settings, label: "Configurações" },
     ],
   },
 ];
@@ -152,7 +153,7 @@ export default function Layout({ children }: LayoutProps) {
         className={`${
           collapsed ? "w-16" : "w-56"
         } flex flex-col fixed left-0 top-0 h-full z-50 shadow-elegant transition-all duration-300 menu-sidebar`}
-        style={{ backgroundColor: `hsl(var(--menu-background))` }}
+        style={{ backgroundColor: `hsl(var(--menu-bg))` }}
       >
         {/* Logo Header com Toggle */}
         <div className="p-3 flex items-center justify-center border-b border-white/10 h-20 relative">
