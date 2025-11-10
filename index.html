@@ -58,6 +58,11 @@
           if (cached) {
             const config = JSON.parse(cached);
             const root = document.documentElement;
+            const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            
+            if (isDev) {
+              console.log('🚀 Boot: Applying theme from cache', config);
+            }
             
             if (config.colors) {
               if (config.colors.primary) root.style.setProperty('--primary', hexToHSL(config.colors.primary));
@@ -82,9 +87,13 @@
               if (config.menuColors.icon) root.style.setProperty('--menu-icon', hexToHSL(config.menuColors.icon));
               if (config.menuColors.text) root.style.setProperty('--menu-text', hexToHSL(config.menuColors.text));
             }
+            
+            if (isDev) {
+              console.log('✅ Boot: Theme variables applied to :root');
+            }
           }
         } catch (e) {
-          console.warn('Failed to apply cached theme');
+          console.warn('❌ Boot: Failed to apply cached theme', e);
         }
       })();
     </script>

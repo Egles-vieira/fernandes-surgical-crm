@@ -139,6 +139,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         } else if (themeConfig.iconVisual === 'filled') {
           icon.style.fill = 'currentColor';
           icon.style.fillOpacity = '0.2';
+        } else if (themeConfig.iconVisual === 'soft') {
+          icon.style.fill = 'currentColor';
+          icon.style.fillOpacity = '0.2';
+          icon.style.strokeLinecap = 'round';
+          icon.style.strokeLinejoin = 'round';
         }
       });
 
@@ -159,6 +164,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
                 } else if (themeConfig.iconVisual === 'filled') {
                   svgIcon.style.fill = 'currentColor';
                   svgIcon.style.fillOpacity = '0.2';
+                } else if (themeConfig.iconVisual === 'soft') {
+                  svgIcon.style.fill = 'currentColor';
+                  svgIcon.style.fillOpacity = '0.2';
+                  svgIcon.style.strokeLinecap = 'round';
+                  svgIcon.style.strokeLinejoin = 'round';
                 }
               });
               if (node.tagName === 'svg' && node instanceof SVGElement) {
@@ -171,6 +181,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
                 } else if (themeConfig.iconVisual === 'filled') {
                   node.style.fill = 'currentColor';
                   node.style.fillOpacity = '0.2';
+                } else if (themeConfig.iconVisual === 'soft') {
+                  node.style.fill = 'currentColor';
+                  node.style.fillOpacity = '0.2';
+                  node.style.strokeLinecap = 'round';
+                  node.style.strokeLinejoin = 'round';
                 }
               }
             }
@@ -221,15 +236,25 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
     // Telemetria em dev
     if (import.meta.env.DEV) {
-      console.log('🎨 Theme applied:', {
-        primary: themeConfig.colors?.primary,
-        secondary: themeConfig.colors?.secondary,
-        accent: themeConfig.colors?.accent,
-        background: themeConfig.colors?.background,
+      console.log('🎨 Theme applied from DB/cache:', {
+        colors: themeConfig.colors,
         font: themeConfig.font,
         radius: themeConfig.radius,
+        border: themeConfig.border,
+        shadow: themeConfig.shadow,
+        iconStroke: themeConfig.iconStroke,
+        iconVisual: themeConfig.iconVisual,
         menuColors: themeConfig.menuColors,
       });
+      
+      // Verificar se variáveis foram aplicadas
+      const computedStyle = getComputedStyle(root);
+      const menuBg = computedStyle.getPropertyValue('--menu-bg');
+      const primary = computedStyle.getPropertyValue('--primary');
+      
+      if (!menuBg || !primary) {
+        console.warn('⚠️ Theme variables not applied correctly:', { menuBg, primary });
+      }
     }
 
     // Cleanup: desconectar todos os observers

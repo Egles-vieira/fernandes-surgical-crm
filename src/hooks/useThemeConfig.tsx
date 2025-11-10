@@ -77,7 +77,7 @@ export function useThemeConfig() {
       const currentConfig = themeConfig || {};
       const updatedConfig = { ...currentConfig, ...newConfig };
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('configuracoes_sistema')
         .upsert(
           { 
@@ -87,26 +87,39 @@ export function useThemeConfig() {
           { 
             onConflict: 'chave'
           }
-        );
+        )
+        .select('valor, atualizado_em')
+        .maybeSingle();
 
       if (error) throw error;
 
-      return updatedConfig;
+      // Garantir que o cache usa o que foi salvo no banco
+      const saved = (data?.valor || updatedConfig) as ThemeConfig;
+      localStorage.setItem('theme-config-cache', JSON.stringify(saved));
+      
+      return saved;
     },
-    onSuccess: (updatedConfig) => {
-      // Atualizar cache local imediatamente
-      localStorage.setItem('theme-config-cache', JSON.stringify(updatedConfig));
-      queryClient.setQueryData(['theme-config'], updatedConfig);
+    onSuccess: (savedConfig) => {
+      // Atualizar query cache com o valor retornado do banco
+      queryClient.setQueryData(['theme-config'], savedConfig);
       toast({
         title: "Tema atualizado",
-        description: "As cores foram salvas para todos os usuários",
+        description: "As configurações foram salvas com sucesso",
       });
     },
     onError: (error: any) => {
       console.error('Erro ao salvar configurações do tema:', error);
+      
+      // Verificar se é erro de permissão (RLS)
+      const isPermissionError = error.message?.includes('permission') || 
+                                error.message?.includes('policy') ||
+                                error.code === '42501';
+      
       toast({
         title: "Erro ao salvar tema",
-        description: error.message || "Não foi possível salvar as configurações",
+        description: isPermissionError 
+          ? "Você precisa ser administrador ou gerente para salvar configurações"
+          : error.message || "Não foi possível salvar as configurações",
         variant: "destructive",
       });
     },
