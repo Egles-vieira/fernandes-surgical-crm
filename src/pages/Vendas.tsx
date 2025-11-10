@@ -444,9 +444,17 @@ export default function Vendas() {
         // Define vendedor_id: se gestor selecionou alguém, usa o selecionado; senão, usa o próprio
         const finalVendedorId = vendedorId || currentUser.id;
         
+        // Verificar role do usuário para diagnóstico
+        const { data: userRoles } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', currentUser.id);
+        
         console.log('DEBUG - Criando venda:', {
           vendedorId,
           currentUserId: currentUser.id,
+          currentUserEmail: currentUser.email,
+          userRoles: userRoles?.map(r => r.role),
           finalVendedorId,
           etapaPipeline,
           status
@@ -498,13 +506,19 @@ export default function Vendas() {
       limparFormulario();
       setView("pipeline");
     } catch (error: any) {
-      console.error("Erro ao salvar venda:", error);
+      console.error("❌ Erro ao salvar venda:", {
+        error,
+        code: error?.code,
+        message: error?.message,
+        details: error?.details,
+        hint: error?.hint,
+      });
       
       // Tratamento especial para erro de RLS (Row Level Security)
       if (error?.code === '42501' || error?.message?.includes('row-level security')) {
         toast({
           title: "Permissão negada",
-          description: "Você não tem permissão para criar uma venda com o vendedor selecionado. Verifique se é o seu usuário, um subordinado seu ou se você possui as permissões corretas.",
+          description: `Você não tem permissão para criar uma venda com o vendedor selecionado. Código do erro: ${error?.code}. Verifique o console para mais detalhes.`,
           variant: "destructive"
         });
       } else {
