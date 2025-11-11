@@ -334,9 +334,15 @@ export default function Usuarios() {
     support: allUsers?.filter(u => u.roles?.includes("support")).length || 0
   };
   return <Layout>
-      <div className="py-8 space-y-6">
-        {/* Filtros */}
-        <UsuariosFilters searchTerm={searchTerm} onSearchChange={setSearchTerm} roleFilter={roleFilter} onRoleChange={setRoleFilter} totalUsuarios={filteredUsers?.length || 0} />
+      {/* Barra de Filtros Fixa */}
+      <div className="fixed top-16 left-0 right-0 z-20 bg-background border-b">
+        <div className="px-6 py-3">
+          <UsuariosFilters searchTerm={searchTerm} onSearchChange={setSearchTerm} roleFilter={roleFilter} onRoleChange={setRoleFilter} totalUsuarios={filteredUsers?.length || 0} />
+        </div>
+      </div>
+
+      {/* Conteúdo Principal */}
+      <div className="pt-[88px] py-8 space-y-6">
 
         {/* Estatísticas */}
         <div className="grid gap-6 md:grid-cols-5">
