@@ -99,8 +99,8 @@ export default function Usuarios() {
     return useMetasVendedor(vendedorId);
   };
 
-  // Hook global para criar e editar metas
-  const { criarMeta, editarMeta } = useMetasVendedor();
+  // Hook global para criar, editar e excluir metas
+  const { criarMeta, editarMeta, excluirMeta } = useMetasVendedor();
 
   if (!isAdmin) {
     return (
@@ -610,6 +610,20 @@ export default function Usuarios() {
                   console.error("Erro ao editar meta:", error);
                   toast.error("Erro ao atualizar meta", {
                     description: "Não foi possível atualizar a meta. Tente novamente.",
+                  });
+                }
+              }}
+              onExcluir={async (metaId) => {
+                try {
+                  await excluirMeta.mutateAsync({ metaId });
+                  toast.success("Meta excluída com sucesso", {
+                    description: `Meta de ${user.email} foi removida`,
+                  });
+                  handleCloseEditarMetaDialog(user.user_id);
+                } catch (error) {
+                  console.error("Erro ao excluir meta:", error);
+                  toast.error("Erro ao excluir meta", {
+                    description: "Não foi possível excluir a meta. Tente novamente.",
                   });
                 }
               }}

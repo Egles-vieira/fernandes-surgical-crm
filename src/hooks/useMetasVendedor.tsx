@@ -276,6 +276,27 @@ export function useMetasVendedor(vendedorId?: string, filtros?: {
     },
   });
 
+  // Excluir meta
+  const excluirMeta = useMutation({
+    mutationFn: async ({ metaId }: { metaId: string }) => {
+      const { error } = await supabase
+        .from("metas_vendedor")
+        .delete()
+        .eq("id", metaId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["metas-vendedor"] });
+      toast.success("Meta excluída com sucesso");
+    },
+    onError: (error: any) => {
+      toast.error("Erro ao excluir meta", {
+        description: error.message,
+      });
+    },
+  });
+
   return {
     metas,
     isLoading,
@@ -284,5 +305,6 @@ export function useMetasVendedor(vendedorId?: string, filtros?: {
     editarMeta,
     atualizarProgresso,
     cancelarMeta,
+    excluirMeta,
   };
 }

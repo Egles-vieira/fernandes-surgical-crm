@@ -5,7 +5,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Target, AlertCircle } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Target, AlertCircle, Trash2 } from "lucide-react";
 import { MetaVendedor } from "@/hooks/useMetasVendedor";
 import { format } from "date-fns";
 
@@ -14,6 +24,7 @@ interface EditarMetaVendedorDialogProps {
   onOpenChange: (open: boolean) => void;
   meta: MetaVendedor | null;
   onEditar: (metaId: string, dados: any) => void;
+  onExcluir: (metaId: string) => void;
 }
 
 export function EditarMetaVendedorDialog({
@@ -21,6 +32,7 @@ export function EditarMetaVendedorDialog({
   onOpenChange,
   meta,
   onEditar,
+  onExcluir,
 }: EditarMetaVendedorDialogProps) {
   const [metaValor, setMetaValor] = useState("");
   const [metaUnidades, setMetaUnidades] = useState("");
@@ -28,6 +40,7 @@ export function EditarMetaVendedorDialog({
   const [periodoFim, setPeriodoFim] = useState("");
   const [observacao, setObservacao] = useState("");
   const [erro, setErro] = useState<string | null>(null);
+  const [confirmarExclusao, setConfirmarExclusao] = useState(false);
 
   // Preencher campos quando meta mudar
   useEffect(() => {
@@ -48,6 +61,7 @@ export function EditarMetaVendedorDialog({
     setPeriodoFim("");
     setObservacao("");
     setErro(null);
+    setConfirmarExclusao(false);
   };
 
   const validarPeriodo = () => {
@@ -123,12 +137,41 @@ export function EditarMetaVendedorDialog({
     onOpenChange(false);
   };
 
+  const handleExcluir = () => {
+    if (!meta) return;
+    onExcluir(meta.id);
+    setConfirmarExclusao(false);
+    resetForm();
+    onOpenChange(false);
+  };
+
   if (!meta) return null;
 
   const metaAtiva = meta.status === "ativa";
   const metaEmAndamento = new Date(meta.periodo_inicio) < new Date();
 
   return (
+    <>
+      <AlertDialog open={confirmarExclusao} onOpenChange={setConfirmarExclusao}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir esta meta? Esta ação não pode ser desfeita.
+              Todo o histórico de progresso será removido permanentemente.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleExcluir}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Excluir Meta
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
@@ -233,15 +276,26 @@ export function EditarMetaVendedorDialog({
           </div>
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancelar
+        <DialogFooter className="flex items-center justify-between sm:justify-between">
+          <Button 
+            variant="destructive" 
+            onClick={() => setConfirmarExclusao(true)}
+            className="gap-2"
+          >
+            <Trash2 className="h-4 w-4" />
+            Excluir Meta
           </Button>
-          <Button onClick={handleSubmit}>
-            Salvar Alterações
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleSubmit}>
+              Salvar Alterações
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
+    </>
   );
 }
