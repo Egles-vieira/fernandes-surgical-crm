@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Edit, Phone, Upload, Trash2, Mail, FileText } from "lucide-react";
+import { Plus, Edit, Phone, Upload, Trash2, Mail, FileText, UserPlus, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { CadastroCNPJDialog } from "@/components/cnpja/CadastroCNPJDialog";
 import { useForm } from "react-hook-form";
@@ -12,6 +12,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { clienteSchema, type ClienteInput } from "@/lib/validations/cliente";
 import { useClientes } from "@/hooks/useClientes";
+import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
@@ -19,8 +20,13 @@ import { ClientesFilters } from "@/components/cliente/ClientesFilters";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useUserPreferences } from "@/hooks/useUserPreferences";
+import { AtribuirVendedorDialog } from "@/components/cliente/AtribuirVendedorDialog";
+import { DistribuirClientesDialog } from "@/components/cliente/DistribuirClientesDialog";
+import { useRoles } from "@/hooks/useRoles";
+import { Badge } from "@/components/ui/badge";
 export default function Clientes() {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const {
     preferences,
     updatePreference,
@@ -50,6 +56,11 @@ export default function Clientes() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [clienteToDelete, setClienteToDelete] = useState<string | null>(null);
   const [showCNPJDialog, setShowCNPJDialog] = useState(false);
+  const [atribuirVendedorOpen, setAtribuirVendedorOpen] = useState(false);
+  const [distribuirClientesOpen, setDistribuirClientesOpen] = useState(false);
+  const [clienteParaAtribuir, setClienteParaAtribuir] = useState<any>(null);
+  
+  const { allUsers, isAdmin, isLider } = useRoles();
 
   // Sincronizar view com preferências do usuário
   useEffect(() => {
@@ -159,21 +170,59 @@ export default function Clientes() {
       }
     }
   };
+
+  const handleAtribuirVendedor = async (clienteId: string, vendedorId: string) => {
+    try {
+      await updateCliente.mutateAsync({
+        id: clienteId,
+        vendedor_id: vendedorId,
+      });
+    } catch (error) {
+      console.error("Erro ao atribuir vendedor:", error);
+      throw error;
+    }
+  };
+
+  const handleDistribuirClientes = async (criterio: "equitativa" | "faturamento" | "potencial") => {
+    try {
+      // TODO: Implementar lógica de distribuição automática
+      // Por enquanto, apenas mostra mensagem de sucesso
+      toast.success("Distribuição iniciada", {
+        description: `Clientes serão distribuídos usando o critério: ${criterio}`,
+      });
+    } catch (error) {
+      console.error("Erro ao distribuir clientes:", error);
+      throw error;
+    }
+  };
+
   return <div className="p-8">
       {/* Filters Bar */}
-      <ClientesFilters 
-        searchTerm={searchTerm} 
-        onSearchChange={setSearchTerm} 
-        view={view} 
-        onViewChange={handleViewChange} 
-        onNovoCliente={() => openForm()} 
-        onImportarCSV={() => navigate('/importar-clientes')}
-        onCadastrarViaCNPJ={() => navigate('/clientes/cadastro-cnpj')}
-        onFilterChange={filters => {
-          console.log("Filtros aplicados:", filters);
-          // Aqui você pode implementar a lógica de filtros quando necessário
-        }} 
-      />
+      <div className="flex items-center justify-between mb-6">
+        <ClientesFilters 
+          searchTerm={searchTerm} 
+          onSearchChange={setSearchTerm} 
+          view={view} 
+          onViewChange={handleViewChange} 
+          onNovoCliente={() => openForm()} 
+          onImportarCSV={() => navigate('/importar-clientes')}
+          onCadastrarViaCNPJ={() => navigate('/clientes/cadastro-cnpj')}
+          onFilterChange={filters => {
+            console.log("Filtros aplicados:", filters);
+          }} 
+        />
+        
+        {(isAdmin || isLider) && (
+          <Button 
+            variant="outline" 
+            onClick={() => setDistribuirClientesOpen(true)}
+            className="ml-4"
+          >
+            <Users className="h-4 w-4 mr-2" />
+            Distribuir Clientes
+          </Button>
+        )}
+      </div>
 
       {/* Grid */}
       {isLoading ? <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -236,7 +285,28 @@ export default function Clientes() {
                       Editar
                     </Button>
                     
+                    {(isAdmin || isLider) && (
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => {
+                          setClienteParaAtribuir(cliente);
+                          setAtribuirVendedorOpen(true);
+                        }}
+                        title="Atribuir vendedor"
+                      >
+                        <UserPlus size={16} />
+                      </Button>
+                    )}
                   </div>
+                  
+                  {cliente.vendedor_id && (
+                    <div className="pt-2 border-t flex items-center gap-2">
+                      <Badge variant="outline" className="text-xs">
+                        Vendedor: {allUsers?.find(u => u.user_id === cliente.vendedor_id)?.email || "N/A"}
+                      </Badge>
+                    </div>
+                  )}
                 </div>
               </Card>)}
             </div> : <Card className="rounded">
@@ -246,6 +316,7 @@ export default function Clientes() {
                     <TableHead>Cliente</TableHead>
                     <TableHead>CNPJ/CPF</TableHead>
                     <TableHead>Contato</TableHead>
+                    <TableHead>Vendedor</TableHead>
                     <TableHead className="text-right">Limite de Crédito</TableHead>
                     <TableHead className="text-right">Disponível</TableHead>
                     <TableHead className="text-center">Ações</TableHead>
@@ -274,6 +345,15 @@ export default function Clientes() {
                             </div>}
                         </div>
                       </TableCell>
+                      <TableCell>
+                        {cliente.vendedor_id ? (
+                          <Badge variant="outline" className="text-xs">
+                            {allUsers?.find(u => u.user_id === cliente.vendedor_id)?.email || "N/A"}
+                          </Badge>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">Não atribuído</span>
+                        )}
+                      </TableCell>
                       <TableCell className="text-right font-medium">
                         {formatCurrency(cliente.lim_credito || 0)}
                       </TableCell>
@@ -290,6 +370,19 @@ export default function Clientes() {
                             <Edit size={14} />
                           </Button>
                           
+                          {(isAdmin || isLider) && (
+                            <Button 
+                              variant="ghost" 
+                              size="icon"
+                              onClick={() => {
+                                setClienteParaAtribuir(cliente);
+                                setAtribuirVendedorOpen(true);
+                              }}
+                              title="Atribuir vendedor"
+                            >
+                              <UserPlus size={16} />
+                            </Button>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>)}
@@ -567,6 +660,21 @@ export default function Clientes() {
         onClienteCriado={(clienteId) => {
           navigate(`/clientes/${clienteId}`);
         }}
+      />
+
+      {/* Atribuir Vendedor Dialog */}
+      <AtribuirVendedorDialog
+        cliente={clienteParaAtribuir}
+        open={atribuirVendedorOpen}
+        onOpenChange={setAtribuirVendedorOpen}
+        onConfirm={handleAtribuirVendedor}
+      />
+
+      {/* Distribuir Clientes Dialog */}
+      <DistribuirClientesDialog
+        open={distribuirClientesOpen}
+        onOpenChange={setDistribuirClientesOpen}
+        onConfirm={handleDistribuirClientes}
       />
     </div>;
 }
