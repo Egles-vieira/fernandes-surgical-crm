@@ -27,7 +27,9 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CriarUsuarioSheet } from "@/components/usuario/CriarUsuarioSheet";
 import { EditarUsuarioSheet } from "@/components/usuario/EditarUsuarioSheet";
 import { NovaMetaVendedorDialog } from "@/components/equipes/NovaMetaVendedorDialog";
+import { EditarMetaVendedorDialog } from "@/components/equipes/EditarMetaVendedorDialog";
 import { useToast } from "@/hooks/use-toast";
+import type { MetaVendedor } from "@/hooks/useMetasVendedor";
 
 const AVAILABLE_ROLES: { value: AppRole; label: string; description: string; color: string }[] = [
   {
@@ -89,14 +91,16 @@ export default function Usuarios() {
   } = useHierarquia();
   const [selectedRole, setSelectedRole] = useState<{ [key: string]: AppRole }>({});
   const [metaDialogOpen, setMetaDialogOpen] = useState<{ [key: string]: boolean }>({});
+  const [editarMetaDialogOpen, setEditarMetaDialogOpen] = useState<{ [key: string]: boolean }>({});
+  const [metaSelecionada, setMetaSelecionada] = useState<MetaVendedor | null>(null);
 
   // Hook para carregar metas de um vendedor específico quando necessário
   const useVendedorMetas = (vendedorId: string) => {
     return useMetasVendedor(vendedorId);
   };
 
-  // Hook global para criar metas
-  const { criarMeta } = useMetasVendedor();
+  // Hook global para criar e editar metas
+  const { criarMeta, editarMeta } = useMetasVendedor();
 
   if (!isAdmin) {
     return (
@@ -139,6 +143,16 @@ export default function Usuarios() {
     setMetaDialogOpen({ ...metaDialogOpen, [userId]: false });
   };
 
+  const handleOpenEditarMetaDialog = (userId: string, meta: MetaVendedor) => {
+    setMetaSelecionada(meta);
+    setEditarMetaDialogOpen({ ...editarMetaDialogOpen, [userId]: true });
+  };
+
+  const handleCloseEditarMetaDialog = (userId: string) => {
+    setEditarMetaDialogOpen({ ...editarMetaDialogOpen, [userId]: false });
+    setMetaSelecionada(null);
+  };
+
   // Componente para exibir metas do vendedor
   const MetasVendedorCell = ({ userId, roles }: { userId: string; roles: AppRole[] }) => {
     const isSales = roles?.includes("sales");
@@ -168,7 +182,11 @@ export default function Usuarios() {
                 : 0;
               
               return (
-                <div key={meta.id} className="text-xs">
+                <div 
+                  key={meta.id} 
+                  className="text-xs cursor-pointer hover:bg-muted/50 p-1.5 rounded transition-colors"
+                  onClick={() => handleOpenEditarMetaDialog(userId, meta)}
+                >
                   <div className="flex items-center gap-2">
                     <Target className="h-3 w-3 text-primary" />
                     <span className="font-medium">
@@ -566,6 +584,32 @@ export default function Usuarios() {
                   console.error("Erro ao criar meta:", error);
                   toast.error("Erro ao criar meta", {
                     description: "Não foi possível salvar a meta. Tente novamente.",
+                  });
+                }
+              }}
+            />
+          )
+        ))}
+
+        {/* Dialogs de Editar Metas por Vendedor */}
+        {allUsers?.map((user) => (
+          user.roles?.includes("sales") && (
+            <EditarMetaVendedorDialog
+              key={`editar-${user.user_id}`}
+              open={editarMetaDialogOpen[user.user_id] || false}
+              onOpenChange={(open) => !open && handleCloseEditarMetaDialog(user.user_id)}
+              meta={metaSelecionada}
+              onEditar={async (metaId, dados) => {
+                try {
+                  await editarMeta.mutateAsync({ metaId, dados });
+                  toast.success("Meta atualizada com sucesso", {
+                    description: `Meta de ${user.email} foi atualizada`,
+                  });
+                  handleCloseEditarMetaDialog(user.user_id);
+                } catch (error) {
+                  console.error("Erro ao editar meta:", error);
+                  toast.error("Erro ao atualizar meta", {
+                    description: "Não foi possível atualizar a meta. Tente novamente.",
                   });
                 }
               }}

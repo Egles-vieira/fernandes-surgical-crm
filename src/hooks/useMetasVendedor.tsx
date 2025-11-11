@@ -157,15 +157,113 @@ export function useMetasVendedor(vendedorId?: string, filtros?: {
     },
   });
 
+  // Editar meta existente
+  const editarMeta = useMutation({
+    mutationFn: async ({
+      metaId,
+      dados,
+    }: {
+      metaId: string;
+      dados: {
+        meta_valor: number;
+        meta_unidades?: number | null;
+        periodo_inicio: string;
+        periodo_fim: string;
+        observacao: string;
+        valor_anterior: number;
+        unidades_anterior?: number | null;
+        periodo_fim_anterior: string;
+      };
+    }) => {
+      const { data: { user } } = await supabase.auth.getUser();
+
+      // Atualizar a meta
+      const { error: updateError } = await supabase
+        .from("metas_vendedor")
+        .update({
+          meta_valor: dados.meta_valor,
+          meta_unidades: dados.meta_unidades,
+          periodo_fim: dados.periodo_fim,
+          atualizado_em: new Date().toISOString(),
+        })
+        .eq("id", metaId);
+
+      if (updateError) throw updateError;
+
+      // Registrar histórico de alteração
+      const alteracoes: string[] = [];
+      if (dados.meta_valor !== dados.valor_anterior) {
+        alteracoes.push(
+          `Valor: ${new Intl.NumberFormat("pt-BR", {
+            style: "currency",
+            currency: "BRL",
+          }).format(dados.valor_anterior)} → ${new Intl.NumberFormat("pt-BR", {
+            style: "currency",
+            currency: "BRL",
+          }).format(dados.meta_valor)}`
+        );
+      }
+      if (dados.meta_unidades !== dados.unidades_anterior) {
+        alteracoes.push(
+          `Unidades: ${dados.unidades_anterior || 0} → ${dados.meta_unidades || 0}`
+        );
+      }
+      if (dados.periodo_fim !== dados.periodo_fim_anterior) {
+        alteracoes.push(
+          `Prazo alterado para ${new Date(dados.periodo_fim).toLocaleDateString("pt-BR")}`
+        );
+      }
+
+      const { error: historicoError } = await supabase
+        .from("progresso_metas_vendedor")
+        .insert({
+          meta_id: metaId,
+          valor_anterior: dados.valor_anterior,
+          valor_novo: dados.meta_valor,
+          observacao: `${dados.observacao}. Alterações: ${alteracoes.join("; ")}`,
+        });
+
+      if (historicoError) {
+        console.error("Erro ao registrar histórico:", historicoError);
+      }
+
+      return { metaId };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["metas-vendedor"] });
+      toast.success("Meta atualizada com sucesso!");
+    },
+    onError: (error: any) => {
+      toast.error("Erro ao atualizar meta", {
+        description: error.message,
+      });
+    },
+  });
+
   // Cancelar meta
   const cancelarMeta = useMutation({
-    mutationFn: async ({ metaId }: { metaId: string }) => {
+    mutationFn: async ({ metaId, motivo }: { metaId: string; motivo?: string }) => {
       const { error } = await supabase
         .from("metas_vendedor")
-        .update({ status: "cancelada" })
+        .update({ 
+          status: "cancelada",
+          atualizado_em: new Date().toISOString(),
+        })
         .eq("id", metaId);
 
       if (error) throw error;
+
+      // Registrar no histórico
+      if (motivo) {
+        await supabase
+          .from("progresso_metas_vendedor")
+          .insert({
+            meta_id: metaId,
+            valor_anterior: 0,
+            valor_novo: 0,
+            observacao: `Meta cancelada. Motivo: ${motivo}`,
+          });
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["metas-vendedor"] });
@@ -183,6 +281,7 @@ export function useMetasVendedor(vendedorId?: string, filtros?: {
     isLoading,
     totalizadores,
     criarMeta,
+    editarMeta,
     atualizarProgresso,
     cancelarMeta,
   };
