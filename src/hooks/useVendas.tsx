@@ -47,7 +47,12 @@ export function useVendas() {
 
       const { data, error } = await supabase
         .from("vendas")
-        .insert({ ...venda, user_id: user.id })
+        .insert({ 
+          ...venda, 
+          user_id: user.id,
+          // Se vendedor_id não for fornecido, usa o usuário atual
+          vendedor_id: venda.vendedor_id || user.id
+        })
         .select()
         .single();
 
