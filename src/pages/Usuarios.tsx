@@ -323,8 +323,10 @@ export default function Usuarios() {
   };
   return <Layout>
       {/* Barra de Filtros Fixa */}
-      <div className="fixed top-16 right-0 z-20 bg-background border-b transition-all duration-300" style={{
-      left: collapsed ? '4rem' : '14rem'
+      <div className="fixed top-16 z-20 bg-background border-b transition-all duration-300" style={{
+      left: collapsed ? '4rem' : '14rem',
+      right: 0,
+      width: `calc(100% - ${collapsed ? '4rem' : '14rem'})`
     }}>
         <div className="px-[5px] py-3">
           <UsuariosFilters searchTerm={searchTerm} onSearchChange={setSearchTerm} roleFilter={roleFilter} onRoleChange={setRoleFilter} totalUsuarios={filteredUsers?.length || 0} />
