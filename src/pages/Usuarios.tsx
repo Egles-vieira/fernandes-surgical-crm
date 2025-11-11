@@ -331,9 +331,8 @@ export default function Usuarios() {
     admin: allUsers?.filter(u => u.roles?.includes("admin")).length || 0,
     sales: allUsers?.filter(u => u.roles?.includes("sales")).length || 0,
     manager: allUsers?.filter(u => u.roles?.includes("manager")).length || 0,
-    support: allUsers?.filter(u => u.roles?.includes("support")).length || 0,
+    support: allUsers?.filter(u => u.roles?.includes("support")).length || 0
   };
-
   return <Layout>
       <div className="pr-6 py-6 space-y-6 h-full overflow-hidden flex flex-col">
         {/* Filtros */}
@@ -384,7 +383,7 @@ export default function Usuarios() {
         </div>
 
         {/* Tabela */}
-        <Card className="flex flex-col flex-1 min-h-0 overflow-hidden">
+        <Card className="flex flex-col flex-1 min-h-0 overflow-hidden px-0 py-0 my-[14px] mx-0">
           <CardContent className="pt-6 flex-1 flex flex-col min-h-0 overflow-hidden mx-0 my-0 px-0 py-0">
               {isLoadingAllUsers ? <div className="flex flex-col items-center justify-center py-12">
                   <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
@@ -406,9 +405,9 @@ export default function Usuarios() {
 
                     {/* Table Rows */}
                     {paginatedUsers?.map(user => {
-                  const isExpanded = expandedRows.has(user.user_id);
-                  const isSelected = selectedRows.has(user.user_id);
-                  return <div key={user.user_id} className={`border-b border-border transition-colors ${isSelected ? "bg-accent/5" : "hover:bg-muted/30"}`}>
+                const isExpanded = expandedRows.has(user.user_id);
+                const isSelected = selectedRows.has(user.user_id);
+                return <div key={user.user_id} className={`border-b border-border transition-colors ${isSelected ? "bg-accent/5" : "hover:bg-muted/30"}`}>
                           {/* Main Row */}
                           <div className="flex items-center gap-4 p-4 relative">
                             {/* Left Border Indicator */}
@@ -430,12 +429,12 @@ export default function Usuarios() {
                             <div className="w-64">
                               <div className="flex flex-wrap gap-2">
                                 {user.roles && user.roles.length > 0 ? user.roles.slice(0, 2).map(role => {
-                            const roleInfo = getRoleInfo(role);
-                            return <Badge key={role} variant="secondary" className="flex items-center gap-1.5 px-2 py-1">
+                          const roleInfo = getRoleInfo(role);
+                          return <Badge key={role} variant="secondary" className="flex items-center gap-1.5 px-2 py-1">
                                         <div className={`w-2 h-2 rounded-full ${roleInfo?.color}`} />
                                         <span className="text-xs">{roleInfo?.label}</span>
                                       </Badge>;
-                          }) : <span className="text-sm text-muted-foreground italic">
+                        }) : <span className="text-sm text-muted-foreground italic">
                                     Nenhuma permissão
                                   </span>}
                                 {user.roles && user.roles.length > 2 && <Badge variant="outline" className="text-xs">
@@ -453,9 +452,9 @@ export default function Usuarios() {
                             <div className="w-64">
                               <div className="flex items-center gap-2">
                                 <Select value={selectedRole[user.user_id] || ""} onValueChange={value => setSelectedRole({
-                            ...selectedRole,
-                            [user.user_id]: value as AppRole
-                          })}>
+                          ...selectedRole,
+                          [user.user_id]: value as AppRole
+                        })}>
                                   <SelectTrigger className="w-[160px] h-8 text-xs">
                                     <SelectValue placeholder="Selecionar..." />
                                   </SelectTrigger>
@@ -504,15 +503,15 @@ export default function Usuarios() {
                                   <div className="text-sm text-muted-foreground mb-2">Todas as Permissões</div>
                                   <div className="flex flex-wrap gap-2">
                                     {user.roles && user.roles.length > 0 ? user.roles.map(role => {
-                              const roleInfo = getRoleInfo(role);
-                              return <Badge key={role} variant="secondary" className="flex items-center gap-2 px-3 py-1.5">
+                            const roleInfo = getRoleInfo(role);
+                            return <Badge key={role} variant="secondary" className="flex items-center gap-2 px-3 py-1.5">
                                             <div className={`w-2.5 h-2.5 rounded-full ${roleInfo?.color}`} />
                                             <span>{roleInfo?.label}</span>
                                             <Button variant="ghost" size="sm" className="h-5 w-5 p-0 ml-1 hover:bg-destructive/10 hover:text-destructive rounded-full" onClick={() => handleRemoveRole(user.user_id, role)}>
                                               <X className="h-3.5 w-3.5" />
                                             </Button>
                                           </Badge>;
-                            }) : <span className="text-sm text-muted-foreground italic">
+                          }) : <span className="text-sm text-muted-foreground italic">
                                         Nenhuma permissão atribuída
                                       </span>}
                                   </div>
@@ -528,7 +527,7 @@ export default function Usuarios() {
                               </div>
                             </div>}
                         </div>;
-                })}
+              })}
                   </div>
 
                   {/* Paginação */}
@@ -544,22 +543,22 @@ export default function Usuarios() {
                       
                       <div className="flex items-center gap-1">
                         {Array.from({
-                      length: Math.min(5, totalPages)
-                    }, (_, i) => {
-                      let pageNum;
-                      if (totalPages <= 5) {
-                        pageNum = i + 1;
-                      } else if (page <= 3) {
-                        pageNum = i + 1;
-                      } else if (page >= totalPages - 2) {
-                        pageNum = totalPages - 4 + i;
-                      } else {
-                        pageNum = page - 2 + i;
-                      }
-                      return <Button key={pageNum} variant={page === pageNum ? "default" : "outline"} size="sm" onClick={() => setPage(pageNum)} className="w-9">
+                    length: Math.min(5, totalPages)
+                  }, (_, i) => {
+                    let pageNum;
+                    if (totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (page <= 3) {
+                      pageNum = i + 1;
+                    } else if (page >= totalPages - 2) {
+                      pageNum = totalPages - 4 + i;
+                    } else {
+                      pageNum = page - 2 + i;
+                    }
+                    return <Button key={pageNum} variant={page === pageNum ? "default" : "outline"} size="sm" onClick={() => setPage(pageNum)} className="w-9">
                               {pageNum}
                             </Button>;
-                    })}
+                  })}
                       </div>
                       
                       <Button variant="outline" size="sm" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={!canNextPage}>
