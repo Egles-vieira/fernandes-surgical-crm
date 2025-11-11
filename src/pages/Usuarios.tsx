@@ -30,6 +30,7 @@ import { NovaMetaVendedorDialog } from "@/components/equipes/NovaMetaVendedorDia
 import { EditarMetaVendedorDialog } from "@/components/equipes/EditarMetaVendedorDialog";
 import { useToast } from "@/hooks/use-toast";
 import type { MetaVendedor } from "@/hooks/useMetasVendedor";
+import { UsuariosFilters } from "@/components/usuario/UsuariosFilters";
 
 const AVAILABLE_ROLES: { value: AppRole; label: string; description: string; color: string }[] = [
   {
@@ -93,6 +94,8 @@ export default function Usuarios() {
   const [metaDialogOpen, setMetaDialogOpen] = useState<{ [key: string]: boolean }>({});
   const [editarMetaDialogOpen, setEditarMetaDialogOpen] = useState<{ [key: string]: boolean }>({});
   const [metaSelecionada, setMetaSelecionada] = useState<MetaVendedor | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [roleFilter, setRoleFilter] = useState<AppRole | "todos">("todos");
 
   // Hook para carregar metas de um vendedor específico quando necessário
   const useVendedorMetas = (vendedorId: string) => {
@@ -225,23 +228,26 @@ export default function Usuarios() {
     );
   };
 
+  // Filtrar usuários
+  const filteredUsers = allUsers?.filter(user => {
+    const matchesSearch = searchTerm === "" || 
+      user.email.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesRole = roleFilter === "todos" || 
+      user.roles?.includes(roleFilter);
+    return matchesSearch && matchesRole;
+  });
+
   return (
     <Layout>
-      <div className="container mx-auto py-6 space-y-6">
-        <div className="bg-gradient-to-r from-primary to-primary/80 rounded-xl p-8 text-primary-foreground">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-4xl font-bold flex items-center gap-3 mb-2">
-                <Shield className="h-10 w-10" />
-                Gestão de Usuários
-              </h1>
-              <p className="text-primary-foreground/90 text-lg">
-                Gerencie usuários, permissões e equipes do sistema
-              </p>
-            </div>
-            <CriarUsuarioSheet />
-          </div>
-        </div>
+      <div className="p-6 space-y-6 h-full overflow-hidden flex flex-col">
+        {/* Filtros */}
+        <UsuariosFilters
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          roleFilter={roleFilter}
+          onRoleChange={setRoleFilter}
+          totalUsuarios={filteredUsers?.length || 0}
+        />
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card className="hover:shadow-lg transition-all">
@@ -449,7 +455,7 @@ export default function Usuarios() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {allUsers?.map((user) => (
+                  {filteredUsers?.map((user) => (
                     <TableRow key={user.user_id} className="hover:bg-muted/30 transition-colors">
                        <TableCell>
                         <div className="flex items-center gap-2">
