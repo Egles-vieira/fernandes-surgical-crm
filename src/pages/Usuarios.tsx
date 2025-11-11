@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRoles, AppRole } from "@/hooks/useRoles";
 import { useHierarquia } from "@/hooks/useHierarquia";
 import { useMetasVendedor } from "@/hooks/useMetasVendedor";
@@ -21,7 +21,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Shield, X, Loader2, UserCheck, Target, Plus, ChevronDown, ChevronUp, MoreVertical, Edit } from "lucide-react";
+import { Shield, X, Loader2, UserCheck, Target, Plus, ChevronDown, ChevronUp, MoreVertical, Edit, ChevronLeft, ChevronRight } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CriarUsuarioSheet } from "@/components/usuario/CriarUsuarioSheet";
 import { EditarUsuarioSheet } from "@/components/usuario/EditarUsuarioSheet";
@@ -97,6 +97,8 @@ export default function Usuarios() {
   const [roleFilter, setRoleFilter] = useState<AppRole | "todos">("todos");
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
+  const [page, setPage] = useState(1);
+  const itemsPerPage = 10;
 
   const toggleRow = (userId: string) => {
     const newExpanded = new Set(expandedRows);
@@ -119,10 +121,10 @@ export default function Usuarios() {
   };
 
   const toggleSelectAll = () => {
-    if (selectedRows.size === filteredUsers?.length) {
+    if (selectedRows.size === paginatedUsers?.length) {
       setSelectedRows(new Set());
     } else {
-      setSelectedRows(new Set(filteredUsers?.map(u => u.user_id) || []));
+      setSelectedRows(new Set(paginatedUsers?.map(u => u.user_id) || []));
     }
   };
 
@@ -133,6 +135,11 @@ export default function Usuarios() {
 
   // Hook global para criar, editar e excluir metas
   const { criarMeta, editarMeta, excluirMeta } = useMetasVendedor();
+
+  // Resetar página quando filtros mudarem
+  useEffect(() => {
+    setPage(1);
+  }, [searchTerm, roleFilter]);
 
   if (!isAdmin) {
     return (
@@ -266,6 +273,15 @@ export default function Usuarios() {
     return matchesSearch && matchesRole;
   });
 
+  // Paginação
+  const total = filteredUsers?.length || 0;
+  const totalPages = Math.ceil(total / itemsPerPage);
+  const startIndex = (page - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedUsers = filteredUsers?.slice(startIndex, endIndex);
+  const canPreviousPage = page > 1;
+  const canNextPage = page < totalPages;
+
   return (
     <Layout>
       <div className="h-full overflow-hidden flex flex-col">
@@ -279,7 +295,7 @@ export default function Usuarios() {
         />
 
         {/* Tabela de Usuários com padding-top para compensar filtro fixo */}
-        <div className="flex-1 overflow-auto p-6" style={{ paddingTop: '84px' }}>
+        <div className="flex-1 overflow-hidden p-6 flex flex-col" style={{ paddingTop: '84px' }}>
           <Card className="flex flex-col flex-1 min-h-0 overflow-hidden">
             <CardContent className="pt-6 flex-1 flex flex-col min-h-0 overflow-hidden mx-0 my-0 px-0 py-0">
               {isLoadingAllUsers ? (
@@ -298,7 +314,7 @@ export default function Usuarios() {
                     {/* Table Header */}
                     <div className="sticky top-0 z-10 flex items-center gap-4 p-4 border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 font-medium text-sm text-muted-foreground">
                       <Checkbox 
-                        checked={selectedRows.size === filteredUsers?.length && filteredUsers.length > 0} 
+                        checked={selectedRows.size === paginatedUsers?.length && paginatedUsers.length > 0} 
                         onCheckedChange={toggleSelectAll} 
                         className="ml-2" 
                       />
@@ -310,7 +326,7 @@ export default function Usuarios() {
                     </div>
 
                     {/* Table Rows */}
-                    {filteredUsers?.map((user) => {
+                    {paginatedUsers?.map((user) => {
                       const isExpanded = expandedRows.has(user.user_id);
                       const isSelected = selectedRows.has(user.user_id);
                       
@@ -492,6 +508,59 @@ export default function Usuarios() {
                         </div>
                       );
                     })}
+                  </div>
+
+                  {/* Paginação */}
+                  <div className="border-t bg-card p-4 flex items-center justify-between">
+                    <div className="text-sm text-muted-foreground">
+                      Mostrando {total === 0 ? 0 : startIndex + 1} a {Math.min(endIndex, total)} de {total} usuários
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => setPage(p => Math.max(1, p - 1))} 
+                        disabled={!canPreviousPage}
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+                      
+                      <div className="flex items-center gap-1">
+                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                          let pageNum;
+                          if (totalPages <= 5) {
+                            pageNum = i + 1;
+                          } else if (page <= 3) {
+                            pageNum = i + 1;
+                          } else if (page >= totalPages - 2) {
+                            pageNum = totalPages - 4 + i;
+                          } else {
+                            pageNum = page - 2 + i;
+                          }
+                          return (
+                            <Button
+                              key={pageNum}
+                              variant={page === pageNum ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => setPage(pageNum)}
+                              className="w-9"
+                            >
+                              {pageNum}
+                            </Button>
+                          );
+                        })}
+                      </div>
+                      
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => setPage(p => Math.min(totalPages, p + 1))} 
+                        disabled={!canNextPage}
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
               )}
