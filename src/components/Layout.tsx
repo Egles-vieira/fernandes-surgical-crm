@@ -19,6 +19,7 @@ import {
   BookOpen,
   Settings,
   Brain,
+  Target,
 } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
@@ -92,6 +93,13 @@ const menuItems: MenuItem[] = [
     children: [
       { path: "/clientes", icon: Users, label: "Minha Carteira" },
       { path: "/clientes/solicitacoes", icon: FileText, label: "Solicitações" },
+    ],
+  },
+  {
+    icon: Target,
+    label: "Metas",
+    children: [
+      { path: "/perfil-vendedor", icon: Target, label: "Minhas Metas" },
     ],
   },
   {

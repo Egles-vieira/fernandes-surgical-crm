@@ -33,22 +33,38 @@ interface NovaMetaVendedorInput {
   meta_conversao?: number;
 }
 
-export function useMetasVendedor(vendedorId?: string) {
+export function useMetasVendedor(vendedorId?: string, filtros?: {
+  status?: string;
+  periodo_inicio?: string;
+  periodo_fim?: string;
+}) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Buscar metas do vendedor
+  // Buscar metas do vendedor com filtros
   const { data: metas, isLoading } = useQuery({
-    queryKey: ["metas-vendedor", vendedorId],
+    queryKey: ["metas-vendedor", vendedorId, filtros],
     queryFn: async () => {
       let query = supabase
         .from("metas_vendedor")
         .select("*")
-        .eq("status", "ativa")
         .order("periodo_inicio", { ascending: false });
 
       if (vendedorId) {
         query = query.eq("vendedor_id", vendedorId);
+      }
+
+      // Aplicar filtros
+      if (filtros?.status) {
+        query = query.eq("status", filtros.status);
+      }
+
+      if (filtros?.periodo_inicio) {
+        query = query.gte("periodo_inicio", filtros.periodo_inicio);
+      }
+
+      if (filtros?.periodo_fim) {
+        query = query.lte("periodo_fim", filtros.periodo_fim);
       }
 
       const { data, error } = await query;
@@ -58,6 +74,16 @@ export function useMetasVendedor(vendedorId?: string) {
     },
     enabled: !!vendedorId,
   });
+
+  // Calcular totalizadores
+  const totalizadores = {
+    totalMetaValor: metas?.reduce((acc, m) => acc + (m.meta_valor || 0), 0) || 0,
+    totalRealizadoValor: metas?.reduce((acc, m) => acc + (m.valor_atual || 0), 0) || 0,
+    totalMetaUnidades: metas?.reduce((acc, m) => acc + (m.meta_unidades || 0), 0) || 0,
+    totalRealizadoUnidades: metas?.reduce((acc, m) => acc + (m.unidades_atual || 0), 0) || 0,
+    metasAtivas: metas?.filter((m) => m.status === "ativa").length || 0,
+    metasConcluidas: metas?.filter((m) => m.status === "concluida").length || 0,
+  };
 
   // Criar nova meta
   const criarMeta = useMutation({
@@ -150,6 +176,7 @@ export function useMetasVendedor(vendedorId?: string) {
   return {
     metas,
     isLoading,
+    totalizadores,
     criarMeta,
     atualizarProgresso,
     cancelarMeta,

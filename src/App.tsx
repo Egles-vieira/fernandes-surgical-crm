@@ -43,6 +43,8 @@ import MeuPerfil from "./pages/MeuPerfil";
 import CadastroCNPJ from "./pages/CadastroCNPJ";
 import SolicitacoesCadastro from "./pages/SolicitacoesCadastro";
 import Configuracoes from "./pages/Configuracoes";
+import PerfilVendedor from "./pages/PerfilVendedor";
+
 const App = () => (
   <ThemeProvider>
     <Toaster />
@@ -237,6 +239,11 @@ const App = () => (
         <Route path="/configuracoes" element={<ProtectedRoute>
             <Layout>
               <Configuracoes />
+            </Layout>
+          </ProtectedRoute>} />
+        <Route path="/perfil-vendedor" element={<ProtectedRoute>
+            <Layout>
+              <PerfilVendedor />
             </Layout>
           </ProtectedRoute>} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
