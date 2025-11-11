@@ -274,6 +274,13 @@ export default function Vendas() {
     setClienteNome(cliente.nome_emit);
     setClienteCnpj(cliente.cgc);
   };
+
+  const handleTrocarCliente = () => {
+    setClienteSelecionado(null);
+    setClienteNome("");
+    setClienteCnpj("");
+    setShowClienteSearch(true);
+  };
   const handleEditarVenda = (venda: any) => {
     setEditandoVendaId(venda.id);
     setNumeroVenda(venda.numero_venda);
@@ -373,6 +380,17 @@ export default function Vendas() {
       });
       return;
     }
+    
+    // Validação do CNPJ/CPF
+    if (!clienteCnpj || clienteCnpj.trim() === "") {
+      toast({
+        title: "Erro",
+        description: "Selecione um cliente com CNPJ/CPF válido",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     if (carrinho.length === 0) {
       toast({
         title: "Erro",
@@ -381,6 +399,51 @@ export default function Vendas() {
       });
       return;
     }
+
+    // Validar vínculo do cliente para vendedores (não gestores/admin)
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+    if (!currentUser) {
+      toast({
+        title: "Erro",
+        description: "Usuário não autenticado",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Se não for edição, validar o vínculo
+    if (!editandoVendaId) {
+      const finalVendedorId = vendedorId || currentUser.id;
+      
+      // Checar vínculo com o cliente
+      const { data: temAcesso, error: erroAcesso } = await supabase.rpc('can_access_cliente_por_cgc', {
+        _user_id: finalVendedorId,
+        _cgc: clienteCnpj
+      });
+
+      console.log('🔍 Validação de vínculo:', {
+        vendedorId: finalVendedorId,
+        clienteCnpj,
+        temAcesso,
+        ehGestor,
+        nivelHierarquico,
+        erroAcesso
+      });
+
+      if (erroAcesso) {
+        console.error('❌ Erro ao validar vínculo:', erroAcesso);
+      }
+
+      if (!temAcesso) {
+        toast({
+          title: "Permissão negada",
+          description: "Você não tem vínculo com este cliente. Selecione um cliente vinculado a você.",
+          variant: "destructive"
+        });
+        return;
+      }
+    }
+
     try {
       const valorTotal = calcularTotal();
       if (editandoVendaId) {
@@ -431,16 +494,6 @@ export default function Vendas() {
         });
       } else {
         // Criar nova venda
-        const { data: { user: currentUser } } = await supabase.auth.getUser();
-        if (!currentUser) {
-          toast({
-            title: "Erro",
-            description: "Usuário não autenticado",
-            variant: "destructive"
-          });
-          return;
-        }
-
         // Define vendedor_id: se gestor selecionou alguém, usa o selecionado; senão, usa o próprio
         const finalVendedorId = vendedorId || currentUser.id;
         
@@ -462,14 +515,18 @@ export default function Vendas() {
           .select('role')
           .eq('user_id', currentUser.id);
         
-        console.log('DEBUG - Criando venda:', {
+        console.log('🚀 Criando venda:', {
           vendedorId,
           currentUserId: currentUser.id,
           currentUserEmail: currentUser.email,
           userRoles: userRoles?.map(r => r.role),
           finalVendedorId,
+          clienteCnpj,
+          clienteNome,
           etapaPipeline,
-          status
+          status,
+          ehGestor,
+          nivelHierarquico
         });
         
         const venda = await createVenda.mutateAsync({
@@ -525,13 +582,34 @@ export default function Vendas() {
         message: error?.message,
         details: error?.details,
         hint: error?.hint,
+        clienteCnpj,
+        clienteNome,
+        vendedorSelecionado: vendedorId
       });
       
       // Tratamento especial para erro de RLS (Row Level Security)
       if (error?.code === '42501' || error?.message?.includes('row-level security')) {
+        // Verificar novamente o acesso para diagnóstico
+        const { data: { user: currentUser } } = await supabase.auth.getUser();
+        if (currentUser) {
+          const finalVendedorId = vendedorId || currentUser.id;
+          const { data: temAcesso } = await supabase.rpc('can_access_cliente_por_cgc', {
+            _user_id: finalVendedorId,
+            _cgc: clienteCnpj
+          });
+          
+          console.error("🔍 Diagnóstico RLS:", {
+            finalVendedorId,
+            clienteCnpj,
+            temAcessoAoCliente: temAcesso,
+            ehGestor,
+            subordinados: subordinados?.map((s: any) => s.subordinado_id)
+          });
+        }
+        
         toast({
           title: "Permissão negada",
-          description: `Você não tem permissão para criar uma venda com o vendedor selecionado. Código do erro: ${error?.code}. Verifique o console para mais detalhes.`,
+          description: "Você não tem permissão para criar esta venda. O cliente informado não está vinculado a você.",
           variant: "destructive"
         });
       } else {
@@ -622,8 +700,26 @@ export default function Vendas() {
               </div>
 
               <div>
-                <Label>CNPJ/CPF</Label>
-                <Input value={clienteCnpj} onChange={e => setClienteCnpj(e.target.value)} placeholder="00.000.000/0000-00" />
+                <Label>CNPJ/CPF *</Label>
+                <div className="flex gap-2">
+                  <Input 
+                    value={clienteCnpj} 
+                    onChange={e => setClienteCnpj(e.target.value)} 
+                    placeholder="00.000.000/0000-00"
+                    readOnly={clienteSelecionado !== null}
+                    className={clienteSelecionado !== null ? "bg-muted cursor-not-allowed" : ""}
+                  />
+                  {clienteSelecionado && (
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={handleTrocarCliente}
+                      title="Trocar cliente"
+                    >
+                      <Edit size={16} />
+                    </Button>
+                  )}
+                </div>
               </div>
 
               <div>
