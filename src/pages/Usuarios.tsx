@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useRoles, AppRole } from "@/hooks/useRoles";
 import { useHierarquia } from "@/hooks/useHierarquia";
 import { useMetasVendedor } from "@/hooks/useMetasVendedor";
+import { supabase } from "@/integrations/supabase/client";
 import Layout from "@/components/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -93,6 +94,9 @@ export default function Usuarios() {
   const useVendedorMetas = (vendedorId: string) => {
     return useMetasVendedor(vendedorId);
   };
+
+  // Hook global para criar metas
+  const { criarMeta } = useMetasVendedor();
 
   if (!isAdmin) {
     return (
@@ -530,15 +534,40 @@ export default function Usuarios() {
               open={metaDialogOpen[user.user_id] || false}
               onOpenChange={(open) => !open && handleCloseMetaDialog(user.user_id)}
               vendedorId={user.user_id}
-              onCriar={(meta) => {
-                toast({
-                  title: "Meta criada com sucesso",
-                  description: `Meta de ${new Intl.NumberFormat("pt-BR", {
-                    style: "currency",
-                    currency: "BRL",
-                  }).format(meta.meta_valor)} criada para ${user.email}`,
-                });
-                handleCloseMetaDialog(user.user_id);
+              onCriar={async (meta) => {
+                try {
+                  // Buscar equipe do vendedor se necessário
+                  let equipeId = meta.equipe_id;
+                  
+                  if (!equipeId) {
+                    const { data: membroEquipe } = await supabase
+                      .from("membros_equipe")
+                      .select("equipe_id")
+                      .eq("usuario_id", user.user_id)
+                      .eq("esta_ativo", true)
+                      .single();
+                    
+                    equipeId = membroEquipe?.equipe_id || undefined;
+                  }
+                  
+                  await criarMeta.mutateAsync({
+                    ...meta,
+                    equipe_id: equipeId,
+                  });
+                  
+                  toast.success("Meta criada com sucesso", {
+                    description: `Meta de ${new Intl.NumberFormat("pt-BR", {
+                      style: "currency",
+                      currency: "BRL",
+                    }).format(meta.meta_valor)} criada para ${user.email}`,
+                  });
+                  handleCloseMetaDialog(user.user_id);
+                } catch (error) {
+                  console.error("Erro ao criar meta:", error);
+                  toast.error("Erro ao criar meta", {
+                    description: "Não foi possível salvar a meta. Tente novamente.",
+                  });
+                }
               }}
             />
           )

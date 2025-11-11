@@ -88,9 +88,14 @@ export function useMetasVendedor(vendedorId?: string, filtros?: {
   // Criar nova meta
   const criarMeta = useMutation({
     mutationFn: async (meta: NovaMetaVendedorInput) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      
       const { data, error } = await supabase
         .from("metas_vendedor")
-        .insert([meta])
+        .insert([{
+          ...meta,
+          criado_por: user?.id,
+        }])
         .select()
         .single();
 
