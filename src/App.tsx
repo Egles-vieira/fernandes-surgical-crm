@@ -45,6 +45,7 @@ import SolicitacoesCadastro from "./pages/SolicitacoesCadastro";
 import Configuracoes from "./pages/Configuracoes";
 import PerfilVendedor from "./pages/PerfilVendedor";
 
+// App principal
 const App = () => (
   <ThemeProvider>
     <Toaster />
