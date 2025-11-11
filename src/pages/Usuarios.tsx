@@ -332,7 +332,7 @@ export default function Usuarios() {
       </div>
 
       {/* Conteúdo Principal */}
-      <div className="pt-[88px] px-6 pb-6 space-y-6">
+      <div className="pt-[88px] px-[5px] pb-6 space-y-6">
         {/* Estatísticas */}
         <div className="grid gap-4 grid-cols-5 w-full">
           <Card className="border-border/40 shadow-sm rounded-xl bg-card/50 backdrop-blur-sm">
