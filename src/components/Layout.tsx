@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, createContext, useContext } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -29,6 +29,22 @@ import Header from "./Header";
 import { useRoles } from "@/hooks/useRoles";
 import { useEmpresa } from "@/hooks/useEmpresa";
 import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
+
+// Context para compartilhar estado do sidebar
+interface LayoutContextType {
+  collapsed: boolean;
+  toggleCollapsed: () => void;
+}
+
+const LayoutContext = createContext<LayoutContextType | undefined>(undefined);
+
+export const useLayout = () => {
+  const context = useContext(LayoutContext);
+  if (!context) {
+    throw new Error("useLayout must be used within a Layout component");
+  }
+  return context;
+};
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -152,10 +168,11 @@ export default function Layout({ children }: LayoutProps) {
   };
 
   return (
-    <div
-      className="flex h-screen w-full overflow-hidden"
-      style={{ "--sidebar-width": collapsed ? "4rem" : "14rem" } as React.CSSProperties}
-    >
+    <LayoutContext.Provider value={{ collapsed, toggleCollapsed: () => setCollapsed(!collapsed) }}>
+      <div
+        className="flex h-screen w-full overflow-hidden"
+        style={{ "--sidebar-width": collapsed ? "4rem" : "14rem" } as React.CSSProperties}
+      >
       {/* Sidebar - Responsivo com Collapse */}
       <aside
         className={`${
@@ -372,6 +389,7 @@ export default function Layout({ children }: LayoutProps) {
         {/* Content */}
         <main className="flex-1 overflow-auto mt-16 transition-all duration-300">{children}</main>
       </div>
-    </div>
+      </div>
+    </LayoutContext.Provider>
   );
 }

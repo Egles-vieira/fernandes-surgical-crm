@@ -3,7 +3,7 @@ import { useRoles, AppRole } from "@/hooks/useRoles";
 import { useHierarquia } from "@/hooks/useHierarquia";
 import { useMetasVendedor } from "@/hooks/useMetasVendedor";
 import { supabase } from "@/integrations/supabase/client";
-import Layout from "@/components/Layout";
+import Layout, { useLayout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -62,6 +62,7 @@ const AVAILABLE_ROLES: {
   color: "bg-[hsl(var(--warning))]"
 }];
 export default function Usuarios() {
+  const { collapsed } = useLayout();
   const {
     allUsers,
     isLoadingAllUsers,
@@ -335,14 +336,17 @@ export default function Usuarios() {
   };
   return <Layout>
       {/* Barra de Filtros Fixa */}
-      <div className="fixed top-16 left-0 right-0 z-20 bg-background border-b">
+      <div 
+        className="fixed top-16 right-0 z-20 bg-background border-b transition-all duration-300"
+        style={{ left: collapsed ? '3.5rem' : '14rem' }}
+      >
         <div className="px-6 py-3">
           <UsuariosFilters searchTerm={searchTerm} onSearchChange={setSearchTerm} roleFilter={roleFilter} onRoleChange={setRoleFilter} totalUsuarios={filteredUsers?.length || 0} />
         </div>
       </div>
 
       {/* Conteúdo Principal */}
-      <div className="pt-[88px] space-y-6 pr-8 px-[13px] mx-[5px] my-px py-[16px]">
+      <div className="pt-[88px] p-6 space-y-6">
 
         {/* Estatísticas */}
         <div className="grid gap-6 md:grid-cols-5">
