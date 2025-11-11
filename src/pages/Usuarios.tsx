@@ -239,7 +239,7 @@ export default function Usuarios() {
 
   return (
     <Layout>
-      <div className="h-full overflow-hidden flex flex-col">
+      <div className="p-6 space-y-6 h-full overflow-hidden flex flex-col">
         {/* Filtros */}
         <UsuariosFilters
           searchTerm={searchTerm}
@@ -250,9 +250,8 @@ export default function Usuarios() {
         />
 
         {/* Tabela de Usuários */}
-        <div className="flex-1 overflow-hidden p-6">
-          <Card className="h-full flex flex-col overflow-hidden">
-            <CardContent className="flex-1 flex flex-col overflow-hidden p-0">
+        <Card className="flex-1 flex flex-col overflow-hidden">
+          <CardContent className="flex-1 flex flex-col overflow-hidden p-0">
             {isLoadingAllUsers ? (
               <div className="flex flex-col items-center justify-center py-12">
                 <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
@@ -369,9 +368,8 @@ export default function Usuarios() {
                 </Table>
               </div>
             )}
-            </CardContent>
-          </Card>
-        </div>
+          </CardContent>
+        </Card>
 
         {/* Dialogs de Metas por Vendedor */}
         {allUsers?.map((user) => (
