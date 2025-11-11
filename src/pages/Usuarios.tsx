@@ -4,17 +4,10 @@ import { useHierarquia } from "@/hooks/useHierarquia";
 import { useMetasVendedor } from "@/hooks/useMetasVendedor";
 import { supabase } from "@/integrations/supabase/client";
 import Layout from "@/components/Layout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -22,7 +15,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Shield, X, Loader2, Users, TrendingUp, Briefcase, UserCheck, Target, Plus } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Shield, X, Loader2, UserCheck, Target, Plus, ChevronDown, ChevronUp, MoreVertical, Edit } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CriarUsuarioSheet } from "@/components/usuario/CriarUsuarioSheet";
 import { EditarUsuarioSheet } from "@/components/usuario/EditarUsuarioSheet";
@@ -96,6 +95,36 @@ export default function Usuarios() {
   const [metaSelecionada, setMetaSelecionada] = useState<MetaVendedor | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState<AppRole | "todos">("todos");
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+  const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
+
+  const toggleRow = (userId: string) => {
+    const newExpanded = new Set(expandedRows);
+    if (newExpanded.has(userId)) {
+      newExpanded.delete(userId);
+    } else {
+      newExpanded.add(userId);
+    }
+    setExpandedRows(newExpanded);
+  };
+
+  const toggleSelection = (userId: string) => {
+    const newSelected = new Set(selectedRows);
+    if (newSelected.has(userId)) {
+      newSelected.delete(userId);
+    } else {
+      newSelected.add(userId);
+    }
+    setSelectedRows(newSelected);
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedRows.size === filteredUsers?.length) {
+      setSelectedRows(new Set());
+    } else {
+      setSelectedRows(new Set(filteredUsers?.map(u => u.user_id) || []));
+    }
+  };
 
   // Hook para carregar metas de um vendedor específico quando necessário
   const useVendedorMetas = (vendedorId: string) => {
@@ -251,126 +280,223 @@ export default function Usuarios() {
 
         {/* Tabela de Usuários com padding-top para compensar filtro fixo */}
         <div className="flex-1 overflow-auto p-6" style={{ paddingTop: '84px' }}>
-          <Card className="flex flex-col">
-            <CardContent className="flex-1 flex flex-col p-0">
-            {isLoadingAllUsers ? (
-              <div className="flex flex-col items-center justify-center py-12">
-                <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-                <p className="text-muted-foreground">Carregando usuários...</p>
-              </div>
-            ) : filteredUsers && filteredUsers.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12">
-                <Shield className="h-12 w-12 text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">Nenhum usuário encontrado</p>
-              </div>
-            ) : (
-              <div className="flex-1 overflow-y-auto">
-                <Table>
-                  <TableHeader className="sticky top-0 bg-background z-10">
-                    <TableRow>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Permissões</TableHead>
-                      <TableHead>Metas</TableHead>
-                      <TableHead>Adicionar Permissão</TableHead>
-                      <TableHead className="w-[100px]">Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredUsers?.map((user) => (
-                      <TableRow key={user.user_id} className="hover:bg-muted/30 transition-colors">
-                         <TableCell>
-                          <div className="flex items-center gap-2">
-                            <div className="font-medium">{user.email}</div>
-                            {subordinados?.some(s => s.subordinado_id === user.user_id) && (
-                              <Badge variant="outline" className="text-xs">
-                                <UserCheck className="h-3 w-3 mr-1" />
-                                Subordinado
-                              </Badge>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex flex-wrap gap-2">
-                            {user.roles && user.roles.length > 0 ? (
-                              user.roles.map((role) => {
-                                const roleInfo = getRoleInfo(role);
-                                return (
-                                  <Badge
-                                    key={role}
-                                    variant="secondary"
-                                    className="flex items-center gap-2 px-3 py-1.5"
-                                  >
-                                    <div className={`w-2.5 h-2.5 rounded-full ${roleInfo?.color}`} />
-                                    <span>{roleInfo?.label}</span>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      className="h-5 w-5 p-0 ml-1 hover:bg-destructive/10 hover:text-destructive rounded-full"
-                                      onClick={() => handleRemoveRole(user.user_id, role)}
-                                    >
-                                      <X className="h-3.5 w-3.5" />
-                                    </Button>
+          <Card className="flex flex-col flex-1 min-h-0 overflow-hidden">
+            <CardContent className="pt-6 flex-1 flex flex-col min-h-0 overflow-hidden mx-0 my-0 px-0 py-0">
+              {isLoadingAllUsers ? (
+                <div className="flex flex-col items-center justify-center py-12">
+                  <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+                  <p className="text-muted-foreground">Carregando usuários...</p>
+                </div>
+              ) : filteredUsers && filteredUsers.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12">
+                  <Shield className="h-12 w-12 text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">Nenhum usuário encontrado</p>
+                </div>
+              ) : (
+                <div className="flex-1 flex flex-col overflow-hidden">
+                  <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-primary/30 scrollbar-track-transparent hover:scrollbar-thumb-primary/40">
+                    {/* Table Header */}
+                    <div className="sticky top-0 z-10 flex items-center gap-4 p-4 border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 font-medium text-sm text-muted-foreground">
+                      <Checkbox 
+                        checked={selectedRows.size === filteredUsers?.length && filteredUsers.length > 0} 
+                        onCheckedChange={toggleSelectAll} 
+                        className="ml-2" 
+                      />
+                      <div className="flex-1 min-w-0">Email</div>
+                      <div className="w-64">Permissões</div>
+                      <div className="w-48">Metas</div>
+                      <div className="w-64">Adicionar Permissão</div>
+                      <div className="w-24"></div> {/* Actions space */}
+                    </div>
+
+                    {/* Table Rows */}
+                    {filteredUsers?.map((user) => {
+                      const isExpanded = expandedRows.has(user.user_id);
+                      const isSelected = selectedRows.has(user.user_id);
+                      
+                      return (
+                        <div 
+                          key={user.user_id} 
+                          className={`border-b border-border transition-colors ${isSelected ? "bg-accent/5" : "hover:bg-muted/30"}`}
+                        >
+                          {/* Main Row */}
+                          <div className="flex items-center gap-4 p-4 relative">
+                            {/* Left Border Indicator */}
+                            {isSelected && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary" />}
+                            
+                            {/* Checkbox */}
+                            <Checkbox 
+                              checked={isSelected} 
+                              onCheckedChange={() => toggleSelection(user.user_id)} 
+                              className="ml-2" 
+                            />
+
+                            {/* Email */}
+                            <div className="flex-1 min-w-0">
+                              <div className="font-medium text-primary">{user.email}</div>
+                              {subordinados?.some(s => s.subordinado_id === user.user_id) && (
+                                <Badge variant="outline" className="text-xs mt-1">
+                                  <UserCheck className="h-3 w-3 mr-1" />
+                                  Subordinado
+                                </Badge>
+                              )}
+                            </div>
+
+                            {/* Permissões */}
+                            <div className="w-64">
+                              <div className="flex flex-wrap gap-2">
+                                {user.roles && user.roles.length > 0 ? (
+                                  user.roles.slice(0, 2).map((role) => {
+                                    const roleInfo = getRoleInfo(role);
+                                    return (
+                                      <Badge
+                                        key={role}
+                                        variant="secondary"
+                                        className="flex items-center gap-1.5 px-2 py-1"
+                                      >
+                                        <div className={`w-2 h-2 rounded-full ${roleInfo?.color}`} />
+                                        <span className="text-xs">{roleInfo?.label}</span>
+                                      </Badge>
+                                    );
+                                  })
+                                ) : (
+                                  <span className="text-sm text-muted-foreground italic">
+                                    Nenhuma permissão
+                                  </span>
+                                )}
+                                {user.roles && user.roles.length > 2 && (
+                                  <Badge variant="outline" className="text-xs">
+                                    +{user.roles.length - 2}
                                   </Badge>
-                                );
-                              })
-                            ) : (
-                              <span className="text-sm text-muted-foreground italic">
-                                Nenhuma permissão atribuída
-                              </span>
-                            )}
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Metas */}
+                            <div className="w-48">
+                              <MetasVendedorCell userId={user.user_id} roles={user.roles || []} />
+                            </div>
+
+                            {/* Adicionar Permissão */}
+                            <div className="w-64">
+                              <div className="flex items-center gap-2">
+                                <Select
+                                  value={selectedRole[user.user_id] || ""}
+                                  onValueChange={(value) =>
+                                    setSelectedRole({ ...selectedRole, [user.user_id]: value as AppRole })
+                                  }
+                                >
+                                  <SelectTrigger className="w-[160px] h-8 text-xs">
+                                    <SelectValue placeholder="Selecionar..." />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {AVAILABLE_ROLES.filter(
+                                      (role) => !user.roles?.includes(role.value)
+                                    ).map((role) => (
+                                      <SelectItem key={role.value} value={role.value}>
+                                        <div className="flex items-center gap-2">
+                                          <div className={`w-2 h-2 rounded-full ${role.color}`} />
+                                          <span className="text-xs">{role.label}</span>
+                                        </div>
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                <Button
+                                  size="sm"
+                                  className="h-8 text-xs"
+                                  onClick={() => handleAddRole(user.user_id)}
+                                  disabled={!selectedRole[user.user_id]}
+                                >
+                                  Adicionar
+                                </Button>
+                              </div>
+                            </div>
+
+                            {/* Actions */}
+                            <div className="flex items-center gap-2">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="icon">
+                                    <MoreVertical className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem onClick={() => {}}>
+                                    <Edit className="h-4 w-4 mr-2" />
+                                    Editar Usuário
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                onClick={() => toggleRow(user.user_id)}
+                              >
+                                {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                              </Button>
+                            </div>
                           </div>
-                        </TableCell>
-                        <TableCell>
-                          <MetasVendedorCell userId={user.user_id} roles={user.roles || []} />
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Select
-                              value={selectedRole[user.user_id] || ""}
-                              onValueChange={(value) =>
-                                setSelectedRole({ ...selectedRole, [user.user_id]: value as AppRole })
-                              }
-                            >
-                              <SelectTrigger className="w-[220px]">
-                                <SelectValue placeholder="Selecione uma role..." />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {AVAILABLE_ROLES.filter(
-                                  (role) => !user.roles?.includes(role.value)
-                                ).map((role) => (
-                                  <SelectItem key={role.value} value={role.value}>
-                                    <div className="flex items-center gap-2.5">
-                                      <div className={`w-3 h-3 rounded-full ${role.color}`} />
-                                      <span>{role.label}</span>
+
+                          {/* Expanded Content */}
+                          {isExpanded && (
+                            <div className="px-4 pb-4 pt-2 bg-muted/20 border-t">
+                              <div className="space-y-4">
+                                {/* Todas as Permissões */}
+                                <div>
+                                  <div className="text-sm text-muted-foreground mb-2">Todas as Permissões</div>
+                                  <div className="flex flex-wrap gap-2">
+                                    {user.roles && user.roles.length > 0 ? (
+                                      user.roles.map((role) => {
+                                        const roleInfo = getRoleInfo(role);
+                                        return (
+                                          <Badge
+                                            key={role}
+                                            variant="secondary"
+                                            className="flex items-center gap-2 px-3 py-1.5"
+                                          >
+                                            <div className={`w-2.5 h-2.5 rounded-full ${roleInfo?.color}`} />
+                                            <span>{roleInfo?.label}</span>
+                                            <Button
+                                              variant="ghost"
+                                              size="sm"
+                                              className="h-5 w-5 p-0 ml-1 hover:bg-destructive/10 hover:text-destructive rounded-full"
+                                              onClick={() => handleRemoveRole(user.user_id, role)}
+                                            >
+                                              <X className="h-3.5 w-3.5" />
+                                            </Button>
+                                          </Badge>
+                                        );
+                                      })
+                                    ) : (
+                                      <span className="text-sm text-muted-foreground italic">
+                                        Nenhuma permissão atribuída
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {/* Informações do Subordinado */}
+                                {subordinados?.some(s => s.subordinado_id === user.user_id) && (
+                                  <div>
+                                    <div className="text-sm text-muted-foreground mb-2">Hierarquia</div>
+                                    <div className="text-sm">
+                                      Este usuário é seu subordinado na hierarquia
                                     </div>
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <Button
-                              size="sm"
-                              onClick={() => handleAddRole(user.user_id)}
-                              disabled={!selectedRole[user.user_id]}
-                            >
-                              Adicionar
-                            </Button>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <EditarUsuarioSheet
-                            userId={user.user_id}
-                            userEmail={user.email}
-                            currentRoles={user.roles || []}
-                          />
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
 
         {/* Dialogs de Metas por Vendedor */}
