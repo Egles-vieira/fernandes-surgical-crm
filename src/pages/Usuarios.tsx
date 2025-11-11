@@ -342,7 +342,7 @@ export default function Usuarios() {
       </div>
 
       {/* Conteúdo Principal */}
-      <div className="pt-[88px] py-8 space-y-6 pr-8">
+      <div className="pt-[88px] space-y-6 pr-8 px-[13px] mx-[5px] my-px py-[16px]">
 
         {/* Estatísticas */}
         <div className="grid gap-6 md:grid-cols-5">
