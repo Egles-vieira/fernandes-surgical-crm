@@ -4,9 +4,11 @@ import { useEquipesFiltros } from "@/contexts/EquipesFiltrosContext";
 import { LeaderboardVendedores } from "./LeaderboardVendedores";
 import { RadarPerformance } from "./RadarPerformance";
 import { KPIsVendedor } from "./KPIsVendedor";
+import { ComparativoMetasEquipe } from "./ComparativoMetasEquipe";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AlertCircle, BarChart3, Users, TrendingUp } from "lucide-react";
 
 export function AnaliseVendedores() {
   const { filtros } = useEquipesFiltros();
@@ -58,6 +60,9 @@ export function AnaliseVendedores() {
     );
   }
 
+  // Obter nome da equipe selecionada
+  const equipeNome = vendedores?.[0]?.equipe_nome;
+
   return (
     <div className="space-y-6">
       {vendedorSelecionado ? (
@@ -66,15 +71,39 @@ export function AnaliseVendedores() {
             onClick={() => setVendedorSelecionado(null)}
             className="mb-4 text-sm text-primary hover:underline"
           >
-            ← Voltar para o leaderboard
+            ← Voltar para análise de vendedores
           </button>
           <KPIsVendedor vendedor={vendedorSelecionado} />
         </div>
       ) : (
-        <>
-          <LeaderboardVendedores vendedores={vendedores} onSelectVendedor={setVendedorSelecionado} />
-          <RadarPerformance vendedores={vendedores} topN={5} />
-        </>
+        <Tabs defaultValue="leaderboard" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="leaderboard" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              Leaderboard
+            </TabsTrigger>
+            <TabsTrigger value="comparativo" className="flex items-center gap-2">
+              <BarChart3 className="h-4 w-4" />
+              Comparativo
+            </TabsTrigger>
+            <TabsTrigger value="radar" className="flex items-center gap-2">
+              <TrendingUp className="h-4 w-4" />
+              Radar
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="leaderboard" className="space-y-6">
+            <LeaderboardVendedores vendedores={vendedores} onSelectVendedor={setVendedorSelecionado} />
+          </TabsContent>
+
+          <TabsContent value="comparativo" className="space-y-6">
+            <ComparativoMetasEquipe vendedores={vendedores} equipeNome={equipeNome} />
+          </TabsContent>
+
+          <TabsContent value="radar" className="space-y-6">
+            <RadarPerformance vendedores={vendedores} topN={5} />
+          </TabsContent>
+        </Tabs>
       )}
     </div>
   );
