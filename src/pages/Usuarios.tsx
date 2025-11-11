@@ -30,6 +30,7 @@ import { EditarMetaVendedorDialog } from "@/components/equipes/EditarMetaVendedo
 import { useToast } from "@/hooks/use-toast";
 import type { MetaVendedor } from "@/hooks/useMetasVendedor";
 import { UsuariosFilters } from "@/components/usuario/UsuariosFilters";
+import { AcoesMassaBar } from "@/components/usuario/AcoesMassaBar";
 
 const AVAILABLE_ROLES: { value: AppRole; label: string; description: string; color: string }[] = [
   {
@@ -167,6 +168,73 @@ export default function Usuarios() {
   const handleRemoveRole = async (userId: string, role: AppRole) => {
     if (confirm(`Tem certeza que deseja remover a permissão "${AVAILABLE_ROLES.find(r => r.value === role)?.label}"?`)) {
       await removeRole.mutateAsync({ userId, role });
+    }
+  };
+
+  // Ações em massa
+  const handleAdicionarPermissaoMassa = async (role: AppRole) => {
+    const selectedUserIds = Array.from(selectedRows);
+    if (selectedUserIds.length === 0) return;
+
+    const roleInfo = AVAILABLE_ROLES.find(r => r.value === role);
+    if (!confirm(`Deseja adicionar a permissão "${roleInfo?.label}" para ${selectedUserIds.length} usuário(s)?`)) {
+      return;
+    }
+
+    try {
+      // Adicionar permissão para todos os usuários selecionados
+      await Promise.all(
+        selectedUserIds.map(userId => 
+          addRole.mutateAsync({ userId, role })
+        )
+      );
+
+      toast({
+        title: "Permissões adicionadas",
+        description: `Permissão "${roleInfo?.label}" adicionada para ${selectedUserIds.length} usuário(s)`,
+      });
+
+      setSelectedRows(new Set());
+    } catch (error) {
+      console.error("Erro ao adicionar permissões em massa:", error);
+      toast({
+        title: "Erro ao adicionar permissões",
+        description: "Ocorreu um erro ao adicionar permissões. Tente novamente.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleRemoverPermissaoMassa = async (role: AppRole) => {
+    const selectedUserIds = Array.from(selectedRows);
+    if (selectedUserIds.length === 0) return;
+
+    const roleInfo = AVAILABLE_ROLES.find(r => r.value === role);
+    if (!confirm(`Deseja remover a permissão "${roleInfo?.label}" de ${selectedUserIds.length} usuário(s)?`)) {
+      return;
+    }
+
+    try {
+      // Remover permissão de todos os usuários selecionados
+      await Promise.all(
+        selectedUserIds.map(userId => 
+          removeRole.mutateAsync({ userId, role })
+        )
+      );
+
+      toast({
+        title: "Permissões removidas",
+        description: `Permissão "${roleInfo?.label}" removida de ${selectedUserIds.length} usuário(s)`,
+      });
+
+      setSelectedRows(new Set());
+    } catch (error) {
+      console.error("Erro ao remover permissões em massa:", error);
+      toast({
+        title: "Erro ao remover permissões",
+        description: "Ocorreu um erro ao remover permissões. Tente novamente.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -654,6 +722,16 @@ export default function Usuarios() {
             />
           )
         ))}
+
+        {/* Barra de Ações em Massa */}
+        {selectedRows.size > 0 && (
+          <AcoesMassaBar
+            selectedCount={selectedRows.size}
+            onClearSelection={() => setSelectedRows(new Set())}
+            onAdicionarPermissao={handleAdicionarPermissaoMassa}
+            onRemoverPermissao={handleRemoverPermissaoMassa}
+          />
+        )}
 
         {/* Avisos de Segurança */}
         <Alert className="border-primary/20 bg-primary/5 shadow-sm">
