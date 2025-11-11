@@ -384,7 +384,7 @@ export default function Usuarios() {
 
         {/* Tabela */}
         <div className="flex justify-center items-start flex-1 min-h-0 overflow-hidden">
-          <Card className="flex flex-col flex-1 min-h-0 overflow-hidden px-0 py-0 my-[14px] mx-0 max-w-[1400px] w-full">
+          <Card className="flex flex-col flex-1 min-h-0 overflow-hidden px-0 py-0 my-[14px] mx-0 max-w-[1600px] w-full">
             <CardContent className="pt-6 flex-1 flex flex-col min-h-0 overflow-hidden mx-0 my-0 px-0 py-0">
                 {isLoadingAllUsers ? <div className="flex flex-col items-center justify-center py-12">
                     <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
