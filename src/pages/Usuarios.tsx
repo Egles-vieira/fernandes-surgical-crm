@@ -383,192 +383,194 @@ export default function Usuarios() {
         </div>
 
         {/* Tabela */}
-        <Card className="flex flex-col flex-1 min-h-0 overflow-hidden px-0 py-0 my-[14px] mx-0">
-          <CardContent className="pt-6 flex-1 flex flex-col min-h-0 overflow-hidden mx-0 my-0 px-0 py-0">
-              {isLoadingAllUsers ? <div className="flex flex-col items-center justify-center py-12">
-                  <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-                  <p className="text-muted-foreground">Carregando usuários...</p>
-                </div> : filteredUsers && filteredUsers.length === 0 ? <div className="flex flex-col items-center justify-center py-12">
-                  <Shield className="h-12 w-12 text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground">Nenhum usuário encontrado</p>
-                </div> : <div className="flex-1 flex flex-col overflow-hidden">
-                  <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-primary/30 scrollbar-track-transparent hover:scrollbar-thumb-primary/40">
-                    {/* Table Header */}
-                    <div className="sticky top-0 z-10 flex items-center gap-4 p-4 border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 font-medium text-sm text-muted-foreground">
-                      <Checkbox checked={selectedRows.size === paginatedUsers?.length && paginatedUsers.length > 0} onCheckedChange={toggleSelectAll} className="ml-2" />
-                      <div className="flex-1 min-w-0">Email</div>
-                      <div className="w-64">Permissões</div>
-                      <div className="w-48">Metas</div>
-                      <div className="w-64">Adicionar Permissão</div>
-                      <div className="w-24"></div> {/* Actions space */}
-                    </div>
+        <div className="flex justify-center items-start flex-1 min-h-0 overflow-hidden">
+          <Card className="flex flex-col flex-1 min-h-0 overflow-hidden px-0 py-0 my-[14px] mx-0 max-w-[1400px] w-full">
+            <CardContent className="pt-6 flex-1 flex flex-col min-h-0 overflow-hidden mx-0 my-0 px-0 py-0">
+                {isLoadingAllUsers ? <div className="flex flex-col items-center justify-center py-12">
+                    <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+                    <p className="text-muted-foreground">Carregando usuários...</p>
+                  </div> : filteredUsers && filteredUsers.length === 0 ? <div className="flex flex-col items-center justify-center py-12">
+                    <Shield className="h-12 w-12 text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground">Nenhum usuário encontrado</p>
+                  </div> : <div className="flex-1 flex flex-col overflow-hidden">
+                    <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-primary/30 scrollbar-track-transparent hover:scrollbar-thumb-primary/40">
+                      {/* Table Header */}
+                      <div className="sticky top-0 z-10 flex items-center gap-4 p-4 border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 font-medium text-sm text-muted-foreground">
+                        <Checkbox checked={selectedRows.size === paginatedUsers?.length && paginatedUsers.length > 0} onCheckedChange={toggleSelectAll} className="ml-2" />
+                        <div className="flex-1 min-w-0">Email</div>
+                        <div className="w-64">Permissões</div>
+                        <div className="w-48">Metas</div>
+                        <div className="w-64">Adicionar Permissão</div>
+                        <div className="w-24"></div> {/* Actions space */}
+                      </div>
 
-                    {/* Table Rows */}
-                    {paginatedUsers?.map(user => {
-                const isExpanded = expandedRows.has(user.user_id);
-                const isSelected = selectedRows.has(user.user_id);
-                return <div key={user.user_id} className={`border-b border-border transition-colors ${isSelected ? "bg-accent/5" : "hover:bg-muted/30"}`}>
-                          {/* Main Row */}
-                          <div className="flex items-center gap-4 p-4 relative">
-                            {/* Left Border Indicator */}
-                            {isSelected && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary" />}
-                            
-                            {/* Checkbox */}
-                            <Checkbox checked={isSelected} onCheckedChange={() => toggleSelection(user.user_id)} className="ml-2" />
+                      {/* Table Rows */}
+                      {paginatedUsers?.map(user => {
+                  const isExpanded = expandedRows.has(user.user_id);
+                  const isSelected = selectedRows.has(user.user_id);
+                  return <div key={user.user_id} className={`border-b border-border transition-colors ${isSelected ? "bg-accent/5" : "hover:bg-muted/30"}`}>
+                            {/* Main Row */}
+                            <div className="flex items-center gap-4 p-4 relative">
+                              {/* Left Border Indicator */}
+                              {isSelected && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary" />}
+                              
+                              {/* Checkbox */}
+                              <Checkbox checked={isSelected} onCheckedChange={() => toggleSelection(user.user_id)} className="ml-2" />
 
-                            {/* Email */}
-                            <div className="flex-1 min-w-0">
-                              <div className="font-medium text-primary">{user.email}</div>
-                              {subordinados?.some(s => s.subordinado_id === user.user_id) && <Badge variant="outline" className="text-xs mt-1">
-                                  <UserCheck className="h-3 w-3 mr-1" />
-                                  Subordinado
-                                </Badge>}
-                            </div>
-
-                            {/* Permissões */}
-                            <div className="w-64">
-                              <div className="flex flex-wrap gap-2">
-                                {user.roles && user.roles.length > 0 ? user.roles.slice(0, 2).map(role => {
-                          const roleInfo = getRoleInfo(role);
-                          return <Badge key={role} variant="secondary" className="flex items-center gap-1.5 px-2 py-1">
-                                        <div className={`w-2 h-2 rounded-full ${roleInfo?.color}`} />
-                                        <span className="text-xs">{roleInfo?.label}</span>
-                                      </Badge>;
-                        }) : <span className="text-sm text-muted-foreground italic">
-                                    Nenhuma permissão
-                                  </span>}
-                                {user.roles && user.roles.length > 2 && <Badge variant="outline" className="text-xs">
-                                    +{user.roles.length - 2}
+                              {/* Email */}
+                              <div className="flex-1 min-w-0">
+                                <div className="font-medium text-primary">{user.email}</div>
+                                {subordinados?.some(s => s.subordinado_id === user.user_id) && <Badge variant="outline" className="text-xs mt-1">
+                                    <UserCheck className="h-3 w-3 mr-1" />
+                                    Subordinado
                                   </Badge>}
                               </div>
-                            </div>
 
-                            {/* Metas */}
-                            <div className="w-48">
-                              <MetasVendedorCell userId={user.user_id} roles={user.roles || []} />
-                            </div>
+                              {/* Permissões */}
+                              <div className="w-64">
+                                <div className="flex flex-wrap gap-2">
+                                  {user.roles?.length === 0 ? <Badge variant="outline" className="text-xs">Sem permissões</Badge> : user.roles?.map(role => {
+                              const roleInfo = getRoleInfo(role);
+                              return <div key={role} className="flex items-center gap-1 group">
+                                        <Badge className={`${roleInfo?.color} text-white text-xs`}>
+                                          {roleInfo?.label}
+                                        </Badge>
+                                        <button onClick={() => handleRemoveRole(user.user_id, role)} className="opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/20 rounded-full p-0.5">
+                                          <X className="h-3 w-3 text-destructive" />
+                                        </button>
+                                      </div>;
+                            })}
+                                </div>
+                              </div>
 
-                            {/* Adicionar Permissão */}
-                            <div className="w-64">
-                              <div className="flex items-center gap-2">
+                              {/* Metas */}
+                              <div className="w-48">
+                                <MetasVendedorCell userId={user.user_id} roles={user.roles || []} />
+                              </div>
+
+                              {/* Adicionar Permissão */}
+                              <div className="w-64 flex items-center gap-2">
                                 <Select value={selectedRole[user.user_id] || ""} onValueChange={value => setSelectedRole({
-                          ...selectedRole,
-                          [user.user_id]: value as AppRole
-                        })}>
-                                  <SelectTrigger className="w-[160px] h-8 text-xs">
+                            ...selectedRole,
+                            [user.user_id]: value as AppRole
+                          })}>
+                                  <SelectTrigger className="h-8 text-xs">
                                     <SelectValue placeholder="Selecionar..." />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    {AVAILABLE_ROLES.filter(role => !user.roles?.includes(role.value)).map(role => <SelectItem key={role.value} value={role.value}>
+                                    {AVAILABLE_ROLES.filter(role =>
+                            // Filtrar apenas permissões que o usuário não tem ainda
+                            !user.roles?.includes(role.value)).map(role => <SelectItem key={role.value} value={role.value} className="text-xs">
                                         <div className="flex items-center gap-2">
-                                          <div className={`w-2 h-2 rounded-full ${role.color}`} />
-                                          <span className="text-xs">{role.label}</span>
+                                          <div className={`h-2 w-2 rounded-full ${role.color}`} />
+                                          {role.label}
                                         </div>
                                       </SelectItem>)}
                                   </SelectContent>
                                 </Select>
-                                <Button size="sm" className="h-8 text-xs" onClick={() => handleAddRole(user.user_id)} disabled={!selectedRole[user.user_id]}>
-                                  Adicionar
+                                <Button variant="outline" size="sm" onClick={() => handleAddRole(user.user_id)} disabled={!selectedRole[user.user_id] || addRole.isPending} className="h-8 px-3 text-xs">
+                                  {addRole.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : "Adicionar"}
+                                </Button>
+                              </div>
+
+                              {/* Actions */}
+                              <div className="w-24 flex justify-end gap-2">
+                                {/* Dropdown de ações rápidas */}
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                      <MoreVertical className="h-4 w-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onClick={() => console.log("Editar usuário:", user.user_id)}>
+                                      <Edit className="h-4 w-4 mr-2" />
+                                      Editar
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+
+                                {/* Botão de expandir */}
+                                <Button variant="ghost" size="sm" onClick={() => toggleRow(user.user_id)} className="h-8 w-8 p-0">
+                                  {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                                 </Button>
                               </div>
                             </div>
 
-                            {/* Actions */}
-                            <div className="flex items-center gap-2">
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="icon">
-                                    <MoreVertical className="h-4 w-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  <DropdownMenuItem onClick={() => {}}>
-                                    <Edit className="h-4 w-4 mr-2" />
-                                    Editar Usuário
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
+                            {/* Expanded Content */}
+                            {isExpanded && <div className="px-4 pb-4 bg-muted/20">
+                                <div className="space-y-4">
+                                  {/* Informações detalhadas */}
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                      <h4 className="text-sm font-medium mb-2 text-primary">Permissões Atribuídas</h4>
+                                      <div className="space-y-2">
+                                        {user.roles?.length === 0 ? <p className="text-xs text-muted-foreground italic">Nenhuma permissão atribuída</p> : user.roles?.map(role => {
+                                  const roleInfo = getRoleInfo(role);
+                                  return <div key={role} className="flex items-start gap-3 p-2 rounded-lg bg-background/50 border border-border/40">
+                                              <Shield className="h-4 w-4 mt-0.5 text-primary" />
+                                              <div className="flex-1">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                  <span className="text-sm font-medium">{roleInfo?.label}</span>
+                                                  <Badge className={`${roleInfo?.color} text-white text-xs`}>
+                                                    {role}
+                                                  </Badge>
+                                                </div>
+                                                <p className="text-xs text-muted-foreground">
+                                                  {roleInfo?.description}
+                                                </p>
+                                              </div>
+                                              <Button variant="ghost" size="sm" onClick={() => handleRemoveRole(user.user_id, role)} className="h-7 text-xs text-destructive hover:text-destructive hover:bg-destructive/10">
+                                                <X className="h-3 w-3 mr-1" />
+                                                Remover
+                                              </Button>
+                                            </div>;
+                                })}
+                                      </div>
+                                    </div>
 
-                              <Button variant="ghost" size="icon" onClick={() => toggleRow(user.user_id)}>
-                                {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                              </Button>
-                            </div>
-                          </div>
-
-                          {/* Expanded Content */}
-                          {isExpanded && <div className="px-4 pb-4 pt-2 bg-muted/20 border-t">
-                              <div className="space-y-4">
-                                {/* Todas as Permissões */}
-                                <div>
-                                  <div className="text-sm text-muted-foreground mb-2">Todas as Permissões</div>
-                                  <div className="flex flex-wrap gap-2">
-                                    {user.roles && user.roles.length > 0 ? user.roles.map(role => {
-                            const roleInfo = getRoleInfo(role);
-                            return <Badge key={role} variant="secondary" className="flex items-center gap-2 px-3 py-1.5">
-                                            <div className={`w-2.5 h-2.5 rounded-full ${roleInfo?.color}`} />
-                                            <span>{roleInfo?.label}</span>
-                                            <Button variant="ghost" size="sm" className="h-5 w-5 p-0 ml-1 hover:bg-destructive/10 hover:text-destructive rounded-full" onClick={() => handleRemoveRole(user.user_id, role)}>
-                                              <X className="h-3.5 w-3.5" />
-                                            </Button>
-                                          </Badge>;
-                          }) : <span className="text-sm text-muted-foreground italic">
-                                        Nenhuma permissão atribuída
-                                      </span>}
+                                    <div>
+                                      <h4 className="text-sm font-medium mb-2 text-primary">Permissões Disponíveis</h4>
+                                      <div className="space-y-2">
+                                        {AVAILABLE_ROLES.filter(role => !user.roles?.includes(role.value)).length === 0 ? <p className="text-xs text-muted-foreground italic">
+                                            Todas as permissões já foram atribuídas
+                                          </p> : AVAILABLE_ROLES.filter(role => !user.roles?.includes(role.value)).map(role => <div key={role.value} className="flex items-start gap-3 p-2 rounded-lg bg-background/50 border border-border/40">
+                                              <Shield className="h-4 w-4 mt-0.5 text-muted-foreground" />
+                                              <div className="flex-1">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                  <span className="text-sm font-medium">{role.label}</span>
+                                                  <Badge variant="outline" className="text-xs">
+                                                    {role.value}
+                                                  </Badge>
+                                                </div>
+                                                <p className="text-xs text-muted-foreground">
+                                                  {role.description}
+                                                </p>
+                                              </div>
+                                              <Button variant="outline" size="sm" onClick={async () => {
+                                  await addRole.mutateAsync({
+                                    userId: user.user_id,
+                                    role: role.value
+                                  });
+                                }} disabled={addRole.isPending} className="h-7 text-xs">
+                                                {addRole.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <>
+                                                    <Plus className="h-3 w-3 mr-1" />
+                                                    Adicionar
+                                                  </>}
+                                              </Button>
+                                            </div>)}
+                                      </div>
+                                    </div>
                                   </div>
                                 </div>
-
-                                {/* Informações do Subordinado */}
-                                {subordinados?.some(s => s.subordinado_id === user.user_id) && <div>
-                                    <div className="text-sm text-muted-foreground mb-2">Hierarquia</div>
-                                    <div className="text-sm">
-                                      Este usuário é seu subordinado na hierarquia
-                                    </div>
-                                  </div>}
-                              </div>
-                            </div>}
-                        </div>;
-              })}
-                  </div>
-
-                  {/* Paginação */}
-                  <div className="border-t bg-card p-4 flex items-center justify-between">
-                    <div className="text-sm text-muted-foreground">
-                      Mostrando {total === 0 ? 0 : startIndex + 1} a {Math.min(endIndex, total)} de {total} usuários
+                              </div>}
+                          </div>;
+                })}
                     </div>
-                    
-                    <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={!canPreviousPage}>
-                        <ChevronLeft className="h-4 w-4" />
-                      </Button>
-                      
-                      <div className="flex items-center gap-1">
-                        {Array.from({
-                    length: Math.min(5, totalPages)
-                  }, (_, i) => {
-                    let pageNum;
-                    if (totalPages <= 5) {
-                      pageNum = i + 1;
-                    } else if (page <= 3) {
-                      pageNum = i + 1;
-                    } else if (page >= totalPages - 2) {
-                      pageNum = totalPages - 4 + i;
-                    } else {
-                      pageNum = page - 2 + i;
-                    }
-                    return <Button key={pageNum} variant={page === pageNum ? "default" : "outline"} size="sm" onClick={() => setPage(pageNum)} className="w-9">
-                              {pageNum}
-                            </Button>;
-                  })}
-                      </div>
-                      
-                      <Button variant="outline" size="sm" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={!canNextPage}>
-                        <ChevronRight className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>}
+                  </div>}
             </CardContent>
           </Card>
+        </div>
 
         {/* Dialogs de Metas por Vendedor */}
         {allUsers?.map(user => user.roles?.includes("sales") && <NovaMetaVendedorDialog key={user.user_id} open={metaDialogOpen[user.user_id] || false} onOpenChange={open => !open && handleCloseMetaDialog(user.user_id)} vendedorId={user.user_id} onCriar={async meta => {
