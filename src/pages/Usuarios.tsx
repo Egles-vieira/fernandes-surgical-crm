@@ -334,7 +334,7 @@ export default function Usuarios() {
     support: allUsers?.filter(u => u.roles?.includes("support")).length || 0
   };
   return <Layout>
-      <div className="p-8 space-y-6">
+      <div className="p-8 space-y-6 px-[48px] py-0 mx-[5px] my-0">
         {/* Filtros */}
         <UsuariosFilters searchTerm={searchTerm} onSearchChange={setSearchTerm} roleFilter={roleFilter} onRoleChange={setRoleFilter} totalUsuarios={filteredUsers?.length || 0} />
 
@@ -404,9 +404,9 @@ export default function Usuarios() {
 
                       {/* Table Rows */}
                       {paginatedUsers?.map(user => {
-                  const isExpanded = expandedRows.has(user.user_id);
-                  const isSelected = selectedRows.has(user.user_id);
-                  return <div key={user.user_id} className={`border-b border-border transition-colors ${isSelected ? "bg-muted/70" : "hover:bg-muted/50"}`}>
+              const isExpanded = expandedRows.has(user.user_id);
+              const isSelected = selectedRows.has(user.user_id);
+              return <div key={user.user_id} className={`border-b border-border transition-colors ${isSelected ? "bg-muted/70" : "hover:bg-muted/50"}`}>
                             {/* Main Row */}
                             <div className="flex items-center gap-4 p-4 relative">
                               {/* Left Border Indicator */}
@@ -428,8 +428,8 @@ export default function Usuarios() {
                               <div className="w-64">
                                 <div className="flex flex-wrap gap-2">
                                   {user.roles?.length === 0 ? <Badge variant="outline" className="text-xs">Sem permissões</Badge> : user.roles?.map(role => {
-                              const roleInfo = getRoleInfo(role);
-                              return <div key={role} className="flex items-center gap-1 group">
+                        const roleInfo = getRoleInfo(role);
+                        return <div key={role} className="flex items-center gap-1 group">
                                         <Badge className={`${roleInfo?.color} text-white text-xs`}>
                                           {roleInfo?.label}
                                         </Badge>
@@ -437,7 +437,7 @@ export default function Usuarios() {
                                           <X className="h-3 w-3 text-destructive" />
                                         </button>
                                       </div>;
-                            })}
+                      })}
                                 </div>
                               </div>
 
@@ -449,16 +449,16 @@ export default function Usuarios() {
                               {/* Adicionar Permissão */}
                               <div className="w-64 flex items-center gap-2">
                                 <Select value={selectedRole[user.user_id] || ""} onValueChange={value => setSelectedRole({
-                            ...selectedRole,
-                            [user.user_id]: value as AppRole
-                          })}>
+                      ...selectedRole,
+                      [user.user_id]: value as AppRole
+                    })}>
                                   <SelectTrigger className="h-8 text-xs">
                                     <SelectValue placeholder="Selecionar..." />
                                   </SelectTrigger>
                                   <SelectContent>
                                     {AVAILABLE_ROLES.filter(role =>
-                            // Filtrar apenas permissões que o usuário não tem ainda
-                            !user.roles?.includes(role.value)).map(role => <SelectItem key={role.value} value={role.value} className="text-xs">
+                        // Filtrar apenas permissões que o usuário não tem ainda
+                        !user.roles?.includes(role.value)).map(role => <SelectItem key={role.value} value={role.value} className="text-xs">
                                         <div className="flex items-center gap-2">
                                           <div className={`h-2 w-2 rounded-full ${role.color}`} />
                                           {role.label}
@@ -504,8 +504,8 @@ export default function Usuarios() {
                                       <h4 className="text-sm font-medium mb-2 text-primary">Permissões Atribuídas</h4>
                                       <div className="space-y-2">
                                         {user.roles?.length === 0 ? <p className="text-xs text-muted-foreground italic">Nenhuma permissão atribuída</p> : user.roles?.map(role => {
-                                  const roleInfo = getRoleInfo(role);
-                                  return <div key={role} className="flex items-start gap-3 p-2 rounded-lg bg-background/50 border border-border/40">
+                            const roleInfo = getRoleInfo(role);
+                            return <div key={role} className="flex items-start gap-3 p-2 rounded-lg bg-background/50 border border-border/40">
                                               <Shield className="h-4 w-4 mt-0.5 text-primary" />
                                               <div className="flex-1">
                                                 <div className="flex items-center gap-2 mb-1">
@@ -523,7 +523,7 @@ export default function Usuarios() {
                                                 Remover
                                               </Button>
                                             </div>;
-                                })}
+                          })}
                                       </div>
                                     </div>
 
@@ -546,11 +546,11 @@ export default function Usuarios() {
                                                 </p>
                                               </div>
                                               <Button variant="outline" size="sm" onClick={async () => {
-                                  await addRole.mutateAsync({
-                                    userId: user.user_id,
-                                    role: role.value
-                                  });
-                                }} disabled={addRole.isPending} className="h-7 text-xs">
+                              await addRole.mutateAsync({
+                                userId: user.user_id,
+                                role: role.value
+                              });
+                            }} disabled={addRole.isPending} className="h-7 text-xs">
                                                 {addRole.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <>
                                                     <Plus className="h-3 w-3 mr-1" />
                                                     Adicionar
@@ -563,40 +563,28 @@ export default function Usuarios() {
                                 </div>
                               </div>}
                           </div>;
-                })}
+            })}
                   </div>}
             </CardContent>
         </Card>
 
         {/* Paginação */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-between">
+        {totalPages > 1 && <div className="flex items-center justify-between">
             <p className="text-sm text-muted-foreground">
               Mostrando {startIndex + 1} a {Math.min(endIndex, total)} de {total} usuários
             </p>
             <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPage(p => Math.max(1, p - 1))}
-                disabled={!canPreviousPage}
-              >
+              <Button variant="outline" size="sm" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={!canPreviousPage}>
                 <ChevronLeft className="h-4 w-4" />
               </Button>
               <span className="text-sm">
                 Página {page} de {totalPages}
               </span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                disabled={!canNextPage}
-              >
+              <Button variant="outline" size="sm" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={!canNextPage}>
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
-          </div>
-        )}
+          </div>}
 
         {/* Dialogs de Metas por Vendedor */}
         {allUsers?.map(user => user.roles?.includes("sales") && <NovaMetaVendedorDialog key={user.user_id} open={metaDialogOpen[user.user_id] || false} onOpenChange={open => !open && handleCloseMetaDialog(user.user_id)} vendedorId={user.user_id} onCriar={async meta => {
