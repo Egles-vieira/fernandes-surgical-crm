@@ -334,7 +334,7 @@ export default function Usuarios() {
     support: allUsers?.filter(u => u.roles?.includes("support")).length || 0
   };
   return <Layout>
-      <div className="pr-6 py-6 space-y-6 h-full overflow-hidden flex flex-col">
+      <div className="space-y-6 h-full overflow-hidden flex flex-col">
         {/* Filtros */}
         <UsuariosFilters searchTerm={searchTerm} onSearchChange={setSearchTerm} roleFilter={roleFilter} onRoleChange={setRoleFilter} totalUsuarios={filteredUsers?.length || 0} />
 
