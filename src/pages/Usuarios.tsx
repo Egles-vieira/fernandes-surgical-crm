@@ -341,7 +341,7 @@ export default function Usuarios() {
         </div>
 
         {/* Estatísticas */}
-        <div className="grid gap-3 md:grid-cols-5 flex-shrink-0">
+        <div className="grid gap-3 md:grid-cols-5 flex-shrink-0 pl-3">
           <Card className="border-border/40 shadow-sm rounded-xl bg-card/50 backdrop-blur-sm">
             <CardHeader className="pb-1 pt-3 px-4">
               <CardTitle className="text-xs font-medium text-muted-foreground">Total</CardTitle>
@@ -385,7 +385,7 @@ export default function Usuarios() {
         </div>
 
         {/* Tabela */}
-        <Card className="flex flex-col flex-1 min-h-0 overflow-hidden px-0 py-0 w-full">
+        <Card className="flex flex-col flex-1 min-h-0 overflow-hidden px-0 py-0 w-full ml-3">
             <CardContent className="pt-6 flex-1 flex flex-col min-h-0 overflow-hidden mx-0 my-0 px-0 py-0">
                 {isLoadingAllUsers ? <div className="flex flex-col items-center justify-center py-12">
                     <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
