@@ -119,10 +119,12 @@ export function useMetasVendedor(vendedorId?: string, filtros?: {
       metaId,
       novoValor,
       observacao,
+      vendedorId,
     }: {
       metaId: string;
       novoValor: number;
       observacao?: string;
+      vendedorId?: string;
     }) => {
       // Buscar meta atual
       const { data: metaAtual, error: fetchError } = await supabase
@@ -144,10 +146,14 @@ export function useMetasVendedor(vendedorId?: string, filtros?: {
 
       if (updateError) throw updateError;
 
-      return { percentualConclusao };
+      return { percentualConclusao, vendedorId };
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["metas-vendedor"] });
+    onSuccess: (data) => {
+      if (data?.vendedorId) {
+        queryClient.invalidateQueries({ queryKey: ["metas-vendedor", data.vendedorId] });
+      } else {
+        queryClient.invalidateQueries({ queryKey: ["metas-vendedor"] });
+      }
       toast.success("Progresso atualizado!");
     },
     onError: (error: any) => {
@@ -162,6 +168,7 @@ export function useMetasVendedor(vendedorId?: string, filtros?: {
     mutationFn: async ({
       metaId,
       dados,
+      vendedorId,
     }: {
       metaId: string;
       dados: {
@@ -174,6 +181,7 @@ export function useMetasVendedor(vendedorId?: string, filtros?: {
         unidades_anterior?: number | null;
         periodo_fim_anterior: string;
       };
+      vendedorId?: string;
     }) => {
       const { data: { user } } = await supabase.auth.getUser();
 
@@ -227,10 +235,14 @@ export function useMetasVendedor(vendedorId?: string, filtros?: {
         console.error("Erro ao registrar histórico:", historicoError);
       }
 
-      return { metaId };
+      return { metaId, vendedorId };
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["metas-vendedor"] });
+    onSuccess: (data) => {
+      if (data?.vendedorId) {
+        queryClient.invalidateQueries({ queryKey: ["metas-vendedor", data.vendedorId] });
+      } else {
+        queryClient.invalidateQueries({ queryKey: ["metas-vendedor"] });
+      }
       toast.success("Meta atualizada com sucesso!");
     },
     onError: (error: any) => {
@@ -242,7 +254,7 @@ export function useMetasVendedor(vendedorId?: string, filtros?: {
 
   // Cancelar meta
   const cancelarMeta = useMutation({
-    mutationFn: async ({ metaId, motivo }: { metaId: string; motivo?: string }) => {
+    mutationFn: async ({ metaId, motivo, vendedorId }: { metaId: string; motivo?: string; vendedorId?: string }) => {
       const { error } = await supabase
         .from("metas_vendedor")
         .update({ 
@@ -264,9 +276,15 @@ export function useMetasVendedor(vendedorId?: string, filtros?: {
             observacao: `Meta cancelada. Motivo: ${motivo}`,
           });
       }
+
+      return { vendedorId };
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["metas-vendedor"] });
+    onSuccess: (data) => {
+      if (data?.vendedorId) {
+        queryClient.invalidateQueries({ queryKey: ["metas-vendedor", data.vendedorId] });
+      } else {
+        queryClient.invalidateQueries({ queryKey: ["metas-vendedor"] });
+      }
       toast.success("Meta cancelada");
     },
     onError: (error: any) => {
@@ -278,16 +296,22 @@ export function useMetasVendedor(vendedorId?: string, filtros?: {
 
   // Excluir meta
   const excluirMeta = useMutation({
-    mutationFn: async ({ metaId }: { metaId: string }) => {
+    mutationFn: async ({ metaId, vendedorId }: { metaId: string; vendedorId?: string }) => {
       const { error } = await supabase
         .from("metas_vendedor")
         .delete()
         .eq("id", metaId);
 
       if (error) throw error;
+
+      return { vendedorId };
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["metas-vendedor"] });
+    onSuccess: (data) => {
+      if (data?.vendedorId) {
+        queryClient.invalidateQueries({ queryKey: ["metas-vendedor", data.vendedorId] });
+      } else {
+        queryClient.invalidateQueries({ queryKey: ["metas-vendedor"] });
+      }
       toast.success("Meta excluída com sucesso");
     },
     onError: (error: any) => {

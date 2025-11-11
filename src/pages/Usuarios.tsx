@@ -601,7 +601,7 @@ export default function Usuarios() {
               meta={metaSelecionada}
               onEditar={async (metaId, dados) => {
                 try {
-                  await editarMeta.mutateAsync({ metaId, dados });
+                  await editarMeta.mutateAsync({ metaId, dados, vendedorId: user.user_id });
                   toast.success("Meta atualizada com sucesso", {
                     description: `Meta de ${user.email} foi atualizada`,
                   });
@@ -615,7 +615,7 @@ export default function Usuarios() {
               }}
               onExcluir={async (metaId) => {
                 try {
-                  await excluirMeta.mutateAsync({ metaId });
+                  await excluirMeta.mutateAsync({ metaId, vendedorId: user.user_id });
                   toast.success("Meta excluída com sucesso", {
                     description: `Meta de ${user.email} foi removida`,
                   });
