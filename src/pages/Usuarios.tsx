@@ -331,7 +331,7 @@ export default function Usuarios() {
         <UsuariosFilters searchTerm={searchTerm} onSearchChange={setSearchTerm} roleFilter={roleFilter} onRoleChange={setRoleFilter} totalUsuarios={filteredUsers?.length || 0} />
 
         {/* Tabela de Usuários com padding para compensar filtro fixo e enquadrar nas laterais */}
-        <div className="flex-1 overflow-hidden px-4 md:px-6 py-6 pt-24 flex flex-col mx-auto w-full max-w-7xl">
+        <div className="flex-1 overflow-hidden py-6 pt-24 flex flex-col w-full">
           <Card className="flex flex-col flex-1 min-h-0 overflow-hidden">
             <CardContent className="pt-6 flex-1 flex flex-col min-h-0 overflow-hidden p-0">
               {isLoadingAllUsers ? <div className="flex flex-col items-center justify-center py-12">
@@ -343,7 +343,7 @@ export default function Usuarios() {
                 </div> : <div className="flex-1 flex flex-col overflow-hidden">
                   <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-primary/30 scrollbar-track-transparent hover:scrollbar-thumb-primary/40">
                     {/* Table Header */}
-                    <div className="sticky top-0 z-10 flex items-center gap-4 p-4 border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 font-medium text-sm text-muted-foreground">
+                    <div className="sticky top-0 z-10 flex items-center gap-4 px-0 py-4 border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 font-medium text-sm text-muted-foreground">
                       <Checkbox checked={selectedRows.size === paginatedUsers?.length && paginatedUsers.length > 0} onCheckedChange={toggleSelectAll} className="ml-2" />
                       <div className="flex-1 min-w-0">Email</div>
                       <div className="w-64">Permissões</div>
@@ -358,7 +358,7 @@ export default function Usuarios() {
                   const isSelected = selectedRows.has(user.user_id);
                   return <div key={user.user_id} className={`border-b border-border transition-colors ${isSelected ? "bg-accent/5" : "hover:bg-muted/30"}`}>
                           {/* Main Row */}
-                          <div className="flex items-center gap-4 p-4 relative">
+                          <div className="flex items-center gap-4 px-0 py-4 relative">
                             {/* Left Border Indicator */}
                             {isSelected && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary" />}
                             
