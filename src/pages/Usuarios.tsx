@@ -334,14 +334,12 @@ export default function Usuarios() {
     support: allUsers?.filter(u => u.roles?.includes("support")).length || 0
   };
   return <Layout>
-      <div className="h-full overflow-hidden flex flex-col p-0 gap-[5px]">
+      <div className="p-8 space-y-6">
         {/* Filtros */}
-        <div className="flex-shrink-0">
-          <UsuariosFilters searchTerm={searchTerm} onSearchChange={setSearchTerm} roleFilter={roleFilter} onRoleChange={setRoleFilter} totalUsuarios={filteredUsers?.length || 0} />
-        </div>
+        <UsuariosFilters searchTerm={searchTerm} onSearchChange={setSearchTerm} roleFilter={roleFilter} onRoleChange={setRoleFilter} totalUsuarios={filteredUsers?.length || 0} />
 
         {/* Estatísticas */}
-        <div className="grid gap-3 md:grid-cols-5 flex-shrink-0 pl-3">
+        <div className="grid gap-6 md:grid-cols-5">
           <Card className="border-border/40 shadow-sm rounded-xl bg-card/50 backdrop-blur-sm">
             <CardHeader className="pb-1 pt-3 px-4">
               <CardTitle className="text-xs font-medium text-muted-foreground">Total</CardTitle>
@@ -385,19 +383,18 @@ export default function Usuarios() {
         </div>
 
         {/* Tabela */}
-        <Card className="flex flex-col flex-1 min-h-0 overflow-hidden px-0 py-0 w-full ml-3">
-            <CardContent className="pt-6 flex-1 flex flex-col min-h-0 overflow-hidden mx-0 my-0 px-0 py-0">
+        <Card className="shadow-elegant">
+            <CardContent className="p-0">
                 {isLoadingAllUsers ? <div className="flex flex-col items-center justify-center py-12">
                     <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
                     <p className="text-muted-foreground">Carregando usuários...</p>
                   </div> : filteredUsers && filteredUsers.length === 0 ? <div className="flex flex-col items-center justify-center py-12">
                     <Shield className="h-12 w-12 text-muted-foreground mb-4" />
                     <p className="text-muted-foreground">Nenhum usuário encontrado</p>
-                  </div> : <div className="flex-1 flex flex-col overflow-hidden">
-                    <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-primary/30 scrollbar-track-transparent hover:scrollbar-thumb-primary/40">
+                  </div> : <div className="max-h-[600px] overflow-y-auto">
                       {/* Table Header */}
-                      <div className="sticky top-0 z-10 flex items-center gap-4 p-4 border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 font-medium text-sm text-muted-foreground">
-                        <Checkbox checked={selectedRows.size === paginatedUsers?.length && paginatedUsers.length > 0} onCheckedChange={toggleSelectAll} className="ml-2" />
+                      <div className="sticky top-0 z-10 flex items-center gap-4 p-4 border-b bg-card/95 backdrop-blur font-medium text-sm text-muted-foreground">
+                        <Checkbox checked={selectedRows.size === paginatedUsers?.length && paginatedUsers.length > 0} onCheckedChange={toggleSelectAll} />
                         <div className="flex-1 min-w-0">Email</div>
                         <div className="w-64">Permissões</div>
                         <div className="w-48">Metas</div>
@@ -409,14 +406,14 @@ export default function Usuarios() {
                       {paginatedUsers?.map(user => {
                   const isExpanded = expandedRows.has(user.user_id);
                   const isSelected = selectedRows.has(user.user_id);
-                  return <div key={user.user_id} className={`border-b border-border transition-colors ${isSelected ? "bg-accent/5" : "hover:bg-muted/30"}`}>
+                  return <div key={user.user_id} className={`border-b border-border transition-colors ${isSelected ? "bg-muted/70" : "hover:bg-muted/50"}`}>
                             {/* Main Row */}
                             <div className="flex items-center gap-4 p-4 relative">
                               {/* Left Border Indicator */}
                               {isSelected && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary" />}
                               
                               {/* Checkbox */}
-                              <Checkbox checked={isSelected} onCheckedChange={() => toggleSelection(user.user_id)} className="ml-2" />
+                              <Checkbox checked={isSelected} onCheckedChange={() => toggleSelection(user.user_id)} />
 
                               {/* Email */}
                               <div className="flex-1 min-w-0">
@@ -567,10 +564,39 @@ export default function Usuarios() {
                               </div>}
                           </div>;
                 })}
-                    </div>
                   </div>}
             </CardContent>
-          </Card>
+        </Card>
+
+        {/* Paginação */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">
+              Mostrando {startIndex + 1} a {Math.min(endIndex, total)} de {total} usuários
+            </p>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={!canPreviousPage}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <span className="text-sm">
+                Página {page} de {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                disabled={!canNextPage}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
 
         {/* Dialogs de Metas por Vendedor */}
         {allUsers?.map(user => user.roles?.includes("sales") && <NovaMetaVendedorDialog key={user.user_id} open={metaDialogOpen[user.user_id] || false} onOpenChange={open => !open && handleCloseMetaDialog(user.user_id)} vendedorId={user.user_id} onCriar={async meta => {
