@@ -8,26 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Shield,
-  X,
-  Loader2,
-  UserCheck,
-  Target,
-  Plus,
-  ChevronDown,
-  ChevronUp,
-  MoreVertical,
-  Edit,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Shield, X, Loader2, UserCheck, Target, Plus, ChevronDown, ChevronUp, MoreVertical, Edit, ChevronLeft, ChevronRight } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CriarUsuarioSheet } from "@/components/usuario/CriarUsuarioSheet";
 import { EditarUsuarioSheet } from "@/components/usuario/EditarUsuarioSheet";
@@ -48,52 +30,58 @@ const AVAILABLE_ROLES: {
     value: "admin",
     label: "Administrador",
     description: "Acesso total ao sistema",
-    color: "bg-destructive",
+    color: "bg-destructive"
   },
   {
     value: "lider",
     label: "Líder de Equipe",
     description: "Gerenciar equipe de vendas, aprovar descontos",
-    color: "bg-secondary",
+    color: "bg-secondary"
   },
   {
     value: "manager",
     label: "Gerente",
     description: "Gerenciar produtos, relatórios e equipe",
-    color: "bg-accent",
+    color: "bg-accent"
   },
   {
     value: "sales",
     label: "Vendedor",
     description: "Gerenciar clientes e oportunidades",
-    color: "bg-primary",
+    color: "bg-primary"
   },
   {
     value: "backoffice",
     label: "Backoffice",
     description: "Suporte operacional ao vendedor",
-    color: "bg-[hsl(var(--tertiary))]",
+    color: "bg-[hsl(var(--tertiary))]"
   },
   {
     value: "warehouse",
     label: "Estoque",
     description: "Gerenciar inventário",
-    color: "bg-[hsl(var(--success))]",
+    color: "bg-[hsl(var(--success))]"
   },
   {
     value: "support",
     label: "Suporte",
     description: "Atendimento ao cliente",
-    color: "bg-[hsl(var(--warning))]",
-  },
+    color: "bg-[hsl(var(--warning))]"
+  }
 ];
 
 export default function Usuarios() {
   const { collapsed } = useLayout();
-  const { allUsers, isLoadingAllUsers, addRole, removeRole, isAdmin } = useRoles();
+  const {
+    allUsers,
+    isLoadingAllUsers,
+    addRole,
+    removeRole,
+    isAdmin
+  } = useRoles();
   const { toast } = useToast();
   const { subordinados } = useHierarquia();
-
+  
   const [selectedRole, setSelectedRole] = useState<{ [key: string]: AppRole }>({});
   const [metaDialogOpen, setMetaDialogOpen] = useState<{ [key: string]: boolean }>({});
   const [editarMetaDialogOpen, setEditarMetaDialogOpen] = useState<{ [key: string]: boolean }>({});
@@ -129,7 +117,7 @@ export default function Usuarios() {
     if (selectedRows.size === paginatedUsers?.length) {
       setSelectedRows(new Set());
     } else {
-      setSelectedRows(new Set(paginatedUsers?.map((u) => u.user_id) || []));
+      setSelectedRows(new Set(paginatedUsers?.map(u => u.user_id) || []));
     }
   };
 
@@ -150,8 +138,7 @@ export default function Usuarios() {
           <Alert className="max-w-md">
             <Shield className="h-4 w-4" />
             <AlertDescription>
-              Você não tem permissão para acessar esta página. Apenas administradores podem gerenciar usuários e
-              permissões.
+              Você não tem permissão para acessar esta página. Apenas administradores podem gerenciar usuários e permissões.
             </AlertDescription>
           </Alert>
         </div>
@@ -167,9 +154,7 @@ export default function Usuarios() {
   };
 
   const handleRemoveRole = async (userId: string, role: AppRole) => {
-    if (
-      confirm(`Tem certeza que deseja remover a permissão "${AVAILABLE_ROLES.find((r) => r.value === role)?.label}"?`)
-    ) {
+    if (confirm(`Tem certeza que deseja remover a permissão "${AVAILABLE_ROLES.find(r => r.value === role)?.label}"?`)) {
       await removeRole.mutateAsync({ userId, role });
     }
   };
@@ -177,15 +162,15 @@ export default function Usuarios() {
   const handleAdicionarPermissaoMassa = async (role: AppRole) => {
     const selectedUserIds = Array.from(selectedRows);
     if (selectedUserIds.length === 0) return;
-    const roleInfo = AVAILABLE_ROLES.find((r) => r.value === role);
+    const roleInfo = AVAILABLE_ROLES.find(r => r.value === role);
     if (!confirm(`Deseja adicionar a permissão "${roleInfo?.label}" para ${selectedUserIds.length} usuário(s)?`)) {
       return;
     }
     try {
-      await Promise.all(selectedUserIds.map((userId) => addRole.mutateAsync({ userId, role })));
+      await Promise.all(selectedUserIds.map(userId => addRole.mutateAsync({ userId, role })));
       toast({
         title: "Permissões adicionadas",
-        description: `Permissão "${roleInfo?.label}" adicionada para ${selectedUserIds.length} usuário(s)`,
+        description: `Permissão "${roleInfo?.label}" adicionada para ${selectedUserIds.length} usuário(s)`
       });
       setSelectedRows(new Set());
     } catch (error) {
@@ -193,7 +178,7 @@ export default function Usuarios() {
       toast({
         title: "Erro ao adicionar permissões",
         description: "Ocorreu um erro ao adicionar permissões. Tente novamente.",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   };
@@ -201,15 +186,15 @@ export default function Usuarios() {
   const handleRemoverPermissaoMassa = async (role: AppRole) => {
     const selectedUserIds = Array.from(selectedRows);
     if (selectedUserIds.length === 0) return;
-    const roleInfo = AVAILABLE_ROLES.find((r) => r.value === role);
+    const roleInfo = AVAILABLE_ROLES.find(r => r.value === role);
     if (!confirm(`Deseja remover a permissão "${roleInfo?.label}" de ${selectedUserIds.length} usuário(s)?`)) {
       return;
     }
     try {
-      await Promise.all(selectedUserIds.map((userId) => removeRole.mutateAsync({ userId, role })));
+      await Promise.all(selectedUserIds.map(userId => removeRole.mutateAsync({ userId, role })));
       toast({
         title: "Permissões removidas",
-        description: `Permissão "${roleInfo?.label}" removida de ${selectedUserIds.length} usuário(s)`,
+        description: `Permissão "${roleInfo?.label}" removida de ${selectedUserIds.length} usuário(s)`
       });
       setSelectedRows(new Set());
     } catch (error) {
@@ -217,13 +202,13 @@ export default function Usuarios() {
       toast({
         title: "Erro ao remover permissões",
         description: "Ocorreu um erro ao remover permissões. Tente novamente.",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   };
 
   const getRoleInfo = (role: AppRole) => {
-    return AVAILABLE_ROLES.find((r) => r.value === role);
+    return AVAILABLE_ROLES.find(r => r.value === role);
   };
 
   const handleOpenMetaDialog = (userId: string) => {
@@ -268,13 +253,13 @@ export default function Usuarios() {
       return <Loader2 className="h-4 w-4 animate-spin" />;
     }
 
-    const metasAtivas = metas?.filter((m) => m.status === "ativa") || [];
+    const metasAtivas = metas?.filter(m => m.status === "ativa") || [];
 
     return (
       <div className="space-y-2">
         {metasAtivas.length > 0 ? (
           <div className="space-y-1">
-            {metasAtivas.map((meta) => {
+            {metasAtivas.map(meta => {
               const percentual = meta.meta_valor > 0 ? ((meta.valor_atual || 0) / meta.meta_valor) * 100 : 0;
               return (
                 <div
@@ -285,11 +270,7 @@ export default function Usuarios() {
                   <div className="flex items-center gap-2">
                     <Target className="h-3 w-3 text-primary" />
                     <span className="font-medium">
-                      {new Intl.NumberFormat("pt-BR", {
-                        style: "currency",
-                        currency: "BRL",
-                        notation: "compact",
-                      }).format(meta.meta_valor)}
+                      {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", notation: "compact" }).format(meta.meta_valor)}
                     </span>
                     <Badge
                       variant={percentual >= 100 ? "default" : percentual >= 80 ? "secondary" : "destructive"}
@@ -305,12 +286,7 @@ export default function Usuarios() {
         ) : (
           <span className="text-xs text-muted-foreground italic">Sem metas ativas</span>
         )}
-        <Button
-          variant="outline"
-          size="sm"
-          className="h-7 text-xs gap-1 mt-1"
-          onClick={() => handleOpenMetaDialog(userId)}
-        >
+        <Button variant="outline" size="sm" className="h-7 text-xs gap-1 mt-1" onClick={() => handleOpenMetaDialog(userId)}>
           <Plus className="h-3 w-3" />
           {metasAtivas.length > 0 ? "Adicionar Meta" : "Criar Meta"}
         </Button>
@@ -318,7 +294,7 @@ export default function Usuarios() {
     );
   };
 
-  const filteredUsers = allUsers?.filter((user) => {
+  const filteredUsers = allUsers?.filter(user => {
     const matchesSearch = searchTerm === "" || user.email.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRole = roleFilter === "todos" || user.roles?.includes(roleFilter);
     return matchesSearch && matchesRole;
@@ -334,18 +310,18 @@ export default function Usuarios() {
 
   const stats = {
     total: allUsers?.length || 0,
-    admin: allUsers?.filter((u) => u.roles?.includes("admin")).length || 0,
-    sales: allUsers?.filter((u) => u.roles?.includes("sales")).length || 0,
-    manager: allUsers?.filter((u) => u.roles?.includes("manager")).length || 0,
-    support: allUsers?.filter((u) => u.roles?.includes("support")).length || 0,
+    admin: allUsers?.filter(u => u.roles?.includes("admin")).length || 0,
+    sales: allUsers?.filter(u => u.roles?.includes("sales")).length || 0,
+    manager: allUsers?.filter(u => u.roles?.includes("manager")).length || 0,
+    support: allUsers?.filter(u => u.roles?.includes("support")).length || 0
   };
 
   return (
     <Layout>
       {/* Barra de Filtros Fixa */}
-      <div
+      <div 
         className="fixed top-16 right-0 z-20 bg-background border-b transition-all duration-300"
-        style={{ left: collapsed ? "4rem" : "14rem" }}
+        style={{ left: collapsed ? '4rem' : '14rem' }}
       >
         <div className="px-6 py-3">
           <UsuariosFilters
@@ -359,7 +335,7 @@ export default function Usuarios() {
       </div>
 
       {/* Conteúdo Principal */}
-      <div className="pt-[88px] px-[5px] py-6 space-y-6 w-full">
+      <div className="pt-[88px] p-6 space-y-6 w-full">
         {/* Estatísticas */}
         <div className="grid gap-4 grid-cols-5 w-full">
           <Card className="border-border/40 shadow-sm rounded-xl bg-card/50 backdrop-blur-sm">
@@ -437,7 +413,7 @@ export default function Usuarios() {
 
                   {/* Table Rows */}
                   <div className="min-w-[1000px]">
-                    {paginatedUsers?.map((user) => {
+                    {paginatedUsers?.map(user => {
                       const isExpanded = expandedRows.has(user.user_id);
                       const isSelected = selectedRows.has(user.user_id);
                       return (
@@ -460,7 +436,7 @@ export default function Usuarios() {
                             {/* Email */}
                             <div className="min-w-0">
                               <div className="font-medium text-foreground truncate">{user.email}</div>
-                              {subordinados?.some((s) => s.subordinado_id === user.user_id) && (
+                              {subordinados?.some(s => s.subordinado_id === user.user_id) && (
                                 <Badge variant="outline" className="text-xs mt-1">
                                   <UserCheck className="h-3 w-3 mr-1" />
                                   Subordinado
@@ -472,7 +448,7 @@ export default function Usuarios() {
                             <div className="min-w-0">
                               <div className="flex flex-wrap gap-2">
                                 {user.roles && user.roles.length > 0 ? (
-                                  user.roles.map((role) => {
+                                  user.roles.map(role => {
                                     const roleInfo = getRoleInfo(role);
                                     return (
                                       <Badge key={role} className={`${roleInfo?.color} text-white text-xs`}>
@@ -499,15 +475,13 @@ export default function Usuarios() {
                             <div className="flex gap-2 items-start min-w-0">
                               <Select
                                 value={selectedRole[user.user_id] || ""}
-                                onValueChange={(value) =>
-                                  setSelectedRole({ ...selectedRole, [user.user_id]: value as AppRole })
-                                }
+                                onValueChange={(value) => setSelectedRole({ ...selectedRole, [user.user_id]: value as AppRole })}
                               >
                                 <SelectTrigger className="h-8 text-xs flex-1">
                                   <SelectValue placeholder="Selecionar..." />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  {AVAILABLE_ROLES.filter((role) => !user.roles?.includes(role.value)).map((role) => (
+                                  {AVAILABLE_ROLES.filter(role => !user.roles?.includes(role.value)).map(role => (
                                     <SelectItem key={role.value} value={role.value} className="text-xs">
                                       {role.label}
                                     </SelectItem>
@@ -554,14 +528,24 @@ export default function Usuarios() {
                       Mostrando {startIndex + 1} a {Math.min(endIndex, total)} de {total} usuários
                     </div>
                     <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm" onClick={() => setPage(page - 1)} disabled={!canPreviousPage}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPage(page - 1)}
+                        disabled={!canPreviousPage}
+                      >
                         <ChevronLeft className="h-4 w-4" />
                         Anterior
                       </Button>
                       <div className="text-sm font-medium">
                         Página {page} de {totalPages}
                       </div>
-                      <Button variant="outline" size="sm" onClick={() => setPage(page + 1)} disabled={!canNextPage}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPage(page + 1)}
+                        disabled={!canNextPage}
+                      >
                         Próxima
                         <ChevronRight className="h-4 w-4" />
                       </Button>
@@ -585,7 +569,7 @@ export default function Usuarios() {
       )}
 
       {/* Dialogs */}
-      {paginatedUsers?.map((user) => (
+      {paginatedUsers?.map(user => (
         <div key={user.user_id}>
           <NovaMetaVendedorDialog
             open={metaDialogOpen[user.user_id] || false}
