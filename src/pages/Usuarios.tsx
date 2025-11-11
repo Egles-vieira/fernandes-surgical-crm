@@ -239,8 +239,8 @@ export default function Usuarios() {
 
   return (
     <Layout>
-      <div className="p-6 space-y-6 h-full overflow-hidden flex flex-col">
-        {/* Filtros */}
+      <div className="h-full overflow-hidden flex flex-col">
+        {/* Filtros fixos */}
         <UsuariosFilters
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
@@ -249,9 +249,10 @@ export default function Usuarios() {
           totalUsuarios={filteredUsers?.length || 0}
         />
 
-        {/* Tabela de Usuários */}
-        <Card className="flex-1 flex flex-col overflow-hidden">
-          <CardContent className="flex-1 flex flex-col overflow-hidden p-0">
+        {/* Tabela de Usuários com padding-top para compensar filtro fixo */}
+        <div className="flex-1 overflow-auto p-6" style={{ paddingTop: '84px' }}>
+          <Card className="flex flex-col">
+            <CardContent className="flex-1 flex flex-col p-0">
             {isLoadingAllUsers ? (
               <div className="flex flex-col items-center justify-center py-12">
                 <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
@@ -370,6 +371,7 @@ export default function Usuarios() {
             )}
           </CardContent>
         </Card>
+        </div>
 
         {/* Dialogs de Metas por Vendedor */}
         {allUsers?.map((user) => (
