@@ -160,7 +160,7 @@ export default function Layout({ children }: LayoutProps) {
       <aside
         className={`${
           collapsed ? "w-16" : "w-56"
-        } flex flex-col fixed left-0 top-0 h-full z-50 shadow-elegant transition-all duration-300 menu-sidebar`}
+        } flex flex-col fixed left-0 top-0 h-full z-50 transition-all duration-300 menu-sidebar`}
         style={{ backgroundColor: `hsl(var(--menu-bg))` }}
       >
         {/* Logo Header com Toggle */}

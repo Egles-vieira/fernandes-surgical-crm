@@ -197,7 +197,7 @@ export default function Header({ collapsed, onToggle }: HeaderProps) {
   };
   const pageInfo = getPageInfo();
   return (
-    <header className="h-16 border-b bg-card flex items-center px-6 shadow-sm">
+    <header className="h-16 border-b bg-card flex items-center pl-2 pr-4 shadow-sm">
       <div className="flex items-center gap-6 w-full">
         {/* Título da Página */}
         <div>
