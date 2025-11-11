@@ -330,12 +330,12 @@ export default function Usuarios() {
         {/* Filtros fixos */}
         <UsuariosFilters searchTerm={searchTerm} onSearchChange={setSearchTerm} roleFilter={roleFilter} onRoleChange={setRoleFilter} totalUsuarios={filteredUsers?.length || 0} />
 
-        {/* Tabela de Usuários com padding-top para compensar filtro fixo */}
-        <div className="flex-1 overflow-hidden p-6 flex flex-col" style={{
+        {/* Tabela de Usuários com padding para compensar filtro fixo e enquadrar nas laterais */}
+        <div className="flex-1 overflow-hidden px-4 md:px-6 flex flex-col" style={{
         paddingTop: '84px'
       }}>
           <Card className="flex flex-col flex-1 min-h-0 overflow-hidden">
-            <CardContent className="pt-6 flex-1 flex flex-col min-h-0 overflow-hidden mx-0 my-0 px-0 py-0">
+            <CardContent className="pt-6 flex-1 flex flex-col min-h-0 overflow-hidden p-0">
               {isLoadingAllUsers ? <div className="flex flex-col items-center justify-center py-12">
                   <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
                   <p className="text-muted-foreground">Carregando usuários...</p>
