@@ -160,7 +160,7 @@ export default function Layout({ children }: LayoutProps) {
       <aside
         className={`${
           collapsed ? "w-16" : "w-56"
-        } flex flex-col fixed left-0 top-0 h-full z-50 transition-all duration-300 menu-sidebar`}
+        } flex flex-col fixed left-0 top-0 h-full z-50 shadow-elegant transition-all duration-300 menu-sidebar`}
         style={{ backgroundColor: `hsl(var(--menu-bg))` }}
       >
         {/* Logo Header com Toggle */}
@@ -182,7 +182,7 @@ export default function Layout({ children }: LayoutProps) {
           {/* Botão de Toggle */}
           <button
             onClick={() => setCollapsed(!collapsed)}
-            className="absolute right-0 top-1/2 -translate-y-1/2 bg-white text-primary rounded-full p-1.5 shadow-lg hover:scale-110 transition-transform"
+            className="absolute -right-3 top-1/2 -translate-y-1/2 bg-white text-primary rounded-full p-1.5 shadow-lg hover:scale-110 transition-transform"
             aria-label={collapsed ? "Expandir menu" : "Recolher menu"}
           >
             {collapsed ? <ChevronRight size={14} /> : <Menu size={14} />}
