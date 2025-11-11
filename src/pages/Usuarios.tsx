@@ -249,303 +249,124 @@ export default function Usuarios() {
           totalUsuarios={filteredUsers?.length || 0}
         />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="hover:shadow-lg transition-all">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <TrendingUp className="h-4 w-4" />
-                Nível Hierárquico
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-primary">
-                {isLoadingHierarquia ? (
-                  <Loader2 className="h-8 w-8 animate-spin" />
-                ) : (
-                  nivelHierarquico || 0
-                )}
-              </div>
-              <p className="text-xs text-muted-foreground mt-2">
-                {ehGestor ? "Você é um gestor" : "Seu nível na hierarquia"}
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="hover:shadow-lg transition-all">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                Subordinados
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-primary">
-                {isLoadingHierarquia ? (
-                  <Loader2 className="h-8 w-8 animate-spin" />
-                ) : (
-                  subordinados?.length || 0
-                )}
-              </div>
-              <p className="text-xs text-muted-foreground mt-2">
-                {temSubordinados ? "Usuários sob sua gestão" : "Nenhum subordinado"}
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="hover:shadow-lg transition-all">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <Briefcase className="h-4 w-4" />
-                Equipes Gerenciadas
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-primary">
-                {isLoadingHierarquia ? (
-                  <Loader2 className="h-8 w-8 animate-spin" />
-                ) : (
-                  equipesGerenciadas?.length || 0
-                )}
-              </div>
-              <p className="text-xs text-muted-foreground mt-2">
-                Equipes que você gerencia
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="hover:shadow-lg transition-all">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <UserCheck className="h-4 w-4" />
-                Clientes Acessíveis
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-primary">
-                {isLoadingHierarquia ? (
-                  <Loader2 className="h-8 w-8 animate-spin" />
-                ) : (
-                  clientesAcessiveis?.length || 0
-                )}
-              </div>
-              <p className="text-xs text-muted-foreground mt-2">
-                Clientes que você pode acessar
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {temSubordinados && (
-          <Card>
-            <CardHeader className="bg-muted/30 border-b">
-              <CardTitle className="text-xl flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                Sua Equipe
-              </CardTitle>
-              <CardDescription>
-                Usuários subordinados em sua hierarquia comercial
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="pt-6">
-              {isLoadingHierarquia ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {subordinados?.map((subordinado) => {
-                    const userData = allUsers?.find(u => u.user_id === subordinado.subordinado_id);
-                    return (
-                      <div 
-                        key={subordinado.subordinado_id}
-                        className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-all"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                            <UserCheck className="h-5 w-5 text-primary" />
-                          </div>
-                          <div>
-                            <p className="font-medium text-foreground">
-                              {userData?.email || 'Usuário desconhecido'}
-                            </p>
-                            <div className="flex items-center gap-2 mt-1">
-                              <Badge variant="outline" className="text-xs">
-                                Nível {subordinado.nivel_distancia}
-                              </Badge>
-                              {userData?.roles && userData.roles.length > 0 && (
-                                <div className="flex gap-1">
-                                  {userData.roles.map((role) => {
-                                    const roleInfo = AVAILABLE_ROLES.find(r => r.value === role);
-                                    return (
-                                      <div 
-                                        key={role}
-                                        className={`w-2 h-2 rounded-full ${roleInfo?.color}`}
-                                        title={roleInfo?.label}
-                                      />
-                                    );
-                                  })}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
-
-        <Card>
-          <CardHeader className="bg-muted/30 border-b">
-            <CardTitle className="text-xl">Roles Disponíveis</CardTitle>
-            <CardDescription>
-              Cada usuário pode ter múltiplos roles com diferentes permissões
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="pt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {AVAILABLE_ROLES.map((role) => (
-                <div 
-                  key={role.value} 
-                  className="flex items-start gap-3 p-4 border rounded-lg hover:bg-muted/50 transition-all"
-                >
-                  <div className={`w-4 h-4 rounded-full ${role.color} mt-1 shadow-sm`} />
-                  <div className="flex-1">
-                    <p className="font-semibold text-foreground">{role.label}</p>
-                    <p className="text-sm text-muted-foreground leading-relaxed">{role.description}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="bg-muted/30 border-b">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-xl">Usuários Cadastrados</CardTitle>
-                <CardDescription className="mt-1">
-                  {allUsers?.length || 0} usuários no sistema
-                </CardDescription>
-              </div>
-              <Badge variant="secondary" className="text-lg px-4 py-2">
-                {allUsers?.length || 0}
-              </Badge>
-            </div>
-          </CardHeader>
-          <CardContent className="pt-6">
+        {/* Tabela de Usuários */}
+        <Card className="flex-1 flex flex-col overflow-hidden">
+          <CardContent className="flex-1 flex flex-col overflow-hidden p-0">
             {isLoadingAllUsers ? (
               <div className="flex flex-col items-center justify-center py-12">
                 <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
                 <p className="text-muted-foreground">Carregando usuários...</p>
               </div>
+            ) : filteredUsers && filteredUsers.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12">
+                <Shield className="h-12 w-12 text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">Nenhum usuário encontrado</p>
+              </div>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Permissões</TableHead>
-                    <TableHead>Metas</TableHead>
-                    <TableHead>Adicionar Permissão</TableHead>
-                    <TableHead className="w-[100px]">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredUsers?.map((user) => (
-                    <TableRow key={user.user_id} className="hover:bg-muted/30 transition-colors">
-                       <TableCell>
-                        <div className="flex items-center gap-2">
-                          <div className="font-medium">{user.email}</div>
-                          {subordinados?.some(s => s.subordinado_id === user.user_id) && (
-                            <Badge variant="outline" className="text-xs">
-                              <UserCheck className="h-3 w-3 mr-1" />
-                              Subordinado
-                            </Badge>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-wrap gap-2">
-                          {user.roles && user.roles.length > 0 ? (
-                            user.roles.map((role) => {
-                              const roleInfo = getRoleInfo(role);
-                              return (
-                                <Badge
-                                  key={role}
-                                  variant="secondary"
-                                  className="flex items-center gap-2 px-3 py-1.5"
-                                >
-                                  <div className={`w-2.5 h-2.5 rounded-full ${roleInfo?.color}`} />
-                                  <span>{roleInfo?.label}</span>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-5 w-5 p-0 ml-1 hover:bg-destructive/10 hover:text-destructive rounded-full"
-                                    onClick={() => handleRemoveRole(user.user_id, role)}
-                                  >
-                                    <X className="h-3.5 w-3.5" />
-                                  </Button>
-                                </Badge>
-                              );
-                            })
-                          ) : (
-                            <span className="text-sm text-muted-foreground italic">
-                              Nenhuma permissão atribuída
-                            </span>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <MetasVendedorCell userId={user.user_id} roles={user.roles || []} />
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Select
-                            value={selectedRole[user.user_id] || ""}
-                            onValueChange={(value) =>
-                              setSelectedRole({ ...selectedRole, [user.user_id]: value as AppRole })
-                            }
-                          >
-                            <SelectTrigger className="w-[220px]">
-                              <SelectValue placeholder="Selecione uma role..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {AVAILABLE_ROLES.filter(
-                                (role) => !user.roles?.includes(role.value)
-                              ).map((role) => (
-                                <SelectItem key={role.value} value={role.value}>
-                                  <div className="flex items-center gap-2.5">
-                                    <div className={`w-3 h-3 rounded-full ${role.color}`} />
-                                    <span>{role.label}</span>
-                                  </div>
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <Button
-                            size="sm"
-                            onClick={() => handleAddRole(user.user_id)}
-                            disabled={!selectedRole[user.user_id]}
-                          >
-                            Adicionar
-                          </Button>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <EditarUsuarioSheet
-                          userId={user.user_id}
-                          userEmail={user.email}
-                          currentRoles={user.roles || []}
-                        />
-                      </TableCell>
+              <div className="flex-1 overflow-y-auto">
+                <Table>
+                  <TableHeader className="sticky top-0 bg-background z-10">
+                    <TableRow>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Permissões</TableHead>
+                      <TableHead>Metas</TableHead>
+                      <TableHead>Adicionar Permissão</TableHead>
+                      <TableHead className="w-[100px]">Ações</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredUsers?.map((user) => (
+                      <TableRow key={user.user_id} className="hover:bg-muted/30 transition-colors">
+                         <TableCell>
+                          <div className="flex items-center gap-2">
+                            <div className="font-medium">{user.email}</div>
+                            {subordinados?.some(s => s.subordinado_id === user.user_id) && (
+                              <Badge variant="outline" className="text-xs">
+                                <UserCheck className="h-3 w-3 mr-1" />
+                                Subordinado
+                              </Badge>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-wrap gap-2">
+                            {user.roles && user.roles.length > 0 ? (
+                              user.roles.map((role) => {
+                                const roleInfo = getRoleInfo(role);
+                                return (
+                                  <Badge
+                                    key={role}
+                                    variant="secondary"
+                                    className="flex items-center gap-2 px-3 py-1.5"
+                                  >
+                                    <div className={`w-2.5 h-2.5 rounded-full ${roleInfo?.color}`} />
+                                    <span>{roleInfo?.label}</span>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-5 w-5 p-0 ml-1 hover:bg-destructive/10 hover:text-destructive rounded-full"
+                                      onClick={() => handleRemoveRole(user.user_id, role)}
+                                    >
+                                      <X className="h-3.5 w-3.5" />
+                                    </Button>
+                                  </Badge>
+                                );
+                              })
+                            ) : (
+                              <span className="text-sm text-muted-foreground italic">
+                                Nenhuma permissão atribuída
+                              </span>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <MetasVendedorCell userId={user.user_id} roles={user.roles || []} />
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Select
+                              value={selectedRole[user.user_id] || ""}
+                              onValueChange={(value) =>
+                                setSelectedRole({ ...selectedRole, [user.user_id]: value as AppRole })
+                              }
+                            >
+                              <SelectTrigger className="w-[220px]">
+                                <SelectValue placeholder="Selecione uma role..." />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {AVAILABLE_ROLES.filter(
+                                  (role) => !user.roles?.includes(role.value)
+                                ).map((role) => (
+                                  <SelectItem key={role.value} value={role.value}>
+                                    <div className="flex items-center gap-2.5">
+                                      <div className={`w-3 h-3 rounded-full ${role.color}`} />
+                                      <span>{role.label}</span>
+                                    </div>
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <Button
+                              size="sm"
+                              onClick={() => handleAddRole(user.user_id)}
+                              disabled={!selectedRole[user.user_id]}
+                            >
+                              Adicionar
+                            </Button>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <EditarUsuarioSheet
+                            userId={user.user_id}
+                            userEmail={user.email}
+                            currentRoles={user.roles || []}
+                          />
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             )}
           </CardContent>
         </Card>
