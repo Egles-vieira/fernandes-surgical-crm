@@ -343,7 +343,7 @@ export default function Usuarios() {
                   <Shield className="h-12 w-12 text-muted-foreground mb-4" />
                   <p className="text-muted-foreground">Nenhum usuário encontrado</p>
                 </div> : <div className="flex-1 flex flex-col overflow-hidden">
-                  <div className="flex-1 overflow-y-auto px-4 md:px-6 scrollbar-thin scrollbar-thumb-primary/30 scrollbar-track-transparent hover:scrollbar-thumb-primary/40">
+                  <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-primary/30 scrollbar-track-transparent hover:scrollbar-thumb-primary/40">
                     {/* Table Header */}
                     <div className="sticky top-0 z-10 flex items-center gap-4 p-4 border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 font-medium text-sm text-muted-foreground">
                       <Checkbox checked={selectedRows.size === paginatedUsers?.length && paginatedUsers.length > 0} onCheckedChange={toggleSelectAll} className="ml-2" />
