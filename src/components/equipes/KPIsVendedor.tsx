@@ -3,12 +3,19 @@ import { PerformanceVendedor } from "@/hooks/usePerformanceVendedores";
 import { DollarSign, ShoppingCart, Percent, TrendingUp, Target, Award } from "lucide-react";
 import { KPICard } from "./KPICard";
 import { Badge } from "@/components/ui/badge";
+import { MetasVendedorCard } from "./MetasVendedorCard";
+import { useAuth } from "@/hooks/useAuth";
+import { useRoles } from "@/hooks/useRoles";
 
 interface KPIsVendedorProps {
   vendedor: PerformanceVendedor;
 }
 
 export function KPIsVendedor({ vendedor }: KPIsVendedorProps) {
+  const { user } = useAuth();
+  const { isAdmin, isLider } = useRoles();
+  const isLiderOuAdmin = isAdmin || isLider;
+
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {
       style: "currency",
@@ -111,6 +118,13 @@ export function KPIsVendedor({ vendedor }: KPIsVendedorProps) {
           </div>
         </CardContent>
       </Card>
+
+      {/* Metas Individuais */}
+      <MetasVendedorCard
+        vendedorId={vendedor.vendedor_id}
+        equipeId={vendedor.equipe_id || undefined}
+        isLiderOuAdmin={isLiderOuAdmin}
+      />
     </div>
   );
 }

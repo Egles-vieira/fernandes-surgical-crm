@@ -4514,6 +4514,56 @@ export type Database = {
           },
         ]
       }
+      progresso_metas_vendedor: {
+        Row: {
+          diferenca: number | null
+          id: string
+          meta_id: string
+          observacao: string | null
+          origem: string | null
+          percentual_conclusao: number | null
+          referencia_id: string | null
+          registrado_em: string | null
+          registrado_por: string | null
+          valor_anterior: number
+          valor_novo: number
+        }
+        Insert: {
+          diferenca?: number | null
+          id?: string
+          meta_id: string
+          observacao?: string | null
+          origem?: string | null
+          percentual_conclusao?: number | null
+          referencia_id?: string | null
+          registrado_em?: string | null
+          registrado_por?: string | null
+          valor_anterior: number
+          valor_novo: number
+        }
+        Update: {
+          diferenca?: number | null
+          id?: string
+          meta_id?: string
+          observacao?: string | null
+          origem?: string | null
+          percentual_conclusao?: number | null
+          referencia_id?: string | null
+          registrado_em?: string | null
+          registrado_por?: string | null
+          valor_anterior?: number
+          valor_novo?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "progresso_metas_vendedor_meta_id_fkey"
+            columns: ["meta_id"]
+            isOneToOne: false
+            referencedRelation: "metas_vendedor"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       role_hierarquia: {
         Row: {
           criado_em: string | null
