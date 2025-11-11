@@ -304,20 +304,40 @@ export function useMetasVendedor(vendedorId?: string, filtros?: {
 
       if (error) throw error;
 
-      return { vendedorId };
+      return { vendedorId, metaId };
     },
-    onSuccess: (data) => {
-      if (data?.vendedorId) {
-        queryClient.invalidateQueries({ queryKey: ["metas-vendedor", data.vendedorId] });
-      } else {
-        queryClient.invalidateQueries({ queryKey: ["metas-vendedor"] });
+    onMutate: async ({ metaId }) => {
+      await queryClient.cancelQueries({ queryKey: ["metas-vendedor"] });
+      const previous = queryClient.getQueriesData<MetaVendedor[] | undefined>({ queryKey: ["metas-vendedor"] });
+
+      // Atualização otimista: remove a meta de todas as listas em cache
+      queryClient.setQueriesData({ queryKey: ["metas-vendedor"] }, (old: MetaVendedor[] | undefined) => {
+        if (!old) return old as any;
+        return old.filter((m) => m.id !== metaId) as any;
+      });
+
+      return { previous };
+    },
+    onError: (error: any, _variables, context) => {
+      // rollback em caso de erro
+      if (context?.previous) {
+        (context.previous as Array<[unknown, MetaVendedor[] | undefined]>).forEach(([key, data]) => {
+          queryClient.setQueryData(key as any, data);
+        });
       }
-      toast.success("Meta excluída com sucesso");
-    },
-    onError: (error: any) => {
       toast.error("Erro ao excluir meta", {
         description: error.message,
       });
+    },
+    onSuccess: () => {
+      toast.success("Meta excluída com sucesso");
+    },
+    onSettled: (_data, _error, variables) => {
+      if (variables?.vendedorId) {
+        queryClient.invalidateQueries({ queryKey: ["metas-vendedor", variables.vendedorId] });
+      } else {
+        queryClient.invalidateQueries({ queryKey: ["metas-vendedor"] });
+      }
     },
   });
 
