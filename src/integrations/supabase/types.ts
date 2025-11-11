@@ -6771,6 +6771,10 @@ export type Database = {
         Args: { _cliente_id: string; _user_id: string }
         Returns: boolean
       }
+      can_access_cliente_por_cgc: {
+        Args: { _cgc: string; _user_id: string }
+        Returns: boolean
+      }
       can_access_menu_tecnico: { Args: { _user_id: string }; Returns: boolean }
       gerar_numero_ticket: { Args: never; Returns: string }
       get_clientes_acessiveis: {
