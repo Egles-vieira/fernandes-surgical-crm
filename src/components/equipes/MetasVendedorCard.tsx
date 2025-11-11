@@ -19,7 +19,7 @@ export function MetasVendedorCard({ vendedorId, equipeId, isLiderOuAdmin = false
   const { metas, isLoading, criarMeta } = useMetasVendedor(vendedorId);
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  const metasAtivas = metas?.filter((m) => m.status === "ativa") || [];
+  const metasAtivas = metas || [];
 
   if (isLoading) {
     return (
@@ -73,7 +73,8 @@ export function MetasVendedorCard({ vendedorId, equipeId, isLiderOuAdmin = false
           ) : (
             <div className="space-y-4">
               {metasAtivas.map((meta) => {
-                const percentual = (meta.valor_atual / meta.valor_objetivo) * 100;
+                const valorAtual = meta.valor_atual || 0;
+                const percentual = (valorAtual / meta.meta_valor) * 100;
                 const isProximaDoFim =
                   new Date(meta.periodo_fim).getTime() - Date.now() <
                   7 * 24 * 60 * 60 * 1000;
@@ -82,23 +83,21 @@ export function MetasVendedorCard({ vendedorId, equipeId, isLiderOuAdmin = false
                   <div key={meta.id} className="space-y-2 p-3 border rounded-lg">
                     <div className="flex items-start justify-between">
                       <div>
-                        <h4 className="font-medium text-sm">{meta.nome}</h4>
-                        {meta.descricao && (
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {meta.descricao}
-                          </p>
-                        )}
+                        <h4 className="font-medium text-sm">
+                          Meta de Vendas
+                        </h4>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {format(new Date(meta.periodo_inicio), "dd/MM/yyyy", {
+                            locale: ptBR,
+                          })}{" "}
+                          até{" "}
+                          {format(new Date(meta.periodo_fim), "dd/MM/yyyy", {
+                            locale: ptBR,
+                          })}
+                        </p>
                       </div>
-                      <Badge
-                        variant={
-                          meta.prioridade === "critica"
-                            ? "destructive"
-                            : meta.prioridade === "alta"
-                            ? "default"
-                            : "secondary"
-                        }
-                      >
-                        {meta.prioridade}
+                      <Badge variant={percentual >= 100 ? "default" : percentual >= 70 ? "secondary" : "outline"}>
+                        {meta.status || "ativa"}
                       </Badge>
                     </div>
 
@@ -112,30 +111,19 @@ export function MetasVendedorCard({ vendedorId, equipeId, isLiderOuAdmin = false
                       <Progress value={Math.min(percentual, 100)} />
                       <div className="flex items-center justify-between text-xs text-muted-foreground">
                         <span>
-                          R$ {meta.valor_atual.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                          R$ {valorAtual.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                         </span>
                         <span>
-                          R$ {meta.valor_objetivo.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                          R$ {meta.meta_valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                         </span>
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-muted-foreground">
-                        {format(new Date(meta.periodo_inicio), "dd/MM/yyyy", {
-                          locale: ptBR,
-                        })}{" "}
-                        até{" "}
-                        {format(new Date(meta.periodo_fim), "dd/MM/yyyy", {
-                          locale: ptBR,
-                        })}
-                      </span>
-                      {isProximaDoFim && (
-                        <Badge variant="outline" className="text-xs">
-                          Encerrando em breve
-                        </Badge>
-                      )}
-                    </div>
+                    {isProximaDoFim && (
+                      <Badge variant="outline" className="text-xs">
+                        Encerrando em breve
+                      </Badge>
+                    )}
                   </div>
                 );
               })}

@@ -15,13 +15,6 @@ interface NovaMetaVendedorDialogProps {
   onCriar: (meta: any) => void;
 }
 
-const TIPOS_META = [
-  { value: 'vendas', label: 'Vendas' },
-  { value: 'atendimentos', label: 'Atendimentos' },
-  { value: 'conversao', label: 'Conversão' },
-  { value: 'satisfacao_cliente', label: 'Satisfação do Cliente' },
-];
-
 export function NovaMetaVendedorDialog({
   open,
   onOpenChange,
@@ -29,41 +22,27 @@ export function NovaMetaVendedorDialog({
   equipeId,
   onCriar,
 }: NovaMetaVendedorDialogProps) {
-  const [nome, setNome] = useState("");
-  const [descricao, setDescricao] = useState("");
-  const [tipoMeta, setTipoMeta] = useState("");
-  const [valorObjetivo, setValorObjetivo] = useState("");
+  const [metaValor, setMetaValor] = useState("");
   const [periodoInicio, setPeriodoInicio] = useState("");
   const [periodoFim, setPeriodoFim] = useState("");
-  const [prioridade, setPrioridade] = useState<"baixa" | "media" | "alta" | "critica">("media");
 
   const resetForm = () => {
-    setNome("");
-    setDescricao("");
-    setTipoMeta("");
-    setValorObjetivo("");
+    setMetaValor("");
     setPeriodoInicio("");
     setPeriodoFim("");
-    setPrioridade("media");
   };
 
   const handleSubmit = () => {
-    if (!nome || !tipoMeta || !valorObjetivo || !periodoInicio || !periodoFim) {
+    if (!metaValor || !periodoInicio || !periodoFim) {
       return;
     }
 
     onCriar({
       vendedor_id: vendedorId,
       equipe_id: equipeId,
-      nome,
-      descricao: descricao || undefined,
-      tipo_meta: tipoMeta,
-      metrica: 'valor',
-      unidade_medida: 'BRL',
-      valor_objetivo: parseFloat(valorObjetivo),
       periodo_inicio: new Date(periodoInicio).toISOString(),
       periodo_fim: new Date(periodoFim).toISOString(),
-      prioridade,
+      meta_valor: parseFloat(metaValor),
     });
 
     resetForm();
@@ -82,53 +61,15 @@ export function NovaMetaVendedorDialog({
 
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="nome">Nome da Meta*</Label>
+            <Label htmlFor="valor">Meta de Valor (R$)*</Label>
             <Input
-              id="nome"
-              value={nome}
-              onChange={(e) => setNome(e.target.value)}
-              placeholder="Ex: Meta de Vendas Q1"
+              id="valor"
+              type="number"
+              step="0.01"
+              value={metaValor}
+              onChange={(e) => setMetaValor(e.target.value)}
+              placeholder="0.00"
             />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="descricao">Descrição</Label>
-            <Textarea
-              id="descricao"
-              value={descricao}
-              onChange={(e) => setDescricao(e.target.value)}
-              placeholder="Descreva os objetivos e critérios"
-              rows={3}
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="tipo">Tipo de Meta*</Label>
-              <Select value={tipoMeta} onValueChange={setTipoMeta}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione" />
-                </SelectTrigger>
-                <SelectContent>
-                  {TIPOS_META.map((tipo) => (
-                    <SelectItem key={tipo.value} value={tipo.value}>
-                      {tipo.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="valor">Valor Objetivo (R$)*</Label>
-              <Input
-                id="valor"
-                type="number"
-                value={valorObjetivo}
-                onChange={(e) => setValorObjetivo(e.target.value)}
-                placeholder="0.00"
-              />
-            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -151,21 +92,6 @@ export function NovaMetaVendedorDialog({
                 onChange={(e) => setPeriodoFim(e.target.value)}
               />
             </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="prioridade">Prioridade</Label>
-            <Select value={prioridade} onValueChange={(v: any) => setPrioridade(v)}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="baixa">Baixa</SelectItem>
-                <SelectItem value="media">Média</SelectItem>
-                <SelectItem value="alta">Alta</SelectItem>
-                <SelectItem value="critica">Crítica</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
         </div>
 

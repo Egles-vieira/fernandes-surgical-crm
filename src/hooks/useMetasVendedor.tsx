@@ -6,38 +6,31 @@ export interface MetaVendedor {
   id: string;
   vendedor_id: string;
   equipe_id: string | null;
-  nome: string;
-  descricao: string | null;
-  tipo_meta: 'vendas' | 'atendimentos' | 'conversao' | 'satisfacao_cliente';
-  metrica: string;
-  unidade_medida: string | null;
-  valor_objetivo: number;
-  valor_atual: number;
   periodo_inicio: string;
   periodo_fim: string;
-  alerta_percentual: number;
-  status: 'ativa' | 'concluida' | 'cancelada' | 'pausada';
-  prioridade: 'baixa' | 'media' | 'alta' | 'critica';
+  meta_valor: number;
+  meta_unidades: number | null;
+  meta_margem: number | null;
+  meta_conversao: number | null;
+  valor_atual: number | null;
+  unidades_atual: number | null;
+  margem_atual: number | null;
+  conversao_atual: number | null;
+  status: string | null;
   criado_por: string | null;
-  criado_em: string;
-  atualizado_em: string;
-  concluido_em: string | null;
-  cancelado_em: string | null;
-  motivo_cancelamento: string | null;
+  criado_em: string | null;
+  atualizado_em: string | null;
 }
 
 interface NovaMetaVendedorInput {
   vendedor_id: string;
   equipe_id?: string;
-  nome: string;
-  descricao?: string;
-  tipo_meta: string;
-  metrica: string;
-  unidade_medida?: string;
-  valor_objetivo: number;
   periodo_inicio: string;
   periodo_fim: string;
-  prioridade?: 'baixa' | 'media' | 'alta' | 'critica';
+  meta_valor: number;
+  meta_unidades?: number;
+  meta_margem?: number;
+  meta_conversao?: number;
 }
 
 export function useMetasVendedor(vendedorId?: string) {
@@ -51,6 +44,7 @@ export function useMetasVendedor(vendedorId?: string) {
       let query = supabase
         .from("metas_vendedor")
         .select("*")
+        .eq("status", "ativa")
         .order("periodo_inicio", { ascending: false });
 
       if (vendedorId) {
@@ -60,7 +54,7 @@ export function useMetasVendedor(vendedorId?: string) {
       const { data, error } = await query;
 
       if (error) throw error;
-      return data as MetaVendedor[];
+      return data;
     },
     enabled: !!vendedorId,
   });
@@ -102,14 +96,14 @@ export function useMetasVendedor(vendedorId?: string) {
       // Buscar meta atual
       const { data: metaAtual, error: fetchError } = await supabase
         .from("metas_vendedor")
-        .select("valor_atual, valor_objetivo")
+        .select("valor_atual, meta_valor")
         .eq("id", metaId)
         .single();
 
       if (fetchError) throw fetchError;
 
       const valorAnterior = metaAtual.valor_atual || 0;
-      const percentualConclusao = (novoValor / metaAtual.valor_objetivo) * 100;
+      const percentualConclusao = (novoValor / metaAtual.meta_valor) * 100;
 
       // Atualizar meta
       const { error: updateError } = await supabase
@@ -118,22 +112,6 @@ export function useMetasVendedor(vendedorId?: string) {
         .eq("id", metaId);
 
       if (updateError) throw updateError;
-
-      // Registrar progresso
-      const { error: progressoError } = await supabase
-        .from("progresso_metas_vendedor")
-        .insert([
-          {
-            meta_id: metaId,
-            valor_anterior: valorAnterior,
-            valor_novo: novoValor,
-            percentual_conclusao: percentualConclusao,
-            observacao,
-            origem: "manual",
-          },
-        ]);
-
-      if (progressoError) throw progressoError;
 
       return { percentualConclusao };
     },
@@ -150,20 +128,10 @@ export function useMetasVendedor(vendedorId?: string) {
 
   // Cancelar meta
   const cancelarMeta = useMutation({
-    mutationFn: async ({
-      metaId,
-      motivo,
-    }: {
-      metaId: string;
-      motivo: string;
-    }) => {
+    mutationFn: async ({ metaId }: { metaId: string }) => {
       const { error } = await supabase
         .from("metas_vendedor")
-        .update({
-          status: "cancelada",
-          cancelado_em: new Date().toISOString(),
-          motivo_cancelamento: motivo,
-        })
+        .update({ status: "cancelada" })
         .eq("id", metaId);
 
       if (error) throw error;
