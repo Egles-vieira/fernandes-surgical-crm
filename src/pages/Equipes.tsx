@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Users, Plus, UserPlus, X, Loader2, Crown, Network, ArrowRightLeft, Eye, Edit, Power, PowerOff, History, Settings2 } from "lucide-react";
+import { Users, Plus, UserPlus, X, Loader2, Crown, Network, ArrowRightLeft, Eye, Edit, Power, PowerOff, History, Settings2, Trash2 } from "lucide-react";
 import { useForm, Controller } from "react-hook-form";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { OrganigramaEquipes } from "@/components/equipes/OrganigramaEquipes";
@@ -22,6 +22,7 @@ import { EditarMembroDialog } from "@/components/equipes/EditarMembroDialog";
 import { TransferirMembroDialog as TransferirMembroEntreEquipesDialog } from "@/components/equipes/TransferirMembroDialog";
 import { HistoricoMembroDialog } from "@/components/equipes/HistoricoMembroDialog";
 import { RemoverMembroDialog } from "@/components/equipes/RemoverMembroDialog";
+import { ExcluirEquipeDialog } from "@/components/equipes/ExcluirEquipeDialog";
 import { NovaMetaSheet } from "@/components/equipes/NovaMetaSheet";
 import { MetasEquipeContent } from "@/components/equipes/MetasEquipeContent";
 import { useMetasEquipe } from "@/hooks/useMetasEquipe";
@@ -52,6 +53,7 @@ export default function Equipes() {
     editarEquipe,
     desativarEquipe,
     reativarEquipe,
+    excluirEquipe,
     adicionarMembro, 
     removerMembro,
     editarMembro,
@@ -68,6 +70,7 @@ export default function Equipes() {
   const [editarEquipeOpen, setEditarEquipeOpen] = useState(false);
   const [detalhesEquipeOpen, setDetalhesEquipeOpen] = useState(false);
   const [desativarEquipeOpen, setDesativarEquipeOpen] = useState(false);
+  const [excluirEquipeOpen, setExcluirEquipeOpen] = useState(false);
   const [editarMembroOpen, setEditarMembroOpen] = useState(false);
   const [transferirMembroOpen, setTransferirMembroOpen] = useState(false);
   const [historicoMembroOpen, setHistoricoMembroOpen] = useState(false);
@@ -465,6 +468,17 @@ export default function Equipes() {
                             <Power className="h-4 w-4 text-success" />
                           )}
                         </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => {
+                            setSelectedEquipe(equipe.id);
+                            setExcluirEquipeOpen(true);
+                          }}
+                          title="Excluir permanentemente"
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
                       </CardFooter>
                     </Card>
                   );
@@ -697,6 +711,15 @@ export default function Equipes() {
           open={removerMembroOpen}
           onOpenChange={setRemoverMembroOpen}
           onConfirm={handleRemoverMembro}
+        />
+
+        <ExcluirEquipeDialog
+          equipe={equipes?.find(e => e.id === selectedEquipe) || null}
+          open={excluirEquipeOpen}
+          onOpenChange={setExcluirEquipeOpen}
+          onConfirm={async (equipeId) => {
+            await excluirEquipe.mutateAsync(equipeId);
+          }}
         />
 
         {/* Dialogs de Metas */}

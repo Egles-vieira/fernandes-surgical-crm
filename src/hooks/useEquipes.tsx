@@ -392,6 +392,26 @@ export function useEquipes() {
     },
   });
 
+  // Mutation para excluir equipe permanentemente
+  const excluirEquipe = useMutation({
+    mutationFn: async (equipeId: string) => {
+      const { error } = await supabase
+        .from("equipes")
+        .delete()
+        .eq("id", equipeId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["equipes"] });
+      toast.success("Equipe excluída permanentemente!");
+    },
+    onError: (error: any) => {
+      console.error("Erro ao excluir equipe:", error);
+      toast.error(error.message || "Erro ao excluir equipe");
+    },
+  });
+
   return {
     equipes,
     isLoading,
@@ -400,6 +420,7 @@ export function useEquipes() {
     editarEquipe,
     desativarEquipe,
     reativarEquipe,
+    excluirEquipe,
     adicionarMembro,
     removerMembro,
     editarMembro,
