@@ -603,7 +603,7 @@ export default function Vendas() {
     return <>
         <VendasActionBar status={status} onCalcular={handleCalcular} onCancelar={handleCancelarProposta} onDiretoria={handleDiretoria} onEfetivar={handleEfetivar} onSalvar={handleSalvarVenda} isSaving={createVenda.isPending || updateVenda.isPending} editandoVendaId={editandoVendaId} />
         
-        <div className="h-full overflow-auto pt-20 pr-[5px] pb-[5px] pl-3 space-y-6">
+        <div className="pt-20 p-8 space-y-6">
           {/* Header */}
           
 
@@ -834,18 +834,15 @@ export default function Vendas() {
   }
 
   // Pipeline / List Views
-  return <div className="h-full overflow-hidden flex flex-col pt-[5px] pr-[5px] pb-[5px] pl-0 gap-[5px]">
+  return <div className="p-8">
       {/* Filtros com toggle de view */}
-      <div className="flex-shrink-0">
-        <VendasFilters view={view as "pipeline" | "list"} onViewChange={v => setView(v)} onFilterChange={newFilters => setFiltros(prev => ({
-        ...prev,
-        ...newFilters
-      }))} />
-      </div>
+      <VendasFilters view={view as "pipeline" | "list"} onViewChange={v => setView(v)} onFilterChange={newFilters => setFiltros(prev => ({
+      ...prev,
+      ...newFilters
+    }))} />
 
-      <div className="flex-1 min-h-0 overflow-hidden ml-3">
-        {view === "pipeline" ? <div className="h-full overflow-auto">
-          <PipelineKanban vendas={filteredVendas.map(v => ({
+      <div className="pt-6">
+        {view === "pipeline" ? <PipelineKanban vendas={filteredVendas.map(v => ({
         id: v.id,
         numero_venda: v.numero_venda,
         cliente_nome: v.cliente_nome,
@@ -858,10 +855,9 @@ export default function Vendas() {
       }))} onMoverCard={handleMoverCard} onEditarVenda={venda => {
         const vendaCompleta = vendas.find(v => v.id === venda.id);
         if (vendaCompleta) handleEditarVenda(vendaCompleta);
-      }} onNovaVenda={() => setView("nova")} />
-        </div> : <div className="h-full flex flex-col overflow-hidden">
+      }} onNovaVenda={() => setView("nova")} /> : <>
             {/* Search */}
-            <div className="flex items-center gap-4 mb-4 flex-shrink-0 px-3">
+            <div className="flex items-center gap-4 mb-6">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
                 <Input placeholder="Buscar por número, cliente, CNPJ ou status..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-10" />
@@ -872,9 +868,8 @@ export default function Vendas() {
             </div>
 
             {/* Table */}
-            <Card className="flex flex-col flex-1 min-h-0 overflow-hidden px-3">
-              <div className="flex-1 min-h-0 overflow-auto">
-                <Table>
+            <Card>
+              <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Número</TableHead>
@@ -947,9 +942,8 @@ export default function Vendas() {
                       </TableRow>)}
                 </TableBody>
               </Table>
-              </div>
             </Card>
-          </div>}
+          </>}
       </div>
 
       {/* Dialogs */}
