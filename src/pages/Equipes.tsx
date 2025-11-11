@@ -188,8 +188,8 @@ export default function Equipes() {
   const lideres = allUsers?.filter(user => user.roles?.includes('lider')) || [];
 
   return (
-    <Layout>
-      <EquipesFiltrosProvider>
+    <EquipesFiltrosProvider>
+      <Layout>
         <div className="container mx-auto p-6 space-y-6">
         <div className="flex items-center justify-between">
           <div>
@@ -713,7 +713,7 @@ export default function Equipes() {
           onCriar={(meta) => criarMeta.mutate(meta)}
         />
       </div>
-      </EquipesFiltrosProvider>
     </Layout>
+    </EquipesFiltrosProvider>
   );
 }
