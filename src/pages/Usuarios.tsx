@@ -331,9 +331,7 @@ export default function Usuarios() {
         <UsuariosFilters searchTerm={searchTerm} onSearchChange={setSearchTerm} roleFilter={roleFilter} onRoleChange={setRoleFilter} totalUsuarios={filteredUsers?.length || 0} />
 
         {/* Tabela de Usuários com padding para compensar filtro fixo e enquadrar nas laterais */}
-        <div className="flex-1 overflow-hidden px-4 md:px-6 py-6 flex flex-col mx-auto w-full max-w-7xl" style={{
-        paddingTop: '84px'
-      }}>
+        <div className="flex-1 overflow-hidden px-4 md:px-6 py-6 pt-24 flex flex-col mx-auto w-full max-w-7xl">
           <Card className="flex flex-col flex-1 min-h-0 overflow-hidden">
             <CardContent className="pt-6 flex-1 flex flex-col min-h-0 overflow-hidden p-0">
               {isLoadingAllUsers ? <div className="flex flex-col items-center justify-center py-12">
