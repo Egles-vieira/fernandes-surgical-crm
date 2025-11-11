@@ -4,7 +4,7 @@ import { useHierarquia } from "@/hooks/useHierarquia";
 import { useMetasVendedor } from "@/hooks/useMetasVendedor";
 import { supabase } from "@/integrations/supabase/client";
 import Layout from "@/components/Layout";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -325,15 +325,67 @@ export default function Usuarios() {
   const paginatedUsers = filteredUsers?.slice(startIndex, endIndex);
   const canPreviousPage = page > 1;
   const canNextPage = page < totalPages;
+  // Estatísticas
+  const stats = {
+    total: allUsers?.length || 0,
+    admin: allUsers?.filter(u => u.roles?.includes("admin")).length || 0,
+    sales: allUsers?.filter(u => u.roles?.includes("sales")).length || 0,
+    manager: allUsers?.filter(u => u.roles?.includes("manager")).length || 0,
+    support: allUsers?.filter(u => u.roles?.includes("support")).length || 0,
+  };
+
   return <Layout>
-      <div className="flex flex-col min-h-[calc(100vh-4rem)]">
-        {/* Filtros fixos */}
+      <div className="p-6 space-y-6 h-full overflow-hidden flex flex-col">
+        {/* Filtros */}
         <UsuariosFilters searchTerm={searchTerm} onSearchChange={setSearchTerm} roleFilter={roleFilter} onRoleChange={setRoleFilter} totalUsuarios={filteredUsers?.length || 0} />
 
-        {/* Tabela de Usuários com padding para compensar filtro fixo e enquadrar nas laterais */}
-        <div className="flex-1 overflow-hidden py-6 pt-24 flex flex-col w-full">
-          <Card className="flex flex-col flex-1 min-h-0 overflow-hidden">
-            <CardContent className="pt-6 flex-1 flex flex-col min-h-0 overflow-hidden p-0">
+        {/* Estatísticas */}
+        <div className="grid gap-3 md:grid-cols-5">
+          <Card className="border-border/40 shadow-sm rounded-xl bg-card/50 backdrop-blur-sm">
+            <CardHeader className="pb-1 pt-3 px-4">
+              <CardTitle className="text-xs font-medium text-muted-foreground">Total</CardTitle>
+            </CardHeader>
+            <CardContent className="px-4 pb-3">
+              <div className="text-xl font-semibold">{stats.total}</div>
+            </CardContent>
+          </Card>
+          <Card className="border-border/40 shadow-sm rounded-xl bg-card/50 backdrop-blur-sm">
+            <CardHeader className="pb-1 pt-3 px-4">
+              <CardTitle className="text-xs font-medium text-muted-foreground">Admins</CardTitle>
+            </CardHeader>
+            <CardContent className="px-4 pb-3">
+              <div className="text-xl font-semibold">{stats.admin}</div>
+            </CardContent>
+          </Card>
+          <Card className="border-border/40 shadow-sm rounded-xl bg-card/50 backdrop-blur-sm">
+            <CardHeader className="pb-1 pt-3 px-4">
+              <CardTitle className="text-xs font-medium text-muted-foreground">Vendedores</CardTitle>
+            </CardHeader>
+            <CardContent className="px-4 pb-3">
+              <div className="text-xl font-semibold">{stats.sales}</div>
+            </CardContent>
+          </Card>
+          <Card className="border-border/40 shadow-sm rounded-xl bg-card/50 backdrop-blur-sm">
+            <CardHeader className="pb-1 pt-3 px-4">
+              <CardTitle className="text-xs font-medium text-muted-foreground">Gerentes</CardTitle>
+            </CardHeader>
+            <CardContent className="px-4 pb-3">
+              <div className="text-xl font-semibold">{stats.manager}</div>
+            </CardContent>
+          </Card>
+          <Card className="border-border/40 shadow-sm rounded-xl bg-card/50 backdrop-blur-sm">
+            <CardHeader className="pb-1 pt-3 px-4">
+              <CardTitle className="text-xs font-medium text-muted-foreground">Suporte</CardTitle>
+            </CardHeader>
+            <CardContent className="px-4 pb-3">
+              <div className="text-xl font-semibold">{stats.support}</div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Tabela */}
+        <Card className="flex flex-col flex-1 min-h-0 overflow-hidden">
+          <CardContent className="pt-6 flex-1 flex flex-col min-h-0 overflow-hidden mx-0 my-0 px-0 py-0">
               {isLoadingAllUsers ? <div className="flex flex-col items-center justify-center py-12">
                   <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
                   <p className="text-muted-foreground">Carregando usuários...</p>
@@ -343,7 +395,7 @@ export default function Usuarios() {
                 </div> : <div className="flex-1 flex flex-col overflow-hidden">
                   <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-primary/30 scrollbar-track-transparent hover:scrollbar-thumb-primary/40">
                     {/* Table Header */}
-                    <div className="sticky top-0 z-10 flex items-center gap-4 px-0 py-4 border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 font-medium text-sm text-muted-foreground">
+                    <div className="sticky top-0 z-10 flex items-center gap-4 p-4 border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 font-medium text-sm text-muted-foreground">
                       <Checkbox checked={selectedRows.size === paginatedUsers?.length && paginatedUsers.length > 0} onCheckedChange={toggleSelectAll} className="ml-2" />
                       <div className="flex-1 min-w-0">Email</div>
                       <div className="w-64">Permissões</div>
@@ -358,7 +410,7 @@ export default function Usuarios() {
                   const isSelected = selectedRows.has(user.user_id);
                   return <div key={user.user_id} className={`border-b border-border transition-colors ${isSelected ? "bg-accent/5" : "hover:bg-muted/30"}`}>
                           {/* Main Row */}
-                          <div className="flex items-center gap-4 px-0 py-4 relative">
+                          <div className="flex items-center gap-4 p-4 relative">
                             {/* Left Border Indicator */}
                             {isSelected && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary" />}
                             
@@ -518,7 +570,6 @@ export default function Usuarios() {
                 </div>}
             </CardContent>
           </Card>
-        </div>
 
         {/* Dialogs de Metas por Vendedor */}
         {allUsers?.map(user => user.roles?.includes("sales") && <NovaMetaVendedorDialog key={user.user_id} open={metaDialogOpen[user.user_id] || false} onOpenChange={open => !open && handleCloseMetaDialog(user.user_id)} vendedorId={user.user_id} onCriar={async meta => {
