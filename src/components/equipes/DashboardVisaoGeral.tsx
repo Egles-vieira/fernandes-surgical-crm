@@ -1,6 +1,7 @@
 import { useDashboardMetas } from "@/hooks/useDashboardMetas";
 import { useEquipesFiltros } from "@/contexts/EquipesFiltrosContext";
 import { KPICard } from "./KPICard";
+import { MetaAgregadaCard } from "./MetaAgregadaCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Target, TrendingUp, Users, Activity, Percent } from "lucide-react";
 import { 
@@ -116,6 +117,13 @@ export function DashboardVisaoGeral() {
           icon={Users}
         />
       </div>
+
+      {/* Meta Agregada - Mostrar quando houver equipe selecionada */}
+      {filtros.equipeId && (
+        <div className="grid gap-4">
+          <MetaAgregadaCard equipeId={filtros.equipeId} />
+        </div>
+      )}
 
       {/* Gráficos */}
       <div className="grid gap-4 md:grid-cols-2">

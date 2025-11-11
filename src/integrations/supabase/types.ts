@@ -6658,6 +6658,47 @@ export type Database = {
         }
         Relationships: []
       }
+      vw_soma_metas_vendedores_equipe: {
+        Row: {
+          conversao_atual_media: number | null
+          equipe_id: string | null
+          margem_atual_media: number | null
+          meta_conversao_media: number | null
+          meta_margem_media: number | null
+          percentual_atingimento: number | null
+          periodo_fim: string | null
+          periodo_inicio: string | null
+          status_geral: string | null
+          total_meta_unidades: number | null
+          total_meta_valor: number | null
+          total_realizado_unidades: number | null
+          total_realizado_valor: number | null
+          total_vendedores: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "metas_vendedor_equipe_id_fkey"
+            columns: ["equipe_id"]
+            isOneToOne: false
+            referencedRelation: "equipes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "metas_vendedor_equipe_id_fkey"
+            columns: ["equipe_id"]
+            isOneToOne: false
+            referencedRelation: "vw_estatisticas_metas_equipe"
+            referencedColumns: ["equipe_id"]
+          },
+          {
+            foreignKeyName: "metas_vendedor_equipe_id_fkey"
+            columns: ["equipe_id"]
+            isOneToOne: false
+            referencedRelation: "vw_turnover_equipes"
+            referencedColumns: ["equipe_id"]
+          },
+        ]
+      }
       vw_turnover_equipes: {
         Row: {
           equipe_id: string | null
