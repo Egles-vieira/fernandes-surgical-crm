@@ -214,7 +214,7 @@ export default function Layout({ children }: LayoutProps) {
                           }`}
                           >
                             {isAnyChildActive && (
-                              <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-10 bg-white rounded-r-full" />
+                              <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-10 bg-primary rounded-r-full" />
                             )}
                             <item.icon
                               size={24}
