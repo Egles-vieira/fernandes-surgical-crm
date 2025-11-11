@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useRoles, AppRole } from "@/hooks/useRoles";
 import { useHierarquia } from "@/hooks/useHierarquia";
+import { useMetasVendedor } from "@/hooks/useMetasVendedor";
 import Layout from "@/components/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -20,10 +21,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Shield, X, Loader2, Users, TrendingUp, Briefcase, UserCheck } from "lucide-react";
+import { Shield, X, Loader2, Users, TrendingUp, Briefcase, UserCheck, Target, Plus } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CriarUsuarioSheet } from "@/components/usuario/CriarUsuarioSheet";
 import { EditarUsuarioSheet } from "@/components/usuario/EditarUsuarioSheet";
+import { NovaMetaVendedorDialog } from "@/components/equipes/NovaMetaVendedorDialog";
+import { useToast } from "@/hooks/use-toast";
 
 const AVAILABLE_ROLES: { value: AppRole; label: string; description: string; color: string }[] = [
   {
@@ -72,6 +75,7 @@ const AVAILABLE_ROLES: { value: AppRole; label: string; description: string; col
 
 export default function Usuarios() {
   const { allUsers, isLoadingAllUsers, addRole, removeRole, isAdmin } = useRoles();
+  const { toast } = useToast();
   const { 
     subordinados, 
     equipesGerenciadas, 
@@ -82,7 +86,13 @@ export default function Usuarios() {
     temSubordinados,
     ehGestor
   } = useHierarquia();
-  const [selectedRole, setSelectedRole] = useState<{ [key: string]: AppRole }>({}); 
+  const [selectedRole, setSelectedRole] = useState<{ [key: string]: AppRole }>({});
+  const [metaDialogOpen, setMetaDialogOpen] = useState<{ [key: string]: boolean }>({});
+
+  // Hook para carregar metas de um vendedor específico quando necessário
+  const useVendedorMetas = (vendedorId: string) => {
+    return useMetasVendedor(vendedorId);
+  };
 
   if (!isAdmin) {
     return (
@@ -115,6 +125,82 @@ export default function Usuarios() {
 
   const getRoleInfo = (role: AppRole) => {
     return AVAILABLE_ROLES.find((r) => r.value === role);
+  };
+
+  const handleOpenMetaDialog = (userId: string) => {
+    setMetaDialogOpen({ ...metaDialogOpen, [userId]: true });
+  };
+
+  const handleCloseMetaDialog = (userId: string) => {
+    setMetaDialogOpen({ ...metaDialogOpen, [userId]: false });
+  };
+
+  // Componente para exibir metas do vendedor
+  const MetasVendedorCell = ({ userId, roles }: { userId: string; roles: AppRole[] }) => {
+    const isSales = roles?.includes("sales");
+    const { metas, isLoading } = useVendedorMetas(userId);
+
+    if (!isSales) {
+      return (
+        <span className="text-xs text-muted-foreground italic">
+          Não é vendedor
+        </span>
+      );
+    }
+
+    if (isLoading) {
+      return <Loader2 className="h-4 w-4 animate-spin" />;
+    }
+
+    const metasAtivas = metas?.filter(m => m.status === "ativa") || [];
+
+    return (
+      <div className="space-y-2">
+        {metasAtivas.length > 0 ? (
+          <div className="space-y-1">
+            {metasAtivas.map((meta) => {
+              const percentual = meta.meta_valor > 0 
+                ? ((meta.valor_atual || 0) / meta.meta_valor) * 100 
+                : 0;
+              
+              return (
+                <div key={meta.id} className="text-xs">
+                  <div className="flex items-center gap-2">
+                    <Target className="h-3 w-3 text-primary" />
+                    <span className="font-medium">
+                      {new Intl.NumberFormat("pt-BR", {
+                        style: "currency",
+                        currency: "BRL",
+                        notation: "compact",
+                      }).format(meta.meta_valor)}
+                    </span>
+                    <Badge 
+                      variant={percentual >= 100 ? "default" : percentual >= 80 ? "secondary" : "destructive"}
+                      className="text-[10px] px-1.5 py-0"
+                    >
+                      {percentual.toFixed(0)}%
+                    </Badge>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <span className="text-xs text-muted-foreground italic">
+            Sem metas ativas
+          </span>
+        )}
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-7 text-xs gap-1 mt-1"
+          onClick={() => handleOpenMetaDialog(userId)}
+        >
+          <Plus className="h-3 w-3" />
+          {metasAtivas.length > 0 ? "Adicionar Meta" : "Criar Meta"}
+        </Button>
+      </div>
+    );
   };
 
   return (
@@ -335,6 +421,7 @@ export default function Usuarios() {
                   <TableRow>
                     <TableHead>Email</TableHead>
                     <TableHead>Permissões</TableHead>
+                    <TableHead>Metas</TableHead>
                     <TableHead>Adicionar Permissão</TableHead>
                     <TableHead className="w-[100px]">Ações</TableHead>
                   </TableRow>
@@ -385,6 +472,9 @@ export default function Usuarios() {
                         </div>
                       </TableCell>
                       <TableCell>
+                        <MetasVendedorCell userId={user.user_id} roles={user.roles || []} />
+                      </TableCell>
+                      <TableCell>
                         <div className="flex items-center gap-2">
                           <Select
                             value={selectedRole[user.user_id] || ""}
@@ -431,6 +521,28 @@ export default function Usuarios() {
             )}
           </CardContent>
         </Card>
+
+        {/* Dialogs de Metas por Vendedor */}
+        {allUsers?.map((user) => (
+          user.roles?.includes("sales") && (
+            <NovaMetaVendedorDialog
+              key={user.user_id}
+              open={metaDialogOpen[user.user_id] || false}
+              onOpenChange={(open) => !open && handleCloseMetaDialog(user.user_id)}
+              vendedorId={user.user_id}
+              onCriar={(meta) => {
+                toast({
+                  title: "Meta criada com sucesso",
+                  description: `Meta de ${new Intl.NumberFormat("pt-BR", {
+                    style: "currency",
+                    currency: "BRL",
+                  }).format(meta.meta_valor)} criada para ${user.email}`,
+                });
+                handleCloseMetaDialog(user.user_id);
+              }}
+            />
+          )
+        ))}
 
         {/* Avisos de Segurança */}
         <Alert className="border-primary/20 bg-primary/5 shadow-sm">
