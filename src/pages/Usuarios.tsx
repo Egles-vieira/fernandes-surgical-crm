@@ -326,7 +326,7 @@ export default function Usuarios() {
       <div className="fixed top-16 right-0 z-20 bg-background border-b transition-all duration-300" style={{
       left: collapsed ? '4rem' : '14rem'
     }}>
-        <div className="px-6 py-3">
+        <div className="px-[5px] py-3">
           <UsuariosFilters searchTerm={searchTerm} onSearchChange={setSearchTerm} roleFilter={roleFilter} onRoleChange={setRoleFilter} totalUsuarios={filteredUsers?.length || 0} />
         </div>
       </div>
