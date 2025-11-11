@@ -1,4 +1,5 @@
 import { useDashboardMetas } from "@/hooks/useDashboardMetas";
+import { useEquipesFiltros } from "@/contexts/EquipesFiltrosContext";
 import { KPICard } from "./KPICard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Target, TrendingUp, Users, Activity, Percent } from "lucide-react";
@@ -31,7 +32,13 @@ const ETAPAS_COLORS: Record<string, string> = {
 };
 
 export function DashboardVisaoGeral() {
-  const { kpis, pacing, funil, distribuicao, isLoading } = useDashboardMetas();
+  const { filtros } = useEquipesFiltros();
+  const { kpis, pacing, funil, distribuicao, isLoading } = useDashboardMetas({
+    dataInicio: filtros.dataInicio,
+    dataFim: filtros.dataFim,
+    equipeId: filtros.equipeId,
+    vendedorId: filtros.vendedorId,
+  });
 
   if (isLoading) {
     return (

@@ -28,6 +28,8 @@ import { useMetasEquipe } from "@/hooks/useMetasEquipe";
 import { Target, BarChart3, Users as UsersIcon } from "lucide-react";
 import { DashboardVisaoGeral } from "@/components/equipes/DashboardVisaoGeral";
 import { AnaliseVendedores } from "@/components/equipes/AnaliseVendedores";
+import { EquipesFiltrosBar } from "@/components/equipes/EquipesFiltrosBar";
+import { EquipesFiltrosProvider } from "@/contexts/EquipesFiltrosContext";
 
 interface NovaEquipeForm {
   nome: string;
@@ -187,7 +189,8 @@ export default function Equipes() {
 
   return (
     <Layout>
-      <div className="container mx-auto p-6 space-y-6">
+      <EquipesFiltrosProvider>
+        <div className="container mx-auto p-6 space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-2">
@@ -345,10 +348,12 @@ export default function Equipes() {
           </div>
 
           <TabsContent value="dashboard" className="space-y-6 mt-6">
+            <EquipesFiltrosBar />
             <DashboardVisaoGeral />
           </TabsContent>
 
           <TabsContent value="vendedores" className="space-y-6 mt-6">
+            <EquipesFiltrosBar />
             <AnaliseVendedores />
           </TabsContent>
 
@@ -708,6 +713,7 @@ export default function Equipes() {
           onCriar={(meta) => criarMeta.mutate(meta)}
         />
       </div>
+      </EquipesFiltrosProvider>
     </Layout>
   );
 }

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { usePerformanceVendedores } from "@/hooks/usePerformanceVendedores";
+import { useEquipesFiltros } from "@/contexts/EquipesFiltrosContext";
 import { LeaderboardVendedores } from "./LeaderboardVendedores";
 import { RadarPerformance } from "./RadarPerformance";
 import { KPIsVendedor } from "./KPIsVendedor";
@@ -8,7 +9,11 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 
 export function AnaliseVendedores() {
-  const { vendedores, isLoading } = usePerformanceVendedores();
+  const { filtros } = useEquipesFiltros();
+  const { vendedores, isLoading } = usePerformanceVendedores({
+    equipeId: filtros.equipeId,
+    vendedorId: filtros.vendedorId,
+  });
   const [vendedorSelecionado, setVendedorSelecionado] = useState<any>(null);
 
   if (isLoading) {

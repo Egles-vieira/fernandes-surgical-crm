@@ -31,9 +31,16 @@ interface DistribuicaoMetas {
   percentual: number;
 }
 
-export function useDashboardMetas(dataInicio?: Date, dataFim?: Date) {
-  const inicio = dataInicio || startOfMonth(new Date());
-  const fim = dataFim || endOfMonth(new Date());
+export interface FiltrosDashboard {
+  dataInicio?: Date;
+  dataFim?: Date;
+  equipeId?: string;
+  vendedorId?: string;
+}
+
+export function useDashboardMetas(filtros: FiltrosDashboard = {}) {
+  const inicio = filtros.dataInicio || startOfMonth(new Date());
+  const fim = filtros.dataFim || endOfMonth(new Date());
 
   // KPIs Gerais
   const { data: kpis, isLoading: isLoadingKPIs } = useQuery({
@@ -79,9 +86,9 @@ export function useDashboardMetas(dataInicio?: Date, dataFim?: Date) {
 
   // Distribuição de Metas por Equipe
   const { data: distribuicao, isLoading: isLoadingDistribuicao } = useQuery({
-    queryKey: ["dashboard-distribuicao", inicio, fim],
+    queryKey: ["dashboard-distribuicao", inicio, fim, filtros.equipeId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("metas_equipe")
         .select(
           `
@@ -94,6 +101,12 @@ export function useDashboardMetas(dataInicio?: Date, dataFim?: Date) {
         .eq("status", "ativa")
         .gte("periodo_inicio", inicio.toISOString())
         .lte("periodo_fim", fim.toISOString());
+
+      if (filtros.equipeId) {
+        query = query.eq("equipe_id", filtros.equipeId);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
 
