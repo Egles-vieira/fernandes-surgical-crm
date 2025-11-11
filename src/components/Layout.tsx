@@ -370,7 +370,7 @@ export default function Layout({ children }: LayoutProps) {
         </div>
 
         {/* Content */}
-        <main className="flex-1 overflow-auto mt-16">{children}</main>
+        <main className="flex-1 overflow-auto mt-16 flex items-center justify-center">{children}</main>
       </div>
     </div>
   );
