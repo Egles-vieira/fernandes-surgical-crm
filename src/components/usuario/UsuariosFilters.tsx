@@ -27,7 +27,7 @@ export function UsuariosFilters({
   totalUsuarios
 }: UsuariosFiltersProps) {
   return (
-    <div className="fixed top-16 left-0 right-0 z-30 flex items-center gap-3 py-3 px-6 border-b bg-card shadow-sm" style={{ marginLeft: 'var(--sidebar-width)' }}>
+    <div className="flex items-center gap-3 py-3 px-0 border-b bg-card shadow-sm flex-shrink-0">
       {/* Search Bar */}
       <div className="relative flex-1 max-w-md">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />

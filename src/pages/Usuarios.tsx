@@ -336,7 +336,9 @@ export default function Usuarios() {
   return <Layout>
       <div className="h-full overflow-hidden flex flex-col p-[5px] gap-[5px]">
         {/* Filtros */}
-        <UsuariosFilters searchTerm={searchTerm} onSearchChange={setSearchTerm} roleFilter={roleFilter} onRoleChange={setRoleFilter} totalUsuarios={filteredUsers?.length || 0} />
+        <div className="flex-shrink-0">
+          <UsuariosFilters searchTerm={searchTerm} onSearchChange={setSearchTerm} roleFilter={roleFilter} onRoleChange={setRoleFilter} totalUsuarios={filteredUsers?.length || 0} />
+        </div>
 
         {/* Estatísticas */}
         <div className="grid gap-3 md:grid-cols-5 flex-shrink-0">
@@ -383,7 +385,7 @@ export default function Usuarios() {
         </div>
 
         {/* Tabela */}
-        <Card className="flex flex-col flex-1 min-h-0 overflow-hidden px-0 py-0">
+        <Card className="flex flex-col flex-1 min-h-0 overflow-hidden px-0 py-0 w-full">
             <CardContent className="pt-6 flex-1 flex flex-col min-h-0 overflow-hidden mx-0 my-0 px-0 py-0">
                 {isLoadingAllUsers ? <div className="flex flex-col items-center justify-center py-12">
                     <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
