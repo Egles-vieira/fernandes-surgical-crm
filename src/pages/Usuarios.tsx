@@ -334,12 +334,12 @@ export default function Usuarios() {
     support: allUsers?.filter(u => u.roles?.includes("support")).length || 0
   };
   return <Layout>
-      <div className="space-y-6 h-full overflow-hidden flex flex-col">
+      <div className="h-full overflow-hidden flex flex-col p-[5px] gap-[5px]">
         {/* Filtros */}
         <UsuariosFilters searchTerm={searchTerm} onSearchChange={setSearchTerm} roleFilter={roleFilter} onRoleChange={setRoleFilter} totalUsuarios={filteredUsers?.length || 0} />
 
         {/* Estatísticas */}
-        <div className="grid gap-3 md:grid-cols-5">
+        <div className="grid gap-3 md:grid-cols-5 flex-shrink-0">
           <Card className="border-border/40 shadow-sm rounded-xl bg-card/50 backdrop-blur-sm">
             <CardHeader className="pb-1 pt-3 px-4">
               <CardTitle className="text-xs font-medium text-muted-foreground">Total</CardTitle>
@@ -383,8 +383,7 @@ export default function Usuarios() {
         </div>
 
         {/* Tabela */}
-        <div className="flex justify-center items-start flex-1 min-h-0 overflow-hidden">
-          <Card className="flex flex-col flex-1 min-h-0 overflow-hidden px-0 py-0 my-[14px] mx-0 max-w-[1600px] w-full">
+        <Card className="flex flex-col flex-1 min-h-0 overflow-hidden px-0 py-0">
             <CardContent className="pt-6 flex-1 flex flex-col min-h-0 overflow-hidden mx-0 my-0 px-0 py-0">
                 {isLoadingAllUsers ? <div className="flex flex-col items-center justify-center py-12">
                     <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
@@ -570,7 +569,6 @@ export default function Usuarios() {
                   </div>}
             </CardContent>
           </Card>
-        </div>
 
         {/* Dialogs de Metas por Vendedor */}
         {allUsers?.map(user => user.roles?.includes("sales") && <NovaMetaVendedorDialog key={user.user_id} open={metaDialogOpen[user.user_id] || false} onOpenChange={open => !open && handleCloseMetaDialog(user.user_id)} vendedorId={user.user_id} onCriar={async meta => {
