@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import Layout from "@/components/Layout";
 import { useEquipes } from "@/hooks/useEquipes";
 import { useRoles } from "@/hooks/useRoles";
@@ -29,7 +29,11 @@ import { Target, BarChart3, Users as UsersIcon } from "lucide-react";
 import { DashboardVisaoGeral } from "@/components/equipes/DashboardVisaoGeral";
 import { AnaliseVendedores } from "@/components/equipes/AnaliseVendedores";
 import { EquipesFiltrosBar } from "@/components/equipes/EquipesFiltrosBar";
-import { EquipesFiltrosProvider } from "@/contexts/EquipesFiltrosContext";
+import { EquipesFiltrosProvider, useEquipesFiltros } from "@/contexts/EquipesFiltrosContext";
+import { AcoesRapidasBar } from "@/components/equipes/AcoesRapidasBar";
+import { useExportarDados } from "@/hooks/useExportarDados";
+import { useDashboardMetas } from "@/hooks/useDashboardMetas";
+import { usePerformanceVendedores } from "@/hooks/usePerformanceVendedores";
 
 interface NovaEquipeForm {
   nome: string;
@@ -81,6 +85,9 @@ export default function Equipes() {
   const [metaDetalhesOpen, setMetaDetalhesOpen] = useState(false);
   const [atualizarProgressoOpen, setAtualizarProgressoOpen] = useState(false);
   const { criarMeta, atualizarProgresso } = useMetasEquipe();
+
+  // Exportação de dados
+  const { exportarExcel, exportarPDF } = useExportarDados();
 
   const { data: membros } = useMembrosEquipe(selectedEquipe || undefined);
 
@@ -191,7 +198,7 @@ export default function Equipes() {
     <EquipesFiltrosProvider>
       <Layout>
         <div className="container mx-auto p-6 space-y-6">
-        <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-2">
               <Users className="h-8 w-8" />
@@ -303,6 +310,13 @@ export default function Equipes() {
             </Dialog>
           )}
          </div>
+
+        {/* Barra de Ações Rápidas */}
+        <DashboardAcoesRapidas 
+          onNovaMeta={() => setNovaMetaOpen(true)}
+          onAtualizar={() => window.location.reload()}
+          isLoading={isLoading}
+        />
 
         <Tabs defaultValue="dashboard" className="space-y-6">
           <div className="flex items-center justify-between">
@@ -715,5 +729,47 @@ export default function Equipes() {
       </div>
     </Layout>
     </EquipesFiltrosProvider>
+  );
+}
+
+// Componente auxiliar para ações rápidas com dados de exportação
+function DashboardAcoesRapidas({ onNovaMeta, onAtualizar, isLoading }: any) {
+  const { filtros } = useEquipesFiltros();
+  const { exportarExcel, exportarPDF } = useExportarDados();
+  
+  const { kpis, pacing, funil, distribuicao } = useDashboardMetas(filtros);
+  const { vendedores } = usePerformanceVendedores({
+    equipeId: filtros.equipeId,
+    vendedorId: filtros.vendedorId,
+  });
+
+  const handleExportarExcel = () => {
+    exportarExcel({
+      kpis,
+      vendedores,
+      distribuicao,
+      pacing,
+      funil,
+    }, filtros);
+  };
+
+  const handleExportarPDF = () => {
+    exportarPDF({
+      kpis,
+      vendedores,
+      distribuicao,
+      pacing,
+      funil,
+    }, filtros);
+  };
+
+  return (
+    <AcoesRapidasBar
+      onNovaMeta={onNovaMeta}
+      onExportarExcel={handleExportarExcel}
+      onExportarPDF={handleExportarPDF}
+      onAtualizar={onAtualizar}
+      isLoading={isLoading}
+    />
   );
 }
