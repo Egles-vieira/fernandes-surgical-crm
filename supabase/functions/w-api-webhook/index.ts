@@ -227,7 +227,7 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
   }
 
   // 5. Inserir mensagem
-  await supabase.from('whatsapp_mensagens').insert({
+  const { error: msgError } = await supabase.from('whatsapp_mensagens').insert({
     conversa_id: conversa.id,
     whatsapp_conta_id: conta.id,
     whatsapp_contato_id: contato.id,
@@ -235,10 +235,15 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
     direcao: 'recebida',
     tipo_mensagem: messageType,
     status: 'entregue',
-    id_mensagem_externa: messageId,
+    mensagem_externa_id: messageId,
     recebida_em: timestamp,
     criado_em: new Date().toISOString(),
   });
+
+  if (msgError) {
+    console.error('❌ Erro ao inserir mensagem:', msgError);
+    return;
+  }
 
   console.log('✅ Mensagem W-API processada com sucesso');
 }
@@ -264,21 +269,20 @@ async function atualizarStatusMensagem(supabase: any, payload: any) {
 
   const updateData: any = {
     status: novoStatus,
-    atualizado_em: new Date().toISOString(),
   };
 
-  if (novoStatus === 'enviada' && !updateData.enviada_em) {
-    updateData.enviada_em = new Date().toISOString();
+  if (novoStatus === 'enviada') {
+    updateData.status_enviada_em = new Date().toISOString();
   } else if (novoStatus === 'entregue') {
-    updateData.entregue_em = new Date().toISOString();
+    updateData.status_entregue_em = new Date().toISOString();
   } else if (novoStatus === 'lida') {
-    updateData.lida_em = new Date().toISOString();
+    updateData.status_lida_em = new Date().toISOString();
   }
 
   await supabase
     .from('whatsapp_mensagens')
     .update(updateData)
-    .eq('id_mensagem_externa', messageId);
+    .eq('mensagem_externa_id', messageId);
 
   console.log('✅ Status W-API atualizado:', messageId, '->', novoStatus);
 }
