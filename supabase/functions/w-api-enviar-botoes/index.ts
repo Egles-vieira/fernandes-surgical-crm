@@ -23,7 +23,7 @@ serve(async (req) => {
         *,
         conversa:whatsapp_conversas!inner(
           whatsapp_contato:whatsapp_contatos!inner(
-            numero_telefone
+            numero_whatsapp
           ),
           whatsapp_conta:whatsapp_contas!inner(
             instance_id_wapi,
@@ -48,7 +48,7 @@ serve(async (req) => {
 
     const instanceId = conta.instance_id_wapi;
     const token = conta.token_wapi;
-    const numeroDestino = mensagem.conversa.whatsapp_contato.numero_telefone;
+    const numeroDestino = mensagem.conversa.whatsapp_contato.numero_whatsapp;
 
     if (!instanceId || !token) {
       throw new Error('Credenciais W-API não configuradas');
@@ -81,7 +81,7 @@ serve(async (req) => {
       wapiUrl = `https://api.w-api.pro/${instanceId}/messages/sendList`;
       payload = {
         chatId: `${numeroDestino}@c.us`,
-        text: mensagem.conteudo,
+        text: mensagem.corpo,
         title: botoesData.titulo || 'Menu',
         buttonText: botoesData.textoBotao || 'Ver opções',
         sections: botoesData.secoes || [],
@@ -91,7 +91,7 @@ serve(async (req) => {
       wapiUrl = `https://api.w-api.pro/${instanceId}/messages/sendButtons`;
       payload = {
         chatId: `${numeroDestino}@c.us`,
-        text: mensagem.conteudo,
+        text: mensagem.corpo,
         buttons: (botoesData.botoes || []).map((btn: any) => ({
           id: btn.id,
           text: btn.texto,

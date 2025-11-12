@@ -23,7 +23,7 @@ serve(async (req) => {
         *,
         conversa:whatsapp_conversas!inner(
           whatsapp_contato:whatsapp_contatos!inner(
-            numero_telefone
+            numero_whatsapp
           ),
           whatsapp_conta:whatsapp_contas!inner(
             instance_id_wapi,
@@ -49,7 +49,7 @@ serve(async (req) => {
     const instanceId = conta.instance_id_wapi;
     const token = conta.token_wapi;
     const whatsappId = mensagem.id_externo;
-    const numeroDestino = mensagem.conversa.whatsapp_contato.numero_telefone;
+    const numeroDestino = mensagem.conversa.whatsapp_contato.numero_whatsapp;
 
     if (!instanceId || !token || !whatsappId) {
       throw new Error('Dados insuficientes para editar mensagem');
@@ -88,10 +88,10 @@ serve(async (req) => {
     await supabase
       .from('whatsapp_mensagens')
       .update({
-        conteudo: novoTexto,
+        corpo: novoTexto,
         editada: true,
         editada_em: new Date().toISOString(),
-        mensagem_original: mensagem.conteudo,
+        mensagem_original: mensagem.corpo,
       })
       .eq('id', mensagemId);
 
