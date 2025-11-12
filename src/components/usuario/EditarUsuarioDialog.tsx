@@ -20,13 +20,13 @@ import { AppRole } from "@/hooks/useRoles";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const AVAILABLE_ROLES: { value: AppRole; label: string; description: string; color: string }[] = [
-  { value: "admin", label: "Administrador", description: "Acesso total ao sistema", color: "bg-red-500" },
-  { value: "lider", label: "Líder de Equipe", description: "Gerenciar equipe de vendas", color: "bg-indigo-500" },
-  { value: "manager", label: "Gerente", description: "Gerenciar produtos e relatórios", color: "bg-purple-500" },
-  { value: "sales", label: "Vendedor", description: "Gerenciar clientes e oportunidades", color: "bg-blue-500" },
-  { value: "backoffice", label: "Backoffice", description: "Suporte operacional", color: "bg-cyan-500" },
-  { value: "warehouse", label: "Estoque", description: "Gerenciar inventário", color: "bg-green-500" },
-  { value: "support", label: "Suporte", description: "Atendimento ao cliente", color: "bg-orange-500" },
+  { value: "admin", label: "Administrador", description: "Acesso total ao sistema", color: "bg-destructive" },
+  { value: "lider", label: "Líder de Equipe", description: "Gerenciar equipe de vendas", color: "bg-secondary" },
+  { value: "manager", label: "Gerente", description: "Gerenciar produtos e relatórios", color: "bg-accent" },
+  { value: "sales", label: "Vendedor", description: "Gerenciar clientes e oportunidades", color: "bg-primary" },
+  { value: "backoffice", label: "Backoffice", description: "Suporte operacional", color: "bg-[hsl(var(--tertiary))]" },
+  { value: "warehouse", label: "Estoque", description: "Gerenciar inventário", color: "bg-[hsl(var(--success))]" },
+  { value: "support", label: "Suporte", description: "Atendimento ao cliente", color: "bg-[hsl(var(--warning))]" },
 ];
 
 interface ProfileData {
