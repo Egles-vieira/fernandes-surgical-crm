@@ -406,7 +406,7 @@ export default function Vendas() {
       .from('clientes')
       .select('id, vendedor_id')
       .eq('cgc', clienteCnpjNormalizado)
-      .single();
+      .maybeSingle();
 
     if (clienteError || !clienteData) {
       console.error('❌ Cliente não encontrado:', { clienteCnpjNormalizado, clienteError });
@@ -455,6 +455,35 @@ export default function Vendas() {
       isAdmin,
       editandoVendaId,
     });
+
+    // Para não-admins criando nova venda, valide acesso ao cliente por ID
+    if (!editandoVendaId && !isAdmin) {
+      const { data: acessiveis, error: erroAcessiveis } = await supabase.rpc("get_clientes_acessiveis", {
+        _user_id: currentUser.id,
+      });
+
+      if (erroAcessiveis) {
+        console.error("❌ Erro ao validar acesso ao cliente:", erroAcessiveis);
+        toast({
+          title: "Erro de validação",
+          description: "Não foi possível validar o acesso ao cliente.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const idsPermitidos = (acessiveis || []).map((c: any) => c.cliente_id);
+      const temAcesso = idsPermitidos.includes(clienteId) || clienteData.vendedor_id === currentUser.id;
+
+      if (!temAcesso) {
+        toast({
+          title: "Permissão negada",
+          description: "Você não tem permissão para criar vendas para este cliente.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
 
     try {
       const valorTotal = calcularTotal();
