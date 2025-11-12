@@ -6068,6 +6068,7 @@ export type Database = {
         Row: {
           agendada_para: string | null
           botoes: Json | null
+          botoes_interativos: Json | null
           confianca_analise: number | null
           contexto: Json | null
           conversa_id: string
@@ -6075,8 +6076,12 @@ export type Database = {
           corpo_original: string | null
           criado_em: string | null
           custo_envio: number | null
+          deletada: boolean | null
+          deletada_em: string | null
           direcao: string
           duracao_midia_segundos: number | null
+          editada: boolean | null
+          editada_em: string | null
           eh_lista: boolean | null
           eh_template: boolean | null
           endereco_localizacao: string | null
@@ -6094,6 +6099,7 @@ export type Database = {
           lista_opcoes: Json | null
           longitude: number | null
           mensagem_externa_id: string | null
+          mensagem_original: string | null
           mensagem_referencia_id: string | null
           metadata: Json | null
           mime_type: string | null
@@ -6102,6 +6108,7 @@ export type Database = {
           numero_de: string | null
           numero_para: string | null
           palavras_chave: string[] | null
+          reacoes: Json | null
           recebida_em: string | null
           resposta_botao: string | null
           resposta_lista: string | null
@@ -6118,6 +6125,7 @@ export type Database = {
           template_nome: string | null
           template_parametros: Json | null
           tentativas_envio: number | null
+          tipo_botao: string | null
           tipo_mensagem: string
           tipo_midia: string | null
           url_midia: string | null
@@ -6127,6 +6135,7 @@ export type Database = {
         Insert: {
           agendada_para?: string | null
           botoes?: Json | null
+          botoes_interativos?: Json | null
           confianca_analise?: number | null
           contexto?: Json | null
           conversa_id: string
@@ -6134,8 +6143,12 @@ export type Database = {
           corpo_original?: string | null
           criado_em?: string | null
           custo_envio?: number | null
+          deletada?: boolean | null
+          deletada_em?: string | null
           direcao: string
           duracao_midia_segundos?: number | null
+          editada?: boolean | null
+          editada_em?: string | null
           eh_lista?: boolean | null
           eh_template?: boolean | null
           endereco_localizacao?: string | null
@@ -6153,6 +6166,7 @@ export type Database = {
           lista_opcoes?: Json | null
           longitude?: number | null
           mensagem_externa_id?: string | null
+          mensagem_original?: string | null
           mensagem_referencia_id?: string | null
           metadata?: Json | null
           mime_type?: string | null
@@ -6161,6 +6175,7 @@ export type Database = {
           numero_de?: string | null
           numero_para?: string | null
           palavras_chave?: string[] | null
+          reacoes?: Json | null
           recebida_em?: string | null
           resposta_botao?: string | null
           resposta_lista?: string | null
@@ -6177,6 +6192,7 @@ export type Database = {
           template_nome?: string | null
           template_parametros?: Json | null
           tentativas_envio?: number | null
+          tipo_botao?: string | null
           tipo_mensagem?: string
           tipo_midia?: string | null
           url_midia?: string | null
@@ -6186,6 +6202,7 @@ export type Database = {
         Update: {
           agendada_para?: string | null
           botoes?: Json | null
+          botoes_interativos?: Json | null
           confianca_analise?: number | null
           contexto?: Json | null
           conversa_id?: string
@@ -6193,8 +6210,12 @@ export type Database = {
           corpo_original?: string | null
           criado_em?: string | null
           custo_envio?: number | null
+          deletada?: boolean | null
+          deletada_em?: string | null
           direcao?: string
           duracao_midia_segundos?: number | null
+          editada?: boolean | null
+          editada_em?: string | null
           eh_lista?: boolean | null
           eh_template?: boolean | null
           endereco_localizacao?: string | null
@@ -6212,6 +6233,7 @@ export type Database = {
           lista_opcoes?: Json | null
           longitude?: number | null
           mensagem_externa_id?: string | null
+          mensagem_original?: string | null
           mensagem_referencia_id?: string | null
           metadata?: Json | null
           mime_type?: string | null
@@ -6220,6 +6242,7 @@ export type Database = {
           numero_de?: string | null
           numero_para?: string | null
           palavras_chave?: string[] | null
+          reacoes?: Json | null
           recebida_em?: string | null
           resposta_botao?: string | null
           resposta_lista?: string | null
@@ -6236,6 +6259,7 @@ export type Database = {
           template_nome?: string | null
           template_parametros?: Json | null
           tentativas_envio?: number | null
+          tipo_botao?: string | null
           tipo_mensagem?: string
           tipo_midia?: string | null
           url_midia?: string | null

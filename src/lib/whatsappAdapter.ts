@@ -98,6 +98,7 @@ export class WhatsAppAdapter {
     else if (tipoMensagem === 'video') functionName = 'w-api-enviar-video';
     else if (tipoMensagem === 'audio') functionName = 'w-api-enviar-audio';
     else if (tipoMensagem === 'documento') functionName = 'w-api-enviar-documento';
+    else if (tipoMensagem === 'botoes') functionName = 'w-api-enviar-botoes';
 
     try {
       const { data, error } = await supabase.functions.invoke(functionName, {

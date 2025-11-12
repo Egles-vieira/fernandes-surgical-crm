@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Send, Paperclip, Phone, Video, MoreVertical, MessageSquare, Clock, CheckCheck, ChevronRight, Mail, Building2, Briefcase, Tag, TrendingUp, ExternalLink, AlertCircle, RotateCw, Image as ImageIcon, FileText, Mic } from "lucide-react";
+import { Send, Paperclip, Phone, Video, MoreVertical, MessageSquare, Clock, CheckCheck, ChevronRight, Mail, Building2, Briefcase, Tag, TrendingUp, ExternalLink, AlertCircle, RotateCw, Image as ImageIcon, FileText, Mic, ListIcon } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -17,6 +17,8 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import MediaUploader from "./MediaUploader";
 import AudioRecorder from "./AudioRecorder";
+import { MessageActions } from "./MessageActions";
+import { ButtonMessageBuilder } from "./ButtonMessageBuilder";
 import { Separator } from "@/components/ui/separator";
 interface ChatAreaProps {
   conversaId: string | null;
@@ -30,6 +32,7 @@ const ChatArea = ({
   const [detalhesOpen, setDetalhesOpen] = useState(false);
   const [showMediaUploader, setShowMediaUploader] = useState(false);
   const [showAudioRecorder, setShowAudioRecorder] = useState(false);
+  const [showButtonBuilder, setShowButtonBuilder] = useState(false);
   const [mediaType, setMediaType] = useState<'image' | 'video' | 'document'>('image');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const {
@@ -96,14 +99,18 @@ const ChatArea = ({
       urlMidia, 
       nomeArquivo, 
       mimeType,
-      duracaoAudio 
-    }: { 
+      duracaoAudio,
+      tipoBotao,
+      botoesInterativos
+    }: {
       corpo?: string; 
       tipoMensagem?: string;
       urlMidia?: string;
       nomeArquivo?: string;
       mimeType?: string;
       duracaoAudio?: number;
+      tipoBotao?: 'action' | 'list';
+      botoesInterativos?: any;
     }) => {
       if (!conversaId || !conversa) return;
 
@@ -126,6 +133,8 @@ const ChatArea = ({
         nome_arquivo: nomeArquivo,
         mime_type: mimeType,
         duracao_midia_segundos: duracaoAudio,
+        tipo_botao: tipoBotao,
+        botoes_interativos: botoesInterativos,
         status: 'pendente',
         enviada_por_usuario_id: (await supabase.auth.getUser()).data.user?.id
       }).select().single();
@@ -235,6 +244,73 @@ const ChatArea = ({
   const openMediaUploader = (type: 'image' | 'video' | 'document') => {
     setMediaType(type);
     setShowMediaUploader(true);
+  };
+
+  const handleSendButtons = (texto: string, tipoBotao: 'action' | 'list', botoesData: any) => {
+    enviarMensagemMutation.mutate({
+      corpo: texto,
+      tipoMensagem: 'botoes',
+      tipoBotao,
+      botoesInterativos: botoesData,
+    });
+    setShowButtonBuilder(false);
+  };
+
+  const handleReact = async (mensagemId: string, emoji: string) => {
+    try {
+      const { data } = await supabase.functions.invoke('w-api-reagir-mensagem', {
+        body: { mensagemId, emoji, acao: 'adicionar' },
+      });
+      
+      if (data?.success) {
+        queryClient.invalidateQueries({ queryKey: ['whatsapp-mensagens', conversaId] });
+        toast({ title: "Reação enviada!" });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Erro ao reagir",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleEdit = async (mensagemId: string, novoTexto: string) => {
+    try {
+      const { data } = await supabase.functions.invoke('w-api-editar-mensagem', {
+        body: { mensagemId, novoTexto },
+      });
+      
+      if (data?.success) {
+        queryClient.invalidateQueries({ queryKey: ['whatsapp-mensagens', conversaId] });
+        toast({ title: "Mensagem editada!" });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Erro ao editar",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDelete = async (mensagemId: string) => {
+    try {
+      const { data } = await supabase.functions.invoke('w-api-deletar-mensagem', {
+        body: { mensagemId },
+      });
+      
+      if (data?.success) {
+        queryClient.invalidateQueries({ queryKey: ['whatsapp-mensagens', conversaId] });
+        toast({ title: "Mensagem deletada!" });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Erro ao deletar",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -460,8 +536,20 @@ const ChatArea = ({
           {mensagens?.map(msg => {
           const isEnviada = msg.direcao === 'enviada';
           const isErro = msg.status === 'erro';
-          return <div key={msg.id} className={cn("flex flex-col gap-1", isEnviada ? "items-end" : "items-start")}>
-                <div className={cn("max-w-[70%] rounded-2xl overflow-hidden", isEnviada ? isErro ? "bg-destructive/10 border border-destructive/30" : "bg-gradient-to-br from-primary to-primary/90 text-primary-foreground" : "bg-muted")}>
+          const isDeletada = msg.deletada;
+          
+          if (isDeletada) {
+            return (
+              <div key={msg.id} className={cn("flex flex-col gap-1", isEnviada ? "items-end" : "items-start")}>
+                <div className="max-w-[70%] px-4 py-2 rounded-2xl bg-muted/50 italic text-muted-foreground text-sm">
+                  <span>🚫 Esta mensagem foi deletada</span>
+                </div>
+              </div>
+            );
+          }
+          
+          return <div key={msg.id} className={cn("flex flex-col gap-1 group", isEnviada ? "items-end" : "items-start")}>
+                <div className={cn("max-w-[70%] rounded-2xl overflow-hidden relative", isEnviada ? isErro ? "bg-destructive/10 border border-destructive/30" : "bg-gradient-to-br from-primary to-primary/90 text-primary-foreground" : "bg-muted")}>
                   {/* Preview de Mídia */}
                   {msg.tem_midia && msg.url_midia && (
                     <div className="w-full">
@@ -492,18 +580,46 @@ const ChatArea = ({
                   {msg.corpo && (
                     <div className="px-4 py-2">
                       <p className="text-sm whitespace-pre-wrap">{msg.corpo}</p>
+                      {msg.editada && (
+                        <p className="text-xs opacity-60 mt-1 italic">editada</p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Reações */}
+                  {msg.reacoes && Array.isArray(msg.reacoes) && msg.reacoes.length > 0 && (
+                    <div className="px-4 pb-2 flex flex-wrap gap-1">
+                      {(msg.reacoes as any[]).map((reacao: any, idx: number) => (
+                        <span key={idx} className="text-base bg-background/20 rounded-full px-2 py-0.5">
+                          {reacao.emoji}
+                        </span>
+                      ))}
                     </div>
                   )}
 
                   {/* Timestamp e Status */}
-                  <div className="px-4 pb-2 flex items-center justify-end gap-1">
-                    <span className="text-xs opacity-70">
-                      {format(new Date(msg.criado_em), 'HH:mm', {
-                    locale: ptBR
-                  })}
-                    </span>
-                    {isEnviada && !isErro && <CheckCheck className={cn("w-4 h-4", msg.status === 'lida' ? "text-blue-400" : "opacity-70")} />}
-                    {isErro && <AlertCircle className="w-4 h-4 text-destructive" />}
+                  <div className="px-4 pb-2 flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1">
+                      <span className="text-xs opacity-70">
+                        {format(new Date(msg.criado_em), 'HH:mm', {
+                      locale: ptBR
+                    })}
+                      </span>
+                      {isEnviada && !isErro && <CheckCheck className={cn("w-4 h-4", msg.status === 'lida' ? "text-blue-400" : "opacity-70")} />}
+                      {isErro && <AlertCircle className="w-4 h-4 text-destructive" />}
+                    </div>
+                    
+                    {/* Ações da mensagem */}
+                    {isWAPI && !isDeletada && (
+                      <MessageActions
+                        messageId={msg.id}
+                        messageContent={msg.corpo || ''}
+                        isOwnMessage={isEnviada}
+                        onReact={(emoji) => handleReact(msg.id, emoji)}
+                        onEdit={(newText) => handleEdit(msg.id, newText)}
+                        onDelete={() => handleDelete(msg.id)}
+                      />
+                    )}
                   </div>
                 </div>
                 
@@ -555,6 +671,13 @@ const ChatArea = ({
           />
         )}
 
+        {/* Button Message Builder */}
+        <ButtonMessageBuilder
+          open={showButtonBuilder}
+          onOpenChange={setShowButtonBuilder}
+          onSend={handleSendButtons}
+        />
+
         {/* Input Area */}
         <div className="flex gap-2">
           <DropdownMenu>
@@ -563,7 +686,7 @@ const ChatArea = ({
                 <Paperclip className="w-5 h-5" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-48">
+            <DropdownMenuContent align="start" className="w-56">
               <DropdownMenuItem onClick={() => openMediaUploader('image')}>
                 <ImageIcon className="w-4 h-4 mr-2" />
                 Enviar Imagem
@@ -580,6 +703,12 @@ const ChatArea = ({
                 <FileText className="w-4 h-4 mr-2" />
                 Enviar Documento
               </DropdownMenuItem>
+              {isWAPI && (
+                <DropdownMenuItem onClick={() => setShowButtonBuilder(true)}>
+                  <ListIcon className="w-4 h-4 mr-2" />
+                  Mensagem com Botões
+                </DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
           
