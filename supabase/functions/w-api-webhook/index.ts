@@ -81,6 +81,23 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
     return numero.replace(/\D/g, ''); // Remove tudo exceto dígitos
   };
 
+  // Mapear tipo de mensagem do provedor para os valores aceitos no banco
+  const mapTipoMensagem = (src: any): string => {
+    try {
+      const m = src?.message || src?.msgContent || {};
+      if (m.imageMessage) return 'imagem';
+      if (m.videoMessage) return 'video';
+      if (m.audioMessage) return 'audio';
+      if (m.documentMessage) return 'documento';
+      if (m.locationMessage) return 'localizacao';
+      if (m.contactMessage) return 'contato';
+      // Texto como padrão
+      return 'texto';
+    } catch {
+      return 'texto';
+    }
+  };
+
   const instanceId = payload.instanceId || payload.data?.instanceId;
   const isNewSchema = payload.event === 'webhookReceived';
   
@@ -98,14 +115,14 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
     messageId = messageData.key.id;
     pushName = messageData.pushName || numeroRemetente;
     messageText = messageData.message?.conversation || messageData.message?.extendedTextMessage?.text || '';
-    messageType = messageData.messageType || 'text';
+    messageType = mapTipoMensagem(messageData);
     timestamp = new Date(messageData.messageTimestamp * 1000).toISOString();
   } else {
     numeroRemetente = (payload.sender?.id || payload.chat?.id || '').replace(/\D/g, '');
     messageId = payload.messageId || crypto.randomUUID();
     pushName = payload.sender?.pushName || numeroRemetente;
     messageText = payload.msgContent?.conversation || '';
-    messageType = 'text';
+    messageType = mapTipoMensagem(payload);
     timestamp = payload.moment ? new Date(payload.moment * 1000).toISOString() : new Date().toISOString();
   }
 
