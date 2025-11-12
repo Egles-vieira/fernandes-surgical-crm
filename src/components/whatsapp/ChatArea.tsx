@@ -23,10 +23,12 @@ import { Separator } from "@/components/ui/separator";
 interface ChatAreaProps {
   conversaId: string | null;
   contaId: string;
+  onSolicitarConexao?: () => void;
 }
 const ChatArea = ({
   conversaId,
-  contaId
+  contaId,
+  onSolicitarConexao
 }: ChatAreaProps) => {
   const [mensagem, setMensagem] = useState("");
   const [detalhesOpen, setDetalhesOpen] = useState(false);
@@ -156,6 +158,12 @@ const ChatArea = ({
             erro_mensagem: functionError instanceof Error ? functionError.message : 'Erro desconhecido',
             status_falhou_em: new Date().toISOString(),
           }).eq('id', data.id);
+
+          // Se estiver desconectado, solicitar reconexão
+          const msg = (functionError as any)?.message ? String((functionError as any).message) : String(functionError);
+          if (msg.includes('Instância desconectada')) {
+            onSolicitarConexao?.();
+          }
           
           throw functionError;
         }

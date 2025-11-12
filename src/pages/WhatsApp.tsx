@@ -107,7 +107,7 @@ const WhatsApp = () => {
             </div>
             
             {conversaSelecionada && <div className="col-span-8 h-full min-h-0">
-                <ChatArea conversaId={conversaSelecionada} contaId={contaAtiva.id} />
+                <ChatArea conversaId={conversaSelecionada} contaId={contaAtiva.id} onSolicitarConexao={() => setConectarDialogOpen(true)} />
               </div>}
             
             {!conversaSelecionada && <div className="col-span-8 flex items-center justify-center h-full min-h-0">
