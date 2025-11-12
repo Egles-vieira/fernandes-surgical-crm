@@ -52,7 +52,7 @@ export function UsuariosFilters({
         <SelectContent>
           <SelectItem value="todos">Todas as permissões</SelectItem>
           <SelectItem value="admin">Administrador</SelectItem>
-          <SelectItem value="lider">Líder de Equipe</SelectItem>
+          <SelectItem value="lider">Líder / Coordenador</SelectItem>
           <SelectItem value="manager">Gerente</SelectItem>
           <SelectItem value="sales">Representante Comercial</SelectItem>
           <SelectItem value="backoffice">Backoffice</SelectItem>

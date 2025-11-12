@@ -25,7 +25,7 @@ const AVAILABLE_ROLES: { value: AppRole; label: string; color: string }[] = [
   },
   {
     value: "lider",
-    label: "Líder de Equipe",
+    label: "Líder / Coordenador",
     color: "bg-secondary",
   },
   {
@@ -35,7 +35,7 @@ const AVAILABLE_ROLES: { value: AppRole; label: string; color: string }[] = [
   },
   {
     value: "sales",
-    label: "Vendedor",
+    label: "Representante Comercial",
     color: "bg-primary",
   },
   {
