@@ -388,11 +388,21 @@ export default function Vendas() {
       return;
     }
 
-    // Validação do CNPJ/CPF
-    if (!clienteCnpj || clienteCnpj.trim() === "") {
+    // Normalizar CNPJ/CPF - remover todos os caracteres não numéricos
+    const clienteCnpjNormalizado = clienteCnpj?.replace(/\D/g, '') || '';
+
+    console.log('📋 Normalização de CNPJ:', {
+      clienteCnpjOriginal: clienteCnpj,
+      clienteCnpjNormalizado,
+      tamanho: clienteCnpjNormalizado.length,
+      ehValido: clienteCnpjNormalizado.length >= 11,
+    });
+
+    // Validação do CNPJ/CPF normalizado
+    if (!clienteCnpjNormalizado || clienteCnpjNormalizado.length < 11) {
       toast({
-        title: "Erro",
-        description: "Selecione um cliente com CNPJ/CPF válido",
+        title: "Erro de validação",
+        description: "O CNPJ/CPF do cliente é obrigatório e deve ter no mínimo 11 dígitos.",
         variant: "destructive",
       });
       return;
@@ -429,13 +439,14 @@ export default function Vendas() {
     if (!editandoVendaId && !isAdmin) {
       const { data: temAcesso, error: erroAcesso } = await supabase.rpc("can_access_cliente_por_cgc", {
         _user_id: currentUser.id, // SEMPRE valida auth.uid()
-        _cgc: clienteCnpj,
+        _cgc: clienteCnpjNormalizado, // Usar CNPJ normalizado
       });
 
-      console.log("🔍 Validação de dono do cliente:", {
+      console.log("🔍 Validação de acesso ao cliente:", {
         currentUserId: currentUser.id,
         currentUserEmail: currentUser.email,
-        clienteCnpj,
+        clienteCnpjOriginal: clienteCnpj,
+        clienteCnpjNormalizado,
         clienteNome,
         temAcessoComoDono: temAcesso,
         isAdmin,
@@ -466,7 +477,7 @@ export default function Vendas() {
           id: editandoVendaId,
           numero_venda: numeroVenda,
           cliente_nome: clienteNome,
-          cliente_cnpj: clienteCnpj || null,
+          cliente_cnpj: clienteCnpjNormalizado, // Usar CNPJ normalizado
           valor_total: valorTotal,
           desconto: 0,
           valor_final: valorTotal,
@@ -534,7 +545,8 @@ export default function Vendas() {
           userRoles: userRoles?.map((r) => r.role),
           isAdmin,
           finalVendedorId,
-          clienteCnpj,
+          clienteCnpjOriginal: clienteCnpj,
+          clienteCnpjNormalizado,
           clienteNome,
           etapaPipeline,
           status,
@@ -544,7 +556,7 @@ export default function Vendas() {
         const venda = await createVenda.mutateAsync({
           numero_venda: numeroVenda,
           cliente_nome: clienteNome,
-          cliente_cnpj: clienteCnpj || null,
+          cliente_cnpj: clienteCnpjNormalizado, // Usar CNPJ normalizado
           valor_total: valorTotal,
           desconto: 0,
           valor_final: valorTotal,
