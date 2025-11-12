@@ -101,7 +101,10 @@ const NovaConversaDialog = ({
         return { conversaId: conversaExistente.id, nova: false };
       }
 
-      // 5. Criar nova conversa
+      // 5. Criar nova conversa COM janela de 24h ativa
+      const agora = new Date();
+      const janela24hFim = new Date(agora.getTime() + 24 * 60 * 60 * 1000); // +24 horas
+
       const { data: novaConversa, error: conversaError } = await supabase
         .from('whatsapp_conversas')
         .insert({
@@ -110,6 +113,10 @@ const NovaConversaDialog = ({
           titulo: nomeContato || `Conversa com ${numeroCompleto}`,
           status: 'aberta',
           atribuida_para_id: user.data.user.id,
+          janela_24h_ativa: true,
+          janela_aberta_em: agora.toISOString(),
+          janela_fecha_em: janela24hFim.toISOString(),
+          ultima_mensagem_em: agora.toISOString(),
         })
         .select('id')
         .single();
