@@ -46,6 +46,8 @@ export function useWhatsAppConfig() {
       }
 
       // Inserir nova config
+      const { data: { user } } = await supabase.auth.getUser();
+      
       const { data, error } = await supabase
         .from('whatsapp_configuracao_global')
         .insert({
@@ -53,6 +55,7 @@ export function useWhatsAppConfig() {
           provedor_ativo: novaConfig.provedor_ativo,
           esta_ativo: true,
           observacoes: novaConfig.observacoes,
+          configurado_por: user?.id,
         } as any)
         .select()
         .single();
