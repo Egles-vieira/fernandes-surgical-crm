@@ -45,7 +45,7 @@ export default function Vendas() {
   const { tipos: tiposFrete, isLoading: isLoadingTiposFrete } = useTiposFrete();
   const { tipos: tiposPedido, isLoading: isLoadingTiposPedido } = useTiposPedido();
   const { vendedores, isLoading: isLoadingVendedores } = useVendedores();
-  const { ehGestor, subordinados, nivelHierarquico } = useHierarquia();
+  const { ehGestor, subordinados, nivelHierarquico, podeAcessarCliente } = useHierarquia();
   const { user } = useAuth();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
@@ -569,6 +569,16 @@ export default function Vendas() {
           status,
           nivelHierarquico,
         });
+        // Verificação prévia de permissão para evitar erro de RLS
+        const podeCriar = clienteId ? await podeAcessarCliente?.(clienteId) : false;
+        if (!podeCriar) {
+          toast({
+            title: "Sem permissão",
+            description: "Você não tem acesso a este cliente para criar vendas.",
+            variant: "destructive",
+          });
+          return;
+        }
 
         const venda = await createVenda.mutateAsync({
           numero_venda: numeroVenda,
@@ -590,7 +600,7 @@ export default function Vendas() {
           data_fechamento_prevista: dataFechamentoPrevista || null,
           motivo_perda: motivoPerda || null,
           origem_lead: origemLead || null,
-          responsavel_id: responsavelId || null,
+          responsavel_id: finalVendedorId, // Garante compatibilidade com RLS (criador é o responsável)
           vendedor_id: finalVendedorId, // Sempre tem valor: selecionado ou atual
           equipe_id: equipeId, // Equipe do vendedor
         });
