@@ -66,6 +66,40 @@ Deno.serve(async (req) => {
       throw new Error('Conta não é do provedor W-API');
     }
 
+    // Verificar status da instância antes de enviar
+    const statusResp = await fetch(
+      `https://api.w-api.app/v1/instance/status-instance?instanceId=${conta.instance_id_wapi}`,
+      {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${conta.token_wapi}`,
+        }
+      }
+    );
+    const statusData = await statusResp.json().catch(() => ({}));
+    console.log('🔌 Status instância W-API:', { status: statusResp.status, ok: statusResp.ok, data: statusData });
+
+    if (!statusResp.ok || statusData.connected === false) {
+      const msg = !statusResp.ok 
+        ? `Falha ao consultar status da instância (HTTP ${statusResp.status})`
+        : 'Instância desconectada do WhatsApp no provedor W-API';
+
+      await supabase
+        .from('whatsapp_mensagens')
+        .update({
+          status: 'erro',
+          erro_mensagem: msg,
+          erro_codigo: statusResp.status || null,
+          status_falhou_em: new Date().toISOString(),
+        })
+        .eq('id', mensagemId);
+
+      return new Response(JSON.stringify({ error: msg, statusData }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     // Formatar número para W-API (somente dígitos, com DDI)
     let numeroDestino = (contato.numero_whatsapp || '').replace(/\D/g, '');
     if (!numeroDestino.startsWith('55')) {
