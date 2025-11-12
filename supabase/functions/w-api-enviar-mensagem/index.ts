@@ -11,22 +11,23 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    );
 
     const { mensagemId } = await req.json();
 
-    // Validar que o sistema está em modo Gupshup
+    // Validar que o sistema está em modo W-API
     const { data: config } = await supabase
       .from('whatsapp_configuracao_global')
       .select('modo_api, provedor_ativo')
       .eq('esta_ativo', true)
       .single();
 
-    if (config?.modo_api !== 'oficial' || config?.provedor_ativo !== 'gupshup') {
+    if (config?.modo_api !== 'nao_oficial' || config?.provedor_ativo !== 'w_api') {
       return new Response(
-        JSON.stringify({ error: 'Sistema não está em modo Gupshup' }),
+        JSON.stringify({ error: 'Sistema não está em modo W-API' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -37,9 +38,8 @@ Deno.serve(async (req) => {
       .select(`
         *,
         whatsapp_contas (
-          api_key_gupshup,
-          app_id_gupshup,
-          phone_number_id_gupshup,
+          instance_id_wapi,
+          token_wapi,
           provedor
         ),
         whatsapp_contatos (
@@ -51,7 +51,7 @@ Deno.serve(async (req) => {
       .single();
 
     if (mensagemError || !mensagem) {
-      console.error('Mensagem não encontrada:', mensagemError);
+      console.error('❌ Mensagem não encontrada:', mensagemError);
       throw new Error('Mensagem não encontrada');
     }
 
@@ -62,44 +62,41 @@ Deno.serve(async (req) => {
       throw new Error('Conta ou contato não encontrado');
     }
 
-    if (conta.provedor !== 'gupshup') {
-      throw new Error('Conta não é do provedor Gupshup');
+    if (conta.provedor !== 'w_api') {
+      throw new Error('Conta não é do provedor W-API');
     }
 
-    // Formatar payload para Gupshup
-    const gupshupPayload = {
-      channel: "whatsapp",
-      source: conta.phone_number_id,
-      destination: contato.numero_whatsapp,
-      message: {
-        type: "text",
-        text: mensagem.corpo
-      }
+    // Formatar payload para W-API
+    const wapiPayload = {
+      phone: contato.numero_whatsapp,
+      message: mensagem.corpo,
+      delayMessage: 3  // delay de 3 segundos (padrão)
     };
 
-    console.log('Enviando mensagem para Gupshup:', {
-      appId: conta.app_id,
-      destination: contato.numero_whatsapp
+    console.log('📤 Enviando mensagem para W-API:', {
+      instanceId: conta.instance_id_wapi,
+      phone: contato.numero_whatsapp,
+      messageLength: mensagem.corpo.length
     });
 
-    // Enviar mensagem via API Gupshup
-    const gupshupResponse = await fetch(
-      `https://api.gupshup.io/wa/app/${conta.app_id}/msg`,
+    // Enviar mensagem via W-API
+    const wapiResponse = await fetch(
+      `https://api.w-api.app/v1/message/send-text?instanceId=${conta.instance_id_wapi}`,
       {
         method: 'POST',
         headers: {
-          'apikey': conta.api_key,
+          'Authorization': `Bearer ${conta.token_wapi}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(gupshupPayload),
+        body: JSON.stringify(wapiPayload),
       }
     );
 
-    const responseData = await gupshupResponse.json();
-    console.log('Resposta Gupshup:', responseData);
+    const responseData = await wapiResponse.json();
+    console.log('📥 Resposta W-API:', responseData);
 
-    if (!gupshupResponse.ok) {
-      console.error('Erro ao enviar mensagem:', responseData);
+    if (!wapiResponse.ok || responseData.error) {
+      console.error('❌ Erro ao enviar via W-API:', responseData);
       
       // Atualizar status para erro
       await supabase
@@ -111,42 +108,35 @@ Deno.serve(async (req) => {
         })
         .eq('id', mensagemId);
 
-      throw new Error(`Erro Gupshup: ${responseData.message || 'Erro desconhecido'}`);
+      throw new Error(`Erro W-API: ${responseData.message || 'Erro desconhecido'}`);
     }
 
     // Atualizar mensagem com sucesso
-    const { error: updateError } = await supabase
+    await supabase
       .from('whatsapp_mensagens')
       .update({
         status: 'enviada',
-        id_mensagem_externa: responseData.messageId || responseData.id,
+        id_mensagem_externa: responseData.messageId,
         enviada_em: new Date().toISOString(),
         atualizado_em: new Date().toISOString(),
       })
       .eq('id', mensagemId);
 
-    if (updateError) {
-      console.error('Erro ao atualizar mensagem:', updateError);
-    }
-
     return new Response(
       JSON.stringify({ 
         success: true, 
-        messageId: responseData.messageId || responseData.id,
-        status: responseData.status 
+        messageId: responseData.messageId,
+        insertedId: responseData.insertedId 
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
-    console.error('Erro na função gupshup-enviar-mensagem:', error);
+    console.error('❌ Erro na função w-api-enviar-mensagem:', error);
     const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
     return new Response(
       JSON.stringify({ error: errorMessage }),
-      { 
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      }
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });

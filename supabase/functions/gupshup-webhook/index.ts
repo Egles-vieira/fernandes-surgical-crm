@@ -70,6 +70,21 @@ Deno.serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+    // Validar que o sistema está em modo Gupshup
+    const { data: config } = await supabase
+      .from('whatsapp_configuracao_global')
+      .select('modo_api, provedor_ativo')
+      .eq('esta_ativo', true)
+      .single();
+
+    if (config?.modo_api !== 'oficial' || config?.provedor_ativo !== 'gupshup') {
+      console.warn('⚠️ Sistema não está configurado para Gupshup');
+      return new Response(
+        JSON.stringify({ error: 'Sistema não está configurado para Gupshup' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const payload = await req.json();
     console.log('Webhook Gupshup recebido:', JSON.stringify(payload, null, 2));
 
@@ -126,7 +141,8 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
   const { data: conta } = await supabase
     .from('whatsapp_contas')
     .select('id')
-    .eq('phone_number_id', numeroDestinatario)
+    .eq('phone_number_id_gupshup', numeroDestinatario)
+    .eq('provedor', 'gupshup')
     .eq('status', 'ativo')
     .single();
 

@@ -44,12 +44,18 @@ const contaSchema = z.object({
     .trim()
     .regex(/^\+?[1-9]\d{1,14}$/, "Número deve estar no formato internacional (ex: +5511999999999)")
     .max(20, "Número muito longo"),
-  provider: z.enum(["twilio", "meta", "360dialog", "messagebird", "gupshup"]),
+  provider: z.enum(["gupshup", "w_api"]),
+  provedor: z.enum(["gupshup", "w_api"]).default("gupshup"),
+  // Gupshup
+  app_id_gupshup: z.string().trim().max(255).optional(),
+  api_key_gupshup: z.string().trim().max(255).optional(),
+  phone_number_id_gupshup: z.string().trim().max(255).optional(),
+  // W-API
+  instance_id_wapi: z.string().trim().max(255).optional(),
+  token_wapi: z.string().trim().max(255).optional(),
+  // Outros
   account_sid: z.string().trim().max(255).optional(),
   business_account_id: z.string().trim().max(255).optional(),
-  phone_number_id: z.string().trim().max(255).optional(),
-  app_id: z.string().trim().max(255).optional(),
-  api_key: z.string().trim().max(255).optional(),
   nome_exibicao: z.string().trim().max(150).optional(),
   descricao_negocio: z.string().trim().max(1000).optional(),
   categoria_negocio: z.string().trim().max(100).optional(),
@@ -80,11 +86,14 @@ const NovaContaDialog = ({ open, onOpenChange, conta }: NovaContaDialogProps) =>
       nome_conta: conta?.nome_conta || "",
       numero_whatsapp: conta?.numero_whatsapp || "",
       provider: conta?.provider || "gupshup",
+      provedor: conta?.provedor || "gupshup",
       account_sid: conta?.account_sid || "",
       business_account_id: conta?.business_account_id || "",
-      phone_number_id: conta?.phone_number_id || "",
-      app_id: conta?.app_id || "",
-      api_key: conta?.api_key || "",
+      phone_number_id_gupshup: conta?.phone_number_id_gupshup || "",
+      app_id_gupshup: conta?.app_id_gupshup || "",
+      api_key_gupshup: conta?.api_key_gupshup || "",
+      instance_id_wapi: conta?.instance_id_wapi || "",
+      token_wapi: conta?.token_wapi || "",
       nome_exibicao: conta?.nome_exibicao || "",
       descricao_negocio: conta?.descricao_negocio || "",
       categoria_negocio: conta?.categoria_negocio || "",
@@ -108,11 +117,14 @@ const NovaContaDialog = ({ open, onOpenChange, conta }: NovaContaDialogProps) =>
             nome_conta: data.nome_conta,
             numero_whatsapp: data.numero_whatsapp,
             provider: data.provider,
+            provedor: data.provedor,
             account_sid: data.account_sid || null,
             business_account_id: data.business_account_id || null,
-            phone_number_id: data.phone_number_id || null,
-            app_id: data.app_id || null,
-            api_key: data.api_key || null,
+            phone_number_id_gupshup: data.phone_number_id_gupshup || null,
+            app_id_gupshup: data.app_id_gupshup || null,
+            api_key_gupshup: data.api_key_gupshup || null,
+            instance_id_wapi: data.instance_id_wapi || null,
+            token_wapi: data.token_wapi || null,
             nome_exibicao: data.nome_exibicao || null,
             descricao_negocio: data.descricao_negocio || null,
             categoria_negocio: data.categoria_negocio || null,
@@ -122,7 +134,7 @@ const NovaContaDialog = ({ open, onOpenChange, conta }: NovaContaDialogProps) =>
             limite_mensagens_dia: data.limite_mensagens_dia,
             resposta_automatica_ativa: data.resposta_automatica_ativa,
             mensagem_fora_horario: data.mensagem_fora_horario || null,
-          })
+          } as any)
           .eq('id', conta.id)
           .select()
           .single();
@@ -136,11 +148,14 @@ const NovaContaDialog = ({ open, onOpenChange, conta }: NovaContaDialogProps) =>
             nome_conta: data.nome_conta,
             numero_whatsapp: data.numero_whatsapp,
             provider: data.provider,
+            provedor: data.provedor,
             account_sid: data.account_sid || null,
             business_account_id: data.business_account_id || null,
-            phone_number_id: data.phone_number_id || null,
-            app_id: data.app_id || null,
-            api_key: data.api_key || null,
+            phone_number_id_gupshup: data.phone_number_id_gupshup || null,
+            app_id_gupshup: data.app_id_gupshup || null,
+            api_key_gupshup: data.api_key_gupshup || null,
+            instance_id_wapi: data.instance_id_wapi || null,
+            token_wapi: data.token_wapi || null,
             nome_exibicao: data.nome_exibicao || null,
             descricao_negocio: data.descricao_negocio || null,
             categoria_negocio: data.categoria_negocio || null,
@@ -152,7 +167,7 @@ const NovaContaDialog = ({ open, onOpenChange, conta }: NovaContaDialogProps) =>
             mensagem_fora_horario: data.mensagem_fora_horario || null,
             criado_por: user.data.user?.id!,
             status: 'ativo',
-          }])
+          }] as any)
           .select()
           .single();
 
@@ -244,18 +259,18 @@ const NovaContaDialog = ({ open, onOpenChange, conta }: NovaContaDialogProps) =>
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Provider *</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
+                    <Select onValueChange={(value) => {
+                      field.onChange(value);
+                      form.setValue('provedor', value as 'gupshup' | 'w_api');
+                    }} value={field.value} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Selecione o provider" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="gupshup">Gupshup</SelectItem>
-                        <SelectItem value="meta">Meta (Facebook)</SelectItem>
-                        <SelectItem value="twilio">Twilio</SelectItem>
-                        <SelectItem value="360dialog">360Dialog</SelectItem>
-                        <SelectItem value="messagebird">MessageBird</SelectItem>
+                        <SelectItem value="gupshup">Gupshup (API Oficial)</SelectItem>
+                        <SelectItem value="w_api">W-API (API Não Oficial)</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -272,7 +287,7 @@ const NovaContaDialog = ({ open, onOpenChange, conta }: NovaContaDialogProps) =>
                 <>
                   <FormField
                     control={form.control}
-                    name="app_id"
+                    name="app_id_gupshup"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>App ID (Gupshup) *</FormLabel>
@@ -289,7 +304,7 @@ const NovaContaDialog = ({ open, onOpenChange, conta }: NovaContaDialogProps) =>
 
                   <FormField
                     control={form.control}
-                    name="api_key"
+                    name="api_key_gupshup"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>API Key (Gupshup) *</FormLabel>
@@ -306,7 +321,7 @@ const NovaContaDialog = ({ open, onOpenChange, conta }: NovaContaDialogProps) =>
 
                   <FormField
                     control={form.control}
-                    name="phone_number_id"
+                    name="phone_number_id_gupshup"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Phone Number ID (Gupshup)</FormLabel>
@@ -321,10 +336,10 @@ const NovaContaDialog = ({ open, onOpenChange, conta }: NovaContaDialogProps) =>
                     )}
                   />
 
-                  <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
-                    <p className="text-sm text-blue-900">
+                  <div className="rounded-lg border border-blue-200 bg-blue-50 dark:bg-blue-950 dark:border-blue-800 p-4">
+                    <p className="text-sm text-blue-900 dark:text-blue-100">
                       <strong>URL do Webhook:</strong><br/>
-                      <code className="text-xs bg-blue-100 px-2 py-1 rounded">
+                      <code className="text-xs bg-blue-100 dark:bg-blue-900 px-2 py-1 rounded">
                         https://rzzzfprgnoywmmjwepzm.supabase.co/functions/v1/gupshup-webhook
                       </code>
                       <br/><br/>
@@ -334,33 +349,20 @@ const NovaContaDialog = ({ open, onOpenChange, conta }: NovaContaDialogProps) =>
                 </>
               )}
 
-              {form.watch("provider") === "twilio" && (
-                <FormField
-                  control={form.control}
-                  name="account_sid"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Account SID (Twilio)</FormLabel>
-                      <FormControl>
-                        <Input type="password" placeholder="AC..." {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
-
-              {form.watch("provider") === "meta" && (
+              {form.watch("provider") === "w_api" && (
                 <>
                   <FormField
                     control={form.control}
-                    name="business_account_id"
+                    name="instance_id_wapi"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Business Account ID (Meta)</FormLabel>
+                        <FormLabel>Instance ID (W-API) *</FormLabel>
                         <FormControl>
-                          <Input type="password" {...field} />
+                          <Input placeholder="Seu Instance ID do W-API" {...field} />
                         </FormControl>
+                        <FormDescription>
+                          ID da instância no painel do W-API
+                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -368,17 +370,37 @@ const NovaContaDialog = ({ open, onOpenChange, conta }: NovaContaDialogProps) =>
 
                   <FormField
                     control={form.control}
-                    name="phone_number_id"
+                    name="token_wapi"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Phone Number ID (Meta)</FormLabel>
+                        <FormLabel>Token (W-API) *</FormLabel>
                         <FormControl>
-                          <Input type="password" {...field} />
+                          <Input type="password" placeholder="Seu token do W-API" {...field} />
                         </FormControl>
+                        <FormDescription>
+                          Bearer Token obtido no painel do W-API
+                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
+
+                  <div className="rounded-lg border border-purple-200 bg-purple-50 dark:bg-purple-950 dark:border-purple-800 p-4">
+                    <p className="text-sm text-purple-900 dark:text-purple-100">
+                      <strong>URLs dos Webhooks W-API:</strong><br/>
+                      <code className="text-xs bg-purple-100 dark:bg-purple-900 px-2 py-1 rounded block mt-2">
+                        https://rzzzfprgnoywmmjwepzm.supabase.co/functions/v1/w-api-webhook
+                      </code>
+                      <br/>
+                      Configure esta URL para todos os tipos de webhook no painel do W-API:
+                      <ul className="list-disc list-inside mt-2 text-xs">
+                        <li>Ao receber mensagens</li>
+                        <li>Atualização no status de mensagens</li>
+                        <li>Quando a instância conectar</li>
+                        <li>Quando a instância desconectar</li>
+                      </ul>
+                    </p>
+                  </div>
                 </>
               )}
             </div>

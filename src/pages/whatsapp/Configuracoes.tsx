@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Settings, Plus } from "lucide-react";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ContasWhatsAppList from "@/components/whatsapp/config/ContasWhatsAppList";
@@ -40,12 +40,30 @@ const ConfiguracoesWhatsApp = () => {
           </div>
         </div>
 
-        <Tabs defaultValue="contas" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 lg:w-[400px]">
+        <Tabs defaultValue="global" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4 lg:w-[520px]">
+            <TabsTrigger value="global">Config Global</TabsTrigger>
             <TabsTrigger value="contas">Contas</TabsTrigger>
             <TabsTrigger value="templates">Templates</TabsTrigger>
-            <TabsTrigger value="respostas">Respostas Rápidas</TabsTrigger>
+            <TabsTrigger value="respostas">Respostas</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="global">
+            <Card>
+              <CardHeader>
+                <CardTitle>Modo de Operação WhatsApp</CardTitle>
+                <CardDescription>
+                  Configure qual provedor de API o sistema deve utilizar
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button onClick={() => window.location.href = '/whatsapp/configuracao-global'}>
+                  <Settings className="w-4 h-4 mr-2" />
+                  Gerenciar Configuração Global
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           <TabsContent value="contas">
             <ContasWhatsAppList />

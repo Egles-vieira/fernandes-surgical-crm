@@ -151,6 +151,9 @@ const ContasWhatsAppList = () => {
                       <div className="flex items-center gap-2 mb-1">
                         <h3 className="text-lg font-semibold">{conta.nome_conta}</h3>
                         {getStatusBadge(conta.status)}
+                        <Badge variant={conta.provedor === 'gupshup' ? 'default' : 'secondary'}>
+                          {conta.provedor === 'gupshup' ? '🏢 Gupshup' : '🔌 W-API'}
+                        </Badge>
                         {conta.verificada && (
                           <Badge variant="outline" className="gap-1">
                             <CheckCircle2 className="w-3 h-3 text-green-500" />

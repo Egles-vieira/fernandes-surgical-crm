@@ -5592,11 +5592,41 @@ export type Database = {
           },
         ]
       }
+      whatsapp_configuracao_global: {
+        Row: {
+          configurado_em: string | null
+          configurado_por: string
+          esta_ativo: boolean | null
+          id: string
+          modo_api: string
+          observacoes: string | null
+          provedor_ativo: string
+        }
+        Insert: {
+          configurado_em?: string | null
+          configurado_por: string
+          esta_ativo?: boolean | null
+          id?: string
+          modo_api: string
+          observacoes?: string | null
+          provedor_ativo: string
+        }
+        Update: {
+          configurado_em?: string | null
+          configurado_por?: string
+          esta_ativo?: boolean | null
+          id?: string
+          modo_api?: string
+          observacoes?: string | null
+          provedor_ativo?: string
+        }
+        Relationships: []
+      }
       whatsapp_contas: {
         Row: {
           account_sid: string | null
-          api_key: string | null
-          app_id: string | null
+          api_key_gupshup: string | null
+          app_id_gupshup: string | null
           atualizado_em: string | null
           business_account_id: string | null
           categoria_negocio: string | null
@@ -5611,29 +5641,37 @@ export type Database = {
           foto_perfil_url: string | null
           horario_atendimento: Json | null
           id: string
+          instance_id_wapi: string | null
           limite_mensagens_dia: number | null
           mensagem_fora_horario: string | null
           nome_conta: string
           nome_exibicao: string | null
           numero_whatsapp: string
-          phone_number_id: string | null
+          phone_number_id_gupshup: string | null
+          provedor: string
           provider: string
           qualidade_conta: string | null
           resposta_automatica_ativa: boolean | null
           site: string | null
           status: string | null
+          token_wapi: string | null
           total_conversas: number | null
           total_mensagens_enviadas: number | null
           total_mensagens_recebidas: number | null
           ultima_sincronizacao_em: string | null
           verificada: boolean | null
+          webhook_connected_url: string | null
+          webhook_delivery_url: string | null
+          webhook_disconnected_url: string | null
+          webhook_received_url: string | null
+          webhook_status_url: string | null
           webhook_url: string | null
           webhook_verificado: boolean | null
         }
         Insert: {
           account_sid?: string | null
-          api_key?: string | null
-          app_id?: string | null
+          api_key_gupshup?: string | null
+          app_id_gupshup?: string | null
           atualizado_em?: string | null
           business_account_id?: string | null
           categoria_negocio?: string | null
@@ -5648,29 +5686,37 @@ export type Database = {
           foto_perfil_url?: string | null
           horario_atendimento?: Json | null
           id?: string
+          instance_id_wapi?: string | null
           limite_mensagens_dia?: number | null
           mensagem_fora_horario?: string | null
           nome_conta: string
           nome_exibicao?: string | null
           numero_whatsapp: string
-          phone_number_id?: string | null
+          phone_number_id_gupshup?: string | null
+          provedor: string
           provider: string
           qualidade_conta?: string | null
           resposta_automatica_ativa?: boolean | null
           site?: string | null
           status?: string | null
+          token_wapi?: string | null
           total_conversas?: number | null
           total_mensagens_enviadas?: number | null
           total_mensagens_recebidas?: number | null
           ultima_sincronizacao_em?: string | null
           verificada?: boolean | null
+          webhook_connected_url?: string | null
+          webhook_delivery_url?: string | null
+          webhook_disconnected_url?: string | null
+          webhook_received_url?: string | null
+          webhook_status_url?: string | null
           webhook_url?: string | null
           webhook_verificado?: boolean | null
         }
         Update: {
           account_sid?: string | null
-          api_key?: string | null
-          app_id?: string | null
+          api_key_gupshup?: string | null
+          app_id_gupshup?: string | null
           atualizado_em?: string | null
           business_account_id?: string | null
           categoria_negocio?: string | null
@@ -5685,22 +5731,30 @@ export type Database = {
           foto_perfil_url?: string | null
           horario_atendimento?: Json | null
           id?: string
+          instance_id_wapi?: string | null
           limite_mensagens_dia?: number | null
           mensagem_fora_horario?: string | null
           nome_conta?: string
           nome_exibicao?: string | null
           numero_whatsapp?: string
-          phone_number_id?: string | null
+          phone_number_id_gupshup?: string | null
+          provedor?: string
           provider?: string
           qualidade_conta?: string | null
           resposta_automatica_ativa?: boolean | null
           site?: string | null
           status?: string | null
+          token_wapi?: string | null
           total_conversas?: number | null
           total_mensagens_enviadas?: number | null
           total_mensagens_recebidas?: number | null
           ultima_sincronizacao_em?: string | null
           verificada?: boolean | null
+          webhook_connected_url?: string | null
+          webhook_delivery_url?: string | null
+          webhook_disconnected_url?: string | null
+          webhook_received_url?: string | null
+          webhook_status_url?: string | null
           webhook_url?: string | null
           webhook_verificado?: boolean | null
         }
@@ -6416,7 +6470,7 @@ export type Database = {
           payload: Json
           processado: boolean | null
           processado_em: string | null
-          provider: string
+          provedor: string
           recebido_em: string | null
           tentativas_processamento: number | null
           tipo_evento: string
@@ -6432,7 +6486,7 @@ export type Database = {
           payload: Json
           processado?: boolean | null
           processado_em?: string | null
-          provider: string
+          provedor: string
           recebido_em?: string | null
           tentativas_processamento?: number | null
           tipo_evento: string
@@ -6448,7 +6502,7 @@ export type Database = {
           payload?: Json
           processado?: boolean | null
           processado_em?: string | null
-          provider?: string
+          provedor?: string
           recebido_em?: string | null
           tentativas_processamento?: number | null
           tipo_evento?: string

@@ -32,6 +32,7 @@ import SolicitacaoParticipacao from "./pages/licitacoes/SolicitacaoParticipacao"
 import ContratosGoverno from "./pages/licitacoes/ContratosGoverno";
 import WhatsApp from "./pages/WhatsApp";
 import ConfiguracoesWhatsApp from "./pages/whatsapp/Configuracoes";
+import ConfiguracaoGlobal from "./pages/whatsapp/ConfiguracaoGlobal";
 import URAs from "./pages/URAs";
 import URAEditor from "./pages/URAEditor";
 import Tickets from "./pages/Tickets";
@@ -185,6 +186,11 @@ const App = () => (
         <Route path="/whatsapp/configuracoes" element={<ProtectedRoute>
             <Layout>
               <ConfiguracoesWhatsApp />
+            </Layout>
+          </ProtectedRoute>} />
+        <Route path="/whatsapp/configuracao-global" element={<ProtectedRoute>
+            <Layout>
+              <ConfiguracaoGlobal />
             </Layout>
           </ProtectedRoute>} />
         <Route path="/uras" element={<ProtectedRoute>

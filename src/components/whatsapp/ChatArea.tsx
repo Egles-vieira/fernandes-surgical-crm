@@ -121,14 +121,13 @@ const ChatArea = ({ conversaId, contaId }: ChatAreaProps) => {
 
       if (error) throw error;
 
-      // Depois, chamar a edge function para enviar via Gupshup
+      // Depois, enviar via adapter (que decide Gupshup ou W-API)
       if (data) {
-        const { error: functionError } = await supabase.functions.invoke('gupshup-enviar-mensagem', {
-          body: { mensagemId: data.id }
-        });
-
-        if (functionError) {
-          console.error('Erro ao chamar edge function:', functionError);
+        try {
+          const { whatsappAdapter } = await import('@/lib/whatsappAdapter');
+          await whatsappAdapter.enviarMensagem(data.id);
+        } catch (functionError) {
+          console.error('Erro ao enviar via adapter:', functionError);
         }
       }
 
