@@ -6807,7 +6807,7 @@ export type Database = {
         }[]
       }
       get_funil_vendas: {
-        Args: { p_periodo_fim?: string; p_periodo_inicio?: string }
+        Args: { p_periodo_fim: string; p_periodo_inicio: string }
         Returns: {
           etapa: string
           quantidade: number
@@ -6815,7 +6815,7 @@ export type Database = {
         }[]
       }
       get_kpis_gerais_periodo: {
-        Args: { p_data_fim?: string; p_data_inicio?: string }
+        Args: { p_data_fim: string; p_data_inicio: string }
         Returns: {
           numero_equipes: number
           pacing: number
@@ -6830,7 +6830,7 @@ export type Database = {
       }
       get_nivel_hierarquico: { Args: { _user_id: string }; Returns: number }
       get_pacing_semanal: {
-        Args: { p_periodo_fim?: string; p_periodo_inicio?: string }
+        Args: { p_periodo_fim: string; p_periodo_inicio: string }
         Returns: {
           data_semana: string
           meta: number
