@@ -50,25 +50,69 @@ export class WhatsAppAdapter {
   private async enviarViaGupshup(mensagemId: string) {
     console.log('📤 Enviando via Gupshup...');
 
-    const { data, error } = await supabase.functions.invoke('gupshup-enviar-mensagem', {
-      body: { mensagemId }
-    });
-
-    if (error) throw error;
-    console.log('✅ Mensagem Gupshup enviada:', data);
-    return data;
+    try {
+      const { data, error } = await supabase.functions.invoke('gupshup-enviar-mensagem', {
+        body: { mensagemId }
+      });
+      if (error) throw error;
+      console.log('✅ Mensagem Gupshup enviada:', data);
+      return data;
+    } catch (err) {
+      console.warn('⚠️ Falha ao invocar via supabase.functions.invoke, tentando fallback HTTP (Gupshup)...', err);
+      // Fallback direto via URL completa
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/gupshup-enviar-mensagem`;
+      const { data: session } = await supabase.auth.getSession();
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.session?.access_token ?? ''}`,
+          'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        },
+        body: JSON.stringify({ mensagemId }),
+      });
+      if (!res.ok) {
+        const txt = await res.text();
+        throw new Error(`HTTP ${res.status} - ${txt}`);
+      }
+      const data = await res.json();
+      console.log('✅ Mensagem Gupshup enviada (fallback):', data);
+      return data;
+    }
   }
 
   private async enviarViaWAPI(mensagemId: string) {
     console.log('📤 Enviando via W-API...');
 
-    const { data, error } = await supabase.functions.invoke('w-api-enviar-mensagem', {
-      body: { mensagemId }
-    });
-
-    if (error) throw error;
-    console.log('✅ Mensagem W-API enviada:', data);
-    return data;
+    try {
+      const { data, error } = await supabase.functions.invoke('w-api-enviar-mensagem', {
+        body: { mensagemId }
+      });
+      if (error) throw error;
+      console.log('✅ Mensagem W-API enviada:', data);
+      return data;
+    } catch (err) {
+      console.warn('⚠️ Falha ao invocar via supabase.functions.invoke, tentando fallback HTTP (W-API)...', err);
+      // Fallback direto via URL completa
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/w-api-enviar-mensagem`;
+      const { data: session } = await supabase.auth.getSession();
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.session?.access_token ?? ''}`,
+          'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        },
+        body: JSON.stringify({ mensagemId }),
+      });
+      if (!res.ok) {
+        const txt = await res.text();
+        throw new Error(`HTTP ${res.status} - ${txt}`);
+      }
+      const data = await res.json();
+      console.log('✅ Mensagem W-API enviada (fallback):', data);
+      return data;
+    }
   }
 
   getModoAtual() {
