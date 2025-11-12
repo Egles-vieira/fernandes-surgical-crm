@@ -391,13 +391,6 @@ export default function Vendas() {
     // Normalizar CNPJ/CPF - remover todos os caracteres não numéricos
     const clienteCnpjNormalizado = clienteCnpj?.replace(/\D/g, '') || '';
 
-    console.log('📋 Normalização de CNPJ:', {
-      clienteCnpjOriginal: clienteCnpj,
-      clienteCnpjNormalizado,
-      tamanho: clienteCnpjNormalizado.length,
-      ehValido: clienteCnpjNormalizado.length >= 11,
-    });
-
     // Validação do CNPJ/CPF normalizado
     if (!clienteCnpjNormalizado || clienteCnpjNormalizado.length < 11) {
       toast({
@@ -407,6 +400,25 @@ export default function Vendas() {
       });
       return;
     }
+
+    // Buscar o cliente_id pelo CNPJ
+    const { data: clienteData, error: clienteError } = await supabase
+      .from('clientes')
+      .select('id, vendedor_id')
+      .eq('cgc', clienteCnpjNormalizado)
+      .single();
+
+    if (clienteError || !clienteData) {
+      console.error('❌ Cliente não encontrado:', { clienteCnpjNormalizado, clienteError });
+      toast({
+        title: "Erro",
+        description: "Cliente não encontrado no sistema. Verifique o CNPJ/CPF.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const clienteId = clienteData.id;
 
     if (carrinho.length === 0) {
       toast({
@@ -435,39 +447,14 @@ export default function Vendas() {
 
     const isAdmin = userRoles?.some((r) => r.role === "admin");
 
-    // Se não for edição E não for admin, validar que o usuário logado é dono do cliente
-    if (!editandoVendaId && !isAdmin) {
-      const { data: temAcesso, error: erroAcesso } = await supabase.rpc("can_access_cliente_por_cgc", {
-        _user_id: currentUser.id, // SEMPRE valida auth.uid()
-        _cgc: clienteCnpjNormalizado, // Usar CNPJ normalizado
-      });
-
-      console.log("🔍 Validação de acesso ao cliente:", {
-        currentUserId: currentUser.id,
-        currentUserEmail: currentUser.email,
-        clienteCnpjOriginal: clienteCnpj,
-        clienteCnpjNormalizado,
-        clienteNome,
-        temAcessoComoDono: temAcesso,
-        isAdmin,
-        nivelHierarquico,
-        erroAcesso,
-      });
-
-      if (erroAcesso) {
-        console.error("❌ Erro ao validar vínculo:", erroAcesso);
-      }
-
-      if (!temAcesso) {
-        toast({
-          title: "Permissão negada",
-          description:
-            "Você não é o responsável (dono) por este cliente. Selecione um cliente que esteja vinculado a você.",
-          variant: "destructive",
-        });
-        return;
-      }
-    }
+    console.log("🔍 Validação de acesso ao cliente:", {
+      currentUserId: currentUser.id,
+      clienteId,
+      clienteCnpjNormalizado,
+      clienteNome,
+      isAdmin,
+      editandoVendaId,
+    });
 
     try {
       const valorTotal = calcularTotal();
@@ -476,8 +463,9 @@ export default function Vendas() {
         await updateVenda.mutateAsync({
           id: editandoVendaId,
           numero_venda: numeroVenda,
+          cliente_id: clienteId, // Usar ID do cliente
           cliente_nome: clienteNome,
-          cliente_cnpj: clienteCnpjNormalizado, // Usar CNPJ normalizado
+          cliente_cnpj: clienteCnpjNormalizado,
           valor_total: valorTotal,
           desconto: 0,
           valor_final: valorTotal,
@@ -555,8 +543,9 @@ export default function Vendas() {
 
         const venda = await createVenda.mutateAsync({
           numero_venda: numeroVenda,
+          cliente_id: clienteId, // Usar ID do cliente
           cliente_nome: clienteNome,
-          cliente_cnpj: clienteCnpjNormalizado, // Usar CNPJ normalizado
+          cliente_cnpj: clienteCnpjNormalizado,
           valor_total: valorTotal,
           desconto: 0,
           valor_final: valorTotal,

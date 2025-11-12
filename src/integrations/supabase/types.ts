@@ -5389,6 +5389,7 @@ export type Database = {
           aprovado_em: string | null
           aprovado_por: string | null
           cliente_cnpj: string | null
+          cliente_id: string | null
           cliente_nome: string
           condicao_pagamento_id: string | null
           created_at: string
@@ -5419,6 +5420,7 @@ export type Database = {
           aprovado_em?: string | null
           aprovado_por?: string | null
           cliente_cnpj?: string | null
+          cliente_id?: string | null
           cliente_nome: string
           condicao_pagamento_id?: string | null
           created_at?: string
@@ -5449,6 +5451,7 @@ export type Database = {
           aprovado_em?: string | null
           aprovado_por?: string | null
           cliente_cnpj?: string | null
+          cliente_id?: string | null
           cliente_nome?: string
           condicao_pagamento_id?: string | null
           created_at?: string
@@ -5476,6 +5479,20 @@ export type Database = {
           vendedor_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "vendas_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendas_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "vw_clientes_completo"
+            referencedColumns: ["cliente_id"]
+          },
           {
             foreignKeyName: "vendas_condicao_pagamento_id_fkey"
             columns: ["condicao_pagamento_id"]
