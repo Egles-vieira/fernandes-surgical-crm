@@ -419,6 +419,19 @@ export default function Vendas() {
     
     const isAdmin = userRoles?.some(r => r.role === 'admin');
 
+    console.log('📋 Contexto completo antes da validação:', {
+      currentUserId: currentUser.id,
+      currentUserEmail: currentUser.email,
+      userRoles: userRoles?.map(r => r.role) || [],
+      isAdmin,
+      editandoVendaId,
+      clienteNome,
+      clienteCnpj,
+      clienteCnpjLength: clienteCnpj.length,
+      clienteCnpjTipo: typeof clienteCnpj,
+      nivelHierarquico
+    });
+
     // Se não for edição E não for admin, validar que o usuário logado é dono do cliente
     if (!editandoVendaId && !isAdmin) {
       const { data: temAcesso, error: erroAcesso } = await supabase.rpc('can_access_cliente_por_cgc', {
@@ -426,15 +439,10 @@ export default function Vendas() {
         _cgc: clienteCnpj
       });
 
-      console.log('🔍 Validação de dono do cliente:', {
-        currentUserId: currentUser.id,
-        currentUserEmail: currentUser.email,
-        clienteCnpj,
-        clienteNome,
+      console.log('🔍 Resultado validação de dono:', {
         temAcessoComoDono: temAcesso,
-        isAdmin,
-        nivelHierarquico,
-        erroAcesso
+        erroAcesso,
+        clienteCnpjPassado: clienteCnpj
       });
 
       if (erroAcesso) {
