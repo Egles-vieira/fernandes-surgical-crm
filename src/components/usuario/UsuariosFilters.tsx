@@ -54,7 +54,7 @@ export function UsuariosFilters({
           <SelectItem value="admin">Administrador</SelectItem>
           <SelectItem value="lider">Líder de Equipe</SelectItem>
           <SelectItem value="manager">Gerente</SelectItem>
-          <SelectItem value="sales">Vendedor</SelectItem>
+          <SelectItem value="sales">Representante Comercial</SelectItem>
           <SelectItem value="backoffice">Backoffice</SelectItem>
           <SelectItem value="warehouse">Estoque</SelectItem>
           <SelectItem value="support">Suporte</SelectItem>
