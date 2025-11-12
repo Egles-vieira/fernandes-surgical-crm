@@ -148,7 +148,16 @@ const ChatArea = ({
           } = await import('@/lib/whatsappAdapter');
           await whatsappAdapter.enviarMensagem(data.id);
         } catch (functionError) {
-          console.error('Erro ao enviar via adapter:', functionError);
+          console.error('❌ Erro ao enviar via adapter:', functionError);
+          
+          // Atualizar mensagem como erro
+          await supabase.from('whatsapp_mensagens').update({
+            status: 'erro',
+            erro_mensagem: functionError instanceof Error ? functionError.message : 'Erro desconhecido',
+            status_falhou_em: new Date().toISOString(),
+          }).eq('id', data.id);
+          
+          throw functionError;
         }
       }
       return data;
