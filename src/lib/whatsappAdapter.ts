@@ -38,10 +38,17 @@ export class WhatsAppAdapter {
   async enviarMensagem(mensagemId: string) {
     await this.loadConfig();
 
+    // Determinar tipo de mensagem
+    const { data: mensagem } = await supabase
+      .from('whatsapp_mensagens')
+      .select('tipo_mensagem, tem_midia')
+      .eq('id', mensagemId)
+      .single();
+
     if (this.provedorAtivo === 'gupshup') {
       return this.enviarViaGupshup(mensagemId);
     } else if (this.provedorAtivo === 'w_api') {
-      return this.enviarViaWAPI(mensagemId);
+      return this.enviarViaWAPI(mensagemId, mensagem?.tipo_mensagem);
     } else {
       throw new Error('Provedor WhatsApp não configurado');
     }
@@ -81,20 +88,28 @@ export class WhatsAppAdapter {
     }
   }
 
-  private async enviarViaWAPI(mensagemId: string) {
-    console.log('📤 Enviando via W-API...');
+  private async enviarViaWAPI(mensagemId: string, tipoMensagem?: string) {
+    console.log('📤 Enviando via W-API...', { mensagemId, tipoMensagem });
+
+    // Determinar função adequada baseada no tipo
+    let functionName = 'w-api-enviar-mensagem'; // default: texto
+    
+    if (tipoMensagem === 'imagem') functionName = 'w-api-enviar-imagem';
+    else if (tipoMensagem === 'video') functionName = 'w-api-enviar-video';
+    else if (tipoMensagem === 'audio') functionName = 'w-api-enviar-audio';
+    else if (tipoMensagem === 'documento') functionName = 'w-api-enviar-documento';
 
     try {
-      const { data, error } = await supabase.functions.invoke('w-api-enviar-mensagem', {
+      const { data, error } = await supabase.functions.invoke(functionName, {
         body: { mensagemId }
       });
       if (error) throw error;
-      console.log('✅ Mensagem W-API enviada:', data);
+      console.log(`✅ ${tipoMensagem} W-API enviado:`, data);
       return data;
     } catch (err) {
-      console.warn('⚠️ Falha ao invocar via supabase.functions.invoke, tentando fallback HTTP (W-API)...', err);
+      console.warn(`⚠️ Falha ao invocar ${functionName}, tentando fallback HTTP...`, err);
       // Fallback direto via URL completa
-      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/w-api-enviar-mensagem`;
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/${functionName}`;
       const { data: session } = await supabase.auth.getSession();
       const res = await fetch(url, {
         method: 'POST',
@@ -110,7 +125,7 @@ export class WhatsAppAdapter {
         throw new Error(`HTTP ${res.status} - ${txt}`);
       }
       const data = await res.json();
-      console.log('✅ Mensagem W-API enviada (fallback):', data);
+      console.log(`✅ ${tipoMensagem} W-API enviado (fallback):`, data);
       return data;
     }
   }

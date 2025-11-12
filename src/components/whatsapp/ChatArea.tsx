@@ -7,13 +7,16 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Send, Paperclip, Phone, Video, MoreVertical, MessageSquare, Clock, CheckCheck, ChevronRight, Mail, Building2, Briefcase, Tag, TrendingUp, ExternalLink, AlertCircle, RotateCw } from "lucide-react";
+import { Send, Paperclip, Phone, Video, MoreVertical, MessageSquare, Clock, CheckCheck, ChevronRight, Mail, Building2, Briefcase, Tag, TrendingUp, ExternalLink, AlertCircle, RotateCw, Image as ImageIcon, FileText, Mic } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import MediaUploader from "./MediaUploader";
+import AudioRecorder from "./AudioRecorder";
 import { Separator } from "@/components/ui/separator";
 interface ChatAreaProps {
   conversaId: string | null;
@@ -25,6 +28,9 @@ const ChatArea = ({
 }: ChatAreaProps) => {
   const [mensagem, setMensagem] = useState("");
   const [detalhesOpen, setDetalhesOpen] = useState(false);
+  const [showMediaUploader, setShowMediaUploader] = useState(false);
+  const [showAudioRecorder, setShowAudioRecorder] = useState(false);
+  const [mediaType, setMediaType] = useState<'image' | 'video' | 'document'>('image');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const {
     toast
@@ -84,10 +90,26 @@ const ChatArea = ({
     enabled: !!conversaId
   });
   const enviarMensagemMutation = useMutation({
-    mutationFn: async (corpo: string) => {
+    mutationFn: async ({ 
+      corpo, 
+      tipoMensagem = 'texto', 
+      urlMidia, 
+      nomeArquivo, 
+      mimeType,
+      duracaoAudio 
+    }: { 
+      corpo?: string; 
+      tipoMensagem?: string;
+      urlMidia?: string;
+      nomeArquivo?: string;
+      mimeType?: string;
+      duracaoAudio?: number;
+    }) => {
       if (!conversaId || !conversa) return;
 
-      // Primeiro, criar a mensagem no banco como pendente
+      const tipoMidia = mimeType?.split('/')[0] as 'image' | 'video' | 'audio' | 'document' | undefined;
+
+      // Criar a mensagem no banco como pendente
       const {
         data,
         error
@@ -95,15 +117,21 @@ const ChatArea = ({
         conversa_id: conversaId,
         whatsapp_conta_id: contaId,
         whatsapp_contato_id: conversa.whatsapp_contato_id,
-        corpo,
+        corpo: corpo || '',
         direcao: 'enviada',
-        tipo_mensagem: 'texto',
+        tipo_mensagem: tipoMensagem,
+        tem_midia: !!urlMidia,
+        tipo_midia: tipoMidia,
+        url_midia: urlMidia,
+        nome_arquivo: nomeArquivo,
+        mime_type: mimeType,
+        duracao_midia_segundos: duracaoAudio,
         status: 'pendente',
         enviada_por_usuario_id: (await supabase.auth.getUser()).data.user?.id
       }).select().single();
       if (error) throw error;
 
-      // Depois, enviar via adapter (que decide Gupshup ou W-API)
+      // Enviar via adapter
       if (data) {
         try {
           const {
@@ -175,7 +203,38 @@ const ChatArea = ({
   });
   const handleEnviar = () => {
     if (!mensagem.trim()) return;
-    enviarMensagemMutation.mutate(mensagem);
+    enviarMensagemMutation.mutate({ corpo: mensagem });
+  };
+
+  const handleMediaUpload = (url: string, type: 'image' | 'video' | 'audio' | 'document', fileName?: string, mimeType?: string) => {
+    const tipoMensagem = type === 'image' ? 'imagem' : 
+                         type === 'video' ? 'video' : 
+                         type === 'audio' ? 'audio' : 'documento';
+    
+    enviarMensagemMutation.mutate({ 
+      tipoMensagem, 
+      urlMidia: url, 
+      nomeArquivo: fileName,
+      mimeType,
+      corpo: mensagem // Usar a mensagem digitada como caption/legenda
+    });
+    setMensagem("");
+    setShowMediaUploader(false);
+  };
+
+  const handleAudioRecord = (url: string, duration: number) => {
+    enviarMensagemMutation.mutate({ 
+      tipoMensagem: 'audio', 
+      urlMidia: url,
+      duracaoAudio: duration,
+      mimeType: 'audio/ogg'
+    });
+    setShowAudioRecorder(false);
+  };
+
+  const openMediaUploader = (type: 'image' | 'video' | 'document') => {
+    setMediaType(type);
+    setShowMediaUploader(true);
   };
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -402,9 +461,42 @@ const ChatArea = ({
           const isEnviada = msg.direcao === 'enviada';
           const isErro = msg.status === 'erro';
           return <div key={msg.id} className={cn("flex flex-col gap-1", isEnviada ? "items-end" : "items-start")}>
-                <div className={cn("max-w-[70%] rounded-2xl px-4 py-2", isEnviada ? isErro ? "bg-destructive/10 border border-destructive/30 text-foreground" : "bg-gradient-to-br from-primary to-primary/90 text-primary-foreground" : "bg-muted")}>
-                  <p className="text-sm whitespace-pre-wrap">{msg.corpo}</p>
-                  <div className="flex items-center justify-end gap-1 mt-1">
+                <div className={cn("max-w-[70%] rounded-2xl overflow-hidden", isEnviada ? isErro ? "bg-destructive/10 border border-destructive/30" : "bg-gradient-to-br from-primary to-primary/90 text-primary-foreground" : "bg-muted")}>
+                  {/* Preview de Mídia */}
+                  {msg.tem_midia && msg.url_midia && (
+                    <div className="w-full">
+                      {msg.tipo_midia === 'image' && (
+                        <img src={msg.url_midia} alt="Imagem" className="w-full max-h-64 object-cover" />
+                      )}
+                      {msg.tipo_midia === 'video' && (
+                        <video src={msg.url_midia} controls className="w-full max-h-64" />
+                      )}
+                      {msg.tipo_midia === 'audio' && (
+                        <div className="p-3">
+                          <audio src={msg.url_midia} controls className="w-full" />
+                        </div>
+                      )}
+                      {msg.tipo_midia === 'document' && (
+                        <div className="p-3 flex items-center gap-2 bg-background/10">
+                          <FileText className="w-8 h-8" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">{msg.nome_arquivo || 'Documento'}</p>
+                            <p className="text-xs opacity-70">Documento</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  
+                  {/* Texto da mensagem */}
+                  {msg.corpo && (
+                    <div className="px-4 py-2">
+                      <p className="text-sm whitespace-pre-wrap">{msg.corpo}</p>
+                    </div>
+                  )}
+
+                  {/* Timestamp e Status */}
+                  <div className="px-4 pb-2 flex items-center justify-end gap-1">
                     <span className="text-xs opacity-70">
                       {format(new Date(msg.criado_em), 'HH:mm', {
                     locale: ptBR
@@ -435,21 +527,76 @@ const ChatArea = ({
       </ScrollArea>
 
       {/* Input */}
-      <div className="p-4 border-t border-border/50 bg-gradient-to-br from-muted/20 to-transparent">
-        {!podeEnviar && <div className="mb-3 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+      <div className="p-4 border-t border-border/50 bg-gradient-to-br from-muted/20 to-transparent space-y-3">
+        {!podeEnviar && <div className="p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
             <p className="text-sm text-yellow-600 dark:text-yellow-400">
               ⚠️ Janela de 24h expirada. Você só pode enviar mensagens aprovadas pelo WhatsApp (templates).
             </p>
           </div>}
 
+        {/* Media Uploader */}
+        {showMediaUploader && (
+          <MediaUploader
+            onUploadComplete={handleMediaUpload}
+            onCancel={() => setShowMediaUploader(false)}
+            acceptedTypes={
+              mediaType === 'image' ? 'image/*' :
+              mediaType === 'video' ? 'video/*' :
+              'application/pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip,.rar'
+            }
+          />
+        )}
+
+        {/* Audio Recorder */}
+        {showAudioRecorder && (
+          <AudioRecorder
+            onRecordComplete={handleAudioRecord}
+            onCancel={() => setShowAudioRecorder(false)}
+          />
+        )}
+
+        {/* Input Area */}
         <div className="flex gap-2">
-          <Button variant="ghost" size="icon">
-            <Paperclip className="w-5 h-5" />
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" disabled={!podeEnviar}>
+                <Paperclip className="w-5 h-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-48">
+              <DropdownMenuItem onClick={() => openMediaUploader('image')}>
+                <ImageIcon className="w-4 h-4 mr-2" />
+                Enviar Imagem
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => openMediaUploader('video')}>
+                <Video className="w-4 h-4 mr-2" />
+                Enviar Vídeo
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setShowAudioRecorder(true)}>
+                <Mic className="w-4 h-4 mr-2" />
+                Gravar Áudio
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => openMediaUploader('document')}>
+                <FileText className="w-4 h-4 mr-2" />
+                Enviar Documento
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           
-          <Textarea placeholder="Digite sua mensagem..." value={mensagem} onChange={e => setMensagem(e.target.value)} onKeyPress={handleKeyPress} className="min-h-[50px] max-h-[120px] resize-none bg-background/50" disabled={!podeEnviar} />
+          <Textarea 
+            placeholder={showMediaUploader || showAudioRecorder ? "Digite uma legenda (opcional)..." : "Digite sua mensagem..."} 
+            value={mensagem} 
+            onChange={e => setMensagem(e.target.value)} 
+            onKeyPress={handleKeyPress} 
+            className="min-h-[50px] max-h-[120px] resize-none bg-background/50" 
+            disabled={!podeEnviar} 
+          />
           
-          <Button onClick={handleEnviar} disabled={!mensagem.trim() || enviarMensagemMutation.isPending || !podeEnviar} className="bg-gradient-to-br from-primary to-primary/90">
+          <Button 
+            onClick={handleEnviar} 
+            disabled={!mensagem.trim() || enviarMensagemMutation.isPending || !podeEnviar} 
+            className="bg-gradient-to-br from-primary to-primary/90"
+          >
             <Send className="w-5 h-5" />
           </Button>
         </div>
