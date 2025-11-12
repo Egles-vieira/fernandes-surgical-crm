@@ -72,6 +72,17 @@ Deno.serve(async (req) => {
       numeroDestino = `55${numeroDestino}`;
     }
 
+    console.log('🔍 Dados da conta W-API:', {
+      instance_id: conta.instance_id_wapi,
+      tem_token: !!conta.token_wapi,
+      provedor: conta.provedor
+    });
+
+    console.log('📞 Número formatado:', {
+      original: contato.numero_whatsapp,
+      formatado: numeroDestino
+    });
+
     // Formatar payload para W-API
     const wapiPayload = {
       phone: numeroDestino,
@@ -80,9 +91,8 @@ Deno.serve(async (req) => {
     };
 
     console.log('📤 Enviando mensagem para W-API:', {
-      instanceId: conta.instance_id_wapi,
-      phone: numeroDestino,
-      messageLength: mensagem.corpo.length
+      url: `https://api.w-api.app/v1/message/send-text?instanceId=${conta.instance_id_wapi}`,
+      payload: wapiPayload
     });
 
     // Enviar mensagem via W-API
@@ -99,10 +109,18 @@ Deno.serve(async (req) => {
     );
 
     const responseData = await wapiResponse.json();
-    console.log('📥 Resposta W-API:', responseData);
+    console.log('📥 Resposta W-API:', {
+      status: wapiResponse.status,
+      ok: wapiResponse.ok,
+      data: responseData
+    });
 
     if (!wapiResponse.ok || responseData.error) {
-      console.error('❌ Erro ao enviar via W-API:', responseData);
+      console.error('❌ Erro ao enviar via W-API:', {
+        status: wapiResponse.status,
+        statusText: wapiResponse.statusText,
+        response: responseData
+      });
       
       // Atualizar status para erro
       await supabase
