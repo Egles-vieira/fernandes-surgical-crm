@@ -76,6 +76,11 @@ Deno.serve(async (req) => {
 async function processarMensagemRecebida(supabase: any, payload: any) {
   console.log('📨 Processando mensagem W-API:', payload);
 
+  // Função auxiliar para limpar número de telefone
+  const limparNumero = (numero: string): string => {
+    return numero.replace(/\D/g, ''); // Remove tudo exceto dígitos
+  };
+
   const instanceId = payload.instanceId || payload.data?.instanceId;
   const isNewSchema = payload.event === 'webhookReceived';
   
@@ -124,7 +129,26 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
     return;
   }
 
-  // 2. Buscar ou criar contato
+  // 2. Buscar contato no CRM pelo número de telefone
+  console.log('🔍 Buscando contato no CRM pelo número:', numeroRemetente);
+  const numeroLimpo = limparNumero(numeroRemetente);
+  
+  const { data: contatoCRM } = await supabase
+    .from('contatos')
+    .select('id')
+    .or(`telefone.ilike.%${numeroLimpo}%,celular.ilike.%${numeroLimpo}%,whatsapp_numero.ilike.%${numeroLimpo}%`)
+    .limit(1)
+    .maybeSingle();
+
+  const contatoIdCRM = contatoCRM?.id || null;
+  
+  if (contatoIdCRM) {
+    console.log('✅ Contato encontrado no CRM:', contatoIdCRM);
+  } else {
+    console.log('ℹ️ Contato não encontrado no CRM, será criado sem vínculo');
+  }
+
+  // 3. Buscar ou criar contato WhatsApp
   let { data: contato } = await supabase
     .from('whatsapp_contatos')
     .select('*')
@@ -133,18 +157,31 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
     .single();
 
   if (!contato) {
+    console.log('➕ Criando novo contato WhatsApp com vínculo CRM');
     const { data: novoContato } = await supabase
       .from('whatsapp_contatos')
       .insert({
         whatsapp_conta_id: conta.id,
         numero_whatsapp: numeroRemetente,
         nome_whatsapp: pushName,
+        contato_id: contatoIdCRM, // Vincula ao CRM se encontrado
         criado_em: new Date().toISOString(),
       })
       .select()
       .single();
     
     contato = novoContato;
+  } else if (contatoIdCRM && !contato.contato_id) {
+    // Se o contato WhatsApp já existe mas não tem vínculo CRM, atualiza
+    console.log('🔗 Vinculando contato WhatsApp existente ao CRM');
+    const { data: contatoAtualizado } = await supabase
+      .from('whatsapp_contatos')
+      .update({ contato_id: contatoIdCRM })
+      .eq('id', contato.id)
+      .select()
+      .single();
+    
+    contato = contatoAtualizado || contato;
   }
 
   if (!contato) {
@@ -152,7 +189,7 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
     return;
   }
 
-  // 3. Buscar ou criar conversa
+  // 4. Buscar ou criar conversa
   let { data: conversa } = await supabase
     .from('whatsapp_conversas')
     .select('*')
@@ -189,7 +226,7 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
       .eq('id', conversa.id);
   }
 
-  // 4. Inserir mensagem
+  // 5. Inserir mensagem
   await supabase.from('whatsapp_mensagens').insert({
     conversa_id: conversa.id,
     whatsapp_conta_id: conta.id,

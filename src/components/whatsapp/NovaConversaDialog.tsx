@@ -45,7 +45,41 @@ const NovaConversaDialog = ({
         ? `+${numeroFormatado}` 
         : `+55${numeroFormatado}`;
 
-      // 1. Verificar se já existe contato com esse número
+      // 1. Buscar contato no CRM pelo número de telefone
+      console.log('🔍 Buscando contato no CRM pelo número:', numeroCompleto);
+      
+      const { data: contatoCRM } = await supabase
+        .from('contatos')
+        .select('id')
+        .or(`telefone.ilike.%${numeroFormatado}%,celular.ilike.%${numeroFormatado}%,whatsapp_numero.ilike.%${numeroFormatado}%`)
+        .limit(1)
+        .maybeSingle();
+
+      let contatoBaseId: string;
+
+      if (contatoCRM) {
+        console.log('✅ Contato encontrado no CRM:', contatoCRM.id);
+        contatoBaseId = contatoCRM.id;
+      } else {
+        console.log('➕ Criando novo contato no CRM');
+        // Criar contato na tabela contatos
+        const { data: novoContatoBase, error: contatoBaseError } = await supabase
+          .from('contatos')
+          .insert({
+            primeiro_nome: nomeContato || 'Cliente',
+            sobrenome: 'WhatsApp',
+            celular: numeroCompleto,
+            whatsapp_numero: numeroCompleto,
+            esta_ativo: true,
+          })
+          .select('id')
+          .single();
+
+        if (contatoBaseError) throw contatoBaseError;
+        contatoBaseId = novoContatoBase.id;
+      }
+
+      // 2. Verificar se já existe contato WhatsApp com esse número
       let { data: contatoExistente } = await supabase
         .from('whatsapp_contatos')
         .select('id')
@@ -56,25 +90,12 @@ const NovaConversaDialog = ({
       let contatoWhatsAppId: string;
 
       if (!contatoExistente) {
-        // 2. Criar contato na tabela contatos primeiro (obrigatório)
-        const { data: novoContatoBase, error: contatoBaseError } = await supabase
-          .from('contatos')
-          .insert({
-            primeiro_nome: nomeContato || 'Cliente',
-            sobrenome: 'WhatsApp',
-            celular: numeroCompleto,
-            esta_ativo: true,
-          })
-          .select('id')
-          .single();
-
-        if (contatoBaseError) throw contatoBaseError;
-
-        // 3. Criar contato WhatsApp vinculado
+        console.log('➕ Criando contato WhatsApp vinculado ao CRM');
+        // Criar contato WhatsApp vinculado ao CRM
         const { data: novoContatoWhatsApp, error: contatoWhatsAppError } = await supabase
           .from('whatsapp_contatos')
           .insert({
-            contato_id: novoContatoBase.id,
+            contato_id: contatoBaseId,
             numero_whatsapp: numeroCompleto,
             nome_whatsapp: nomeContato || numeroCompleto,
             whatsapp_conta_id: contaId,
@@ -85,10 +106,18 @@ const NovaConversaDialog = ({
         if (contatoWhatsAppError) throw contatoWhatsAppError;
         contatoWhatsAppId = novoContatoWhatsApp.id;
       } else {
+        console.log('🔗 Atualizando vínculo do contato WhatsApp existente');
+        // Atualizar vínculo se não existir
+        await supabase
+          .from('whatsapp_contatos')
+          .update({ contato_id: contatoBaseId })
+          .eq('id', contatoExistente.id)
+          .is('contato_id', null);
+        
         contatoWhatsAppId = contatoExistente.id;
       }
 
-      // 4. Verificar se já existe conversa ativa
+      // 3. Verificar se já existe conversa ativa
       const { data: conversaExistente } = await supabase
         .from('whatsapp_conversas')
         .select('id')
@@ -101,7 +130,7 @@ const NovaConversaDialog = ({
         return { conversaId: conversaExistente.id, nova: false };
       }
 
-      // 5. Criar nova conversa COM janela de 24h ativa
+      // 4. Criar nova conversa COM janela de 24h ativa
       const agora = new Date();
       const janela24hFim = new Date(agora.getTime() + 24 * 60 * 60 * 1000); // +24 horas
 
