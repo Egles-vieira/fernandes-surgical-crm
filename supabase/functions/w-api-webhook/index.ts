@@ -37,18 +37,25 @@ Deno.serve(async (req) => {
     // Registrar webhook no log
     await supabase.from('whatsapp_webhooks_log').insert({
       provedor: 'w_api',
-      tipo_evento: payload.event || 'unknown',
+      tipo_evento: payload.event || payload.status || 'unknown',
       payload: payload,
       recebido_em: new Date().toISOString(),
     });
 
+    console.log('🔍 Evento detectado:', payload.event || payload.status || 'unknown');
+    console.log('🔍 Payload completo:', JSON.stringify(payload, null, 2));
+
     // Processar baseado no evento
     if (payload.event === 'message.received' || payload.event === 'webhookReceived') {
+      console.log('✅ Iniciando processamento de mensagem recebida...');
       await processarMensagemRecebida(supabase, payload);
     } else if (payload.event === 'message.status.update') {
+      console.log('✅ Iniciando atualização de status...');
       await atualizarStatusMensagem(supabase, payload);
-    } else if (payload.event === 'connection.update') {
-      console.log('📡 Atualização de conexão:', payload.data || payload);
+    } else if (payload.event === 'connection.update' || payload.status) {
+      console.log('📡 Atualização de conexão/status:', payload.data || payload);
+    } else {
+      console.log('⚠️ Evento não reconhecido - ignorando');
     }
 
     return new Response(
