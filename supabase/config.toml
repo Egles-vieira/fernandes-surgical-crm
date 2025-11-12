@@ -41,3 +41,6 @@ verify_jwt = false
 
 [functions.upload-anexo-spaces]
 verify_jwt = true
+
+[functions.w-api-webhook]
+verify_jwt = false
