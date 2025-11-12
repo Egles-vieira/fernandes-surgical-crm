@@ -400,7 +400,7 @@ export default function Vendas() {
       return;
     }
 
-    // Validar vínculo do cliente para vendedores (não gestores/admin)
+    // Validar vínculo do cliente - SEMPRE usando o usuário logado como dono
     const { data: { user: currentUser } } = await supabase.auth.getUser();
     if (!currentUser) {
       toast({
@@ -411,21 +411,28 @@ export default function Vendas() {
       return;
     }
 
-    // Se não for edição, validar o vínculo
-    if (!editandoVendaId) {
-      const finalVendedorId = vendedorId || currentUser.id;
-      
-      // Checar vínculo com o cliente
+    // Checar se é admin para permitir bypass
+    const { data: userRoles } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', currentUser.id);
+    
+    const isAdmin = userRoles?.some(r => r.role === 'admin');
+
+    // Se não for edição E não for admin, validar que o usuário logado é dono do cliente
+    if (!editandoVendaId && !isAdmin) {
       const { data: temAcesso, error: erroAcesso } = await supabase.rpc('can_access_cliente_por_cgc', {
-        _user_id: finalVendedorId,
+        _user_id: currentUser.id, // SEMPRE valida auth.uid()
         _cgc: clienteCnpj
       });
 
-      console.log('🔍 Validação de vínculo:', {
-        vendedorId: finalVendedorId,
+      console.log('🔍 Validação de dono do cliente:', {
+        currentUserId: currentUser.id,
+        currentUserEmail: currentUser.email,
         clienteCnpj,
-        temAcesso,
-        ehGestor,
+        clienteNome,
+        temAcessoComoDono: temAcesso,
+        isAdmin,
         nivelHierarquico,
         erroAcesso
       });
@@ -437,7 +444,7 @@ export default function Vendas() {
       if (!temAcesso) {
         toast({
           title: "Permissão negada",
-          description: "Você não tem vínculo com este cliente. Selecione um cliente vinculado a você.",
+          description: "Você não é o responsável (dono) por este cliente. Selecione um cliente que esteja vinculado a você.",
           variant: "destructive"
         });
         return;
@@ -494,8 +501,9 @@ export default function Vendas() {
         });
       } else {
         // Criar nova venda
-        // Define vendedor_id: se gestor selecionou alguém, usa o selecionado; senão, usa o próprio
-        const finalVendedorId = vendedorId || currentUser.id;
+        // Para não-admin: sempre usa currentUser.id (trigger irá forçar)
+        // Para admin: pode escolher vendedor ou deixar vazio (trigger define)
+        const finalVendedorId = isAdmin && vendedorId ? vendedorId : currentUser.id;
         
         // Buscar equipe do vendedor
         const { data: membroEquipe } = await supabase
@@ -516,16 +524,16 @@ export default function Vendas() {
           .eq('user_id', currentUser.id);
         
         console.log('🚀 Criando venda:', {
-          vendedorId,
+          vendedorIdSelecionado: vendedorId,
           currentUserId: currentUser.id,
           currentUserEmail: currentUser.email,
           userRoles: userRoles?.map(r => r.role),
+          isAdmin,
           finalVendedorId,
           clienteCnpj,
           clienteNome,
           etapaPipeline,
           status,
-          ehGestor,
           nivelHierarquico
         });
         
@@ -592,24 +600,23 @@ export default function Vendas() {
         // Verificar novamente o acesso para diagnóstico
         const { data: { user: currentUser } } = await supabase.auth.getUser();
         if (currentUser) {
-          const finalVendedorId = vendedorId || currentUser.id;
           const { data: temAcesso } = await supabase.rpc('can_access_cliente_por_cgc', {
-            _user_id: finalVendedorId,
+            _user_id: currentUser.id, // SEMPRE valida o usuário logado
             _cgc: clienteCnpj
           });
           
-          console.error("🔍 Diagnóstico RLS:", {
-            finalVendedorId,
+          console.error("🔍 Diagnóstico RLS após erro:", {
+            currentUserId: currentUser.id,
             clienteCnpj,
-            temAcessoAoCliente: temAcesso,
-            ehGestor,
-            subordinados: subordinados?.map((s: any) => s.subordinado_id)
+            clienteNome,
+            temAcessoComoDono: temAcesso,
+            nivelHierarquico
           });
         }
         
         toast({
           title: "Permissão negada",
-          description: "Você não tem permissão para criar esta venda. O cliente informado não está vinculado a você.",
+          description: "Você não é o responsável (dono) por este cliente. Apenas o vendedor responsável pode criar vendas para seus clientes.",
           variant: "destructive"
         });
       } else {
