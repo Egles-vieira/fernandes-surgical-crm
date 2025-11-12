@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useWhatsAppConfig } from "@/hooks/useWhatsAppConfig";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -48,6 +49,7 @@ const ChatArea = ({ conversaId, contaId }: ChatAreaProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { isWAPI } = useWhatsAppConfig();
 
   const { data: conversa } = useQuery({
     queryKey: ['whatsapp-conversa', conversaId],
@@ -185,6 +187,9 @@ const ChatArea = ({ conversaId, contaId }: ChatAreaProps) => {
                      conversa?.whatsapp_contatos?.nome_whatsapp ||
                      conversa?.whatsapp_contatos?.numero_whatsapp;
   const iniciais = nomeContato?.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+  
+  // Regra: API não oficial (W-API) não precisa de janela de 24h
+  const podeEnviar = isWAPI || conversa?.janela_24h_ativa;
 
   return (
     <Card className="h-full min-h-0 flex flex-col bg-card/50 backdrop-blur border-muted">
@@ -448,7 +453,7 @@ const ChatArea = ({ conversaId, contaId }: ChatAreaProps) => {
 
       {/* Input */}
       <div className="p-4 border-t border-border/50 bg-gradient-to-br from-muted/20 to-transparent">
-        {!conversa?.janela_24h_ativa && (
+        {!podeEnviar && (
           <div className="mb-3 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
             <p className="text-sm text-yellow-600 dark:text-yellow-400">
               ⚠️ Janela de 24h expirada. Você só pode enviar mensagens aprovadas pelo WhatsApp (templates).
@@ -467,12 +472,12 @@ const ChatArea = ({ conversaId, contaId }: ChatAreaProps) => {
             onChange={(e) => setMensagem(e.target.value)}
             onKeyPress={handleKeyPress}
             className="min-h-[50px] max-h-[120px] resize-none bg-background/50"
-            disabled={!conversa?.janela_24h_ativa}
+            disabled={!podeEnviar}
           />
           
           <Button 
             onClick={handleEnviar}
-            disabled={!mensagem.trim() || enviarMensagemMutation.isPending || !conversa?.janela_24h_ativa}
+            disabled={!mensagem.trim() || enviarMensagemMutation.isPending || !podeEnviar}
             className="bg-gradient-to-br from-primary to-primary/90"
           >
             <Send className="w-5 h-5" />
