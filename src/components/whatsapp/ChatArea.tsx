@@ -22,7 +22,9 @@ import {
   Briefcase,
   Tag,
   TrendingUp,
-  ExternalLink
+  ExternalLink,
+  AlertCircle,
+  RotateCw
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -147,6 +149,40 @@ const ChatArea = ({ conversaId, contaId }: ChatAreaProps) => {
     onError: (error) => {
       toast({
         title: "Erro ao enviar mensagem",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const reenviarMensagemMutation = useMutation({
+    mutationFn: async (mensagemId: string) => {
+      // Atualizar status para pendente e limpar erro
+      await supabase
+        .from('whatsapp_mensagens')
+        .update({
+          status: 'pendente',
+          erro_mensagem: null,
+          erro_codigo: null,
+          status_falhou_em: null,
+        })
+        .eq('id', mensagemId);
+
+      // Reenviar via adapter
+      const { whatsappAdapter } = await import('@/lib/whatsappAdapter');
+      await whatsappAdapter.enviarMensagem(mensagemId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['whatsapp-mensagens', conversaId] });
+      toast({
+        title: "Mensagem reenviada",
+        description: "A mensagem está sendo enviada novamente",
+      });
+    },
+    onError: (error) => {
+      queryClient.invalidateQueries({ queryKey: ['whatsapp-mensagens', conversaId] });
+      toast({
+        title: "Erro ao reenviar",
         description: error.message,
         variant: "destructive",
       });
@@ -414,20 +450,23 @@ const ChatArea = ({ conversaId, contaId }: ChatAreaProps) => {
         <div className="p-4 space-y-4">
           {mensagens?.map((msg) => {
             const isEnviada = msg.direcao === 'enviada';
+            const isErro = msg.status === 'erro';
             
             return (
               <div
                 key={msg.id}
                 className={cn(
-                  "flex",
-                  isEnviada ? "justify-end" : "justify-start"
+                  "flex flex-col gap-1",
+                  isEnviada ? "items-end" : "items-start"
                 )}
               >
                 <div
                   className={cn(
                     "max-w-[70%] rounded-2xl px-4 py-2",
                     isEnviada
-                      ? "bg-gradient-to-br from-primary to-primary/90 text-primary-foreground"
+                      ? isErro
+                        ? "bg-destructive/10 border border-destructive/30 text-foreground"
+                        : "bg-gradient-to-br from-primary to-primary/90 text-primary-foreground"
                       : "bg-muted"
                   )}
                 >
@@ -436,14 +475,39 @@ const ChatArea = ({ conversaId, contaId }: ChatAreaProps) => {
                     <span className="text-xs opacity-70">
                       {format(new Date(msg.criado_em), 'HH:mm', { locale: ptBR })}
                     </span>
-                    {isEnviada && (
+                    {isEnviada && !isErro && (
                       <CheckCheck className={cn(
                         "w-4 h-4",
                         msg.status === 'lida' ? "text-blue-400" : "opacity-70"
                       )} />
                     )}
+                    {isErro && (
+                      <AlertCircle className="w-4 h-4 text-destructive" />
+                    )}
                   </div>
                 </div>
+                
+                {isErro && msg.erro_mensagem && (
+                  <div className="max-w-[70%] px-3 py-2 rounded-lg bg-destructive/5 border border-destructive/20">
+                    <div className="flex items-start gap-2">
+                      <AlertCircle className="w-4 h-4 text-destructive mt-0.5 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-destructive font-medium mb-1">Erro ao enviar:</p>
+                        <p className="text-xs text-muted-foreground break-words">{msg.erro_mensagem}</p>
+                      </div>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="mt-2 w-full text-xs h-7 border-destructive/30 hover:bg-destructive/10"
+                      onClick={() => reenviarMensagemMutation.mutate(msg.id)}
+                      disabled={reenviarMensagemMutation.isPending}
+                    >
+                      <RotateCw className="w-3 h-3 mr-1" />
+                      Reenviar
+                    </Button>
+                  </div>
+                )}
               </div>
             );
           })}
