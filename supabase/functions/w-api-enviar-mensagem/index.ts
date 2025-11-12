@@ -66,16 +66,22 @@ Deno.serve(async (req) => {
       throw new Error('Conta não é do provedor W-API');
     }
 
+    // Formatar número para W-API (somente dígitos, com DDI)
+    let numeroDestino = (contato.numero_whatsapp || '').replace(/\D/g, '');
+    if (!numeroDestino.startsWith('55')) {
+      numeroDestino = `55${numeroDestino}`;
+    }
+
     // Formatar payload para W-API
     const wapiPayload = {
-      phone: contato.numero_whatsapp,
+      phone: numeroDestino,
       message: mensagem.corpo,
       delayMessage: 3  // delay de 3 segundos (padrão)
     };
 
     console.log('📤 Enviando mensagem para W-API:', {
       instanceId: conta.instance_id_wapi,
-      phone: contato.numero_whatsapp,
+      phone: numeroDestino,
       messageLength: mensagem.corpo.length
     });
 
@@ -103,8 +109,9 @@ Deno.serve(async (req) => {
         .from('whatsapp_mensagens')
         .update({
           status: 'erro',
-          erro_detalhes: JSON.stringify(responseData),
-          atualizado_em: new Date().toISOString(),
+          erro_mensagem: (responseData.message || JSON.stringify(responseData)),
+          erro_codigo: responseData.code || null,
+          status_falhou_em: new Date().toISOString(),
         })
         .eq('id', mensagemId);
 
@@ -116,9 +123,8 @@ Deno.serve(async (req) => {
       .from('whatsapp_mensagens')
       .update({
         status: 'enviada',
-        id_mensagem_externa: responseData.messageId,
-        enviada_em: new Date().toISOString(),
-        atualizado_em: new Date().toISOString(),
+        mensagem_externa_id: responseData.messageId || responseData.id || null,
+        status_enviada_em: new Date().toISOString(),
       })
       .eq('id', mensagemId);
 

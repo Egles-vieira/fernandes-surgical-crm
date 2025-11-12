@@ -69,8 +69,8 @@ Deno.serve(async (req) => {
     // Formatar payload para Gupshup
     const gupshupPayload = {
       channel: "whatsapp",
-      source: conta.phone_number_id,
-      destination: contato.numero_whatsapp,
+      source: conta.phone_number_id_gupshup,
+      destination: (contato.numero_whatsapp || '').replace(/\D/g, ''),
       message: {
         type: "text",
         text: mensagem.corpo
@@ -78,17 +78,17 @@ Deno.serve(async (req) => {
     };
 
     console.log('Enviando mensagem para Gupshup:', {
-      appId: conta.app_id,
-      destination: contato.numero_whatsapp
+      appId: conta.app_id_gupshup,
+      destination: (contato.numero_whatsapp || '').replace(/\D/g, '')
     });
 
     // Enviar mensagem via API Gupshup
     const gupshupResponse = await fetch(
-      `https://api.gupshup.io/wa/app/${conta.app_id}/msg`,
+      `https://api.gupshup.io/wa/app/${conta.app_id_gupshup}/msg`,
       {
         method: 'POST',
         headers: {
-          'apikey': conta.api_key,
+          'apikey': conta.api_key_gupshup,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(gupshupPayload),
@@ -106,8 +106,9 @@ Deno.serve(async (req) => {
         .from('whatsapp_mensagens')
         .update({
           status: 'erro',
-          erro_detalhes: JSON.stringify(responseData),
-          atualizado_em: new Date().toISOString(),
+          erro_mensagem: (responseData.message || JSON.stringify(responseData)),
+          erro_codigo: responseData.code || null,
+          status_falhou_em: new Date().toISOString(),
         })
         .eq('id', mensagemId);
 
@@ -119,9 +120,8 @@ Deno.serve(async (req) => {
       .from('whatsapp_mensagens')
       .update({
         status: 'enviada',
-        id_mensagem_externa: responseData.messageId || responseData.id,
-        enviada_em: new Date().toISOString(),
-        atualizado_em: new Date().toISOString(),
+        mensagem_externa_id: responseData.messageId || responseData.id || null,
+        status_enviada_em: new Date().toISOString(),
       })
       .eq('id', mensagemId);
 
