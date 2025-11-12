@@ -5766,7 +5766,7 @@ export type Database = {
           bloqueado: boolean | null
           bloqueado_em: string | null
           categoria_cliente: string | null
-          contato_id: string
+          contato_id: string | null
           criado_em: string | null
           foto_perfil_url: string | null
           id: string
@@ -5801,7 +5801,7 @@ export type Database = {
           bloqueado?: boolean | null
           bloqueado_em?: string | null
           categoria_cliente?: string | null
-          contato_id: string
+          contato_id?: string | null
           criado_em?: string | null
           foto_perfil_url?: string | null
           id?: string
@@ -5836,7 +5836,7 @@ export type Database = {
           bloqueado?: boolean | null
           bloqueado_em?: string | null
           categoria_cliente?: string | null
-          contato_id?: string
+          contato_id?: string | null
           criado_em?: string | null
           foto_perfil_url?: string | null
           id?: string
