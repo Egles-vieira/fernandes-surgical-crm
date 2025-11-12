@@ -6924,8 +6924,13 @@ export type Database = {
           metas_recalculadas: number
         }[]
       }
+      recalcular_todas_metas: { Args: never; Returns: Json }
       recalcular_todas_metas_vendas: { Args: never; Returns: number }
       recalcular_valor_meta_vendas: {
+        Args: { _meta_id: string }
+        Returns: undefined
+      }
+      recalcular_valor_meta_vendedor: {
         Args: { _meta_id: string }
         Returns: undefined
       }
