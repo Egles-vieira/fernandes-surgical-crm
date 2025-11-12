@@ -1,14 +1,17 @@
 import { useState, useEffect } from "react";
-import { MessageSquare, Settings } from "lucide-react";
+import { MessageSquare, Settings, Wifi, WifiOff } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import ConversasList from "@/components/whatsapp/ConversasList";
 import ChatArea from "@/components/whatsapp/ChatArea";
+import { ConectarWAPIDialog } from "@/components/whatsapp/ConectarWAPIDialog";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 const WhatsApp = () => {
   const [conversaSelecionada, setConversaSelecionada] = useState<string | null>(null);
+  const [conectarDialogOpen, setConectarDialogOpen] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: contas } = useQuery({
@@ -86,36 +89,81 @@ const WhatsApp = () => {
           </Card>
         </div>
       ) : (
-        <div className="grid grid-cols-12 h-full min-h-0 overflow-hidden">
-          <div className="col-span-4 h-full min-h-0">
-            <ConversasList
-              contaId={contaAtiva.id}
-              conversaSelecionada={conversaSelecionada}
-              onSelectConversa={setConversaSelecionada}
-            />
+        <>
+          {/* Header com status de conexão */}
+          <div className="px-4 py-3 border-b border-border/50 bg-card/50 backdrop-blur flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                {contaAtiva.status === 'ativo' ? (
+                  <>
+                    <Wifi className="w-4 h-4 text-green-500" />
+                    <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/20">
+                      Conectado
+                    </Badge>
+                  </>
+                ) : (
+                  <>
+                    <WifiOff className="w-4 h-4 text-destructive" />
+                    <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/20">
+                      Desconectado
+                    </Badge>
+                  </>
+                )}
+              </div>
+              <span className="text-sm text-muted-foreground">
+                {contaAtiva.nome_conta}
+              </span>
+            </div>
+            
+            {contaAtiva.provedor === 'w_api' && contaAtiva.status !== 'ativo' && (
+              <Button 
+                size="sm"
+                onClick={() => setConectarDialogOpen(true)}
+                className="bg-gradient-to-br from-primary to-primary/90"
+              >
+                <Wifi className="w-4 h-4 mr-2" />
+                Conectar WhatsApp
+              </Button>
+            )}
           </div>
-          
-          {conversaSelecionada && (
-            <div className="col-span-8 h-full min-h-0">
-              <ChatArea
-                conversaId={conversaSelecionada}
+
+          <div className="grid grid-cols-12 h-[calc(100%-57px)] min-h-0 overflow-hidden">
+            <div className="col-span-4 h-full min-h-0">
+              <ConversasList
                 contaId={contaAtiva.id}
+                conversaSelecionada={conversaSelecionada}
+                onSelectConversa={setConversaSelecionada}
               />
             </div>
-          )}
-          
-          {!conversaSelecionada && (
-            <div className="col-span-8 flex items-center justify-center h-full min-h-0">
-              <Card className="p-12 text-center bg-card/30 backdrop-blur">
-                <MessageSquare className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-lg font-semibold mb-2">Selecione uma conversa</h3>
-                <p className="text-sm text-muted-foreground">
-                  Escolha uma conversa na lista para começar a atender
-                </p>
-              </Card>
-            </div>
-          )}
-        </div>
+            
+            {conversaSelecionada && (
+              <div className="col-span-8 h-full min-h-0">
+                <ChatArea
+                  conversaId={conversaSelecionada}
+                  contaId={contaAtiva.id}
+                />
+              </div>
+            )}
+            
+            {!conversaSelecionada && (
+              <div className="col-span-8 flex items-center justify-center h-full min-h-0">
+                <Card className="p-12 text-center bg-card/30 backdrop-blur">
+                  <MessageSquare className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+                  <h3 className="text-lg font-semibold mb-2">Selecione uma conversa</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Escolha uma conversa na lista para começar a atender
+                  </p>
+                </Card>
+              </div>
+            )}
+          </div>
+
+          <ConectarWAPIDialog
+            open={conectarDialogOpen}
+            onOpenChange={setConectarDialogOpen}
+            contaId={contaAtiva.id}
+          />
+        </>
       )}
     </div>
   );
