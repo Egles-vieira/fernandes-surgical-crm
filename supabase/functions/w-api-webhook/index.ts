@@ -43,12 +43,12 @@ Deno.serve(async (req) => {
     });
 
     // Processar baseado no evento
-    if (payload.event === 'message.received') {
+    if (payload.event === 'message.received' || payload.event === 'webhookReceived') {
       await processarMensagemRecebida(supabase, payload);
     } else if (payload.event === 'message.status.update') {
       await atualizarStatusMensagem(supabase, payload);
     } else if (payload.event === 'connection.update') {
-      console.log('📡 Atualização de conexão:', payload.data);
+      console.log('📡 Atualização de conexão:', payload.data || payload);
     }
 
     return new Response(
@@ -69,17 +69,39 @@ Deno.serve(async (req) => {
 async function processarMensagemRecebida(supabase: any, payload: any) {
   console.log('📨 Processando mensagem W-API:', payload);
 
-  const instanceId = payload.instanceId;
-  const messageData = payload.data;
+  const instanceId = payload.instanceId || payload.data?.instanceId;
+  const isNewSchema = payload.event === 'webhookReceived';
   
-  // Extrair dados
-  const numeroRemetente = messageData.key.remoteJid.replace('@s.whatsapp.net', '');
-  const messageId = messageData.key.id;
-  const pushName = messageData.pushName || numeroRemetente;
-  const messageText = messageData.message?.conversation || 
-                      messageData.message?.extendedTextMessage?.text || '';
-  const messageType = messageData.messageType || 'text';
-  const timestamp = new Date(messageData.messageTimestamp * 1000).toISOString();
+  // Extrair dados de forma resiliente (suporta esquema antigo e novo)
+  let numeroRemetente = '';
+  let messageId = '';
+  let pushName = '';
+  let messageText = '';
+  let messageType = 'text';
+  let timestamp = new Date().toISOString();
+
+  if (!isNewSchema && payload.data) {
+    const messageData = payload.data;
+    numeroRemetente = (messageData.key.remoteJid || '').replace('@s.whatsapp.net', '').replace('@c.us', '');
+    messageId = messageData.key.id;
+    pushName = messageData.pushName || numeroRemetente;
+    messageText = messageData.message?.conversation || messageData.message?.extendedTextMessage?.text || '';
+    messageType = messageData.messageType || 'text';
+    timestamp = new Date(messageData.messageTimestamp * 1000).toISOString();
+  } else {
+    numeroRemetente = (payload.sender?.id || payload.chat?.id || '').replace(/\D/g, '');
+    messageId = payload.messageId || crypto.randomUUID();
+    pushName = payload.sender?.pushName || numeroRemetente;
+    messageText = payload.msgContent?.conversation || '';
+    messageType = 'text';
+    timestamp = payload.moment ? new Date(payload.moment * 1000).toISOString() : new Date().toISOString();
+  }
+
+  // Ignorar mensagens enviadas por nós mesmos ou de grupos
+  if (payload.fromMe === true || payload.isGroup === true) {
+    console.log('↩️ Ignorando mensagem de nós mesmos ou de grupo');
+    return;
+  }
 
   // 1. Buscar conta WhatsApp pelo instance_id
   const { data: conta } = await supabase
