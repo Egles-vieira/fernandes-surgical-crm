@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { MessageSquare, Settings, Wifi, WifiOff } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,7 @@ import { ConectarWAPIDialog } from "@/components/whatsapp/ConectarWAPIDialog";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 const WhatsApp = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [conversaSelecionada, setConversaSelecionada] = useState<string | null>(null);
   const [conectarDialogOpen, setConectarDialogOpen] = useState(false);
   const queryClient = useQueryClient();
@@ -28,6 +30,87 @@ const WhatsApp = () => {
     }
   });
   const contaAtiva = contas?.[0];
+
+  // Buscar/criar conversa a partir do número na URL
+  useEffect(() => {
+    const numero = searchParams.get('numero');
+    if (!numero || !contaAtiva?.id) return;
+
+    const buscarOuCriarConversa = async () => {
+      try {
+        // Normalizar número (apenas dígitos)
+        const numeroNormalizado = numero.replace(/\D/g, '');
+        
+        // Buscar contato WhatsApp pelo número
+        const { data: contatos } = await supabase
+          .from('whatsapp_contatos')
+          .select('id')
+          .eq('whatsapp_conta_id', contaAtiva.id)
+          .or(`numero_whatsapp.eq.${numeroNormalizado},numero_whatsapp.eq.+${numeroNormalizado}`)
+          .limit(1);
+
+        let contatoId = contatos?.[0]?.id;
+
+        // Se não encontrou contato, criar
+        if (!contatoId) {
+          const { data: novoContato, error: erroContato } = await supabase
+            .from('whatsapp_contatos')
+            .insert({
+              whatsapp_conta_id: contaAtiva.id,
+              numero_whatsapp: numeroNormalizado,
+              nome_whatsapp: numeroNormalizado
+            })
+            .select()
+            .single();
+
+          if (erroContato) throw erroContato;
+          contatoId = novoContato.id;
+        }
+
+        // Buscar conversa ativa
+        const { data: conversas } = await supabase
+          .from('whatsapp_conversas')
+          .select('id')
+          .eq('whatsapp_conta_id', contaAtiva.id)
+          .eq('whatsapp_contato_id', contatoId)
+          .neq('status', 'fechada')
+          .order('criada_em', { ascending: false })
+          .limit(1);
+
+        let conversaId = conversas?.[0]?.id;
+
+        // Se não encontrou conversa ativa, criar
+        if (!conversaId) {
+          const { data: novaConversa, error: erroConversa } = await supabase
+            .from('whatsapp_conversas')
+            .insert({
+              whatsapp_conta_id: contaAtiva.id,
+              whatsapp_contato_id: contatoId,
+              status: 'aberta'
+            })
+            .select()
+            .single();
+
+          if (erroConversa) throw erroConversa;
+          conversaId = novaConversa.id;
+          
+          // Invalidar queries para atualizar lista
+          queryClient.invalidateQueries({ queryKey: ['whatsapp-conversas'] });
+        }
+
+        // Selecionar a conversa
+        setConversaSelecionada(conversaId);
+        
+        // Limpar parâmetro da URL
+        searchParams.delete('numero');
+        setSearchParams(searchParams);
+      } catch (error) {
+        console.error('Erro ao buscar/criar conversa:', error);
+      }
+    };
+
+    buscarOuCriarConversa();
+  }, [searchParams, contaAtiva, queryClient, setSearchParams]);
 
   // Configurar Realtime para mensagens e conversas
   useEffect(() => {

@@ -631,8 +631,7 @@ export default function ClienteDetalhes() {
                           Email
                         </Button>}
                       {contato.whatsapp_numero && <Button size="sm" variant="outline" className="flex-1 h-8 text-xs" onClick={() => {
-                setSelectedContact(contato);
-                setWhatsappChatOpen(true);
+                navigate(`/whatsapp?numero=${encodeURIComponent(contato.whatsapp_numero)}`);
               }}>
                           <MessageSquare className="h-3 w-3 mr-1" />
                           WhatsApp
