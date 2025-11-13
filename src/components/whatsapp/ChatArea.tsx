@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useWhatsAppConfig } from "@/hooks/useWhatsAppConfig";
@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import MediaUploader from "./MediaUploader";
 import AudioRecorder from "./AudioRecorder";
 import { MessageActions } from "./MessageActions";
@@ -37,6 +38,8 @@ const ChatArea = ({
   const [showAudioRecorder, setShowAudioRecorder] = useState(false);
   const [showButtonBuilder, setShowButtonBuilder] = useState(false);
   const [mediaType, setMediaType] = useState<'image' | 'video' | 'document'>('image');
+  const [imagemExpandida, setImagemExpandida] = useState<string | null>(null);
+  const [imagensComErro, setImagensComErro] = useState<Set<string>>(new Set());
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const {
     toast
@@ -281,6 +284,14 @@ const ChatArea = ({
     setMediaType(type);
     setShowMediaUploader(true);
   };
+
+  const handleImageError = useCallback((messageId: string) => {
+    setImagensComErro(prev => new Set(prev).add(messageId));
+  }, []);
+
+  const handleImageClick = useCallback((url: string) => {
+    setImagemExpandida(url);
+  }, []);
 
   const handleSendButtons = (texto: string, tipoBotao: 'action' | 'list', botoesData: any) => {
     enviarMensagemMutation.mutate({
@@ -633,7 +644,32 @@ const ChatArea = ({
                   {msg.tem_midia && msg.url_midia && (
                     <div className="w-full">
                       {msg.tipo_midia === 'image' && (
-                        <img src={msg.url_midia} alt="Imagem" className="w-full max-h-64 object-cover" />
+                        imagensComErro.has(msg.id) ? (
+                          <div className="w-full h-48 bg-muted/50 flex flex-col items-center justify-center gap-2 p-4">
+                            <ImageIcon className="w-12 h-12 text-muted-foreground/50" />
+                            <p className="text-xs text-muted-foreground text-center">Não foi possível carregar a imagem</p>
+                            {msg.url_midia && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => window.open(msg.url_midia, '_blank')}
+                                className="text-xs"
+                              >
+                                <ExternalLink className="w-3 h-3 mr-1" />
+                                Abrir link
+                              </Button>
+                            )}
+                          </div>
+                        ) : (
+                          <img 
+                            src={msg.url_midia} 
+                            alt="Imagem" 
+                            className="w-full max-h-64 object-cover cursor-pointer hover:opacity-90 transition-opacity" 
+                            onClick={() => handleImageClick(msg.url_midia!)}
+                            onError={() => handleImageError(msg.id)}
+                            loading="lazy"
+                          />
+                        )
                       )}
                       {msg.tipo_midia === 'video' && (
                         <video src={msg.url_midia} controls className="w-full max-h-64" />
@@ -804,6 +840,29 @@ const ChatArea = ({
           </Button>
         </div>
       </div>
+
+      {/* Dialog para imagem expandida */}
+      <Dialog open={!!imagemExpandida} onOpenChange={() => setImagemExpandida(null)}>
+        <DialogContent className="max-w-4xl w-full p-0 overflow-hidden bg-black/95">
+          {imagemExpandida && (
+            <div className="relative w-full h-[80vh] flex items-center justify-center">
+              <img 
+                src={imagemExpandida} 
+                alt="Imagem expandida" 
+                className="max-w-full max-h-full object-contain"
+              />
+              <Button
+                variant="outline"
+                size="icon"
+                className="absolute top-4 right-4"
+                onClick={() => setImagemExpandida(null)}
+              >
+                <ExternalLink className="w-4 h-4" />
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </Card>;
 };
 export default ChatArea;
