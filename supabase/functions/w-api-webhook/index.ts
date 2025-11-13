@@ -189,13 +189,42 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
   const numeroNormalizado = normalizarNumeroWhatsApp(numeroRemetente);
   const contatoIdCRM = await buscarContatoCRM(supabase, numeroNormalizado);
 
-  // 3. Buscar ou criar contato WhatsApp (usando número normalizado)
-  let { data: contato } = await supabase
+  // 3. Buscar ou criar contato WhatsApp considerando variações de número e possível vínculo CRM
+  const numeroApenasDigitos = numeroNormalizado; // já vem normalizado com dígitos
+  const variacoesNumero = [numeroApenasDigitos, `+${numeroApenasDigitos}`];
+
+  // Buscar por número com e sem "+"
+  const { data: contatosPorNumero } = await supabase
     .from('whatsapp_contatos')
-    .select('*')
-    .eq('numero_whatsapp', numeroNormalizado)
+    .select('id, numero_whatsapp, contato_id, criado_em')
     .eq('whatsapp_conta_id', conta.id)
-    .single();
+    .in('numero_whatsapp', variacoesNumero);
+
+  // Opcionalmente buscar por vínculo CRM (se existir)
+  let contatosPorCRM: any[] = [];
+  if (contatoIdCRM) {
+    const { data } = await supabase
+      .from('whatsapp_contatos')
+      .select('id, numero_whatsapp, contato_id, criado_em')
+      .eq('whatsapp_conta_id', conta.id)
+      .eq('contato_id', contatoIdCRM);
+    contatosPorCRM = data || [];
+  }
+
+  // Unificar resultados e remover duplicados
+  const mapaContatos: Record<string, any> = {};
+  [...(contatosPorNumero || []), ...contatosPorCRM].forEach((c: any) => {
+    mapaContatos[c.id] = c;
+  });
+  const contatosCandidatos = Object.values(mapaContatos);
+
+  let contato = contatosCandidatos[0] as any | undefined;
+  // Preferir o que já está no formato dígitos (sem "+")
+  if (contatosCandidatos.length > 1) {
+    const preferido = contatosCandidatos.find((c: any) => c.numero_whatsapp === numeroApenasDigitos);
+    if (preferido) contato = preferido;
+    console.warn('⚠️ Múltiplos whatsapp_contatos encontrados para o mesmo número:', contatosCandidatos);
+  }
 
   if (!contato) {
     console.log('➕ Criando novo contato WhatsApp com vínculo CRM');
@@ -203,14 +232,14 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
       .from('whatsapp_contatos')
       .insert({
         whatsapp_conta_id: conta.id,
-        numero_whatsapp: numeroNormalizado,
+        numero_whatsapp: numeroApenasDigitos, // padronizar somente dígitos
         nome_whatsapp: pushName,
-        contato_id: contatoIdCRM, // Vincula ao CRM se encontrado
+        contato_id: contatoIdCRM || null, // Vincula ao CRM se encontrado
         criado_em: new Date().toISOString(),
       })
       .select()
       .single();
-    
+
     contato = novoContato;
   } else if (contatoIdCRM && !contato.contato_id) {
     // Se o contato WhatsApp já existe mas não tem vínculo CRM, atualiza
@@ -221,7 +250,7 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
       .eq('id', contato.id)
       .select()
       .single();
-    
+
     contato = contatoAtualizado || contato;
   }
 
@@ -230,15 +259,24 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
     return;
   }
 
-  // 4. Buscar ou criar conversa
-  let { data: conversa } = await supabase
+  // 4. Buscar conversa ativa existente (priorizar janela ativa) para qualquer contato candidato
+  const contatoIdsParaBusca = (contatosCandidatos && contatosCandidatos.length > 0)
+    ? (contatosCandidatos as any[]).map((c: any) => c.id)
+    : [contato.id];
+
+  let { data: conversasAtivas } = await supabase
     .from('whatsapp_conversas')
     .select('*')
     .eq('whatsapp_conta_id', conta.id)
-    .eq('whatsapp_contato_id', contato.id)
-    .single();
+    .in('whatsapp_contato_id', contatoIdsParaBusca)
+    .neq('status', 'fechada')
+    .order('janela_24h_ativa', { ascending: false })
+    .order('ultima_mensagem_em', { ascending: false });
+
+  let conversa = conversasAtivas && conversasAtivas.length > 0 ? conversasAtivas[0] : null;
 
   if (!conversa) {
+    // Nenhuma conversa ativa encontrada: criar nova
     const { data: novaConversa } = await supabase
       .from('whatsapp_conversas')
       .insert({
@@ -252,10 +290,9 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
       })
       .select()
       .single();
-    
     conversa = novaConversa;
   } else {
-    // Atualizar janela de 24h
+    // Atualizar janela de 24h e última atividade
     await supabase
       .from('whatsapp_conversas')
       .update({
@@ -267,7 +304,19 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
       .eq('id', conversa.id);
   }
 
-  // 5. Inserir mensagem
+  // 5. Inserir mensagem (idempotente)
+  // Evitar duplicidade caso o provedor reenvie eventos
+  const { data: msgExistente } = await supabase
+    .from('whatsapp_mensagens')
+    .select('id, conversa_id')
+    .eq('mensagem_externa_id', messageId)
+    .maybeSingle();
+
+  if (msgExistente) {
+    console.log('ℹ️ Mensagem já processada, evitando duplicidade:', messageId);
+    return;
+  }
+
   const { error: msgError } = await supabase.from('whatsapp_mensagens').insert({
     conversa_id: conversa.id,
     whatsapp_conta_id: conta.id,

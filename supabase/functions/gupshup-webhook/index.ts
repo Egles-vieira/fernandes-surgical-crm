@@ -156,13 +156,38 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
   const numeroNormalizado = normalizarNumeroWhatsApp(numeroRemetente);
   const contatoIdCRM = await buscarContatoCRM(supabase, numeroNormalizado);
 
-  // Buscar ou criar contato WhatsApp
-  let { data: contato } = await supabase
+  // Buscar ou criar contato WhatsApp considerando variações de número e possível vínculo CRM
+  const numeroApenasDigitos = numeroNormalizado;
+  const variacoesNumero = [numeroApenasDigitos, `+${numeroApenasDigitos}`];
+
+  const { data: contatosPorNumero } = await supabase
     .from('whatsapp_contatos')
-    .select('id')
-    .eq('numero_whatsapp', numeroNormalizado)
+    .select('id, numero_whatsapp, contato_id, criado_em')
     .eq('whatsapp_conta_id', conta.id)
-    .single();
+    .in('numero_whatsapp', variacoesNumero);
+
+  let contatosPorCRM: any[] = [];
+  if (contatoIdCRM) {
+    const { data } = await supabase
+      .from('whatsapp_contatos')
+      .select('id, numero_whatsapp, contato_id, criado_em')
+      .eq('whatsapp_conta_id', conta.id)
+      .eq('contato_id', contatoIdCRM);
+    contatosPorCRM = data || [];
+  }
+
+  const mapaContatos: Record<string, any> = {};
+  [...(contatosPorNumero || []), ...contatosPorCRM].forEach((c: any) => {
+    mapaContatos[c.id] = c;
+  });
+  const contatosCandidatos = Object.values(mapaContatos);
+
+  let contato = contatosCandidatos[0] as any | undefined;
+  if (contatosCandidatos.length > 1) {
+    const preferido = contatosCandidatos.find((c: any) => c.numero_whatsapp === numeroApenasDigitos);
+    if (preferido) contato = preferido;
+    console.warn('⚠️ Múltiplos whatsapp_contatos encontrados para o mesmo número:', contatosCandidatos);
+  }
 
   if (!contato) {
     console.log('➕ Criando novo contato WhatsApp com vínculo CRM');
@@ -170,14 +195,14 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
       .from('whatsapp_contatos')
       .insert({
         whatsapp_conta_id: conta.id,
-        numero_whatsapp: numeroNormalizado,
+        numero_whatsapp: numeroApenasDigitos,
         nome_whatsapp: payload.sender?.name || numeroRemetente,
-        contato_id: contatoIdCRM, // Vincula ao CRM se encontrado
+        contato_id: contatoIdCRM || null,
         criado_em: new Date().toISOString(),
       })
       .select()
       .single();
-    
+
     contato = novoContato;
   } else if (contatoIdCRM && !contato.contato_id) {
     // Se o contato WhatsApp já existe mas não tem vínculo CRM, atualiza
@@ -188,7 +213,7 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
       .eq('id', contato.id)
       .select()
       .single();
-    
+
     contato = contatoAtualizado || contato;
   }
 
@@ -197,15 +222,24 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
     return;
   }
 
-  // Buscar ou criar conversa
-  let { data: conversa } = await supabase
+  // Buscar conversa ativa existente (priorizar janela ativa) para qualquer contato candidato
+  const contatoIdsParaBusca = (contatosCandidatos && contatosCandidatos.length > 0)
+    ? (contatosCandidatos as any[]).map((c: any) => c.id)
+    : [contato.id];
+
+  let { data: conversasAtivas } = await supabase
     .from('whatsapp_conversas')
-    .select('id')
+    .select('id, status, janela_24h_ativa, ultima_mensagem_em')
     .eq('whatsapp_conta_id', conta.id)
-    .eq('whatsapp_contato_id', contato.id)
-    .single();
+    .in('whatsapp_contato_id', contatoIdsParaBusca)
+    .neq('status', 'fechada')
+    .order('janela_24h_ativa', { ascending: false })
+    .order('ultima_mensagem_em', { ascending: false });
+
+  let conversa = conversasAtivas && conversasAtivas.length > 0 ? conversasAtivas[0] : null;
 
   if (!conversa) {
+    // Nenhuma conversa ativa encontrada: criar nova
     const { data: novaConversa } = await supabase
       .from('whatsapp_conversas')
       .insert({
@@ -222,7 +256,7 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
     
     conversa = novaConversa;
   } else {
-    // Atualizar janela de 24h
+    // Atualizar janela de 24h e última atividade
     await supabase
       .from('whatsapp_conversas')
       .update({
