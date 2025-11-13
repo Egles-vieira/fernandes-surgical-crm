@@ -56,7 +56,7 @@ export const contatoSchema = z.object({
   // Textos Longos
   dores_identificadas: z.string().max(2000).optional().or(z.literal("")),
   objetivos_profissionais: z.string().max(2000).optional().or(z.literal("")),
-  observacoes: z.string().max(5000).optional().or(z.literal("")),
+  descricao: z.string().max(5000).optional().or(z.literal("")),
   
   // Relacionamento com cliente
   cliente_id: z.string().uuid().optional(),

@@ -679,7 +679,7 @@ function ContatoDialog({
       skype_id: "",
       dores_identificadas: "",
       objetivos_profissionais: "",
-      observacoes: "",
+      descricao: "",
       esta_ativo: true,
       ...contatoInicial,
     },
@@ -716,7 +716,7 @@ function ContatoDialog({
         skype_id: "",
         dores_identificadas: "",
         objetivos_profissionais: "",
-        observacoes: "",
+        descricao: "",
         esta_ativo: true,
         ...contatoInicial,
       });
@@ -767,7 +767,7 @@ function ContatoDialog({
                 <Share2 className="h-4 w-4" />
                 <span className="hidden sm:inline">Social</span>
               </TabsTrigger>
-              <TabsTrigger value="observacoes" className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm py-3">
+              <TabsTrigger value="descricao" className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm py-3">
                 <FileText className="h-4 w-4" />
                 <span className="hidden sm:inline">Notas</span>
               </TabsTrigger>
@@ -1008,7 +1008,7 @@ function ContatoDialog({
             </TabsContent>
 
             {/* Aba: Observações */}
-            <TabsContent value="observacoes" className="space-y-6 mt-6">
+            <TabsContent value="descricao" className="space-y-6 mt-6">
               <div className="space-y-4">
                 <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
                   <FileText className="h-4 w-4" />
@@ -1026,8 +1026,8 @@ function ContatoDialog({
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="observacoes" className="text-sm font-medium">Observações Gerais</Label>
-                    <Textarea id="observacoes" {...register("observacoes")} rows={4} placeholder="Informações adicionais" className="border-2" />
+                    <Label htmlFor="descricao" className="text-sm font-medium">Observações Gerais</Label>
+                    <Textarea id="descricao" {...register("descricao")} rows={4} placeholder="Informações adicionais" className="border-2" />
                   </div>
                 </div>
               </div>

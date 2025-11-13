@@ -67,7 +67,7 @@ export default function NovoContatoDialog({ open, onOpenChange, clienteId, conta
         campanha_origem: data.campanha_origem || null,
         dores_identificadas: data.dores_identificadas || null,
         objetivos_profissionais: data.objetivos_profissionais || null,
-        observacoes: data.observacoes || null,
+        descricao: data.descricao || null,
         proximo_followup: data.proximo_followup || null,
         cliente_id: clienteId,
         conta_id: contaId,
@@ -364,7 +364,7 @@ export default function NovoContatoDialog({ open, onOpenChange, clienteId, conta
             </TabsContent>
 
             {/* Aba: Observações */}
-            <TabsContent value="observacoes" className="space-y-4 mt-4">
+            <TabsContent value="descricao" className="space-y-4 mt-4">
               <div className="space-y-2">
                 <Label htmlFor="dores_identificadas">Dores Identificadas</Label>
                 <Textarea id="dores_identificadas" {...register("dores_identificadas")} rows={4} placeholder="Quais problemas o contato enfrenta?" />
@@ -376,8 +376,8 @@ export default function NovoContatoDialog({ open, onOpenChange, clienteId, conta
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="observacoes">Observações Gerais</Label>
-                <Textarea id="observacoes" {...register("observacoes")} rows={4} placeholder="Informações adicionais" />
+                <Label htmlFor="descricao">Observações Gerais</Label>
+                <Textarea id="descricao" {...register("descricao")} rows={4} placeholder="Informações adicionais" />
               </div>
             </TabsContent>
           </Tabs>

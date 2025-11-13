@@ -69,7 +69,7 @@ export default function EditarContatoDialog({ open, onOpenChange, contato, clien
         interesses: contato.interesses || [],
         dores_identificadas: contato.dores_identificadas || "",
         objetivos_profissionais: contato.objetivos_profissionais || "",
-        observacoes: contato.observacoes || "",
+        descricao: contato.descricao || "",
       });
     }
   }, [contato, reset]);
@@ -338,7 +338,7 @@ export default function EditarContatoDialog({ open, onOpenChange, contato, clien
             </TabsContent>
 
             {/* Aba: Observações */}
-            <TabsContent value="observacoes" className="space-y-4 mt-4">
+            <TabsContent value="descricao" className="space-y-4 mt-4">
               <div className="space-y-2">
                 <Label htmlFor="dores_identificadas">Dores Identificadas</Label>
                 <Textarea id="dores_identificadas" {...register("dores_identificadas")} rows={4} placeholder="Quais problemas o contato enfrenta?" />
@@ -350,8 +350,8 @@ export default function EditarContatoDialog({ open, onOpenChange, contato, clien
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="observacoes">Observações Gerais</Label>
-                <Textarea id="observacoes" {...register("observacoes")} rows={4} placeholder="Informações adicionais" />
+                <Label htmlFor="descricao">Observações Gerais</Label>
+                <Textarea id="descricao" {...register("descricao")} rows={4} placeholder="Informações adicionais" />
               </div>
             </TabsContent>
           </Tabs>
