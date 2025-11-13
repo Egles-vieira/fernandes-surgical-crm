@@ -566,6 +566,19 @@ const ChatArea = ({
           }
           
           return <div key={msg.id} className={cn("flex flex-col gap-1 group", isEnviada ? "items-end" : "items-start")}>
+                {/* Nome e data/hora do remetente */}
+                <div className="flex items-center gap-2 px-1">
+                  <span className="text-xs font-medium text-muted-foreground">
+                    {isEnviada 
+                      ? 'Você'
+                      : (conversa?.whatsapp_contatos?.contatos?.primeiro_nome || conversa?.whatsapp_contatos?.nome_whatsapp || 'Cliente')
+                    }
+                  </span>
+                  <span className="text-xs text-muted-foreground/70">
+                    {format(new Date(msg.criado_em), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                  </span>
+                </div>
+                
                 <div className={cn("max-w-[70%] rounded-2xl overflow-hidden relative", isEnviada ? isErro ? "bg-destructive/10 border border-destructive/30" : "bg-gradient-to-br from-primary to-primary/90 text-primary-foreground" : "bg-muted")}>
                   {/* Preview de Mídia */}
                   {msg.tem_midia && msg.url_midia && (
@@ -614,14 +627,9 @@ const ChatArea = ({
                     </div>
                   )}
 
-                  {/* Timestamp e Status */}
-                  <div className="px-4 pb-2 flex items-center justify-between gap-2">
+                  {/* Status da mensagem */}
+                  <div className="px-4 pb-2 flex items-center justify-end gap-2">
                     <div className="flex items-center gap-1">
-                      <span className="text-xs opacity-70">
-                        {format(new Date(msg.criado_em), 'HH:mm', {
-                      locale: ptBR
-                    })}
-                      </span>
                       {isEnviada && !isErro && <CheckCheck className={cn("w-4 h-4", msg.status === 'lida' ? "text-blue-400" : "opacity-70")} />}
                       {isErro && <AlertCircle className="w-4 h-4 text-destructive" />}
                     </div>
