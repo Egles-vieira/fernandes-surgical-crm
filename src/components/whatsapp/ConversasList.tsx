@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Search, Circle, MessageSquarePlus, Users } from "lucide-react";
+import { Search, Circle, MessageSquarePlus, Users, Image, Video, Mic, FileText } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -147,6 +147,36 @@ const ConversasList = ({
     };
     return colors[prioridade] || "secondary";
   };
+
+  const getMediaIcon = (tipoMensagem: string) => {
+    switch (tipoMensagem) {
+      case 'imagem':
+        return <Image className="w-4 h-4 text-muted-foreground" />;
+      case 'video':
+        return <Video className="w-4 h-4 text-muted-foreground" />;
+      case 'audio':
+        return <Mic className="w-4 h-4 text-muted-foreground" />;
+      case 'documento':
+        return <FileText className="w-4 h-4 text-muted-foreground" />;
+      default:
+        return null;
+    }
+  };
+
+  const getMediaLabel = (tipoMensagem: string) => {
+    switch (tipoMensagem) {
+      case 'imagem':
+        return 'Imagem';
+      case 'video':
+        return 'Vídeo';
+      case 'audio':
+        return 'Áudio';
+      case 'documento':
+        return 'Documento';
+      default:
+        return '';
+    }
+  };
   return <>
       <Card className="h-full min-h-0 flex flex-col backdrop-blur border-muted bg-slate-50">
         {/* Header */}
@@ -238,9 +268,19 @@ const ConversasList = ({
 
                     <p className="text-sm text-muted-foreground truncate mb-2 flex items-center gap-1">
                       {conversa.whatsapp_mensagens?.direcao === 'saida' && <span className="text-xs">Você:</span>}
-                      <span className="flex-1 truncate">
-                        {conversa.whatsapp_mensagens?.corpo || 'Nenhuma mensagem ainda'}
-                      </span>
+                      {conversa.whatsapp_mensagens?.tipo_mensagem && 
+                       conversa.whatsapp_mensagens.tipo_mensagem !== 'texto' ? (
+                        <>
+                          {getMediaIcon(conversa.whatsapp_mensagens.tipo_mensagem)}
+                          <span className="flex-1 truncate">
+                            {getMediaLabel(conversa.whatsapp_mensagens.tipo_mensagem)}
+                          </span>
+                        </>
+                      ) : (
+                        <span className="flex-1 truncate">
+                          {conversa.whatsapp_mensagens?.corpo || 'Nenhuma mensagem ainda'}
+                        </span>
+                      )}
                     </p>
 
                     <div className="flex items-center gap-2 flex-wrap">
