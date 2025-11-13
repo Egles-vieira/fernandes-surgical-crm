@@ -87,13 +87,27 @@ export default function WhatsAppChat({
 
         console.log('Número formatado:', numeroCompleto);
 
-        // Buscar contato WhatsApp existente (1) por contato_id + conta; (2) por número + conta
-        let whatsappContato: { id: string } | null = null;
+        // Buscar contato WhatsApp existente prioritariamente por número + conta, depois por contato_id + conta
+        let whatsappContato: { id: string; contato_id?: string | null } | null = null;
 
-        if (contactId) {
+        // 1) Tentar por número dentro da conta ativa
+        const { data: byNumero, error: errByNumero } = await supabase
+          .from('whatsapp_contatos')
+          .select('id, contato_id')
+          .eq('numero_whatsapp', numeroCompleto)
+          .eq('whatsapp_conta_id', contaAtiva.id)
+          .maybeSingle();
+        if (errByNumero) {
+          console.error('Erro ao buscar por número:', errByNumero);
+          throw errByNumero;
+        }
+        if (byNumero) whatsappContato = byNumero;
+
+        // 2) Se não achou por número e temos contactId, tentar por contato_id + conta
+        if (!whatsappContato && contactId) {
           const { data: byContato, error: errByContato } = await supabase
             .from('whatsapp_contatos')
-            .select('id, numero_whatsapp')
+            .select('id, contato_id')
             .eq('contato_id', contactId)
             .eq('whatsapp_conta_id', contaAtiva.id)
             .maybeSingle();
@@ -101,24 +115,19 @@ export default function WhatsAppChat({
             console.error('Erro ao buscar por contato_id:', errByContato);
             throw errByContato;
           }
-          if (byContato) whatsappContato = { id: byContato.id };
+          if (byContato) whatsappContato = byContato;
         }
 
-        if (!whatsappContato) {
-          const { data: byNumero, error: errByNumero } = await supabase
+        // 3) Se achou por número mas ainda não está vinculado ao contato CRM, vincular
+        if (whatsappContato && contactId && !whatsappContato.contato_id) {
+          await supabase
             .from('whatsapp_contatos')
-            .select('id')
-            .eq('numero_whatsapp', numeroCompleto)
-            .eq('whatsapp_conta_id', contaAtiva.id)
-            .maybeSingle();
-          if (errByNumero) {
-            console.error('Erro ao buscar por número:', errByNumero);
-            throw errByNumero;
-          }
-          if (byNumero) whatsappContato = byNumero;
+            .update({ contato_id: contactId })
+            .eq('id', whatsappContato.id);
+          whatsappContato.contato_id = contactId;
         }
 
-        console.log('Contato WhatsApp encontrado:', whatsappContato);
+        console.log('Contato WhatsApp localizado:', whatsappContato);
 
         // Se não existe e temos o contactId, criar
         if (!whatsappContato && contactId) {
@@ -179,30 +188,51 @@ export default function WhatsAppChat({
         console.log('Usando contato WhatsApp ID:', whatsappContato.id);
         setWhatsappContatoId(whatsappContato.id);
 
-        // Buscar conversa existente (mais recente não fechada)
-        const { data: conversas, error: erroConsultaConversa } = await supabase
+        // Buscar conversa existente priorizando janela 24h ativa na conta atual
+        let conversa: { id: string } | null = null;
+
+        // 1) Conversa com janela 24h ativa
+        const { data: conversasAtivas, error: erroConsultaAtiva } = await supabase
           .from('whatsapp_conversas')
           .select('id')
           .eq('whatsapp_contato_id', whatsappContato.id)
           .eq('whatsapp_conta_id', contaAtiva.id)
+          .eq('janela_24h_ativa', true)
           .neq('status', 'fechada')
-          .order('criado_em', { ascending: false })
+          .order('janela_aberta_em', { ascending: false })
           .limit(1);
 
-        let conversa = conversas && conversas.length > 0 ? conversas[0] : null;
-
-        if (erroConsultaConversa) {
-          console.error('Erro ao buscar conversa:', erroConsultaConversa);
-          throw erroConsultaConversa;
+        if (erroConsultaAtiva) {
+          console.error('Erro ao buscar conversa ativa (24h):', erroConsultaAtiva);
+          throw erroConsultaAtiva;
         }
 
-        console.log('Conversa encontrada:', conversa);
+        if (conversasAtivas && conversasAtivas.length > 0) {
+          conversa = conversasAtivas[0];
+        } else {
+          // 2) Caso não exista conversa com janela ativa, buscar a mais recente não fechada
+          const { data: conversas, error: erroConsultaConversa } = await supabase
+            .from('whatsapp_conversas')
+            .select('id')
+            .eq('whatsapp_contato_id', whatsappContato.id)
+            .eq('whatsapp_conta_id', contaAtiva.id)
+            .neq('status', 'fechada')
+            .order('criado_em', { ascending: false })
+            .limit(1);
+
+          if (erroConsultaConversa) {
+            console.error('Erro ao buscar conversa:', erroConsultaConversa);
+            throw erroConsultaConversa;
+          }
+          conversa = conversas && conversas.length > 0 ? conversas[0] : null;
+        }
+
+        console.log('Conversa localizada:', conversa);
 
         // Se não existe conversa, criar uma nova
         if (!conversa) {
           console.log('Criando nova conversa...');
           const user = await supabase.auth.getUser();
-          
           const { data: novaConversa, error: erroConversa } = await supabase
             .from('whatsapp_conversas')
             .insert({
@@ -220,7 +250,6 @@ export default function WhatsAppChat({
             console.error('Erro ao criar conversa:', erroConversa);
             throw erroConversa;
           }
-          
           conversa = novaConversa;
           console.log('Nova conversa criada:', conversa);
         }
