@@ -643,7 +643,7 @@ const ChatArea = ({
                   {/* Preview de Mídia */}
                   {msg.tem_midia && msg.url_midia && (
                     <div className="w-full">
-                      {msg.tipo_midia === 'image' && (
+                      {(msg.tipo_midia === 'image' || msg.tipo_midia === 'imagem' || msg.tipo_mensagem === 'imagem' || msg.mime_type?.startsWith('image/')) && (
                         imagensComErro.has(msg.id) ? (
                           <div className="w-full h-48 bg-muted/50 flex flex-col items-center justify-center gap-2 p-4">
                             <ImageIcon className="w-12 h-12 text-muted-foreground/50" />
@@ -671,15 +671,15 @@ const ChatArea = ({
                           />
                         )
                       )}
-                      {msg.tipo_midia === 'video' && (
+                      {(msg.tipo_midia === 'video' || msg.tipo_mensagem === 'video' || msg.mime_type?.startsWith('video/')) && (
                         <video src={msg.url_midia} controls className="w-full max-h-64" />
                       )}
-                      {msg.tipo_midia === 'audio' && (
+                      {(msg.tipo_midia === 'audio' || msg.tipo_mensagem === 'audio' || msg.mime_type?.startsWith('audio/')) && (
                         <div className="p-3">
                           <audio src={msg.url_midia} controls className="w-full" />
                         </div>
                       )}
-                      {msg.tipo_midia === 'document' && (
+                      {(msg.tipo_midia === 'document' || msg.tipo_mensagem === 'documento' || (msg.mime_type && !msg.mime_type?.startsWith('image/') && !msg.mime_type?.startsWith('video/') && !msg.mime_type?.startsWith('audio/'))) && (
                         <div className="p-3 flex items-center gap-2 bg-background/10">
                           <FileText className="w-8 h-8" />
                           <div className="flex-1 min-w-0">
