@@ -17,6 +17,7 @@ import NovoContatoDialog from "@/components/cliente/NovoContatoDialog";
 import EditarContatoDialog from "@/components/cliente/EditarContatoDialog";
 import NovaOportunidadeDialog from "@/components/cliente/NovaOportunidadeDialog";
 import WhatsAppChat from "@/components/cliente/WhatsAppChat";
+import ClienteWhatsAppMessages from "@/components/cliente/ClienteWhatsAppMessages";
 import HistoricoProdutos from "@/components/cliente/HistoricoProdutos";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useContatos } from "@/hooks/useContatos";
@@ -703,6 +704,23 @@ export default function ClienteDetalhes() {
           </CardContent>
         </Card>
       </div>
+
+      {/* WhatsApp Messages Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base font-medium flex items-center gap-2">
+            <MessageSquare className="h-5 w-5" />
+            Mensagens WhatsApp
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ClienteWhatsAppMessages
+            contactName={cliente.nome_abrev || cliente.nome_emit}
+            phoneNumber={cliente.telefone1}
+            contactId={id}
+          />
+        </CardContent>
+      </Card>
 
       {/* Dialogs */}
       <NovoContatoDialog open={novoContatoOpen} onOpenChange={setNovoContatoOpen} clienteId={id!} contaId={cliente.conta_id} />
