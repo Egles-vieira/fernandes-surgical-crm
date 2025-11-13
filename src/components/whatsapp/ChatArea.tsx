@@ -358,27 +358,31 @@ const ChatArea = ({
     messagesEndRef.current?.scrollIntoView({
       behavior: "smooth"
     });
+  }, [mensagens]);
+
+  // Marcar mensagens como lidas quando abrir a conversa
+  useEffect(() => {
+    if (!conversaId || !mensagens || mensagens.length === 0) return;
     
-    // Marcar mensagens recebidas como lidas
-    if (conversaId && mensagens && mensagens.length > 0) {
-      const mensagensNaoLidas = mensagens.filter(
-        m => m.direcao === 'recebida' && !(m as any).status_lida_em
-      );
+    const mensagensNaoLidas = mensagens.filter(
+      m => m.direcao === 'recebida' && !(m as any).status_lida_em
+    );
+    
+    if (mensagensNaoLidas.length > 0) {
+      const idsNaoLidas = mensagensNaoLidas.map(m => m.id);
       
-      if (mensagensNaoLidas.length > 0) {
-        const idsNaoLidas = mensagensNaoLidas.map(m => m.id);
-        
-        supabase
-          .from('whatsapp_mensagens' as any)
-          .update({ status_lida_em: new Date().toISOString() })
-          .in('id', idsNaoLidas)
-          .then(() => {
-            queryClient.invalidateQueries({ queryKey: ['whatsapp-mensagens', conversaId] });
-            queryClient.invalidateQueries({ queryKey: ['whatsapp-conversas'] });
-          });
-      }
+      // Marcar como lidas imediatamente
+      supabase
+        .from('whatsapp_mensagens' as any)
+        .update({ status_lida_em: new Date().toISOString() })
+        .in('id', idsNaoLidas)
+        .then(() => {
+          // Invalidar queries para atualizar o contador
+          queryClient.invalidateQueries({ queryKey: ['whatsapp-conversas'] });
+          queryClient.invalidateQueries({ queryKey: ['whatsapp-mensagens', conversaId] });
+        });
     }
-  }, [mensagens, conversaId, queryClient]);
+  }, [conversaId, queryClient]);
   if (!conversaId) {
     return <Card className="h-full flex items-center justify-center bg-card/30 backdrop-blur">
         <div className="text-center">
