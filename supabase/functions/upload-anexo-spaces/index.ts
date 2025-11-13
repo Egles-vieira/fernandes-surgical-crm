@@ -1,4 +1,3 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { S3Client } from "https://deno.land/x/s3_lite_client@0.7.0/mod.ts";
 
@@ -14,7 +13,7 @@ const DO_SPACES_REGION = "sfo3";
 const DO_SPACES_ACCESS_KEY = 'DO00ZML66HG76UVJG6ZG';
 const DO_SPACES_SECRET_KEY = Deno.env.get('DO_SPACES_SECRET_KEY');
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
