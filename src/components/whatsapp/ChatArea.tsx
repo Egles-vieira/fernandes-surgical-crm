@@ -641,7 +641,7 @@ const ChatArea = ({
                 
                 <div className={cn("max-w-[70%] rounded-2xl overflow-hidden relative", isEnviada ? isErro ? "bg-destructive/10 border border-destructive/30" : "bg-gradient-to-br from-primary to-primary/90 text-primary-foreground" : "bg-muted")}>
                   {/* Preview de Mídia */}
-                  {msg.tem_midia && msg.url_midia && (
+                  {msg.url_midia && (
                     <div className="w-full">
                       {(msg.tipo_midia === 'image' || msg.tipo_midia === 'imagem' || msg.tipo_mensagem === 'imagem' || msg.mime_type?.startsWith('image/')) && (
                         imagensComErro.has(msg.id) ? (
