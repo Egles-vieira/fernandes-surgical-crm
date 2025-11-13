@@ -49,6 +49,11 @@ const ConversasList = ({
                 nome_abrev
               )
             )
+          ),
+          whatsapp_mensagens!whatsapp_mensagens_conversa_id_fkey (
+            corpo,
+            tipo_mensagem,
+            direcao
           )
         `).eq('whatsapp_conta_id', contaId).order('ultima_mensagem_em', {
         ascending: false
@@ -61,7 +66,12 @@ const ConversasList = ({
         error
       } = await query;
       if (error) throw error;
-      return data;
+      
+      // Para cada conversa, pegar apenas a última mensagem
+      return data?.map(conversa => ({
+        ...conversa,
+        whatsapp_mensagens: conversa.whatsapp_mensagens?.[0] || null
+      }));
     }
   });
   const conversasFiltradas = conversas?.filter(conversa => {
@@ -171,8 +181,11 @@ const ConversasList = ({
                         </span>}
                     </div>
 
-                    <p className="text-sm text-muted-foreground truncate mb-2">
-                      {conversa.titulo || 'Sem título'}
+                    <p className="text-sm text-muted-foreground truncate mb-2 flex items-center gap-1">
+                      {conversa.whatsapp_mensagens?.direcao === 'saida' && <span className="text-xs">Você:</span>}
+                      <span className="flex-1 truncate">
+                        {conversa.whatsapp_mensagens?.corpo || 'Nenhuma mensagem ainda'}
+                      </span>
                     </p>
 
                     <div className="flex items-center gap-2 flex-wrap">
