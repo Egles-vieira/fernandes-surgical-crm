@@ -179,15 +179,17 @@ export default function WhatsAppChat({
         console.log('Usando contato WhatsApp ID:', whatsappContato.id);
         setWhatsappContatoId(whatsappContato.id);
 
-        // Buscar conversa existente
-        let { data: conversa, error: erroConsultaConversa } = await supabase
+        // Buscar conversa existente (mais recente não fechada)
+        const { data: conversas, error: erroConsultaConversa } = await supabase
           .from('whatsapp_conversas')
           .select('id')
           .eq('whatsapp_contato_id', whatsappContato.id)
           .eq('whatsapp_conta_id', contaAtiva.id)
           .neq('status', 'fechada')
           .order('criado_em', { ascending: false })
-          .maybeSingle();
+          .limit(1);
+
+        let conversa = conversas && conversas.length > 0 ? conversas[0] : null;
 
         if (erroConsultaConversa) {
           console.error('Erro ao buscar conversa:', erroConsultaConversa);
