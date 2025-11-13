@@ -743,7 +743,7 @@ export default function ClienteDetalhes() {
 
       <NovaOportunidadeDialog open={novaOportunidadeOpen} onOpenChange={setNovaOportunidadeOpen} clienteId={id!} contaId={cliente.conta_id} />
 
-      {selectedContact && <WhatsAppChat open={whatsappChatOpen} onOpenChange={setWhatsappChatOpen} contactName={selectedContact.nome_completo} contactInitials={`${selectedContact.primeiro_nome?.charAt(0) || ''}${selectedContact.sobrenome?.charAt(0) || ''}`} phoneNumber={selectedContact.celular} contactId={selectedContact.id} />}
+      {selectedContact && <WhatsAppChat open={whatsappChatOpen} onOpenChange={setWhatsappChatOpen} contactName={selectedContact.nome_completo} contactInitials={`${selectedContact.primeiro_nome?.charAt(0) || ''}${selectedContact.sobrenome?.charAt(0) || ''}`} phoneNumber={selectedContact.whatsapp_numero || selectedContact.celular} contactId={selectedContact.id} />}
 
       <HistoricoProdutos open={historicoProdutosOpen} onOpenChange={setHistoricoProdutosOpen} clienteCnpj={cliente.cgc} clienteNome={cliente.nome_abrev || cliente.nome_emit} />
     </div>;
