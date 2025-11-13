@@ -116,6 +116,29 @@ const ChatArea = ({
     },
     enabled: !!conversaId
   });
+
+  // Buscar imagens da conversa para galeria
+  const {
+    data: imagensGaleria
+  } = useQuery({
+    queryKey: ['whatsapp-imagens-galeria', conversaId],
+    queryFn: async () => {
+      if (!conversaId) return [];
+      const {
+        data,
+        error
+      } = await supabase
+        .from('whatsapp_mensagens')
+        .select('id, url_midia, criado_em, nome_arquivo')
+        .eq('conversa_id', conversaId)
+        .or('tipo_midia.eq.image,tipo_midia.eq.imagem,tipo_mensagem.eq.imagem')
+        .not('url_midia', 'is', null)
+        .order('criado_em', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!conversaId
+  });
   const enviarMensagemMutation = useMutation({
     mutationFn: async ({ 
       corpo, 
@@ -530,6 +553,42 @@ const ChatArea = ({
             </div>
 
             <Separator />
+
+            {/* Galeria de Imagens */}
+            {imagensGaleria && imagensGaleria.length > 0 && (
+              <>
+                <div className="space-y-3">
+                  <h4 className="font-semibold flex items-center gap-2">
+                    <ImageIcon className="w-4 h-4" />
+                    Galeria de Imagens ({imagensGaleria.length})
+                  </h4>
+                  
+                  <div className="grid grid-cols-3 gap-2">
+                    {imagensGaleria.map((img) => (
+                      <div
+                        key={img.id}
+                        className="relative aspect-square rounded-lg overflow-hidden bg-muted cursor-pointer hover:opacity-90 transition-opacity group"
+                        onClick={() => handleImageClick(img.url_midia)}
+                      >
+                        <img
+                          src={img.url_midia}
+                          alt={img.nome_arquivo || 'Imagem'}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                          onError={(e) => {
+                            e.currentTarget.src = '';
+                            e.currentTarget.classList.add('hidden');
+                          }}
+                        />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <Separator />
+              </>
+            )}
 
             {/* Estatísticas da Conversa */}
             <div className="space-y-3">
