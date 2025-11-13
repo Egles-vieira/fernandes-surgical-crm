@@ -4422,6 +4422,7 @@ export type Database = {
           email: string | null
           id: string
           nome: string | null
+          nome_completo: string | null
           preferencias: Json | null
           updated_at: string | null
         }
@@ -4430,6 +4431,7 @@ export type Database = {
           email?: string | null
           id: string
           nome?: string | null
+          nome_completo?: string | null
           preferencias?: Json | null
           updated_at?: string | null
         }
@@ -4438,6 +4440,7 @@ export type Database = {
           email?: string | null
           id?: string
           nome?: string | null
+          nome_completo?: string | null
           preferencias?: Json | null
           updated_at?: string | null
         }

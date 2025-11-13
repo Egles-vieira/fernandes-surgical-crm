@@ -58,7 +58,7 @@ const ChatArea = ({
       
       const { data } = await supabase
         .from('profiles')
-        .select('nome, email')
+        .select('nome_completo, nome, email')
         .eq('id', user.id)
         .single();
       
@@ -689,7 +689,7 @@ const ChatArea = ({
                 <div className="flex items-center gap-2 px-1">
                   <span className="text-xs font-medium text-muted-foreground">
                     {isEnviada 
-                      ? (usuarioLogado?.nome || user?.email?.split('@')[0] || 'Você')
+                      ? (usuarioLogado?.nome_completo || usuarioLogado?.nome || user?.email?.split('@')[0] || 'Você')
                       : (conversa?.whatsapp_contatos?.contatos?.primeiro_nome || conversa?.whatsapp_contatos?.nome_whatsapp || 'Cliente')
                     }
                   </span>
