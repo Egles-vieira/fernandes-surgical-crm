@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useWhatsAppConfig } from "@/hooks/useWhatsAppConfig";
+import { useAuth } from "@/hooks/useAuth";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -44,6 +45,24 @@ const ChatArea = ({
   const {
     isWAPI
   } = useWhatsAppConfig();
+  const { user } = useAuth();
+
+  // Buscar dados do usuário logado
+  const { data: usuarioLogado } = useQuery({
+    queryKey: ['usuario-logado', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      
+      const { data } = await supabase
+        .from('usuarios' as any)
+        .select('nome_completo, primeiro_nome')
+        .eq('id', user.id)
+        .single();
+      
+      return data;
+    },
+    enabled: !!user?.id
+  });
   const {
     data: conversa
   } = useQuery({
@@ -570,7 +589,7 @@ const ChatArea = ({
                 <div className="flex items-center gap-2 px-1">
                   <span className="text-xs font-medium text-muted-foreground">
                     {isEnviada 
-                      ? 'Você'
+                      ? ((usuarioLogado as any)?.nome_completo || (usuarioLogado as any)?.primeiro_nome || 'Você')
                       : (conversa?.whatsapp_contatos?.contatos?.primeiro_nome || conversa?.whatsapp_contatos?.nome_whatsapp || 'Cliente')
                     }
                   </span>
