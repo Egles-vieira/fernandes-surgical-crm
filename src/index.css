@@ -20,7 +20,7 @@ All colors MUST be HSL.
     /* Cyan Modern Palette - Based on #47CCD8 */
     --primary: 186 60% 56%; /* #47CCD8 - Cyan */
     --primary-foreground: 0 0% 100%;
-    
+
     --secondary: 240 65% 60%; /* #6366F1 - Indigo */
     --secondary-foreground: 0 0% 100%;
 
@@ -48,7 +48,7 @@ All colors MUST be HSL.
 
     --radius: 0.75rem;
     --border-width: 2px;
-    --shadow-default: 0 4px 6px rgba(0,0,0,0.1);
+    --shadow-default: 0 4px 6px rgba(0, 0, 0, 0.1);
 
     /* Icons */
     --icon-stroke-width: 2;
@@ -127,7 +127,7 @@ All colors MUST be HSL.
 
     --radius: 0.75rem;
     --border-width: 2px;
-    --shadow-default: 0 4px 6px rgba(0,0,0,0.3);
+    --shadow-default: 0 4px 6px rgba(0, 0, 0, 0.3);
 
     /* Icons */
     --icon-stroke-width: 2;
@@ -139,7 +139,7 @@ All colors MUST be HSL.
     --gradient-tertiary: linear-gradient(135deg, hsl(186 80% 45%), hsl(186 60% 30%));
     --gradient-success: linear-gradient(135deg, hsl(142 71% 50%), hsl(142 71% 60%));
     --gradient-subtle: linear-gradient(180deg, hsl(186 80% 10%), hsl(186 60% 12%));
-    
+
     --shadow-sm: 0 2px 8px hsla(0, 0%, 0%, 0.3);
     --shadow-md: 0 4px 16px hsla(0, 0%, 0%, 0.4);
     --shadow-lg: 0 8px 32px hsla(0, 0%, 0%, 0.5);
@@ -161,7 +161,12 @@ All colors MUST be HSL.
     @apply bg-background text-foreground font-sans antialiased;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-semibold;
   }
 }
@@ -223,6 +228,11 @@ All colors MUST be HSL.
   .custom-scrollbar::-webkit-scrollbar-track {
     background: transparent;
     border-radius: 4px;
+  }
+
+  /* Exceção para ícone customizado do WhatsApp */
+  svg.whatsapp-custom-icon {
+    fill-opacity: 1 !important;
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb {
