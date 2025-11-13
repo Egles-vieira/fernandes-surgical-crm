@@ -31,21 +31,31 @@ export async function buscarContatoCRM(
   
   console.log('🔍 Buscando contato no CRM pelo número:', numeroLimpo);
   
-  const { data: contatoCRM, error } = await supabase
+  // Busca todos os contatos e normaliza os números para comparação
+  const { data: contatos, error } = await supabase
     .from('contatos')
-    .select('id')
-    .or(`telefone.ilike.%${numeroLimpo}%,celular.ilike.%${numeroLimpo}%,whatsapp_numero.ilike.%${numeroLimpo}%`)
-    .limit(1)
-    .maybeSingle();
+    .select('id, telefone, celular, whatsapp_numero');
 
   if (error) {
-    console.error('❌ Erro ao buscar contato no CRM:', error);
+    console.error('❌ Erro ao buscar contatos no CRM:', error);
     return null;
   }
 
-  if (contatoCRM?.id) {
-    console.log('✅ Contato encontrado no CRM:', contatoCRM.id);
-    return contatoCRM.id;
+  // Busca contato normalizando os números
+  const contatoEncontrado = contatos?.find((contato: any) => {
+    const telefoneLimpo = normalizarNumeroWhatsApp(contato.telefone || '');
+    const celularLimpo = normalizarNumeroWhatsApp(contato.celular || '');
+    const whatsappLimpo = normalizarNumeroWhatsApp(contato.whatsapp_numero || '');
+    
+    // Verifica se o número limpo contém ou está contido no número procurado
+    return (numeroLimpo && telefoneLimpo && (numeroLimpo.includes(telefoneLimpo) || telefoneLimpo.includes(numeroLimpo))) ||
+           (numeroLimpo && celularLimpo && (numeroLimpo.includes(celularLimpo) || celularLimpo.includes(numeroLimpo))) ||
+           (numeroLimpo && whatsappLimpo && (numeroLimpo.includes(whatsappLimpo) || whatsappLimpo.includes(numeroLimpo)));
+  });
+
+  if (contatoEncontrado?.id) {
+    console.log('✅ Contato encontrado no CRM:', contatoEncontrado.id);
+    return contatoEncontrado.id;
   }
 
   console.log('ℹ️ Contato não encontrado no CRM');
