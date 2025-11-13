@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { z } from 'https://esm.sh/zod@3.22.4';
+import { normalizarNumeroWhatsApp, buscarContatoCRM } from "../_shared/phone-utils.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -151,27 +152,44 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
     return;
   }
 
-  // Buscar ou criar contato
+  // Normalizar número e buscar contato no CRM
+  const numeroNormalizado = normalizarNumeroWhatsApp(numeroRemetente);
+  const contatoIdCRM = await buscarContatoCRM(supabase, numeroNormalizado);
+
+  // Buscar ou criar contato WhatsApp
   let { data: contato } = await supabase
     .from('whatsapp_contatos')
     .select('id')
-    .eq('numero_whatsapp', numeroRemetente)
+    .eq('numero_whatsapp', numeroNormalizado)
     .eq('whatsapp_conta_id', conta.id)
     .single();
 
   if (!contato) {
+    console.log('➕ Criando novo contato WhatsApp com vínculo CRM');
     const { data: novoContato } = await supabase
       .from('whatsapp_contatos')
       .insert({
         whatsapp_conta_id: conta.id,
-        numero_whatsapp: numeroRemetente,
+        numero_whatsapp: numeroNormalizado,
         nome_whatsapp: payload.sender?.name || numeroRemetente,
+        contato_id: contatoIdCRM, // Vincula ao CRM se encontrado
         criado_em: new Date().toISOString(),
       })
       .select()
       .single();
     
     contato = novoContato;
+  } else if (contatoIdCRM && !contato.contato_id) {
+    // Se o contato WhatsApp já existe mas não tem vínculo CRM, atualiza
+    console.log('🔗 Vinculando contato WhatsApp existente ao CRM');
+    const { data: contatoAtualizado } = await supabase
+      .from('whatsapp_contatos')
+      .update({ contato_id: contatoIdCRM })
+      .eq('id', contato.id)
+      .select()
+      .single();
+    
+    contato = contatoAtualizado || contato;
   }
 
   if (!contato) {

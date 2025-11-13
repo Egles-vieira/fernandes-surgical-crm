@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { normalizarNumeroWhatsApp, buscarContatoCRM } from "../_shared/phone-utils.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -75,11 +76,6 @@ Deno.serve(async (req) => {
 
 async function processarMensagemRecebida(supabase: any, payload: any) {
   console.log('📨 Processando mensagem W-API:', payload);
-
-  // Função auxiliar para limpar número de telefone
-  const limparNumero = (numero: string): string => {
-    return numero.replace(/\D/g, ''); // Remove tudo exceto dígitos
-  };
 
   // Mapear tipo de mensagem do provedor para os valores aceitos no banco
   const mapTipoMensagem = (src: any): string => {
@@ -189,30 +185,15 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
     return;
   }
 
-  // 2. Buscar contato no CRM pelo número de telefone
-  console.log('🔍 Buscando contato no CRM pelo número:', numeroRemetente);
-  const numeroLimpo = limparNumero(numeroRemetente);
-  
-  const { data: contatoCRM } = await supabase
-    .from('contatos')
-    .select('id')
-    .or(`telefone.ilike.%${numeroLimpo}%,celular.ilike.%${numeroLimpo}%,whatsapp_numero.ilike.%${numeroLimpo}%`)
-    .limit(1)
-    .maybeSingle();
+  // 2. Normalizar número e buscar contato no CRM
+  const numeroNormalizado = normalizarNumeroWhatsApp(numeroRemetente);
+  const contatoIdCRM = await buscarContatoCRM(supabase, numeroNormalizado);
 
-  const contatoIdCRM = contatoCRM?.id || null;
-  
-  if (contatoIdCRM) {
-    console.log('✅ Contato encontrado no CRM:', contatoIdCRM);
-  } else {
-    console.log('ℹ️ Contato não encontrado no CRM, será criado sem vínculo');
-  }
-
-  // 3. Buscar ou criar contato WhatsApp
+  // 3. Buscar ou criar contato WhatsApp (usando número normalizado)
   let { data: contato } = await supabase
     .from('whatsapp_contatos')
     .select('*')
-    .eq('numero_whatsapp', numeroRemetente)
+    .eq('numero_whatsapp', numeroNormalizado)
     .eq('whatsapp_conta_id', conta.id)
     .single();
 
@@ -222,7 +203,7 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
       .from('whatsapp_contatos')
       .insert({
         whatsapp_conta_id: conta.id,
-        numero_whatsapp: numeroRemetente,
+        numero_whatsapp: numeroNormalizado,
         nome_whatsapp: pushName,
         contato_id: contatoIdCRM, // Vincula ao CRM se encontrado
         criado_em: new Date().toISOString(),
