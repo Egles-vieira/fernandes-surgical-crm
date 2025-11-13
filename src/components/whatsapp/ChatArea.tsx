@@ -362,7 +362,7 @@ const ChatArea = ({
     // Marcar mensagens recebidas como lidas
     if (conversaId && mensagens && mensagens.length > 0) {
       const mensagensNaoLidas = mensagens.filter(
-        m => m.direcao === 'recebida' && !(m as any).lida_em
+        m => m.direcao === 'recebida' && !(m as any).status_lida_em
       );
       
       if (mensagensNaoLidas.length > 0) {
@@ -370,7 +370,7 @@ const ChatArea = ({
         
         supabase
           .from('whatsapp_mensagens' as any)
-          .update({ lida_em: new Date().toISOString() })
+          .update({ status_lida_em: new Date().toISOString() })
           .in('id', idsNaoLidas)
           .then(() => {
             queryClient.invalidateQueries({ queryKey: ['whatsapp-mensagens', conversaId] });

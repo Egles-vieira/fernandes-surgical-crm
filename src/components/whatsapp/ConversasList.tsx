@@ -75,7 +75,7 @@ const ConversasList = ({
           .select('*', { count: 'exact', head: true })
           .eq('conversa_id', conversa.id)
           .eq('direcao', 'recebida')
-          .is('lida_em', null);
+          .is('status_lida_em', null);
         
         return {
           ...conversa,
