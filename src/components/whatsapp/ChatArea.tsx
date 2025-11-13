@@ -358,7 +358,27 @@ const ChatArea = ({
     messagesEndRef.current?.scrollIntoView({
       behavior: "smooth"
     });
-  }, [mensagens]);
+    
+    // Marcar mensagens recebidas como lidas
+    if (conversaId && mensagens && mensagens.length > 0) {
+      const mensagensNaoLidas = mensagens.filter(
+        m => m.direcao === 'recebida' && !(m as any).lida_em
+      );
+      
+      if (mensagensNaoLidas.length > 0) {
+        const idsNaoLidas = mensagensNaoLidas.map(m => m.id);
+        
+        supabase
+          .from('whatsapp_mensagens' as any)
+          .update({ lida_em: new Date().toISOString() })
+          .in('id', idsNaoLidas)
+          .then(() => {
+            queryClient.invalidateQueries({ queryKey: ['whatsapp-mensagens', conversaId] });
+            queryClient.invalidateQueries({ queryKey: ['whatsapp-conversas'] });
+          });
+      }
+    }
+  }, [mensagens, conversaId, queryClient]);
   if (!conversaId) {
     return <Card className="h-full flex items-center justify-center bg-card/30 backdrop-blur">
         <div className="text-center">

@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -27,6 +27,7 @@ const ConversasList = ({
   const [filtroStatus, setFiltroStatus] = useState<string>("todas");
   const [dialogNovaConversa, setDialogNovaConversa] = useState(false);
   const [dialogConsultaCliente, setDialogConsultaCliente] = useState(false);
+  const queryClient = useQueryClient();
   const {
     data: conversas,
     isLoading
@@ -67,11 +68,23 @@ const ConversasList = ({
       } = await query;
       if (error) throw error;
       
-      // Para cada conversa, pegar apenas a última mensagem
-      return data?.map(conversa => ({
-        ...conversa,
-        whatsapp_mensagens: conversa.whatsapp_mensagens?.[0] || null
-      }));
+      // Para cada conversa, contar mensagens não lidas e pegar última mensagem
+      const conversasComNaoLidas = await Promise.all(data?.map(async (conversa) => {
+        const { count } = await supabase
+          .from('whatsapp_mensagens')
+          .select('*', { count: 'exact', head: true })
+          .eq('conversa_id', conversa.id)
+          .eq('direcao', 'recebida')
+          .is('lida_em', null);
+        
+        return {
+          ...conversa,
+          whatsapp_mensagens: conversa.whatsapp_mensagens?.[0] || null,
+          mensagens_nao_lidas: count || 0
+        };
+      }) || []);
+      
+      return conversasComNaoLidas;
     }
   });
   const conversasFiltradas = conversas?.filter(conversa => {
@@ -79,6 +92,43 @@ const ConversasList = ({
     const nomeContato = conversa.whatsapp_contatos?.contatos?.nome_completo || conversa.whatsapp_contatos?.nome_whatsapp || '';
     return nomeContato.toLowerCase().includes(busca.toLowerCase());
   });
+
+  // Realtime: atualizar contador quando novas mensagens chegarem
+  useEffect(() => {
+    const channel = supabase
+      .channel('whatsapp-mensagens-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'whatsapp_mensagens',
+          filter: `whatsapp_conta_id=eq.${contaId}`
+        },
+        () => {
+          // Invalidar query para recarregar conversas com novos contadores
+          queryClient.invalidateQueries({ queryKey: ['whatsapp-conversas', contaId] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'whatsapp_mensagens',
+          filter: `whatsapp_conta_id=eq.${contaId}`
+        },
+        () => {
+          // Invalidar quando mensagem for marcada como lida
+          queryClient.invalidateQueries({ queryKey: ['whatsapp-conversas', contaId] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [contaId, queryClient]);
   const getStatusColor = (status: string) => {
     const colors = {
       aberta: "bg-green-500",
@@ -165,7 +215,7 @@ const ConversasList = ({
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between mb-1">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
                         <h3 className="font-semibold text-sm truncate">
                           {displayName}
                         </h3>
@@ -173,12 +223,17 @@ const ConversasList = ({
                             {conversa.emoji_sentimento}
                           </span>}
                       </div>
-                      {conversa.ultima_mensagem_em && <span className="text-xs text-muted-foreground whitespace-nowrap ml-2">
-                          {formatDistanceToNow(new Date(conversa.ultima_mensagem_em), {
-                      addSuffix: true,
-                      locale: ptBR
-                    })}
-                        </span>}
+                      <div className="flex items-center gap-2 ml-2">
+                        {(conversa as any).mensagens_nao_lidas > 0 && <Badge variant="default" className="bg-primary text-primary-foreground text-xs font-bold min-w-[1.5rem] h-5 flex items-center justify-center rounded-full px-1.5">
+                            {(conversa as any).mensagens_nao_lidas}
+                          </Badge>}
+                        {conversa.ultima_mensagem_em && <span className="text-xs text-muted-foreground whitespace-nowrap">
+                            {formatDistanceToNow(new Date(conversa.ultima_mensagem_em), {
+                        addSuffix: true,
+                        locale: ptBR
+                      })}
+                          </span>}
+                      </div>
                     </div>
 
                     <p className="text-sm text-muted-foreground truncate mb-2 flex items-center gap-1">
