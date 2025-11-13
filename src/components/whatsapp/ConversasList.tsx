@@ -6,13 +6,14 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Search, Circle, MessageSquarePlus, Users, Image, Video, Mic, FileText } from "lucide-react";
+import { Search, MessageSquarePlus, Users, Image, Video, Mic, FileText } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import NovaConversaDialog from "./NovaConversaDialog";
 import ClienteConsultaDialog from "./ClienteConsultaDialog";
+import { StatusAtendimentoSelector } from "./StatusAtendimentoSelector";
 interface ConversasListProps {
   contaId: string;
   conversaSelecionada: string | null;
@@ -182,10 +183,7 @@ const ConversasList = ({
         {/* Header */}
         <div className="p-4 border-b border-border/50 bg-gradient-to-br from-muted/30 to-transparent">
           <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <Circle className="w-3 h-3 text-green-500 fill-green-500" />
-              <span className="text-sm font-medium">Online</span>
-            </div>
+            <StatusAtendimentoSelector />
             <Badge variant="outline" className="font-mono">
               {conversasFiltradas?.length || 0}
             </Badge>

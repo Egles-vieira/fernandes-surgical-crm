@@ -3119,6 +3119,45 @@ export type Database = {
           },
         ]
       }
+      historico_status_atendimento: {
+        Row: {
+          alterado_em: string
+          id: string
+          status_anterior: string | null
+          status_novo: string
+          usuario_id: string
+        }
+        Insert: {
+          alterado_em?: string
+          id?: string
+          status_anterior?: string | null
+          status_novo: string
+          usuario_id: string
+        }
+        Update: {
+          alterado_em?: string
+          id?: string
+          status_anterior?: string | null
+          status_novo?: string
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "historico_status_atendimento_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_usuario"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "historico_status_atendimento_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "vw_performance_vendedor"
+            referencedColumns: ["vendedor_id"]
+          },
+        ]
+      }
       ia_feedback_historico: {
         Row: {
           cotacao_item_id: string
@@ -4077,6 +4116,7 @@ export type Database = {
           primeiro_nome: string | null
           ramal: string | null
           sobrenome: string | null
+          status_atendimento: string
           telefone: string | null
           ultimo_login_em: string | null
           url_avatar: string | null
@@ -4101,6 +4141,7 @@ export type Database = {
           primeiro_nome?: string | null
           ramal?: string | null
           sobrenome?: string | null
+          status_atendimento?: string
           telefone?: string | null
           ultimo_login_em?: string | null
           url_avatar?: string | null
@@ -4125,6 +4166,7 @@ export type Database = {
           primeiro_nome?: string | null
           ramal?: string | null
           sobrenome?: string | null
+          status_atendimento?: string
           telefone?: string | null
           ultimo_login_em?: string | null
           url_avatar?: string | null
