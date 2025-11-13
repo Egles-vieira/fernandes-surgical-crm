@@ -43,6 +43,7 @@ export default function WhatsAppChat({
   const { contas, enviarMensagem } = useWhatsApp();
   const scrollRef = useRef<HTMLDivElement>(null);
   const setupExecutedRef = useRef(false);
+  const setupMutexRef = useRef(false); // Mutex para prevenir criação duplicada
   
   const [message, setMessage] = useState("");
   const [conversaId, setConversaId] = useState<string | null>(null);
@@ -51,6 +52,7 @@ export default function WhatsAppChat({
   const [isLoadingSetup, setIsLoadingSetup] = useState(true);
   const [mensagens, setMensagens] = useState<any[]>([]);
   const [isLoadingMensagens, setIsLoadingMensagens] = useState(false);
+  const [isSendingMessage, setIsSendingMessage] = useState(false);
   const [sentimento, setSentimento] = useState<{
     sentimento: string;
     emoji: string;
@@ -70,6 +72,14 @@ export default function WhatsAppChat({
 
     const setupWhatsApp = async () => {
       setupExecutedRef.current = true;
+      
+      // Mutex: se já está executando, aguardar
+      if (setupMutexRef.current) {
+        console.log('⏳ Setup em execução, aguardando...');
+        return;
+      }
+      
+      setupMutexRef.current = true;
       setIsLoadingSetup(true);
       try {
         // Selecionar primeira conta ativa
@@ -314,15 +324,17 @@ export default function WhatsAppChat({
         });
       } finally {
         setIsLoadingSetup(false);
+        setupMutexRef.current = false; // Liberar mutex
       }
     };
 
     setupWhatsApp();
 
-    // Cleanup: resetar flag quando componente desmontar
+    // Cleanup: resetar flags quando componente desmontar
     return () => {
       console.log('🧹 Limpando setup WhatsApp');
       setupExecutedRef.current = false;
+      setupMutexRef.current = false;
     };
   }, [open, phoneNumber, contactId, contactName, contas]);
 
@@ -457,9 +469,34 @@ export default function WhatsAppChat({
   }, [mensagens]);
 
   const handleSendMessage = async () => {
-    if (!message.trim() || !conversaId || !contaId || !whatsappContatoId) return;
+    if (!message.trim()) {
+      toast({
+        title: "Mensagem vazia",
+        description: "Digite uma mensagem antes de enviar",
+        variant: "destructive",
+      });
+      return;
+    }
 
+    if (!conversaId || !contaId || !whatsappContatoId) {
+      toast({
+        title: "Erro",
+        description: "Conversa não está configurada corretamente",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (isSendingMessage) {
+      console.log('⏳ Envio já em andamento, aguarde...');
+      return;
+    }
+
+    setIsSendingMessage(true);
+    
     try {
+      console.log('📤 Enviando mensagem...', { conversaId, contaId, whatsappContatoId });
+      
       await enviarMensagem.mutateAsync({
         conversaId,
         contaId,
@@ -467,9 +504,23 @@ export default function WhatsAppChat({
         corpo: message,
       });
 
+      console.log('✅ Mensagem enviada com sucesso');
       setMessage("");
+      
+      toast({
+        title: "Mensagem enviada",
+        description: "Sua mensagem foi enviada com sucesso",
+      });
+      
     } catch (error: any) {
-      console.error('Erro ao enviar mensagem:', error);
+      console.error('❌ Erro ao enviar mensagem:', error);
+      toast({
+        title: "Erro ao enviar mensagem",
+        description: error.message || "Não foi possível enviar a mensagem. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSendingMessage(false);
     }
   };
 
@@ -644,16 +695,16 @@ export default function WhatsAppChat({
                   onKeyDown={handleKeyPress}
                   placeholder="Digite uma mensagem"
                   className="resize-none min-h-[40px]"
-                  disabled={enviarMensagem.isPending}
+                  disabled={isSendingMessage}
                 />
               </div>
               <Button
                 size="icon"
                 onClick={handleSendMessage}
-                disabled={!message.trim() || enviarMensagem.isPending}
+                disabled={!message.trim() || isSendingMessage}
                 className="h-10 w-10 shrink-0 gradient-primary shadow-elegant hover:opacity-90 transition-opacity"
               >
-                {enviarMensagem.isPending ? (
+                {isSendingMessage ? (
                   <Loader2 className="h-5 w-5 animate-spin" />
                 ) : (
                   <Send className="h-5 w-5" />
