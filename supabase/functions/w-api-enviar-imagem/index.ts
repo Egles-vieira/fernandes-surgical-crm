@@ -76,17 +76,52 @@ Deno.serve(async (req) => {
       );
     }
 
-    // 3. Preparar payload para W-API
+    // 3. Baixar imagem do Storage e converter para base64
+    console.log('📥 Baixando imagem do Storage:', mensagem.url_midia);
+    
+    let imageBase64: string;
+    try {
+      const imageResponse = await fetch(mensagem.url_midia);
+      if (!imageResponse.ok) {
+        throw new Error(`Erro ao baixar imagem: ${imageResponse.status}`);
+      }
+      
+      const imageBlob = await imageResponse.arrayBuffer();
+      const base64String = btoa(
+        new Uint8Array(imageBlob).reduce((data, byte) => data + String.fromCharCode(byte), '')
+      );
+      
+      // Detectar mimetype ou usar o da mensagem
+      const mimeType = mensagem.mime_type || 'image/jpeg';
+      imageBase64 = `data:${mimeType};base64,${base64String}`;
+      
+      console.log('✅ Imagem convertida para base64, tamanho:', imageBlob.byteLength, 'bytes');
+    } catch (downloadError) {
+      console.error('❌ Erro ao baixar/converter imagem:', downloadError);
+      await supabase
+        .from('whatsapp_mensagens')
+        .update({
+          status: 'erro',
+          erro_mensagem: `Erro ao processar imagem: ${downloadError instanceof Error ? downloadError.message : 'Erro desconhecido'}`,
+          status_falhou_em: new Date().toISOString(),
+          tentativas_envio: mensagem.tentativas_envio + 1,
+        })
+        .eq('id', mensagemId);
+      
+      throw downloadError;
+    }
+
+    // 4. Preparar payload para W-API com base64
     const payload: any = {
       phone: numeroDestinatario,
-      image: mensagem.url_midia, // URL da imagem ou Base64
+      image: imageBase64, // Base64 da imagem
     };
 
     if (mensagem.corpo) {
       payload.caption = mensagem.corpo;
     }
 
-    // 4. Enviar via W-API
+    // 5. Enviar via W-API
     const wapiUrl = `https://api.w-api.app/v1/message/send-image?instanceId=${instanceId}`;
     const wapiRes = await fetch(wapiUrl, {
       method: 'POST',
@@ -117,7 +152,7 @@ Deno.serve(async (req) => {
     const wapiData = await wapiRes.json();
     console.log('✅ Imagem enviada com sucesso:', wapiData);
 
-    // 5. Atualizar status da mensagem
+    // 6. Atualizar status da mensagem
     await supabase
       .from('whatsapp_mensagens')
       .update({
