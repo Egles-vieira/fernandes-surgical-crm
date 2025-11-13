@@ -1,4 +1,4 @@
-import { Circle, ChevronDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -23,7 +23,7 @@ export const StatusAtendimentoSelector = () => {
           className="h-auto py-1 px-2 gap-2 hover:bg-muted/50"
           disabled={isChanging}
         >
-          <Circle className={cn("w-3 h-3", statusConfig.color, statusConfig.bgColor)} />
+          <div className={cn("w-3 h-3 rounded-full", statusConfig.bgColor)} />
           <span className="text-sm font-medium">{statusConfig.label}</span>
           <ChevronDown className="w-3 h-3 text-muted-foreground" />
         </Button>
@@ -40,13 +40,7 @@ export const StatusAtendimentoSelector = () => {
             disabled={isChanging || statusAtual === config.value}
             className="gap-2 cursor-pointer"
           >
-            <Circle
-              className={cn(
-                "w-3 h-3",
-                config.color,
-                statusAtual === config.value && config.bgColor
-              )}
-            />
+            <div className={cn("w-3 h-3 rounded-full", config.bgColor)} />
             <span>{config.label}</span>
             {statusAtual === config.value && (
               <span className="ml-auto text-xs text-muted-foreground">✓</span>
