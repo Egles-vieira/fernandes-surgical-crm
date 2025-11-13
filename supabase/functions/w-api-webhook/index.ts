@@ -125,6 +125,49 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
     messageType = mapTipoMensagem(payload);
     timestamp = payload.moment ? new Date(payload.moment * 1000).toISOString() : new Date().toISOString();
   }
+  
+  // Extrair informações de mídia (URL, mime, arquivo) de forma resiliente
+  let mediaUrl: string | null = null;
+  let mediaMime: string | null = null;
+  let mediaFileName: string | null = null;
+  let mediaKind: 'image' | 'video' | 'audio' | 'document' | null = null;
+
+  try {
+    const content = !isNewSchema && payload.data
+      ? (payload.data.message || payload.data.msgContent || {})
+      : (payload.msgContent || payload.message || payload.data?.message || {});
+    
+    const img = (content as any)?.imageMessage;
+    const vid = (content as any)?.videoMessage;
+    const aud = (content as any)?.audioMessage;
+    const doc = (content as any)?.documentMessage;
+
+    if (img) {
+      mediaUrl = img.url || img.originalUrl || img.mediaUrl || img.directPath || null;
+      mediaMime = img.mimetype || img.mimeType || 'image/jpeg';
+      mediaFileName = img.fileName || null;
+      mediaKind = 'image';
+      if (!messageText && (img.caption || img.captionText)) messageText = img.caption || img.captionText;
+    } else if (vid) {
+      mediaUrl = vid.url || vid.originalUrl || vid.mediaUrl || vid.directPath || null;
+      mediaMime = vid.mimetype || vid.mimeType || 'video/mp4';
+      mediaFileName = vid.fileName || null;
+      mediaKind = 'video';
+      if (!messageText && (vid.caption || vid.captionText)) messageText = vid.caption || vid.captionText;
+    } else if (aud) {
+      mediaUrl = aud.url || aud.mediaUrl || aud.directPath || null;
+      mediaMime = aud.mimetype || aud.mimeType || 'audio/ogg';
+      mediaFileName = aud.fileName || null;
+      mediaKind = 'audio';
+    } else if (doc) {
+      mediaUrl = doc.url || doc.mediaUrl || doc.directPath || null;
+      mediaMime = doc.mimetype || doc.mimeType || null;
+      mediaFileName = doc.fileName || doc.title || null;
+      mediaKind = 'document';
+    }
+  } catch (e) {
+    console.warn('Falha ao extrair mídia do payload:', e);
+  }
 
   // Ignorar mensagens enviadas por nós mesmos ou de grupos
   if (payload.fromMe === true || payload.isGroup === true) {
@@ -255,6 +298,12 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
     mensagem_externa_id: messageId,
     recebida_em: timestamp,
     criado_em: new Date().toISOString(),
+    // Dados de mídia (quando houver)
+    tem_midia: !!mediaUrl,
+    tipo_midia: mediaKind,
+    url_midia: mediaUrl,
+    mime_type: mediaMime,
+    nome_arquivo: mediaFileName,
   });
 
   if (msgError) {
