@@ -22,7 +22,10 @@ export const RAGAssistantButton = ({
         <TooltipTrigger asChild>
           <Button
             onClick={onClick}
-            className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-110 z-50 bg-gradient-to-r from-primary to-primary/80"
+            className="fixed bottom-6 h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-110 z-50 bg-gradient-to-r from-primary to-primary/80"
+            style={{
+              right: '1.5rem'
+            }}
             size="icon"
             aria-label="Abrir Assistente Inteligente"
           >

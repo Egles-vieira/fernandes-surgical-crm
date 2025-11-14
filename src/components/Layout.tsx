@@ -179,6 +179,19 @@ export default function Layout({
   const [collapsed, setCollapsed] = useState(true);
   const [openMenus, setOpenMenus] = useState<string[]>([]);
   const [ragAssistantOpen, setRagAssistantOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detectar tamanho da tela
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 640);
+    };
+    
+    handleResize(); // Check inicial
+    window.addEventListener('resize', handleResize);
+    
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Atualizar favicon dinamicamente quando o logo da empresa mudar
   useEffect(() => {
@@ -328,11 +341,18 @@ export default function Layout({
         </div>
 
         {/* Content */}
-        <main className="flex-1 overflow-auto mt-16 transition-all duration-300 py-0 mx-0 px-0 my-0">{children}</main>
+        <main 
+          className="flex-1 overflow-auto mt-16 py-0 mx-0 px-0 my-0 transition-all duration-300"
+          style={{
+            marginRight: ragAssistantOpen ? (isMobile ? '0' : '600px') : '0'
+          }}
+        >
+          {children}
+        </main>
       </div>
       
       {/* Assistente RAG */}
-      <RAGAssistantButton onClick={() => setRagAssistantOpen(true)} />
+      <RAGAssistantButton onClick={() => setRagAssistantOpen(!ragAssistantOpen)} />
       <RAGAssistant 
         open={ragAssistantOpen}
         onOpenChange={setRagAssistantOpen}
