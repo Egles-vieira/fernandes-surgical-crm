@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { Search, Bell, User, ChevronRight, Menu, LogOut, Settings, UserCog, Shield } from "lucide-react";
+import { Search, Bell, User, ChevronRight, Menu, LogOut, Settings, UserCog, Shield, Home } from "lucide-react";
 import { NotificationsSheet } from "@/components/NotificationsSheet";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -17,6 +17,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import ThemeCustomizer from "./ThemeCustomizer";
 interface HeaderProps {
   collapsed: boolean;
@@ -76,133 +84,218 @@ export default function Header({ collapsed, onToggle }: HeaderProps) {
         return {
           title: "Dashboard",
           description: "Visão geral do desempenho e métricas",
-          breadcrumb: "Cirúrgica Fernandes / Dashboard",
+          breadcrumb: [
+            { label: "Início", path: "/" }
+          ],
         };
       case "/vendas":
         return {
           title: "Vendas",
           description: "Gerencie suas oportunidades e pipeline de vendas",
-          breadcrumb: "Cirúrgica Fernandes / Vendas",
+          breadcrumb: [
+            { label: "Início", path: "/" },
+            { label: "Vendas", path: "/vendas" }
+          ],
         };
       case "/plataformas":
         return {
           title: "Plataformas",
           description: "Integração com plataformas de e-commerce",
-          breadcrumb: "Cirúrgica Fernandes / Plataformas",
+          breadcrumb: [
+            { label: "Início", path: "/" },
+            { label: "Plataformas", path: "/plataformas" }
+          ],
         };
       case "/plataformas/cotacoes":
         return {
           title: "Plataformas eletrônicas",
           description: "Gerencie cotações das plataformas EDI",
-          breadcrumb: "Cirúrgica Fernandes / Plataformas / Cotações",
+          breadcrumb: [
+            { label: "Início", path: "/" },
+            { label: "Plataformas", path: "/plataformas" },
+            { label: "Cotações", path: "/plataformas/cotacoes" }
+          ],
         };
       case "/plataformas/dashboard-ia":
         return {
           title: "Dashboard de Análise IA",
           description: "Métricas e desempenho da IA na análise de cotações",
-          breadcrumb: "Cirúrgica Fernandes / Plataformas / Dashboard IA",
+          breadcrumb: [
+            { label: "Início", path: "/" },
+            { label: "Plataformas", path: "/plataformas" },
+            { label: "Dashboard IA", path: "/plataformas/dashboard-ia" }
+          ],
         };
       case "/plataformas/ml-dashboard":
         return {
           title: "ML Dashboard",
           description: "Aprendizado de máquina e métricas de feedback",
-          breadcrumb: "Cirúrgica Fernandes / Plataformas / ML Dashboard",
+          breadcrumb: [
+            { label: "Início", path: "/" },
+            { label: "Plataformas", path: "/plataformas" },
+            { label: "ML Dashboard", path: "/plataformas/ml-dashboard" }
+          ],
         };
       case "/plataformas/vinculos-pendentes":
         return {
           title: "Vínculos Pendentes",
           description: "Aprove ou rejeite vínculos sugeridos pela IA",
-          breadcrumb: "Cirúrgica Fernandes / Plataformas / Vínculos Pendentes",
+          breadcrumb: [
+            { label: "Início", path: "/" },
+            { label: "Plataformas", path: "/plataformas" },
+            { label: "Vínculos Pendentes", path: "/plataformas/vinculos-pendentes" }
+          ],
         };
       case "/plataformas/produtos-vinculo":
         return {
           title: "Produtos Vinculados",
           description: "Gerencie vínculos entre produtos EDI e internos",
-          breadcrumb: "Cirúrgica Fernandes / Plataformas / Produtos Vinculados",
+          breadcrumb: [
+            { label: "Início", path: "/" },
+            { label: "Plataformas", path: "/plataformas" },
+            { label: "Produtos Vinculados", path: "/plataformas/produtos-vinculo" }
+          ],
         };
       case "/licitacoes":
         return {
           title: "Licitações",
           description: "Acompanhe licitações e contratos governamentais",
-          breadcrumb: "Cirúrgica Fernandes / Licitações",
+          breadcrumb: [
+            { label: "Início", path: "/" },
+            { label: "Licitações", path: "/licitacoes" }
+          ],
         };
       case "/clientes":
         return {
           title: "Clientes",
           description: "Gerencie sua base de clientes e contatos",
-          breadcrumb: "Cirúrgica Fernandes / Clientes",
+          breadcrumb: [
+            { label: "Início", path: "/" },
+            { label: "Clientes", path: "/clientes" }
+          ],
         };
       case "/produtos":
         return {
           title: "Produtos",
           description: "Catálogo de produtos e estoque",
-          breadcrumb: "Cirúrgica Fernandes / Produtos",
+          breadcrumb: [
+            { label: "Início", path: "/" },
+            { label: "Produtos", path: "/produtos" }
+          ],
         };
       case "/whatsapp":
         return {
           title: "WhatsApp",
           description: "Gerencie suas conversas e atendimentos",
-          breadcrumb: "Cirúrgica Fernandes / WhatsApp",
+          breadcrumb: [
+            { label: "Início", path: "/" },
+            { label: "WhatsApp", path: "/whatsapp" }
+          ],
         };
       case "/whatsapp/configuracoes":
         return {
           title: "Configurações WhatsApp",
           description: "Configure contas, templates e respostas rápidas",
-          breadcrumb: "Cirúrgica Fernandes / WhatsApp / Configurações",
+          breadcrumb: [
+            { label: "Início", path: "/" },
+            { label: "WhatsApp", path: "/whatsapp" },
+            { label: "Configurações", path: "/whatsapp/configuracoes" }
+          ],
         };
       case "/usuarios":
         return {
           title: "Usuários",
           description: "Gerencie usuários e permissões do sistema",
-          breadcrumb: "Cirúrgica Fernandes / Usuários",
+          breadcrumb: [
+            { label: "Início", path: "/" },
+            { label: "Usuários", path: "/usuarios" }
+          ],
         };
       case "/equipes":
         return {
           title: "Equipes",
           description: "Gerencie equipes, membros e metas",
-          breadcrumb: "Cirúrgica Fernandes / Equipes",
+          breadcrumb: [
+            { label: "Início", path: "/" },
+            { label: "Equipes", path: "/equipes" }
+          ],
         };
       case "/tickets":
         return {
           title: "SAC - Atendimento ao cliente",
           description: "Gerencie reclamações e solicitações de clientes",
-          breadcrumb: "Cirúrgica Fernandes / Tickets",
+          breadcrumb: [
+            { label: "Início", path: "/" },
+            { label: "Tickets", path: "/tickets" }
+          ],
         };
       case "/clientes/cadastro-cnpj":
         return {
           title: "Cadastro de Empresas",
           description: "Cadastre clientes com apoio da IA",
-          breadcrumb: "Cirúrgica Fernandes / Clientes / Cadastro CNPJ",
+          breadcrumb: [
+            { label: "Início", path: "/" },
+            { label: "Clientes", path: "/clientes" },
+            { label: "Cadastro CNPJ", path: "/clientes/cadastro-cnpj" }
+          ],
         };
       case "/clientes/solicitacoes":
         return {
           title: "Solicitações de Cadastro",
           description: "Gerencie as solicitações de cadastro de clientes",
-          breadcrumb: "Cirúrgica Fernandes / Clientes / Solicitações",
+          breadcrumb: [
+            { label: "Início", path: "/" },
+            { label: "Clientes", path: "/clientes" },
+            { label: "Solicitações", path: "/clientes/solicitacoes" }
+          ],
         };
       default:
         if (location.pathname.startsWith("/tickets/")) {
           return {
             title: "Detalhes do Ticket",
             description: "Visualize e gerencie o ticket",
-            breadcrumb: "Cirúrgica Fernandes / Tickets / Detalhes",
+            breadcrumb: [
+              { label: "Início", path: "/" },
+              { label: "Tickets", path: "/tickets" },
+              { label: "Detalhes" }
+            ],
           };
         }
         return {
           title: "CRM",
           description: "Sistema de gestão empresarial",
-          breadcrumb: "Cirúrgica Fernandes",
+          breadcrumb: [
+            { label: "Início", path: "/" }
+          ],
         };
     }
   };
   const pageInfo = getPageInfo();
   return (
-    <header className="h-16 border-b bg-card flex items-center px-6 shadow-sm">
+    <header className="h-20 border-b bg-card flex items-center px-6 shadow-sm">
       <div className="flex items-center gap-6 w-full">
         {/* Título da Página */}
-        <div>
-          <h2 className="text-lg font-bold text-foreground">{pageInfo.title}</h2>
-          <p className="text-xs text-muted-foreground">{pageInfo.description}</p>
+        <div className="flex-1">
+          <Breadcrumb className="mb-1">
+            <BreadcrumbList>
+              {pageInfo.breadcrumb.map((item, index) => (
+                <div key={item.label} className="contents">
+                  <BreadcrumbItem>
+                    {item.path ? (
+                      <BreadcrumbLink href={item.path} className="flex items-center gap-1.5">
+                        {index === 0 && <Home className="h-3.5 w-3.5" />}
+                        {item.label}
+                      </BreadcrumbLink>
+                    ) : (
+                      <BreadcrumbPage>{item.label}</BreadcrumbPage>
+                    )}
+                  </BreadcrumbItem>
+                  {index < pageInfo.breadcrumb.length - 1 && <BreadcrumbSeparator />}
+                </div>
+              ))}
+            </BreadcrumbList>
+          </Breadcrumb>
+          <h2 className="text-base font-bold text-foreground">{pageInfo.title}</h2>
         </div>
 
         {/* Barra de Pesquisa Global */}
