@@ -76,189 +76,122 @@ export default function Header({ collapsed, onToggle }: HeaderProps) {
         return {
           title: "Dashboard",
           description: "Visão geral do desempenho e métricas",
-          breadcrumb: [
-            { label: "Início", path: "/" }
-          ],
+          breadcrumb: "Cirúrgica Fernandes / Dashboard",
         };
       case "/vendas":
         return {
           title: "Vendas",
           description: "Gerencie suas oportunidades e pipeline de vendas",
-          breadcrumb: [
-            { label: "Início", path: "/" },
-            { label: "Vendas", path: "/vendas" }
-          ],
+          breadcrumb: "Cirúrgica Fernandes / Vendas",
         };
       case "/plataformas":
         return {
           title: "Plataformas",
           description: "Integração com plataformas de e-commerce",
-          breadcrumb: [
-            { label: "Início", path: "/" },
-            { label: "Plataformas", path: "/plataformas" }
-          ],
+          breadcrumb: "Cirúrgica Fernandes / Plataformas",
         };
       case "/plataformas/cotacoes":
         return {
           title: "Plataformas eletrônicas",
           description: "Gerencie cotações das plataformas EDI",
-          breadcrumb: [
-            { label: "Início", path: "/" },
-            { label: "Plataformas", path: "/plataformas" },
-            { label: "Cotações", path: "/plataformas/cotacoes" }
-          ],
+          breadcrumb: "Cirúrgica Fernandes / Plataformas / Cotações",
         };
       case "/plataformas/dashboard-ia":
         return {
           title: "Dashboard de Análise IA",
           description: "Métricas e desempenho da IA na análise de cotações",
-          breadcrumb: [
-            { label: "Início", path: "/" },
-            { label: "Plataformas", path: "/plataformas" },
-            { label: "Dashboard IA", path: "/plataformas/dashboard-ia" }
-          ],
+          breadcrumb: "Cirúrgica Fernandes / Plataformas / Dashboard IA",
         };
       case "/plataformas/ml-dashboard":
         return {
           title: "ML Dashboard",
           description: "Aprendizado de máquina e métricas de feedback",
-          breadcrumb: [
-            { label: "Início", path: "/" },
-            { label: "Plataformas", path: "/plataformas" },
-            { label: "ML Dashboard", path: "/plataformas/ml-dashboard" }
-          ],
+          breadcrumb: "Cirúrgica Fernandes / Plataformas / ML Dashboard",
         };
       case "/plataformas/vinculos-pendentes":
         return {
           title: "Vínculos Pendentes",
           description: "Aprove ou rejeite vínculos sugeridos pela IA",
-          breadcrumb: [
-            { label: "Início", path: "/" },
-            { label: "Plataformas", path: "/plataformas" },
-            { label: "Vínculos Pendentes", path: "/plataformas/vinculos-pendentes" }
-          ],
+          breadcrumb: "Cirúrgica Fernandes / Plataformas / Vínculos Pendentes",
         };
       case "/plataformas/produtos-vinculo":
         return {
           title: "Produtos Vinculados",
           description: "Gerencie vínculos entre produtos EDI e internos",
-          breadcrumb: [
-            { label: "Início", path: "/" },
-            { label: "Plataformas", path: "/plataformas" },
-            { label: "Produtos Vinculados", path: "/plataformas/produtos-vinculo" }
-          ],
+          breadcrumb: "Cirúrgica Fernandes / Plataformas / Produtos Vinculados",
         };
       case "/licitacoes":
         return {
           title: "Licitações",
           description: "Acompanhe licitações e contratos governamentais",
-          breadcrumb: [
-            { label: "Início", path: "/" },
-            { label: "Licitações", path: "/licitacoes" }
-          ],
+          breadcrumb: "Cirúrgica Fernandes / Licitações",
         };
       case "/clientes":
         return {
           title: "Clientes",
           description: "Gerencie sua base de clientes e contatos",
-          breadcrumb: [
-            { label: "Início", path: "/" },
-            { label: "Clientes", path: "/clientes" }
-          ],
+          breadcrumb: "Cirúrgica Fernandes / Clientes",
         };
       case "/produtos":
         return {
           title: "Produtos",
           description: "Catálogo de produtos e estoque",
-          breadcrumb: [
-            { label: "Início", path: "/" },
-            { label: "Produtos", path: "/produtos" }
-          ],
+          breadcrumb: "Cirúrgica Fernandes / Produtos",
         };
       case "/whatsapp":
         return {
           title: "WhatsApp",
           description: "Gerencie suas conversas e atendimentos",
-          breadcrumb: [
-            { label: "Início", path: "/" },
-            { label: "WhatsApp", path: "/whatsapp" }
-          ],
+          breadcrumb: "Cirúrgica Fernandes / WhatsApp",
         };
       case "/whatsapp/configuracoes":
         return {
           title: "Configurações WhatsApp",
           description: "Configure contas, templates e respostas rápidas",
-          breadcrumb: [
-            { label: "Início", path: "/" },
-            { label: "WhatsApp", path: "/whatsapp" },
-            { label: "Configurações", path: "/whatsapp/configuracoes" }
-          ],
+          breadcrumb: "Cirúrgica Fernandes / WhatsApp / Configurações",
         };
       case "/usuarios":
         return {
           title: "Usuários",
           description: "Gerencie usuários e permissões do sistema",
-          breadcrumb: [
-            { label: "Início", path: "/" },
-            { label: "Usuários", path: "/usuarios" }
-          ],
+          breadcrumb: "Cirúrgica Fernandes / Usuários",
         };
       case "/equipes":
         return {
           title: "Equipes",
           description: "Gerencie equipes, membros e metas",
-          breadcrumb: [
-            { label: "Início", path: "/" },
-            { label: "Equipes", path: "/equipes" }
-          ],
+          breadcrumb: "Cirúrgica Fernandes / Equipes",
         };
       case "/tickets":
         return {
           title: "SAC - Atendimento ao cliente",
           description: "Gerencie reclamações e solicitações de clientes",
-          breadcrumb: [
-            { label: "Início", path: "/" },
-            { label: "Tickets", path: "/tickets" }
-          ],
+          breadcrumb: "Cirúrgica Fernandes / Tickets",
         };
       case "/clientes/cadastro-cnpj":
         return {
           title: "Cadastro de Empresas",
           description: "Cadastre clientes com apoio da IA",
-          breadcrumb: [
-            { label: "Início", path: "/" },
-            { label: "Clientes", path: "/clientes" },
-            { label: "Cadastro CNPJ", path: "/clientes/cadastro-cnpj" }
-          ],
+          breadcrumb: "Cirúrgica Fernandes / Clientes / Cadastro CNPJ",
         };
       case "/clientes/solicitacoes":
         return {
           title: "Solicitações de Cadastro",
           description: "Gerencie as solicitações de cadastro de clientes",
-          breadcrumb: [
-            { label: "Início", path: "/" },
-            { label: "Clientes", path: "/clientes" },
-            { label: "Solicitações", path: "/clientes/solicitacoes" }
-          ],
+          breadcrumb: "Cirúrgica Fernandes / Clientes / Solicitações",
         };
       default:
         if (location.pathname.startsWith("/tickets/")) {
           return {
             title: "Detalhes do Ticket",
             description: "Visualize e gerencie o ticket",
-            breadcrumb: [
-              { label: "Início", path: "/" },
-              { label: "Tickets", path: "/tickets" },
-              { label: "Detalhes" }
-            ],
+            breadcrumb: "Cirúrgica Fernandes / Tickets / Detalhes",
           };
         }
         return {
           title: "CRM",
           description: "Sistema de gestão empresarial",
-          breadcrumb: [
-            { label: "Início", path: "/" }
-          ],
+          breadcrumb: "Cirúrgica Fernandes",
         };
     }
   };
@@ -267,7 +200,7 @@ export default function Header({ collapsed, onToggle }: HeaderProps) {
     <header className="h-16 border-b bg-card flex items-center px-6 shadow-sm">
       <div className="flex items-center gap-6 w-full">
         {/* Título da Página */}
-        <div className="flex-1">
+        <div>
           <h2 className="text-lg font-bold text-foreground">{pageInfo.title}</h2>
           <p className="text-xs text-muted-foreground">{pageInfo.description}</p>
         </div>

@@ -47,7 +47,8 @@ import Configuracoes from "./pages/Configuracoes";
 import PerfilVendedor from "./pages/PerfilVendedor";
 
 // App principal
-const App = () => <ThemeProvider>
+const App = () => (
+  <ThemeProvider>
     <Toaster />
     <BrowserRouter>
       <Routes>
@@ -256,5 +257,6 @@ const App = () => <ThemeProvider>
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
-  </ThemeProvider>;
+  </ThemeProvider>
+);
 export default App;
