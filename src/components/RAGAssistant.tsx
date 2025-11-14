@@ -81,7 +81,7 @@ export const RAGAssistant = ({ open, onOpenChange }: RAGAssistantProps) => {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-y-0 right-0 w-full sm:w-[600px] bg-background border-l shadow-2xl z-40 flex flex-col animate-slide-in-right">
+    <div className="fixed top-16 bottom-0 right-0 w-full sm:w-[600px] bg-background border-l shadow-2xl z-40 flex flex-col animate-slide-in-right">
       {/* Header */}
       <div className="px-6 py-4 border-b space-y-1 flex-shrink-0">
         <div className="flex items-center justify-between">

@@ -348,7 +348,7 @@ export default function Layout({
       
       {/* Assistente RAG */}
       <RAGAssistantButton onClick={() => setRagAssistantOpen(!ragAssistantOpen)} />
-      <RAGAssistant open={ragAssistantOpen} onOpenChange={setRagAssistantOpen} className="my-[125px]" />
+      <RAGAssistant open={ragAssistantOpen} onOpenChange={setRagAssistantOpen} />
       </div>
     </LayoutContext.Provider>;
 }
