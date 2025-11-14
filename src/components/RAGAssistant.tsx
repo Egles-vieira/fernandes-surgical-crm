@@ -81,24 +81,33 @@ export const RAGAssistant = ({ open, onOpenChange }: RAGAssistantProps) => {
   if (!open) return null;
 
   return (
-    <div className="fixed top-16 bottom-0 right-0 w-full sm:w-[600px] bg-background border-l shadow-2xl z-40 flex flex-col animate-slide-in-right">
+    <div className="fixed top-16 bottom-0 right-0 w-full sm:w-[600px] bg-background/95 backdrop-blur-xl border-l shadow-2xl z-40 flex flex-col animate-slide-in-right">
       {/* Header */}
-      <div className="px-6 py-4 border-b space-y-1 flex-shrink-0">
+      <div className="px-6 py-5 border-b bg-gradient-to-r from-primary/5 to-transparent space-y-1 flex-shrink-0">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-primary" />
-            <h2 className="text-xl font-semibold">Assistente Inteligente</h2>
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-primary/10">
+              <Sparkles className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold">Assistente Inteligente</h2>
+              <p className="text-xs text-muted-foreground">Powered by DeepSeek</p>
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <Badge
               variant={isConnected ? "default" : "secondary"}
               className={cn(
-                "text-xs",
+                "text-xs font-medium px-2.5 py-0.5",
                 isConnected
-                  ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100"
-                  : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100"
+                  ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
+                  : "bg-muted text-muted-foreground"
               )}
             >
+              <span className={cn(
+                "w-1.5 h-1.5 rounded-full mr-1.5",
+                isConnected ? "bg-emerald-500 animate-pulse" : "bg-muted-foreground"
+              )} />
               {isConnected ? "Online" : "Offline"}
             </Badge>
             {messages.length > 0 && (
@@ -108,6 +117,7 @@ export const RAGAssistant = ({ open, onOpenChange }: RAGAssistantProps) => {
                 onClick={handleClearChat}
                 disabled={isLoading}
                 aria-label="Limpar conversa"
+                className="h-8 w-8 p-0 hover:bg-destructive/10 hover:text-destructive"
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
@@ -117,14 +127,12 @@ export const RAGAssistant = ({ open, onOpenChange }: RAGAssistantProps) => {
               size="sm"
               onClick={() => onOpenChange(false)}
               aria-label="Fechar assistente"
+              className="h-8 w-8 p-0"
             >
               <X className="h-4 w-4" />
             </Button>
           </div>
         </div>
-        <p className="text-sm text-muted-foreground">
-          Faça perguntas sobre seus dados e receba insights inteligentes
-        </p>
       </div>
 
       {/* Área de Mensagens */}
