@@ -8,43 +8,43 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 0 0% 95%; /* #F3F3F3 */
-    --foreground: 186 80% 15%;
+    --background: 0 0% 100%; /* Pure white */
+    --foreground: 220 13% 18%;
 
     --card: 0 0% 100%;
-    --card-foreground: 186 80% 15%;
+    --card-foreground: 220 13% 18%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 186 80% 15%;
+    --popover-foreground: 220 13% 18%;
 
-    /* Cyan Modern Palette - Based on #47CCD8 */
-    --primary: 186 60% 56%; /* #47CCD8 - Cyan */
+    /* Vibrant Cyan Palette - Based on #47CCD8 */
+    --primary: 186 80% 50%; /* #0FC7DB - Vibrant Cyan */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 240 65% 60%; /* #6366F1 - Indigo */
+    --secondary: 280 70% 60%; /* #A855F7 - Purple */
     --secondary-foreground: 0 0% 100%;
 
-    --tertiary: 186 80% 40%; /* Darker cyan */
+    --tertiary: 186 90% 38%; /* Deeper cyan */
     --tertiary-foreground: 0 0% 100%;
 
-    --success: 142 71% 45%; /* #22C55E - Green */
+    --success: 142 76% 36%; /* #10B981 - Emerald */
     --success-foreground: 0 0% 100%;
 
-    --warning: 45 93% 47%; /* #F59E0B - Amber/Orange */
+    --warning: 38 92% 50%; /* #F59E0B - Amber */
     --warning-foreground: 0 0% 100%;
 
-    --muted: 186 25% 94%; /* Very light cyan */
-    --muted-foreground: 186 20% 40%;
+    --muted: 220 13% 97%; /* Soft gray */
+    --muted-foreground: 220 9% 46%;
 
-    --accent: 280 60% 60%; /* #A855F7 - Purple accent */
+    --accent: 280 70% 60%; /* #A855F7 - Purple accent */
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 186 20% 88%;
-    --input: 186 20% 92%;
-    --ring: 186 60% 56%;
+    --border: 220 13% 91%;
+    --input: 220 13% 96%;
+    --ring: 186 80% 50%;
 
     --radius: 0.75rem;
     --border-width: 2px;
@@ -56,16 +56,16 @@ All colors MUST be HSL.
     --icon-fill-opacity: 0;
 
     /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(186 60% 56%), hsl(186 80% 40%));
-    --gradient-secondary: linear-gradient(135deg, hsl(240 65% 60%), hsl(280 60% 60%));
-    --gradient-tertiary: linear-gradient(135deg, hsl(186 80% 40%), hsl(186 60% 30%));
-    --gradient-success: linear-gradient(135deg, hsl(142 71% 45%), hsl(142 71% 55%));
-    --gradient-subtle: linear-gradient(180deg, hsl(186 25% 98%), hsl(186 25% 94%));
+    --gradient-primary: linear-gradient(135deg, hsl(186 80% 50%), hsl(186 90% 38%));
+    --gradient-secondary: linear-gradient(135deg, hsl(280 70% 60%), hsl(240 65% 60%));
+    --gradient-tertiary: linear-gradient(135deg, hsl(186 90% 38%), hsl(186 80% 30%));
+    --gradient-success: linear-gradient(135deg, hsl(142 76% 36%), hsl(142 71% 45%));
+    --gradient-subtle: linear-gradient(180deg, hsl(220 13% 99%), hsl(220 13% 97%));
 
     /* Shadows */
-    --shadow-sm: 0 2px 8px hsla(186, 60%, 56%, 0.1);
-    --shadow-md: 0 4px 16px hsla(186, 60%, 56%, 0.15);
-    --shadow-lg: 0 8px 32px hsla(186, 60%, 56%, 0.2);
+    --shadow-sm: 0 2px 8px hsla(186, 80%, 50%, 0.08);
+    --shadow-md: 0 4px 16px hsla(186, 80%, 50%, 0.12);
+    --shadow-lg: 0 8px 32px hsla(186, 80%, 50%, 0.16);
 
     --sidebar-background: 0 0% 98%;
 
@@ -84,46 +84,46 @@ All colors MUST be HSL.
     --sidebar-ring: 217.2 91.2% 59.8%;
 
     /* Menu/Sidebar Customization */
-    --menu-bg: 186 60% 56%; /* Primary cyan for menu background */
-    --menu-background: 186 60% 56%; /* Backward compatibility */
+    --menu-bg: 186 80% 50%; /* Vibrant cyan for menu background */
+    --menu-background: 186 80% 50%; /* Backward compatibility */
     --menu-icon: 0 0% 100%;
     --menu-text: 0 0% 100%;
   }
 
   .dark {
-    --background: 186 80% 8%;
-    --foreground: 186 25% 94%;
+    --background: 220 15% 9%;
+    --foreground: 220 13% 91%;
 
-    --card: 186 60% 12%;
-    --card-foreground: 186 25% 94%;
+    --card: 220 15% 12%;
+    --card-foreground: 220 13% 91%;
 
-    --popover: 186 60% 12%;
-    --popover-foreground: 186 25% 94%;
+    --popover: 220 15% 12%;
+    --popover-foreground: 220 13% 91%;
 
-    --primary: 186 60% 56%; /* Keep #47CCD8 cyan */
-    --primary-foreground: 186 80% 10%;
+    --primary: 186 80% 50%; /* Vibrant cyan */
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 240 65% 65%;
+    --secondary: 280 70% 60%;
     --secondary-foreground: 0 0% 100%;
 
-    --tertiary: 186 80% 45%;
+    --tertiary: 186 90% 45%;
     --tertiary-foreground: 0 0% 100%;
 
-    --warning: 45 93% 47%;
+    --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
 
-    --muted: 186 40% 18%;
-    --muted-foreground: 186 20% 70%;
+    --muted: 220 15% 18%;
+    --muted-foreground: 220 9% 64%;
 
-    --accent: 280 60% 65%;
+    --accent: 280 70% 60%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 63% 50%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 186 40% 22%;
-    --input: 186 40% 22%;
-    --ring: 186 60% 56%;
+    --border: 220 15% 22%;
+    --input: 220 15% 22%;
+    --ring: 186 80% 50%;
 
     --radius: 0.75rem;
     --border-width: 2px;
@@ -134,19 +134,19 @@ All colors MUST be HSL.
     --icon-border-radius: 0;
     --icon-fill-opacity: 0;
 
-    --gradient-primary: linear-gradient(135deg, hsl(186 60% 56%), hsl(186 80% 40%));
-    --gradient-secondary: linear-gradient(135deg, hsl(240 65% 65%), hsl(280 60% 65%));
-    --gradient-tertiary: linear-gradient(135deg, hsl(186 80% 45%), hsl(186 60% 30%));
-    --gradient-success: linear-gradient(135deg, hsl(142 71% 50%), hsl(142 71% 60%));
-    --gradient-subtle: linear-gradient(180deg, hsl(186 80% 10%), hsl(186 60% 12%));
+    --gradient-primary: linear-gradient(135deg, hsl(186 80% 50%), hsl(186 90% 38%));
+    --gradient-secondary: linear-gradient(135deg, hsl(280 70% 60%), hsl(240 65% 60%));
+    --gradient-tertiary: linear-gradient(135deg, hsl(186 90% 45%), hsl(186 80% 30%));
+    --gradient-success: linear-gradient(135deg, hsl(142 76% 36%), hsl(142 71% 45%));
+    --gradient-subtle: linear-gradient(180deg, hsl(220 15% 12%), hsl(220 15% 15%));
 
-    --shadow-sm: 0 2px 8px hsla(0, 0%, 0%, 0.3);
-    --shadow-md: 0 4px 16px hsla(0, 0%, 0%, 0.4);
-    --shadow-lg: 0 8px 32px hsla(0, 0%, 0%, 0.5);
+    --shadow-sm: 0 2px 8px hsla(186, 80%, 50%, 0.15);
+    --shadow-md: 0 4px 16px hsla(186, 80%, 50%, 0.2);
+    --shadow-lg: 0 8px 32px hsla(186, 80%, 50%, 0.25);
 
     /* Menu/Sidebar Customization */
-    --menu-bg: 186 60% 56%; /* Primary cyan for menu background */
-    --menu-background: 186 60% 56%; /* Backward compatibility */
+    --menu-bg: 186 80% 50%;
+    --menu-background: 186 80% 50%;
     --menu-icon: 0 0% 100%;
     --menu-text: 0 0% 100%;
   }
