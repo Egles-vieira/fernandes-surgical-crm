@@ -737,7 +737,7 @@ export default function Vendas() {
         <VendasActionBar status={status} onCalcular={handleCalcular} onCancelar={handleCancelarProposta} onDiretoria={handleDiretoria} onEfetivar={handleEfetivar} onSalvar={handleSalvarVenda} isSaving={createVenda.isPending || updateVenda.isPending} editandoVendaId={editandoVendaId} />
 
         {/* Breadcrumb Fixo */}
-        <div className="fixed top-16 left-0 right-0 bg-background border-b border-border z-40 px-8 py-3">
+        <div className="fixed top-[4.5rem] left-0 right-0 bg-background border-b border-border z-20 px-8 py-3">
           <nav aria-label="breadcrumb">
             <ol className="flex items-center gap-2 text-sm text-muted-foreground">
               <li className="flex items-center gap-2">
@@ -766,7 +766,7 @@ export default function Vendas() {
           </nav>
         </div>
 
-        <div className="pt-32 p-8 space-y-6">
+        <div className="pt-40 p-8 space-y-6">
 
           {/* Header */}
 
