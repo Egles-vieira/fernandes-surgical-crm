@@ -1,5 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { classificarIntencao } from "./classifier.ts";
+import { executarQueries } from "./queries.ts";
+import { construirContexto } from "./context-builder.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -13,7 +16,12 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, pergunta } = await req.json();
+    const startTime = Date.now();
+    const { messages, contextoUrl } = await req.json();
+
+    console.log("🚀 RAG Assistant iniciado");
+    console.log("📨 Total de mensagens:", messages.length);
+    console.log("📍 Contexto URL:", contextoUrl);
 
     // Obter a API key do DeepSeek
     const DEEPSEEK_API_KEY = Deno.env.get("DEEPSEEK_API_KEY");
@@ -21,17 +29,54 @@ serve(async (req) => {
       throw new Error("DEEPSEEK_API_KEY não configurada");
     }
 
-    // Inicializar cliente Supabase para buscar contexto
+    // Inicializar cliente Supabase
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Buscar contexto relevante do sistema (exemplo: documentos, FAQs, etc)
-    // TODO: Implementar busca vetorial quando necessário
-    const contextoSistema = `
-Você é um assistente inteligente do sistema ConvertIA CRM.
+    // Obter a última pergunta do usuário
+    const ultimaMensagem = messages[messages.length - 1];
+    const pergunta = ultimaMensagem?.content || "";
 
-Contexto do Sistema:
+    console.log("❓ Pergunta:", pergunta);
+
+    // PASSO 1: Classificar intenção
+    const intencao = await classificarIntencao(
+      pergunta,
+      contextoUrl || { tipo: 'geral', rota: '/' },
+      DEEPSEEK_API_KEY
+    );
+
+    console.log("🎯 Intenção classificada:", {
+      tipo: intencao.tipo,
+      subtipo: intencao.subtipo,
+      precisaBuscarDados: intencao.precisaBuscarDados,
+      confianca: intencao.confianca
+    });
+
+    let contextoEnriquecido = "";
+
+    // PASSO 2: Buscar dados se necessário
+    if (intencao.precisaBuscarDados) {
+      const dadosContexto = await executarQueries(
+        intencao,
+        contextoUrl || { tipo: 'geral', rota: '/' },
+        supabase
+      );
+
+      console.log("📊 Dados recuperados:", dadosContexto.length, "conjuntos");
+
+      // PASSO 3: Construir contexto estruturado
+      contextoEnriquecido = construirContexto(
+        intencao,
+        dadosContexto,
+        contextoUrl || { tipo: 'geral', rota: '/' }
+      );
+    } else {
+      // Contexto básico para perguntas gerais
+      contextoEnriquecido = `Você é um assistente inteligente do sistema ConvertIA CRM.
+
+CONTEXTO DO SISTEMA:
 - Sistema de CRM completo com gestão de clientes, vendas, tickets e equipes
 - Integração com WhatsApp para atendimento
 - Sistema de cotações e análise de produtos com IA
@@ -39,33 +84,37 @@ Contexto do Sistema:
 - Módulo de URA (atendimento automático)
 - Cadastro inteligente via CNPJ usando APIs externas
 
-Suas responsabilidades:
+SUAS RESPONSABILIDADES:
 1. Ajudar usuários a navegar e usar o sistema
 2. Responder perguntas sobre funcionalidades
-3. Fornecer insights sobre dados quando solicitado
-4. Auxiliar na resolução de problemas
-5. Sugerir melhores práticas
+3. Sugerir melhores práticas
+4. Orientar sobre como realizar tarefas
 
-Diretrizes:
+DIRETRIZES:
 - Seja conciso e direto
 - Use linguagem profissional mas amigável
+- Use formatação markdown para melhor legibilidade
 - Quando não souber algo, seja honesto
 - Sugira próximos passos quando apropriado
-- Contextualize suas respostas baseado na tela atual do usuário
 `;
+    }
 
-    // Preparar mensagens para DeepSeek
+    const tempoClassificacao = Date.now() - startTime;
+    console.log(`⏱️ Tempo de classificação e busca: ${tempoClassificacao}ms`);
+
+    // PASSO 4: Preparar mensagens para DeepSeek
     const deepseekMessages = [
-      { role: "system", content: contextoSistema },
+      { role: "system", content: contextoEnriquecido },
       ...messages.map((m: any) => ({
         role: m.role,
         content: m.content,
       })),
     ];
 
-    console.log("Chamando DeepSeek API com streaming...");
+    console.log("🤖 Chamando DeepSeek API com streaming...");
+    console.log("📏 Tamanho do contexto:", contextoEnriquecido.length, "caracteres");
 
-    // Fazer chamada para DeepSeek API
+    // PASSO 5: Chamar DeepSeek com streaming
     const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -83,7 +132,7 @@ Diretrizes:
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("Erro na DeepSeek API:", response.status, errorText);
+      console.error("❌ Erro na DeepSeek API:", response.status, errorText);
       
       let errorMessage = "Erro ao processar sua pergunta";
       if (response.status === 429) {
@@ -95,6 +144,14 @@ Diretrizes:
       throw new Error(errorMessage);
     }
 
+    const tempoTotal = Date.now() - startTime;
+    console.log(`✅ RAG processado com sucesso em ${tempoTotal}ms`);
+    console.log(`📈 Estatísticas:
+  - Classificação: ${intencao.tipo} (${(intencao.confianca * 100).toFixed(0)}%)
+  - Dados buscados: ${intencao.precisaBuscarDados ? 'Sim' : 'Não'}
+  - Tempo total: ${tempoTotal}ms
+`);
+
     // Retornar o stream diretamente
     return new Response(response.body, {
       headers: {
@@ -105,7 +162,7 @@ Diretrizes:
       },
     });
   } catch (error) {
-    console.error("Erro no RAG Assistant:", error);
+    console.error("❌ Erro no RAG Assistant:", error);
     return new Response(
       JSON.stringify({
         error: error instanceof Error ? error.message : "Erro desconhecido",
