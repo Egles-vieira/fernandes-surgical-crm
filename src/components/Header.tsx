@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { Search, Bell, User, ChevronRight, Menu, LogOut, Settings, UserCog, Shield, Home } from "lucide-react";
+import { Search, Bell, User, ChevronRight, Menu, LogOut, Settings, UserCog, Shield } from "lucide-react";
 import { NotificationsSheet } from "@/components/NotificationsSheet";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -17,14 +17,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
 import ThemeCustomizer from "./ThemeCustomizer";
 interface HeaderProps {
   collapsed: boolean;
@@ -272,30 +264,12 @@ export default function Header({ collapsed, onToggle }: HeaderProps) {
   };
   const pageInfo = getPageInfo();
   return (
-    <header className="h-20 border-b bg-card flex items-center px-6 shadow-sm">
+    <header className="h-16 border-b bg-card flex items-center px-6 shadow-sm">
       <div className="flex items-center gap-6 w-full">
         {/* Título da Página */}
         <div className="flex-1">
-          <Breadcrumb className="mb-1">
-            <BreadcrumbList>
-              {pageInfo.breadcrumb.map((item, index) => (
-                <div key={item.label} className="contents">
-                  <BreadcrumbItem>
-                    {item.path ? (
-                      <BreadcrumbLink href={item.path} className="flex items-center gap-1.5">
-                        {index === 0 && <Home className="h-3.5 w-3.5" />}
-                        {item.label}
-                      </BreadcrumbLink>
-                    ) : (
-                      <BreadcrumbPage>{item.label}</BreadcrumbPage>
-                    )}
-                  </BreadcrumbItem>
-                  {index < pageInfo.breadcrumb.length - 1 && <BreadcrumbSeparator />}
-                </div>
-              ))}
-            </BreadcrumbList>
-          </Breadcrumb>
-          <h2 className="text-base font-bold text-foreground">{pageInfo.title}</h2>
+          <h2 className="text-lg font-bold text-foreground">{pageInfo.title}</h2>
+          <p className="text-xs text-muted-foreground">{pageInfo.description}</p>
         </div>
 
         {/* Barra de Pesquisa Global */}
