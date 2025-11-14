@@ -81,16 +81,18 @@ export const RAGAssistant = ({ open, onOpenChange }: RAGAssistantProps) => {
   if (!open) return null;
 
   return (
-    <div className="fixed top-16 bottom-0 right-0 w-full sm:w-[600px] bg-background/95 backdrop-blur-xl border-l shadow-2xl z-40 flex flex-col animate-slide-in-right">
+    <div className="fixed top-16 bottom-0 right-0 w-full sm:w-[600px] bg-gradient-to-br from-background via-primary/5 to-background backdrop-blur-xl border-l border-primary/20 shadow-2xl z-40 flex flex-col animate-slide-in-right">
       {/* Header */}
-      <div className="px-6 py-5 border-b bg-gradient-to-r from-primary/5 to-transparent space-y-1 flex-shrink-0">
+      <div className="px-6 py-5 border-b border-primary/10 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent space-y-1 flex-shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-primary/10">
-              <Sparkles className="h-5 w-5 text-primary" />
+            <div className="p-2 rounded-xl bg-gradient-to-br from-primary to-primary/80 shadow-lg">
+              <Sparkles className="h-5 w-5 text-primary-foreground" />
             </div>
             <div>
-              <h2 className="text-xl font-semibold">Assistente Inteligente</h2>
+              <h2 className="text-xl font-semibold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+                Assistente Inteligente
+              </h2>
               <p className="text-xs text-muted-foreground">Powered by DeepSeek</p>
             </div>
           </div>
@@ -140,10 +142,13 @@ export const RAGAssistant = ({ open, onOpenChange }: RAGAssistantProps) => {
           <div className="space-y-4">
             {messages.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full py-12 px-4">
-                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                  <Bot className="h-8 w-8 text-primary" />
+                <div className="relative">
+                  <div className="absolute inset-0 bg-primary/30 blur-3xl rounded-full animate-pulse" />
+                  <div className="relative w-16 h-16 rounded-full bg-gradient-to-br from-primary/15 via-primary/10 to-primary/5 border-2 border-primary/20 flex items-center justify-center mb-4 shadow-lg">
+                    <Bot className="h-8 w-8 text-primary drop-shadow-lg" />
+                  </div>
                 </div>
-                <h3 className="text-lg font-semibold mb-2">
+                <h3 className="text-lg font-semibold mb-2 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
                   Olá! Como posso ajudar?
                 </h3>
                 <p className="text-sm text-muted-foreground text-center mb-6">
@@ -155,14 +160,14 @@ export const RAGAssistant = ({ open, onOpenChange }: RAGAssistantProps) => {
                     <Button
                       key={index}
                       variant="outline"
-                      className="justify-start text-left h-auto py-3 px-4"
+                      className="justify-start text-left h-auto py-3 px-4 border-primary/20 hover:bg-primary/10 hover:border-primary/40 hover:shadow-md hover:shadow-primary/10 transition-all group"
                       onClick={() => {
                         setInputValue(suggestion);
                         inputRef.current?.focus();
                       }}
                       disabled={isLoading}
                     >
-                      <Sparkles className="h-4 w-4 mr-2 flex-shrink-0 text-primary" />
+                      <Sparkles className="h-4 w-4 mr-2 flex-shrink-0 text-primary group-hover:scale-110 transition-transform" />
                       <span className="text-sm">{suggestion}</span>
                     </Button>
                   ))}
@@ -269,7 +274,7 @@ export const RAGAssistant = ({ open, onOpenChange }: RAGAssistantProps) => {
       </ScrollArea>
 
       {/* Input de Mensagem */}
-      <div className="p-4 border-t flex-shrink-0">
+      <div className="p-4 border-t border-primary/10 bg-gradient-to-t from-primary/5 to-transparent flex-shrink-0">
           <form onSubmit={handleSubmit} className="flex gap-2">
             <Input
               ref={inputRef}
@@ -278,13 +283,14 @@ export const RAGAssistant = ({ open, onOpenChange }: RAGAssistantProps) => {
               placeholder="Pergunte algo sobre seus dados..."
               disabled={isLoading}
               maxLength={500}
-              className="flex-1"
+              className="flex-1 border-primary/20 focus-visible:ring-primary focus-visible:border-primary"
             />
             <Button
               type="submit"
               disabled={isLoading || !inputValue.trim()}
               size="icon"
               aria-label="Enviar mensagem"
+              className="bg-gradient-to-br from-primary to-primary/80 hover:from-primary hover:to-primary hover:shadow-lg hover:shadow-primary/30 transition-all hover:scale-105"
             >
               {isLoading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
