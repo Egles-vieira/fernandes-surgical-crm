@@ -62,11 +62,15 @@ export const useRAGAssistant = () => {
       setIsLoading(true);
       setError(null);
 
-      // Preparar contexto
+      // Preparar contexto da URL
       const contexto = getContextoAtual();
-      const perguntaEnriquecida = contexto
-        ? `[Contexto: usuário está visualizando ${contexto.tipo} ${contexto.id}]\n${content}`
-        : content;
+      
+      // Montar contextoUrl com informações da rota atual
+      const contextoUrl = {
+        tipo: contexto?.tipo || 'geral',
+        id: contexto?.id || null,
+        rota: location.pathname
+      };
 
       try {
         const response = await fetch(
@@ -82,7 +86,7 @@ export const useRAGAssistant = () => {
                 role: m.role,
                 content: m.content,
               })),
-              pergunta: perguntaEnriquecida,
+              contextoUrl
             }),
           }
         );
