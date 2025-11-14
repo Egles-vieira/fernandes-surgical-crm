@@ -59,7 +59,7 @@ const App = () => <ThemeProvider>
           </ProtectedRoute>} />
         <Route path="/vendas" element={<ProtectedRoute>
             <Layout>
-              <Vendas className="my-0 py-[10px]" />
+              <Vendas />
             </Layout>
           </ProtectedRoute>} />
         <Route path="/plataformas" element={<ProtectedRoute>
