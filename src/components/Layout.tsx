@@ -9,6 +9,8 @@ import Header from "./Header";
 import { useRoles } from "@/hooks/useRoles";
 import { useEmpresa } from "@/hooks/useEmpresa";
 import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
+import { RAGAssistantButton } from "./RAGAssistantButton";
+import { RAGAssistant } from "./RAGAssistant";
 
 // Context para compartilhar estado do sidebar
 interface LayoutContextType {
@@ -176,6 +178,7 @@ export default function Layout({
   } = useEmpresa();
   const [collapsed, setCollapsed] = useState(true);
   const [openMenus, setOpenMenus] = useState<string[]>([]);
+  const [ragAssistantOpen, setRagAssistantOpen] = useState(false);
 
   // Atualizar favicon dinamicamente quando o logo da empresa mudar
   useEffect(() => {
@@ -327,6 +330,13 @@ export default function Layout({
         {/* Content */}
         <main className="flex-1 overflow-auto mt-16 transition-all duration-300 py-0 mx-0 px-0 my-0">{children}</main>
       </div>
+      
+      {/* Assistente RAG */}
+      <RAGAssistantButton onClick={() => setRagAssistantOpen(true)} />
+      <RAGAssistant 
+        open={ragAssistantOpen}
+        onOpenChange={setRagAssistantOpen}
+      />
       </div>
     </LayoutContext.Provider>;
 }
