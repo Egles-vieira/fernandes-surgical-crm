@@ -47,8 +47,7 @@ import Configuracoes from "./pages/Configuracoes";
 import PerfilVendedor from "./pages/PerfilVendedor";
 
 // App principal
-const App = () => (
-  <ThemeProvider>
+const App = () => <ThemeProvider>
     <Toaster />
     <BrowserRouter>
       <Routes>
@@ -60,7 +59,7 @@ const App = () => (
           </ProtectedRoute>} />
         <Route path="/vendas" element={<ProtectedRoute>
             <Layout>
-              <Vendas />
+              <Vendas className="my-0 py-[10px]" />
             </Layout>
           </ProtectedRoute>} />
         <Route path="/plataformas" element={<ProtectedRoute>
@@ -257,6 +256,5 @@ const App = () => (
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
-  </ThemeProvider>
-);
+  </ThemeProvider>;
 export default App;
