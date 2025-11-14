@@ -17,11 +17,14 @@ serve(async (req) => {
 
   try {
     const startTime = Date.now();
-    const { messages, contextoUrl } = await req.json();
+    const requestBody = await req.json();
+    console.log("📦 Request completo recebido:", JSON.stringify(requestBody, null, 2));
+    
+    const { messages, contextoUrl } = requestBody;
 
     console.log("🚀 RAG Assistant iniciado");
-    console.log("📨 Total de mensagens:", messages.length);
-    console.log("📍 Contexto URL:", contextoUrl);
+    console.log("📨 Total de mensagens:", messages?.length || 0);
+    console.log("📍 Contexto URL:", JSON.stringify(contextoUrl, null, 2));
 
     // Obter a API key do DeepSeek
     const DEEPSEEK_API_KEY = Deno.env.get("DEEPSEEK_API_KEY");
@@ -58,13 +61,22 @@ serve(async (req) => {
 
     // PASSO 2: Buscar dados se necessário
     if (intencao.precisaBuscarDados) {
+      console.log("🔍 Buscando dados relevantes...");
+      
       const dadosContexto = await executarQueries(
         intencao,
         contextoUrl || { tipo: 'geral', rota: '/' },
         supabase
       );
 
-      console.log("📊 Dados recuperados:", dadosContexto.length, "conjuntos");
+      console.log(`✅ ${dadosContexto.length} conjuntos de dados recuperados`);
+      if (dadosContexto.length > 0) {
+        console.log("📊 Dados encontrados:", dadosContexto.map(d => ({
+          tipo: d.tipo,
+          quantidade: d.dados.length,
+          resumo: d.resumo
+        })));
+      }
 
       // PASSO 3: Construir contexto estruturado
       contextoEnriquecido = construirContexto(
@@ -72,8 +84,10 @@ serve(async (req) => {
         dadosContexto,
         contextoUrl || { tipo: 'geral', rota: '/' }
       );
+      
+      console.log("📝 Contexto construído - tamanho:", contextoEnriquecido.length, "chars");
     } else {
-      // Contexto básico para perguntas gerais
+      console.log("ℹ️ Pergunta geral - sem busca de dados");
       contextoEnriquecido = `Você é um assistente inteligente do sistema ConvertIA CRM.
 
 CONTEXTO DO SISTEMA:
