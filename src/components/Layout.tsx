@@ -186,10 +186,8 @@ export default function Layout({
     const handleResize = () => {
       setIsMobile(window.innerWidth < 640);
     };
-    
     handleResize(); // Check inicial
     window.addEventListener('resize', handleResize);
-    
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
@@ -341,22 +339,16 @@ export default function Layout({
         </div>
 
         {/* Content */}
-        <main 
-          className="flex-1 overflow-auto mt-16 py-0 mx-0 px-0 my-0 transition-all duration-300"
-          style={{
-            marginRight: ragAssistantOpen ? (isMobile ? '0' : '600px') : '0'
-          }}
-        >
+        <main className="flex-1 overflow-auto mt-16 py-0 mx-0 px-0 my-0 transition-all duration-300" style={{
+          marginRight: ragAssistantOpen ? isMobile ? '0' : '600px' : '0'
+        }}>
           {children}
         </main>
       </div>
       
       {/* Assistente RAG */}
       <RAGAssistantButton onClick={() => setRagAssistantOpen(!ragAssistantOpen)} />
-      <RAGAssistant 
-        open={ragAssistantOpen}
-        onOpenChange={setRagAssistantOpen}
-      />
+      <RAGAssistant open={ragAssistantOpen} onOpenChange={setRagAssistantOpen} className="my-[125px]" />
       </div>
     </LayoutContext.Provider>;
 }
