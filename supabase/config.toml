@@ -1,5 +1,8 @@
 project_id = "rzzzfprgnoywmmjwepzm"
 
+[functions.rag-assistant]
+verify_jwt = true
+
 [functions.cliente-api]
 verify_jwt = true
 
