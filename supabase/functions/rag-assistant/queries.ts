@@ -142,6 +142,63 @@ async function queriesVendas(
 ): Promise<DadosContexto[]> {
   const resultados: DadosContexto[] = [];
 
+  // Se tiver um número de venda específico, buscar venda individual com seus itens
+  const numeroVenda = intencao.entidades?.numeros?.[0]?.toString() || 
+                     intencao.entidades?.ids?.[0] ||
+                     (contextoUrl?.tipo === 'cotacao' ? contextoUrl?.id : null);
+
+  if (numeroVenda) {
+    // Primeiro tentar por numero_venda
+    let { data: venda, error } = await supabase
+      .from('vendas')
+      .select('*')
+      .eq('numero_venda', numeroVenda)
+      .maybeSingle();
+
+    // Se não encontrou, tentar por ID
+    if (!venda && numeroVenda.length > 8) {
+      const result = await supabase
+        .from('vendas')
+        .select('*')
+        .eq('id', numeroVenda)
+        .maybeSingle();
+      venda = result.data;
+      error = result.error;
+    }
+
+    if (!error && venda) {
+      resultados.push({
+        tipo: 'venda_detalhes',
+        dados: [venda],
+        resumo: `Venda #${venda.numero_venda} - ${venda.cliente_nome}`
+      });
+
+      // Buscar itens da venda
+      const { data: itens, error: itensError } = await supabase
+        .from('venda_itens')
+        .select(`
+          *,
+          produtos (
+            nome,
+            codigo,
+            preco_venda
+          )
+        `)
+        .eq('venda_id', venda.id);
+
+      if (!itensError && itens && itens.length > 0) {
+        resultados.push({
+          tipo: 'venda_itens',
+          dados: itens,
+          resumo: `${itens.length} itens na venda #${venda.numero_venda}`,
+          metadados: { numero_venda: venda.numero_venda, total_itens: itens.length }
+        });
+      }
+
+      return resultados;
+    }
+  }
+
   // Definir período
   let dataInicio: Date;
   const dataFim = new Date();

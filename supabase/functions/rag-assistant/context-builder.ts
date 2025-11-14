@@ -105,6 +105,28 @@ function formatarItem(tipo: string, item: any, index: number): string {
    
 `;
 
+    case 'venda_detalhes':
+      return `
+📋 **Venda #${item.numero_venda}**
+- Cliente: ${item.cliente_nome}
+- Valor: ${formatarMoeda(item.valor_final || item.valor_total)}
+- Status: ${item.status}
+- Etapa: ${item.etapa_pipeline || 'N/A'}
+- Data: ${formatarData(item.created_at)}
+
+`;
+
+    case 'venda_itens':
+      const produtoNome = item.produtos?.nome || item.produto_nome || 'Produto não especificado';
+      const produtoCodigo = item.produtos?.codigo || item.produto_codigo || '';
+      return `${index}. **${produtoNome}** ${produtoCodigo ? `(${produtoCodigo})` : ''}
+   - Quantidade: ${item.quantidade}
+   - Preço unitário: ${formatarMoeda(item.preco_unitario)}
+   - Desconto: ${item.desconto || 0}%
+   - Valor total: ${formatarMoeda(item.valor_total)}
+   
+`;
+
     case 'vendas_periodo':
     case 'vendas_cliente':
       return `${index}. Venda #${item.numero_venda || item.id.slice(0, 8)}
