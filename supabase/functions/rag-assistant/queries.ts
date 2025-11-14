@@ -58,11 +58,7 @@ async function queriesClientes(
   if (contextoUrl.tipo === 'cliente' && contextoUrl.id) {
     const { data: cliente, error } = await supabase
       .from('clientes')
-      .select(`
-        *,
-        vendedor:vendedor_id(nome),
-        equipe:equipe_id(nome)
-      `)
+      .select('*')
       .eq('id', contextoUrl.id)
       .single();
 
@@ -91,36 +87,14 @@ async function queriesClientes(
         });
       }
 
-      // Buscar tickets do cliente
-      const { data: tickets } = await supabase
-        .from('tickets')
-        .select('*')
-        .eq('cliente_id', contextoUrl.id)
-        .order('criado_em', { ascending: false })
-        .limit(5);
-
-      if (tickets && tickets.length > 0) {
-        resultados.push({
-          tipo: 'tickets_cliente',
-          dados: tickets,
-          resumo: `${tickets.length} tickets encontrados`
-        });
-      }
+      // Tickets por cliente indisponível nesta base (sem coluna cliente_id).
     }
   } 
   // Busca geral de clientes
   else {
     let query = supabase
       .from('clientes')
-      .select(`
-        id,
-        nome_abrev,
-        nome_fantasia,
-        cgc,
-        cidade:cliente_enderecos(cidade, estado),
-        vendedor:vendedor_id(nome),
-        created_at
-      `)
+      .select('id, nome_abrev, nome_fantasia, cgc, created_at, vendedor_id, equipe_id')
       .order('created_at', { ascending: false })
       .limit(20);
 
@@ -135,9 +109,10 @@ async function queriesClientes(
         .select('cliente_id')
         .gte('created_at', dataLimite.toISOString());
 
-      const idsAtivos = clientesComVendas?.map(v => v.cliente_id) || [];
+      const idsAtivos = clientesComVendas?.map(v => v.cliente_id).filter(Boolean) || [];
       if (idsAtivos.length > 0) {
-        query = query.not('id', 'in', `(${idsAtivos.join(',')})`);
+        const list = `(${idsAtivos.map((id: string) => `'${id}'`).join(",")})`;
+        query = query.not('id', 'in', list);
       }
     }
 
@@ -184,11 +159,7 @@ async function queriesVendas(
   // Vendas do período
   const { data: vendas, error } = await supabase
     .from('vendas')
-    .select(`
-      *,
-      cliente:cliente_id(nome_abrev, nome_fantasia),
-      vendedor:vendedor_id(nome)
-    `)
+    .select('*')
     .gte('created_at', dataInicio.toISOString())
     .lte('created_at', dataFim.toISOString())
     .order('created_at', { ascending: false });
@@ -236,13 +207,8 @@ async function queriesTickets(
 
   let query = supabase
     .from('tickets')
-    .select(`
-      *,
-      cliente:cliente_id(nome_abrev, nome_fantasia),
-      atendente:atendente_id(nome),
-      fila:fila_id(nome)
-    `)
-    .order('criado_em', { ascending: false })
+    .select('*')
+    .order('created_at', { ascending: false })
     .limit(50);
 
   // Filtros
@@ -282,14 +248,8 @@ async function queriesEquipes(
   // Buscar equipes e suas metas
   const { data: equipes, error } = await supabase
     .from('equipes')
-    .select(`
-      *,
-      lider:lider_equipe_id(nome),
-      membros:membros_equipe(
-        usuario:usuario_id(nome)
-      )
-    `)
-    .eq('ativa', true);
+    .select('*')
+    .eq('esta_ativa', true);
 
   if (equipes && !error) {
     resultados.push({
@@ -331,7 +291,7 @@ async function queriesProdutos(
 
   if (intencao.entidades.nomes && intencao.entidades.nomes.length > 0) {
     const nome = intencao.entidades.nomes[0];
-    query = query.ilike('descricao', `%${nome}%`);
+    query = query.ilike('nome', `%${nome}%`);
   }
 
   const { data: produtos, error } = await query;

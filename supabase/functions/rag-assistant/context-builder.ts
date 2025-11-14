@@ -90,18 +90,18 @@ function formatarItem(tipo: string, item: any, index: number): string {
 📋 **Cliente**
 - Nome: ${item.nome_abrev || item.nome_fantasia}
 - CNPJ: ${item.cgc || 'Não informado'}
-- Vendedor: ${item.vendedor?.nome || 'Não atribuído'}
-- Equipe: ${item.equipe?.nome || 'Sem equipe'}
+- Vendedor ID: ${item.vendedor_id || 'Não atribuído'}
+- Equipe ID: ${item.equipe_id || 'Sem equipe'}
 - Limite de crédito: ${formatarMoeda(item.lim_credito)}
 - Cadastrado em: ${formatarData(item.created_at)}
 
 `;
 
     case 'lista_clientes':
-      return `${index}. **${item.nome_abrev || item.nome_fantasia}**
+      return `${index}. **${item.nome_abrev || item.nome_fantasia || 'Cliente'}**
    - CNPJ: ${item.cgc || 'N/A'}
-   - Cidade: ${item.cidade?.[0]?.cidade || 'N/A'} - ${item.cidade?.[0]?.estado || ''}
-   - Vendedor: ${item.vendedor?.nome || 'Não atribuído'}
+   - Vendedor ID: ${item.vendedor_id || 'N/A'}
+   - Equipe ID: ${item.equipe_id || 'N/A'}
    
 `;
 
@@ -118,14 +118,14 @@ function formatarItem(tipo: string, item: any, index: number): string {
 
     case 'tickets_lista':
     case 'tickets_cliente':
-      return `${index}. Ticket #${item.numero_ticket || item.id.slice(0, 8)}
-   - Título: ${item.titulo}
-   - Status: ${item.status}
-   - Prioridade: ${item.prioridade}
-   - Cliente: ${item.cliente?.nome_abrev || 'N/A'}
-   - Atendente: ${item.atendente?.nome || 'Não atribuído'}
-   - Fila: ${item.fila?.nome || 'N/A'}
-   - Criado: ${formatarData(item.criado_em)}
+      return `${index}. Ticket #${item.numero_ticket || (item.id ? item.id.slice(0, 8) : 'N/A')}
+   - Título: ${item.titulo || 'N/A'}
+   - Status: ${item.status || 'N/A'}
+   - Prioridade: ${item.prioridade || 'N/A'}
+   - Cliente: ${item.cliente_nome || 'N/A'}
+   - Atribuído para: ${item.atribuido_para || 'Não atribuído'}
+   - Fila: ${item.fila_id || 'N/A'}
+   - Criado: ${formatarData(item.created_at || item.data_abertura)}
    
 `;
 
@@ -149,10 +149,10 @@ function formatarItem(tipo: string, item: any, index: number): string {
 `;
 
     case 'produtos_lista':
-      return `${index}. **${item.descricao}**
-   - Código: ${item.codigo}
+      return `${index}. **${item.nome}**
+   - Referência: ${item.referencia_interna || 'N/A'}
    - Preço: ${formatarMoeda(item.preco_venda)}
-   - Estoque: ${item.estoque_atual || 'N/A'}
+   - Em mãos: ${item.quantidade_em_maos ?? 'N/A'}
    
 `;
 
