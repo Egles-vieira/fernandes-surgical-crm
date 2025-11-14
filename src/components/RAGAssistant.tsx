@@ -1,13 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-} from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +14,7 @@ import {
   AlertCircle,
   User,
   Sparkles,
+  X,
 } from "lucide-react";
 import { useRAGAssistant } from "@/hooks/useRAGAssistant";
 import { cn } from "@/lib/utils";
@@ -84,48 +78,57 @@ export const RAGAssistant = ({ open, onOpenChange }: RAGAssistantProps) => {
     "Como está o desempenho da equipe?",
   ];
 
-  return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-full sm:max-w-2xl p-0 flex flex-col">
-        {/* Header */}
-        <SheetHeader className="px-6 py-4 border-b space-y-1">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-primary" />
-              <SheetTitle className="text-xl">Assistente Inteligente</SheetTitle>
-            </div>
-            <div className="flex items-center gap-2">
-              <Badge
-                variant={isConnected ? "default" : "secondary"}
-                className={cn(
-                  "text-xs",
-                  isConnected
-                    ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100"
-                    : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100"
-                )}
-              >
-                {isConnected ? "Online" : "Offline"}
-              </Badge>
-              {messages.length > 0 && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleClearChat}
-                  disabled={isLoading}
-                  aria-label="Limpar conversa"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
-          </div>
-          <SheetDescription className="text-sm">
-            Faça perguntas sobre seus dados e receba insights inteligentes
-          </SheetDescription>
-        </SheetHeader>
+  if (!open) return null;
 
-        {/* Área de Mensagens */}
-        <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+  return (
+    <div className="fixed inset-y-0 right-0 w-full sm:w-[600px] bg-background border-l shadow-2xl z-40 flex flex-col animate-slide-in-right">
+      {/* Header */}
+      <div className="px-6 py-4 border-b space-y-1 flex-shrink-0">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-primary" />
+            <h2 className="text-xl font-semibold">Assistente Inteligente</h2>
+          </div>
+          <div className="flex items-center gap-2">
+            <Badge
+              variant={isConnected ? "default" : "secondary"}
+              className={cn(
+                "text-xs",
+                isConnected
+                  ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100"
+                  : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100"
+              )}
+            >
+              {isConnected ? "Online" : "Offline"}
+            </Badge>
+            {messages.length > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleClearChat}
+                disabled={isLoading}
+                aria-label="Limpar conversa"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onOpenChange(false)}
+              aria-label="Fechar assistente"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+        <p className="text-sm text-muted-foreground">
+          Faça perguntas sobre seus dados e receba insights inteligentes
+        </p>
+      </div>
+
+      {/* Área de Mensagens */}
+      <ScrollArea className="flex-1 p-4" ref={scrollRef}>
           <div className="space-y-4">
             {messages.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full py-12 px-4">
@@ -254,11 +257,11 @@ export const RAGAssistant = ({ open, onOpenChange }: RAGAssistantProps) => {
                 </div>
               </div>
             )}
-          </div>
-        </ScrollArea>
+        </div>
+      </ScrollArea>
 
-        {/* Input de Mensagem */}
-        <div className="p-4 border-t">
+      {/* Input de Mensagem */}
+      <div className="p-4 border-t flex-shrink-0">
           <form onSubmit={handleSubmit} className="flex gap-2">
             <Input
               ref={inputRef}
@@ -292,9 +295,8 @@ export const RAGAssistant = ({ open, onOpenChange }: RAGAssistantProps) => {
                 {error}
               </span>
             )}
-          </div>
         </div>
-      </SheetContent>
-    </Sheet>
+      </div>
+    </div>
   );
 };
