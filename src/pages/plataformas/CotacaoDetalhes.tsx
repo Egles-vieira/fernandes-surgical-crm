@@ -627,7 +627,7 @@ export default function CotacaoDetalhes() {
         </div>
 
         {/* Painel Lateral de Histórico */}
-        <div className={`fixed right-0 top-16 h-[calc(100vh-4rem)] bg-background transition-all duration-300 ease-in-out z-30 ${historicoAberto ? 'w-80' : 'w-0'} overflow-hidden`}>
+        <div className={`fixed right-0 top-16 h-[calc(100vh-4rem)] bg-background transition-all duration-300 ease-in-out z-30 ${historicoAberto ? 'w-80' : 'w-12'} overflow-hidden`}>
           {/* Barra lateral cinza */}
           <div className="absolute left-0 top-0 bottom-0 w-8 bg-muted/30 border-l border-border/50 flex items-start justify-center pt-6">
             {/* Botão de Toggle */}
