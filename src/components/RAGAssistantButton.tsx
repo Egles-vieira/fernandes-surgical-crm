@@ -5,7 +5,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import aiRobotIcon from "@/assets/ai-robot-assistant.png";
+import aiAssistantFace from "@/assets/ai-assistant-face.png";
 
 interface RAGAssistantButtonProps {
   onClick: () => void;
@@ -31,9 +31,9 @@ export const RAGAssistantButton = ({
           >
             <div className="absolute inset-0 bg-gradient-to-br from-primary/40 to-transparent rounded-full blur-xl group-hover:blur-2xl transition-all" />
             <img 
-              src={aiRobotIcon} 
+              src={aiAssistantFace} 
               alt="AI Assistant" 
-              className="h-10 w-10 relative z-10 group-hover:scale-110 transition-transform object-contain"
+              className="h-12 w-12 relative z-10 group-hover:scale-110 transition-transform object-contain rounded-full"
             />
             {unreadCount && unreadCount > 0 && (
               <span className="absolute -top-1 -right-1 h-6 w-6 rounded-full bg-gradient-to-br from-destructive to-destructive/80 text-destructive-foreground text-xs flex items-center justify-center font-bold shadow-lg animate-bounce">
