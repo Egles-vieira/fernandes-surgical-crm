@@ -629,13 +629,13 @@ export default function CotacaoDetalhes() {
         {/* Painel Lateral de Histórico */}
         <div className={`fixed right-0 top-16 h-[calc(100vh-4rem)] bg-card border-l shadow-lg transition-all duration-500 ease-in-out z-30 ${historicoAberto ? 'w-96' : 'w-8'} overflow-hidden`}>
           {/* Botão de Toggle */}
-          <button 
+          <Button 
+            size="icon" 
+            className={`absolute left-2 top-4 z-10 transition-all duration-300 w-10 h-10 rounded-full bg-background shadow-lg border hover:shadow-xl ${historicoAberto ? '' : 'hover:scale-110'}`} 
             onClick={() => setHistoricoAberto(!historicoAberto)}
-            className="absolute left-2 top-4 z-10 bg-white text-primary rounded-full p-1.5 shadow-lg hover:scale-110 transition-transform"
-            aria-label={historicoAberto ? "Fechar histórico" : "Abrir histórico"}
           >
-            {historicoAberto ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
-          </button>
+            {historicoAberto ? <ChevronRight className="h-4 w-4 text-primary" /> : <ChevronLeft className="h-4 w-4 text-primary" />}
+          </Button>
 
           {/* Conteúdo do Histórico */}
           {historicoAberto && <div className="p-6 pt-16 h-full overflow-y-auto animate-fade-in">
