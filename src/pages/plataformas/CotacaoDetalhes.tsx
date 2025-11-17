@@ -270,14 +270,14 @@ export default function CotacaoDetalhes() {
       {/* ActionBar fixo que respeita sidebar e histórico */}
       <div className="fixed top-16 z-20 bg-card border-b shadow-sm px-4 md:px-6 py-3 transition-all duration-300" style={{
       left: 'var(--sidebar-width)' as any,
-      right: historicoAberto ? '24rem' : '3rem'
+      right: historicoAberto ? '24rem' : '2rem'
     }}>
         <CotacaoActionBar status={cotacao.step_atual as any} onResponder={handleResponder} onCancelar={handleCancelar} onConfirmar={handleConfirmar} onEnviar={handleEnviar} onResetarAnalise={handleResetarAnalise} analiseIATravada={cotacao.status_analise_ia === 'em_analise' && (cotacao.progresso_analise_percent || 0) > 0 && (cotacao.progresso_analise_percent || 0) < 100 && !isAnalyzing} />
       </div>
 
       <div className="flex pt-[72px] w-full">
         {/* Área Principal */}
-        <div className={`flex-1 min-w-0 transition-all duration-300 ${historicoAberto ? 'mr-96' : 'mr-12'}`}>
+        <div className={`flex-1 min-w-0 transition-all duration-300 ${historicoAberto ? 'mr-96' : 'mr-8'}`}>
           <div className="px-4 py-6 space-y-6 w-full my-0 md:py-0 md:px-[15px] mx-[2px]">
             {/* Header */}
             <div className="flex items-center gap-4 mb-6 mx-0 px-0 py-0 my-0">
@@ -627,7 +627,7 @@ export default function CotacaoDetalhes() {
         </div>
 
         {/* Painel Lateral de Histórico */}
-        <div className={`fixed right-0 top-16 h-[calc(100vh-4rem)] bg-card border-l shadow-lg transition-all duration-500 ease-in-out z-30 ${historicoAberto ? 'w-96' : 'w-12'} overflow-hidden`}>
+        <div className={`fixed right-0 top-16 h-[calc(100vh-4rem)] bg-card border-l shadow-lg transition-all duration-500 ease-in-out z-30 ${historicoAberto ? 'w-96' : 'w-8'} overflow-hidden`}>
           {/* Botão de Toggle */}
           <Button variant="ghost" size="icon" className={`absolute left-2 top-4 z-10 transition-all duration-300 w-7 h-7 ${historicoAberto ? '' : 'hover:scale-110'}`} onClick={() => setHistoricoAberto(!historicoAberto)}>
             {historicoAberto ? <ChevronRight className="h-3 w-3" /> : <ChevronLeft className="h-3 w-3" />}
