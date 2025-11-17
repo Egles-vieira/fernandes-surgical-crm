@@ -673,9 +673,9 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
             <Table className="relative">
               <TableHeader className="sticky top-0 z-10 bg-background">
                 <TableRow>
-                  {visibleColumns.expand && <TableHead className="sticky left-0 z-20 bg-background border-r w-[50px]"></TableHead>}
+                  {visibleColumns.expand && <TableHead className="sticky left-0 z-20 bg-background border-r w-[40px] p-2"></TableHead>}
                   {visibleColumns.select && (
-                    <TableHead className="sticky left-[50px] z-20 bg-background border-r w-[50px]">
+                    <TableHead className="sticky left-[40px] z-20 bg-background border-r w-[40px] p-2">
                       <Checkbox
                         checked={selectedItems.size === paginatedItems.length && paginatedItems.length > 0}
                         onCheckedChange={handleSelectAll}
@@ -683,52 +683,52 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
                     </TableHead>
                   )}
                   {visibleColumns.numero && (
-                    <TableHead className="sticky left-[100px] z-20 bg-background border-r w-[80px] cursor-pointer" onClick={() => handleSort("numero_item")}>
-                      <div className="flex items-center gap-1">
+                    <TableHead className="sticky left-[80px] z-20 bg-background border-r w-[70px] cursor-pointer p-2" onClick={() => handleSort("numero_item")}>
+                      <div className="flex items-center gap-1 text-xs font-semibold">
                         Item Nº
                         {sortColumn === "numero_item" && <ArrowUpDown className="h-3 w-3" />}
                       </div>
                     </TableHead>
                   )}
                   {visibleColumns.descricao && (
-                    <TableHead className="sticky left-[180px] z-20 bg-background border-r min-w-[300px] cursor-pointer" onClick={() => handleSort("descricao_produto_cliente")}>
-                      <div className="flex items-center gap-1">
+                    <TableHead className="sticky left-[150px] z-20 bg-background border-r min-w-[250px] max-w-[400px] cursor-pointer p-2" onClick={() => handleSort("descricao_produto_cliente")}>
+                      <div className="flex items-center gap-1 text-xs font-semibold">
                         Descrição Cliente
                         {sortColumn === "descricao_produto_cliente" && <ArrowUpDown className="h-3 w-3" />}
                       </div>
                     </TableHead>
                   )}
                   {visibleColumns.codigo && (
-                    <TableHead className="min-w-[120px] cursor-pointer" onClick={() => handleSort("codigo_produto_cliente")}>
-                      <div className="flex items-center gap-1">
+                    <TableHead className="w-[100px] cursor-pointer p-2" onClick={() => handleSort("codigo_produto_cliente")}>
+                      <div className="flex items-center gap-1 text-xs font-semibold">
                         Cód. Cliente
                         {sortColumn === "codigo_produto_cliente" && <ArrowUpDown className="h-3 w-3" />}
                       </div>
                     </TableHead>
                   )}
-                  {visibleColumns.vinculo && <TableHead className="min-w-[250px]">Produto Vinculado</TableHead>}
-                  {visibleColumns.unidadeInterna && <TableHead className="min-w-[120px]">Unidade Interna</TableHead>}
+                  {visibleColumns.vinculo && <TableHead className="min-w-[200px] p-2 text-xs font-semibold">Produto Vinculado</TableHead>}
+                  {visibleColumns.unidadeInterna && <TableHead className="w-[100px] p-2 text-xs font-semibold">Unidade</TableHead>}
                   {visibleColumns.quantidade && (
-                    <TableHead className="min-w-[120px] cursor-pointer" onClick={() => handleSort("quantidade_solicitada")}>
-                      <div className="flex items-center gap-1">
+                    <TableHead className="w-[80px] cursor-pointer p-2 text-right" onClick={() => handleSort("quantidade_solicitada")}>
+                      <div className="flex items-center gap-1 justify-end text-xs font-semibold">
                         Qtd.
                         {sortColumn === "quantidade_solicitada" && <ArrowUpDown className="h-3 w-3" />}
                       </div>
                     </TableHead>
                   )}
-                  {visibleColumns.preco && <TableHead className="min-w-[140px]">Preço Unit.</TableHead>}
-                  {visibleColumns.desconto && <TableHead className="min-w-[120px]">Desc. %</TableHead>}
+                  {visibleColumns.preco && <TableHead className="w-[110px] p-2 text-right text-xs font-semibold">Preço Unit.</TableHead>}
+                  {visibleColumns.desconto && <TableHead className="w-[80px] p-2 text-right text-xs font-semibold">Desc. %</TableHead>}
                   {visibleColumns.total && (
-                    <TableHead className="min-w-[140px] cursor-pointer" onClick={() => handleSort("total")}>
-                      <div className="flex items-center gap-1">
+                    <TableHead className="w-[120px] cursor-pointer p-2 text-right" onClick={() => handleSort("total")}>
+                      <div className="flex items-center gap-1 justify-end text-xs font-semibold">
                         Total
                         {sortColumn === "total" && <ArrowUpDown className="h-3 w-3" />}
                       </div>
                     </TableHead>
                   )}
                   {visibleColumns.status && (
-                    <TableHead className="min-w-[120px] cursor-pointer" onClick={() => handleSort("status")}>
-                      <div className="flex items-center gap-1">
+                    <TableHead className="w-[100px] cursor-pointer p-2" onClick={() => handleSort("status")}>
+                      <div className="flex items-center gap-1 text-xs font-semibold">
                         Status
                         {sortColumn === "status" && <ArrowUpDown className="h-3 w-3" />}
                       </div>
@@ -763,7 +763,7 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
                       <>
                         {/* Linha Principal */}
                         <TableRow key={item.id} className="hover:bg-muted/50">
-                          {visibleColumns.expand && <TableCell className={`sticky left-0 z-10 bg-background border-r ${densityClasses[density]}`}>
+                          {visibleColumns.expand && <TableCell className={`sticky left-0 z-10 bg-background border-r p-2 ${densityClasses[density]}`}>
                             <Button
                               variant="ghost"
                               size="sm"
@@ -777,7 +777,7 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
                               )}
                             </Button>
                           </TableCell>}
-                          {visibleColumns.select && <TableCell className={`sticky left-[50px] z-10 bg-background border-r ${densityClasses[density]}`}>
+                          {visibleColumns.select && <TableCell className={`sticky left-[40px] z-10 bg-background border-r p-2 ${densityClasses[density]}`}>
                             <Checkbox
                               checked={isSelected}
                               onCheckedChange={(checked) => {
@@ -791,12 +791,14 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
                               }}
                             />
                           </TableCell>}
-                          {visibleColumns.numero && <TableCell className={`sticky left-[100px] z-10 bg-background border-r font-medium ${densityClasses[density]}`}>{item.numero_item}</TableCell>}
-                          {visibleColumns.descricao && <TableCell className={`sticky left-[180px] z-10 bg-background border-r font-medium ${densityClasses[density]}`}>{item.descricao_produto_cliente}</TableCell>}
-                          {visibleColumns.codigo && <TableCell className={`text-muted-foreground text-sm ${densityClasses[density]}`}>
+                          {visibleColumns.numero && <TableCell className={`sticky left-[80px] z-10 bg-background border-r font-medium text-sm p-2 ${densityClasses[density]}`}>{item.numero_item}</TableCell>}
+                          {visibleColumns.descricao && <TableCell className={`sticky left-[150px] z-10 bg-background border-r text-sm p-2 ${densityClasses[density]}`}>
+                            <div className="line-clamp-2 max-w-[400px]">{item.descricao_produto_cliente}</div>
+                          </TableCell>}
+                          {visibleColumns.codigo && <TableCell className={`text-muted-foreground text-xs p-2 ${densityClasses[density]}`}>
                             {item.codigo_produto_cliente || "-"}
                           </TableCell>}
-                          {visibleColumns.vinculo && <TableCell className={densityClasses[density]}>
+                          {visibleColumns.vinculo && <TableCell className={`p-2 ${densityClasses[density]}`}>
                             <div className="flex items-center gap-2">
                               <Button
                                 variant="outline"
@@ -805,6 +807,7 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
                                   setCurrentItemId(item.id);
                                   setDialogAberto(true);
                                 }}
+                                className="h-7 w-7 p-0"
                               >
                                 <Package className="h-3 w-3" />
                               </Button>
@@ -812,63 +815,63 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
                                 <div className="flex items-center gap-2">
                                   <Package className="h-4 w-4 text-primary" />
                                   <div>
-                                    <p className="text-sm font-medium">{data.produtoVinculado.nome}</p>
+                                    <p className="text-xs font-medium line-clamp-1">{data.produtoVinculado.nome}</p>
                                     <p className="text-xs text-muted-foreground">
                                       Ref: {data.produtoVinculado.referencia_interna}
                                     </p>
                                   </div>
                                 </div>
                               ) : (
-                                <span className="text-sm text-muted-foreground">-</span>
+                                <span className="text-xs text-muted-foreground">-</span>
                               )}
                             </div>
                           </TableCell>}
-                          {visibleColumns.unidadeInterna && <TableCell className={`text-sm ${densityClasses[density]}`}>
+                          {visibleColumns.unidadeInterna && <TableCell className={`text-xs p-2 ${densityClasses[density]}`}>
                             {item.unidade_medida || "-"}
                           </TableCell>}
-                          {visibleColumns.quantidade && <TableCell className={densityClasses[density]}>
+                          {visibleColumns.quantidade && <TableCell className={`p-2 ${densityClasses[density]}`}>
                             <Input
                               type="number"
                               value={data?.quantidade || 0}
                               onChange={(e) => updateItemField(item.id, "quantidade", Number(e.target.value))}
-                              className="w-20 h-8"
+                              className="w-16 h-7 text-xs text-right"
                               min={0}
                             />
                           </TableCell>}
-                          {visibleColumns.preco && <TableCell className={densityClasses[density]}>
+                          {visibleColumns.preco && <TableCell className={`p-2 ${densityClasses[density]}`}>
                             <Input
                               type="number"
                               value={data?.precoUnitario || 0}
                               onChange={(e) => updateItemField(item.id, "precoUnitario", Number(e.target.value))}
-                              className="w-24 h-8"
+                              className="w-24 h-7 text-xs text-right"
                               min={0}
                               step={0.01}
                             />
                           </TableCell>}
-                          {visibleColumns.desconto && <TableCell className={densityClasses[density]}>
+                          {visibleColumns.desconto && <TableCell className={`p-2 ${densityClasses[density]}`}>
                             <Input
                               type="number"
                               value={data?.desconto || 0}
                               onChange={(e) => updateItemField(item.id, "desconto", Number(e.target.value))}
-                              className="w-20 h-8"
+                              className="w-16 h-7 text-xs text-right"
                               min={0}
                               max={100}
                               step={0.01}
                             />
                           </TableCell>}
-                          {visibleColumns.total && <TableCell className={`font-bold text-primary ${densityClasses[density]}`}>
+                          {visibleColumns.total && <TableCell className={`font-semibold text-primary text-xs text-right p-2 ${densityClasses[density]}`}>
                             {new Intl.NumberFormat("pt-BR", {
                               style: "currency",
                               currency: "BRL",
                             }).format(getValorTotal(item.id))}
                           </TableCell>}
-                          {visibleColumns.status && <TableCell className={densityClasses[density]}>
-                            <Badge variant={item.status === "respondido" ? "default" : "secondary"}>
+                          {visibleColumns.status && <TableCell className={`p-2 ${densityClasses[density]}`}>
+                            <Badge variant={item.status === "respondido" ? "default" : "secondary"} className="text-xs">
                               {item.status === "respondido" ? "Respondido" : "Pendente"}
                             </Badge>
                           </TableCell>}
                           {visibleColumns.sugestoesIA && (
-                            <TableCell className={densityClasses[density]}>
+                            <TableCell className={`p-2 ${densityClasses[density]}`}>
                               {(() => {
                                 const sugestoes = itemSugestoes.get(item.id);
                                 if (!sugestoes || sugestoes.length === 0) {
@@ -986,13 +989,14 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
                               })()}
                             </TableCell>
                           )}
-                          {visibleColumns.acoes && <TableCell className={densityClasses[density]}>
+                          {visibleColumns.acoes && <TableCell className={`p-2 ${densityClasses[density]}`}>
                             <div className="flex gap-1">
                               <Button
                                 variant="outline"
                                 size="sm"
                                 onClick={() => handleAnalisarIA(item)}
                                 disabled={data?.isLoading}
+                                className="h-7 w-7 p-0"
                               >
                                 <Sparkles className="h-3 w-3" />
                               </Button>
@@ -1000,6 +1004,7 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
                                 size="sm"
                                 onClick={() => handleSalvar(item)}
                                 disabled={data?.isLoading || !data?.produtoVinculado}
+                                className="h-7 w-7 p-0"
                               >
                                 <Save className="h-3 w-3" />
                               </Button>
@@ -1014,47 +1019,47 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
                             className="bg-muted/20 hover:bg-muted/40 cursor-pointer"
                             onClick={() => handleSelectPreviousMapping(item.id, mapping)}
                           >
-                            {visibleColumns.expand && <TableCell className="sticky left-0 z-10 bg-muted/20 border-r"></TableCell>}
-                            {visibleColumns.select && <TableCell className="sticky left-[50px] z-10 bg-muted/20 border-r"></TableCell>}
-                            {visibleColumns.numero && <TableCell className="sticky left-[100px] z-10 bg-muted/20 border-r"></TableCell>}
-                            {visibleColumns.descricao && <TableCell className="sticky left-[180px] z-10 bg-muted/20 border-r pl-12">
-                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            {visibleColumns.expand && <TableCell className="sticky left-0 z-10 bg-muted/20 border-r p-2"></TableCell>}
+                            {visibleColumns.select && <TableCell className="sticky left-[40px] z-10 bg-muted/20 border-r p-2"></TableCell>}
+                            {visibleColumns.numero && <TableCell className="sticky left-[80px] z-10 bg-muted/20 border-r p-2"></TableCell>}
+                            {visibleColumns.descricao && <TableCell className="sticky left-[150px] z-10 bg-muted/20 border-r pl-10 p-2">
+                              <div className="flex items-center gap-2 text-xs text-muted-foreground">
                                 <Package className="h-3 w-3" />
                                 <span>Mapeamento anterior</span>
                               </div>
                             </TableCell>}
-                            {visibleColumns.codigo && <TableCell className="text-sm">-</TableCell>}
-                             {visibleColumns.vinculo && <TableCell>
+                            {visibleColumns.codigo && <TableCell className="text-xs p-2">-</TableCell>}
+                             {visibleColumns.vinculo && <TableCell className="p-2">
                               <div className="flex items-center gap-2">
                                 <Package className="h-4 w-4 text-primary" />
                                 <div>
-                                  <p className="text-sm font-medium">{mapping.produtos?.nome}</p>
+                                  <p className="text-xs font-medium line-clamp-1">{mapping.produtos?.nome}</p>
                                   <p className="text-xs text-muted-foreground">
                                     Ref: {mapping.produtos?.referencia_interna}
                                   </p>
                                 </div>
                               </div>
                             </TableCell>}
-                            {visibleColumns.unidadeInterna && <TableCell className="text-sm">-</TableCell>}
-                            {visibleColumns.quantidade && <TableCell className="text-sm">-</TableCell>}
-                            {visibleColumns.preco && <TableCell className="text-sm font-medium">
+                            {visibleColumns.unidadeInterna && <TableCell className="text-xs p-2">-</TableCell>}
+                            {visibleColumns.quantidade && <TableCell className="text-xs text-right p-2">-</TableCell>}
+                            {visibleColumns.preco && <TableCell className="text-xs font-medium text-right p-2">
                               {new Intl.NumberFormat("pt-BR", {
                                 style: "currency",
                                 currency: "BRL",
                               }).format(mapping.produtos?.preco_venda || 0)}
                             </TableCell>}
-                            {visibleColumns.desconto && <TableCell className="text-sm">
+                            {visibleColumns.desconto && <TableCell className="text-xs text-right p-2">
                               {mapping.desconto_padrao || 0}%
                             </TableCell>}
-                            {visibleColumns.total && <TableCell className="text-sm">-</TableCell>}
-                            {visibleColumns.status && <TableCell>
+                            {visibleColumns.total && <TableCell className="text-xs text-right p-2">-</TableCell>}
+                            {visibleColumns.status && <TableCell className="p-2">
                               <Badge variant="outline" className="text-xs">
                                 {mapping.sugerido_por_ia ? "IA" : "Manual"}
                               </Badge>
                             </TableCell>}
-                            {visibleColumns.sugestoesIA && <TableCell></TableCell>}
-                            {visibleColumns.acoes && <TableCell>
-                              <Button variant="ghost" size="sm" className="text-xs">
+                            {visibleColumns.sugestoesIA && <TableCell className="p-2"></TableCell>}
+                            {visibleColumns.acoes && <TableCell className="p-2">
+                              <Button variant="ghost" size="sm" className="text-xs h-7">
                                 Usar este
                               </Button>
                             </TableCell>}
