@@ -408,7 +408,7 @@ export default function CotacaoDetalhes() {
                   </TabsList>
                   
                   <TabsContent value="condicoes" className="space-y-6 pt-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                       {/* Forma de Pagamento */}
                       <div className="space-y-2">
                         <Label htmlFor="forma-pagamento">Forma de pagamento</Label>
@@ -425,8 +425,8 @@ export default function CotacaoDetalhes() {
                         </Select>
                         <p className="text-xs text-muted-foreground">
                           {cotacao.forma_pagamento_portal || cotacao.detalhes?.forma_pagamento
-                            ? `Sugestão do comprador: ${cotacao.forma_pagamento_portal || cotacao.detalhes?.forma_pagamento}`
-                            : 'Sugestão do comprador não informada'}
+                            ? `Sugestão: ${cotacao.forma_pagamento_portal || cotacao.detalhes?.forma_pagamento}`
+                            : 'Não informada'}
                         </p>
                       </div>
 
@@ -444,63 +444,69 @@ export default function CotacaoDetalhes() {
                         </Select>
                         <p className="text-xs text-muted-foreground">
                           {cotacao.detalhes?.tipo_frete
-                            ? `Sugestão do comprador: ${cotacao.detalhes.tipo_frete}`
-                            : 'Sugestão do comprador não informada'}
+                            ? `Sugestão: ${cotacao.detalhes.tipo_frete}`
+                            : 'Não informada'}
                         </p>
+                      </div>
+
+                      {/* Prazo de Entrega */}
+                      <div className="space-y-2">
+                        <Label htmlFor="prazo-entrega">Prazo de entrega (dias)</Label>
+                        <Input 
+                          id="prazo-entrega" 
+                          type="number"
+                          placeholder={cotacao.detalhes?.prazo_entrega_dias || "2"}
+                          className="w-full"
+                        />
+                        {cotacao.detalhes?.prazo_entrega_dias && (
+                          <p className="text-xs text-muted-foreground">
+                            Sugestão: {cotacao.detalhes.prazo_entrega_dias} dias
+                          </p>
+                        )}
                       </div>
 
                       {/* Validade Mínima da Proposta */}
                       <div className="space-y-2">
-                        <Label htmlFor="validade-proposta">Validade mínima da proposta</Label>
+                        <Label htmlFor="validade-proposta">Validade da proposta</Label>
                         <Input 
                           id="validade-proposta" 
                           type="date"
                           className="w-full"
                         />
                         <p className="text-xs text-muted-foreground">
-                          Mínimo de {cotacao.detalhes?.validade_minima_dias || '5'} dias da data de vencimento da cotação
+                          Mínimo {cotacao.detalhes?.validade_minima_dias || '5'} dias
                         </p>
                       </div>
 
-                      {/* Prazo de Entrega */}
-                      <div className="space-y-2">
-                        <Label htmlFor="prazo-entrega">Prazo de entrega</Label>
-                        <div className="flex gap-2 items-center">
-                          <Input 
-                            id="prazo-entrega" 
-                            type="number"
-                            placeholder={cotacao.detalhes?.prazo_entrega_dias || "2"}
-                            className="flex-1"
-                          />
-                          <span className="text-sm text-muted-foreground whitespace-nowrap">
-                            Dias após a confirmação
-                          </span>
-                        </div>
-                        {cotacao.detalhes?.prazo_entrega_dias && (
+                      {/* Faturamento Mínimo */}
+                      <div className="space-y-2 lg:col-span-2">
+                        <Label htmlFor="faturamento-minimo">Faturamento mínimo (R$)</Label>
+                        <Input 
+                          id="faturamento-minimo" 
+                          type="number"
+                          placeholder={cotacao.detalhes?.faturamento_minimo || "500.00"}
+                          className="w-full"
+                          step="0.01"
+                        />
+                        {cotacao.detalhes?.faturamento_minimo && (
                           <p className="text-xs text-muted-foreground">
-                            Sugestão do comprador: {cotacao.detalhes.prazo_entrega_dias} dias
+                            Sugestão: R$ {Number(cotacao.detalhes.faturamento_minimo).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </p>
                         )}
                       </div>
 
-                      {/* Faturamento Mínimo */}
-                      <div className="space-y-2 md:col-span-2">
-                        <Label htmlFor="faturamento-minimo">Faturamento mínimo</Label>
-                        <div className="flex gap-2 items-center">
-                          <span className="text-sm text-muted-foreground">R$</span>
-                          <Input 
-                            id="faturamento-minimo" 
-                            type="number"
-                            placeholder={cotacao.detalhes?.faturamento_minimo || "500.00"}
-                            className="flex-1"
-                            step="0.01"
-                          />
-                        </div>
-                        {cotacao.detalhes?.faturamento_minimo && (
-                          <p className="text-xs text-muted-foreground">
-                            Sugestão do comprador: R$ {Number(cotacao.detalhes.faturamento_minimo).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                          </p>
-                        )}
+                      {/* Local de Entrega */}
+                      <div className="space-y-2 lg:col-span-2">
+                        <Label htmlFor="local-entrega">Local de entrega</Label>
+                        <Input 
+                          id="local-entrega" 
+                          placeholder="Endereço de entrega"
+                          className="w-full"
+                          defaultValue={cotacao.detalhes?.local_entrega || `${cotacao.cidade_cliente}, ${cotacao.uf_cliente}`}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Endereço padrão: {cotacao.cidade_cliente}, {cotacao.uf_cliente}
+                        </p>
                       </div>
                     </div>
                   </TabsContent>
