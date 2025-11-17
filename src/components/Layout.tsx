@@ -118,11 +118,13 @@ const menuItems: MenuItem[] = [{
   }, {
     path: "/tickets/dashboard",
     icon: BarChart3,
-    label: "Dashboard"
+    label: "Dashboard",
+    adminOnly: true
   }, {
     path: "/base-conhecimento",
     icon: BookOpen,
-    label: "Base de Conhecimento"
+    label: "Base de Conhecimento",
+    adminOnly: true
   }]
 }, {
   icon: Users,
