@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Building2, Calendar, MapPin, FileText, Package, DollarSign, Clock, CheckCircle2, XCircle, ArrowLeft, ChevronRight, ChevronLeft, Trash2, Sparkles } from "lucide-react";
+import { MapPin, FileText, Package, DollarSign, Clock, CheckCircle2, XCircle, ArrowLeft, ChevronRight, ChevronLeft, Trash2, Sparkles } from "lucide-react";
 import { EDICotacao } from "@/hooks/useEDICotacoes";
 import { useToast } from "@/hooks/use-toast";
 import { ItemCotacaoTable } from "@/components/plataformas/ItemCotacaoTable";
@@ -314,7 +314,7 @@ export default function CotacaoDetalhes() {
                   {/* Cliente */}
                   <div className="space-y-4">
                     <h3 className="font-semibold text-base flex items-center gap-2">
-                      <Building2 className="h-5 w-5 text-primary" />
+                      
                       Informações do Cliente
                     </h3>
                     <div className="space-y-3">
@@ -341,7 +341,7 @@ export default function CotacaoDetalhes() {
                   {/* Datas */}
                   <div className="space-y-4">
                     <h3 className="font-semibold text-base flex items-center gap-2">
-                      <Calendar className="h-5 w-5 text-primary" />
+                      
                       Cronograma
                     </h3>
                     <div className="space-y-3">
