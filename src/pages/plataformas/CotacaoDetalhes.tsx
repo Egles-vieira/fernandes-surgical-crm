@@ -369,6 +369,12 @@ export default function CotacaoDetalhes() {
                         })}
                           </p>
                         </div>}
+                      {cotacao.detalhes?.Contato && <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Contato</Label>
+                          <p className="font-medium text-sm">
+                            {cotacao.detalhes.Contato}
+                          </p>
+                        </div>}
                     </div>
                   </div>
                 </div>
