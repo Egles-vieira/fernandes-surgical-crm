@@ -65,19 +65,23 @@ const menuItems: MenuItem[] = [{
   }, {
     path: "/plataformas/dashboard-ia",
     icon: Brain,
-    label: "Dashboard IA"
+    label: "Dashboard IA",
+    adminOnly: true
   }, {
     path: "/plataformas/ml-dashboard",
     icon: BarChart3,
-    label: "ML Dashboard"
+    label: "ML Dashboard",
+    adminOnly: true
   }, {
     path: "/plataformas/produtos-vinculo",
     icon: Package,
-    label: "DE-PARA Produtos"
+    label: "DE-PARA Produtos",
+    adminOnly: true
   }, {
     path: "/plataformas/parametros",
     icon: Settings,
-    label: "Parâmetros"
+    label: "Parâmetros",
+    adminOnly: true
   }]
 }, {
   icon: Gavel,
@@ -171,7 +175,8 @@ export default function Layout({
 }: LayoutProps) {
   const location = useLocation();
   const {
-    isAdmin
+    isAdmin,
+    isManager
   } = useRoles();
   const {
     empresa
@@ -236,7 +241,7 @@ export default function Layout({
         {/* Menu Items - Vertical */}
         <nav className="flex-1 py-4 overflow-y-auto">
           <div className="space-y-1">
-            {menuItems.filter(item => !item.adminOnly || isAdmin).map((item, index) => {
+            {menuItems.filter(item => !item.adminOnly || isAdmin || isManager).map((item, index) => {
               // Itens com children (sub-menus)
               if (item.children) {
                 const isAnyChildActive = hasActiveChild(item);
@@ -255,7 +260,7 @@ export default function Layout({
                         <HoverCardContent side="right" align="start" className="w-48 bg-card border-border p-2 ml-2">
                           <div className="space-y-1">
                             <p className="text-xs font-semibold text-muted-foreground mb-2 px-2">{item.label}</p>
-                            {item.children.filter(child => !child.adminOnly || isAdmin).map(child => <NavLink key={child.path} to={child.path!} end={child.path === "/"} className={({
+                            {item.children.filter(child => !child.adminOnly || isAdmin || isManager).map(child => <NavLink key={child.path} to={child.path!} end={child.path === "/"} className={({
                           isActive
                         }) => `flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200
                                 ${isActive ? "bg-primary/10 text-primary font-medium" : "hover:bg-muted text-foreground"}`}>
@@ -277,7 +282,7 @@ export default function Layout({
                       </CollapsibleTrigger>
 
                       <CollapsibleContent className="mt-1 space-y-1 pl-5 pr-2">
-                        {item.children.filter(child => !child.adminOnly || isAdmin).map(child => <NavLink key={child.path} to={child.path!} end={child.path === "/"}>
+                        {item.children.filter(child => !child.adminOnly || isAdmin || isManager).map(child => <NavLink key={child.path} to={child.path!} end={child.path === "/"}>
                               {({
                         isActive
                       }) => <div className={`group flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all duration-200 relative
