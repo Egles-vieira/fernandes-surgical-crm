@@ -631,7 +631,7 @@ export default function CotacaoDetalhes() {
           {/* Botão de Toggle */}
           <button 
             onClick={() => setHistoricoAberto(!historicoAberto)}
-            className="absolute -left-3 top-4 z-10 bg-white text-primary rounded-full p-1.5 shadow-lg hover:scale-110 transition-transform"
+            className="absolute -left-3 top-1/2 -translate-y-1/2 z-10 bg-white text-primary rounded-full p-1.5 shadow-lg hover:scale-110 transition-transform"
             aria-label={historicoAberto ? "Fechar histórico" : "Abrir histórico"}
           >
             {historicoAberto ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
