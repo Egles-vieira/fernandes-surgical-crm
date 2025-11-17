@@ -278,9 +278,9 @@ export default function CotacaoDetalhes() {
       <div className="flex pt-[72px] w-full">
         {/* Área Principal */}
         <div className={`flex-1 min-w-0 transition-all duration-300 ${historicoAberto ? 'mr-96' : 'mr-12'}`}>
-          <div className="px-4 py-6 space-y-6 w-full md:px-6 md:py-8">
+          <div className="px-4 py-6 space-y-6 w-full my-0 md:py-0 md:px-[15px] mx-[2px]">
             {/* Header */}
-            <div className="flex items-center gap-4 mb-6">
+            <div className="flex items-center gap-4 mb-6 mx-0 px-0 py-0 my-0">
               <Button variant="outline" size="icon" onClick={() => navigate("/plataformas/cotacoes")}>
                 <ArrowLeft className="h-4 w-4" />
               </Button>
