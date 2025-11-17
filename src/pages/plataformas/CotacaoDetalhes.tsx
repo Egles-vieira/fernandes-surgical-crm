@@ -61,16 +61,23 @@ export default function CotacaoDetalhes() {
   const {
     toast
   } = useToast();
-  const { track } = usePerformanceMonitor();
+  const {
+    track
+  } = usePerformanceMonitor();
   const [cotacao, setCotacao] = useState<EDICotacao | null>(null);
   const [itens, setItens] = useState<ItemCotacao[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [historicoAberto, setHistoricoAberto] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  
+
   // Análise de IA
-  const { isAnalyzing, progress, error: iaError, iniciarAnalise } = useIAAnalysis(id);
+  const {
+    isAnalyzing,
+    progress,
+    error: iaError,
+    iniciarAnalise
+  } = useIAAnalysis(id);
   const [mostrarSugestoes, setMostrarSugestoes] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
 
@@ -79,12 +86,11 @@ export default function CotacaoDetalhes() {
     cotacaoId: id || '',
     onItemUpdate: (itemId, updates) => {
       // Atualiza o item na lista local
-      setItens((prevItens) => 
-        prevItens.map((item) => 
-          item.id === itemId ? { ...item, ...updates } : item
-        )
-      );
-    },
+      setItens(prevItens => prevItens.map(item => item.id === itemId ? {
+        ...item,
+        ...updates
+      } : item));
+    }
   });
   useEffect(() => {
     if (id) {
@@ -96,22 +102,18 @@ export default function CotacaoDetalhes() {
     try {
       await track('carregar-cotacao-detalhes', async () => {
         // Carregar cotação e itens em PARALELO para melhor performance
-        const [cotacaoResult, itensResult] = await Promise.all([
-          supabase.from("edi_cotacoes").select(`
+        const [cotacaoResult, itensResult] = await Promise.all([supabase.from("edi_cotacoes").select(`
             *,
             plataformas_edi(nome, slug)
-          `).eq("id", id).single(),
-          
-          supabase.from("edi_cotacoes_itens").select(`
+          `).eq("id", id).single(), supabase.from("edi_cotacoes_itens").select(`
             *,
             produtos!produto_id(id, nome, referencia_interna, preco_venda, quantidade_em_maos, unidade_medida),
             produto_selecionado:produtos!produto_selecionado_id(id, nome, referencia_interna)
-          `).eq("cotacao_id", id).order("numero_item", { ascending: true })
-        ]);
-
+          `).eq("cotacao_id", id).order("numero_item", {
+          ascending: true
+        })]);
         if (cotacaoResult.error) throw cotacaoResult.error;
         if (itensResult.error) throw itensResult.error;
-
         setCotacao(cotacaoResult.data as EDICotacao);
         setItens(itensResult.data || []);
       });
@@ -192,43 +194,36 @@ export default function CotacaoDetalhes() {
       description: "Funcionalidade em desenvolvimento"
     });
   };
-
   const handleResetarAnalise = async () => {
     if (!id) return;
-    
     setIsResetting(true);
     try {
       // Resetar estado da cotação
-      const { error: resetError } = await supabase
-        .from('edi_cotacoes')
-        .update({
-          status_analise_ia: 'pendente',
-          progresso_analise_percent: 0,
-          itens_analisados: 0,
-          total_sugestoes_geradas: 0,
-          erro_analise_ia: null,
-        })
-        .eq('id', id);
-
+      const {
+        error: resetError
+      } = await supabase.from('edi_cotacoes').update({
+        status_analise_ia: 'pendente',
+        progresso_analise_percent: 0,
+        itens_analisados: 0,
+        total_sugestoes_geradas: 0,
+        erro_analise_ia: null
+      }).eq('id', id);
       if (resetError) throw resetError;
 
       // Resetar itens
-      const { error: itensError } = await supabase
-        .from('edi_cotacoes_itens')
-        .update({
-          analisado_por_ia: false,
-          score_confianca_ia: null,
-          produtos_sugeridos_ia: null,
-          produto_selecionado_id: null,
-          requer_revisao_humana: false,
-        })
-        .eq('cotacao_id', id);
-
+      const {
+        error: itensError
+      } = await supabase.from('edi_cotacoes_itens').update({
+        analisado_por_ia: false,
+        score_confianca_ia: null,
+        produtos_sugeridos_ia: null,
+        produto_selecionado_id: null,
+        requer_revisao_humana: false
+      }).eq('cotacao_id', id);
       if (itensError) throw itensError;
-
       toast({
         title: "Análise resetada",
-        description: "A análise foi resetada. Reiniciando agora...",
+        description: "A análise foi resetada. Reiniciando agora..."
       });
 
       // Reiniciar análise
@@ -241,13 +236,12 @@ export default function CotacaoDetalhes() {
       toast({
         title: "Erro ao resetar",
         description: "Não foi possível resetar a análise. Tente novamente.",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setIsResetting(false);
     }
   };
-
   const handleExcluir = async () => {
     setIsDeleting(true);
     try {
@@ -278,20 +272,7 @@ export default function CotacaoDetalhes() {
       left: 'var(--sidebar-width)' as any,
       right: historicoAberto ? '24rem' : '3rem'
     }}>
-        <CotacaoActionBar 
-          status={cotacao.step_atual as any} 
-          onResponder={handleResponder} 
-          onCancelar={handleCancelar} 
-          onConfirmar={handleConfirmar} 
-          onEnviar={handleEnviar}
-          onResetarAnalise={handleResetarAnalise}
-          analiseIATravada={
-            cotacao.status_analise_ia === 'em_analise' && 
-            (cotacao.progresso_analise_percent || 0) > 0 && 
-            (cotacao.progresso_analise_percent || 0) < 100 &&
-            !isAnalyzing
-          }
-        />
+        <CotacaoActionBar status={cotacao.step_atual as any} onResponder={handleResponder} onCancelar={handleCancelar} onConfirmar={handleConfirmar} onEnviar={handleEnviar} onResetarAnalise={handleResetarAnalise} analiseIATravada={cotacao.status_analise_ia === 'em_analise' && (cotacao.progresso_analise_percent || 0) > 0 && (cotacao.progresso_analise_percent || 0) < 100 && !isAnalyzing} />
       </div>
 
       <div className="flex pt-[72px] w-full">
@@ -314,11 +295,9 @@ export default function CotacaoDetalhes() {
                   <p className="text-muted-foreground">
                     ID Externo: {cotacao.id_cotacao_externa}
                   </p>
-                  {cotacao.detalhes?.contato_comprador && (
-                    <p className="text-muted-foreground">
+                  {cotacao.detalhes?.contato_comprador && <p className="text-muted-foreground">
                       | Contato: {cotacao.detalhes.contato_comprador}
-                    </p>
-                  )}
+                    </p>}
                 </div>
               </div>
               <Button variant="destructive" size="sm" onClick={() => setDeleteDialogOpen(true)}>
@@ -424,9 +403,7 @@ export default function CotacaoDetalhes() {
                           </SelectContent>
                         </Select>
                         <p className="text-xs text-muted-foreground">
-                          {cotacao.forma_pagamento_portal || cotacao.detalhes?.forma_pagamento
-                            ? `Sugestão: ${cotacao.forma_pagamento_portal || cotacao.detalhes?.forma_pagamento}`
-                            : 'Não informada'}
+                          {cotacao.forma_pagamento_portal || cotacao.detalhes?.forma_pagamento ? `Sugestão: ${cotacao.forma_pagamento_portal || cotacao.detalhes?.forma_pagamento}` : 'Não informada'}
                         </p>
                       </div>
 
@@ -443,36 +420,23 @@ export default function CotacaoDetalhes() {
                           </SelectContent>
                         </Select>
                         <p className="text-xs text-muted-foreground">
-                          {cotacao.detalhes?.tipo_frete
-                            ? `Sugestão: ${cotacao.detalhes.tipo_frete}`
-                            : 'Não informada'}
+                          {cotacao.detalhes?.tipo_frete ? `Sugestão: ${cotacao.detalhes.tipo_frete}` : 'Não informada'}
                         </p>
                       </div>
 
                       {/* Prazo de Entrega */}
                       <div className="space-y-2">
                         <Label htmlFor="prazo-entrega">Prazo de entrega (dias)</Label>
-                        <Input 
-                          id="prazo-entrega" 
-                          type="number"
-                          placeholder={cotacao.detalhes?.prazo_entrega_dias || "2"}
-                          className="w-full"
-                        />
-                        {cotacao.detalhes?.prazo_entrega_dias && (
-                          <p className="text-xs text-muted-foreground">
+                        <Input id="prazo-entrega" type="number" placeholder={cotacao.detalhes?.prazo_entrega_dias || "2"} className="w-full" />
+                        {cotacao.detalhes?.prazo_entrega_dias && <p className="text-xs text-muted-foreground">
                             Sugestão: {cotacao.detalhes.prazo_entrega_dias} dias
-                          </p>
-                        )}
+                          </p>}
                       </div>
 
                       {/* Validade Mínima da Proposta */}
                       <div className="space-y-2">
                         <Label htmlFor="validade-proposta">Validade da proposta</Label>
-                        <Input 
-                          id="validade-proposta" 
-                          type="date"
-                          className="w-full"
-                        />
+                        <Input id="validade-proposta" type="date" className="w-full" />
                         <p className="text-xs text-muted-foreground">
                           Mínimo {cotacao.detalhes?.validade_minima_dias || '5'} dias
                         </p>
@@ -481,44 +445,24 @@ export default function CotacaoDetalhes() {
                       {/* Faturamento Mínimo */}
                       <div className="space-y-2 lg:col-span-2">
                         <Label htmlFor="faturamento-minimo">Faturamento mínimo (R$)</Label>
-                        <Input 
-                          id="faturamento-minimo" 
-                          type="number"
-                          placeholder={cotacao.detalhes?.faturamento_minimo || "500.00"}
-                          className="w-full"
-                          step="0.01"
-                        />
-                        {cotacao.detalhes?.faturamento_minimo && (
-                          <p className="text-xs text-muted-foreground">
-                            Sugestão: R$ {Number(cotacao.detalhes.faturamento_minimo).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                          </p>
-                        )}
+                        <Input id="faturamento-minimo" type="number" placeholder={cotacao.detalhes?.faturamento_minimo || "500.00"} className="w-full" step="0.01" />
+                        {cotacao.detalhes?.faturamento_minimo && <p className="text-xs text-muted-foreground">
+                            Sugestão: R$ {Number(cotacao.detalhes.faturamento_minimo).toLocaleString('pt-BR', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                          })}
+                          </p>}
                       </div>
 
                       {/* Local de Entrega */}
-                      <div className="space-y-2 lg:col-span-2">
-                        <Label htmlFor="local-entrega">Local de entrega</Label>
-                        <Input 
-                          id="local-entrega" 
-                          placeholder="Endereço de entrega"
-                          className="w-full"
-                          defaultValue={cotacao.detalhes?.local_entrega || `${cotacao.cidade_cliente}, ${cotacao.uf_cliente}`}
-                        />
-                        <p className="text-xs text-muted-foreground">
-                          Endereço padrão: {cotacao.cidade_cliente}, {cotacao.uf_cliente}
-                        </p>
-                      </div>
+                      
                     </div>
                   </TabsContent>
 
                   <TabsContent value="observacoes" className="space-y-4 pt-6">
                     <div className="space-y-2">
                       <Label htmlFor="observacoes">Observações</Label>
-                      <Textarea 
-                        id="observacoes" 
-                        placeholder="Adicione observações sobre esta cotação..."
-                        className="min-h-[150px]"
-                      />
+                      <Textarea id="observacoes" placeholder="Adicione observações sobre esta cotação..." className="min-h-[150px]" />
                     </div>
                   </TabsContent>
 
@@ -538,27 +482,17 @@ export default function CotacaoDetalhes() {
             </Card>
 
             {/* ANÁLISE DE IA */}
-            {cotacao.step_atual === 'em_analise' && (
-              <div className="space-y-4 w-full">
+            {cotacao.step_atual === 'em_analise' && <div className="space-y-4 w-full">
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <h3 className="text-lg font-semibold flex items-center gap-2">
                     <Sparkles className="h-5 w-5 text-primary" />
                     Análise com IA
                   </h3>
                   <div className="flex gap-2 flex-wrap">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setMostrarSugestoes(!mostrarSugestoes)}
-                      disabled={!progress || progress.status !== 'concluido'}
-                    >
+                    <Button variant="outline" size="sm" onClick={() => setMostrarSugestoes(!mostrarSugestoes)} disabled={!progress || progress.status !== 'concluido'}>
                       {mostrarSugestoes ? 'Ocultar Sugestões' : 'Ver Sugestões'}
                     </Button>
-                    <Button
-                      onClick={() => id && iniciarAnalise(id)}
-                      disabled={isAnalyzing}
-                      size="sm"
-                    >
+                    <Button onClick={() => id && iniciarAnalise(id)} disabled={isAnalyzing} size="sm">
                       <Sparkles className="h-4 w-4 mr-2" />
                       {isAnalyzing ? 'Analisando...' : 'Analisar com IA'}
                     </Button>
@@ -567,15 +501,12 @@ export default function CotacaoDetalhes() {
 
                 <ProgressoAnaliseIA progresso={progress} isAnalyzing={isAnalyzing} />
 
-                {iaError && (
-                  <Card className="border-destructive w-full overflow-hidden">
+                {iaError && <Card className="border-destructive w-full overflow-hidden">
                     <CardContent className="pt-6">
                       <p className="text-sm text-destructive">{iaError}</p>
                     </CardContent>
-                  </Card>
-                )}
-              </div>
-            )}
+                  </Card>}
+              </div>}
 
             {/* ITENS E INFORMAÇÕES DE ITENS */}
             <Card className="w-full overflow-hidden">
@@ -593,54 +524,41 @@ export default function CotacaoDetalhes() {
             </Card>
 
             {/* SUGESTÕES DE IA POR ITEM */}
-            {mostrarSugestoes && progress?.status === 'concluido' && progress.itens_detalhes.length > 0 && (
-              <div className="space-y-4">
+            {mostrarSugestoes && progress?.status === 'concluido' && progress.itens_detalhes.length > 0 && <div className="space-y-4">
                 <h3 className="text-lg font-semibold">Sugestões de Produtos</h3>
-                {progress.itens_detalhes.map((analise) => {
-                  const item = itens.find(i => i.id === analise.item_id);
-                  if (!item) return null;
-
-                  return (
-                    <div key={analise.item_id} className="space-y-2">
+                {progress.itens_detalhes.map(analise => {
+              const item = itens.find(i => i.id === analise.item_id);
+              if (!item) return null;
+              return <div key={analise.item_id} className="space-y-2">
                       <div className="bg-muted/50 p-3 rounded-md">
                         <p className="text-sm font-medium">Item {item.numero_item}</p>
                         <p className="text-xs text-muted-foreground">{item.descricao_produto_cliente}</p>
                       </div>
-                      <SugestoesIACard
-                        analise={analise}
-                        onSelecionarProduto={async (itemId, produtoId) => {
-                          try {
-                            const { error } = await supabase
-                              .from('edi_cotacoes_itens')
-                              .update({ 
-                                produto_selecionado_id: produtoId,
-                                status: 'vinculado_ia'
-                              })
-                              .eq('id', itemId);
-
-                            if (error) throw error;
-
-                            toast({
-                              title: "Produto selecionado",
-                              description: "Produto vinculado ao item com sucesso",
-                            });
-
-                            carregarDados();
-                          } catch (error: any) {
-                            toast({
-                              title: "Erro ao selecionar produto",
-                              description: error.message,
-                              variant: "destructive",
-                            });
-                          }
-                        }}
-                        produtoSelecionadoId={item.produto_selecionado?.id}
-                      />
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+                      <SugestoesIACard analise={analise} onSelecionarProduto={async (itemId, produtoId) => {
+                  try {
+                    const {
+                      error
+                    } = await supabase.from('edi_cotacoes_itens').update({
+                      produto_selecionado_id: produtoId,
+                      status: 'vinculado_ia'
+                    }).eq('id', itemId);
+                    if (error) throw error;
+                    toast({
+                      title: "Produto selecionado",
+                      description: "Produto vinculado ao item com sucesso"
+                    });
+                    carregarDados();
+                  } catch (error: any) {
+                    toast({
+                      title: "Erro ao selecionar produto",
+                      description: error.message,
+                      variant: "destructive"
+                    });
+                  }
+                }} produtoSelecionadoId={item.produto_selecionado?.id} />
+                    </div>;
+            })}
+              </div>}
 
             {/* INFORMAÇÕES GERAIS, OBS E TERMO */}
             <Card className="w-full overflow-hidden">
