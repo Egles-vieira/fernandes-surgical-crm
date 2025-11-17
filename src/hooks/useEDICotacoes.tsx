@@ -23,6 +23,8 @@ export interface EDICotacao {
   valor_total_respondido: number;
   dados_originais: any;
   detalhes: any;
+  forma_pagamento_portal: string | null;
+  id_forma_pagamento_portal: string | null;
   status_analise_ia: 'pendente' | 'em_analise' | 'concluida' | 'erro' | 'cancelada' | null;
   progresso_analise_percent: number | null;
   analisado_por_ia: boolean | null;
