@@ -369,10 +369,10 @@ export default function CotacaoDetalhes() {
                         })}
                           </p>
                         </div>}
-                      {cotacao.detalhes?.Contato && <div className="space-y-1">
+                      {cotacao.detalhes?.contato && <div className="space-y-1">
                           <Label className="text-xs text-muted-foreground">Contato</Label>
                           <p className="font-medium text-sm">
-                            {cotacao.detalhes.Contato}
+                            {cotacao.detalhes.contato}
                           </p>
                         </div>}
                     </div>
