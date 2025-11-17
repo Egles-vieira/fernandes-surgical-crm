@@ -331,58 +331,61 @@ export default function CotacaoDetalhes() {
             <Card className="rounded-lg mx-0 w-full overflow-hidden">
               <CardContent className="mx-0 py-[12px] my-0 px-[24px]">
                 {/* Informações do Cliente e Datas */}
-                <div className="grid grid-cols-2 gap-6 mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                   {/* Cliente */}
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2 font-semibold">
-                      <Building2 className="h-4 w-4" />
-                      Cliente
-                    </div>
-                    <div className="space-y-2 pl-6">
-                      <div>
-                        <p className="text-sm text-muted-foreground">Nome</p>
-                        <p className="font-medium">{cotacao.nome_cliente}</p>
+                  <div className="space-y-4">
+                    <h3 className="font-semibold text-base flex items-center gap-2">
+                      <Building2 className="h-5 w-5 text-primary" />
+                      Informações do Cliente
+                    </h3>
+                    <div className="space-y-3">
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">Nome</Label>
+                        <p className="font-medium text-sm">{cotacao.nome_cliente}</p>
                       </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">CNPJ</p>
-                        <p className="font-medium">{cotacao.cnpj_cliente}</p>
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">CNPJ</Label>
+                        <p className="font-medium text-sm">{cotacao.cnpj_cliente}</p>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <MapPin className="h-3 w-3 text-muted-foreground" />
-                        <p className="text-sm mx-0 px-[32px] my-0 py-[7px]">
-                          {cotacao.cidade_cliente}, {cotacao.uf_cliente}
-                        </p>
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">Localização</Label>
+                        <div className="flex items-center gap-2">
+                          <MapPin className="h-4 w-4 text-muted-foreground" />
+                          <p className="text-sm font-medium">
+                            {cotacao.cidade_cliente}, {cotacao.uf_cliente}
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </div>
 
                   {/* Datas */}
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2 font-semibold">
-                      <Calendar className="h-4 w-4" />
-                      Datas
-                    </div>
-                    <div className="space-y-2 pl-6">
-                      <div>
-                        <p className="text-sm text-muted-foreground">Abertura</p>
-                        <p className="font-medium">
-                          {format(new Date(cotacao.data_abertura), "dd/MM/yyyy HH:mm", {
+                  <div className="space-y-4">
+                    <h3 className="font-semibold text-base flex items-center gap-2">
+                      <Calendar className="h-5 w-5 text-primary" />
+                      Cronograma
+                    </h3>
+                    <div className="space-y-3">
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">Data de Abertura</Label>
+                        <p className="font-medium text-sm">
+                          {format(new Date(cotacao.data_abertura), "dd/MM/yyyy 'às' HH:mm", {
                           locale: ptBR
                         })}
                         </p>
                       </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">Vencimento</p>
-                        <p className="font-medium text-destructive">
-                          {format(new Date(cotacao.data_vencimento_atual), "dd/MM/yyyy HH:mm", {
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">Data de Vencimento</Label>
+                        <p className="font-medium text-sm text-destructive">
+                          {format(new Date(cotacao.data_vencimento_atual), "dd/MM/yyyy 'às' HH:mm", {
                           locale: ptBR
                         })}
                         </p>
                       </div>
-                      {cotacao.resgatada && cotacao.resgatada_em && <div>
-                          <p className="text-sm text-muted-foreground">Informações Gerais</p>
-                          <p className="font-medium">
-                            {format(new Date(cotacao.resgatada_em), "dd/MM/yyyy HH:mm", {
+                      {cotacao.resgatada && cotacao.resgatada_em && <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Data de Resgate</Label>
+                          <p className="font-medium text-sm">
+                            {format(new Date(cotacao.resgatada_em), "dd/MM/yyyy 'às' HH:mm", {
                           locale: ptBR
                         })}
                           </p>
