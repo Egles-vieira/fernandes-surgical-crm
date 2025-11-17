@@ -1,4 +1,3 @@
-import { Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -6,6 +5,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import aiRobotIcon from "@/assets/ai-robot-assistant.png";
 
 interface RAGAssistantButtonProps {
   onClick: () => void;
@@ -30,7 +30,11 @@ export const RAGAssistantButton = ({
             aria-label="Abrir Assistente Inteligente"
           >
             <div className="absolute inset-0 bg-gradient-to-br from-primary/40 to-transparent rounded-full blur-xl group-hover:blur-2xl transition-all" />
-            <Sparkles className="h-7 w-7 relative z-10 group-hover:rotate-12 transition-transform" />
+            <img 
+              src={aiRobotIcon} 
+              alt="AI Assistant" 
+              className="h-10 w-10 relative z-10 group-hover:scale-110 transition-transform object-contain"
+            />
             {unreadCount && unreadCount > 0 && (
               <span className="absolute -top-1 -right-1 h-6 w-6 rounded-full bg-gradient-to-br from-destructive to-destructive/80 text-destructive-foreground text-xs flex items-center justify-center font-bold shadow-lg animate-bounce">
                 {unreadCount > 9 ? "9+" : unreadCount}
