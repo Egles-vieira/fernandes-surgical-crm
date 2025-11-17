@@ -671,11 +671,11 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
         <div className="border rounded-lg overflow-hidden">
           <div className="overflow-x-auto max-h-[600px]">
             <Table className="relative border-separate border-spacing-0">
-              <TableHeader className="sticky top-0 z-10 bg-background">
+              <TableHeader className="sticky top-0 z-50 bg-background">
                 <TableRow>
-                  {visibleColumns.expand && <TableHead className="sticky left-0 z-10 bg-background w-[40px] p-1"></TableHead>}
+                  {visibleColumns.expand && <TableHead className="sticky left-0 z-40 bg-background w-[40px] p-1"></TableHead>}
                   {visibleColumns.select && (
-                    <TableHead className="sticky left-[40px] z-10 bg-background w-[40px] p-1">
+                    <TableHead className="sticky left-[40px] z-40 bg-background w-[40px] p-1">
                       <Checkbox
                         checked={selectedItems.size === paginatedItems.length && paginatedItems.length > 0}
                         onCheckedChange={handleSelectAll}
@@ -683,7 +683,7 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
                     </TableHead>
                   )}
                   {visibleColumns.numero && (
-                    <TableHead className="sticky left-[80px] z-10 bg-background w-[70px] cursor-pointer p-1" onClick={() => handleSort("numero_item")}>
+                    <TableHead className="sticky left-[80px] z-40 bg-background w-[70px] cursor-pointer p-1" onClick={() => handleSort("numero_item")}>
                       <div className="flex items-center gap-1 text-xs font-semibold">
                         #
                         {sortColumn === "numero_item" && <ArrowUpDown className="h-3 w-3" />}
@@ -691,7 +691,7 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
                     </TableHead>
                   )}
                   {visibleColumns.descricao && (
-                    <TableHead className="sticky left-[150px] z-10 bg-background min-w-[250px] max-w-[400px] cursor-pointer p-1" onClick={() => handleSort("descricao_produto_cliente")}>
+                    <TableHead className="sticky left-[150px] z-40 bg-background min-w-[250px] max-w-[400px] cursor-pointer p-1" onClick={() => handleSort("descricao_produto_cliente")}>
                       <div className="flex items-center gap-1 text-xs font-semibold">
                         Descrição
                         {sortColumn === "descricao_produto_cliente" && <ArrowUpDown className="h-3 w-3" />}
@@ -763,7 +763,7 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
                       <>
                         {/* Linha Principal */}
                         <TableRow key={item.id} className="group hover:bg-muted/50">
-                          {visibleColumns.expand && <TableCell className={`sticky left-0 z-10 bg-background p-1 ${densityClasses[density]}`}>
+                          {visibleColumns.expand && <TableCell className={`sticky left-0 z-30 bg-background p-1 ${densityClasses[density]}`}>
                             <Button
                               variant="ghost"
                               size="sm"
@@ -777,7 +777,7 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
                               )}
                             </Button>
                           </TableCell>}
-                          {visibleColumns.select && <TableCell className={`sticky left-[40px] z-10 bg-background p-1 ${densityClasses[density]}`}>
+                          {visibleColumns.select && <TableCell className={`sticky left-[40px] z-30 bg-background p-1 ${densityClasses[density]}`}>
                             <Checkbox
                               checked={isSelected}
                               onCheckedChange={(checked) => {
@@ -791,8 +791,8 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
                               }}
                             />
                           </TableCell>}
-                          {visibleColumns.numero && <TableCell className={`sticky left-[80px] z-10 bg-background font-medium text-sm p-1 ${densityClasses[density]}`}>{item.numero_item}</TableCell>}
-                          {visibleColumns.descricao && <TableCell className={`sticky left-[150px] z-10 bg-background text-sm p-1 ${densityClasses[density]}`}>
+                          {visibleColumns.numero && <TableCell className={`sticky left-[80px] z-30 bg-background font-medium text-sm p-1 ${densityClasses[density]}`}>{item.numero_item}</TableCell>}
+                          {visibleColumns.descricao && <TableCell className={`sticky left-[150px] z-30 bg-background text-sm p-1 ${densityClasses[density]}`}>
                             <div className="line-clamp-2 max-w-[400px]">{item.descricao_produto_cliente}</div>
                           </TableCell>}
                           {visibleColumns.codigo && <TableCell className={`text-muted-foreground text-xs p-2 ${densityClasses[density]}`}>
@@ -1019,10 +1019,10 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
                             className="bg-muted/20 hover:bg-muted/40 cursor-pointer"
                             onClick={() => handleSelectPreviousMapping(item.id, mapping)}
                           >
-                            {visibleColumns.expand && <TableCell className="sticky left-0 z-10 bg-muted/20 p-1"></TableCell>}
-                            {visibleColumns.select && <TableCell className="sticky left-[40px] z-10 bg-muted/20 p-1"></TableCell>}
-                            {visibleColumns.numero && <TableCell className="sticky left-[80px] z-10 bg-muted/20 p-1"></TableCell>}
-                            {visibleColumns.descricao && <TableCell className="sticky left-[150px] z-10 bg-muted/20 pl-10 p-1">
+                            {visibleColumns.expand && <TableCell className="sticky left-0 z-30 bg-muted/20 p-1"></TableCell>}
+                            {visibleColumns.select && <TableCell className="sticky left-[40px] z-30 bg-muted/20 p-1"></TableCell>}
+                            {visibleColumns.numero && <TableCell className="sticky left-[80px] z-30 bg-muted/20 p-1"></TableCell>}
+                            {visibleColumns.descricao && <TableCell className="sticky left-[150px] z-30 bg-muted/20 pl-10 p-1">
                               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                                 <Package className="h-3 w-3" />
                                 <span>Mapeamento anterior</span>
@@ -1068,10 +1068,10 @@ export function ItemCotacaoTable({ itens, cotacao, onUpdate }: ItemCotacaoTableP
 
                         {isExpanded && mappings.length === 0 && (
                           <TableRow className="bg-muted/20">
-                            {visibleColumns.expand && <TableCell className="sticky left-0 z-10 bg-muted/20 p-1"></TableCell>}
-                            {visibleColumns.select && <TableCell className="sticky left-[40px] z-10 bg-muted/20 p-1"></TableCell>}
-                            {visibleColumns.numero && <TableCell className="sticky left-[80px] z-10 bg-muted/20 p-1"></TableCell>}
-                            {visibleColumns.descricao && <TableCell className="sticky left-[150px] z-10 bg-muted/20 pl-10 p-1">
+                            {visibleColumns.expand && <TableCell className="sticky left-0 z-30 bg-muted/20 p-1"></TableCell>}
+                            {visibleColumns.select && <TableCell className="sticky left-[40px] z-30 bg-muted/20 p-1"></TableCell>}
+                            {visibleColumns.numero && <TableCell className="sticky left-[80px] z-30 bg-muted/20 p-1"></TableCell>}
+                            {visibleColumns.descricao && <TableCell className="sticky left-[150px] z-30 bg-muted/20 pl-10 p-1">
                               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                                 <AlertCircle className="h-3 w-3" />
                                 <span>Nenhum mapeamento anterior</span>
