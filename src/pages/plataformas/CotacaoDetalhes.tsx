@@ -308,7 +308,7 @@ export default function CotacaoDetalhes() {
 
             {/* CAPA - Informações principais e Condições Comerciais */}
             <Card className="rounded-lg mx-0 w-full overflow-hidden">
-              <CardContent className="mx-0 py-[12px] my-0 px-[24px]">
+              <CardContent className="mx-0 my-0 px-[24px] py-[25px]">
                 {/* Informações do Cliente e Datas */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                   {/* Cliente */}
