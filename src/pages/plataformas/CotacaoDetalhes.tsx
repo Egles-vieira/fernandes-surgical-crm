@@ -627,25 +627,33 @@ export default function CotacaoDetalhes() {
         </div>
 
         {/* Painel Lateral de Histórico */}
-        <div className={`fixed right-0 top-16 h-[calc(100vh-4rem)] bg-card border-l shadow-lg transition-all duration-500 ease-in-out z-30 ${historicoAberto ? 'w-96' : 'w-12'} overflow-hidden`}>
-          {/* Botão de Toggle */}
-          <Button variant="ghost" size="icon" className={`absolute left-2 top-4 z-10 transition-all duration-300 ${historicoAberto ? '' : 'hover:scale-110'}`} onClick={() => setHistoricoAberto(!historicoAberto)}>
-            {historicoAberto ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-          </Button>
+        <div className={`fixed right-0 top-16 h-[calc(100vh-4rem)] bg-background transition-all duration-300 ease-in-out z-30 ${historicoAberto ? 'w-80' : 'w-0'} overflow-hidden`}>
+          {/* Barra lateral cinza */}
+          <div className="absolute left-0 top-0 bottom-0 w-8 bg-muted/30 border-l border-border/50 flex items-start justify-center pt-6">
+            {/* Botão de Toggle */}
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-8 w-8 rounded-full bg-background hover:bg-muted shadow-sm" 
+              onClick={() => setHistoricoAberto(!historicoAberto)}
+            >
+              {historicoAberto ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+            </Button>
+          </div>
 
           {/* Conteúdo do Histórico */}
-          {historicoAberto && <div className="p-6 pt-16 h-full overflow-y-auto animate-fade-in">
+          {historicoAberto && <div className="pl-10 pr-6 pt-6 h-full overflow-y-auto animate-fade-in">
               <div className="flex items-center gap-2 mb-6">
-                <Clock className="h-5 w-5" />
-                <h2 className="text-xl font-bold">Histórico</h2>
+                <Clock className="h-5 w-5 text-muted-foreground" />
+                <h2 className="text-lg font-semibold">Histórico</h2>
               </div>
               
-              <Separator className="mb-4" />
+              <Separator className="mb-6" />
               
               <div className="space-y-4">
                 <div className="text-center py-12 animate-scale-in">
-                  <Clock className="mx-auto h-12 w-12 text-muted-foreground mb-4 opacity-50" />
-                  <p className="text-muted-foreground">
+                  <Clock className="mx-auto h-12 w-12 text-muted-foreground mb-4 opacity-30" />
+                  <p className="text-sm text-muted-foreground">
                     Histórico de atividades será exibido aqui
                   </p>
                 </div>
