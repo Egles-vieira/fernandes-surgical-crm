@@ -421,9 +421,9 @@ export default function CotacaoDetalhes() {
                           </SelectContent>
                         </Select>
                         <p className="text-xs text-muted-foreground">
-                          {cotacao.dados_originais?.Forma_Pagamento 
-                            ? `Sugestão do comprador: ${cotacao.dados_originais.Forma_Pagamento}`
-                            : 'Sugestão do comprador: 30 ddi'}
+                          {cotacao.forma_pagamento_portal || cotacao.detalhes?.forma_pagamento
+                            ? `Sugestão do comprador: ${cotacao.forma_pagamento_portal || cotacao.detalhes?.forma_pagamento}`
+                            : 'Sugestão do comprador não informada'}
                         </p>
                       </div>
 
@@ -440,9 +440,9 @@ export default function CotacaoDetalhes() {
                           </SelectContent>
                         </Select>
                         <p className="text-xs text-muted-foreground">
-                          {cotacao.dados_originais?.Tipo_Frete 
-                            ? `Sugestão do comprador: ${cotacao.dados_originais.Tipo_Frete}`
-                            : 'Sugestão do comprador: CIF'}
+                          {cotacao.detalhes?.tipo_frete
+                            ? `Sugestão do comprador: ${cotacao.detalhes.tipo_frete}`
+                            : 'Sugestão do comprador não informada'}
                         </p>
                       </div>
 
@@ -455,7 +455,7 @@ export default function CotacaoDetalhes() {
                           className="w-full"
                         />
                         <p className="text-xs text-muted-foreground">
-                          Mínimo de {cotacao.dados_originais?.Validade_Minima_Dias || '5'} dias da data de vencimento da cotação
+                          Mínimo de {cotacao.detalhes?.validade_minima_dias || '5'} dias da data de vencimento da cotação
                         </p>
                       </div>
 
@@ -466,16 +466,16 @@ export default function CotacaoDetalhes() {
                           <Input 
                             id="prazo-entrega" 
                             type="number"
-                            placeholder={cotacao.dados_originais?.Prazo_Entrega_Dias || "2"}
+                            placeholder={cotacao.detalhes?.prazo_entrega_dias || "2"}
                             className="flex-1"
                           />
                           <span className="text-sm text-muted-foreground whitespace-nowrap">
                             Dias após a confirmação
                           </span>
                         </div>
-                        {cotacao.dados_originais?.Prazo_Entrega_Dias && (
+                        {cotacao.detalhes?.prazo_entrega_dias && (
                           <p className="text-xs text-muted-foreground">
-                            Sugestão do comprador: {cotacao.dados_originais.Prazo_Entrega_Dias} dias
+                            Sugestão do comprador: {cotacao.detalhes.prazo_entrega_dias} dias
                           </p>
                         )}
                       </div>
@@ -488,14 +488,14 @@ export default function CotacaoDetalhes() {
                           <Input 
                             id="faturamento-minimo" 
                             type="number"
-                            placeholder={cotacao.dados_originais?.Faturamento_Minimo || "500.00"}
+                            placeholder={cotacao.detalhes?.faturamento_minimo || "500.00"}
                             className="flex-1"
                             step="0.01"
                           />
                         </div>
-                        {cotacao.dados_originais?.Faturamento_Minimo && (
+                        {cotacao.detalhes?.faturamento_minimo && (
                           <p className="text-xs text-muted-foreground">
-                            Sugestão do comprador: R$ {Number(cotacao.dados_originais.Faturamento_Minimo).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            Sugestão do comprador: R$ {Number(cotacao.detalhes.faturamento_minimo).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </p>
                         )}
                       </div>
