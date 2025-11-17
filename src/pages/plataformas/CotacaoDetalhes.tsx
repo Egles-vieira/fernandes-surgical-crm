@@ -421,7 +421,9 @@ export default function CotacaoDetalhes() {
                           </SelectContent>
                         </Select>
                         <p className="text-xs text-muted-foreground">
-                          Sugestão do comprador: 30 ddi
+                          {cotacao.dados_originais?.Forma_Pagamento 
+                            ? `Sugestão do comprador: ${cotacao.dados_originais.Forma_Pagamento}`
+                            : 'Sugestão do comprador: 30 ddi'}
                         </p>
                       </div>
 
@@ -438,7 +440,9 @@ export default function CotacaoDetalhes() {
                           </SelectContent>
                         </Select>
                         <p className="text-xs text-muted-foreground">
-                          Sugestão do comprador: CIF
+                          {cotacao.dados_originais?.Tipo_Frete 
+                            ? `Sugestão do comprador: ${cotacao.dados_originais.Tipo_Frete}`
+                            : 'Sugestão do comprador: CIF'}
                         </p>
                       </div>
 
@@ -451,7 +455,7 @@ export default function CotacaoDetalhes() {
                           className="w-full"
                         />
                         <p className="text-xs text-muted-foreground">
-                          Mínimo de 5 dias da data de vencimento da cotação
+                          Mínimo de {cotacao.dados_originais?.Validade_Minima_Dias || '5'} dias da data de vencimento da cotação
                         </p>
                       </div>
 
@@ -462,13 +466,18 @@ export default function CotacaoDetalhes() {
                           <Input 
                             id="prazo-entrega" 
                             type="number"
-                            placeholder="2"
+                            placeholder={cotacao.dados_originais?.Prazo_Entrega_Dias || "2"}
                             className="flex-1"
                           />
                           <span className="text-sm text-muted-foreground whitespace-nowrap">
                             Dias após a confirmação
                           </span>
                         </div>
+                        {cotacao.dados_originais?.Prazo_Entrega_Dias && (
+                          <p className="text-xs text-muted-foreground">
+                            Sugestão do comprador: {cotacao.dados_originais.Prazo_Entrega_Dias} dias
+                          </p>
+                        )}
                       </div>
 
                       {/* Faturamento Mínimo */}
@@ -479,11 +488,16 @@ export default function CotacaoDetalhes() {
                           <Input 
                             id="faturamento-minimo" 
                             type="number"
-                            placeholder="500,00"
+                            placeholder={cotacao.dados_originais?.Faturamento_Minimo || "500.00"}
                             className="flex-1"
                             step="0.01"
                           />
                         </div>
+                        {cotacao.dados_originais?.Faturamento_Minimo && (
+                          <p className="text-xs text-muted-foreground">
+                            Sugestão do comprador: R$ {Number(cotacao.dados_originais.Faturamento_Minimo).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </p>
+                        )}
                       </div>
                     </div>
                   </TabsContent>
