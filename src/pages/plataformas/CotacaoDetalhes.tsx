@@ -327,11 +327,11 @@ export default function CotacaoDetalhes() {
               </Button>
             </div>
 
-            {/* CAPA - Informações principais */}
+            {/* CAPA - Informações principais e Condições Comerciais */}
             <Card className="rounded-lg mx-0 w-full overflow-hidden">
-              
               <CardContent className="mx-0 py-[12px] my-0 px-[24px]">
-                <div className="grid grid-cols-2 gap-6">
+                {/* Informações do Cliente e Datas */}
+                <div className="grid grid-cols-2 gap-6 mb-6">
                   {/* Cliente */}
                   <div className="space-y-3">
                     <div className="flex items-center gap-2 font-semibold">
@@ -390,15 +390,13 @@ export default function CotacaoDetalhes() {
                     </div>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
 
-            {/* CONDIÇÕES COMERCIAIS */}
-            <Card className="w-full overflow-hidden">
-              <CardHeader>
-                <CardTitle>Suas condições comerciais</CardTitle>
-              </CardHeader>
-              <CardContent>
+                <Separator className="my-6" />
+
+                {/* Condições Comerciais */}
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-lg">Suas condições comerciais</h3>
+                
                 <Tabs defaultValue="condicoes" className="w-full">
                   <TabsList className="grid w-full grid-cols-3">
                     <TabsTrigger value="condicoes">Condições Comerciais</TabsTrigger>
@@ -512,6 +510,7 @@ export default function CotacaoDetalhes() {
                     </div>
                   </TabsContent>
                 </Tabs>
+                </div>
               </CardContent>
             </Card>
 
