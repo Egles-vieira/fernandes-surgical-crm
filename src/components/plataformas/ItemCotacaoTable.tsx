@@ -497,11 +497,11 @@ export function ItemCotacaoTable({
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between p-4 bg-muted/30 rounded-lg border">
           <div className="flex flex-1 gap-2 w-full sm:w-auto">
             <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground px-[7px]" />
               <Input placeholder="Buscar por descrição ou código..." value={searchTerm} onChange={e => {
               setSearchTerm(e.target.value);
               setCurrentPage(1);
-            }} className="pl-8" />
+            }} className="pl-8 mx-[3px] px-[14px]" />
             </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
