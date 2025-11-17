@@ -4,6 +4,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -388,8 +393,127 @@ export default function CotacaoDetalhes() {
               </CardContent>
             </Card>
 
-            {/* CABEÇALHO - Plataforma */}
-            
+            {/* CONDIÇÕES COMERCIAIS */}
+            <Card className="w-full overflow-hidden">
+              <CardHeader>
+                <CardTitle>Suas condições comerciais</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Tabs defaultValue="condicoes" className="w-full">
+                  <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="condicoes">Condições Comerciais</TabsTrigger>
+                    <TabsTrigger value="observacoes">Observações</TabsTrigger>
+                    <TabsTrigger value="anexos">Anexos</TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="condicoes" className="space-y-6 pt-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* Forma de Pagamento */}
+                      <div className="space-y-2">
+                        <Label htmlFor="forma-pagamento">Forma de pagamento</Label>
+                        <Select>
+                          <SelectTrigger id="forma-pagamento">
+                            <SelectValue placeholder="Selecione a forma de pagamento" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="30ddi">30 ddi</SelectItem>
+                            <SelectItem value="60ddi">60 ddi</SelectItem>
+                            <SelectItem value="90ddi">90 ddi</SelectItem>
+                            <SelectItem value="avista">À vista</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <p className="text-xs text-muted-foreground">
+                          Sugestão do comprador: 30 ddi
+                        </p>
+                      </div>
+
+                      {/* Tipo de Frete */}
+                      <div className="space-y-2">
+                        <Label htmlFor="tipo-frete">Tipo de frete</Label>
+                        <Select>
+                          <SelectTrigger id="tipo-frete">
+                            <SelectValue placeholder="Selecione o tipo de frete" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="cif">CIF - Preço Inclui Frete</SelectItem>
+                            <SelectItem value="fob">FOB - Frete por conta do comprador</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <p className="text-xs text-muted-foreground">
+                          Sugestão do comprador: CIF
+                        </p>
+                      </div>
+
+                      {/* Validade Mínima da Proposta */}
+                      <div className="space-y-2">
+                        <Label htmlFor="validade-proposta">Validade mínima da proposta</Label>
+                        <Input 
+                          id="validade-proposta" 
+                          type="date"
+                          className="w-full"
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Mínimo de 5 dias da data de vencimento da cotação
+                        </p>
+                      </div>
+
+                      {/* Prazo de Entrega */}
+                      <div className="space-y-2">
+                        <Label htmlFor="prazo-entrega">Prazo de entrega</Label>
+                        <div className="flex gap-2 items-center">
+                          <Input 
+                            id="prazo-entrega" 
+                            type="number"
+                            placeholder="2"
+                            className="flex-1"
+                          />
+                          <span className="text-sm text-muted-foreground whitespace-nowrap">
+                            Dias após a confirmação
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Faturamento Mínimo */}
+                      <div className="space-y-2 md:col-span-2">
+                        <Label htmlFor="faturamento-minimo">Faturamento mínimo</Label>
+                        <div className="flex gap-2 items-center">
+                          <span className="text-sm text-muted-foreground">R$</span>
+                          <Input 
+                            id="faturamento-minimo" 
+                            type="number"
+                            placeholder="500,00"
+                            className="flex-1"
+                            step="0.01"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="observacoes" className="space-y-4 pt-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="observacoes">Observações</Label>
+                      <Textarea 
+                        id="observacoes" 
+                        placeholder="Adicione observações sobre esta cotação..."
+                        className="min-h-[150px]"
+                      />
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="anexos" className="space-y-4 pt-6">
+                    <div className="border-2 border-dashed rounded-lg p-8 text-center">
+                      <p className="text-sm text-muted-foreground">
+                        Nenhum anexo adicionado ainda
+                      </p>
+                      <Button variant="outline" size="sm" className="mt-4">
+                        Adicionar Anexo
+                      </Button>
+                    </div>
+                  </TabsContent>
+                </Tabs>
+              </CardContent>
+            </Card>
 
             {/* ANÁLISE DE IA */}
             {cotacao.step_atual === 'em_analise' && (
