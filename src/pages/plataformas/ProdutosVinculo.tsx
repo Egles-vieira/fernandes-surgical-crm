@@ -6,57 +6,37 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useEDIProdutosVinculo } from "@/hooks/useEDIProdutosVinculo";
-
 export default function ProdutosVinculo() {
   const [busca, setBusca] = useState("");
   const [filtroTipo, setFiltroTipo] = useState<"todos" | "ia" | "manual">("todos");
-
-  const { vinculos, isLoading, aprovarVinculo, rejeitarVinculo } =
-    useEDIProdutosVinculo({
-      aguardando_aprovacao: filtroTipo === "ia",
-    });
-
-  const vinculosFiltrados = vinculos?.filter((v) => {
-    const matchBusca =
-      !busca ||
-      v.descricao_cliente.toLowerCase().includes(busca.toLowerCase()) ||
-      v.produtos?.nome.toLowerCase().includes(busca.toLowerCase());
-
-    const matchTipo =
-      filtroTipo === "todos" ||
-      (filtroTipo === "ia" && v.sugerido_por_ia) ||
-      (filtroTipo === "manual" && !v.sugerido_por_ia);
-
+  const {
+    vinculos,
+    isLoading,
+    aprovarVinculo,
+    rejeitarVinculo
+  } = useEDIProdutosVinculo({
+    aguardando_aprovacao: filtroTipo === "ia"
+  });
+  const vinculosFiltrados = vinculos?.filter(v => {
+    const matchBusca = !busca || v.descricao_cliente.toLowerCase().includes(busca.toLowerCase()) || v.produtos?.nome.toLowerCase().includes(busca.toLowerCase());
+    const matchTipo = filtroTipo === "todos" || filtroTipo === "ia" && v.sugerido_por_ia || filtroTipo === "manual" && !v.sugerido_por_ia;
     return matchBusca && matchTipo;
   });
-
-  const aguardandoAprovacao = vinculos?.filter(
-    (v) => v.sugerido_por_ia && !v.aprovado_em && !v.ativo
-  ).length || 0;
-
+  const aguardandoAprovacao = vinculos?.filter(v => v.sugerido_por_ia && !v.aprovado_em && !v.ativo).length || 0;
   if (isLoading) {
-    return (
-      <div className="p-8">
+    return <div className="p-8">
         <div className="animate-pulse space-y-4">
           <div className="h-8 bg-muted rounded w-1/4"></div>
           <div className="h-64 bg-muted rounded"></div>
         </div>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="p-8 space-y-6">
+  return <div className="p-8 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
-            <Link className="h-8 w-8" />
-            DE-PARA de Produtos
-          </h1>
-          <p className="text-muted-foreground">
-            Vínculo inteligente entre produtos dos clientes e seu catálogo
-          </p>
+          
+          
         </div>
       </div>
 
@@ -71,7 +51,7 @@ export default function ProdutosVinculo() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {vinculos?.filter((v) => v.ativo).length || 0}
+              {vinculos?.filter(v => v.ativo).length || 0}
             </div>
             <p className="text-xs text-muted-foreground">
               Aprovados e funcionando
@@ -114,13 +94,8 @@ export default function ProdutosVinculo() {
       <Card>
         <CardContent className="pt-6">
           <div className="flex gap-4">
-            <Input
-              placeholder="Buscar por descrição do cliente ou produto..."
-              value={busca}
-              onChange={(e) => setBusca(e.target.value)}
-              className="flex-1"
-            />
-            <Tabs value={filtroTipo} onValueChange={(v) => setFiltroTipo(v as any)}>
+            <Input placeholder="Buscar por descrição do cliente ou produto..." value={busca} onChange={e => setBusca(e.target.value)} className="flex-1" />
+            <Tabs value={filtroTipo} onValueChange={v => setFiltroTipo(v as any)}>
               <TabsList>
                 <TabsTrigger value="todos">Todos</TabsTrigger>
                 <TabsTrigger value="ia">
@@ -135,39 +110,23 @@ export default function ProdutosVinculo() {
 
       {/* Lista de Vínculos */}
       <div className="space-y-4">
-        {vinculosFiltrados && vinculosFiltrados.length > 0 ? (
-          vinculosFiltrados.map((vinculo) => (
-            <Card key={vinculo.id} className="hover:shadow-md transition-shadow">
+        {vinculosFiltrados && vinculosFiltrados.length > 0 ? vinculosFiltrados.map(vinculo => <Card key={vinculo.id} className="hover:shadow-md transition-shadow">
               <CardContent className="p-6">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 space-y-3">
                     {/* Badges */}
                     <div className="flex items-center gap-2">
-                      {vinculo.sugerido_por_ia && (
-                        <Badge variant="secondary" className="gap-1">
+                      {vinculo.sugerido_por_ia && <Badge variant="secondary" className="gap-1">
                           <Sparkles className="h-3 w-3" />
                           Sugestão IA
-                        </Badge>
-                      )}
-                      {vinculo.ativo && (
-                        <Badge variant="default" className="gap-1">
+                        </Badge>}
+                      {vinculo.ativo && <Badge variant="default" className="gap-1">
                           <Check className="h-3 w-3" />
                           Ativo
-                        </Badge>
-                      )}
-                      {vinculo.score_confianca && (
-                        <Badge
-                          variant={
-                            vinculo.score_confianca >= 80
-                              ? "default"
-                              : vinculo.score_confianca >= 60
-                              ? "secondary"
-                              : "outline"
-                          }
-                        >
+                        </Badge>}
+                      {vinculo.score_confianca && <Badge variant={vinculo.score_confianca >= 80 ? "default" : vinculo.score_confianca >= 60 ? "secondary" : "outline"}>
                           Score: {vinculo.score_confianca}%
-                        </Badge>
-                      )}
+                        </Badge>}
                     </div>
 
                     {/* Produto do Cliente */}
@@ -188,8 +147,7 @@ export default function ProdutosVinculo() {
                     </div>
 
                     {/* Nosso Produto */}
-                    {vinculo.produtos && (
-                      <div>
+                    {vinculo.produtos && <div>
                         <p className="text-xs text-muted-foreground">Nosso Produto:</p>
                         <p className="font-medium">{vinculo.produtos.nome}</p>
                         <div className="flex gap-4 text-xs text-muted-foreground mt-1">
@@ -197,59 +155,38 @@ export default function ProdutosVinculo() {
                           <span>
                             Preço: R${" "}
                             {vinculo.produtos.preco_venda.toLocaleString("pt-BR", {
-                              minimumFractionDigits: 2,
-                            })}
+                      minimumFractionDigits: 2
+                    })}
                           </span>
                           <span>Estoque: {vinculo.produtos.quantidade_em_maos}</span>
                         </div>
-                      </div>
-                    )}
+                      </div>}
                   </div>
 
                   {/* Ações */}
                   <div className="flex flex-col gap-2">
-                    {vinculo.sugerido_por_ia && !vinculo.aprovado_em && !vinculo.ativo && (
-                      <>
-                        <Button
-                          size="sm"
-                          onClick={() => aprovarVinculo.mutate(vinculo.id)}
-                          disabled={aprovarVinculo.isPending}
-                          className="gap-1"
-                        >
+                    {vinculo.sugerido_por_ia && !vinculo.aprovado_em && !vinculo.ativo && <>
+                        <Button size="sm" onClick={() => aprovarVinculo.mutate(vinculo.id)} disabled={aprovarVinculo.isPending} className="gap-1">
                           <Check className="h-4 w-4" />
                           Aprovar
                         </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => rejeitarVinculo.mutate(vinculo.id)}
-                          disabled={rejeitarVinculo.isPending}
-                          className="gap-1"
-                        >
+                        <Button size="sm" variant="outline" onClick={() => rejeitarVinculo.mutate(vinculo.id)} disabled={rejeitarVinculo.isPending} className="gap-1">
                           <X className="h-4 w-4" />
                           Rejeitar
                         </Button>
-                      </>
-                    )}
-                    {vinculo.ativo && (
-                      <Button size="sm" variant="outline">
+                      </>}
+                    {vinculo.ativo && <Button size="sm" variant="outline">
                         Editar
-                      </Button>
-                    )}
+                      </Button>}
                   </div>
                 </div>
               </CardContent>
-            </Card>
-          ))
-        ) : (
-          <Card className="p-12 text-center">
+            </Card>) : <Card className="p-12 text-center">
             <Package className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
             <p className="text-muted-foreground">
               Nenhum vínculo encontrado
             </p>
-          </Card>
-        )}
+          </Card>}
       </div>
-    </div>
-  );
+    </div>;
 }
