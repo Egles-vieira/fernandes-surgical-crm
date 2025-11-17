@@ -2,38 +2,26 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
-import { 
-  Brain, 
-  TrendingUp, 
-  Clock, 
-  CheckCircle2, 
-  AlertCircle,
-  Zap,
-  Package,
-  Target,
-  Activity
-} from "lucide-react";
+import { Brain, TrendingUp, Clock, CheckCircle2, AlertCircle, Zap, Package, Target, Activity } from "lucide-react";
 import { useDashboardIA } from "@/hooks/useDashboardIA";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { MLQuickStats } from "@/components/plataformas/MLQuickStats";
-
 export default function DashboardAnaliseIA() {
-  const { metricas, analisePorDia, produtosMaisSugeridos, isLoading } = useDashboardIA();
-
+  const {
+    metricas,
+    analisePorDia,
+    produtosMaisSugeridos,
+    isLoading
+  } = useDashboardIA();
   if (isLoading) {
-    return (
-      <div className="p-8 space-y-6">
+    return <div className="p-8 space-y-6">
         <Skeleton className="h-10 w-64" />
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map((i) => (
-            <Skeleton key={i} className="h-32" />
-          ))}
+          {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-32" />)}
         </div>
-      </div>
-    );
+      </div>;
   }
-
   const formatTempo = (segundos: number) => {
     if (!segundos) return "N/A";
     if (segundos < 60) return `${Math.round(segundos)}s`;
@@ -41,18 +29,11 @@ export default function DashboardAnaliseIA() {
     const segs = Math.round(segundos % 60);
     return `${minutos}m ${segs}s`;
   };
-
-  return (
-    <div className="p-8 space-y-6">
+  return <div className="p-8 space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold flex items-center gap-3">
-          <Brain className="h-8 w-8 text-primary" />
-          Dashboard de Análise IA
-        </h1>
-        <p className="text-muted-foreground mt-2">
-          Acompanhe o desempenho e precisão da IA na análise de cotações
-        </p>
+        
+        
       </div>
 
       {/* Quick Stats de ML */}
@@ -211,12 +192,7 @@ export default function DashboardAnaliseIA() {
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {produtosMaisSugeridos && produtosMaisSugeridos.length > 0 ? (
-              produtosMaisSugeridos.map((produto, idx) => (
-                <div
-                  key={produto.id}
-                  className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 transition-colors"
-                >
+            {produtosMaisSugeridos && produtosMaisSugeridos.length > 0 ? produtosMaisSugeridos.map((produto, idx) => <div key={produto.id} className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 transition-colors">
                   <div className="flex items-center gap-3 flex-1 min-w-0">
                     <Badge variant="outline" className="flex-shrink-0">
                       #{idx + 1}
@@ -239,29 +215,16 @@ export default function DashboardAnaliseIA() {
                       </p>
                       <p className="text-xs text-muted-foreground">score médio</p>
                     </div>
-                    <Badge
-                      variant={
-                        produto.taxa_aceitacao_percent >= 70
-                          ? "default"
-                          : produto.taxa_aceitacao_percent >= 40
-                          ? "secondary"
-                          : "outline"
-                      }
-                    >
+                    <Badge variant={produto.taxa_aceitacao_percent >= 70 ? "default" : produto.taxa_aceitacao_percent >= 40 ? "secondary" : "outline"}>
                       {produto.taxa_aceitacao_percent?.toFixed(0) || 0}% aceito
                     </Badge>
                   </div>
-                </div>
-              ))
-            ) : (
-              <div className="text-center py-8 text-muted-foreground">
+                </div>) : <div className="text-center py-8 text-muted-foreground">
                 <Package className="h-12 w-12 mx-auto mb-2 opacity-20" />
                 <p>Nenhum produto sugerido ainda</p>
-              </div>
-            )}
+              </div>}
           </div>
         </CardContent>
       </Card>
-    </div>
-  );
+    </div>;
 }
