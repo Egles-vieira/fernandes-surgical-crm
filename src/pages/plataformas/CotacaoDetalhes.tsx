@@ -267,15 +267,7 @@ export default function CotacaoDetalhes() {
   };
   const valorTotal = itens.reduce((acc, item) => acc + (item.preco_total || 0), 0);
   return <div className="min-h-screen bg-background">
-      {/* ActionBar fixo que respeita sidebar e histórico */}
-      <div className="fixed top-16 z-20 bg-card border-b shadow-sm px-4 md:px-6 py-3 transition-all duration-300" style={{
-      left: 'var(--sidebar-width)' as any,
-      right: historicoAberto ? '24rem' : '3rem'
-    }}>
-        <CotacaoActionBar status={cotacao.step_atual as any} onResponder={handleResponder} onCancelar={handleCancelar} onConfirmar={handleConfirmar} onEnviar={handleEnviar} onResetarAnalise={handleResetarAnalise} analiseIATravada={cotacao.status_analise_ia === 'em_analise' && (cotacao.progresso_analise_percent || 0) > 0 && (cotacao.progresso_analise_percent || 0) < 100 && !isAnalyzing} />
-      </div>
-
-      <div className="flex pt-[72px] w-full">
+      <div className="flex pt-16 w-full">
         {/* Área Principal */}
         <div className={`flex-1 min-w-0 transition-all duration-300 ${historicoAberto ? 'mr-96' : 'mr-12'}`}>
           <div className="px-4 py-6 space-y-6 w-full my-0 md:py-0 md:px-[15px] mx-[2px]">
@@ -641,6 +633,13 @@ export default function CotacaoDetalhes() {
               <div className="flex items-center gap-2 mb-6">
                 <Clock className="h-5 w-5 text-muted-foreground" />
                 <h2 className="text-lg font-semibold">Histórico</h2>
+              </div>
+              
+              <Separator className="mb-6" />
+              
+              {/* ActionBar dentro do painel lateral */}
+              <div className="mb-6">
+                <CotacaoActionBar status={cotacao.step_atual as any} onResponder={handleResponder} onCancelar={handleCancelar} onConfirmar={handleConfirmar} onEnviar={handleEnviar} onResetarAnalise={handleResetarAnalise} analiseIATravada={cotacao.status_analise_ia === 'em_analise' && (cotacao.progresso_analise_percent || 0) > 0 && (cotacao.progresso_analise_percent || 0) < 100 && !isAnalyzing} />
               </div>
               
               <Separator className="mb-6" />
