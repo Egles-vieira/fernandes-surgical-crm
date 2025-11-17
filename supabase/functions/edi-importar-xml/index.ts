@@ -315,10 +315,36 @@ serve(async (req) => {
   }
 });
 
+// Função auxiliar para corrigir encoding
+function fixEncoding(text: string): string {
+  try {
+    // Se o texto já está em UTF-8 correto, retorna como está
+    if (!/[\u00C0-\u00FF][\u0080-\u00BF]/.test(text)) {
+      return text;
+    }
+    
+    // Converter de volta para bytes como se fosse ISO-8859-1
+    const bytes = new Uint8Array(text.length);
+    for (let i = 0; i < text.length; i++) {
+      bytes[i] = text.charCodeAt(i) & 0xff;
+    }
+    
+    // Decodificar corretamente como UTF-8
+    return new TextDecoder('utf-8').decode(bytes);
+  } catch (e) {
+    console.warn('Erro ao corrigir encoding:', e);
+    return text;
+  }
+}
+
 // Parser específico para XML do Bionexo
 async function parseBionexoXML(xmlString: string): Promise<CotacaoImportada[]> {
   // Remover BOM e espaços
-  const cleanXml = xmlString.trim().replace(/^\uFEFF/, '');
+  let cleanXml = xmlString.trim().replace(/^\uFEFF/, '');
+  
+  // Corrigir encoding se necessário
+  cleanXml = fixEncoding(cleanXml);
+  
   const cotacoes: CotacaoImportada[] = [];
   const pedidoRegex = /<(?:Pedido|pedido)[^>]*>([\s\S]*?)<\/(?:Pedido|pedido)>/gi;
   const pedidoMatches = cleanXml.matchAll(pedidoRegex);
@@ -343,19 +369,19 @@ async function parseBionexoXML(xmlString: string): Promise<CotacaoImportada[]> {
       }
 
       const cnpj = (extrairTag(cabecalhoXml, ['CNPJ_Hospital', 'CnpjHospital', 'CNPJ', 'cnpj']) || '').replace(/[.\-\/]/g, '');
-      const nome = extrairTag(cabecalhoXml, ['Nome_Hospital', 'NomeHospital', 'nome_hospital']);
+      const nome = fixEncoding(extrairTag(cabecalhoXml, ['Nome_Hospital', 'NomeHospital', 'nome_hospital']) || '');
       
       // NOVO: Capturar forma de pagamento
       const idFormaPagamento = extrairTag(cabecalhoXml, ['Id_Forma_Pagamento', 'IdFormaPagamento', 'id_forma_pagamento']);
-      const formaPagamento = extrairTag(cabecalhoXml, ['Forma_Pagamento', 'FormaPagamento', 'forma_pagamento']);
+      const formaPagamento = fixEncoding(extrairTag(cabecalhoXml, ['Forma_Pagamento', 'FormaPagamento', 'forma_pagamento']) || '');
       
-      const enderecoEntrega = extrairTag(cabecalhoXml, ['Endereco_Entrega', 'EnderecoEntrega', 'endereco_entrega']);
+      const enderecoEntrega = fixEncoding(extrairTag(cabecalhoXml, ['Endereco_Entrega', 'EnderecoEntrega', 'endereco_entrega']) || '');
       let cidade = '';
       let uf = '';
       if (enderecoEntrega) {
         const enderecoMatch = enderecoEntrega.match(/,([^,]+),([A-Z]{2})\s*$/i);
         if (enderecoMatch) {
-          cidade = enderecoMatch[1].trim();
+          cidade = fixEncoding(enderecoMatch[1].trim());
           uf = enderecoMatch[2].trim().toUpperCase();
         }
       }
@@ -386,13 +412,13 @@ async function parseBionexoXML(xmlString: string): Promise<CotacaoImportada[]> {
         
         const sequencia = extrairTag(itemXml, ['Sequencia', 'sequencia']);
         const id_artigo = extrairTag(itemXml, ['Id_Artigo', 'IdArtigo', 'id_artigo']);
-        const codigo = extrairTag(itemXml, ['Codigo_Produto', 'CodigoProduto', 'codigo_produto']);
-        const descricao = extrairTag(itemXml, ['Descricao_Produto', 'DescricaoProduto', 'descricao_produto']);
-        const unidade = extrairTag(itemXml, ['Unidade_Medida', 'UnidadeMedida', 'unidade_medida']);
+        const codigo = fixEncoding(extrairTag(itemXml, ['Codigo_Produto', 'CodigoProduto', 'codigo_produto']) || '');
+        const descricao = fixEncoding(extrairTag(itemXml, ['Descricao_Produto', 'DescricaoProduto', 'descricao_produto']) || '');
+        const unidade = fixEncoding(extrairTag(itemXml, ['Unidade_Medida', 'UnidadeMedida', 'unidade_medida']) || '');
         // NOVO: Capturar ID da unidade de medida
         const idUnidade = extrairTag(itemXml, ['Id_Unidade_Medida', 'IdUnidadeMedida', 'id_unidade_medida']);
         const quantidade = extrairTag(itemXml, ['Quantidade', 'quantidade']);
-        const marca = extrairTag(itemXml, ['Marca_Favorita', 'MarcaFavorita', 'marca_favorita']);
+        const marca = fixEncoding(extrairTag(itemXml, ['Marca_Favorita', 'MarcaFavorita', 'marca_favorita']) || '');
 
         if (!descricao || !quantidade) {
           console.warn(`Item ${id_artigo || sequencia} sem descrição ou quantidade, pulando...`);
@@ -436,9 +462,9 @@ async function parseBionexoXML(xmlString: string): Promise<CotacaoImportada[]> {
         },
         detalhes: {
           forma_pagamento: formaPagamento,
-          observacao: extrairTag(cabecalhoXml, ['Observacao', 'observacao']),
-          termo: extrairTag(cabecalhoXml, ['Termo', 'termo']),
-          contato: extrairTag(cabecalhoXml, ['Contato', 'contato']),
+          observacao: fixEncoding(extrairTag(cabecalhoXml, ['Observacao', 'observacao']) || ''),
+          termo: fixEncoding(extrairTag(cabecalhoXml, ['Termo', 'termo']) || ''),
+          contato: fixEncoding(extrairTag(cabecalhoXml, ['Contato', 'contato']) || ''),
           endereco_entrega: enderecoEntrega,
         },
       });
