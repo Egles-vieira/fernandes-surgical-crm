@@ -629,8 +629,12 @@ export default function CotacaoDetalhes() {
         {/* Painel Lateral de Histórico */}
         <div className={`fixed right-0 top-16 h-[calc(100vh-4rem)] bg-card border-l shadow-lg transition-all duration-500 ease-in-out z-30 ${historicoAberto ? 'w-96' : 'w-8'} overflow-hidden`}>
           {/* Botão de Toggle */}
-          <Button variant="ghost" size="icon" className={`absolute left-2 top-4 z-10 transition-all duration-300 w-7 h-7 ${historicoAberto ? '' : 'hover:scale-110'}`} onClick={() => setHistoricoAberto(!historicoAberto)}>
-            {historicoAberto ? <ChevronRight className="h-3 w-3" /> : <ChevronLeft className="h-3 w-3" />}
+          <Button 
+            size="icon" 
+            className={`absolute left-2 top-4 z-10 transition-all duration-300 w-10 h-10 rounded-full bg-background shadow-lg border hover:shadow-xl ${historicoAberto ? '' : 'hover:scale-110'}`} 
+            onClick={() => setHistoricoAberto(!historicoAberto)}
+          >
+            {historicoAberto ? <ChevronRight className="h-4 w-4 text-primary" /> : <ChevronLeft className="h-4 w-4 text-primary" />}
           </Button>
 
           {/* Conteúdo do Histórico */}
