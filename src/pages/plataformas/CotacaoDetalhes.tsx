@@ -267,7 +267,15 @@ export default function CotacaoDetalhes() {
   };
   const valorTotal = itens.reduce((acc, item) => acc + (item.preco_total || 0), 0);
   return <div className="min-h-screen bg-background">
-      <div className="flex pt-16 w-full">
+      {/* ActionBar fixo que respeita sidebar e histórico */}
+      <div className="fixed top-16 z-20 bg-card border-b shadow-sm px-4 md:px-6 py-3 transition-all duration-300" style={{
+      left: 'var(--sidebar-width)' as any,
+      right: historicoAberto ? '24rem' : '3rem'
+    }}>
+        <CotacaoActionBar status={cotacao.step_atual as any} onResponder={handleResponder} onCancelar={handleCancelar} onConfirmar={handleConfirmar} onEnviar={handleEnviar} onResetarAnalise={handleResetarAnalise} analiseIATravada={cotacao.status_analise_ia === 'em_analise' && (cotacao.progresso_analise_percent || 0) > 0 && (cotacao.progresso_analise_percent || 0) < 100 && !isAnalyzing} />
+      </div>
+
+      <div className="flex pt-[72px] w-full">
         {/* Área Principal */}
         <div className={`flex-1 min-w-0 transition-all duration-300 ${historicoAberto ? 'mr-96' : 'mr-12'}`}>
           <div className="px-4 py-6 space-y-6 w-full my-0 md:py-0 md:px-[15px] mx-[2px]">
@@ -619,35 +627,25 @@ export default function CotacaoDetalhes() {
         </div>
 
         {/* Painel Lateral de Histórico */}
-        <div className={`fixed right-0 top-16 h-[calc(100vh-4rem)] bg-background transition-all duration-300 ease-in-out z-30 ${historicoAberto ? 'w-80' : 'w-12'} overflow-hidden`}>
-          {/* Barra lateral branca */}
-          <div className="absolute left-0 top-0 bottom-0 w-8 bg-white border-l border-border/50 flex items-start justify-center pt-6 mx-[18px]">
-            {/* Botão de Toggle */}
-            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full bg-background hover:bg-muted shadow-sm" onClick={() => setHistoricoAberto(!historicoAberto)}>
-              {historicoAberto ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-            </Button>
-          </div>
+        <div className={`fixed right-0 top-16 h-[calc(100vh-4rem)] bg-card border-l shadow-lg transition-all duration-500 ease-in-out z-30 ${historicoAberto ? 'w-96' : 'w-12'} overflow-hidden`}>
+          {/* Botão de Toggle */}
+          <Button variant="ghost" size="icon" className={`absolute left-2 top-4 z-10 transition-all duration-300 ${historicoAberto ? '' : 'hover:scale-110'}`} onClick={() => setHistoricoAberto(!historicoAberto)}>
+            {historicoAberto ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+          </Button>
 
           {/* Conteúdo do Histórico */}
-          {historicoAberto && <div className="pl-10 pr-6 pt-6 h-full overflow-y-auto animate-fade-in">
+          {historicoAberto && <div className="p-6 pt-16 h-full overflow-y-auto animate-fade-in">
               <div className="flex items-center gap-2 mb-6">
-                <Clock className="h-5 w-5 text-muted-foreground" />
-                <h2 className="text-lg font-semibold">Histórico</h2>
+                <Clock className="h-5 w-5" />
+                <h2 className="text-xl font-bold">Histórico</h2>
               </div>
               
-              <Separator className="mb-6" />
-              
-              {/* ActionBar dentro do painel lateral */}
-              <div className="mb-6">
-                <CotacaoActionBar status={cotacao.step_atual as any} onResponder={handleResponder} onCancelar={handleCancelar} onConfirmar={handleConfirmar} onEnviar={handleEnviar} onResetarAnalise={handleResetarAnalise} analiseIATravada={cotacao.status_analise_ia === 'em_analise' && (cotacao.progresso_analise_percent || 0) > 0 && (cotacao.progresso_analise_percent || 0) < 100 && !isAnalyzing} />
-              </div>
-              
-              <Separator className="mb-6" />
+              <Separator className="mb-4" />
               
               <div className="space-y-4">
                 <div className="text-center py-12 animate-scale-in">
-                  <Clock className="mx-auto h-12 w-12 text-muted-foreground mb-4 opacity-30" />
-                  <p className="text-sm text-muted-foreground">
+                  <Clock className="mx-auto h-12 w-12 text-muted-foreground mb-4 opacity-50" />
+                  <p className="text-muted-foreground">
                     Histórico de atividades será exibido aqui
                   </p>
                 </div>
