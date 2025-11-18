@@ -55,7 +55,15 @@ Deno.serve(async (req) => {
     // Obter variáveis de ambiente
     const DATASUL_USER = Deno.env.get("DATASUL_USER");
     const DATASUL_PASS = Deno.env.get("DATASUL_PASS");
-    const DATASUL_URL = "http://172.19.245.5:8080/dts/datasul-rest/resources/prg/rest-api/v1/CalculaPedido";
+    const DATASUL_PROXY_URL = Deno.env.get("DATASUL_PROXY_URL");
+    
+    if (!DATASUL_USER || !DATASUL_PASS) {
+      throw new Error("Credenciais Datasul não configuradas");
+    }
+    
+    if (!DATASUL_PROXY_URL) {
+      throw new Error("URL do proxy Datasul não configurada. Configure DATASUL_PROXY_URL nas variáveis de ambiente.");
+    }
 
     if (!DATASUL_USER || !DATASUL_PASS) {
       throw new Error("Credenciais Datasul não configuradas");
@@ -249,9 +257,9 @@ Deno.serve(async (req) => {
     // 8. Enviar para Datasul
     const authHeader = btoa(`${DATASUL_USER}:${DATASUL_PASS}`);
 
-    console.log("Enviando requisição para Datasul...");
+    console.log("Enviando requisição para Datasul via proxy:", DATASUL_PROXY_URL);
 
-    const datasulResponse = await fetch(DATASUL_URL, {
+    const datasulResponse = await fetch(DATASUL_PROXY_URL, {
       method: "POST",
       headers: {
         Authorization: `Basic ${authHeader}`,
