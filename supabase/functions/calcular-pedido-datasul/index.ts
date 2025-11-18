@@ -216,18 +216,6 @@ Deno.serve(async (req) => {
     const pedidoItem = {
       pedido: [
         Object.assign(Object.create(null), {
-          "cod-emitente": Number(venda.cod_emitente),
-          "tipo-pedido": tipoPedido.nome.toLowerCase(),
-          "cotacao": venda.numero_venda,
-          "cod-estabel": String(empresa.codigo_estabelecimento),
-          "nat-operacao": String(empresa.natureza_operacao),
-          "cod-cond-pag": Number(condicaoPagamento.codigo_integracao),
-          "cod-transp": 24249,
-          "vl-frete-inf": 0,
-          "cod-rep": Number(perfil.codigo_vendedor),
-          "nr-tabpre": "SE-CFI",
-          "perc-desco1": 0,
-          "fat-parcial": venda.faturamento_parcial === "YES" ? "yes" : "no",
           "item": itens.map((item) => {
             const produtoRef = item.produtos?.referencia_interna || "";
 
@@ -248,6 +236,18 @@ Deno.serve(async (req) => {
               "per-des-item": Number(item.desconto),
             });
           }),
+          "cod-rep": Number(perfil.codigo_vendedor),
+          "cotacao": venda.numero_venda,
+          "nr-tabpre": "SE-CFI",
+          "cod-transp": 24249,
+          "cod-estabel": String(empresa.codigo_estabelecimento),
+          "fat-parcial": venda.faturamento_parcial === "YES" ? "yes" : "no",
+          "perc-desco1": 0,
+          "tipo-pedido": tipoPedido.nome.toLowerCase(),
+          "cod-cond-pag": Number(condicaoPagamento.codigo_integracao),
+          "cod-emitente": Number(venda.cod_emitente),
+          "nat-operacao": String(empresa.natureza_operacao),
+          "vl-frete-inf": 0,
         }),
       ],
     };
