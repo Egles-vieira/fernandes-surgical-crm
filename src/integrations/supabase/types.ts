@@ -2339,6 +2339,7 @@ export type Database = {
           id: string
           inscricao_estadual: string | null
           inscricao_municipal: string | null
+          natureza_operacao: string | null
           nome: string
           nome_empresa: string
           nome_fantasia: string | null
@@ -2371,6 +2372,7 @@ export type Database = {
           id?: string
           inscricao_estadual?: string | null
           inscricao_municipal?: string | null
+          natureza_operacao?: string | null
           nome: string
           nome_empresa: string
           nome_fantasia?: string | null
@@ -2403,6 +2405,7 @@ export type Database = {
           id?: string
           inscricao_estadual?: string | null
           inscricao_municipal?: string | null
+          natureza_operacao?: string | null
           nome?: string
           nome_empresa?: string
           nome_fantasia?: string | null
