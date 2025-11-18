@@ -73,6 +73,7 @@ export default function Vendas() {
   const [condicaoPagamentoId, setCondicaoPagamentoId] = useState<string>("");
   const [tipoFreteId, setTipoFreteId] = useState<string>("");
   const [tipoPedidoId, setTipoPedidoId] = useState<string>("");
+  const [faturamentoParcial, setFaturamentoParcial] = useState<boolean>(false);
   const [observacoes, setObservacoes] = useState("");
   const [carrinho, setCarrinho] = useState<ItemCarrinho[]>([]);
 
@@ -329,6 +330,7 @@ export default function Vendas() {
     setCondicaoPagamentoId("");
     setTipoFreteId("");
     setTipoPedidoId("");
+    setFaturamentoParcial(false);
     setObservacoes("");
     setCarrinho([]);
 
@@ -593,6 +595,7 @@ export default function Vendas() {
           condicao_pagamento_id: condicaoPagamentoId || null,
           tipo_frete_id: tipoFreteId || null,
           tipo_pedido_id: tipoPedidoId || null,
+          faturamento_parcial: faturamentoParcial ? 'YES' : 'NO',
           observacoes: observacoes || null,
           etapa_pipeline: etapaPipeline,
           valor_estimado: valorEstimado,
@@ -875,6 +878,19 @@ export default function Vendas() {
                     <SelectItem value="cancelada">Cancelada</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div className="flex items-center space-x-2 pt-6">
+                <input
+                  type="checkbox"
+                  id="faturamentoParcial"
+                  checked={faturamentoParcial}
+                  onChange={(e) => setFaturamentoParcial(e.target.checked)}
+                  className="h-4 w-4 rounded border-input"
+                />
+                <Label htmlFor="faturamentoParcial" className="font-normal cursor-pointer">
+                  Faturamento Parcial
+                </Label>
               </div>
             </div>
 
