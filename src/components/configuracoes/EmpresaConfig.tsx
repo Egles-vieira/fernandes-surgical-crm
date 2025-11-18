@@ -21,6 +21,7 @@ const empresaSchema = z.object({
   nome_fantasia: z.string().optional(),
   inscricao_estadual: z.string().optional(),
   inscricao_municipal: z.string().optional(),
+  codigo_estabelecimento: z.string().optional(),
   endereco: z.string().optional(),
   numero: z.string().optional(),
   complemento: z.string().optional(),
@@ -63,6 +64,7 @@ export function EmpresaConfig() {
         nome_fantasia: empresa.nome_fantasia || "",
         inscricao_estadual: empresa.inscricao_estadual || "",
         inscricao_municipal: empresa.inscricao_municipal || "",
+        codigo_estabelecimento: empresa.codigo_estabelecimento || "",
         endereco: empresa.endereco || "",
         numero: empresa.numero || "",
         complemento: empresa.complemento || "",
@@ -380,6 +382,15 @@ export function EmpresaConfig() {
               id="inscricao_municipal"
               {...register("inscricao_municipal")}
               placeholder="IM"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="codigo_estabelecimento">Código do Estabelecimento</Label>
+            <Input
+              id="codigo_estabelecimento"
+              {...register("codigo_estabelecimento")}
+              placeholder="Código do estabelecimento"
             />
           </div>
         </div>
