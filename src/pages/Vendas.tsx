@@ -299,6 +299,7 @@ export default function Vendas() {
     setCondicaoPagamentoId(venda.condicao_pagamento_id || "");
     setTipoFreteId(venda.tipo_frete_id || "");
     setTipoPedidoId(venda.tipo_pedido_id || "");
+    setFaturamentoParcial(venda.faturamento_parcial === 'YES');
     setObservacoes(venda.observacoes || "");
 
     // Novos campos do pipeline
@@ -505,6 +506,7 @@ export default function Vendas() {
           condicao_pagamento_id: condicaoPagamentoId || null,
           tipo_frete_id: tipoFreteId || null,
           tipo_pedido_id: tipoPedidoId || null,
+          faturamento_parcial: (faturamentoParcial ? 'YES' : 'NO') as Database["public"]["Enums"]["yes_no"],
           observacoes: observacoes || null,
           etapa_pipeline: etapaPipeline,
           valor_estimado: valorEstimado,
