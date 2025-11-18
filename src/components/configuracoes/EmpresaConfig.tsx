@@ -22,6 +22,7 @@ const empresaSchema = z.object({
   inscricao_estadual: z.string().optional(),
   inscricao_municipal: z.string().optional(),
   codigo_estabelecimento: z.string().optional(),
+  natureza_operacao: z.string().optional(),
   endereco: z.string().optional(),
   numero: z.string().optional(),
   complemento: z.string().optional(),
@@ -65,6 +66,7 @@ export function EmpresaConfig() {
         inscricao_estadual: empresa.inscricao_estadual || "",
         inscricao_municipal: empresa.inscricao_municipal || "",
         codigo_estabelecimento: empresa.codigo_estabelecimento || "",
+        natureza_operacao: empresa.natureza_operacao || "",
         endereco: empresa.endereco || "",
         numero: empresa.numero || "",
         complemento: empresa.complemento || "",
@@ -391,6 +393,15 @@ export function EmpresaConfig() {
               id="codigo_estabelecimento"
               {...register("codigo_estabelecimento")}
               placeholder="Código do estabelecimento"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="natureza_operacao">Natureza da Operação</Label>
+            <Input
+              id="natureza_operacao"
+              {...register("natureza_operacao")}
+              placeholder="Natureza da operação"
             />
           </div>
         </div>
