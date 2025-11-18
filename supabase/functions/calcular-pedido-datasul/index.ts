@@ -303,7 +303,22 @@ Deno.serve(async (req) => {
       console.error("Erro ao salvar log:", logError);
     }
 
-    // 10. Se houve erro no Datasul, retornar erro
+    // 10. Atualizar campos de última integração na venda
+    const { error: updateError } = await supabase
+      .from("vendas")
+      .update({
+        ultima_integracao_datasul_em: new Date().toISOString(),
+        ultima_integracao_datasul_requisicao: datasulPayload,
+        ultima_integracao_datasul_resposta: datasulData,
+        ultima_integracao_datasul_status: datasulResponse.ok ? "sucesso" : "erro",
+      })
+      .eq("id", venda.id);
+
+    if (updateError) {
+      console.error("Erro ao atualizar última integração na venda:", updateError);
+    }
+
+    // 11. Se houve erro no Datasul, retornar erro
     if (!datasulResponse.ok) {
       return new Response(
         JSON.stringify({
@@ -319,13 +334,13 @@ Deno.serve(async (req) => {
       );
     }
 
-    // 11. Montar resumo de totais (extrair do retorno Datasul)
+    // 12. Montar resumo de totais (extrair do retorno Datasul)
     const resumo = {
       total_itens: itens.length,
       tempo_resposta_ms: tempoResposta,
     };
 
-    // 12. Retornar sucesso
+    // 13. Retornar sucesso
     return new Response(
       JSON.stringify({
         success: true,
