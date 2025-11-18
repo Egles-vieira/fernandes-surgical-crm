@@ -246,8 +246,8 @@ Deno.serve(async (req) => {
           "tipo-pedido": tipoPedido.nome.toLowerCase(),
           "cod-cond-pag": Number(condicaoPagamento.codigo_integracao),
           "cod-emitente": Number(venda.cod_emitente),
-          "nat-operacao": String(empresa.natureza_operacao),
           "vl-frete-inf": 0,
+          "nat-operacao": String(empresa.natureza_operacao),
         }),
       ],
     };
