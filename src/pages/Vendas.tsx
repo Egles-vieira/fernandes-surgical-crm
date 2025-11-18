@@ -16,6 +16,7 @@ import { useTiposFrete } from "@/hooks/useTiposFrete";
 import { useTiposPedido } from "@/hooks/useTiposPedido";
 import { useVendedores } from "@/hooks/useVendedores";
 import { useHierarquia } from "@/hooks/useHierarquia";
+import { useDatasulCalculaPedido } from "@/hooks/useDatasulCalculaPedido";
 import { ProdutoSearchDialog } from "@/components/ProdutoSearchDialog";
 import { ClienteSearchDialog } from "@/components/ClienteSearchDialog";
 import { VendasActionBar } from "@/components/VendasActionBar";
@@ -47,6 +48,7 @@ export default function Vendas() {
   const { tipos: tiposPedido, isLoading: isLoadingTiposPedido } = useTiposPedido();
   const { vendedores, isLoading: isLoadingVendedores } = useVendedores();
   const { ehGestor, subordinados, nivelHierarquico, podeAcessarCliente } = useHierarquia();
+  const { calcularPedido, isCalculating } = useDatasulCalculaPedido();
   const { user } = useAuth();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
@@ -346,11 +348,17 @@ export default function Vendas() {
     setResponsavelId("");
     setVendedorId("");
   };
-  const handleCalcular = () => {
-    toast({
-      title: "Calculando proposta",
-      description: "Valores atualizados com sucesso.",
-    });
+  const handleCalcular = async () => {
+    if (!editandoVendaId) {
+      toast({
+        title: "Atenção",
+        description: "Salve a venda antes de calcular com o Datasul.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    await calcularPedido(editandoVendaId);
   };
   const handleCancelarProposta = () => {
     limparFormulario();
@@ -764,6 +772,7 @@ export default function Vendas() {
           onEfetivar={handleEfetivar}
           onSalvar={handleSalvarVenda}
           isSaving={createVenda.isPending || updateVenda.isPending}
+          isCalculating={isCalculating}
           editandoVendaId={editandoVendaId}
         />
 

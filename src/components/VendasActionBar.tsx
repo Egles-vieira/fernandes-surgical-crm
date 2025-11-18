@@ -10,6 +10,7 @@ interface VendasActionBarProps {
   onEfetivar: () => void;
   onSalvar?: () => void;
   isSaving?: boolean;
+  isCalculating?: boolean;
   editandoVendaId?: string | null;
 }
 
@@ -21,6 +22,7 @@ export function VendasActionBar({
   onEfetivar,
   onSalvar,
   isSaving = false,
+  isCalculating = false,
   editandoVendaId = null,
 }: VendasActionBarProps) {
   const getStatusInfo = () => {
@@ -67,10 +69,11 @@ export function VendasActionBar({
             variant="outline"
             size="sm"
             onClick={onCalcular}
+            disabled={isCalculating}
             className="gap-2"
           >
             <Calculator size={16} />
-            Calcular
+            {isCalculating ? "Calculando..." : "Calcular"}
           </Button>
           
           <Button
