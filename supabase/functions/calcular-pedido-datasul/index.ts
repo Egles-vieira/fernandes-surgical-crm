@@ -211,21 +211,21 @@ Deno.serve(async (req) => {
       throw new Error(`Campos obrigatórios faltando: ${camposFaltando.join(", ")}`);
     }
 
-    // 7. Montar payload para Datasul (ordem exata conforme exemplo)
+    // 7. Montar payload para Datasul (ordem e tipos exatos conforme imagem)
     const datasulPayload = {
       pedido: [
         {
-          "cod-emitente": venda.cod_emitente,
+          "cod-emitente": Number(venda.cod_emitente),
           "tipo-pedido": tipoPedido.nome.toLowerCase(),
           "cotacao": venda.numero_venda,
-          "cod-estabel": empresa.codigo_estabelecimento,
-          "nat-operacao": empresa.natureza_operacao,
-          "cod-cond-pag": condicaoPagamento.codigo_integracao,
+          "cod-estabel": String(empresa.codigo_estabelecimento),
+          "nat-operacao": String(empresa.natureza_operacao),
+          "cod-cond-pag": Number(condicaoPagamento.codigo_integracao),
           "cod-transp": 24249,
-          "vl-frete-inf": 0.0,
-          "cod-rep": perfil.codigo_vendedor,
+          "vl-frete-inf": 0,
+          "cod-rep": Number(perfil.codigo_vendedor),
           "nr-tabpre": "SE-CFI",
-          "perc-desco1": 0.0,
+          "perc-desco1": 0,
           "fat-parcial": venda.faturamento_parcial === "YES" ? "yes" : "no",
           "item": itens.map((item) => {
             const produtoRef = item.produtos?.referencia_interna || "";
@@ -235,16 +235,16 @@ Deno.serve(async (req) => {
             }
 
             return {
-              "nr-sequencia": item.sequencia_item,
-              "it-codigo": produtoRef,
+              "nr-sequencia": Number(item.sequencia_item),
+              "it-codigo": String(produtoRef),
               "cod-refer": "",
-              "nat-operacao": empresa.natureza_operacao,
-              "qt-pedida": item.quantidade,
-              "vl-preuni": item.preco_tabela,
-              "vl-pretab": item.preco_tabela,
-              "vl-preori": item.preco_tabela,
-              "vl-preco-base": item.preco_tabela,
-              "per-des-item": item.desconto,
+              "nat-operacao": String(empresa.natureza_operacao),
+              "qt-pedida": Number(item.quantidade),
+              "vl-preuni": Number(item.preco_tabela),
+              "vl-pretab": Number(item.preco_tabela),
+              "vl-preori": Number(item.preco_tabela),
+              "vl-preco-base": Number(item.preco_tabela),
+              "per-des-item": Number(item.desconto),
             };
           }),
         },
