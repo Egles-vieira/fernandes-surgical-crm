@@ -525,7 +525,8 @@ export default function Vendas() {
             await removeItem.mutateAsync(item.id);
           }
         }
-        for (const item of carrinho) {
+        for (let i = 0; i < carrinho.length; i++) {
+          const item = carrinho[i];
           await addItem.mutateAsync({
             venda_id: editandoVendaId,
             produto_id: item.produto.id,
@@ -533,6 +534,7 @@ export default function Vendas() {
             preco_unitario: item.produto.preco_venda,
             desconto: item.desconto,
             valor_total: item.valor_total,
+            sequencia_item: i + 1, // Adiciona sequência automática
           });
         }
         toast({
@@ -611,21 +613,23 @@ export default function Vendas() {
           equipe_id: equipeId, // Equipe do vendedor
         });
 
-        // Aguardar a invalidação do cache e adicionar itens
-        if (venda && venda.id) {
-          // Aguardar um pouco para garantir que a venda foi propagada
-          await new Promise((resolve) => setTimeout(resolve, 100));
-          for (const item of carrinho) {
-            await addItem.mutateAsync({
-              venda_id: venda.id,
-              produto_id: item.produto.id,
-              quantidade: item.quantidade,
-              preco_unitario: item.produto.preco_venda,
-              desconto: item.desconto,
-              valor_total: item.valor_total,
-            });
+          // Aguardar a invalidação do cache e adicionar itens
+          if (venda && venda.id) {
+            // Aguardar um pouco para garantir que a venda foi propagada
+            await new Promise((resolve) => setTimeout(resolve, 100));
+            for (let i = 0; i < carrinho.length; i++) {
+              const item = carrinho[i];
+              await addItem.mutateAsync({
+                venda_id: venda.id,
+                produto_id: item.produto.id,
+                quantidade: item.quantidade,
+                preco_unitario: item.produto.preco_venda,
+                desconto: item.desconto,
+                valor_total: item.valor_total,
+                sequencia_item: i + 1, // Adiciona sequência automática
+              });
+            }
           }
-        }
         toast({
           title: "Venda salva!",
           description: "A venda foi criada com sucesso.",
@@ -1022,6 +1026,7 @@ export default function Vendas() {
                   <Table>
                     <TableHeader>
                       <TableRow>
+                        <TableHead className="w-16 text-center">Seq</TableHead>
                         <TableHead>Código</TableHead>
                         <TableHead>Produto</TableHead>
                         <TableHead className="text-center">Qtd</TableHead>
@@ -1034,6 +1039,7 @@ export default function Vendas() {
                     <TableBody>
                       {carrinho.map((item, index) => (
                         <TableRow key={index}>
+                          <TableCell className="text-center font-semibold text-muted-foreground">{index + 1}</TableCell>
                           <TableCell className="font-mono">{item.produto.referencia_interna}</TableCell>
                           <TableCell>{item.produto.nome}</TableCell>
                           <TableCell className="text-center">
