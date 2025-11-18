@@ -373,27 +373,7 @@ export default function Vendas() {
       return;
     }
 
-    // Salvar campos obrigatórios no banco antes de calcular
-    try {
-      await updateVenda.mutateAsync({
-        id: editandoVendaId,
-        tipo_pedido_id: tipoPedidoId,
-        condicao_pagamento_id: condicaoPagamentoId,
-        vendedor_id: vendedorId,
-      });
-
-      // Aguardar um pouco para garantir que a atualização foi propagada
-      await new Promise((resolve) => setTimeout(resolve, 100));
-
-      await calcularPedido(editandoVendaId);
-    } catch (error: any) {
-      console.error("Erro ao atualizar venda antes de calcular:", error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível atualizar os dados da venda.",
-        variant: "destructive",
-      });
-    }
+    await calcularPedido(editandoVendaId);
   };
   const handleCancelarProposta = () => {
     limparFormulario();

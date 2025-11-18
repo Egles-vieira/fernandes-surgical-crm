@@ -231,7 +231,7 @@ Deno.serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(datasulPayload),
-      signal: AbortSignal.timeout(30000), // 30 segundos timeout
+      signal: AbortSignal.timeout(60000), // 60 segundos timeout
     });
 
     const tempoResposta = Date.now() - startTime;
@@ -305,9 +305,20 @@ Deno.serve(async (req) => {
     );
 
   } catch (error) {
+    const tempoDecorrido = Date.now() - startTime;
     console.error('Erro ao processar cálculo de pedido:', error);
     
     const errorMessage = error instanceof Error ? error.message : String(error);
+    let userFriendlyMessage = errorMessage;
+    
+    // Mensagens amigáveis para erros específicos
+    if (error instanceof Error && (error.name === 'TimeoutError' || errorMessage.includes('Signal timed out'))) {
+      userFriendlyMessage = 'Timeout: O sistema Datasul não respondeu em tempo hábil (60s). Tente novamente ou contate o suporte.';
+    } else if (errorMessage.includes('fetch failed') || errorMessage.includes('network')) {
+      userFriendlyMessage = 'Erro de conexão com o sistema Datasul. Verifique a conectividade de rede.';
+    } else if (errorMessage.includes('Venda sem')) {
+      userFriendlyMessage = errorMessage; // Já é amigável
+    }
 
     // Tentar salvar log de erro se possível
     try {
@@ -334,7 +345,7 @@ Deno.serve(async (req) => {
             response_payload: null,
             status: 'erro',
             error_message: errorMessage,
-            tempo_resposta_ms: Date.now() - startTime,
+            tempo_resposta_ms: tempoDecorrido,
           });
       }
     } catch (logError) {
@@ -344,7 +355,9 @@ Deno.serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: false,
-        error: errorMessage,
+        error: userFriendlyMessage,
+        technical_error: errorMessage,
+        tempo_resposta_ms: tempoDecorrido,
       }),
       {
         status: 500,
