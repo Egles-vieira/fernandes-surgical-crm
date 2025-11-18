@@ -23,6 +23,7 @@ import { VendasActionBar } from "@/components/VendasActionBar";
 import { VendasFilters } from "@/components/vendas/VendasFilters";
 import { PipelineKanban, EtapaPipeline } from "@/components/vendas/PipelineKanban";
 import { AprovarVendaDialog } from "@/components/vendas/AprovarVendaDialog";
+import { IntegracaoDatasulLog } from "@/components/IntegracaoDatasulLog";
 import { Tables } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
@@ -1125,6 +1126,8 @@ export default function Vendas() {
               </div>
             )}
           </Card>
+
+          <IntegracaoDatasulLog vendaId={editandoVendaId || undefined} />
 
           <ProdutoSearchDialog
             open={showProdutoSearch}
