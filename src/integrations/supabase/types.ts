@@ -5449,7 +5449,7 @@ export type Database = {
           desconto: number
           equipe_id: string | null
           etapa_pipeline: Database["public"]["Enums"]["etapa_pipeline"] | null
-          faturamento_parcial: boolean | null
+          faturamento_parcial: Database["public"]["Enums"]["yes_no"] | null
           id: string
           motivo_perda: string | null
           numero_venda: string
@@ -5481,7 +5481,7 @@ export type Database = {
           desconto?: number
           equipe_id?: string | null
           etapa_pipeline?: Database["public"]["Enums"]["etapa_pipeline"] | null
-          faturamento_parcial?: boolean | null
+          faturamento_parcial?: Database["public"]["Enums"]["yes_no"] | null
           id?: string
           motivo_perda?: string | null
           numero_venda: string
@@ -5513,7 +5513,7 @@ export type Database = {
           desconto?: number
           equipe_id?: string | null
           etapa_pipeline?: Database["public"]["Enums"]["etapa_pipeline"] | null
-          faturamento_parcial?: boolean | null
+          faturamento_parcial?: Database["public"]["Enums"]["yes_no"] | null
           id?: string
           motivo_perda?: string | null
           numero_venda?: string

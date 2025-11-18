@@ -49,6 +49,7 @@ interface PedidoData {
   condicaoPagamento: string;
   dataUltimaVenda: string;
   atendimentoParcial: boolean;
+  faturamentoParcial: boolean;
   tipoFrete: string;
   statusCredito: string;
   creditoDisponivel: number;
@@ -166,6 +167,7 @@ export default function PedidoForm({ selectedPedido, onBack }: PedidoFormProps) 
     condicaoPagamento: "ESPECIAL",
     dataUltimaVenda: "30/09/2025",
     atendimentoParcial: false,
+    faturamentoParcial: false,
     tipoFrete: "FRETE CIF",
     statusCredito: "Normal",
     creditoDisponivel: 48254.24,
@@ -493,6 +495,17 @@ export default function PedidoForm({ selectedPedido, onBack }: PedidoFormProps) 
                 />
                 <Label htmlFor="contrato" className="font-normal cursor-pointer">
                   Contrato
+                </Label>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="faturamentoParcial"
+                  checked={formData.faturamentoParcial}
+                  onCheckedChange={(checked) => setFormData({ ...formData, faturamentoParcial: checked as boolean })}
+                />
+                <Label htmlFor="faturamentoParcial" className="font-normal cursor-pointer">
+                  Faturamento Parcial
                 </Label>
               </div>
 
