@@ -349,15 +349,6 @@ export default function Vendas() {
     setVendedorId("");
   };
   const handleCalcular = async () => {
-    if (!editandoVendaId) {
-      toast({
-        title: "Atenção",
-        description: "Salve a venda antes de calcular com o Datasul.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     // Validar campos obrigatórios
     const camposObrigatorios = [];
     if (!tipoPedidoId) camposObrigatorios.push("Tipo de Pedido");
@@ -373,7 +364,36 @@ export default function Vendas() {
       return;
     }
 
-    await calcularPedido(editandoVendaId);
+    if (!editandoVendaId) {
+      toast({
+        title: "Atenção",
+        description: "Salve a venda antes de calcular com o Datasul.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Salvar campos obrigatórios no banco antes de calcular
+    try {
+      await updateVenda.mutateAsync({
+        id: editandoVendaId,
+        tipo_pedido_id: tipoPedidoId,
+        condicao_pagamento_id: condicaoPagamentoId,
+        vendedor_id: vendedorId,
+      });
+
+      // Aguardar um pouco para garantir que a atualização foi propagada
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      await calcularPedido(editandoVendaId);
+    } catch (error: any) {
+      console.error("Erro ao atualizar venda antes de calcular:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar os dados da venda.",
+        variant: "destructive",
+      });
+    }
   };
   const handleCancelarProposta = () => {
     limparFormulario();
