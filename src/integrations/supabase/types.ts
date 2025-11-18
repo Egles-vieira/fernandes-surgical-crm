@@ -2326,6 +2326,7 @@ export type Database = {
           cep: string | null
           cidade: string | null
           cnpj: string | null
+          codigo_estabelecimento: string | null
           complemento: string | null
           cor_primaria: string | null
           cor_secundaria: string | null
@@ -2357,6 +2358,7 @@ export type Database = {
           cep?: string | null
           cidade?: string | null
           cnpj?: string | null
+          codigo_estabelecimento?: string | null
           complemento?: string | null
           cor_primaria?: string | null
           cor_secundaria?: string | null
@@ -2388,6 +2390,7 @@ export type Database = {
           cep?: string | null
           cidade?: string | null
           cnpj?: string | null
+          codigo_estabelecimento?: string | null
           complemento?: string | null
           cor_primaria?: string | null
           cor_secundaria?: string | null
@@ -5443,6 +5446,7 @@ export type Database = {
           desconto: number
           equipe_id: string | null
           etapa_pipeline: Database["public"]["Enums"]["etapa_pipeline"] | null
+          faturamento_parcial: boolean | null
           id: string
           motivo_perda: string | null
           numero_venda: string
@@ -5474,6 +5478,7 @@ export type Database = {
           desconto?: number
           equipe_id?: string | null
           etapa_pipeline?: Database["public"]["Enums"]["etapa_pipeline"] | null
+          faturamento_parcial?: boolean | null
           id?: string
           motivo_perda?: string | null
           numero_venda: string
@@ -5505,6 +5510,7 @@ export type Database = {
           desconto?: number
           equipe_id?: string | null
           etapa_pipeline?: Database["public"]["Enums"]["etapa_pipeline"] | null
+          faturamento_parcial?: boolean | null
           id?: string
           motivo_perda?: string | null
           numero_venda?: string
