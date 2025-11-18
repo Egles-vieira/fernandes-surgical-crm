@@ -1032,6 +1032,7 @@ export default function Vendas() {
                         <TableHead>Código</TableHead>
                         <TableHead>Produto</TableHead>
                         <TableHead className="text-center">Qtd</TableHead>
+                        <TableHead className="text-right">Preço Tabela</TableHead>
                         <TableHead className="text-right">Preço Unit.</TableHead>
                         <TableHead className="text-center">Desc. %</TableHead>
                         <TableHead className="text-right">Total</TableHead>
@@ -1055,6 +1056,7 @@ export default function Vendas() {
                               min="1"
                             />
                           </TableCell>
+                          <TableCell className="text-right">{formatCurrency(item.produto.preco_venda)}</TableCell>
                           <TableCell className="text-right">{formatCurrency(precoComDesconto)}</TableCell>
                           <TableCell className="text-center">
                             <Input
