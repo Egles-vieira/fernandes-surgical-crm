@@ -5596,6 +5596,7 @@ export type Database = {
           created_at: string
           desconto: number
           id: string
+          preco_tabela: number | null
           preco_unitario: number
           produto_id: string
           quantidade: number
@@ -5607,6 +5608,7 @@ export type Database = {
           created_at?: string
           desconto?: number
           id?: string
+          preco_tabela?: number | null
           preco_unitario: number
           produto_id: string
           quantidade: number
@@ -5618,6 +5620,7 @@ export type Database = {
           created_at?: string
           desconto?: number
           id?: string
+          preco_tabela?: number | null
           preco_unitario?: number
           produto_id?: string
           quantidade?: number
