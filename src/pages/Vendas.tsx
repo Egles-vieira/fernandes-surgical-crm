@@ -358,6 +358,21 @@ export default function Vendas() {
       return;
     }
 
+    // Validar campos obrigatórios
+    const camposObrigatorios = [];
+    if (!tipoPedidoId) camposObrigatorios.push("Tipo de Pedido");
+    if (!condicaoPagamentoId) camposObrigatorios.push("Condição de Pagamento");
+    if (!vendedorId) camposObrigatorios.push("Vendedor");
+
+    if (camposObrigatorios.length > 0) {
+      toast({
+        title: "Campos obrigatórios não preenchidos",
+        description: `Por favor, preencha: ${camposObrigatorios.join(", ")}`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     await calcularPedido(editandoVendaId);
   };
   const handleCancelarProposta = () => {
@@ -819,9 +834,11 @@ export default function Vendas() {
               </div>
 
               <div>
-                <Label>Condição de Pagamento</Label>
+                <Label className={!condicaoPagamentoId ? "text-destructive" : ""}>
+                  Condição de Pagamento *
+                </Label>
                 <Select value={condicaoPagamentoId} onValueChange={setCondicaoPagamentoId}>
-                  <SelectTrigger>
+                  <SelectTrigger className={!condicaoPagamentoId ? "border-destructive" : ""}>
                     <SelectValue placeholder="Selecione..." />
                   </SelectTrigger>
                   <SelectContent>
@@ -863,9 +880,11 @@ export default function Vendas() {
               </div>
 
               <div>
-                <Label>Tipo de Pedido</Label>
+                <Label className={!tipoPedidoId ? "text-destructive" : ""}>
+                  Tipo de Pedido *
+                </Label>
                 <Select value={tipoPedidoId} onValueChange={setTipoPedidoId}>
-                  <SelectTrigger>
+                  <SelectTrigger className={!tipoPedidoId ? "border-destructive" : ""}>
                     <SelectValue placeholder="Selecione..." />
                   </SelectTrigger>
                   <SelectContent>
@@ -979,12 +998,14 @@ export default function Vendas() {
 
               {ehGestor && (
                 <div>
-                  <Label>Vendedor Responsável</Label>
+                  <Label className={!vendedorId ? "text-destructive" : ""}>
+                    Vendedor Responsável *
+                  </Label>
                   <Select
                     value={vendedorId || "current"}
                     onValueChange={(v) => setVendedorId(v === "current" ? "" : v)}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className={!vendedorId ? "border-destructive" : ""}>
                       <SelectValue placeholder="Selecione o vendedor" />
                     </SelectTrigger>
                     <SelectContent className="z-50">
