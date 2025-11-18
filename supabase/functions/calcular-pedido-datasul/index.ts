@@ -315,7 +315,14 @@ Deno.serve(async (req) => {
       const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
       const supabase = createClient(supabaseUrl, supabaseKey);
 
-      const { venda_id } = await req.clone().json().catch(() => ({ venda_id: null }));
+      // Extrair venda_id do erro se disponível
+      let venda_id: string | null = null;
+      try {
+        const body = await req.json();
+        venda_id = body.venda_id;
+      } catch {
+        // Ignora se não conseguir parsear
+      }
 
       if (venda_id) {
         await supabase
