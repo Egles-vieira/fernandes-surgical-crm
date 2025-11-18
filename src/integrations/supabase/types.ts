@@ -3327,6 +3327,50 @@ export type Database = {
           },
         ]
       }
+      integracoes_totvs_calcula_pedido: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          id: string
+          numero_venda: string
+          request_payload: Json
+          response_payload: Json | null
+          status: string
+          tempo_resposta_ms: number | null
+          venda_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          numero_venda: string
+          request_payload: Json
+          response_payload?: Json | null
+          status: string
+          tempo_resposta_ms?: number | null
+          venda_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          numero_venda?: string
+          request_payload?: Json
+          response_payload?: Json | null
+          status?: string
+          tempo_resposta_ms?: number | null
+          venda_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integracoes_totvs_calcula_pedido_venda_id_fkey"
+            columns: ["venda_id"]
+            isOneToOne: false
+            referencedRelation: "vendas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       interacoes: {
         Row: {
           cliente_id: string | null
@@ -5442,6 +5486,7 @@ export type Database = {
           cliente_cnpj: string | null
           cliente_id: string | null
           cliente_nome: string
+          cod_emitente: number | null
           condicao_pagamento_id: string | null
           created_at: string
           data_fechamento_prevista: string | null
@@ -5474,6 +5519,7 @@ export type Database = {
           cliente_cnpj?: string | null
           cliente_id?: string | null
           cliente_nome: string
+          cod_emitente?: number | null
           condicao_pagamento_id?: string | null
           created_at?: string
           data_fechamento_prevista?: string | null
@@ -5506,6 +5552,7 @@ export type Database = {
           cliente_cnpj?: string | null
           cliente_id?: string | null
           cliente_nome?: string
+          cod_emitente?: number | null
           condicao_pagamento_id?: string | null
           created_at?: string
           data_fechamento_prevista?: string | null
