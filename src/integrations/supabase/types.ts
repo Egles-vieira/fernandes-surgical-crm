@@ -5506,6 +5506,10 @@ export type Database = {
           status: string
           tipo_frete_id: string | null
           tipo_pedido_id: string | null
+          ultima_integracao_datasul_em: string | null
+          ultima_integracao_datasul_requisicao: Json | null
+          ultima_integracao_datasul_resposta: Json | null
+          ultima_integracao_datasul_status: string | null
           updated_at: string
           user_id: string
           valor_estimado: number | null
@@ -5539,6 +5543,10 @@ export type Database = {
           status?: string
           tipo_frete_id?: string | null
           tipo_pedido_id?: string | null
+          ultima_integracao_datasul_em?: string | null
+          ultima_integracao_datasul_requisicao?: Json | null
+          ultima_integracao_datasul_resposta?: Json | null
+          ultima_integracao_datasul_status?: string | null
           updated_at?: string
           user_id: string
           valor_estimado?: number | null
@@ -5572,6 +5580,10 @@ export type Database = {
           status?: string
           tipo_frete_id?: string | null
           tipo_pedido_id?: string | null
+          ultima_integracao_datasul_em?: string | null
+          ultima_integracao_datasul_requisicao?: Json | null
+          ultima_integracao_datasul_resposta?: Json | null
+          ultima_integracao_datasul_status?: string | null
           updated_at?: string
           user_id?: string
           valor_estimado?: number | null
