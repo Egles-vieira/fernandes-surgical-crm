@@ -40,7 +40,7 @@ interface VendaItemData {
   produto_id: string;
   produtos: {
     referencia_interna: string;
-  }[] | null;
+  } | null;
 }
 
 Deno.serve(async (req) => {
@@ -149,7 +149,7 @@ Deno.serve(async (req) => {
     }
 
     // 6. Buscar itens da venda com produtos
-    const { data: itens, error: itensError } = await supabase
+    const { data: rawItens, error: itensError } = await supabase
       .from('vendas_itens')
       .select(`
         sequencia_item,
@@ -157,15 +157,31 @@ Deno.serve(async (req) => {
         preco_tabela,
         desconto,
         produto_id,
-        produtos!inner (
+        produtos (
           referencia_interna
         )
       `)
       .eq('venda_id', venda_id)
       .order('sequencia_item');
 
-    if (itensError || !itens || itens.length === 0) {
+    if (itensError) {
+      console.error('Erro ao buscar itens:', itensError);
+      throw new Error(`Erro ao buscar itens: ${itensError.message}`);
+    }
+
+    if (!rawItens || rawItens.length === 0) {
       throw new Error('Nenhum item encontrado na venda');
+    }
+
+    // Type cast para o tipo correto
+    const itens = rawItens as unknown as VendaItemData[];
+
+    console.log('Itens carregados:', JSON.stringify(itens, null, 2));
+
+    // Validar se todos os itens têm produto e referência
+    const itensSemProduto = itens.filter(item => !item.produtos || !item.produtos.referencia_interna);
+    if (itensSemProduto.length > 0) {
+      throw new Error(`Itens sem produto ou referência interna: ${itensSemProduto.map(i => i.sequencia_item).join(', ')}`);
     }
 
     // Validar campos obrigatórios
@@ -196,9 +212,12 @@ Deno.serve(async (req) => {
           'perc-desco1': 0.0,
           'fat-parcial': venda.faturamento_parcial === 'YES' ? 'S' : 'N',
           item: itens.map((item) => {
-            const produtoRef = Array.isArray(item.produtos) && item.produtos.length > 0 
-              ? item.produtos[0].referencia_interna 
-              : '';
+            // Acessar corretamente o objeto produto (não é um array)
+            const produtoRef = item.produtos?.referencia_interna || '';
+            
+            if (!produtoRef) {
+              console.warn(`Item ${item.sequencia_item} sem referência interna`);
+            }
             
             return {
               'nr-sequencia': item.sequencia_item,
