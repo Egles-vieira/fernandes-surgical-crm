@@ -211,7 +211,7 @@ Deno.serve(async (req) => {
       throw new Error(`Campos obrigatórios faltando: ${camposFaltando.join(", ")}`);
     }
 
-    // 7. Montar payload para Datasul (seguindo exatamente o formato do exemplo)
+    // 7. Montar payload para Datasul
     const datasulPayload = {
       pedido: [
         {
@@ -226,9 +226,8 @@ Deno.serve(async (req) => {
           "cod-rep": perfil.codigo_vendedor,
           "nr-tabpre": "SE-CFI",
           "perc-desco1": 0.0,
-          "fat-parcial": venda.faturamento_parcial === "YES" ? "yes" : "no",
+          "fat-parcial": venda.faturamento_parcial === "YES" ? "S" : "N",
           "item": itens.map((item) => {
-            // Acessar corretamente o objeto produto (não é um array)
             const produtoRef = item.produtos?.referencia_interna || "";
 
             if (!produtoRef) {
@@ -239,7 +238,7 @@ Deno.serve(async (req) => {
               "nr-sequencia": item.sequencia_item,
               "it-codigo": produtoRef,
               "cod-refer": "",
-              "nat-operacao": empresa.natureza_operacao,
+              "nat-operacao": "610809",
               "qt-pedida": item.quantidade,
               "vl-preuni": item.preco_tabela,
               "vl-pretab": item.preco_tabela,
