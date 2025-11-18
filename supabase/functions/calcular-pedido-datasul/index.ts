@@ -83,10 +83,21 @@ Deno.serve(async (req) => {
       .from('vendas')
       .select('id, numero_venda, cod_emitente, faturamento_parcial, tipo_pedido_id, condicao_pagamento_id, vendedor_id')
       .eq('id', venda_id)
-      .single<VendaData>();
+      .maybeSingle<VendaData>();
 
     if (vendaError || !venda) {
       throw new Error(`Venda não encontrada: ${vendaError?.message || 'ID inválido'}`);
+    }
+
+    // Validar campos obrigatórios da venda
+    if (!venda.tipo_pedido_id) {
+      throw new Error('Venda sem tipo de pedido definido. Por favor, selecione um tipo de pedido.');
+    }
+    if (!venda.condicao_pagamento_id) {
+      throw new Error('Venda sem condição de pagamento definida. Por favor, selecione uma condição de pagamento.');
+    }
+    if (!venda.vendedor_id) {
+      throw new Error('Venda sem vendedor definido. Por favor, selecione um vendedor.');
     }
 
     // 2. Buscar dados da empresa (assumindo uma empresa única)
@@ -94,10 +105,10 @@ Deno.serve(async (req) => {
       .from('empresas')
       .select('codigo_estabelecimento, natureza_operacao')
       .limit(1)
-      .single<EmpresaData>();
+      .maybeSingle<EmpresaData>();
 
     if (empresaError || !empresa) {
-      throw new Error('Dados da empresa não encontrados');
+      throw new Error('Dados da empresa não encontrados. Configure a empresa no sistema.');
     }
 
     // 3. Buscar tipo de pedido
@@ -105,10 +116,10 @@ Deno.serve(async (req) => {
       .from('tipos_pedido')
       .select('nome')
       .eq('id', venda.tipo_pedido_id)
-      .single<TipoPedidoData>();
+      .maybeSingle<TipoPedidoData>();
 
     if (tipoPedidoError || !tipoPedido) {
-      throw new Error('Tipo de pedido não encontrado');
+      throw new Error(`Tipo de pedido não encontrado (ID: ${venda.tipo_pedido_id}). Verifique se o tipo de pedido existe.`);
     }
 
     // 4. Buscar condição de pagamento
@@ -116,10 +127,10 @@ Deno.serve(async (req) => {
       .from('condicoes_pagamento')
       .select('codigo_integracao')
       .eq('id', venda.condicao_pagamento_id)
-      .single<CondicaoPagamentoData>();
+      .maybeSingle<CondicaoPagamentoData>();
 
     if (condicaoPagamentoError || !condicaoPagamento) {
-      throw new Error('Condição de pagamento não encontrada');
+      throw new Error(`Condição de pagamento não encontrada (ID: ${venda.condicao_pagamento_id}). Verifique se a condição de pagamento existe.`);
     }
 
     // 5. Buscar dados do vendedor
@@ -127,10 +138,14 @@ Deno.serve(async (req) => {
       .from('perfis_usuario')
       .select('codigo_vendedor')
       .eq('id', venda.vendedor_id)
-      .single<PerfilData>();
+      .maybeSingle<PerfilData>();
 
     if (perfilError || !perfil) {
-      throw new Error('Vendedor não encontrado');
+      throw new Error(`Vendedor não encontrado (ID: ${venda.vendedor_id}). Verifique se o vendedor existe.`);
+    }
+
+    if (!perfil.codigo_vendedor) {
+      throw new Error('Vendedor sem código de vendedor definido. Configure o código no perfil do vendedor.');
     }
 
     // 6. Buscar itens da venda com produtos
