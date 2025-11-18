@@ -211,13 +211,13 @@ Deno.serve(async (req) => {
       throw new Error(`Campos obrigatórios faltando: ${camposFaltando.join(", ")}`);
     }
 
-    // 7. Montar payload para Datasul
+    // 7. Montar payload para Datasul (seguindo exatamente o formato do exemplo)
     const datasulPayload = {
       pedido: [
         {
           "cod-emitente": venda.cod_emitente,
           "tipo-pedido": tipoPedido.nome,
-          cotacao: venda.numero_venda,
+          "cotacao": venda.numero_venda,
           "cod-estabel": empresa.codigo_estabelecimento,
           "nat-operacao": empresa.natureza_operacao,
           "cod-cond-pag": condicaoPagamento.codigo_integracao,
@@ -226,8 +226,8 @@ Deno.serve(async (req) => {
           "cod-rep": perfil.codigo_vendedor,
           "nr-tabpre": "SE-CFI",
           "perc-desco1": 0.0,
-          "fat-parcial": venda.faturamento_parcial === "YES" ? "S" : "N",
-          item: itens.map((item) => {
+          "fat-parcial": venda.faturamento_parcial === "YES" ? "yes" : "no",
+          "item": itens.map((item) => {
             // Acessar corretamente o objeto produto (não é um array)
             const produtoRef = item.produtos?.referencia_interna || "";
 
@@ -239,7 +239,7 @@ Deno.serve(async (req) => {
               "nr-sequencia": item.sequencia_item,
               "it-codigo": produtoRef,
               "cod-refer": "",
-              "nat-operacao": "610809",
+              "nat-operacao": empresa.natureza_operacao,
               "qt-pedida": item.quantidade,
               "vl-preuni": item.preco_tabela,
               "vl-pretab": item.preco_tabela,
