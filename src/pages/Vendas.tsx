@@ -532,6 +532,7 @@ export default function Vendas() {
             produto_id: item.produto.id,
             quantidade: item.quantidade,
             preco_unitario: item.produto.preco_venda,
+            preco_tabela: item.produto.preco_venda, // Preço de tabela
             desconto: item.desconto,
             valor_total: item.valor_total,
             sequencia_item: i + 1, // Adiciona sequência automática
@@ -624,6 +625,7 @@ export default function Vendas() {
                 produto_id: item.produto.id,
                 quantidade: item.quantidade,
                 preco_unitario: item.produto.preco_venda,
+                preco_tabela: item.produto.preco_venda, // Preço de tabela
                 desconto: item.desconto,
                 valor_total: item.valor_total,
                 sequencia_item: i + 1, // Adiciona sequência automática
@@ -1037,7 +1039,9 @@ export default function Vendas() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {carrinho.map((item, index) => (
+                      {carrinho.map((item, index) => {
+                        const precoComDesconto = item.produto.preco_venda * (1 - item.desconto / 100);
+                        return (
                         <TableRow key={index}>
                           <TableCell className="text-center font-semibold text-muted-foreground">{index + 1}</TableCell>
                           <TableCell className="font-mono">{item.produto.referencia_interna}</TableCell>
@@ -1051,7 +1055,7 @@ export default function Vendas() {
                               min="1"
                             />
                           </TableCell>
-                          <TableCell className="text-right">{formatCurrency(item.produto.preco_venda)}</TableCell>
+                          <TableCell className="text-right">{formatCurrency(precoComDesconto)}</TableCell>
                           <TableCell className="text-center">
                             <Input
                               type="number"
@@ -1069,7 +1073,7 @@ export default function Vendas() {
                             </Button>
                           </TableCell>
                         </TableRow>
-                      ))}
+                      )})}
                     </TableBody>
                   </Table>
                 </div>
