@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import type { Database } from "@/integrations/supabase/types";
 import { Search, Plus, Eye, Trash2, ShoppingCart, Save, Users, Edit, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -595,7 +596,7 @@ export default function Vendas() {
           condicao_pagamento_id: condicaoPagamentoId || null,
           tipo_frete_id: tipoFreteId || null,
           tipo_pedido_id: tipoPedidoId || null,
-          faturamento_parcial: faturamentoParcial ? 'YES' : 'NO',
+          faturamento_parcial: (faturamentoParcial ? 'YES' : 'NO') as Database["public"]["Enums"]["yes_no"],
           observacoes: observacoes || null,
           etapa_pipeline: etapaPipeline,
           valor_estimado: valorEstimado,
