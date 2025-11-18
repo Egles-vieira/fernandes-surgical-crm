@@ -5599,6 +5599,7 @@ export type Database = {
           preco_unitario: number
           produto_id: string
           quantidade: number
+          sequencia_item: number | null
           valor_total: number
           venda_id: string
         }
@@ -5609,6 +5610,7 @@ export type Database = {
           preco_unitario: number
           produto_id: string
           quantidade: number
+          sequencia_item?: number | null
           valor_total: number
           venda_id: string
         }
@@ -5619,6 +5621,7 @@ export type Database = {
           preco_unitario?: number
           produto_id?: string
           quantidade?: number
+          sequencia_item?: number | null
           valor_total?: number
           venda_id?: string
         }
