@@ -10,8 +10,12 @@ interface DatasulResponse {
   resumo?: {
     total_itens: number;
     total_lotes?: number;
+    lotes_processados?: number;
+    lotes_em_background?: number;
     tempo_resposta_ms: number;
   };
+  processamento_completo?: boolean;
+  mensagem?: string;
   lotes?: Array<{
     lote: number;
     tempo_ms: number;
@@ -86,10 +90,18 @@ export function useDatasulCalculaPedido() {
       
       const tempoSegundos = ((data.resumo?.tempo_resposta_ms || 0) / 1000).toFixed(1);
       const totalLotes = data.resumo?.total_lotes || 1;
+      const lotesBackground = data.resumo?.lotes_em_background || 0;
       
-      toast.success("Cálculo realizado com sucesso", {
-        description: `Pedido ${data.numero_venda} calculado em ${tempoSegundos}s${totalLotes > 1 ? ` (${totalLotes} lotes)` : ""}`,
-      });
+      if (lotesBackground > 0) {
+        toast.success("Cálculo iniciado com sucesso", {
+          description: `Primeiro lote calculado em ${tempoSegundos}s. ${lotesBackground} lote(s) sendo processados em background.`,
+          duration: 5000,
+        });
+      } else {
+        toast.success("Cálculo realizado com sucesso", {
+          description: `Pedido ${data.numero_venda} calculado em ${tempoSegundos}s`,
+        });
+      }
 
       // Invalida a query para atualizar o log automaticamente
       queryClient.invalidateQueries({ queryKey: ["integracao-datasul-log"] });

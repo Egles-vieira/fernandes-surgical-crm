@@ -283,8 +283,8 @@ Deno.serve(async (req) => {
       throw new Error(`Campos obrigatórios faltando: ${camposFaltando.join(", ")}`);
     }
 
-    // 8. BATCHING: Dividir itens em lotes de 100
-    const TAMANHO_LOTE = 100;
+    // 8. BATCHING: Dividir itens em lotes de 50 (reduzido para evitar timeout do proxy)
+    const TAMANHO_LOTE = 50;
     const lotesDeItens = dividirEmLotes(itens, TAMANHO_LOTE);
     const totalLotes = lotesDeItens.length;
     
@@ -298,8 +298,8 @@ Deno.serve(async (req) => {
     let indCreCli: string | null = null;
     let limiteDisponivel: number | null = null;
 
-    // Processar cada lote sequencialmente
-    for (let indiceLote = 0; indiceLote < lotesDeItens.length; indiceLote++) {
+    // Função para processar um lote
+    const processarLote = async (indiceLote: number) => {
       const lote = lotesDeItens[indiceLote];
       const numeroLote = indiceLote + 1;
       
@@ -394,7 +394,7 @@ Deno.serve(async (req) => {
           "Content-Type": "application/json",
         },
         body: payloadOrdenado,
-        signal: AbortSignal.timeout(60000), // 60 segundos por lote
+        signal: AbortSignal.timeout(25000), // 25 segundos para não exceder timeout do proxy (30s)
       });
 
       const tempoLote = Date.now() - inicioLote;
@@ -475,16 +475,101 @@ Deno.serve(async (req) => {
       });
 
       console.log(`  ✅ Lote ${numeroLote} concluído com sucesso`);
+      
+      return {
+        lote: numeroLote,
+        resposta: datasulData,
+        tempo_ms: tempoLote,
+        success: true,
+      };
+    };
+
+    // Processar APENAS o primeiro lote de forma síncrona
+    console.log("\n🚀 Processando primeiro lote de forma síncrona...");
+    
+    try {
+      const resultadoPrimeiroLote = await processarLote(0);
+      respostasConsolidadas.push(resultadoPrimeiroLote);
+      
+      // Se houver mais lotes, processar em background
+      if (totalLotes > 1) {
+        console.log(`\n⏳ ${totalLotes - 1} lote(s) restante(s) serão processados em background`);
+        
+        // Background task para processar lotes restantes
+        const processarLotesRestantes = async () => {
+          try {
+            for (let i = 1; i < totalLotes; i++) {
+              const resultado = await processarLote(i);
+              
+              // Atualizar itens deste lote
+              const datasulData = resultado.resposta;
+              if (datasulData && typeof datasulData === 'object') {
+                const retornoArray = datasulData.retorno || datasulData.pedido;
+                
+                if (Array.isArray(retornoArray) && retornoArray.length > 0) {
+                  for (const itemDatasul of retornoArray) {
+                    const nrSequencia = itemDatasul["nr-sequencia"];
+                    
+                    if (nrSequencia !== undefined && nrSequencia !== null) {
+                      const updateItemData: any = {
+                        datasul_dep_exp: itemDatasul["dep-exp"] ? Number(itemDatasul["dep-exp"]) : null,
+                        datasul_custo: itemDatasul["custo"] ? Number(itemDatasul["custo"]) : null,
+                        datasul_divisao: itemDatasul["divisao"] ? Number(itemDatasul["divisao"]) : null,
+                        datasul_vl_tot_item: itemDatasul["vl-tot-item"] ? Number(itemDatasul["vl-tot-item"]) : null,
+                        datasul_vl_merc_liq: itemDatasul["vl-merc-liq"] ? Number(itemDatasul["vl-merc-liq"]) : null,
+                        datasul_lote_mulven: itemDatasul["lote-mulven"] ? Number(itemDatasul["lote-mulven"]) : null,
+                      };
+                      
+                      await supabase
+                        .from("vendas_itens")
+                        .update(updateItemData)
+                        .eq("venda_id", venda.id)
+                        .eq("sequencia_item", nrSequencia);
+                    }
+                  }
+                }
+              }
+            }
+            
+            console.log(`\n🎉 Todos os ${totalLotes} lote(s) processados com sucesso em background`);
+            
+            // Atualizar venda com status final
+            await supabase.from("vendas").update({
+              ultima_integracao_datasul_status: "sucesso_completo",
+            }).eq("id", venda.id);
+            
+          } catch (bgError) {
+            console.error("Erro ao processar lotes em background:", bgError);
+            
+            // Marcar como parcialmente processado
+            await supabase.from("vendas").update({
+              ultima_integracao_datasul_status: "parcial",
+            }).eq("id", venda.id);
+          }
+        };
+        
+        // Iniciar processamento em background (não bloqueia a resposta)
+        // No Deno, a promise continua rodando mesmo após retornar resposta
+        processarLotesRestantes().catch(err => {
+          console.error("Erro crítico no processamento background:", err);
+        });
+      }
+      
+    } catch (erro) {
+      // Se o primeiro lote falhar, lançar erro imediatamente
+      throw erro;
     }
 
     const tempoTotal = Date.now() - startTime;
-    console.log(`\n🎉 Todos os ${totalLotes} lote(s) processados com sucesso em ${tempoTotal}ms`);
+    console.log(`\n⚡ Primeiro lote processado em ${tempoTotal}ms. ${totalLotes > 1 ? `${totalLotes - 1} lote(s) continuarão em background.` : ""}`);
 
-    // 9. Atualizar venda com dados consolidados
+    // 9. Atualizar venda com dados do primeiro lote
+    const statusIntegracao = totalLotes > 1 ? "processando" : "sucesso";
+    
     const updateData = {
       ultima_integracao_datasul_em: new Date().toISOString(),
       ultima_integracao_datasul_resposta: respostasConsolidadas,
-      ultima_integracao_datasul_status: "sucesso",
+      ultima_integracao_datasul_status: statusIntegracao,
       datasul_errornumber: errorNumber,
       datasul_errordescription: errorDescription,
       datasul_msg_credito: msgCredito,
@@ -494,9 +579,10 @@ Deno.serve(async (req) => {
 
     await supabase.from("vendas").update(updateData).eq("id", venda.id);
 
-    // 10. Atualizar itens com dados dos retornos
-    for (const respostaLote of respostasConsolidadas) {
-      const datasulData = respostaLote.resposta;
+    // 10. Atualizar itens do primeiro lote
+    const primeiroLote = respostasConsolidadas[0];
+    if (primeiroLote?.resposta) {
+      const datasulData = primeiroLote.resposta;
       
       if (datasulData && typeof datasulData === 'object') {
         const retornoArray = datasulData.retorno || datasulData.pedido;
@@ -507,43 +593,13 @@ Deno.serve(async (req) => {
             
             if (nrSequencia !== undefined && nrSequencia !== null) {
               const updateItemData: any = {
-                datasul_dep_exp: null,
-                datasul_custo: null,
-                datasul_divisao: null,
-                datasul_vl_tot_item: null,
-                datasul_vl_merc_liq: null,
-                datasul_lote_mulven: null,
+                datasul_dep_exp: itemDatasul["dep-exp"] ? Number(itemDatasul["dep-exp"]) : null,
+                datasul_custo: itemDatasul["custo"] ? Number(itemDatasul["custo"]) : null,
+                datasul_divisao: itemDatasul["divisao"] ? Number(itemDatasul["divisao"]) : null,
+                datasul_vl_tot_item: itemDatasul["vl-tot-item"] ? Number(itemDatasul["vl-tot-item"]) : null,
+                datasul_vl_merc_liq: itemDatasul["vl-merc-liq"] ? Number(itemDatasul["vl-merc-liq"]) : null,
+                datasul_lote_mulven: itemDatasul["lote-mulven"] ? Number(itemDatasul["lote-mulven"]) : null,
               };
-              
-              if (itemDatasul["dep-exp"] !== undefined && itemDatasul["dep-exp"] !== null) {
-                const depExp = Number(itemDatasul["dep-exp"]);
-                updateItemData.datasul_dep_exp = isNaN(depExp) ? null : depExp;
-              }
-              
-              if (itemDatasul["custo"] !== undefined && itemDatasul["custo"] !== null) {
-                const custo = Number(itemDatasul["custo"]);
-                updateItemData.datasul_custo = isNaN(custo) ? null : custo;
-              }
-              
-              if (itemDatasul["divisao"] !== undefined && itemDatasul["divisao"] !== null) {
-                const divisao = Number(itemDatasul["divisao"]);
-                updateItemData.datasul_divisao = isNaN(divisao) ? null : divisao;
-              }
-              
-              if (itemDatasul["vl-tot-item"] !== undefined && itemDatasul["vl-tot-item"] !== null) {
-                const vlTotItem = Number(itemDatasul["vl-tot-item"]);
-                updateItemData.datasul_vl_tot_item = isNaN(vlTotItem) ? null : vlTotItem;
-              }
-              
-              if (itemDatasul["vl-merc-liq"] !== undefined && itemDatasul["vl-merc-liq"] !== null) {
-                const vlMercLiq = Number(itemDatasul["vl-merc-liq"]);
-                updateItemData.datasul_vl_merc_liq = isNaN(vlMercLiq) ? null : vlMercLiq;
-              }
-              
-              if (itemDatasul["lote-mulven"] !== undefined && itemDatasul["lote-mulven"] !== null) {
-                const loteMulven = Number(itemDatasul["lote-mulven"]);
-                updateItemData.datasul_lote_mulven = isNaN(loteMulven) ? null : loteMulven;
-              }
               
               await supabase
                 .from("vendas_itens")
@@ -556,7 +612,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    // 11. Retornar sucesso com informações consolidadas
+    // 11. Retornar sucesso imediato (lotes adicionais processando em background)
     return new Response(
       JSON.stringify({
         success: true,
@@ -565,12 +621,14 @@ Deno.serve(async (req) => {
         resumo: {
           total_itens: itens.length,
           total_lotes: totalLotes,
+          lotes_processados: 1,
+          lotes_em_background: totalLotes - 1,
           tempo_resposta_ms: tempoTotal,
         },
-        lotes: respostasConsolidadas.map(r => ({
-          lote: r.lote,
-          tempo_ms: r.tempo_ms,
-        })),
+        processamento_completo: totalLotes === 1,
+        mensagem: totalLotes > 1 
+          ? `Primeiro lote (${TAMANHO_LOTE} itens) calculado. ${totalLotes - 1} lote(s) restante(s) sendo processados em background.`
+          : "Cálculo concluído com sucesso.",
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
