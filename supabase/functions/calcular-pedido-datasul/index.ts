@@ -242,8 +242,16 @@ Deno.serve(async (req) => {
       }
     };
 
-    // Iniciar background processing SEM AWAIT
-    processarTodosLotes();
+    // Registrar tarefa em background para garantir execução completa
+    const runtime = (globalThis as any).EdgeRuntime;
+    if (runtime?.waitUntil) {
+      runtime.waitUntil(processarTodosLotes());
+      console.log("Background task registered with EdgeRuntime.waitUntil");
+    } else {
+      // Fallback para desenvolvimento local
+      processarTodosLotes();
+      console.log("Background task started without EdgeRuntime");
+    }
 
     // Retornar resposta IMEDIATA
     const tempoResposta = Date.now() - startTime;
