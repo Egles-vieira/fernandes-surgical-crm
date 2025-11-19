@@ -1169,30 +1169,30 @@ export default function Vendas() {
               <>
                 <div className="border rounded-lg">
                   <ScrollArea className="h-[600px] w-full">
-                  <Table className={
-                    density === "compact" ? "text-xs" :
-                    density === "comfortable" ? "text-base" : ""
-                  }>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className={`w-16 text-center ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}>Seq</TableHead>
-                        <TableHead className={density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}>Código</TableHead>
-                        <TableHead className={density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}>Produto</TableHead>
-                        <TableHead className={`text-center ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}>Qtd</TableHead>
-                        {visibleColumns.precoTabela && <TableHead className={`text-right ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}>Preço Tabela</TableHead>}
-                        {visibleColumns.precoUnit && <TableHead className={`text-right ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}>Preço Unit.</TableHead>}
-                        {visibleColumns.desconto && <TableHead className={`text-center ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}>Desc. %</TableHead>}
-                        {visibleColumns.total && <TableHead className={`text-right ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}>Total</TableHead>}
-                        {visibleColumns.custo && <TableHead className={`text-right ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}>Custo</TableHead>}
-                        {visibleColumns.divisao && <TableHead className={`text-right ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}>Divisão</TableHead>}
-                        {visibleColumns.vlTotalDS && <TableHead className={`text-right ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}>VL Total DS</TableHead>}
-                        {visibleColumns.vlMercLiq && <TableHead className={`text-right ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}>VL Merc Líq</TableHead>}
-                        {visibleColumns.loteMult && <TableHead className={`text-center ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}>Lote Mult</TableHead>}
-                        {visibleColumns.deposito && <TableHead className={`text-center ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}>Depósito</TableHead>}
-                        <TableHead className={`text-center ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}>Ações</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
+                    <Table className={
+                      density === "compact" ? "text-xs" :
+                      density === "comfortable" ? "text-base" : ""
+                    }>
+                      <TableHeader className="sticky top-0 z-10 bg-background">
+                        <TableRow>
+                          <TableHead className={`w-16 text-center ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}>Seq</TableHead>
+                          <TableHead className={density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}>Código</TableHead>
+                          <TableHead className={density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}>Produto</TableHead>
+                          <TableHead className={`text-center ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}>Qtd</TableHead>
+                          {visibleColumns.precoTabela && <TableHead className={`text-right ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}>Preço Tabela</TableHead>}
+                          {visibleColumns.precoUnit && <TableHead className={`text-right ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}>Preço Unit.</TableHead>}
+                          {visibleColumns.desconto && <TableHead className={`text-center ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}>Desc. %</TableHead>}
+                          {visibleColumns.total && <TableHead className={`text-right ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}>Total</TableHead>}
+                          {visibleColumns.custo && <TableHead className={`text-right ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}>Custo</TableHead>}
+                          {visibleColumns.divisao && <TableHead className={`text-right ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}>Divisão</TableHead>}
+                          {visibleColumns.vlTotalDS && <TableHead className={`text-right ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}>VL Total DS</TableHead>}
+                          {visibleColumns.vlMercLiq && <TableHead className={`text-right ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}>VL Merc Líq</TableHead>}
+                          {visibleColumns.loteMult && <TableHead className={`text-center ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}>Lote Mult</TableHead>}
+                          {visibleColumns.deposito && <TableHead className={`text-center ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}>Depósito</TableHead>}
+                          <TableHead className={`text-center ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}>Ações</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
                       {carrinho
                         .filter(item => {
                           if (!searchItemTerm) return true;
@@ -1279,8 +1279,8 @@ export default function Vendas() {
                           </TableCell>
                         </TableRow>
                       )})}
-                    </TableBody>
-                  </Table>
+                      </TableBody>
+                    </Table>
                   </ScrollArea>
                 </div>
 
