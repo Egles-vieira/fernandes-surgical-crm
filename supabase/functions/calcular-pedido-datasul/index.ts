@@ -50,6 +50,15 @@ function serializeOrderPayload(data: any): string {
   return JSON.stringify(ordered, null, 2);
 }
 
+// Função para dividir array em lotes
+function dividirEmLotes<T>(array: T[], tamanhoLote: number): T[][] {
+  const lotes: T[][] = [];
+  for (let i = 0; i < array.length; i += tamanhoLote) {
+    lotes.push(array.slice(i, i + tamanhoLote));
+  }
+  return lotes;
+}
+
 interface VendaData {
   id: string;
   numero_venda: string;
@@ -110,10 +119,6 @@ Deno.serve(async (req) => {
     
     if (!DATASUL_PROXY_URL) {
       throw new Error("URL do proxy Datasul não configurada. Configure DATASUL_PROXY_URL nas variáveis de ambiente.");
-    }
-
-    if (!DATASUL_USER || !DATASUL_PASS) {
-      throw new Error("Credenciais Datasul não configuradas");
     }
 
     // Obter venda_id do body
@@ -257,7 +262,7 @@ Deno.serve(async (req) => {
     // Type cast para o tipo correto
     const itens = rawItens as unknown as VendaItemData[];
 
-    console.log("Itens carregados:", JSON.stringify(itens, null, 2));
+    console.log(`📦 Total de itens a calcular: ${itens.length}`);
 
     // Validar se todos os itens têm produto e referência
     const itensSemProduto = itens.filter((item) => !item.produtos || !item.produtos.referencia_interna);
@@ -278,309 +283,225 @@ Deno.serve(async (req) => {
       throw new Error(`Campos obrigatórios faltando: ${camposFaltando.join(", ")}`);
     }
 
-    // 8. Montar payload para Datasul (ordem rigorosamente mantida)
-    const datasulPayload = {
-      pedido: [
-        {
-          "cod-emitente": Number(cliente.cod_emitente),
-          "tipo-pedido": tipoPedido.nome.toLowerCase(),
-          "cotacao": venda.numero_venda,
-          "cod-estabel": String(empresa.codigo_estabelecimento),
-          "nat-operacao": String(empresa.natureza_operacao),
-          "cod-cond-pag": Number(condicaoPagamento.codigo_integracao),
-          "cod-transp": 24249,
-          "vl-frete-inf": 0,
-          "cod-rep": Number(perfil.codigo_vendedor),
-          "nr-tabpre": "SE-CFI",
-          "perc-desco1": 0,
-          "fat-parcial": venda.faturamento_parcial === "YES",
-          "item": (() => {
-            const itensProcessados: any[] = [];
-            
-            const itensPayload = itens.map((item) => {
-              const produto = item.produtos;
-              const produtoRef = produto?.referencia_interna || "";
-              const precoOriginal = Number(item.preco_tabela);
-              let precoParaEnviar = precoOriginal;
-              const infoItem: any = { seq: item.sequencia_item, ref: produtoRef };
+    // 8. BATCHING: Dividir itens em lotes de 100
+    const TAMANHO_LOTE = 100;
+    const lotesDeItens = dividirEmLotes(itens, TAMANHO_LOTE);
+    const totalLotes = lotesDeItens.length;
+    
+    console.log(`🔄 Dividindo ${itens.length} itens em ${totalLotes} lote(s) de até ${TAMANHO_LOTE} itens`);
 
-              if (!produtoRef) {
-                infoItem.aviso = "sem_referencia";
-              }
-
-              // Calcular IPI se produto tributado
-              if (produto?.cod_trib_icms && produto.cod_trib_icms.trim() !== "") {
-                const aliquotaIpi = Number(produto.aliquota_ipi || 0);
-                
-                if (aliquotaIpi > 0) {
-                  precoParaEnviar = precoOriginal / (1 + aliquotaIpi / 100);
-                  infoItem.tributado = true;
-                  infoItem.ipi = aliquotaIpi;
-                  infoItem.preco_original = precoOriginal;
-                  infoItem.preco_ajustado = precoParaEnviar;
-                } else {
-                  infoItem.tributado = true;
-                  infoItem.sem_aliquota = true;
-                }
-              }
-              
-              itensProcessados.push(infoItem);
-
-              return {
-                "nr-sequencia": Number(item.sequencia_item),
-                "it-codigo": String(produtoRef),
-                "cod-refer": "",
-                "nat-operacao": String(empresa.natureza_operacao),
-                "qt-pedida": Number(item.quantidade),
-                "vl-preuni": precoParaEnviar,
-                "vl-pretab": precoParaEnviar,
-                "vl-preori": precoParaEnviar,
-                "vl-preco-base": precoParaEnviar,
-                "per-des-item": Number(item.desconto),
-              };
-            });
-
-            // Log consolidado após processamento
-            const itensTributados = itensProcessados.filter(i => i.tributado);
-            const itensComIPI = itensProcessados.filter(i => i.ipi);
-            const itensProblema = itensProcessados.filter(i => i.aviso || i.sem_aliquota);
-
-            console.log(`📦 Processamento de ${itensProcessados.length} itens concluído:`, {
-              total_itens: itensProcessados.length,
-              com_ipi_retirado: itensComIPI.length,
-              tributados_sem_aliquota: itensTributados.filter(i => i.sem_aliquota).length,
-              nao_tributados: itensProcessados.length - itensTributados.length,
-              avisos: itensProblema.length
-            });
-
-            if (itensComIPI.length > 0) {
-              console.log(`💰 Itens com IPI retirado (${itensComIPI.length}):`, 
-                itensComIPI.map(i => ({
-                  seq: i.seq,
-                  ref: i.ref,
-                  ipi: i.ipi + "%",
-                  original: i.preco_original.toFixed(2),
-                  ajustado: i.preco_ajustado.toFixed(2)
-                }))
-              );
-            }
-
-            if (itensProblema.length > 0) {
-              console.log(`⚠️ Itens com avisos (${itensProblema.length}):`, itensProblema);
-            }
-
-            return itensPayload;
-          })(),
-        },
-      ],
-    };
-
-    const payloadOrdenado = serializeOrderPayload(datasulPayload);
-    console.log("Payload montado (ordem garantida):", payloadOrdenado);
-
-    // 9. Enviar para Datasul
     const authHeader = btoa(`${DATASUL_USER}:${DATASUL_PASS}`);
-
-    console.log("Enviando requisição para Datasul via proxy:", DATASUL_PROXY_URL);
-
-    const datasulResponse = await fetch(DATASUL_PROXY_URL, {
-      method: "POST",
-      headers: {
-        Authorization: `Basic ${authHeader}`,
-        "Content-Type": "application/json",
-      },
-      body: payloadOrdenado,
-      signal: AbortSignal.timeout(60000), // 60 segundos timeout
-    });
-
-    const tempoResposta = Date.now() - startTime;
-
-    let datasulData = null;
-    let responseText = "";
-
-    try {
-      responseText = await datasulResponse.text();
-      datasulData = JSON.parse(responseText);
-    } catch (parseError) {
-      console.error("Erro ao fazer parse da resposta:", parseError);
-      datasulData = { raw: responseText };
-    }
-
-    console.log("Resposta Datasul recebida:", datasulResponse.status);
-
-    // 10. Armazenar log da integração
-    // IMPORTANTE: Armazenamos a string JSON diretamente para preservar a ordem dos campos
-    const logData = {
-      venda_id: venda.id,
-      numero_venda: venda.numero_venda,
-      request_payload: payloadOrdenado,
-      response_payload: datasulData,
-      status: datasulResponse.ok ? "sucesso" : "erro",
-      error_message: datasulResponse.ok ? null : `HTTP ${datasulResponse.status}: ${responseText}`,
-      tempo_resposta_ms: tempoResposta,
-    };
-
-    const { error: logError } = await supabase.from("integracoes_totvs_calcula_pedido").insert(logData);
-
-    if (logError) {
-      console.error("Erro ao salvar log:", logError);
-    }
-
-    // 11. Extrair informações do retorno do cálculo
-    // CRÍTICO: Sempre extrair e armazenar informações do último cálculo
+    const respostasConsolidadas: any[] = [];
     let errorNumber: number | null = null;
     let errorDescription: string | null = null;
     let msgCredito: string | null = null;
     let indCreCli: string | null = null;
     let limiteDisponivel: number | null = null;
 
-    try {
-      if (datasulData && typeof datasulData === 'object') {
-        // A resposta do Datasul vem com "retorno" e não "pedido"
-        const retornoArray = datasulData.retorno || datasulData.pedido;
-        
-        console.log("Estrutura da resposta Datasul:", { 
-          temRetorno: !!datasulData.retorno, 
-          temPedido: !!datasulData.pedido,
-          tipo: Array.isArray(retornoArray) ? 'array' : typeof retornoArray
-        });
-        
-        if (Array.isArray(retornoArray) && retornoArray.length > 0) {
-          // Pegar primeiro item do array de retorno
-          const itemRetorno = retornoArray[0];
-          
-          console.log("Primeiro item do retorno:", {
-            errornumber: itemRetorno.errornumber,
-            errordescription: itemRetorno.errordescription,
-            msgCredito: itemRetorno["msg-credito"],
-            indCreCli: itemRetorno["ind-cre-cli"],
-            limiteDisp: itemRetorno["limite-disponivel"]
-          });
-          
-          // Extrair errornumber (pode ser number ou string)
-          if (itemRetorno.errornumber !== undefined && itemRetorno.errornumber !== null) {
-            const errorNum = Number(itemRetorno.errornumber);
-            errorNumber = isNaN(errorNum) ? null : errorNum;
-          }
-          
-          // Extrair errordescription
-          if (itemRetorno.errordescription !== undefined && itemRetorno.errordescription !== null) {
-            const desc = String(itemRetorno.errordescription).trim();
-            errorDescription = desc === "" ? null : desc;
-          }
-          
-          // Extrair msg-credito
-          if (itemRetorno["msg-credito"] !== undefined && itemRetorno["msg-credito"] !== null) {
-            msgCredito = String(itemRetorno["msg-credito"]).trim() || null;
-          }
-          
-          // Extrair ind-cre-cli (CRÍTICO - sempre salvar)
-          if (itemRetorno["ind-cre-cli"] !== undefined && itemRetorno["ind-cre-cli"] !== null) {
-            indCreCli = String(itemRetorno["ind-cre-cli"]).trim() || null;
-          }
-          
-          // Extrair limite-disponivel
-          if (itemRetorno["limite-disponivel"] !== undefined && itemRetorno["limite-disponivel"] !== null) {
-            const limite = Number(itemRetorno["limite-disponivel"]);
-            limiteDisponivel = isNaN(limite) ? null : limite;
-          }
-          
-          console.log("Dados extraídos do retorno Datasul:", {
-            errorNumber,
-            errorDescription,
-            msgCredito,
-            indCreCli,
-            limiteDisponivel
-          });
-        } else {
-          console.warn("Resposta Datasul sem array de retorno válido");
-        }
-      }
-    } catch (extractError) {
-      console.error("Erro ao extrair dados do retorno Datasul:", extractError);
-      // Continua mesmo com erro na extração para não quebrar o fluxo
-    }
-
-    // 12. Atualizar campos de última integração na venda
-    // CRÍTICO: Usar múltiplas tentativas para garantir que os dados sejam salvos
-    let updateSuccess = false;
-    let updateAttempts = 0;
-    const maxUpdateAttempts = 3;
-    
-    while (!updateSuccess && updateAttempts < maxUpdateAttempts) {
-      updateAttempts++;
+    // Processar cada lote sequencialmente
+    for (let indiceLote = 0; indiceLote < lotesDeItens.length; indiceLote++) {
+      const lote = lotesDeItens[indiceLote];
+      const numeroLote = indiceLote + 1;
       
-      try {
-        const updateData = {
-          ultima_integracao_datasul_em: new Date().toISOString(),
-          ultima_integracao_datasul_requisicao: payloadOrdenado,
-          ultima_integracao_datasul_resposta: datasulData,
-          ultima_integracao_datasul_status: datasulResponse.ok ? "sucesso" : "erro",
-          datasul_errornumber: errorNumber,
-          datasul_errordescription: errorDescription,
-          datasul_msg_credito: msgCredito,
-          datasul_ind_cre_cli: indCreCli,
-          datasul_limite_disponivel: limiteDisponivel,
-        };
-        
-        console.log(`Tentativa ${updateAttempts} de ${maxUpdateAttempts} de atualizar venda com dados do cálculo`);
-        
-        const { error: updateError } = await supabase
-          .from("vendas")
-          .update(updateData)
-          .eq("id", venda.id);
+      console.log(`\n📨 Processando lote ${numeroLote}/${totalLotes} (${lote.length} itens)`);
+      
+      const inicioLote = Date.now();
 
-        if (updateError) {
-          console.error(`Erro na tentativa ${updateAttempts}:`, updateError);
-          
-          if (updateAttempts >= maxUpdateAttempts) {
-            // Última tentativa falhou - logar erro crítico mas não quebrar fluxo
-            console.error("ERRO CRÍTICO: Falha ao atualizar venda após todas as tentativas:", updateError);
-          } else {
-            // Aguardar antes de tentar novamente
-            await new Promise(resolve => setTimeout(resolve, 500 * updateAttempts));
-          }
-        } else {
-          updateSuccess = true;
-          console.log("Venda atualizada com sucesso com dados do cálculo Datasul");
+      // Processar itens do lote atual
+      const itensProcessados: any[] = [];
+      const itensTributados = lote.filter(item => item.produtos?.cod_trib_icms && item.produtos.cod_trib_icms.trim() !== "");
+      
+      const itensPayload = lote.map((item) => {
+        const produto = item.produtos;
+        const produtoRef = produto?.referencia_interna || "";
+        const precoOriginal = Number(item.preco_tabela);
+        let precoParaEnviar = precoOriginal;
+        const infoItem: any = { seq: item.sequencia_item, ref: produtoRef };
+
+        if (!produtoRef) {
+          infoItem.aviso = "sem_referencia";
         }
-      } catch (updateException) {
-        console.error(`Exceção na tentativa ${updateAttempts}:`, updateException);
+
+        // Calcular IPI se produto tributado
+        if (produto?.cod_trib_icms && produto.cod_trib_icms.trim() !== "") {
+          const aliquotaIpi = Number(produto.aliquota_ipi || 0);
+          
+          if (aliquotaIpi > 0) {
+            precoParaEnviar = precoOriginal / (1 + aliquotaIpi / 100);
+            infoItem.tributado = true;
+            infoItem.ipi = aliquotaIpi;
+            infoItem.preco_original = precoOriginal;
+            infoItem.preco_ajustado = precoParaEnviar;
+          } else {
+            infoItem.tributado = true;
+            infoItem.sem_aliquota = true;
+          }
+        }
         
-        if (updateAttempts >= maxUpdateAttempts) {
-          console.error("ERRO CRÍTICO: Exceção ao atualizar venda após todas as tentativas:", updateException);
-        } else {
-          await new Promise(resolve => setTimeout(resolve, 500 * updateAttempts));
+        itensProcessados.push(infoItem);
+
+        return {
+          "nr-sequencia": Number(item.sequencia_item),
+          "it-codigo": String(produtoRef),
+          "cod-refer": "",
+          "nat-operacao": String(empresa.natureza_operacao),
+          "qt-pedida": Number(item.quantidade),
+          "vl-preuni": precoParaEnviar,
+          "vl-pretab": precoParaEnviar,
+          "vl-preori": precoParaEnviar,
+          "vl-preco-base": precoParaEnviar,
+          "per-des-item": Number(item.desconto),
+        };
+      });
+
+      const itensComIPI = itensProcessados.filter(i => i.ipi);
+      const itensProblema = itensProcessados.filter(i => i.aviso || i.sem_aliquota);
+
+      console.log(`  ├─ Itens processados: ${itensProcessados.length}`);
+      console.log(`  ├─ Com IPI retirado: ${itensComIPI.length}`);
+      console.log(`  └─ Com avisos: ${itensProblema.length}`);
+
+      // Montar payload para este lote
+      const datasulPayload = {
+        pedido: [
+          {
+            "cod-emitente": Number(cliente.cod_emitente),
+            "tipo-pedido": tipoPedido.nome.toLowerCase(),
+            "cotacao": venda.numero_venda,
+            "cod-estabel": String(empresa.codigo_estabelecimento),
+            "nat-operacao": String(empresa.natureza_operacao),
+            "cod-cond-pag": Number(condicaoPagamento.codigo_integracao),
+            "cod-transp": 24249,
+            "vl-frete-inf": 0,
+            "cod-rep": Number(perfil.codigo_vendedor),
+            "nr-tabpre": "SE-CFI",
+            "perc-desco1": 0,
+            "fat-parcial": venda.faturamento_parcial === "YES",
+            "item": itensPayload,
+          },
+        ],
+      };
+
+      const payloadOrdenado = serializeOrderPayload(datasulPayload);
+
+      // Enviar para Datasul
+      console.log(`  📡 Enviando lote ${numeroLote} para Datasul...`);
+      
+      const datasulResponse = await fetch(DATASUL_PROXY_URL, {
+        method: "POST",
+        headers: {
+          Authorization: `Basic ${authHeader}`,
+          "Content-Type": "application/json",
+        },
+        body: payloadOrdenado,
+        signal: AbortSignal.timeout(60000), // 60 segundos por lote
+      });
+
+      const tempoLote = Date.now() - inicioLote;
+      console.log(`  ⏱️ Lote ${numeroLote} processado em ${tempoLote}ms`);
+
+      let datasulData = null;
+      let responseText = "";
+
+      try {
+        responseText = await datasulResponse.text();
+        datasulData = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error(`  ❌ Erro ao parsear resposta do lote ${numeroLote}:`, parseError);
+        datasulData = { raw: responseText };
+      }
+
+      // Log do lote
+      const logData = {
+        venda_id: venda.id,
+        numero_venda: `${venda.numero_venda}-LOTE${numeroLote}`,
+        request_payload: payloadOrdenado,
+        response_payload: datasulData,
+        status: datasulResponse.ok ? "sucesso" : "erro",
+        error_message: datasulResponse.ok ? null : `HTTP ${datasulResponse.status}: ${responseText}`,
+        tempo_resposta_ms: tempoLote,
+      };
+
+      await supabase.from("integracoes_totvs_calcula_pedido").insert(logData);
+
+      // Se erro, abortar tudo
+      if (!datasulResponse.ok) {
+        throw new Error(`Lote ${numeroLote}/${totalLotes} falhou: HTTP ${datasulResponse.status} - ${responseText}`);
+      }
+
+      // Extrair informações do primeiro lote (usado para validações de crédito)
+      if (numeroLote === 1) {
+        try {
+          if (datasulData && typeof datasulData === 'object') {
+            const retornoArray = datasulData.retorno || datasulData.pedido;
+            
+            if (Array.isArray(retornoArray) && retornoArray.length > 0) {
+              const itemRetorno = retornoArray[0];
+              
+              if (itemRetorno.errornumber !== undefined && itemRetorno.errornumber !== null) {
+                const errorNum = Number(itemRetorno.errornumber);
+                errorNumber = isNaN(errorNum) ? null : errorNum;
+              }
+              
+              if (itemRetorno.errordescription !== undefined && itemRetorno.errordescription !== null) {
+                const desc = String(itemRetorno.errordescription).trim();
+                errorDescription = desc === "" ? null : desc;
+              }
+              
+              if (itemRetorno["msg-credito"] !== undefined && itemRetorno["msg-credito"] !== null) {
+                msgCredito = String(itemRetorno["msg-credito"]).trim() || null;
+              }
+              
+              if (itemRetorno["ind-cre-cli"] !== undefined && itemRetorno["ind-cre-cli"] !== null) {
+                indCreCli = String(itemRetorno["ind-cre-cli"]).trim() || null;
+              }
+              
+              if (itemRetorno["limite-disponivel"] !== undefined && itemRetorno["limite-disponivel"] !== null) {
+                const limite = Number(itemRetorno["limite-disponivel"]);
+                limiteDisponivel = isNaN(limite) ? null : limite;
+              }
+            }
+          }
+        } catch (extractError) {
+          console.error("Erro ao extrair dados do lote 1:", extractError);
         }
       }
+
+      // Armazenar resposta consolidada
+      respostasConsolidadas.push({
+        lote: numeroLote,
+        resposta: datasulData,
+        tempo_ms: tempoLote,
+      });
+
+      console.log(`  ✅ Lote ${numeroLote} concluído com sucesso`);
     }
 
-    // 13. Se houve erro no Datasul, retornar erro
-    if (!datasulResponse.ok) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: `Erro Datasul: HTTP ${datasulResponse.status}`,
-          details: responseText,
-          log_id: logData,
-        }),
-        {
-          status: datasulResponse.status,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
-    }
+    const tempoTotal = Date.now() - startTime;
+    console.log(`\n🎉 Todos os ${totalLotes} lote(s) processados com sucesso em ${tempoTotal}ms`);
 
-    // 14. Atualizar itens com dados do retorno Datasul
-    try {
+    // 9. Atualizar venda com dados consolidados
+    const updateData = {
+      ultima_integracao_datasul_em: new Date().toISOString(),
+      ultima_integracao_datasul_resposta: respostasConsolidadas,
+      ultima_integracao_datasul_status: "sucesso",
+      datasul_errornumber: errorNumber,
+      datasul_errordescription: errorDescription,
+      datasul_msg_credito: msgCredito,
+      datasul_ind_cre_cli: indCreCli,
+      datasul_limite_disponivel: limiteDisponivel,
+    };
+
+    await supabase.from("vendas").update(updateData).eq("id", venda.id);
+
+    // 10. Atualizar itens com dados dos retornos
+    for (const respostaLote of respostasConsolidadas) {
+      const datasulData = respostaLote.resposta;
+      
       if (datasulData && typeof datasulData === 'object') {
         const retornoArray = datasulData.retorno || datasulData.pedido;
         
-        // IMPORTANTE: Cada objeto no array retorno É um item (não um pedido com itens dentro)
         if (Array.isArray(retornoArray) && retornoArray.length > 0) {
-          console.log(`Atualizando ${retornoArray.length} itens com dados do retorno Datasul`);
-          
-          // Cada elemento do array retorno é um item
           for (const itemDatasul of retornoArray) {
             const nrSequencia = itemDatasul["nr-sequencia"];
             
@@ -594,7 +515,6 @@ Deno.serve(async (req) => {
                 datasul_lote_mulven: null,
               };
               
-              // Extrair campos se existirem
               if (itemDatasul["dep-exp"] !== undefined && itemDatasul["dep-exp"] !== null) {
                 const depExp = Number(itemDatasul["dep-exp"]);
                 updateItemData.datasul_dep_exp = isNaN(depExp) ? null : depExp;
@@ -625,45 +545,32 @@ Deno.serve(async (req) => {
                 updateItemData.datasul_lote_mulven = isNaN(loteMulven) ? null : loteMulven;
               }
               
-              // Atualizar item por sequência
-              const { error: updateItemError } = await supabase
+              await supabase
                 .from("vendas_itens")
                 .update(updateItemData)
                 .eq("venda_id", venda.id)
                 .eq("sequencia_item", nrSequencia);
-              
-              if (updateItemError) {
-                console.error(`Erro ao atualizar item sequência ${nrSequencia}:`, updateItemError);
-              } else {
-                console.log(`Item ${nrSequencia} atualizado com sucesso`);
-              }
             }
           }
-          
-          console.log("✅ Todos os itens atualizados com dados do retorno Datasul");
-        } else {
-          console.warn("Retorno Datasul sem array de itens");
         }
       }
-    } catch (updateItemsError) {
-      console.error("Erro ao atualizar itens com retorno Datasul:", updateItemsError);
-      // Não quebrar o fluxo, continua com sucesso
     }
 
-    // 15. Montar resumo de totais (extrair do retorno Datasul)
-    const resumo = {
-      total_itens: itens.length,
-      tempo_resposta_ms: tempoResposta,
-    };
-
-    // 16. Retornar sucesso
+    // 11. Retornar sucesso com informações consolidadas
     return new Response(
       JSON.stringify({
         success: true,
         venda_id: venda.id,
         numero_venda: venda.numero_venda,
-        resumo,
-        datasul_response: datasulData,
+        resumo: {
+          total_itens: itens.length,
+          total_lotes: totalLotes,
+          tempo_resposta_ms: tempoTotal,
+        },
+        lotes: respostasConsolidadas.map(r => ({
+          lote: r.lote,
+          tempo_ms: r.tempo_ms,
+        })),
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -679,41 +586,9 @@ Deno.serve(async (req) => {
     // Mensagens amigáveis para erros específicos
     if (error instanceof Error && (error.name === "TimeoutError" || errorMessage.includes("Signal timed out"))) {
       userFriendlyMessage =
-        "Timeout: O sistema Datasul não respondeu em tempo hábil (60s). Tente novamente ou contate o suporte.";
+        "Timeout: O sistema Datasul não respondeu em tempo hábil. Tente novamente ou contate o suporte.";
     } else if (errorMessage.includes("fetch failed") || errorMessage.includes("network")) {
       userFriendlyMessage = "Erro de conexão com o sistema Datasul. Verifique a conectividade de rede.";
-    } else if (errorMessage.includes("Venda sem")) {
-      userFriendlyMessage = errorMessage; // Já é amigável
-    }
-
-    // Tentar salvar log de erro se possível
-    try {
-      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-      const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-      const supabase = createClient(supabaseUrl, supabaseKey);
-
-      // Extrair venda_id do erro se disponível
-      let venda_id: string | null = null;
-      try {
-        const body = await req.json();
-        venda_id = body.venda_id;
-      } catch {
-        // Ignora se não conseguir parsear
-      }
-
-      if (venda_id) {
-        await supabase.from("integracoes_totvs_calcula_pedido").insert({
-          venda_id,
-          numero_venda: "ERRO",
-          request_payload: {},
-          response_payload: null,
-          status: "erro",
-          error_message: errorMessage,
-          tempo_resposta_ms: tempoDecorrido,
-        });
-      }
-    } catch (logError) {
-      console.error("Erro ao salvar log de erro:", logError);
     }
 
     return new Response(
