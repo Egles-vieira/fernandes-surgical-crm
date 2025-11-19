@@ -1167,13 +1167,13 @@ export default function Vendas() {
 
             {carrinho.length > 0 ? (
               <>
-                <ScrollArea className="h-[600px] border rounded-lg">
-                  <div className="overflow-x-auto">
+                <div className="border rounded-lg overflow-hidden">
+                  <div className="h-[600px] overflow-auto">
                     <Table className={
                       density === "compact" ? "text-xs" :
                       density === "comfortable" ? "text-base" : ""
                     }>
-                      <TableHeader className="sticky top-0 z-10 bg-background border-b">
+                      <TableHeader className="sticky top-0 z-10 bg-background shadow-sm">
                         <TableRow>
                           <TableHead className={`w-16 text-center ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}>Seq</TableHead>
                           <TableHead className={density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}>Código</TableHead>
@@ -1282,7 +1282,7 @@ export default function Vendas() {
                       </TableBody>
                     </Table>
                   </div>
-                </ScrollArea>
+                </div>
 
                 {/* Pagination for items */}
                 {carrinho.filter(item => {
