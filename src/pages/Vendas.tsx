@@ -11,6 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { supabase } from "@/integrations/supabase/client";
 import { useVendas } from "@/hooks/useVendas";
 import { useCondicoesPagamento } from "@/hooks/useCondicoesPagamento";
@@ -80,6 +81,10 @@ export default function Vendas() {
   const [showClienteSearch, setShowClienteSearch] = useState(false);
   const [editandoVendaId, setEditandoVendaId] = useState<string | null>(null);
   const [vendaParaAprovar, setVendaParaAprovar] = useState<{ id: string; numero: string; valor: number } | null>(null);
+  
+  // Pagination states for items table
+  const [currentItemsPage, setCurrentItemsPage] = useState(1);
+  const itemsPerPage = 20;
 
   // Filtros state
   const [filtros, setFiltros] = useState({
@@ -1156,18 +1161,21 @@ export default function Vendas() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {carrinho.map((item, index) => {
+                      {carrinho
+                        .slice((currentItemsPage - 1) * itemsPerPage, currentItemsPage * itemsPerPage)
+                        .map((item, index) => {
+                        const realIndex = (currentItemsPage - 1) * itemsPerPage + index;
                         const precoComDesconto = item.produto.preco_venda * (1 - item.desconto / 100);
                         return (
-                        <TableRow key={index}>
-                          <TableCell className="text-center font-semibold text-muted-foreground">{index + 1}</TableCell>
+                        <TableRow key={realIndex}>
+                          <TableCell className="text-center font-semibold text-muted-foreground">{realIndex + 1}</TableCell>
                           <TableCell className="font-mono">{item.produto.referencia_interna}</TableCell>
                           <TableCell>{item.produto.nome}</TableCell>
                           <TableCell className="text-center">
                             <Input
                               type="number"
                               value={item.quantidade}
-                              onChange={(e) => handleUpdateQuantidade(index, Number(e.target.value))}
+                              onChange={(e) => handleUpdateQuantidade(realIndex, Number(e.target.value))}
                               className="w-20 text-center"
                               min="1"
                             />
@@ -1183,7 +1191,7 @@ export default function Vendas() {
                               <Input
                                 type="number"
                                 value={item.desconto}
-                                onChange={(e) => handleUpdateDesconto(index, Number(e.target.value))}
+                                onChange={(e) => handleUpdateDesconto(realIndex, Number(e.target.value))}
                                 className="w-20 text-center"
                                 min="0"
                                 max="100"
@@ -1224,7 +1232,7 @@ export default function Vendas() {
                             </TableCell>
                           )}
                           <TableCell className="text-center">
-                            <Button variant="ghost" size="sm" onClick={() => handleRemoveItem(index)}>
+                            <Button variant="ghost" size="sm" onClick={() => handleRemoveItem(realIndex)}>
                               <Trash2 size={16} className="text-destructive" />
                             </Button>
                           </TableCell>
@@ -1233,6 +1241,57 @@ export default function Vendas() {
                     </TableBody>
                   </Table>
                 </div>
+
+                {/* Pagination for items */}
+                {carrinho.length > itemsPerPage && (
+                  <div className="flex items-center justify-between mt-4">
+                    <p className="text-sm text-muted-foreground">
+                      Mostrando {(currentItemsPage - 1) * itemsPerPage + 1} a {Math.min(currentItemsPage * itemsPerPage, carrinho.length)} de {carrinho.length} itens
+                    </p>
+                    <Pagination>
+                      <PaginationContent>
+                        <PaginationItem>
+                          <PaginationPrevious 
+                            onClick={() => setCurrentItemsPage(p => Math.max(1, p - 1))} 
+                            className={currentItemsPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"} 
+                          />
+                        </PaginationItem>
+                        
+                        {Array.from({ length: Math.min(5, Math.ceil(carrinho.length / itemsPerPage)) }, (_, i) => {
+                          const totalPages = Math.ceil(carrinho.length / itemsPerPage);
+                          let pageNum;
+                          if (totalPages <= 5) {
+                            pageNum = i + 1;
+                          } else if (currentItemsPage <= 3) {
+                            pageNum = i + 1;
+                          } else if (currentItemsPage >= totalPages - 2) {
+                            pageNum = totalPages - 4 + i;
+                          } else {
+                            pageNum = currentItemsPage - 2 + i;
+                          }
+                          return (
+                            <PaginationItem key={pageNum}>
+                              <PaginationLink 
+                                onClick={() => setCurrentItemsPage(pageNum)} 
+                                isActive={currentItemsPage === pageNum} 
+                                className="cursor-pointer"
+                              >
+                                {pageNum}
+                              </PaginationLink>
+                            </PaginationItem>
+                          );
+                        })}
+                        
+                        <PaginationItem>
+                          <PaginationNext 
+                            onClick={() => setCurrentItemsPage(p => Math.min(Math.ceil(carrinho.length / itemsPerPage), p + 1))} 
+                            className={currentItemsPage === Math.ceil(carrinho.length / itemsPerPage) ? "pointer-events-none opacity-50" : "cursor-pointer"} 
+                          />
+                        </PaginationItem>
+                      </PaginationContent>
+                    </Pagination>
+                  </div>
+                )}
 
                 <Separator className="my-4" />
 
