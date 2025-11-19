@@ -72,8 +72,17 @@ export function VendasActionBar({
             disabled={isCalculating}
             className="gap-2"
           >
-            <Calculator size={16} />
-            {isCalculating ? "Calculando..." : "Calcular"}
+            {isCalculating ? (
+              <>
+                <Loader2 className="animate-spin" size={16} />
+                Calculando...
+              </>
+            ) : (
+              <>
+                <Calculator size={16} />
+                Calcular
+              </>
+            )}
           </Button>
           
           <Button

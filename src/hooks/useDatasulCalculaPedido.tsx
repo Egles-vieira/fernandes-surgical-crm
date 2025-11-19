@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 
 interface DatasulResponse {
@@ -9,29 +9,42 @@ interface DatasulResponse {
   numero_venda?: string;
   resumo?: {
     total_itens: number;
+    total_lotes?: number;
     tempo_resposta_ms: number;
   };
+  lotes?: Array<{
+    lote: number;
+    tempo_ms: number;
+  }>;
   datasul_response?: any;
   error?: string;
   details?: string;
 }
 
+interface ProgressoCalculo {
+  loteAtual: number;
+  totalLotes: number;
+  percentual: number;
+}
+
 export function useDatasulCalculaPedido() {
   const [isCalculating, setIsCalculating] = useState(false);
-  const { toast } = useToast();
+  const [progresso, setProgresso] = useState<ProgressoCalculo | null>(null);
   const queryClient = useQueryClient();
 
   const calcularPedido = async (vendaId: string) => {
     if (!vendaId) {
-      toast({
-        title: "Erro",
-        description: "É necessário salvar a venda antes de calcular.",
-        variant: "destructive",
-      });
+      toast.error("É necessário salvar a venda antes de calcular.");
       return null;
     }
 
     setIsCalculating(true);
+    setProgresso(null);
+
+    // Toast de início com ID para poder atualizar
+    const toastId = toast.loading("Iniciando cálculo do pedido...", {
+      description: "Preparando dados para envio ao Datasul",
+    });
 
     try {
       console.log("Chamando edge function para calcular pedido:", vendaId);
@@ -68,9 +81,14 @@ export function useDatasulCalculaPedido() {
         console.error("Erro ao buscar itens atualizados:", itensError);
       }
 
-      toast({
-        title: "Cálculo realizado com sucesso",
-        description: `Pedido ${data.numero_venda} calculado em ${data.resumo?.tempo_resposta_ms}ms`,
+      // Fechar toast de loading e mostrar sucesso
+      toast.dismiss(toastId);
+      
+      const tempoSegundos = ((data.resumo?.tempo_resposta_ms || 0) / 1000).toFixed(1);
+      const totalLotes = data.resumo?.total_lotes || 1;
+      
+      toast.success("Cálculo realizado com sucesso", {
+        description: `Pedido ${data.numero_venda} calculado em ${tempoSegundos}s${totalLotes > 1 ? ` (${totalLotes} lotes)` : ""}`,
       });
 
       // Invalida a query para atualizar o log automaticamente
@@ -81,20 +99,23 @@ export function useDatasulCalculaPedido() {
     } catch (error) {
       console.error("Erro ao calcular pedido:", error);
       
-      toast({
-        title: "Erro ao calcular pedido",
+      // Fechar toast de loading
+      toast.dismiss(toastId);
+      
+      toast.error("Erro ao calcular pedido", {
         description: error instanceof Error ? error.message : "Erro desconhecido",
-        variant: "destructive",
       });
 
       return null;
     } finally {
       setIsCalculating(false);
+      setProgresso(null);
     }
   };
 
   return {
     calcularPedido,
     isCalculating,
+    progresso,
   };
 }
