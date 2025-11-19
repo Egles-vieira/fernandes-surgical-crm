@@ -576,75 +576,73 @@ Deno.serve(async (req) => {
       if (datasulData && typeof datasulData === 'object') {
         const retornoArray = datasulData.retorno || datasulData.pedido;
         
+        // IMPORTANTE: Cada objeto no array retorno É um item (não um pedido com itens dentro)
         if (Array.isArray(retornoArray) && retornoArray.length > 0) {
-          const itemRetorno = retornoArray[0];
+          console.log(`Atualizando ${retornoArray.length} itens com dados do retorno Datasul`);
           
-          // Verificar se há array de itens no retorno
-          if (itemRetorno.item && Array.isArray(itemRetorno.item)) {
-            console.log(`Atualizando ${itemRetorno.item.length} itens com dados do retorno Datasul`);
+          // Cada elemento do array retorno é um item
+          for (const itemDatasul of retornoArray) {
+            const nrSequencia = itemDatasul["nr-sequencia"];
             
-            // Atualizar cada item individualmente
-            for (const itemDatasul of itemRetorno.item) {
-              const nrSequencia = itemDatasul["nr-sequencia"];
+            if (nrSequencia !== undefined && nrSequencia !== null) {
+              const updateItemData: any = {
+                datasul_dep_exp: null,
+                datasul_custo: null,
+                datasul_divisao: null,
+                datasul_vl_tot_item: null,
+                datasul_vl_merc_liq: null,
+                datasul_lote_mulven: null,
+              };
               
-              if (nrSequencia !== undefined && nrSequencia !== null) {
-                const updateItemData: any = {
-                  datasul_dep_exp: null,
-                  datasul_custo: null,
-                  datasul_divisao: null,
-                  datasul_vl_tot_item: null,
-                  datasul_vl_merc_liq: null,
-                  datasul_lote_mulven: null,
-                };
-                
-                // Extrair campos se existirem
-                if (itemDatasul["dep-exp"] !== undefined && itemDatasul["dep-exp"] !== null) {
-                  const depExp = Number(itemDatasul["dep-exp"]);
-                  updateItemData.datasul_dep_exp = isNaN(depExp) ? null : depExp;
-                }
-                
-                if (itemDatasul["custo"] !== undefined && itemDatasul["custo"] !== null) {
-                  const custo = Number(itemDatasul["custo"]);
-                  updateItemData.datasul_custo = isNaN(custo) ? null : custo;
-                }
-                
-                if (itemDatasul["divisao"] !== undefined && itemDatasul["divisao"] !== null) {
-                  const divisao = Number(itemDatasul["divisao"]);
-                  updateItemData.datasul_divisao = isNaN(divisao) ? null : divisao;
-                }
-                
-                if (itemDatasul["vl-tot-item"] !== undefined && itemDatasul["vl-tot-item"] !== null) {
-                  const vlTotItem = Number(itemDatasul["vl-tot-item"]);
-                  updateItemData.datasul_vl_tot_item = isNaN(vlTotItem) ? null : vlTotItem;
-                }
-                
-                if (itemDatasul["vl-merc-liq"] !== undefined && itemDatasul["vl-merc-liq"] !== null) {
-                  const vlMercLiq = Number(itemDatasul["vl-merc-liq"]);
-                  updateItemData.datasul_vl_merc_liq = isNaN(vlMercLiq) ? null : vlMercLiq;
-                }
-                
-                if (itemDatasul["lote-mulven"] !== undefined && itemDatasul["lote-mulven"] !== null) {
-                  const loteMulven = Number(itemDatasul["lote-mulven"]);
-                  updateItemData.datasul_lote_mulven = isNaN(loteMulven) ? null : loteMulven;
-                }
-                
-                // Atualizar item por sequência
-                const { error: updateItemError } = await supabase
-                  .from("vendas_itens")
-                  .update(updateItemData)
-                  .eq("venda_id", venda.id)
-                  .eq("sequencia_item", nrSequencia);
-                
-                if (updateItemError) {
-                  console.error(`Erro ao atualizar item sequência ${nrSequencia}:`, updateItemError);
-                }
+              // Extrair campos se existirem
+              if (itemDatasul["dep-exp"] !== undefined && itemDatasul["dep-exp"] !== null) {
+                const depExp = Number(itemDatasul["dep-exp"]);
+                updateItemData.datasul_dep_exp = isNaN(depExp) ? null : depExp;
+              }
+              
+              if (itemDatasul["custo"] !== undefined && itemDatasul["custo"] !== null) {
+                const custo = Number(itemDatasul["custo"]);
+                updateItemData.datasul_custo = isNaN(custo) ? null : custo;
+              }
+              
+              if (itemDatasul["divisao"] !== undefined && itemDatasul["divisao"] !== null) {
+                const divisao = Number(itemDatasul["divisao"]);
+                updateItemData.datasul_divisao = isNaN(divisao) ? null : divisao;
+              }
+              
+              if (itemDatasul["vl-tot-item"] !== undefined && itemDatasul["vl-tot-item"] !== null) {
+                const vlTotItem = Number(itemDatasul["vl-tot-item"]);
+                updateItemData.datasul_vl_tot_item = isNaN(vlTotItem) ? null : vlTotItem;
+              }
+              
+              if (itemDatasul["vl-merc-liq"] !== undefined && itemDatasul["vl-merc-liq"] !== null) {
+                const vlMercLiq = Number(itemDatasul["vl-merc-liq"]);
+                updateItemData.datasul_vl_merc_liq = isNaN(vlMercLiq) ? null : vlMercLiq;
+              }
+              
+              if (itemDatasul["lote-mulven"] !== undefined && itemDatasul["lote-mulven"] !== null) {
+                const loteMulven = Number(itemDatasul["lote-mulven"]);
+                updateItemData.datasul_lote_mulven = isNaN(loteMulven) ? null : loteMulven;
+              }
+              
+              // Atualizar item por sequência
+              const { error: updateItemError } = await supabase
+                .from("vendas_itens")
+                .update(updateItemData)
+                .eq("venda_id", venda.id)
+                .eq("sequencia_item", nrSequencia);
+              
+              if (updateItemError) {
+                console.error(`Erro ao atualizar item sequência ${nrSequencia}:`, updateItemError);
+              } else {
+                console.log(`Item ${nrSequencia} atualizado com sucesso`);
               }
             }
-            
-            console.log("Itens atualizados com dados do retorno Datasul");
-          } else {
-            console.warn("Retorno Datasul sem array de itens");
           }
+          
+          console.log("✅ Todos os itens atualizados com dados do retorno Datasul");
+        } else {
+          console.warn("Retorno Datasul sem array de itens");
         }
       }
     } catch (updateItemsError) {
