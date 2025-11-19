@@ -83,61 +83,17 @@ export default function Vendas() {
   const [editandoVendaId, setEditandoVendaId] = useState<string | null>(null);
   const [vendaParaAprovar, setVendaParaAprovar] = useState<{ id: string; numero: string; valor: number } | null>(null);
   
-  // Auto-save hook - precisa estar após editandoVendaId
-  const { hasUnsavedChanges, isSaving: isAutoSaving, triggerAutoSave, clearAutoSave } = useAutoSave({
-    delay: 3000, // 3 segundos para evitar salvamentos excessivos
-    onSave: async () => {
-      if (!editandoVendaId || !clienteCnpj) return;
-      
-      try {
-        // Função otimizada de auto-save - apenas atualiza sem validações pesadas
-        const valorTotalCalculado = carrinho.reduce((acc, item) => acc + item.valor_total, 0);
-
-        // Normalizar CNPJ/CPF
-        const clienteCnpjNormalizado = clienteCnpj?.replace(/\D/g, '') || '';
-
-        // Buscar cliente_id
-        const { data: clienteData } = await supabase
-          .from('clientes')
-          .select('id')
-          .eq('cgc', clienteCnpjNormalizado)
-          .maybeSingle();
-
-        if (!clienteData) return;
-
-        // Atualizar venda (silenciosamente, sem toast)
-        await updateVenda.mutateAsync({
-          id: editandoVendaId,
-          numero_venda: numeroVenda,
-          cliente_id: clienteData.id,
-          cliente_nome: clienteNome,
-          cliente_cnpj: clienteCnpjNormalizado,
-          valor_total: valorTotalCalculado,
-          desconto: 0,
-          valor_final: valorTotalCalculado,
-          status: status,
-          condicao_pagamento_id: condicaoPagamentoId || undefined,
-          tipo_frete_id: tipoFreteId || undefined,
-          tipo_pedido_id: tipoPedidoId || undefined,
-          faturamento_parcial: faturamentoParcial ? "YES" : "NO",
-          observacoes: observacoes || undefined,
-          etapa_pipeline: etapaPipeline,
-          valor_estimado: valorEstimado,
-          probabilidade: probabilidade,
-          data_fechamento_prevista: dataFechamentoPrevista || undefined,
-          motivo_perda: motivoPerda || undefined,
-          origem_lead: origemLead || undefined,
-          responsavel_id: responsavelId || undefined,
-          vendedor_id: vendedorId || undefined,
-        });
-
-        console.log("✅ Auto-save concluído");
-      } catch (error) {
-        console.error("❌ Erro no auto-save:", error);
-      }
-    },
-    isEnabled: !!editandoVendaId,
-  });
+  // Auto-save desabilitado - vamos salvar apenas manualmente
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [isAutoSaving, setIsAutoSaving] = useState(false);
+  
+  const triggerAutoSave = () => {
+    setHasUnsavedChanges(true);
+  };
+  
+  const clearAutoSave = () => {
+    setHasUnsavedChanges(false);
+  };
 
   // Filtros state
   const [filtros, setFiltros] = useState({
@@ -470,12 +426,12 @@ export default function Vendas() {
       return;
     }
     
+    // Se houver alterações não salvas, salvar primeiro
     if (hasUnsavedChanges) {
-      toast({
-        title: "Alterações não salvas",
-        description: "Aguarde enquanto as alterações são salvas automaticamente...",
-      });
-      return;
+      setIsAutoSaving(true);
+      await handleSalvarVenda();
+      setIsAutoSaving(false);
+      clearAutoSave();
     }
 
     const resultado = await calcularPedido(editandoVendaId);
