@@ -26,7 +26,8 @@ export function useAutoSave({ delay = 2000, onSave, isEnabled = true }: UseAutoS
         await onSave();
         setHasUnsavedChanges(false);
       } catch (error) {
-        console.error("Auto-save error:", error);
+        console.error("❌ Auto-save error:", error);
+        // Não mostrar erro ao usuário, apenas logar
       } finally {
         setIsSaving(false);
       }
