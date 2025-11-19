@@ -571,13 +571,94 @@ Deno.serve(async (req) => {
       );
     }
 
-    // 14. Montar resumo de totais (extrair do retorno Datasul)
+    // 14. Atualizar itens com dados do retorno Datasul
+    try {
+      if (datasulData && typeof datasulData === 'object') {
+        const retornoArray = datasulData.retorno || datasulData.pedido;
+        
+        if (Array.isArray(retornoArray) && retornoArray.length > 0) {
+          const itemRetorno = retornoArray[0];
+          
+          // Verificar se há array de itens no retorno
+          if (itemRetorno.item && Array.isArray(itemRetorno.item)) {
+            console.log(`Atualizando ${itemRetorno.item.length} itens com dados do retorno Datasul`);
+            
+            // Atualizar cada item individualmente
+            for (const itemDatasul of itemRetorno.item) {
+              const nrSequencia = itemDatasul["nr-sequencia"];
+              
+              if (nrSequencia !== undefined && nrSequencia !== null) {
+                const updateItemData: any = {
+                  datasul_dep_exp: null,
+                  datasul_custo: null,
+                  datasul_divisao: null,
+                  datasul_vl_tot_item: null,
+                  datasul_vl_merc_liq: null,
+                  datasul_lote_mulven: null,
+                };
+                
+                // Extrair campos se existirem
+                if (itemDatasul["dep-exp"] !== undefined && itemDatasul["dep-exp"] !== null) {
+                  const depExp = Number(itemDatasul["dep-exp"]);
+                  updateItemData.datasul_dep_exp = isNaN(depExp) ? null : depExp;
+                }
+                
+                if (itemDatasul["custo"] !== undefined && itemDatasul["custo"] !== null) {
+                  const custo = Number(itemDatasul["custo"]);
+                  updateItemData.datasul_custo = isNaN(custo) ? null : custo;
+                }
+                
+                if (itemDatasul["divisao"] !== undefined && itemDatasul["divisao"] !== null) {
+                  const divisao = Number(itemDatasul["divisao"]);
+                  updateItemData.datasul_divisao = isNaN(divisao) ? null : divisao;
+                }
+                
+                if (itemDatasul["vl-tot-item"] !== undefined && itemDatasul["vl-tot-item"] !== null) {
+                  const vlTotItem = Number(itemDatasul["vl-tot-item"]);
+                  updateItemData.datasul_vl_tot_item = isNaN(vlTotItem) ? null : vlTotItem;
+                }
+                
+                if (itemDatasul["vl-merc-liq"] !== undefined && itemDatasul["vl-merc-liq"] !== null) {
+                  const vlMercLiq = Number(itemDatasul["vl-merc-liq"]);
+                  updateItemData.datasul_vl_merc_liq = isNaN(vlMercLiq) ? null : vlMercLiq;
+                }
+                
+                if (itemDatasul["lote-mulven"] !== undefined && itemDatasul["lote-mulven"] !== null) {
+                  const loteMulven = Number(itemDatasul["lote-mulven"]);
+                  updateItemData.datasul_lote_mulven = isNaN(loteMulven) ? null : loteMulven;
+                }
+                
+                // Atualizar item por sequência
+                const { error: updateItemError } = await supabase
+                  .from("vendas_itens")
+                  .update(updateItemData)
+                  .eq("venda_id", venda.id)
+                  .eq("sequencia_item", nrSequencia);
+                
+                if (updateItemError) {
+                  console.error(`Erro ao atualizar item sequência ${nrSequencia}:`, updateItemError);
+                }
+              }
+            }
+            
+            console.log("Itens atualizados com dados do retorno Datasul");
+          } else {
+            console.warn("Retorno Datasul sem array de itens");
+          }
+        }
+      }
+    } catch (updateItemsError) {
+      console.error("Erro ao atualizar itens com retorno Datasul:", updateItemsError);
+      // Não quebrar o fluxo, continua com sucesso
+    }
+
+    // 15. Montar resumo de totais (extrair do retorno Datasul)
     const resumo = {
       total_itens: itens.length,
       tempo_resposta_ms: tempoResposta,
     };
 
-    // 15. Retornar sucesso
+    // 16. Retornar sucesso
     return new Response(
       JSON.stringify({
         success: true,
