@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import type { Database } from "@/integrations/supabase/types";
-import { Search, Plus, Eye, Trash2, ShoppingCart, Save, Users, Edit, CheckCircle } from "lucide-react";
+import { Search, Plus, Eye, Trash2, ShoppingCart, Save, Users, Edit, CheckCircle, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -9,6 +9,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { useVendas } from "@/hooks/useVendas";
 import { useCondicoesPagamento } from "@/hooks/useCondicoesPagamento";
@@ -17,6 +19,7 @@ import { useTiposPedido } from "@/hooks/useTiposPedido";
 import { useVendedores } from "@/hooks/useVendedores";
 import { useHierarquia } from "@/hooks/useHierarquia";
 import { useDatasulCalculaPedido } from "@/hooks/useDatasulCalculaPedido";
+import { useColumnVisibility } from "@/hooks/useColumnVisibility";
 import { ProdutoSearchDialog } from "@/components/ProdutoSearchDialog";
 import { ClienteSearchDialog } from "@/components/ClienteSearchDialog";
 import { VendasActionBar } from "@/components/VendasActionBar";
@@ -58,6 +61,18 @@ export default function Vendas() {
   const { calcularPedido, isCalculating } = useDatasulCalculaPedido();
   const { user } = useAuth();
   const { toast } = useToast();
+  const { visibleColumns, toggleColumn, resetColumns } = useColumnVisibility("vendas_itens_columns", {
+    precoTabela: true,
+    precoUnit: true,
+    desconto: true,
+    total: true,
+    custo: true,
+    divisao: true,
+    vlTotalDS: true,
+    vlMercLiq: true,
+    loteMult: true,
+    deposito: true,
+  });
   const [searchTerm, setSearchTerm] = useState("");
   const [view, setView] = useState<"pipeline" | "list" | "nova">("pipeline");
   const [showProdutoSearch, setShowProdutoSearch] = useState(false);
@@ -1108,16 +1123,16 @@ export default function Vendas() {
                         <TableHead>Código</TableHead>
                         <TableHead>Produto</TableHead>
                         <TableHead className="text-center">Qtd</TableHead>
-                        <TableHead className="text-right">Preço Tabela</TableHead>
-                        <TableHead className="text-right">Preço Unit.</TableHead>
-                        <TableHead className="text-center">Desc. %</TableHead>
-                        <TableHead className="text-right">Total</TableHead>
-                        <TableHead className="text-right">Custo</TableHead>
-                        <TableHead className="text-right">Divisão</TableHead>
-                        <TableHead className="text-right">VL Total DS</TableHead>
-                        <TableHead className="text-right">VL Merc Líq</TableHead>
-                        <TableHead className="text-center">Lote Mult</TableHead>
-                        <TableHead className="text-center">Depósito</TableHead>
+                        {visibleColumns.precoTabela && <TableHead className="text-right">Preço Tabela</TableHead>}
+                        {visibleColumns.precoUnit && <TableHead className="text-right">Preço Unit.</TableHead>}
+                        {visibleColumns.desconto && <TableHead className="text-center">Desc. %</TableHead>}
+                        {visibleColumns.total && <TableHead className="text-right">Total</TableHead>}
+                        {visibleColumns.custo && <TableHead className="text-right">Custo</TableHead>}
+                        {visibleColumns.divisao && <TableHead className="text-right">Divisão</TableHead>}
+                        {visibleColumns.vlTotalDS && <TableHead className="text-right">VL Total DS</TableHead>}
+                        {visibleColumns.vlMercLiq && <TableHead className="text-right">VL Merc Líq</TableHead>}
+                        {visibleColumns.loteMult && <TableHead className="text-center">Lote Mult</TableHead>}
+                        {visibleColumns.deposito && <TableHead className="text-center">Depósito</TableHead>}
                         <TableHead className="text-center">Ações</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -1138,37 +1153,57 @@ export default function Vendas() {
                               min="1"
                             />
                           </TableCell>
-                          <TableCell className="text-right">{formatCurrency(item.produto.preco_venda)}</TableCell>
-                          <TableCell className="text-right">{formatCurrency(precoComDesconto)}</TableCell>
-                          <TableCell className="text-center">
-                            <Input
-                              type="number"
-                              value={item.desconto}
-                              onChange={(e) => handleUpdateDesconto(index, Number(e.target.value))}
-                              className="w-20 text-center"
-                              min="0"
-                              max="100"
-                            />
-                          </TableCell>
-                          <TableCell className="text-right font-semibold">{formatCurrency(item.valor_total)}</TableCell>
-                          <TableCell className="text-right text-xs">
-                            {item.datasul_custo ? formatCurrency(item.datasul_custo) : '-'}
-                          </TableCell>
-                          <TableCell className="text-right text-xs">
-                            {item.datasul_divisao ? item.datasul_divisao.toFixed(6) : '-'}
-                          </TableCell>
-                          <TableCell className="text-right text-xs">
-                            {item.datasul_vl_tot_item ? formatCurrency(item.datasul_vl_tot_item) : '-'}
-                          </TableCell>
-                          <TableCell className="text-right text-xs">
-                            {item.datasul_vl_merc_liq ? formatCurrency(item.datasul_vl_merc_liq) : '-'}
-                          </TableCell>
-                          <TableCell className="text-center text-xs">
-                            {item.datasul_lote_mulven || '-'}
-                          </TableCell>
-                          <TableCell className="text-center text-xs">
-                            {item.datasul_dep_exp || '-'}
-                          </TableCell>
+                          {visibleColumns.precoTabela && (
+                            <TableCell className="text-right">{formatCurrency(item.produto.preco_venda)}</TableCell>
+                          )}
+                          {visibleColumns.precoUnit && (
+                            <TableCell className="text-right">{formatCurrency(precoComDesconto)}</TableCell>
+                          )}
+                          {visibleColumns.desconto && (
+                            <TableCell className="text-center">
+                              <Input
+                                type="number"
+                                value={item.desconto}
+                                onChange={(e) => handleUpdateDesconto(index, Number(e.target.value))}
+                                className="w-20 text-center"
+                                min="0"
+                                max="100"
+                              />
+                            </TableCell>
+                          )}
+                          {visibleColumns.total && (
+                            <TableCell className="text-right font-semibold">{formatCurrency(item.valor_total)}</TableCell>
+                          )}
+                          {visibleColumns.custo && (
+                            <TableCell className="text-right text-xs">
+                              {item.datasul_custo ? formatCurrency(item.datasul_custo) : '-'}
+                            </TableCell>
+                          )}
+                          {visibleColumns.divisao && (
+                            <TableCell className="text-right text-xs">
+                              {item.datasul_divisao ? item.datasul_divisao.toFixed(6) : '-'}
+                            </TableCell>
+                          )}
+                          {visibleColumns.vlTotalDS && (
+                            <TableCell className="text-right text-xs">
+                              {item.datasul_vl_tot_item ? formatCurrency(item.datasul_vl_tot_item) : '-'}
+                            </TableCell>
+                          )}
+                          {visibleColumns.vlMercLiq && (
+                            <TableCell className="text-right text-xs">
+                              {item.datasul_vl_merc_liq ? formatCurrency(item.datasul_vl_merc_liq) : '-'}
+                            </TableCell>
+                          )}
+                          {visibleColumns.loteMult && (
+                            <TableCell className="text-center text-xs">
+                              {item.datasul_lote_mulven || '-'}
+                            </TableCell>
+                          )}
+                          {visibleColumns.deposito && (
+                            <TableCell className="text-center text-xs">
+                              {item.datasul_dep_exp || '-'}
+                            </TableCell>
+                          )}
                           <TableCell className="text-center">
                             <Button variant="ghost" size="sm" onClick={() => handleRemoveItem(index)}>
                               <Trash2 size={16} className="text-destructive" />
