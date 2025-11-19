@@ -375,36 +375,52 @@ Deno.serve(async (req) => {
 
     try {
       if (datasulData && typeof datasulData === 'object') {
-        // Tentar extrair dados do primeiro pedido retornado
-        const pedidoArray = datasulData.pedido;
+        // A resposta do Datasul vem com "retorno" e não "pedido"
+        const retornoArray = datasulData.retorno || datasulData.pedido;
         
-        if (Array.isArray(pedidoArray) && pedidoArray.length > 0) {
-          const pedidoRetorno = pedidoArray[0];
+        console.log("Estrutura da resposta Datasul:", { 
+          temRetorno: !!datasulData.retorno, 
+          temPedido: !!datasulData.pedido,
+          tipo: Array.isArray(retornoArray) ? 'array' : typeof retornoArray
+        });
+        
+        if (Array.isArray(retornoArray) && retornoArray.length > 0) {
+          // Pegar primeiro item do array de retorno
+          const itemRetorno = retornoArray[0];
+          
+          console.log("Primeiro item do retorno:", {
+            errornumber: itemRetorno.errornumber,
+            errordescription: itemRetorno.errordescription,
+            msgCredito: itemRetorno["msg-credito"],
+            indCreCli: itemRetorno["ind-cre-cli"],
+            limiteDisp: itemRetorno["limite-disponivel"]
+          });
           
           // Extrair errornumber (pode ser number ou string)
-          if (pedidoRetorno.errornumber !== undefined && pedidoRetorno.errornumber !== null) {
-            const errorNum = Number(pedidoRetorno.errornumber);
+          if (itemRetorno.errornumber !== undefined && itemRetorno.errornumber !== null) {
+            const errorNum = Number(itemRetorno.errornumber);
             errorNumber = isNaN(errorNum) ? null : errorNum;
           }
           
           // Extrair errordescription
-          if (pedidoRetorno.errordescription !== undefined && pedidoRetorno.errordescription !== null) {
-            errorDescription = String(pedidoRetorno.errordescription).trim() || null;
+          if (itemRetorno.errordescription !== undefined && itemRetorno.errordescription !== null) {
+            const desc = String(itemRetorno.errordescription).trim();
+            errorDescription = desc === "" ? null : desc;
           }
           
           // Extrair msg-credito
-          if (pedidoRetorno["msg-credito"] !== undefined && pedidoRetorno["msg-credito"] !== null) {
-            msgCredito = String(pedidoRetorno["msg-credito"]).trim() || null;
+          if (itemRetorno["msg-credito"] !== undefined && itemRetorno["msg-credito"] !== null) {
+            msgCredito = String(itemRetorno["msg-credito"]).trim() || null;
           }
           
           // Extrair ind-cre-cli (CRÍTICO - sempre salvar)
-          if (pedidoRetorno["ind-cre-cli"] !== undefined && pedidoRetorno["ind-cre-cli"] !== null) {
-            indCreCli = String(pedidoRetorno["ind-cre-cli"]).trim() || null;
+          if (itemRetorno["ind-cre-cli"] !== undefined && itemRetorno["ind-cre-cli"] !== null) {
+            indCreCli = String(itemRetorno["ind-cre-cli"]).trim() || null;
           }
           
           // Extrair limite-disponivel
-          if (pedidoRetorno["limite-disponivel"] !== undefined && pedidoRetorno["limite-disponivel"] !== null) {
-            const limite = Number(pedidoRetorno["limite-disponivel"]);
+          if (itemRetorno["limite-disponivel"] !== undefined && itemRetorno["limite-disponivel"] !== null) {
+            const limite = Number(itemRetorno["limite-disponivel"]);
             limiteDisponivel = isNaN(limite) ? null : limite;
           }
           
@@ -416,7 +432,7 @@ Deno.serve(async (req) => {
             limiteDisponivel
           });
         } else {
-          console.warn("Resposta Datasul sem array de pedidos válido");
+          console.warn("Resposta Datasul sem array de retorno válido");
         }
       }
     } catch (extractError) {
