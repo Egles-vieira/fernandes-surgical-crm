@@ -85,6 +85,8 @@ interface VendaItemData {
   produto_id: string;
   produtos: {
     referencia_interna: string;
+    cod_trib_icms: string | null;
+    aliquota_ipi: number | null;
   } | null;
 }
 
@@ -234,7 +236,9 @@ Deno.serve(async (req) => {
         desconto,
         produto_id,
         produtos (
-          referencia_interna
+          referencia_interna,
+          cod_trib_icms,
+          aliquota_ipi
         )
       `,
       )
@@ -291,10 +295,44 @@ Deno.serve(async (req) => {
           "perc-desco1": 0,
           "fat-parcial": venda.faturamento_parcial === "YES",
           "item": itens.map((item) => {
-            const produtoRef = item.produtos?.referencia_interna || "";
+            const produto = item.produtos;
+            const produtoRef = produto?.referencia_interna || "";
 
             if (!produtoRef) {
-              console.warn(`Item ${item.sequencia_item} sem referência interna`);
+              console.warn(`⚠️ Item ${item.sequencia_item} sem referência interna do produto`);
+            }
+
+            // Determinar preço a enviar
+            let precoParaEnviar = Number(item.preco_tabela);
+
+            // Se produto tem cod_trib_icms preenchido (tributado), retirar IPI
+            if (produto?.cod_trib_icms && produto.cod_trib_icms.trim() !== "") {
+              const aliquotaIpi = Number(produto.aliquota_ipi || 0);
+
+              if (aliquotaIpi > 0) {
+                // Calcular preço sem IPI: preco_sem_ipi = preco_tabela / (1 + aliquota_ipi/100)
+                const precoOriginal = Number(item.preco_tabela);
+                precoParaEnviar = precoOriginal / (1 + aliquotaIpi / 100);
+
+                console.log(`💰 Item ${item.sequencia_item} - Produto tributado (IPI retirado):`, {
+                  produto_ref: produtoRef,
+                  cod_trib_icms: produto.cod_trib_icms,
+                  aliquota_ipi: aliquotaIpi + "%",
+                  preco_original: precoOriginal.toFixed(2),
+                  preco_sem_ipi: precoParaEnviar.toFixed(2),
+                  diferenca: (precoOriginal - precoParaEnviar).toFixed(2)
+                });
+              } else {
+                console.log(`📋 Item ${item.sequencia_item} - Produto tributado mas sem alíquota IPI`, {
+                  produto_ref: produtoRef,
+                  cod_trib_icms: produto.cod_trib_icms
+                });
+              }
+            } else {
+              console.log(`✓ Item ${item.sequencia_item} - Produto não tributado, preço original mantido`, {
+                produto_ref: produtoRef,
+                preco: precoParaEnviar.toFixed(2)
+              });
             }
 
             return {
@@ -303,10 +341,10 @@ Deno.serve(async (req) => {
               "cod-refer": "",
               "nat-operacao": String(empresa.natureza_operacao),
               "qt-pedida": Number(item.quantidade),
-              "vl-preuni": Number(item.preco_tabela),
-              "vl-pretab": Number(item.preco_tabela),
-              "vl-preori": Number(item.preco_tabela),
-              "vl-preco-base": Number(item.preco_tabela),
+              "vl-preuni": precoParaEnviar,
+              "vl-pretab": precoParaEnviar,
+              "vl-preori": precoParaEnviar,
+              "vl-preco-base": precoParaEnviar,
               "per-des-item": Number(item.desconto),
             };
           }),
