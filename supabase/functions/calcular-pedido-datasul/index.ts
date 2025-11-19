@@ -330,10 +330,11 @@ Deno.serve(async (req) => {
     console.log("Resposta Datasul recebida:", datasulResponse.status);
 
     // 9. Armazenar log da integração
+    // IMPORTANTE: Armazenamos a string JSON diretamente para preservar a ordem dos campos
     const logData = {
       venda_id: venda.id,
       numero_venda: venda.numero_venda,
-      request_payload: JSON.parse(payloadOrdenado),
+      request_payload: payloadOrdenado,
       response_payload: datasulData,
       status: datasulResponse.ok ? "sucesso" : "erro",
       error_message: datasulResponse.ok ? null : `HTTP ${datasulResponse.status}: ${responseText}`,
@@ -351,7 +352,7 @@ Deno.serve(async (req) => {
       .from("vendas")
       .update({
         ultima_integracao_datasul_em: new Date().toISOString(),
-        ultima_integracao_datasul_requisicao: datasulPayload,
+        ultima_integracao_datasul_requisicao: payloadOrdenado,
         ultima_integracao_datasul_resposta: datasulData,
         ultima_integracao_datasul_status: datasulResponse.ok ? "sucesso" : "erro",
       })
