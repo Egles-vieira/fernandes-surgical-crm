@@ -85,10 +85,55 @@ export default function Vendas() {
   
   // Auto-save hook - precisa estar após editandoVendaId
   const { hasUnsavedChanges, isSaving: isAutoSaving, triggerAutoSave, clearAutoSave } = useAutoSave({
-    delay: 2000,
+    delay: 3000, // 3 segundos para evitar salvamentos excessivos
     onSave: async () => {
-      if (editandoVendaId) {
-        await handleSalvarVenda();
+      if (!editandoVendaId || !clienteCnpj) return;
+      
+      try {
+        // Função otimizada de auto-save - apenas atualiza sem validações pesadas
+        const valorTotalCalculado = carrinho.reduce((acc, item) => acc + item.valor_total, 0);
+
+        // Normalizar CNPJ/CPF
+        const clienteCnpjNormalizado = clienteCnpj?.replace(/\D/g, '') || '';
+
+        // Buscar cliente_id
+        const { data: clienteData } = await supabase
+          .from('clientes')
+          .select('id')
+          .eq('cgc', clienteCnpjNormalizado)
+          .maybeSingle();
+
+        if (!clienteData) return;
+
+        // Atualizar venda (silenciosamente, sem toast)
+        await updateVenda.mutateAsync({
+          id: editandoVendaId,
+          numero_venda: numeroVenda,
+          cliente_id: clienteData.id,
+          cliente_nome: clienteNome,
+          cliente_cnpj: clienteCnpjNormalizado,
+          valor_total: valorTotalCalculado,
+          desconto: 0,
+          valor_final: valorTotalCalculado,
+          status: status,
+          condicao_pagamento_id: condicaoPagamentoId || undefined,
+          tipo_frete_id: tipoFreteId || undefined,
+          tipo_pedido_id: tipoPedidoId || undefined,
+          faturamento_parcial: faturamentoParcial ? "YES" : "NO",
+          observacoes: observacoes || undefined,
+          etapa_pipeline: etapaPipeline,
+          valor_estimado: valorEstimado,
+          probabilidade: probabilidade,
+          data_fechamento_prevista: dataFechamentoPrevista || undefined,
+          motivo_perda: motivoPerda || undefined,
+          origem_lead: origemLead || undefined,
+          responsavel_id: responsavelId || undefined,
+          vendedor_id: vendedorId || undefined,
+        });
+
+        console.log("✅ Auto-save concluído");
+      } catch (error) {
+        console.error("❌ Erro no auto-save:", error);
       }
     },
     isEnabled: !!editandoVendaId,
