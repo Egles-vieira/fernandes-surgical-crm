@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import type { Database } from "@/integrations/supabase/types";
-import { Search, Plus, Eye, Trash2, ShoppingCart, Save, Users, Edit, CheckCircle, Settings } from "lucide-react";
+import { Search, Plus, Eye, Trash2, ShoppingCart, Save, Users, Edit, CheckCircle, Settings, Loader2, Calculator } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -30,6 +30,8 @@ import { IntegracaoDatasulLog } from "@/components/IntegracaoDatasulLog";
 import { Tables } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { useAutoSave } from "@/hooks/useAutoSave";
+import { VendasAutoSaveIndicator } from "@/components/VendasAutoSaveIndicator";
 type Produto = Tables<"produtos">;
 type Cliente = Tables<"clientes">;
 
@@ -73,12 +75,24 @@ export default function Vendas() {
     loteMult: true,
     deposito: true,
   });
+  
   const [searchTerm, setSearchTerm] = useState("");
   const [view, setView] = useState<"pipeline" | "list" | "nova">("pipeline");
   const [showProdutoSearch, setShowProdutoSearch] = useState(false);
   const [showClienteSearch, setShowClienteSearch] = useState(false);
   const [editandoVendaId, setEditandoVendaId] = useState<string | null>(null);
   const [vendaParaAprovar, setVendaParaAprovar] = useState<{ id: string; numero: string; valor: number } | null>(null);
+  
+  // Auto-save hook - precisa estar após editandoVendaId
+  const { hasUnsavedChanges, isSaving: isAutoSaving, triggerAutoSave, clearAutoSave } = useAutoSave({
+    delay: 2000,
+    onSave: async () => {
+      if (editandoVendaId) {
+        await handleSalvarVenda();
+      }
+    },
+    isEnabled: !!editandoVendaId,
+  });
 
   // Filtros state
   const [filtros, setFiltros] = useState({
@@ -267,6 +281,7 @@ export default function Vendas() {
       description: `${produto.nome} foi adicionado ao carrinho.`,
       variant: "success",
     });
+    triggerAutoSave();
   };
   const handleUpdateQuantidade = (index: number, quantidade: number) => {
     if (quantidade <= 0) return;
@@ -281,6 +296,7 @@ export default function Vendas() {
           : item,
       ),
     );
+    triggerAutoSave();
   };
   const handleUpdateDesconto = (index: number, desconto: number) => {
     if (desconto < 0 || desconto > 100) return;
@@ -295,9 +311,11 @@ export default function Vendas() {
           : item,
       ),
     );
+    triggerAutoSave();
   };
   const handleRemoveItem = (index: number) => {
     setCarrinho(carrinho.filter((_, i) => i !== index));
+    triggerAutoSave();
   };
   const calcularTotal = () => {
     return carrinho.reduce((sum, item) => sum + item.valor_total, 0);
@@ -378,6 +396,9 @@ export default function Vendas() {
     setOrigemLead("");
     setResponsavelId("");
     setVendedorId("");
+    
+    // Limpar auto-save
+    clearAutoSave();
   };
   const handleCalcular = async () => {
     // Validar campos obrigatórios
@@ -400,6 +421,14 @@ export default function Vendas() {
         title: "Atenção",
         description: "Salve a venda antes de calcular com o Datasul.",
         variant: "destructive",
+      });
+      return;
+    }
+    
+    if (hasUnsavedChanges) {
+      toast({
+        title: "Alterações não salvas",
+        description: "Aguarde enquanto as alterações são salvas automaticamente...",
       });
       return;
     }
@@ -721,6 +750,7 @@ export default function Vendas() {
           description: "A venda foi criada com sucesso.",
         });
       }
+      clearAutoSave();
       limparFormulario();
       setView("pipeline");
     } catch (error: any) {
@@ -850,6 +880,8 @@ export default function Vendas() {
           isSaving={createVenda.isPending || updateVenda.isPending}
           isCalculating={isCalculating}
           editandoVendaId={editandoVendaId}
+          hasUnsavedChanges={hasUnsavedChanges}
+          isAutoSaving={isAutoSaving}
         />
 
         <div className="pt-20 p-8 space-y-6">
