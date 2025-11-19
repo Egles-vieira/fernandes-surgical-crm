@@ -287,6 +287,9 @@ export default function Vendas() {
   const calcularTotal = () => {
     return carrinho.reduce((sum, item) => sum + item.valor_total, 0);
   };
+  const calcularTotalLiquido = () => {
+    return carrinho.reduce((sum, item) => sum + (item.datasul_vl_merc_liq || 0), 0);
+  };
   const handleSelectCliente = (cliente: Cliente) => {
     setClienteSelecionado(cliente);
     setClienteNome(cliente.nome_emit);
@@ -1179,10 +1182,14 @@ export default function Vendas() {
 
                 <Separator className="my-4" />
 
-                <div className="flex items-center justify-end">
+                <div className="flex items-center justify-end gap-8">
                   <div className="text-right">
                     <p className="text-sm text-muted-foreground mb-1">Valor Total</p>
                     <p className="text-3xl font-bold text-success">{formatCurrency(calcularTotal())}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm text-muted-foreground mb-1">Total Líquido (Datasul)</p>
+                    <p className="text-3xl font-bold text-primary">{formatCurrency(calcularTotalLiquido())}</p>
                   </div>
                 </div>
               </>
