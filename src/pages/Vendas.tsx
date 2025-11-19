@@ -484,6 +484,9 @@ export default function Vendas() {
     await handleSalvarVenda();
   };
   const handleSalvarVenda = async () => {
+    // Capturar se estava editando antes de salvar
+    const estaEditando = !!editandoVendaId;
+    
     if (!clienteNome.trim()) {
       toast({
         title: "Erro",
@@ -746,13 +749,17 @@ export default function Vendas() {
             }
           }
         toast({
-          title: "Venda salva!",
-          description: "A venda foi criada com sucesso.",
+          title: estaEditando ? "Venda atualizada!" : "Venda salva!",
+          description: estaEditando ? "As alterações foram salvas com sucesso." : "A venda foi criada com sucesso.",
         });
       }
       clearAutoSave();
-      limparFormulario();
-      setView("pipeline");
+      
+      // Só limpa e volta pro kanban se for uma venda nova (não estava editando)
+      if (!estaEditando) {
+        limparFormulario();
+        setView("pipeline");
+      }
     } catch (error: any) {
       console.error("❌ Erro ao salvar venda:", {
         error,
