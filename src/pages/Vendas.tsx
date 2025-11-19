@@ -41,6 +41,12 @@ interface ItemCarrinho {
   quantidade: number;
   desconto: number;
   valor_total: number;
+  datasul_dep_exp?: number | null;
+  datasul_custo?: number | null;
+  datasul_divisao?: number | null;
+  datasul_vl_tot_item?: number | null;
+  datasul_vl_merc_liq?: number | null;
+  datasul_lote_mulven?: number | null;
 }
 export default function Vendas() {
   const { vendas, isLoading, createVenda, addItem, updateVenda, updateItem, removeItem, aprovarVenda } = useVendas();
@@ -321,6 +327,12 @@ export default function Vendas() {
       quantidade: item.quantidade,
       desconto: item.desconto,
       valor_total: item.valor_total,
+      datasul_dep_exp: item.datasul_dep_exp,
+      datasul_custo: item.datasul_custo,
+      datasul_divisao: item.datasul_divisao,
+      datasul_vl_tot_item: item.datasul_vl_tot_item,
+      datasul_vl_merc_liq: item.datasul_vl_merc_liq,
+      datasul_lote_mulven: item.datasul_lote_mulven,
     }));
     setCarrinho(itensCarrinho);
     setView("nova");
@@ -560,6 +572,12 @@ export default function Vendas() {
             desconto: item.desconto,
             valor_total: item.valor_total,
             sequencia_item: i + 1, // Adiciona sequência automática
+            datasul_dep_exp: item.datasul_dep_exp || null,
+            datasul_custo: item.datasul_custo || null,
+            datasul_divisao: item.datasul_divisao || null,
+            datasul_vl_tot_item: item.datasul_vl_tot_item || null,
+            datasul_vl_merc_liq: item.datasul_vl_merc_liq || null,
+            datasul_lote_mulven: item.datasul_lote_mulven || null,
           });
         }
         toast({
@@ -653,6 +671,12 @@ export default function Vendas() {
                 desconto: item.desconto,
                 valor_total: item.valor_total,
                 sequencia_item: i + 1, // Adiciona sequência automática
+                datasul_dep_exp: item.datasul_dep_exp || null,
+                datasul_custo: item.datasul_custo || null,
+                datasul_divisao: item.datasul_divisao || null,
+                datasul_vl_tot_item: item.datasul_vl_tot_item || null,
+                datasul_vl_merc_liq: item.datasul_vl_merc_liq || null,
+                datasul_lote_mulven: item.datasul_lote_mulven || null,
               });
             }
           }
@@ -1067,6 +1091,12 @@ export default function Vendas() {
                         <TableHead className="text-right">Preço Unit.</TableHead>
                         <TableHead className="text-center">Desc. %</TableHead>
                         <TableHead className="text-right">Total</TableHead>
+                        <TableHead className="text-right">Custo</TableHead>
+                        <TableHead className="text-right">Divisão</TableHead>
+                        <TableHead className="text-right">VL Total DS</TableHead>
+                        <TableHead className="text-right">VL Merc Líq</TableHead>
+                        <TableHead className="text-center">Lote Mult</TableHead>
+                        <TableHead className="text-center">Depósito</TableHead>
                         <TableHead className="text-center">Ações</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -1100,6 +1130,24 @@ export default function Vendas() {
                             />
                           </TableCell>
                           <TableCell className="text-right font-semibold">{formatCurrency(item.valor_total)}</TableCell>
+                          <TableCell className="text-right text-xs">
+                            {item.datasul_custo ? formatCurrency(item.datasul_custo) : '-'}
+                          </TableCell>
+                          <TableCell className="text-right text-xs">
+                            {item.datasul_divisao ? item.datasul_divisao.toFixed(6) : '-'}
+                          </TableCell>
+                          <TableCell className="text-right text-xs">
+                            {item.datasul_vl_tot_item ? formatCurrency(item.datasul_vl_tot_item) : '-'}
+                          </TableCell>
+                          <TableCell className="text-right text-xs">
+                            {item.datasul_vl_merc_liq ? formatCurrency(item.datasul_vl_merc_liq) : '-'}
+                          </TableCell>
+                          <TableCell className="text-center text-xs">
+                            {item.datasul_lote_mulven || '-'}
+                          </TableCell>
+                          <TableCell className="text-center text-xs">
+                            {item.datasul_dep_exp || '-'}
+                          </TableCell>
                           <TableCell className="text-center">
                             <Button variant="ghost" size="sm" onClick={() => handleRemoveItem(index)}>
                               <Trash2 size={16} className="text-destructive" />
