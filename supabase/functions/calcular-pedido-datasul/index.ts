@@ -5,6 +5,51 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Função para garantir ordem exata dos campos no payload Datasul
+function serializeOrderPayload(data: any): string {
+  const orderedKeys = {
+    pedido: [
+      'cod-emitente', 'tipo-pedido', 'cotacao', 'cod-estabel', 
+      'nat-operacao', 'cod-cond-pag', 'cod-transp', 'vl-frete-inf',
+      'cod-rep', 'nr-tabpre', 'perc-desco1', 'fat-parcial', 'item'
+    ],
+    item: [
+      'nr-sequencia', 'it-codigo', 'cod-refer', 'nat-operacao',
+      'qt-pedida', 'vl-preuni', 'vl-pretab', 'vl-preori',
+      'vl-preco-base', 'per-des-item'
+    ]
+  };
+
+  // Função auxiliar para ordenar objeto conforme array de chaves
+  function sortObject(obj: any, keys: string[]): any {
+    const sorted: any = {};
+    keys.forEach(key => {
+      if (key in obj) {
+        sorted[key] = obj[key];
+      }
+    });
+    return sorted;
+  }
+
+  // Processar payload mantendo ordem estrita
+  const ordered = {
+    pedido: data.pedido.map((order: any) => {
+      const sortedOrder = sortObject(order, orderedKeys.pedido);
+      
+      // Ordenar itens dentro do pedido
+      if (sortedOrder.item && Array.isArray(sortedOrder.item)) {
+        sortedOrder.item = sortedOrder.item.map((item: any) => 
+          sortObject(item, orderedKeys.item)
+        );
+      }
+      
+      return sortedOrder;
+    })
+  };
+
+  return JSON.stringify(ordered, null, 2);
+}
+
 interface VendaData {
   id: string;
   numero_venda: string;
@@ -251,7 +296,8 @@ Deno.serve(async (req) => {
       ],
     };
 
-    console.log("Payload montado:", JSON.stringify(datasulPayload, null, 2));
+    const payloadOrdenado = serializeOrderPayload(datasulPayload);
+    console.log("Payload montado (ordem garantida):", payloadOrdenado);
 
     // 8. Enviar para Datasul
     const authHeader = btoa(`${DATASUL_USER}:${DATASUL_PASS}`);
@@ -264,7 +310,7 @@ Deno.serve(async (req) => {
         Authorization: `Basic ${authHeader}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(datasulPayload),
+      body: payloadOrdenado,
       signal: AbortSignal.timeout(60000), // 60 segundos timeout
     });
 
@@ -287,7 +333,7 @@ Deno.serve(async (req) => {
     const logData = {
       venda_id: venda.id,
       numero_venda: venda.numero_venda,
-      request_payload: datasulPayload,
+      request_payload: JSON.parse(payloadOrdenado),
       response_payload: datasulData,
       status: datasulResponse.ok ? "sucesso" : "erro",
       error_message: datasulResponse.ok ? null : `HTTP ${datasulResponse.status}: ${responseText}`,
