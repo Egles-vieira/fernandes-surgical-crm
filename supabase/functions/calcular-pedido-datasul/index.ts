@@ -294,60 +294,83 @@ Deno.serve(async (req) => {
           "nr-tabpre": "SE-CFI",
           "perc-desco1": 0,
           "fat-parcial": venda.faturamento_parcial === "YES",
-          "item": itens.map((item) => {
-            const produto = item.produtos;
-            const produtoRef = produto?.referencia_interna || "";
+          "item": (() => {
+            const itensProcessados: any[] = [];
+            
+            const itensPayload = itens.map((item) => {
+              const produto = item.produtos;
+              const produtoRef = produto?.referencia_interna || "";
+              const precoOriginal = Number(item.preco_tabela);
+              let precoParaEnviar = precoOriginal;
+              const infoItem: any = { seq: item.sequencia_item, ref: produtoRef };
 
-            if (!produtoRef) {
-              console.warn(`⚠️ Item ${item.sequencia_item} sem referência interna do produto`);
-            }
-
-            // Determinar preço a enviar
-            let precoParaEnviar = Number(item.preco_tabela);
-
-            // Se produto tem cod_trib_icms preenchido (tributado), retirar IPI
-            if (produto?.cod_trib_icms && produto.cod_trib_icms.trim() !== "") {
-              const aliquotaIpi = Number(produto.aliquota_ipi || 0);
-
-              if (aliquotaIpi > 0) {
-                // Calcular preço sem IPI: preco_sem_ipi = preco_tabela / (1 + aliquota_ipi/100)
-                const precoOriginal = Number(item.preco_tabela);
-                precoParaEnviar = precoOriginal / (1 + aliquotaIpi / 100);
-
-                console.log(`💰 Item ${item.sequencia_item} - Produto tributado (IPI retirado):`, {
-                  produto_ref: produtoRef,
-                  cod_trib_icms: produto.cod_trib_icms,
-                  aliquota_ipi: aliquotaIpi + "%",
-                  preco_original: precoOriginal.toFixed(2),
-                  preco_sem_ipi: precoParaEnviar.toFixed(2),
-                  diferenca: (precoOriginal - precoParaEnviar).toFixed(2)
-                });
-              } else {
-                console.log(`📋 Item ${item.sequencia_item} - Produto tributado mas sem alíquota IPI`, {
-                  produto_ref: produtoRef,
-                  cod_trib_icms: produto.cod_trib_icms
-                });
+              if (!produtoRef) {
+                infoItem.aviso = "sem_referencia";
               }
-            } else {
-              console.log(`✓ Item ${item.sequencia_item} - Produto não tributado, preço original mantido`, {
-                produto_ref: produtoRef,
-                preco: precoParaEnviar.toFixed(2)
-              });
+
+              // Calcular IPI se produto tributado
+              if (produto?.cod_trib_icms && produto.cod_trib_icms.trim() !== "") {
+                const aliquotaIpi = Number(produto.aliquota_ipi || 0);
+                
+                if (aliquotaIpi > 0) {
+                  precoParaEnviar = precoOriginal / (1 + aliquotaIpi / 100);
+                  infoItem.tributado = true;
+                  infoItem.ipi = aliquotaIpi;
+                  infoItem.preco_original = precoOriginal;
+                  infoItem.preco_ajustado = precoParaEnviar;
+                } else {
+                  infoItem.tributado = true;
+                  infoItem.sem_aliquota = true;
+                }
+              }
+              
+              itensProcessados.push(infoItem);
+
+              return {
+                "nr-sequencia": Number(item.sequencia_item),
+                "it-codigo": String(produtoRef),
+                "cod-refer": "",
+                "nat-operacao": String(empresa.natureza_operacao),
+                "qt-pedida": Number(item.quantidade),
+                "vl-preuni": precoParaEnviar,
+                "vl-pretab": precoParaEnviar,
+                "vl-preori": precoParaEnviar,
+                "vl-preco-base": precoParaEnviar,
+                "per-des-item": Number(item.desconto),
+              };
+            });
+
+            // Log consolidado após processamento
+            const itensTributados = itensProcessados.filter(i => i.tributado);
+            const itensComIPI = itensProcessados.filter(i => i.ipi);
+            const itensProblema = itensProcessados.filter(i => i.aviso || i.sem_aliquota);
+
+            console.log(`📦 Processamento de ${itensProcessados.length} itens concluído:`, {
+              total_itens: itensProcessados.length,
+              com_ipi_retirado: itensComIPI.length,
+              tributados_sem_aliquota: itensTributados.filter(i => i.sem_aliquota).length,
+              nao_tributados: itensProcessados.length - itensTributados.length,
+              avisos: itensProblema.length
+            });
+
+            if (itensComIPI.length > 0) {
+              console.log(`💰 Itens com IPI retirado (${itensComIPI.length}):`, 
+                itensComIPI.map(i => ({
+                  seq: i.seq,
+                  ref: i.ref,
+                  ipi: i.ipi + "%",
+                  original: i.preco_original.toFixed(2),
+                  ajustado: i.preco_ajustado.toFixed(2)
+                }))
+              );
             }
 
-            return {
-              "nr-sequencia": Number(item.sequencia_item),
-              "it-codigo": String(produtoRef),
-              "cod-refer": "",
-              "nat-operacao": String(empresa.natureza_operacao),
-              "qt-pedida": Number(item.quantidade),
-              "vl-preuni": precoParaEnviar,
-              "vl-pretab": precoParaEnviar,
-              "vl-preori": precoParaEnviar,
-              "vl-preco-base": precoParaEnviar,
-              "per-des-item": Number(item.desconto),
-            };
-          }),
+            if (itensProblema.length > 0) {
+              console.log(`⚠️ Itens com avisos (${itensProblema.length}):`, itensProblema);
+            }
+
+            return itensPayload;
+          })(),
         },
       ],
     };
