@@ -5491,6 +5491,11 @@ export type Database = {
           created_at: string
           data_fechamento_prevista: string | null
           data_venda: string
+          datasul_errordescription: string | null
+          datasul_errornumber: number | null
+          datasul_ind_cre_cli: string | null
+          datasul_limite_disponivel: number | null
+          datasul_msg_credito: string | null
           desconto: number
           equipe_id: string | null
           etapa_pipeline: Database["public"]["Enums"]["etapa_pipeline"] | null
@@ -5528,6 +5533,11 @@ export type Database = {
           created_at?: string
           data_fechamento_prevista?: string | null
           data_venda?: string
+          datasul_errordescription?: string | null
+          datasul_errornumber?: number | null
+          datasul_ind_cre_cli?: string | null
+          datasul_limite_disponivel?: number | null
+          datasul_msg_credito?: string | null
           desconto?: number
           equipe_id?: string | null
           etapa_pipeline?: Database["public"]["Enums"]["etapa_pipeline"] | null
@@ -5565,6 +5575,11 @@ export type Database = {
           created_at?: string
           data_fechamento_prevista?: string | null
           data_venda?: string
+          datasul_errordescription?: string | null
+          datasul_errornumber?: number | null
+          datasul_ind_cre_cli?: string | null
+          datasul_limite_disponivel?: number | null
+          datasul_msg_credito?: string | null
           desconto?: number
           equipe_id?: string | null
           etapa_pipeline?: Database["public"]["Enums"]["etapa_pipeline"] | null

@@ -365,7 +365,27 @@ Deno.serve(async (req) => {
       console.error("Erro ao salvar log:", logError);
     }
 
-    // 11. Atualizar campos de última integração na venda
+    // 11. Extrair informações do retorno do cálculo
+    let errorNumber: number | null = null;
+    let errorDescription: string | null = null;
+    let msgCredito: string | null = null;
+    let indCreCli: string | null = null;
+    let limiteDisponivel: number | null = null;
+
+    if (datasulResponse.ok && datasulData) {
+      // Tentar extrair dados do primeiro pedido retornado
+      if (datasulData.pedido && Array.isArray(datasulData.pedido) && datasulData.pedido.length > 0) {
+        const pedidoRetorno = datasulData.pedido[0];
+        
+        errorNumber = pedidoRetorno.errornumber !== undefined ? Number(pedidoRetorno.errornumber) : null;
+        errorDescription = pedidoRetorno.errordescription || null;
+        msgCredito = pedidoRetorno["msg-credito"] || null;
+        indCreCli = pedidoRetorno["ind-cre-cli"] || null;
+        limiteDisponivel = pedidoRetorno["limite-disponivel"] !== undefined ? Number(pedidoRetorno["limite-disponivel"]) : null;
+      }
+    }
+
+    // 12. Atualizar campos de última integração na venda
     const { error: updateError } = await supabase
       .from("vendas")
       .update({
@@ -373,6 +393,11 @@ Deno.serve(async (req) => {
         ultima_integracao_datasul_requisicao: payloadOrdenado,
         ultima_integracao_datasul_resposta: datasulData,
         ultima_integracao_datasul_status: datasulResponse.ok ? "sucesso" : "erro",
+        datasul_errornumber: errorNumber,
+        datasul_errordescription: errorDescription,
+        datasul_msg_credito: msgCredito,
+        datasul_ind_cre_cli: indCreCli,
+        datasul_limite_disponivel: limiteDisponivel,
       })
       .eq("id", venda.id);
 
@@ -380,7 +405,7 @@ Deno.serve(async (req) => {
       console.error("Erro ao atualizar última integração na venda:", updateError);
     }
 
-    // 11. Se houve erro no Datasul, retornar erro
+    // 13. Se houve erro no Datasul, retornar erro
     if (!datasulResponse.ok) {
       return new Response(
         JSON.stringify({
@@ -396,13 +421,13 @@ Deno.serve(async (req) => {
       );
     }
 
-    // 12. Montar resumo de totais (extrair do retorno Datasul)
+    // 14. Montar resumo de totais (extrair do retorno Datasul)
     const resumo = {
       total_itens: itens.length,
       tempo_resposta_ms: tempoResposta,
     };
 
-    // 13. Retornar sucesso
+    // 15. Retornar sucesso
     return new Response(
       JSON.stringify({
         success: true,
