@@ -1,4 +1,4 @@
-import { Calculator, X, ShieldCheck, CheckCircle, Save } from "lucide-react";
+import { Calculator, X, ShieldCheck, CheckCircle, Save, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -12,6 +12,8 @@ interface VendasActionBarProps {
   isSaving?: boolean;
   isCalculating?: boolean;
   editandoVendaId?: string | null;
+  hasUnsavedChanges?: boolean;
+  isAutoSaving?: boolean;
 }
 
 export function VendasActionBar({
@@ -24,6 +26,8 @@ export function VendasActionBar({
   isSaving = false,
   isCalculating = false,
   editandoVendaId = null,
+  hasUnsavedChanges = false,
+  isAutoSaving = false,
 }: VendasActionBarProps) {
   const getStatusInfo = () => {
     switch (status) {
@@ -62,6 +66,23 @@ export function VendasActionBar({
           <Badge variant="outline" className={statusInfo.className}>
             {statusInfo.label}
           </Badge>
+          
+          {/* Indicador de Auto-Save */}
+          {(hasUnsavedChanges || isAutoSaving) && (
+            <div className="flex items-center gap-2 px-3 py-1 rounded-md bg-muted/50 border border-border/50">
+              {isAutoSaving ? (
+                <>
+                  <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
+                  <span className="text-xs text-muted-foreground font-medium">Salvando...</span>
+                </>
+              ) : hasUnsavedChanges ? (
+                <>
+                  <div className="h-2 w-2 rounded-full bg-warning animate-pulse" />
+                  <span className="text-xs text-warning font-medium">Alterações não salvas</span>
+                </>
+              ) : null}
+            </div>
+          )}
         </div>
 
         <div className="flex items-center gap-2">
