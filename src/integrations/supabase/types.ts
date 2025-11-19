@@ -3333,8 +3333,8 @@ export type Database = {
           error_message: string | null
           id: string
           numero_venda: string
-          request_payload: Json
-          response_payload: Json | null
+          request_payload: string
+          response_payload: string | null
           status: string
           tempo_resposta_ms: number | null
           venda_id: string | null
@@ -3344,8 +3344,8 @@ export type Database = {
           error_message?: string | null
           id?: string
           numero_venda: string
-          request_payload: Json
-          response_payload?: Json | null
+          request_payload: string
+          response_payload?: string | null
           status: string
           tempo_resposta_ms?: number | null
           venda_id?: string | null
@@ -3355,8 +3355,8 @@ export type Database = {
           error_message?: string | null
           id?: string
           numero_venda?: string
-          request_payload?: Json
-          response_payload?: Json | null
+          request_payload?: string
+          response_payload?: string | null
           status?: string
           tempo_resposta_ms?: number | null
           venda_id?: string | null
@@ -5507,8 +5507,8 @@ export type Database = {
           tipo_frete_id: string | null
           tipo_pedido_id: string | null
           ultima_integracao_datasul_em: string | null
-          ultima_integracao_datasul_requisicao: Json | null
-          ultima_integracao_datasul_resposta: Json | null
+          ultima_integracao_datasul_requisicao: string | null
+          ultima_integracao_datasul_resposta: string | null
           ultima_integracao_datasul_status: string | null
           updated_at: string
           user_id: string
@@ -5544,8 +5544,8 @@ export type Database = {
           tipo_frete_id?: string | null
           tipo_pedido_id?: string | null
           ultima_integracao_datasul_em?: string | null
-          ultima_integracao_datasul_requisicao?: Json | null
-          ultima_integracao_datasul_resposta?: Json | null
+          ultima_integracao_datasul_requisicao?: string | null
+          ultima_integracao_datasul_resposta?: string | null
           ultima_integracao_datasul_status?: string | null
           updated_at?: string
           user_id: string
@@ -5581,8 +5581,8 @@ export type Database = {
           tipo_frete_id?: string | null
           tipo_pedido_id?: string | null
           ultima_integracao_datasul_em?: string | null
-          ultima_integracao_datasul_requisicao?: Json | null
-          ultima_integracao_datasul_resposta?: Json | null
+          ultima_integracao_datasul_requisicao?: string | null
+          ultima_integracao_datasul_resposta?: string | null
           ultima_integracao_datasul_status?: string | null
           updated_at?: string
           user_id?: string
