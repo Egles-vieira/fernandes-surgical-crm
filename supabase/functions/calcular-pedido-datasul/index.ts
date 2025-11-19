@@ -212,10 +212,9 @@ Deno.serve(async (req) => {
     }
 
     // 7. Montar payload para Datasul (ordem rigorosamente mantida)
-    // Construir objeto na ordem exata para evitar reordenação
-    const pedidoItem = {
+    const datasulPayload = {
       pedido: [
-        Object.assign(Object.create(null), {
+        {
           "cod-emitente": Number(venda.cod_emitente),
           "tipo-pedido": tipoPedido.nome.toLowerCase(),
           "cotacao": venda.numero_venda,
@@ -235,7 +234,7 @@ Deno.serve(async (req) => {
               console.warn(`Item ${item.sequencia_item} sem referência interna`);
             }
 
-            return Object.assign(Object.create(null), {
+            return {
               "nr-sequencia": Number(item.sequencia_item),
               "it-codigo": String(produtoRef),
               "cod-refer": "",
@@ -246,13 +245,11 @@ Deno.serve(async (req) => {
               "vl-preori": Number(item.preco_tabela),
               "vl-preco-base": Number(item.preco_tabela),
               "per-des-item": Number(item.desconto),
-            });
+            };
           }),
-        }),
+        },
       ],
     };
-    
-    const datasulPayload = JSON.parse(JSON.stringify(pedidoItem));
 
     console.log("Payload montado:", JSON.stringify(datasulPayload, null, 2));
 
