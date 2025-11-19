@@ -58,6 +58,16 @@ export function useDatasulCalculaPedido() {
 
       console.log("Resposta Datasul:", data);
 
+      // Busca os itens atualizados da venda
+      const { data: itensAtualizados, error: itensError } = await supabase
+        .from("vendas_itens")
+        .select("*, produtos(*)")
+        .eq("venda_id", vendaId);
+
+      if (itensError) {
+        console.error("Erro ao buscar itens atualizados:", itensError);
+      }
+
       toast({
         title: "Cálculo realizado com sucesso",
         description: `Pedido ${data.numero_venda} calculado em ${data.resumo?.tempo_resposta_ms}ms`,
@@ -65,8 +75,9 @@ export function useDatasulCalculaPedido() {
 
       // Invalida a query para atualizar o log automaticamente
       queryClient.invalidateQueries({ queryKey: ["integracao-datasul-log"] });
+      queryClient.invalidateQueries({ queryKey: ["vendas"] });
 
-      return data;
+      return { ...data, itensAtualizados };
     } catch (error) {
       console.error("Erro ao calcular pedido:", error);
       
