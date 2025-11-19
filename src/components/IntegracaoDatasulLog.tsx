@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -7,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { CheckCircle2, XCircle, Clock } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useQuery } from "@tanstack/react-query";
 
 interface IntegracaoLog {
   id: string;
@@ -25,16 +25,9 @@ interface IntegracaoDatasulLogProps {
 }
 
 export function IntegracaoDatasulLog({ vendaId }: IntegracaoDatasulLogProps) {
-  const [log, setLog] = useState<IntegracaoLog | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    loadLastLog();
-  }, [vendaId]);
-
-  const loadLastLog = async () => {
-    try {
-      setLoading(true);
+  const { data: log, isLoading: loading } = useQuery({
+    queryKey: ["integracao-datasul-log", vendaId],
+    queryFn: async () => {
       let query = supabase
         .from("integracoes_totvs_calcula_pedido")
         .select("*")
@@ -47,13 +40,9 @@ export function IntegracaoDatasulLog({ vendaId }: IntegracaoDatasulLogProps) {
       const { data, error } = await query.limit(1).maybeSingle();
 
       if (error) throw error;
-      setLog(data);
-    } catch (error) {
-      console.error("Erro ao carregar log:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+      return data;
+    },
+  });
 
   if (loading) {
     return (

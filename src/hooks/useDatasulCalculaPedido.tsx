@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface DatasulResponse {
   success: boolean;
@@ -18,6 +19,7 @@ interface DatasulResponse {
 export function useDatasulCalculaPedido() {
   const [isCalculating, setIsCalculating] = useState(false);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const calcularPedido = async (vendaId: string) => {
     if (!vendaId) {
@@ -60,6 +62,9 @@ export function useDatasulCalculaPedido() {
         title: "Cálculo realizado com sucesso",
         description: `Pedido ${data.numero_venda} calculado em ${data.resumo?.tempo_resposta_ms}ms`,
       });
+
+      // Invalida a query para atualizar o log automaticamente
+      queryClient.invalidateQueries({ queryKey: ["integracao-datasul-log"] });
 
       return data;
     } catch (error) {
