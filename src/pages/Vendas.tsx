@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { useVendas } from "@/hooks/useVendas";
 import { useCondicoesPagamento } from "@/hooks/useCondicoesPagamento";
@@ -1166,7 +1167,8 @@ export default function Vendas() {
 
             {carrinho.length > 0 ? (
               <>
-                <div className="overflow-x-auto border rounded-lg">
+                <div className="border rounded-lg">
+                  <ScrollArea className="h-[600px] w-full">
                   <Table className={
                     density === "compact" ? "text-xs" :
                     density === "comfortable" ? "text-base" : ""
@@ -1279,6 +1281,7 @@ export default function Vendas() {
                       )})}
                     </TableBody>
                   </Table>
+                  </ScrollArea>
                 </div>
 
                 {/* Pagination for items */}
