@@ -414,17 +414,6 @@ export default function Vendas() {
       return;
     }
 
-    // Salvar a venda antes de calcular para garantir que todos os dados estão atualizados
-    toast({
-      title: "Salvando alterações...",
-      description: "Aguarde enquanto salvamos os dados antes do cálculo.",
-    });
-    
-    await handleSalvarVenda();
-    
-    // Aguardar um momento para garantir que o banco processou a atualização
-    await new Promise(resolve => setTimeout(resolve, 500));
-
     const resultado = await calcularPedido(editandoVendaId);
     
     // Atualiza o carrinho com os valores calculados do Datasul
