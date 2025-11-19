@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import type { Database } from "@/integrations/supabase/types";
-import { Search, Plus, Eye, Trash2, ShoppingCart, Save, Users, Edit, CheckCircle, Settings, Loader2, Calculator } from "lucide-react";
+import { Search, Plus, Eye, Trash2, ShoppingCart, Save, Users, Edit, CheckCircle, Settings, Loader2, Calculator, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -84,7 +84,9 @@ export default function Vendas() {
   
   // Pagination states for items table
   const [currentItemsPage, setCurrentItemsPage] = useState(1);
-  const itemsPerPage = 20;
+  const [itemsPerPage, setItemsPerPage] = useState(20);
+  const [searchItemTerm, setSearchItemTerm] = useState("");
+  const [density, setDensity] = useState<"compact" | "normal" | "comfortable">("normal");
 
   // Filtros state
   const [filtros, setFiltros] = useState({
@@ -1131,107 +1133,144 @@ export default function Vendas() {
           <Card className="p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-primary">Produtos</h3>
-              <Button type="button" onClick={() => setShowProdutoSearch(true)}>
-                <Plus size={16} className="mr-2" />
-                Adicionar Produto
-              </Button>
+              <div className="flex items-center gap-2">
+                {/* Busca */}
+                <div className="relative">
+                  <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar item..."
+                    value={searchItemTerm}
+                    onChange={(e) => setSearchItemTerm(e.target.value)}
+                    className="pl-8 w-[200px]"
+                  />
+                </div>
+
+                {/* Densidade */}
+                <Select value={density} onValueChange={(value: "compact" | "normal" | "comfortable") => setDensity(value)}>
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="compact">Compacta</SelectItem>
+                    <SelectItem value="normal">Normal</SelectItem>
+                    <SelectItem value="comfortable">Confortável</SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                <Button type="button" onClick={() => setShowProdutoSearch(true)}>
+                  <Plus size={16} className="mr-2" />
+                  Adicionar Produto
+                </Button>
+              </div>
             </div>
 
             {carrinho.length > 0 ? (
               <>
                 <div className="overflow-x-auto border rounded-lg">
-                  <Table>
+                  <Table className={
+                    density === "compact" ? "text-xs" :
+                    density === "comfortable" ? "text-base" : ""
+                  }>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="w-16 text-center">Seq</TableHead>
-                        <TableHead>Código</TableHead>
-                        <TableHead>Produto</TableHead>
-                        <TableHead className="text-center">Qtd</TableHead>
-                        {visibleColumns.precoTabela && <TableHead className="text-right">Preço Tabela</TableHead>}
-                        {visibleColumns.precoUnit && <TableHead className="text-right">Preço Unit.</TableHead>}
-                        {visibleColumns.desconto && <TableHead className="text-center">Desc. %</TableHead>}
-                        {visibleColumns.total && <TableHead className="text-right">Total</TableHead>}
-                        {visibleColumns.custo && <TableHead className="text-right">Custo</TableHead>}
-                        {visibleColumns.divisao && <TableHead className="text-right">Divisão</TableHead>}
-                        {visibleColumns.vlTotalDS && <TableHead className="text-right">VL Total DS</TableHead>}
-                        {visibleColumns.vlMercLiq && <TableHead className="text-right">VL Merc Líq</TableHead>}
-                        {visibleColumns.loteMult && <TableHead className="text-center">Lote Mult</TableHead>}
-                        {visibleColumns.deposito && <TableHead className="text-center">Depósito</TableHead>}
-                        <TableHead className="text-center">Ações</TableHead>
+                        <TableHead className={`w-16 text-center ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}>Seq</TableHead>
+                        <TableHead className={density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}>Código</TableHead>
+                        <TableHead className={density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}>Produto</TableHead>
+                        <TableHead className={`text-center ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}>Qtd</TableHead>
+                        {visibleColumns.precoTabela && <TableHead className={`text-right ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}>Preço Tabela</TableHead>}
+                        {visibleColumns.precoUnit && <TableHead className={`text-right ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}>Preço Unit.</TableHead>}
+                        {visibleColumns.desconto && <TableHead className={`text-center ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}>Desc. %</TableHead>}
+                        {visibleColumns.total && <TableHead className={`text-right ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}>Total</TableHead>}
+                        {visibleColumns.custo && <TableHead className={`text-right ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}>Custo</TableHead>}
+                        {visibleColumns.divisao && <TableHead className={`text-right ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}>Divisão</TableHead>}
+                        {visibleColumns.vlTotalDS && <TableHead className={`text-right ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}>VL Total DS</TableHead>}
+                        {visibleColumns.vlMercLiq && <TableHead className={`text-right ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}>VL Merc Líq</TableHead>}
+                        {visibleColumns.loteMult && <TableHead className={`text-center ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}>Lote Mult</TableHead>}
+                        {visibleColumns.deposito && <TableHead className={`text-center ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}>Depósito</TableHead>}
+                        <TableHead className={`text-center ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}>Ações</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {carrinho
+                        .filter(item => {
+                          if (!searchItemTerm) return true;
+                          const searchLower = searchItemTerm.toLowerCase();
+                          return (
+                            item.produto.nome.toLowerCase().includes(searchLower) ||
+                            item.produto.referencia_interna.toLowerCase().includes(searchLower)
+                          );
+                        })
                         .slice((currentItemsPage - 1) * itemsPerPage, currentItemsPage * itemsPerPage)
                         .map((item, index) => {
                         const realIndex = (currentItemsPage - 1) * itemsPerPage + index;
                         const precoComDesconto = item.produto.preco_venda * (1 - item.desconto / 100);
+                        const paddingClass = density === "compact" ? "py-1 px-2" : density === "comfortable" ? "py-4 px-4" : "py-2 px-3";
                         return (
                         <TableRow key={realIndex}>
-                          <TableCell className="text-center font-semibold text-muted-foreground">{realIndex + 1}</TableCell>
-                          <TableCell className="font-mono">{item.produto.referencia_interna}</TableCell>
-                          <TableCell>{item.produto.nome}</TableCell>
-                          <TableCell className="text-center">
+                          <TableCell className={`text-center font-semibold text-muted-foreground ${paddingClass}`}>{realIndex + 1}</TableCell>
+                          <TableCell className={`font-mono ${paddingClass}`}>{item.produto.referencia_interna}</TableCell>
+                          <TableCell className={paddingClass}>{item.produto.nome}</TableCell>
+                          <TableCell className={`text-center ${paddingClass}`}>
                             <Input
                               type="number"
                               value={item.quantidade}
                               onChange={(e) => handleUpdateQuantidade(realIndex, Number(e.target.value))}
-                              className="w-20 text-center"
+                              className={`w-20 text-center ${density === "compact" ? "h-7 text-xs" : density === "comfortable" ? "h-12" : ""}`}
                               min="1"
                             />
                           </TableCell>
                           {visibleColumns.precoTabela && (
-                            <TableCell className="text-right">{formatCurrency(item.produto.preco_venda)}</TableCell>
+                            <TableCell className={`text-right ${paddingClass}`}>{formatCurrency(item.produto.preco_venda)}</TableCell>
                           )}
                           {visibleColumns.precoUnit && (
-                            <TableCell className="text-right">{formatCurrency(precoComDesconto)}</TableCell>
+                            <TableCell className={`text-right ${paddingClass}`}>{formatCurrency(precoComDesconto)}</TableCell>
                           )}
                           {visibleColumns.desconto && (
-                            <TableCell className="text-center">
+                            <TableCell className={`text-center ${paddingClass}`}>
                               <Input
                                 type="number"
                                 value={item.desconto}
                                 onChange={(e) => handleUpdateDesconto(realIndex, Number(e.target.value))}
-                                className="w-20 text-center"
+                                className={`w-20 text-center ${density === "compact" ? "h-7 text-xs" : density === "comfortable" ? "h-12" : ""}`}
                                 min="0"
                                 max="100"
                               />
                             </TableCell>
                           )}
                           {visibleColumns.total && (
-                            <TableCell className="text-right font-semibold">{formatCurrency(item.valor_total)}</TableCell>
+                            <TableCell className={`text-right font-semibold ${paddingClass}`}>{formatCurrency(item.valor_total)}</TableCell>
                           )}
                           {visibleColumns.custo && (
-                            <TableCell className="text-right text-xs">
+                            <TableCell className={`text-right text-xs ${paddingClass}`}>
                               {item.datasul_custo ? formatCurrency(item.datasul_custo) : '-'}
                             </TableCell>
                           )}
                           {visibleColumns.divisao && (
-                            <TableCell className="text-right text-xs">
+                            <TableCell className={`text-right text-xs ${paddingClass}`}>
                               {item.datasul_divisao ? item.datasul_divisao.toFixed(6) : '-'}
                             </TableCell>
                           )}
                           {visibleColumns.vlTotalDS && (
-                            <TableCell className="text-right text-xs">
+                            <TableCell className={`text-right text-xs ${paddingClass}`}>
                               {item.datasul_vl_tot_item ? formatCurrency(item.datasul_vl_tot_item) : '-'}
                             </TableCell>
                           )}
                           {visibleColumns.vlMercLiq && (
-                            <TableCell className="text-right text-xs">
+                            <TableCell className={`text-right text-xs ${paddingClass}`}>
                               {item.datasul_vl_merc_liq ? formatCurrency(item.datasul_vl_merc_liq) : '-'}
                             </TableCell>
                           )}
                           {visibleColumns.loteMult && (
-                            <TableCell className="text-center text-xs">
+                            <TableCell className={`text-center text-xs ${paddingClass}`}>
                               {item.datasul_lote_mulven || '-'}
                             </TableCell>
                           )}
                           {visibleColumns.deposito && (
-                            <TableCell className="text-center text-xs">
+                            <TableCell className={`text-center text-xs ${paddingClass}`}>
                               {item.datasul_dep_exp || '-'}
                             </TableCell>
                           )}
-                          <TableCell className="text-center">
+                          <TableCell className={`text-center ${paddingClass}`}>
                             <Button variant="ghost" size="sm" onClick={() => handleRemoveItem(realIndex)}>
                               <Trash2 size={16} className="text-destructive" />
                             </Button>
@@ -1243,53 +1282,113 @@ export default function Vendas() {
                 </div>
 
                 {/* Pagination for items */}
-                {carrinho.length > itemsPerPage && (
-                  <div className="flex items-center justify-between mt-4">
-                    <p className="text-sm text-muted-foreground">
-                      Mostrando {(currentItemsPage - 1) * itemsPerPage + 1} a {Math.min(currentItemsPage * itemsPerPage, carrinho.length)} de {carrinho.length} itens
-                    </p>
-                    <Pagination>
-                      <PaginationContent>
-                        <PaginationItem>
-                          <PaginationPrevious 
-                            onClick={() => setCurrentItemsPage(p => Math.max(1, p - 1))} 
-                            className={currentItemsPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"} 
-                          />
-                        </PaginationItem>
-                        
-                        {Array.from({ length: Math.min(5, Math.ceil(carrinho.length / itemsPerPage)) }, (_, i) => {
-                          const totalPages = Math.ceil(carrinho.length / itemsPerPage);
-                          let pageNum;
-                          if (totalPages <= 5) {
-                            pageNum = i + 1;
-                          } else if (currentItemsPage <= 3) {
-                            pageNum = i + 1;
-                          } else if (currentItemsPage >= totalPages - 2) {
-                            pageNum = totalPages - 4 + i;
-                          } else {
-                            pageNum = currentItemsPage - 2 + i;
-                          }
-                          return (
-                            <PaginationItem key={pageNum}>
-                              <PaginationLink 
-                                onClick={() => setCurrentItemsPage(pageNum)} 
-                                isActive={currentItemsPage === pageNum} 
-                                className="cursor-pointer"
-                              >
-                                {pageNum}
-                              </PaginationLink>
-                            </PaginationItem>
-                          );
-                        })}
-                        
-                        <PaginationItem>
-                          <PaginationNext 
-                            onClick={() => setCurrentItemsPage(p => Math.min(Math.ceil(carrinho.length / itemsPerPage), p + 1))} 
-                            className={currentItemsPage === Math.ceil(carrinho.length / itemsPerPage) ? "pointer-events-none opacity-50" : "cursor-pointer"} 
-                          />
-                        </PaginationItem>
-                      </PaginationContent>
-                    </Pagination>
+                {carrinho.filter(item => {
+                  if (!searchItemTerm) return true;
+                  const searchLower = searchItemTerm.toLowerCase();
+                  return (
+                    item.produto.nome.toLowerCase().includes(searchLower) ||
+                    item.produto.referencia_interna.toLowerCase().includes(searchLower)
+                  );
+                }).length > itemsPerPage && (
+                  <div className="flex items-center justify-between mt-4 gap-4">
+                    <div className="text-sm text-muted-foreground">
+                      {carrinho.filter(item => {
+                        if (!searchItemTerm) return true;
+                        const searchLower = searchItemTerm.toLowerCase();
+                        return (
+                          item.produto.nome.toLowerCase().includes(searchLower) ||
+                          item.produto.referencia_interna.toLowerCase().includes(searchLower)
+                        );
+                      }).length} itens no total
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <Select 
+                        value={String(itemsPerPage)} 
+                        onValueChange={(value) => {
+                          setItemsPerPage(Number(value));
+                          setCurrentItemsPage(1);
+                        }}
+                      >
+                        <SelectTrigger className="w-[130px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="10">10 / página</SelectItem>
+                          <SelectItem value="20">20 / página</SelectItem>
+                          <SelectItem value="50">50 / página</SelectItem>
+                          <SelectItem value="100">100 / página</SelectItem>
+                        </SelectContent>
+                      </Select>
+
+                      <div className="flex items-center gap-1">
+                        <Button 
+                          variant="outline" 
+                          size="icon" 
+                          onClick={() => setCurrentItemsPage(1)} 
+                          disabled={currentItemsPage === 1}
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                          <ChevronLeft className="h-4 w-4 -ml-3" />
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="icon" 
+                          onClick={() => setCurrentItemsPage(currentItemsPage - 1)} 
+                          disabled={currentItemsPage === 1}
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                        </Button>
+                        <span className="text-sm px-3">
+                          Página {currentItemsPage} de {Math.ceil(carrinho.filter(item => {
+                            if (!searchItemTerm) return true;
+                            const searchLower = searchItemTerm.toLowerCase();
+                            return (
+                              item.produto.nome.toLowerCase().includes(searchLower) ||
+                              item.produto.referencia_interna.toLowerCase().includes(searchLower)
+                            );
+                          }).length / itemsPerPage) || 1}
+                        </span>
+                        <Button 
+                          variant="outline" 
+                          size="icon" 
+                          onClick={() => setCurrentItemsPage(currentItemsPage + 1)} 
+                          disabled={currentItemsPage === Math.ceil(carrinho.filter(item => {
+                            if (!searchItemTerm) return true;
+                            const searchLower = searchItemTerm.toLowerCase();
+                            return (
+                              item.produto.nome.toLowerCase().includes(searchLower) ||
+                              item.produto.referencia_interna.toLowerCase().includes(searchLower)
+                            );
+                          }).length / itemsPerPage)}
+                        >
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="icon" 
+                          onClick={() => setCurrentItemsPage(Math.ceil(carrinho.filter(item => {
+                            if (!searchItemTerm) return true;
+                            const searchLower = searchItemTerm.toLowerCase();
+                            return (
+                              item.produto.nome.toLowerCase().includes(searchLower) ||
+                              item.produto.referencia_interna.toLowerCase().includes(searchLower)
+                            );
+                          }).length / itemsPerPage))} 
+                          disabled={currentItemsPage === Math.ceil(carrinho.filter(item => {
+                            if (!searchItemTerm) return true;
+                            const searchLower = searchItemTerm.toLowerCase();
+                            return (
+                              item.produto.nome.toLowerCase().includes(searchLower) ||
+                              item.produto.referencia_interna.toLowerCase().includes(searchLower)
+                            );
+                          }).length / itemsPerPage)}
+                        >
+                          <ChevronRight className="h-4 w-4" />
+                          <ChevronRight className="h-4 w-4 -ml-3" />
+                        </Button>
+                      </div>
+                    </div>
                   </div>
                 )}
 
