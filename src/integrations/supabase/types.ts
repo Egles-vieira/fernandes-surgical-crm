@@ -5668,6 +5668,12 @@ export type Database = {
       vendas_itens: {
         Row: {
           created_at: string
+          datasul_custo: number | null
+          datasul_dep_exp: number | null
+          datasul_divisao: number | null
+          datasul_lote_mulven: number | null
+          datasul_vl_merc_liq: number | null
+          datasul_vl_tot_item: number | null
           desconto: number
           id: string
           preco_tabela: number | null
@@ -5680,6 +5686,12 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          datasul_custo?: number | null
+          datasul_dep_exp?: number | null
+          datasul_divisao?: number | null
+          datasul_lote_mulven?: number | null
+          datasul_vl_merc_liq?: number | null
+          datasul_vl_tot_item?: number | null
           desconto?: number
           id?: string
           preco_tabela?: number | null
@@ -5692,6 +5704,12 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          datasul_custo?: number | null
+          datasul_dep_exp?: number | null
+          datasul_divisao?: number | null
+          datasul_lote_mulven?: number | null
+          datasul_vl_merc_liq?: number | null
+          datasul_vl_tot_item?: number | null
           desconto?: number
           id?: string
           preco_tabela?: number | null
