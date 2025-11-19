@@ -53,11 +53,11 @@ function serializeOrderPayload(data: any): string {
 interface VendaData {
   id: string;
   numero_venda: string;
-  cod_emitente: number;
   faturamento_parcial: string | null;
   tipo_pedido_id: string | null;
   condicao_pagamento_id: string | null;
   vendedor_id: string | null;
+  cliente_id: string | null;
 }
 
 interface EmpresaData {
@@ -134,7 +134,7 @@ Deno.serve(async (req) => {
     // 1. Buscar dados da venda
     const { data: venda, error: vendaError } = await supabase
       .from("vendas")
-      .select("id, numero_venda, cod_emitente, faturamento_parcial, tipo_pedido_id, condicao_pagamento_id, vendedor_id")
+      .select("id, numero_venda, faturamento_parcial, tipo_pedido_id, condicao_pagamento_id, vendedor_id, cliente_id")
       .eq("id", venda_id)
       .maybeSingle<VendaData>();
 
@@ -152,8 +152,26 @@ Deno.serve(async (req) => {
     if (!venda.vendedor_id) {
       throw new Error("Venda sem vendedor definido. Por favor, selecione um vendedor.");
     }
+    if (!venda.cliente_id) {
+      throw new Error("Venda sem cliente definido. Por favor, selecione um cliente.");
+    }
 
-    // 2. Buscar dados da empresa (assumindo uma empresa única)
+    // 2. Buscar dados do cliente (cod_emitente)
+    const { data: cliente, error: clienteError } = await supabase
+      .from("clientes")
+      .select("cod_emitente")
+      .eq("id", venda.cliente_id)
+      .maybeSingle();
+
+    if (clienteError || !cliente) {
+      throw new Error(`Cliente não encontrado (ID: ${venda.cliente_id}). Verifique se o cliente existe.`);
+    }
+
+    if (!cliente.cod_emitente) {
+      throw new Error("Cliente sem código de emitente definido. Configure o código do emitente no cadastro do cliente.");
+    }
+
+    // 3. Buscar dados da empresa (assumindo uma empresa única)
     const { data: empresa, error: empresaError } = await supabase
       .from("empresas")
       .select("codigo_estabelecimento, natureza_operacao")
@@ -164,7 +182,7 @@ Deno.serve(async (req) => {
       throw new Error("Dados da empresa não encontrados. Configure a empresa no sistema.");
     }
 
-    // 3. Buscar tipo de pedido
+    // 4. Buscar tipo de pedido
     const { data: tipoPedido, error: tipoPedidoError } = await supabase
       .from("tipos_pedido")
       .select("nome")
@@ -177,7 +195,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // 4. Buscar condição de pagamento
+    // 5. Buscar condição de pagamento
     const { data: condicaoPagamento, error: condicaoPagamentoError } = await supabase
       .from("condicoes_pagamento")
       .select("codigo_integracao")
@@ -190,7 +208,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // 5. Buscar dados do vendedor
+    // 6. Buscar dados do vendedor
     const { data: perfil, error: perfilError } = await supabase
       .from("perfis_usuario")
       .select("codigo_vendedor")
@@ -205,7 +223,7 @@ Deno.serve(async (req) => {
       throw new Error("Vendedor sem código de vendedor definido. Configure o código no perfil do vendedor.");
     }
 
-    // 6. Buscar itens da venda com produtos
+    // 7. Buscar itens da venda com produtos
     const { data: rawItens, error: itensError } = await supabase
       .from("vendas_itens")
       .select(
@@ -256,11 +274,11 @@ Deno.serve(async (req) => {
       throw new Error(`Campos obrigatórios faltando: ${camposFaltando.join(", ")}`);
     }
 
-    // 7. Montar payload para Datasul (ordem rigorosamente mantida)
+    // 8. Montar payload para Datasul (ordem rigorosamente mantida)
     const datasulPayload = {
       pedido: [
         {
-          "cod-emitente": Number(venda.cod_emitente),
+          "cod-emitente": Number(cliente.cod_emitente),
           "tipo-pedido": tipoPedido.nome.toLowerCase(),
           "cotacao": venda.numero_venda,
           "cod-estabel": String(empresa.codigo_estabelecimento),
@@ -299,7 +317,7 @@ Deno.serve(async (req) => {
     const payloadOrdenado = serializeOrderPayload(datasulPayload);
     console.log("Payload montado (ordem garantida):", payloadOrdenado);
 
-    // 8. Enviar para Datasul
+    // 9. Enviar para Datasul
     const authHeader = btoa(`${DATASUL_USER}:${DATASUL_PASS}`);
 
     console.log("Enviando requisição para Datasul via proxy:", DATASUL_PROXY_URL);
@@ -329,7 +347,7 @@ Deno.serve(async (req) => {
 
     console.log("Resposta Datasul recebida:", datasulResponse.status);
 
-    // 9. Armazenar log da integração
+    // 10. Armazenar log da integração
     // IMPORTANTE: Armazenamos a string JSON diretamente para preservar a ordem dos campos
     const logData = {
       venda_id: venda.id,
@@ -347,7 +365,7 @@ Deno.serve(async (req) => {
       console.error("Erro ao salvar log:", logError);
     }
 
-    // 10. Atualizar campos de última integração na venda
+    // 11. Atualizar campos de última integração na venda
     const { error: updateError } = await supabase
       .from("vendas")
       .update({
