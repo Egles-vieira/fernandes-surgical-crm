@@ -32,6 +32,7 @@ import { IntegracaoDatasulLog } from "@/components/IntegracaoDatasulLog";
 import { Tables } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { cn } from "@/lib/utils";
 type Produto = Tables<"produtos">;
 type Cliente = Tables<"clientes">;
 
@@ -1167,32 +1168,33 @@ export default function Vendas() {
 
             {carrinho.length > 0 ? (
               <>
-                <div className="border rounded-lg overflow-hidden">
-                  <div className="h-[600px] overflow-auto">
-                    <Table className={
+                <div className="border rounded-lg">
+                  <div className="h-[600px] overflow-auto relative">
+                    <table className={cn(
+                      "w-full caption-bottom text-sm",
                       density === "compact" ? "text-xs" :
                       density === "comfortable" ? "text-base" : ""
-                    }>
-                      <TableHeader className="sticky top-0 z-10 bg-background shadow-sm">
-                        <TableRow>
-                          <TableHead className={`w-16 text-center ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}>Seq</TableHead>
-                          <TableHead className={density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}>Código</TableHead>
-                          <TableHead className={density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}>Produto</TableHead>
-                          <TableHead className={`text-center ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}>Qtd</TableHead>
-                          {visibleColumns.precoTabela && <TableHead className={`text-right ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}>Preço Tabela</TableHead>}
-                          {visibleColumns.precoUnit && <TableHead className={`text-right ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}>Preço Unit.</TableHead>}
-                          {visibleColumns.desconto && <TableHead className={`text-center ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}>Desc. %</TableHead>}
-                          {visibleColumns.total && <TableHead className={`text-right ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}>Total</TableHead>}
-                          {visibleColumns.custo && <TableHead className={`text-right ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}>Custo</TableHead>}
-                          {visibleColumns.divisao && <TableHead className={`text-right ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}>Divisão</TableHead>}
-                          {visibleColumns.vlTotalDS && <TableHead className={`text-right ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}>VL Total DS</TableHead>}
-                          {visibleColumns.vlMercLiq && <TableHead className={`text-right ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}>VL Merc Líq</TableHead>}
-                          {visibleColumns.loteMult && <TableHead className={`text-center ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}>Lote Mult</TableHead>}
-                          {visibleColumns.deposito && <TableHead className={`text-center ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}>Depósito</TableHead>}
-                          <TableHead className={`text-center ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}>Ações</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
+                    )}>
+                      <thead className="sticky top-0 z-10 bg-background">
+                        <tr className="border-b">
+                          <th className={`w-16 text-center font-medium text-muted-foreground ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"} px-4`}>Seq</th>
+                          <th className={`text-left font-medium text-muted-foreground ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"} px-4`}>Código</th>
+                          <th className={`text-left font-medium text-muted-foreground ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"} px-4`}>Produto</th>
+                          <th className={`text-center font-medium text-muted-foreground ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"} px-4`}>Qtd</th>
+                          {visibleColumns.precoTabela && <th className={`text-right font-medium text-muted-foreground ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"} px-4`}>Preço Tabela</th>}
+                          {visibleColumns.precoUnit && <th className={`text-right font-medium text-muted-foreground ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"} px-4`}>Preço Unit.</th>}
+                          {visibleColumns.desconto && <th className={`text-center font-medium text-muted-foreground ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"} px-4`}>Desc. %</th>}
+                          {visibleColumns.total && <th className={`text-right font-medium text-muted-foreground ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"} px-4`}>Total</th>}
+                          {visibleColumns.custo && <th className={`text-right font-medium text-muted-foreground ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"} px-4`}>Custo</th>}
+                          {visibleColumns.divisao && <th className={`text-right font-medium text-muted-foreground ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"} px-4`}>Divisão</th>}
+                          {visibleColumns.vlTotalDS && <th className={`text-right font-medium text-muted-foreground ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"} px-4`}>VL Total DS</th>}
+                          {visibleColumns.vlMercLiq && <th className={`text-right font-medium text-muted-foreground ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"} px-4`}>VL Merc Líq</th>}
+                          {visibleColumns.loteMult && <th className={`text-center font-medium text-muted-foreground ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"} px-4`}>Lote Mult</th>}
+                          {visibleColumns.deposito && <th className={`text-center font-medium text-muted-foreground ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"} px-4`}>Depósito</th>}
+                          <th className={`text-center font-medium text-muted-foreground ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"} px-4`}>Ações</th>
+                        </tr>
+                      </thead>
+                      <tbody>
                       {carrinho
                         .filter(item => {
                           if (!searchItemTerm) return true;
@@ -1206,13 +1208,13 @@ export default function Vendas() {
                         .map((item, index) => {
                         const realIndex = (currentItemsPage - 1) * itemsPerPage + index;
                         const precoComDesconto = item.produto.preco_venda * (1 - item.desconto / 100);
-                        const paddingClass = density === "compact" ? "py-1 px-2" : density === "comfortable" ? "py-4 px-4" : "py-2 px-3";
+                         const paddingClass = density === "compact" ? "py-1 px-2" : density === "comfortable" ? "py-4 px-4" : "py-2 px-3";
                         return (
-                        <TableRow key={realIndex}>
-                          <TableCell className={`text-center font-semibold text-muted-foreground ${paddingClass}`}>{realIndex + 1}</TableCell>
-                          <TableCell className={`font-mono ${paddingClass}`}>{item.produto.referencia_interna}</TableCell>
-                          <TableCell className={paddingClass}>{item.produto.nome}</TableCell>
-                          <TableCell className={`text-center ${paddingClass}`}>
+                        <tr key={realIndex} className="border-b transition-colors hover:bg-muted/50">
+                          <td className={`text-center font-semibold text-muted-foreground ${paddingClass}`}>{realIndex + 1}</td>
+                          <td className={`font-mono ${paddingClass}`}>{item.produto.referencia_interna}</td>
+                          <td className={paddingClass}>{item.produto.nome}</td>
+                          <td className={`text-center ${paddingClass}`}>
                             <Input
                               type="number"
                               value={item.quantidade}
@@ -1220,15 +1222,15 @@ export default function Vendas() {
                               className={`w-20 text-center ${density === "compact" ? "h-7 text-xs" : density === "comfortable" ? "h-12" : ""}`}
                               min="1"
                             />
-                          </TableCell>
+                          </td>
                           {visibleColumns.precoTabela && (
-                            <TableCell className={`text-right ${paddingClass}`}>{formatCurrency(item.produto.preco_venda)}</TableCell>
+                            <td className={`text-right ${paddingClass}`}>{formatCurrency(item.produto.preco_venda)}</td>
                           )}
                           {visibleColumns.precoUnit && (
-                            <TableCell className={`text-right ${paddingClass}`}>{formatCurrency(precoComDesconto)}</TableCell>
+                            <td className={`text-right ${paddingClass}`}>{formatCurrency(precoComDesconto)}</td>
                           )}
                           {visibleColumns.desconto && (
-                            <TableCell className={`text-center ${paddingClass}`}>
+                            <td className={`text-center ${paddingClass}`}>
                               <Input
                                 type="number"
                                 value={item.desconto}
@@ -1237,50 +1239,50 @@ export default function Vendas() {
                                 min="0"
                                 max="100"
                               />
-                            </TableCell>
+                            </td>
                           )}
                           {visibleColumns.total && (
-                            <TableCell className={`text-right font-semibold ${paddingClass}`}>{formatCurrency(item.valor_total)}</TableCell>
+                            <td className={`text-right font-semibold ${paddingClass}`}>{formatCurrency(item.valor_total)}</td>
                           )}
                           {visibleColumns.custo && (
-                            <TableCell className={`text-right text-xs ${paddingClass}`}>
+                            <td className={`text-right text-xs ${paddingClass}`}>
                               {item.datasul_custo ? formatCurrency(item.datasul_custo) : '-'}
-                            </TableCell>
+                            </td>
                           )}
                           {visibleColumns.divisao && (
-                            <TableCell className={`text-right text-xs ${paddingClass}`}>
+                            <td className={`text-right text-xs ${paddingClass}`}>
                               {item.datasul_divisao ? item.datasul_divisao.toFixed(6) : '-'}
-                            </TableCell>
+                            </td>
                           )}
                           {visibleColumns.vlTotalDS && (
-                            <TableCell className={`text-right text-xs ${paddingClass}`}>
+                            <td className={`text-right text-xs ${paddingClass}`}>
                               {item.datasul_vl_tot_item ? formatCurrency(item.datasul_vl_tot_item) : '-'}
-                            </TableCell>
+                            </td>
                           )}
                           {visibleColumns.vlMercLiq && (
-                            <TableCell className={`text-right text-xs ${paddingClass}`}>
+                            <td className={`text-right text-xs ${paddingClass}`}>
                               {item.datasul_vl_merc_liq ? formatCurrency(item.datasul_vl_merc_liq) : '-'}
-                            </TableCell>
+                            </td>
                           )}
                           {visibleColumns.loteMult && (
-                            <TableCell className={`text-center text-xs ${paddingClass}`}>
+                            <td className={`text-center text-xs ${paddingClass}`}>
                               {item.datasul_lote_mulven || '-'}
-                            </TableCell>
+                            </td>
                           )}
                           {visibleColumns.deposito && (
-                            <TableCell className={`text-center text-xs ${paddingClass}`}>
+                            <td className={`text-center text-xs ${paddingClass}`}>
                               {item.datasul_dep_exp || '-'}
-                            </TableCell>
+                            </td>
                           )}
-                          <TableCell className={`text-center ${paddingClass}`}>
+                          <td className={`text-center ${paddingClass}`}>
                             <Button variant="ghost" size="sm" onClick={() => handleRemoveItem(realIndex)}>
                               <Trash2 size={16} className="text-destructive" />
                             </Button>
-                          </TableCell>
-                        </TableRow>
+                          </td>
+                        </tr>
                       )})}
-                      </TableBody>
-                    </Table>
+                      </tbody>
+                    </table>
                   </div>
                 </div>
 
