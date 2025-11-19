@@ -122,9 +122,13 @@ export function useVendas() {
 
   const addItem = useMutation({
     mutationFn: async (item: VendaItemInsert) => {
+      // Usar upsert para evitar duplicações
       const { data, error } = await supabase
         .from("vendas_itens")
-        .insert(item)
+        .upsert(item, {
+          onConflict: 'venda_id,sequencia_item',
+          ignoreDuplicates: false
+        })
         .select()
         .single();
 
