@@ -1167,14 +1167,13 @@ export default function Vendas() {
 
             {carrinho.length > 0 ? (
               <>
-                <div className="border rounded-lg overflow-hidden">
-                  {/* Cabeçalho fixo */}
+                <ScrollArea className="h-[600px] border rounded-lg">
                   <div className="overflow-x-auto">
                     <Table className={
                       density === "compact" ? "text-xs" :
                       density === "comfortable" ? "text-base" : ""
                     }>
-                      <TableHeader className="bg-background">
+                      <TableHeader className="sticky top-0 z-10 bg-background border-b">
                         <TableRow>
                           <TableHead className={`w-16 text-center ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}>Seq</TableHead>
                           <TableHead className={density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}>Código</TableHead>
@@ -1193,17 +1192,7 @@ export default function Vendas() {
                           <TableHead className={`text-center ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}>Ações</TableHead>
                         </TableRow>
                       </TableHeader>
-                    </Table>
-                  </div>
-                  
-                  {/* Conteúdo com scroll */}
-                  <ScrollArea className="h-[600px]">
-                    <div className="overflow-x-auto">
-                      <Table className={
-                        density === "compact" ? "text-xs" :
-                        density === "comfortable" ? "text-base" : ""
-                      }>
-                        <TableBody>
+                      <TableBody>
                       {carrinho
                         .filter(item => {
                           if (!searchItemTerm) return true;
@@ -1292,9 +1281,8 @@ export default function Vendas() {
                       )})}
                       </TableBody>
                     </Table>
-                    </div>
-                  </ScrollArea>
-                </div>
+                  </div>
+                </ScrollArea>
 
                 {/* Pagination for items */}
                 {carrinho.filter(item => {
