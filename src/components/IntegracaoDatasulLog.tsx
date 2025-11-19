@@ -24,6 +24,29 @@ interface IntegracaoDatasulLogProps {
   vendaId?: string;
 }
 
+// Helper para formatar JSON de campos TEXT
+const formatJsonField = (field: any) => {
+  if (!field) return "N/A";
+  
+  // Se já é um objeto, só formatar
+  if (typeof field === "object") {
+    return JSON.stringify(field, null, 2);
+  }
+  
+  // Se é string, tentar fazer parse
+  if (typeof field === "string") {
+    try {
+      const parsed = JSON.parse(field);
+      return JSON.stringify(parsed, null, 2);
+    } catch {
+      // Se não conseguir fazer parse, retornar como está
+      return field;
+    }
+  }
+  
+  return String(field);
+};
+
 export function IntegracaoDatasulLog({ vendaId }: IntegracaoDatasulLogProps) {
   const { data: log, isLoading: loading } = useQuery({
     queryKey: ["integracao-datasul-log", vendaId],
@@ -130,14 +153,14 @@ export function IntegracaoDatasulLog({ vendaId }: IntegracaoDatasulLogProps) {
           <TabsContent value="request">
             <ScrollArea className="h-[300px] w-full rounded-md border">
               <pre className="p-4 text-xs">
-                {JSON.stringify(log.request_payload, null, 2)}
+                {formatJsonField(log.request_payload)}
               </pre>
             </ScrollArea>
           </TabsContent>
           <TabsContent value="response">
             <ScrollArea className="h-[300px] w-full rounded-md border">
               <pre className="p-4 text-xs">
-                {JSON.stringify(log.response_payload, null, 2)}
+                {formatJsonField(log.response_payload)}
               </pre>
             </ScrollArea>
           </TabsContent>
