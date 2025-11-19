@@ -30,8 +30,6 @@ import { IntegracaoDatasulLog } from "@/components/IntegracaoDatasulLog";
 import { Tables } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { useAutoSave } from "@/hooks/useAutoSave";
-import { VendasAutoSaveIndicator } from "@/components/VendasAutoSaveIndicator";
 type Produto = Tables<"produtos">;
 type Cliente = Tables<"clientes">;
 
@@ -82,18 +80,6 @@ export default function Vendas() {
   const [showClienteSearch, setShowClienteSearch] = useState(false);
   const [editandoVendaId, setEditandoVendaId] = useState<string | null>(null);
   const [vendaParaAprovar, setVendaParaAprovar] = useState<{ id: string; numero: string; valor: number } | null>(null);
-  
-  // Auto-save desabilitado - vamos salvar apenas manualmente
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [isAutoSaving, setIsAutoSaving] = useState(false);
-  
-  const triggerAutoSave = () => {
-    setHasUnsavedChanges(true);
-  };
-  
-  const clearAutoSave = () => {
-    setHasUnsavedChanges(false);
-  };
 
   // Filtros state
   const [filtros, setFiltros] = useState({
@@ -282,7 +268,6 @@ export default function Vendas() {
       description: `${produto.nome} foi adicionado ao carrinho.`,
       variant: "success",
     });
-    triggerAutoSave();
   };
   const handleUpdateQuantidade = (index: number, quantidade: number) => {
     if (quantidade <= 0) return;
@@ -297,7 +282,6 @@ export default function Vendas() {
           : item,
       ),
     );
-    triggerAutoSave();
   };
   const handleUpdateDesconto = (index: number, desconto: number) => {
     if (desconto < 0 || desconto > 100) return;
@@ -312,11 +296,9 @@ export default function Vendas() {
           : item,
       ),
     );
-    triggerAutoSave();
   };
   const handleRemoveItem = (index: number) => {
     setCarrinho(carrinho.filter((_, i) => i !== index));
-    triggerAutoSave();
   };
   const calcularTotal = () => {
     return carrinho.reduce((sum, item) => sum + item.valor_total, 0);
@@ -397,9 +379,6 @@ export default function Vendas() {
     setOrigemLead("");
     setResponsavelId("");
     setVendedorId("");
-    
-    // Limpar auto-save
-    clearAutoSave();
   };
   const handleCalcular = async () => {
     // Validar campos obrigatórios
@@ -424,14 +403,6 @@ export default function Vendas() {
         variant: "destructive",
       });
       return;
-    }
-    
-    // Se houver alterações não salvas, salvar primeiro
-    if (hasUnsavedChanges) {
-      setIsAutoSaving(true);
-      await handleSalvarVenda();
-      setIsAutoSaving(false);
-      clearAutoSave();
     }
 
     const resultado = await calcularPedido(editandoVendaId);
@@ -754,8 +725,7 @@ export default function Vendas() {
           description: estaEditando ? "As alterações foram salvas com sucesso." : "A venda foi criada com sucesso.",
         });
       }
-      clearAutoSave();
-      
+
       // Só limpa e volta pro kanban se for uma venda nova (não estava editando)
       if (!estaEditando) {
         limparFormulario();
@@ -888,8 +858,6 @@ export default function Vendas() {
           isSaving={createVenda.isPending || updateVenda.isPending}
           isCalculating={isCalculating}
           editandoVendaId={editandoVendaId}
-          hasUnsavedChanges={hasUnsavedChanges}
-          isAutoSaving={isAutoSaving}
         />
 
         <div className="pt-20 p-8 space-y-6">
