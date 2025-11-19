@@ -386,7 +386,25 @@ export default function Vendas() {
       return;
     }
 
-    await calcularPedido(editandoVendaId);
+    const resultado = await calcularPedido(editandoVendaId);
+    
+    // Atualiza o carrinho com os valores calculados do Datasul
+    if (resultado?.itensAtualizados) {
+      const carrinhoAtualizado = resultado.itensAtualizados.map((item: any) => ({
+        produto: item.produtos,
+        quantidade: item.quantidade,
+        desconto: item.desconto,
+        // Sobrepõe o valor_total com o valor calculado pelo Datasul
+        valor_total: item.datasul_vl_tot_item || item.valor_total,
+        datasul_dep_exp: item.datasul_dep_exp,
+        datasul_custo: item.datasul_custo,
+        datasul_divisao: item.datasul_divisao,
+        datasul_vl_tot_item: item.datasul_vl_tot_item,
+        datasul_vl_merc_liq: item.datasul_vl_merc_liq,
+        datasul_lote_mulven: item.datasul_lote_mulven,
+      }));
+      setCarrinho(carrinhoAtualizado);
+    }
   };
   const handleCancelarProposta = () => {
     limparFormulario();
@@ -570,7 +588,7 @@ export default function Vendas() {
             preco_unitario: item.produto.preco_venda,
             preco_tabela: item.produto.preco_venda, // Preço de tabela
             desconto: item.desconto,
-            valor_total: item.valor_total,
+            valor_total: item.datasul_vl_tot_item || item.valor_total, // Usa valor do Datasul se disponível
             sequencia_item: i + 1, // Adiciona sequência automática
             datasul_dep_exp: item.datasul_dep_exp || null,
             datasul_custo: item.datasul_custo || null,
@@ -669,7 +687,7 @@ export default function Vendas() {
                 preco_unitario: item.produto.preco_venda,
                 preco_tabela: item.produto.preco_venda, // Preço de tabela
                 desconto: item.desconto,
-                valor_total: item.valor_total,
+                valor_total: item.datasul_vl_tot_item || item.valor_total, // Usa valor do Datasul se disponível
                 sequencia_item: i + 1, // Adiciona sequência automática
                 datasul_dep_exp: item.datasul_dep_exp || null,
                 datasul_custo: item.datasul_custo || null,
