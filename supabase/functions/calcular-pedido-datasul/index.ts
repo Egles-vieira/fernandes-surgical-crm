@@ -366,43 +366,116 @@ Deno.serve(async (req) => {
     }
 
     // 11. Extrair informações do retorno do cálculo
+    // CRÍTICO: Sempre extrair e armazenar informações do último cálculo
     let errorNumber: number | null = null;
     let errorDescription: string | null = null;
     let msgCredito: string | null = null;
     let indCreCli: string | null = null;
     let limiteDisponivel: number | null = null;
 
-    if (datasulResponse.ok && datasulData) {
-      // Tentar extrair dados do primeiro pedido retornado
-      if (datasulData.pedido && Array.isArray(datasulData.pedido) && datasulData.pedido.length > 0) {
-        const pedidoRetorno = datasulData.pedido[0];
+    try {
+      if (datasulData && typeof datasulData === 'object') {
+        // Tentar extrair dados do primeiro pedido retornado
+        const pedidoArray = datasulData.pedido;
         
-        errorNumber = pedidoRetorno.errornumber !== undefined ? Number(pedidoRetorno.errornumber) : null;
-        errorDescription = pedidoRetorno.errordescription || null;
-        msgCredito = pedidoRetorno["msg-credito"] || null;
-        indCreCli = pedidoRetorno["ind-cre-cli"] || null;
-        limiteDisponivel = pedidoRetorno["limite-disponivel"] !== undefined ? Number(pedidoRetorno["limite-disponivel"]) : null;
+        if (Array.isArray(pedidoArray) && pedidoArray.length > 0) {
+          const pedidoRetorno = pedidoArray[0];
+          
+          // Extrair errornumber (pode ser number ou string)
+          if (pedidoRetorno.errornumber !== undefined && pedidoRetorno.errornumber !== null) {
+            const errorNum = Number(pedidoRetorno.errornumber);
+            errorNumber = isNaN(errorNum) ? null : errorNum;
+          }
+          
+          // Extrair errordescription
+          if (pedidoRetorno.errordescription !== undefined && pedidoRetorno.errordescription !== null) {
+            errorDescription = String(pedidoRetorno.errordescription).trim() || null;
+          }
+          
+          // Extrair msg-credito
+          if (pedidoRetorno["msg-credito"] !== undefined && pedidoRetorno["msg-credito"] !== null) {
+            msgCredito = String(pedidoRetorno["msg-credito"]).trim() || null;
+          }
+          
+          // Extrair ind-cre-cli (CRÍTICO - sempre salvar)
+          if (pedidoRetorno["ind-cre-cli"] !== undefined && pedidoRetorno["ind-cre-cli"] !== null) {
+            indCreCli = String(pedidoRetorno["ind-cre-cli"]).trim() || null;
+          }
+          
+          // Extrair limite-disponivel
+          if (pedidoRetorno["limite-disponivel"] !== undefined && pedidoRetorno["limite-disponivel"] !== null) {
+            const limite = Number(pedidoRetorno["limite-disponivel"]);
+            limiteDisponivel = isNaN(limite) ? null : limite;
+          }
+          
+          console.log("Dados extraídos do retorno Datasul:", {
+            errorNumber,
+            errorDescription,
+            msgCredito,
+            indCreCli,
+            limiteDisponivel
+          });
+        } else {
+          console.warn("Resposta Datasul sem array de pedidos válido");
+        }
       }
+    } catch (extractError) {
+      console.error("Erro ao extrair dados do retorno Datasul:", extractError);
+      // Continua mesmo com erro na extração para não quebrar o fluxo
     }
 
     // 12. Atualizar campos de última integração na venda
-    const { error: updateError } = await supabase
-      .from("vendas")
-      .update({
-        ultima_integracao_datasul_em: new Date().toISOString(),
-        ultima_integracao_datasul_requisicao: payloadOrdenado,
-        ultima_integracao_datasul_resposta: datasulData,
-        ultima_integracao_datasul_status: datasulResponse.ok ? "sucesso" : "erro",
-        datasul_errornumber: errorNumber,
-        datasul_errordescription: errorDescription,
-        datasul_msg_credito: msgCredito,
-        datasul_ind_cre_cli: indCreCli,
-        datasul_limite_disponivel: limiteDisponivel,
-      })
-      .eq("id", venda.id);
+    // CRÍTICO: Usar múltiplas tentativas para garantir que os dados sejam salvos
+    let updateSuccess = false;
+    let updateAttempts = 0;
+    const maxUpdateAttempts = 3;
+    
+    while (!updateSuccess && updateAttempts < maxUpdateAttempts) {
+      updateAttempts++;
+      
+      try {
+        const updateData = {
+          ultima_integracao_datasul_em: new Date().toISOString(),
+          ultima_integracao_datasul_requisicao: payloadOrdenado,
+          ultima_integracao_datasul_resposta: datasulData,
+          ultima_integracao_datasul_status: datasulResponse.ok ? "sucesso" : "erro",
+          datasul_errornumber: errorNumber,
+          datasul_errordescription: errorDescription,
+          datasul_msg_credito: msgCredito,
+          datasul_ind_cre_cli: indCreCli,
+          datasul_limite_disponivel: limiteDisponivel,
+        };
+        
+        console.log(`Tentativa ${updateAttempts} de ${maxUpdateAttempts} de atualizar venda com dados do cálculo`);
+        
+        const { error: updateError } = await supabase
+          .from("vendas")
+          .update(updateData)
+          .eq("id", venda.id);
 
-    if (updateError) {
-      console.error("Erro ao atualizar última integração na venda:", updateError);
+        if (updateError) {
+          console.error(`Erro na tentativa ${updateAttempts}:`, updateError);
+          
+          if (updateAttempts >= maxUpdateAttempts) {
+            // Última tentativa falhou - logar erro crítico mas não quebrar fluxo
+            console.error("ERRO CRÍTICO: Falha ao atualizar venda após todas as tentativas:", updateError);
+          } else {
+            // Aguardar antes de tentar novamente
+            await new Promise(resolve => setTimeout(resolve, 500 * updateAttempts));
+          }
+        } else {
+          updateSuccess = true;
+          console.log("Venda atualizada com sucesso com dados do cálculo Datasul");
+        }
+      } catch (updateException) {
+        console.error(`Exceção na tentativa ${updateAttempts}:`, updateException);
+        
+        if (updateAttempts >= maxUpdateAttempts) {
+          console.error("ERRO CRÍTICO: Exceção ao atualizar venda após todas as tentativas:", updateException);
+        } else {
+          await new Promise(resolve => setTimeout(resolve, 500 * updateAttempts));
+        }
+      }
     }
 
     // 13. Se houve erro no Datasul, retornar erro
