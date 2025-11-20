@@ -301,53 +301,65 @@ export default function VendaDetalhes() {
   }
 
   return (
-    <div className="space-y-6 pb-24">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate("/vendas")}
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold">Proposta #{numeroVenda || "Nova"}</h1>
-            <div className="text-muted-foreground">
-              {venda.etapa_pipeline && (
-                <Badge variant="outline">{venda.etapa_pipeline}</Badge>
-              )}
-            </div>
+    <div className="space-y-6">
+      <div className="flex items-center gap-4 mb-4">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => navigate("/vendas")}
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        <div>
+          <h1 className="text-3xl font-bold">Proposta #{numeroVenda || "Nova"}</h1>
+          <div className="text-muted-foreground">
+            {venda.etapa_pipeline && (
+              <Badge variant="outline">{venda.etapa_pipeline}</Badge>
+            )}
           </div>
         </div>
-        <div className="flex gap-2">
-          {venda.status === "aprovada" && (
-            <Button
-              variant="outline"
-              onClick={() => setShowLogsDialog(true)}
-            >
-              Ver Logs Datasul
-            </Button>
-          )}
+      </div>
+
+      <VendasActionBar
+        status={venda.status as "rascunho" | "aprovada" | "cancelada"}
+        onCalcular={handleCalcularDatasul}
+        onCancelar={() => {
+          toast({
+            title: "Cancelar proposta",
+            description: "Funcionalidade em desenvolvimento",
+          });
+        }}
+        onDiretoria={() => {
+          toast({
+            title: "Enviar para diretoria",
+            description: "Funcionalidade em desenvolvimento",
+          });
+        }}
+        onEfetivar={() => setShowAprovarDialog(true)}
+        onSalvar={handleSalvar}
+        isSaving={false}
+        isCalculating={isCalculating}
+        editandoVendaId={venda.id}
+      />
+
+      {venda.status === "aprovada" && (
+        <div className="flex justify-end">
           <Button
             variant="outline"
-            onClick={handleCalcularDatasul}
-            disabled={isCalculating || venda.status !== "aprovada"}
+            size="sm"
+            onClick={() => setShowLogsDialog(!showLogsDialog)}
           >
-            {isCalculating ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Calculando...
-              </>
-            ) : (
-              <>
-                <Calculator className="h-4 w-4 mr-2" />
-                Calcular Datasul
-              </>
-            )}
+            {showLogsDialog ? "Ocultar" : "Ver"} Logs Datasul
           </Button>
         </div>
-      </div>
+      )}
+
+      {/* Logs */}
+      {showLogsDialog && venda && (
+        <Card className="p-6">
+          <IntegracaoDatasulLog vendaId={venda.id} />
+        </Card>
+      )}
 
       <Card className="p-6">
         <div className="space-y-6">
@@ -627,28 +639,6 @@ export default function VendaDetalhes() {
           vendaValor={valorTotal}
         />
       )}
-
-      {/* Logs */}
-      {showLogsDialog && venda && (
-        <Card className="p-6">
-          <IntegracaoDatasulLog vendaId={venda.id} />
-        </Card>
-      )}
-
-      {/* Action Bar Fixo */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background border-t p-4 z-50">
-        <div className="container flex justify-end gap-2">
-          <Button variant="outline" onClick={handleSalvar}>
-            <Save className="h-4 w-4 mr-2" />
-            Salvar
-          </Button>
-          {venda.status === "rascunho" && (
-            <Button onClick={() => setShowAprovarDialog(true)}>
-              Aprovar Venda
-            </Button>
-          )}
-        </div>
-      </div>
     </div>
   );
 }
