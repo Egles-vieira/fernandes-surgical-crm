@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Search, ChevronLeft, ChevronRight } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -77,6 +77,9 @@ export function ClienteSearchDialog({
       <DialogContent className="max-w-5xl max-h-[85vh]">
         <DialogHeader>
           <DialogTitle>Pesquisar Clientes</DialogTitle>
+          <DialogDescription>
+            Busque e selecione um cliente para a proposta
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
