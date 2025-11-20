@@ -5517,6 +5517,7 @@ export type Database = {
           ultima_integracao_datasul_status: string | null
           updated_at: string
           user_id: string
+          validade_proposta: string | null
           valor_estimado: number | null
           valor_final: number
           valor_total: number
@@ -5559,6 +5560,7 @@ export type Database = {
           ultima_integracao_datasul_status?: string | null
           updated_at?: string
           user_id: string
+          validade_proposta?: string | null
           valor_estimado?: number | null
           valor_final?: number
           valor_total?: number
@@ -5601,6 +5603,7 @@ export type Database = {
           ultima_integracao_datasul_status?: string | null
           updated_at?: string
           user_id?: string
+          validade_proposta?: string | null
           valor_estimado?: number | null
           valor_final?: number
           valor_total?: number
