@@ -172,7 +172,7 @@ export function PipelineKanban({
       </div>
 
       {/* Kanban Board */}
-      <div className="flex-1 overflow-hidden px-2 pb-6">
+      <div className="flex-1 overflow-hidden px-6 pb-6">
         <DragDropContext onDragEnd={onDragEnd}>
           <div className="flex h-full gap-0 pb-4 min-w-max overflow-x-auto custom-scrollbar">
             {ETAPAS_ATIVAS.map((etapa) => {
