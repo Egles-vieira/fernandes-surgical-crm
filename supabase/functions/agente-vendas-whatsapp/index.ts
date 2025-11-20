@@ -1,236 +1,204 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// 🔧 AJUSTADO: Interface alinhada com a tabela 'produtos' do BANCO-CRM.txt
 interface ProdutoRelevante {
   id: string;
-  referencia_interna: string;
+  codigo: string; // Antes: referencia_interna
   nome: string;
+  descricao: string | null;
   preco_venda: number;
-  quantidade_em_maos: number;
+  estoque_atual: number; // Antes: quantidade_em_maos
 }
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
+  // Tratamento de CORS
+  if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { mensagemTexto, conversaId, contatoId } = await req.json();
-    
-    console.log('🤖 Agente de Vendas - Nova mensagem:', { mensagemTexto, conversaId });
+    const { mensagemTexto, conversaId } = await req.json();
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const deepseekApiKey = Deno.env.get('DEEPSEEK_API_KEY');
+    console.log("🤖 Agente de Vendas - Nova mensagem:", { mensagemTexto, conversaId });
 
-    if (!deepseekApiKey) {
-      throw new Error('DEEPSEEK_API_KEY não configurada');
-    }
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const deepseekApiKey = Deno.env.get("DEEPSEEK_API_KEY");
+
+    if (!deepseekApiKey) throw new Error("DEEPSEEK_API_KEY não configurada");
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // 1️⃣ Analisar intenção do cliente com DeepSeek
-    console.log('🧠 Analisando intenção...');
-    const analiseResponse = await fetch('https://api.deepseek.com/v1/chat/completions', {
-      method: 'POST',
+    // ========================================================================
+    // 1️⃣ CÉREBRO LÓGICO (Analista)
+    // Objetivo: Apenas extrair dados frios. Temperatura baixa.
+    // ========================================================================
+    console.log("🧠 Analisando intenção...");
+    const analiseResponse = await fetch("https://api.deepseek.com/v1/chat/completions", {
+      method: "POST",
       headers: {
-        'Authorization': `Bearer ${deepseekApiKey}`,
-        'Content-Type': 'application/json',
+        Authorization: `Bearer ${deepseekApiKey}`,
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: 'deepseek-chat',
+        model: "deepseek-chat",
         messages: [
           {
-            role: 'system',
-            content: `Você é um assistente que analisa mensagens de clientes para identificar produtos que eles buscam.
+            role: "system",
+            content: `Você é um extrator de dados para um CRM de vendas.
 
-TAREFA: Extraia palavras-chave de busca da mensagem do cliente.
-
-Regras:
-- Retorne APENAS JSON válido
-- Se o cliente quer comprar/buscar produto: {"tem_interesse": true, "palavras_chave": ["palavra1", "palavra2"]}
-- Se é apenas conversa social/saudação: {"tem_interesse": false}
-- Seja específico nas palavras-chave (ex: "parafuso m6" → ["parafuso", "m6"])
+TAREFA: Identifique se o usuário busca produtos.
+SAÍDA: JSON estrito.
 
 Exemplos:
-"Oi, tudo bem?" → {"tem_interesse": false}
-"Preciso de parafusos" → {"tem_interesse": true, "palavras_chave": ["parafuso"]}
-"Quero comprar rolamento 6205" → {"tem_interesse": true, "palavras_chave": ["rolamento", "6205"]}
-"Tem bomba hidraulica?" → {"tem_interesse": true, "palavras_chave": ["bomba", "hidraulica"]}`
+- "Bom dia" -> {"tem_interesse": false}
+- "Qual o preço do rolamento?" -> {"tem_interesse": true, "palavras_chave": ["rolamento"]}
+- "Tem parafuso sextavado?" -> {"tem_interesse": true, "palavras_chave": ["parafuso", "sextavado"]}`,
           },
-          {
-            role: 'user',
-            content: mensagemTexto
-          }
+          { role: "user", content: mensagemTexto },
         ],
-        temperature: 0.3,
-        max_tokens: 200,
+        temperature: 0.1, // Temperatura baixa para precisão no JSON
+        max_tokens: 150,
+        response_format: { type: "json_object" }, // Força JSON se a API suportar
       }),
     });
 
-    if (!analiseResponse.ok) {
-      throw new Error('Erro ao analisar mensagem');
-    }
+    if (!analiseResponse.ok) throw new Error("Erro na API DeepSeek (Análise)");
 
     const analiseData = await analiseResponse.json();
-    const analiseContent = analiseData.choices[0].message.content;
-    
-    // Extrair JSON da resposta
-    const jsonMatch = analiseContent.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      throw new Error('Resposta inválida da análise');
-    }
-    
-    const analise = JSON.parse(jsonMatch[0]);
-    console.log('📊 Análise:', analise);
-
-    // Se não há interesse em produtos, responder de forma educada e natural
-    if (!analise.tem_interesse) {
-      console.log('💬 Resposta social');
-      const respostaSocialResponse = await fetch('https://api.deepseek.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${deepseekApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'deepseek-chat',
-          messages: [
-            {
-              role: 'system',
-              content: 'Você é um vendedor amigável e natural. Responda de forma MUITO BREVE (máximo 15 palavras) de forma casual e simpática. Não mencione que é um assistente.'
-            },
-            {
-              role: 'user',
-              content: mensagemTexto
-            }
-          ],
-          temperature: 0.8,
-          max_tokens: 50,
-        }),
-      });
-
-      const respostaSocialData = await respostaSocialResponse.json();
-      const respostaSocial = respostaSocialData.choices[0].message.content;
-
-      return new Response(
-        JSON.stringify({ 
-          resposta: respostaSocial,
-          tem_produtos: false 
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    let analise;
+    try {
+      // Tenta parsear o JSON retornado
+      analise = JSON.parse(analiseData.choices[0].message.content);
+    } catch (e) {
+      // Fallback caso o modelo não retorne JSON limpo
+      console.error("Erro parse JSON:", e);
+      analise = { tem_interesse: false };
     }
 
-    // 2️⃣ Buscar produtos relevantes
-    console.log('🔍 Buscando produtos para:', analise.palavras_chave);
-    
+    console.log("📊 Intenção detectada:", analise);
+
+    // ========================================================================
+    // 2️⃣ BUSCA NO BANCO (Supabase)
+    // ========================================================================
     let produtos: ProdutoRelevante[] = [];
-    
-    // Buscar produtos que contenham qualquer uma das palavras-chave
-    for (const palavra of analise.palavras_chave) {
-      const { data, error } = await supabase
-        .from('produtos')
-        .select('id, referencia_interna, nome, preco_venda, quantidade_em_maos')
-        .or(`nome.ilike.%${palavra}%,referencia_interna.ilike.%${palavra}%`)
-        .gt('quantidade_em_maos', 0)
-        .limit(3);
+    let encontrouAlgo = false;
 
-      if (data && data.length > 0) {
-        produtos = [...produtos, ...data];
+    if (analise.tem_interesse && analise.palavras_chave?.length > 0) {
+      console.log("🔍 Buscando no banco:", analise.palavras_chave);
+
+      // Melhoria: Busca unificada para evitar loops excessivos
+      // Nota: Usando 'ilike' nas colunas corretas do seu banco (nome e codigo)
+      const termosBusca = analise.palavras_chave.map((p: string) => `nome.ilike.%${p}%,codigo.ilike.%${p}%`).join(",");
+
+      const { data, error } = await supabase
+        .from("produtos")
+        .select("id, codigo, nome, descricao, preco_venda, estoque_atual") // Colunas corretas
+        .or(termosBusca)
+        .eq("ativo", true) // Importante: Apenas produtos ativos
+        .gt("estoque_atual", 0) // Importante: Apenas com estoque
+        .limit(5); // Limita para não estourar o contexto
+
+      if (error) {
+        console.error("Erro Supabase:", error);
+      } else if (data) {
+        produtos = data;
+        encontrouAlgo = produtos.length > 0;
       }
     }
 
-    // Remover duplicatas
-    produtos = Array.from(new Map(produtos.map(p => [p.id, p])).values()).slice(0, 3);
+    // ========================================================================
+    // 3️⃣ PERSONALIDADE (O Vendedor "Beto")
+    // Objetivo: Gerar a resposta final humanizada. Temperatura alta.
+    // ========================================================================
 
-    console.log(`📦 Encontrados ${produtos.length} produtos`);
+    // Prepara o contexto dos produtos para o "Beto" ler
+    const contextoProdutos = encontrouAlgo
+      ? produtos
+          .map((p) => `ITEM: ${p.nome} | CÓD: ${p.codigo} | PREÇO: R$ ${p.preco_venda} | ESTOQUE: ${p.estoque_atual}`)
+          .join("\n")
+      : "Nenhum produto exato encontrado no sistema.";
 
-    // 3️⃣ Gerar resposta natural com DeepSeek
-    const contexto = produtos.length > 0
-      ? `PRODUTOS ENCONTRADOS:\n${produtos.map((p, i) => 
-          `${i + 1}. ${p.nome} (Cód: ${p.referencia_interna}) - R$ ${p.preco_venda.toFixed(2)} - Estoque: ${p.quantidade_em_maos}`
-        ).join('\n')}`
-      : 'Nenhum produto encontrado';
+    console.log("🗣️ Gerando resposta humanizada...");
 
-    console.log('💬 Gerando resposta natural...');
-    const respostaResponse = await fetch('https://api.deepseek.com/v1/chat/completions', {
-      method: 'POST',
+    const respostaResponse = await fetch("https://api.deepseek.com/v1/chat/completions", {
+      method: "POST",
       headers: {
-        'Authorization': `Bearer ${deepseekApiKey}`,
-        'Content-Type': 'application/json',
+        Authorization: `Bearer ${deepseekApiKey}`,
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: 'deepseek-chat',
+        model: "deepseek-chat",
         messages: [
           {
-            role: 'system',
-            content: `Você é um vendedor natural e amigável no WhatsApp.
+            role: "system",
+            content: `
+IDENTIDADE:
+Você é o "Beto", vendedor na Cirurgica Fernandes.
+Você é brasileiro, simpático, usa linguagem coloquial (mas profissional) e emojis moderados.
+Você fala como alguém no WhatsApp, respostas curtas e diretas.
 
-REGRAS CRÍTICAS:
-- Responda de forma MUITO NATURAL, como se fosse um amigo ajudando
-- MÁXIMO 40 palavras (seja BREVE!)
-- NÃO use formalidades excessivas
-- NÃO mencione que é um assistente ou IA
-- Use emojis ocasionalmente (máximo 2)
-- Fale como uma pessoa real falaria no WhatsApp
-- Se tiver produtos: mencione apenas os mais relevantes (máximo 2)
-- Se não encontrou: seja empático e peça mais detalhes
+DIRETRIZES DE RESPOSTA:
+1. NUNCA comece com "Olá, sou o assistente". Comece com "Opa!", "Fala aí!", "Tudo bom?".
+2. Se encontrou produtos:
+   - Mostre as opções de forma resumida.
+   - Destaque o preço.
+   - Pergunte se quer fechar o pedido ou ver mais detalhes.
+   - Exemplo: "Achei esse aqui ó: [Nome] por R$ [Preço]. O que acha?"
+3. Se NÃO encontrou produtos (mas o cliente queria):
+   - Peça desculpas de jeito leve ("Putz, esse eu vou ficar devendo").
+   - Pergunte se tem algum detalhe a mais (medida, marca) para tentar achar.
+4. Se for só "oi/bom dia":
+   - Seja breve: "Opa, beleza? Tô por aqui se precisar de alguma coisa."
 
-PRODUTOS DISPONÍVEIS:
-${contexto}
+CONTEXTO DO SISTEMA (O que você achou no estoque):
+${contextoProdutos}
 
-Mensagem do cliente: "${mensagemTexto}"
-
-Responda de forma natural e breve!`
-          }
+MENSAGEM DO CLIENTE:
+"${mensagemTexto}"
+`,
+          },
         ],
-        temperature: 0.9,
-        max_tokens: 100,
+        temperature: 0.8, // Mais criativo para parecer humano
+        max_tokens: 250,
       }),
     });
 
-    if (!respostaResponse.ok) {
-      throw new Error('Erro ao gerar resposta');
-    }
+    if (!respostaResponse.ok) throw new Error("Erro ao gerar resposta humanizada");
 
     const respostaData = await respostaResponse.json();
-    const resposta = respostaData.choices[0].message.content;
+    const respostaFinal = respostaData.choices[0].message.content;
 
-    console.log('✅ Resposta gerada:', resposta);
-
+    // Retorno final para o cliente
     return new Response(
       JSON.stringify({
-        resposta,
-        tem_produtos: produtos.length > 0,
-        produtos: produtos.map(p => ({
-          id: p.id,
-          codigo: p.referencia_interna,
-          descricao: p.nome,
-          preco: p.preco_venda,
-          estoque: p.quantidade_em_maos
-        }))
+        resposta: respostaFinal,
+        dados_tecnicos: {
+          // Útil para debug no frontend, se precisar
+          encontrou: encontrouAlgo,
+          produtos: produtos,
+        },
       }),
       {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
     );
-
   } catch (error) {
-    console.error('❌ Erro no agente de vendas:', error);
+    console.error("❌ Erro:", error);
     return new Response(
-      JSON.stringify({ 
-        error: error instanceof Error ? error.message : 'Erro desconhecido',
-        resposta: 'Desculpe, tive um problema aqui. Pode repetir?'
+      JSON.stringify({
+        resposta: "Eita, deu uma travada aqui no meu sistema. Pode mandar de novo?", // Mensagem de erro humanizada
+        error: String(error),
       }),
       {
         status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
     );
   }
 });
