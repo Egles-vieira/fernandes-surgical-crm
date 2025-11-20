@@ -59,3 +59,6 @@ verify_jwt = true
 
 [functions.popular-embeddings]
 verify_jwt = true
+
+[functions.processar-fila-embeddings]
+verify_jwt = true
