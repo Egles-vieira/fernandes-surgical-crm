@@ -317,7 +317,7 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
     return;
   }
 
-  const { error: msgError } = await supabase.from('whatsapp_mensagens').insert({
+  const { data: novaMensagem, error: msgError } = await supabase.from('whatsapp_mensagens').insert({
     conversa_id: conversa.id,
     whatsapp_conta_id: conta.id,
     whatsapp_contato_id: contato.id,
@@ -334,7 +334,7 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
     url_midia: mediaUrl,
     mime_type: mediaMime,
     nome_arquivo: mediaFileName,
-  });
+  }).select().single();
 
   if (msgError) {
     console.error('❌ Erro ao inserir mensagem:', msgError);
@@ -342,6 +342,114 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
   }
 
   console.log('✅ Mensagem W-API processada com sucesso');
+
+  // 🤖 AGENTE DE VENDAS: Processar mensagem automaticamente se ativo
+  if (conta.agente_vendas_ativo && messageText && messageType === 'text') {
+    console.log('🤖 Agente de vendas ativo - processando mensagem');
+    
+    try {
+      // Chamar agente de vendas
+      const { data: agenteData, error: agenteError } = await supabase.functions.invoke('agente-vendas-whatsapp', {
+        body: {
+          mensagemTexto: messageText,
+          conversaId: conversa.id,
+          contatoId: contato.id
+        }
+      });
+
+      if (agenteError) {
+        console.error('❌ Erro ao invocar agente:', agenteError);
+        return;
+      }
+
+      if (agenteData?.resposta) {
+        console.log('🤖 Resposta do agente:', agenteData.resposta);
+        
+        // Inserir resposta do agente no banco
+        const { data: respostaAgente, error: respostaError } = await supabase
+          .from('whatsapp_mensagens')
+          .insert({
+            conversa_id: conversa.id,
+            whatsapp_conta_id: conta.id,
+            whatsapp_contato_id: contato.id,
+            corpo: agenteData.resposta,
+            direcao: 'enviada',
+            tipo_mensagem: 'text',
+            status: 'pendente',
+            criado_em: new Date().toISOString(),
+            metadados: { 
+              gerada_por_agente: true,
+              tem_produtos: agenteData.tem_produtos,
+              produtos: agenteData.produtos 
+            }
+          })
+          .select()
+          .single();
+
+        if (respostaError) {
+          console.error('❌ Erro ao inserir resposta do agente:', respostaError);
+          return;
+        }
+
+        // Enviar via W-API
+        if (respostaAgente) {
+          const sendUrl = `https://api.w-api.app/instances/${conta.instance_id_wapi}/client/action/send-message`;
+          
+          // Obter número do contato
+          const { data: contatoData } = await supabase
+            .from('whatsapp_contatos')
+            .select('numero_whatsapp')
+            .eq('id', contato.id)
+            .single();
+
+          const numeroDestinatario = contatoData?.numero_whatsapp;
+          
+          const sendResponse = await fetch(sendUrl, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${conta.token_wapi}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              chatId: `${numeroDestinatario}@c.us`,
+              contentType: 'string',
+              content: agenteData.resposta
+            }),
+          });
+
+          if (sendResponse.ok) {
+            const sendResult = await sendResponse.json();
+            console.log('✅ Resposta do agente enviada via W-API');
+            
+            // Atualizar status da mensagem
+            await supabase
+              .from('whatsapp_mensagens')
+              .update({
+                status: 'enviada',
+                mensagem_externa_id: sendResult.messageId,
+                status_enviada_em: new Date().toISOString()
+              })
+              .eq('id', respostaAgente.id);
+          } else {
+            console.error('❌ Erro ao enviar resposta via W-API');
+            
+            // Marcar como erro
+            await supabase
+              .from('whatsapp_mensagens')
+              .update({
+                status: 'erro',
+                erro_mensagem: 'Erro ao enviar via W-API',
+                status_falhou_em: new Date().toISOString()
+              })
+              .eq('id', respostaAgente.id);
+          }
+        }
+      }
+    } catch (agenteError) {
+      console.error('❌ Erro ao processar agente de vendas:', agenteError);
+      // Não falhar o webhook se o agente falhar
+    }
+  }
 }
 
 async function atualizarStatusMensagem(supabase: any, payload: any) {
