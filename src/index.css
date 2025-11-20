@@ -325,4 +325,24 @@ All colors MUST be HSL.
   [data-sonner-toast][data-type="info"] [data-icon] {
     color: hsl(var(--primary)) !important;
   }
+
+  /* Custom scrollbar styles for Kanban */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: hsl(220 13% 97%);
+    border-radius: 4px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: hsl(220 13% 85%);
+    border-radius: 4px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: hsl(220 13% 75%);
+  }
 }
