@@ -17,35 +17,23 @@ export function useClientes({ page = 1, pageSize = 50, searchTerm = "" }: UseCli
   const queryClient = useQueryClient();
 
   const { data, isLoading } = useQuery({
-    queryKey: ["clientes", page, pageSize, searchTerm],
+    queryKey: ["clientes"],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Usuário não autenticado");
 
-      const from = (page - 1) * pageSize;
-      const to = from + pageSize - 1;
-
-      let query = supabase
+      const { data, error } = await supabase
         .from("clientes")
-        .select("*", { count: "exact" })
+        .select("*")
         .order("nome_emit");
 
-      // Aplicar filtro de busca se houver
-      if (searchTerm) {
-        query = query.or(`nome_abrev.ilike.%${searchTerm}%,cgc.ilike.%${searchTerm}%,nome_emit.ilike.%${searchTerm}%`);
-      }
-
-      query = query.range(from, to);
-
-      const { data, error, count } = await query;
-
       if (error) throw error;
-      return { clientes: data as Cliente[], total: count || 0 };
+      return data as Cliente[];
     },
   });
 
-  const clientes = data?.clientes || [];
-  const total = data?.total || 0;
+  const clientes = data || [];
+  const total = data?.length || 0;
 
   const createCliente = useMutation({
     mutationFn: async (cliente: ClienteInsert) => {
@@ -128,7 +116,6 @@ export function useClientes({ page = 1, pageSize = 50, searchTerm = "" }: UseCli
 
   return {
     clientes,
-    total,
     isLoading,
     createCliente,
     updateCliente,

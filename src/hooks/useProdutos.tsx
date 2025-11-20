@@ -6,43 +6,22 @@ import { Tables, TablesInsert } from "@/integrations/supabase/types";
 type Produto = Tables<"produtos">;
 type ProdutoInsert = TablesInsert<"produtos">;
 
-interface UseProdutosParams {
-  page?: number;
-  pageSize?: number;
-  searchTerm?: string;
-}
-
-export function useProdutos({ page = 1, pageSize = 50, searchTerm = "" }: UseProdutosParams = {}) {
+export function useProdutos() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data, isLoading } = useQuery({
-    queryKey: ["produtos", page, pageSize, searchTerm],
+  const { data: produtos = [], isLoading } = useQuery({
+    queryKey: ["produtos"],
     queryFn: async () => {
-      const from = (page - 1) * pageSize;
-      const to = from + pageSize - 1;
-
-      let query = supabase
+      const { data, error } = await supabase
         .from("produtos")
-        .select("*", { count: "exact" })
+        .select("*")
         .order("nome");
 
-      // Aplicar filtro de busca se houver
-      if (searchTerm) {
-        query = query.or(`nome.ilike.%${searchTerm}%,referencia_interna.ilike.%${searchTerm}%`);
-      }
-
-      query = query.range(from, to);
-
-      const { data, error, count } = await query;
-
       if (error) throw error;
-      return { produtos: data as Produto[], total: count || 0 };
+      return data as Produto[];
     },
   });
-
-  const produtos = data?.produtos || [];
-  const total = data?.total || 0;
 
   const createProduto = useMutation({
     mutationFn: async (produto: ProdutoInsert) => {
@@ -137,7 +116,6 @@ export function useProdutos({ page = 1, pageSize = 50, searchTerm = "" }: UsePro
 
   return {
     produtos,
-    total,
     isLoading,
     createProduto,
     updateProduto,
