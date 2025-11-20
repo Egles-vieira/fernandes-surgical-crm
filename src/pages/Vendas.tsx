@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import type { Database } from "@/integrations/supabase/types";
 import { Search, Plus, Eye, Trash2, ShoppingCart, Save, Users, Edit, CheckCircle, Settings, Loader2, Calculator, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -55,6 +56,7 @@ interface ItemCarrinho {
   datasul_lote_mulven?: number | null;
 }
 export default function Vendas() {
+  const navigate = useNavigate();
   const { vendas, isLoading, createVenda, addItem, updateVenda, updateItem, removeItem, aprovarVenda } = useVendas();
   const { condicoes, isLoading: isLoadingCondicoes } = useCondicoesPagamento();
   const { tipos: tiposFrete, isLoading: isLoadingTiposFrete } = useTiposFrete();
@@ -1455,8 +1457,7 @@ export default function Vendas() {
             }))}
             onMoverCard={handleMoverCard}
             onEditarVenda={(venda) => {
-              const vendaCompleta = vendas.find((v) => v.id === venda.id);
-              if (vendaCompleta) handleEditarVenda(vendaCompleta);
+              navigate(`/vendas/${venda.id}`);
             }}
             onNovaVenda={() => setView("nova")}
           />
@@ -1519,7 +1520,7 @@ export default function Vendas() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => handleEditarVenda(venda)}
+                              onClick={() => navigate(`/vendas/${venda.id}`)}
                               title="Editar venda"
                             >
                               <Edit size={16} />

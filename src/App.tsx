@@ -5,6 +5,7 @@ import Layout from "./components/Layout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
 import Vendas from "./pages/Vendas";
+import VendaDetalhes from "./pages/VendaDetalhes";
 import Plataformas from "./pages/Plataformas";
 import Licitacoes from "./pages/Licitacoes";
 import Clientes from "./pages/Clientes";
@@ -61,6 +62,11 @@ const App = () => (
         <Route path="/vendas" element={<ProtectedRoute>
             <Layout>
               <Vendas />
+            </Layout>
+          </ProtectedRoute>} />
+        <Route path="/vendas/:id" element={<ProtectedRoute>
+            <Layout>
+              <VendaDetalhes />
             </Layout>
           </ProtectedRoute>} />
         <Route path="/plataformas" element={<ProtectedRoute>
