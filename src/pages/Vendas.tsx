@@ -790,6 +790,116 @@ export default function Vendas() {
       }
     }
   };
+
+  const handleDuplicarVenda = async (vendaOriginal: any) => {
+    try {
+      // Buscar venda completa com itens
+      const { data: vendaCompleta, error: errorVenda } = await supabase
+        .from("vendas")
+        .select(`
+          *,
+          vendas_itens (
+            *,
+            produtos (*)
+          )
+        `)
+        .eq("id", vendaOriginal.id)
+        .single();
+
+      if (errorVenda || !vendaCompleta) {
+        throw new Error("Não foi possível carregar a venda para duplicar");
+      }
+
+      // Gerar novo número de venda
+      const novoNumero = `V${Date.now().toString().slice(-8)}`;
+
+      // Obter usuário atual
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (!currentUser) throw new Error("Usuário não autenticado");
+
+      // Buscar equipe do vendedor
+      const { data: membroEquipe } = await supabase
+        .from("membros_equipe")
+        .select("equipe_id, equipes!inner(esta_ativa)")
+        .eq("usuario_id", currentUser.id)
+        .eq("esta_ativo", true)
+        .eq("equipes.esta_ativa", true)
+        .limit(1)
+        .single();
+
+      const equipeId = membroEquipe?.equipe_id || null;
+
+      // Criar nova venda como duplicata
+      const novaVenda = await createVenda.mutateAsync({
+        numero_venda: novoNumero,
+        cliente_id: vendaCompleta.cliente_id,
+        cliente_nome: vendaCompleta.cliente_nome,
+        cliente_cnpj: vendaCompleta.cliente_cnpj,
+        valor_total: vendaCompleta.valor_total,
+        desconto: vendaCompleta.desconto || 0,
+        valor_final: vendaCompleta.valor_final,
+        status: "rascunho" as const,
+        data_venda: new Date().toISOString(),
+        condicao_pagamento_id: vendaCompleta.condicao_pagamento_id,
+        tipo_frete_id: vendaCompleta.tipo_frete_id,
+        tipo_pedido_id: vendaCompleta.tipo_pedido_id,
+        faturamento_parcial: vendaCompleta.faturamento_parcial,
+        observacoes: vendaCompleta.observacoes ? `[DUPLICADO] ${vendaCompleta.observacoes}` : "[DUPLICADO]",
+        etapa_pipeline: "prospeccao" as EtapaPipeline,
+        valor_estimado: vendaCompleta.valor_estimado || vendaCompleta.valor_total,
+        probabilidade: 50,
+        data_fechamento_prevista: null,
+        motivo_perda: null,
+        origem_lead: `Duplicado de ${vendaCompleta.numero_venda}`,
+        responsavel_id: currentUser.id,
+        vendedor_id: currentUser.id,
+        equipe_id: equipeId,
+      });
+
+      if (novaVenda && novaVenda.id && vendaCompleta.vendas_itens) {
+        // Aguardar propagação
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
+        // Copiar todos os itens
+        for (let i = 0; i < vendaCompleta.vendas_itens.length; i++) {
+          const itemOriginal = vendaCompleta.vendas_itens[i];
+          await addItem.mutateAsync({
+            venda_id: novaVenda.id,
+            produto_id: itemOriginal.produto_id,
+            quantidade: itemOriginal.quantidade,
+            preco_unitario: itemOriginal.preco_unitario,
+            preco_tabela: itemOriginal.preco_tabela,
+            desconto: itemOriginal.desconto,
+            valor_total: itemOriginal.valor_total,
+            sequencia_item: i + 1,
+            datasul_dep_exp: itemOriginal.datasul_dep_exp,
+            datasul_custo: itemOriginal.datasul_custo,
+            datasul_divisao: itemOriginal.datasul_divisao,
+            datasul_vl_tot_item: itemOriginal.datasul_vl_tot_item,
+            datasul_vl_merc_liq: itemOriginal.datasul_vl_merc_liq,
+            datasul_lote_mulven: itemOriginal.datasul_lote_mulven,
+          });
+        }
+      }
+
+      toast({
+        title: "Proposta duplicada!",
+        description: `A proposta ${novoNumero} foi criada com sucesso.`,
+        variant: "success",
+      });
+
+      // Navegar para a nova venda
+      navigate(`/vendas/${novaVenda.id}`);
+    } catch (error: any) {
+      console.error("Erro ao duplicar venda:", error);
+      toast({
+        title: "Erro ao duplicar",
+        description: error?.message || "Não foi possível duplicar a proposta.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleMoverCard = async (vendaId: string, novaEtapa: EtapaPipeline) => {
     try {
       // Validar que a etapa é um valor válido do enum
@@ -1460,6 +1570,7 @@ export default function Vendas() {
               navigate(`/vendas/${venda.id}`);
             }}
             onNovaVenda={() => setView("nova")}
+            onDuplicarVenda={handleDuplicarVenda}
           />
         ) : (
           <>

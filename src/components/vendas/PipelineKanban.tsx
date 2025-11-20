@@ -2,7 +2,8 @@ import { useState } from "react";
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, TrendingUp, DollarSign, Briefcase, Users, LayoutGrid, GripVertical, Clock, UserCircle2, Sparkles, AlertCircle } from "lucide-react";
+import { Plus, TrendingUp, DollarSign, Briefcase, Users, LayoutGrid, GripVertical, Clock, UserCircle2, Sparkles, AlertCircle, Copy, MoreVertical } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 export type EtapaPipeline = "prospeccao" | "qualificacao" | "proposta" | "negociacao" | "fechamento" | "ganho" | "perdido";
 
 // Mapa de conversão para garantir compatibilidade
@@ -31,6 +32,7 @@ interface PipelineKanbanProps {
   onMoverCard: (vendaId: string, novaEtapa: EtapaPipeline) => void;
   onEditarVenda: (venda: VendaPipeline) => void;
   onNovaVenda: () => void;
+  onDuplicarVenda: (venda: VendaPipeline) => void;
 }
 const ETAPAS_CONFIG: Record<EtapaPipeline, {
   label: string;
@@ -102,7 +104,8 @@ export function PipelineKanban({
   vendas,
   onMoverCard,
   onEditarVenda,
-  onNovaVenda
+  onNovaVenda,
+  onDuplicarVenda
 }: PipelineKanbanProps) {
   
   const onDragEnd = (result: DropResult) => {
@@ -219,10 +222,33 @@ export function PipelineKanban({
                                 {/* Top Accent Line */}
                                 <div className={`absolute top-0 left-3 right-3 h-0.5 ${config.color} opacity-0 group-hover/card:opacity-100 transition-opacity`}></div>
                                 
+                                {/* Actions Menu */}
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="absolute top-2 right-2 h-7 w-7 opacity-0 group-hover/card:opacity-100 transition-opacity hover:bg-slate-100"
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      <MoreVertical size={14} />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onClick={(e) => {
+                                      e.stopPropagation();
+                                      onDuplicarVenda(venda);
+                                    }}>
+                                      <Copy size={14} className="mr-2" />
+                                      Duplicar Proposta
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                                
                                 {/* Grip Handle */}
                                 <div 
                                   {...provided.dragHandleProps}
-                                  className="absolute top-3 right-2 text-slate-300 hover:text-slate-500 cursor-grab p-1 opacity-0 group-hover/card:opacity-100 transition-opacity"
+                                  className="absolute top-2 right-10 text-slate-300 hover:text-slate-500 cursor-grab p-1 opacity-0 group-hover/card:opacity-100 transition-opacity"
                                   title="Arraste para mover"
                                 >
                                   <GripVertical size={14} />
