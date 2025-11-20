@@ -115,7 +115,7 @@ export default function VendaDetalhes() {
   const [origemLead, setOrigemLead] = useState("");
   const [responsavelId, setResponsavelId] = useState<string>("");
   const [validadeProposta, setValidadeProposta] = useState<string>("");
-  const [atendimentoParcial, setAtendimentoParcial] = useState(false);
+  const [faturamentoParcial, setFaturamentoParcial] = useState(false);
   const [dataFaturamentoProgramado, setDataFaturamentoProgramado] = useState<string>("");
 
   // Carregar venda
@@ -134,7 +134,7 @@ export default function VendaDetalhes() {
         setOrigemLead(vendaEncontrada.origem_lead || "");
         setResponsavelId(vendaEncontrada.responsavel_id || "");
         setValidadeProposta(vendaEncontrada.validade_proposta || "");
-        setAtendimentoParcial((vendaEncontrada as any).atendimento_parcial === "yes");
+        setFaturamentoParcial(vendaEncontrada.faturamento_parcial === "YES");
         setDataFaturamentoProgramado((vendaEncontrada as any).data_faturamento_programado || "");
 
         // Carregar cliente
@@ -259,7 +259,7 @@ export default function VendaDetalhes() {
         origem_lead: origemLead,
         responsavel_id: responsavelId || null,
         validade_proposta: validadeProposta || null,
-        atendimento_parcial: atendimentoParcial ? "yes" : "no",
+        faturamento_parcial: faturamentoParcial ? "YES" : "NO",
         data_faturamento_programado: dataFaturamentoProgramado || null
       } as any);
 
@@ -430,11 +430,11 @@ export default function VendaDetalhes() {
 
             <div className="flex items-center space-x-2">
               <Switch
-                id="atendimento-parcial"
-                checked={atendimentoParcial}
-                onCheckedChange={setAtendimentoParcial}
+                id="faturamento-parcial"
+                checked={faturamentoParcial}
+                onCheckedChange={setFaturamentoParcial}
               />
-              <Label htmlFor="atendimento-parcial">Atendimento Parcial</Label>
+              <Label htmlFor="faturamento-parcial">Faturamento Parcial</Label>
             </div>
           </div>
 
