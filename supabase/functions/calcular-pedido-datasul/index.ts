@@ -88,11 +88,19 @@ Deno.serve(async (req) => {
         const DATASUL_PASS = Deno.env.get("DATASUL_PASS");
         const DATASUL_PROXY_URL = Deno.env.get("DATASUL_PROXY_URL");
         
+        // Debug de credenciais (sem expor valores)
+        console.log("Background: Credenciais configuradas:", {
+          user: !!DATASUL_USER,
+          pass: !!DATASUL_PASS,
+          url: !!DATASUL_PROXY_URL
+        });
+        
         if (!DATASUL_USER || !DATASUL_PASS || !DATASUL_PROXY_URL) {
           throw new Error("Credenciais ou URL do Datasul não configuradas");
         }
 
         console.log("Background: Iniciando cálculo para venda:", venda_id);
+        console.log("Background: URL do Datasul:", DATASUL_PROXY_URL);
 
         // Buscar todos os dados necessários
         const { data: venda } = await supabase.from("vendas").select("*").eq("id", venda_id).single();
@@ -165,9 +173,11 @@ Deno.serve(async (req) => {
           for (let tentativa = 0; tentativa < 3 && !sucesso; tentativa++) {
             try {
               if (tentativa > 0) {
+                console.log(`Background: Lote ${numeroLote} - Aguardando ${2000 * tentativa}ms antes da tentativa ${tentativa+1}`);
                 await new Promise(r => setTimeout(r, 2000 * tentativa));
               }
 
+              const fetchStartTime = Date.now();
               const response = await fetch(DATASUL_PROXY_URL, {
                 method: "POST",
                 headers: {
@@ -178,42 +188,80 @@ Deno.serve(async (req) => {
                 signal: AbortSignal.timeout(40000),
               });
 
+              const responseTime = Date.now() - fetchStartTime;
               const text = await response.text();
-              datasulData = JSON.parse(text);
+              
+              // Log detalhado da resposta
+              console.log(`Background: Lote ${numeroLote} tentativa ${tentativa+1} - Status: ${response.status} ${response.statusText}`);
+              console.log(`Background: Tempo de resposta: ${responseTime}ms`);
+              console.log(`Background: Content-Type: ${response.headers.get("content-type")}`);
+              console.log(`Background: Primeiros 200 chars da resposta: ${text.substring(0, 200)}`);
 
+              // Salvar log no banco ANTES de fazer parse (para capturar erros)
+              const isResponseOk = response.ok && response.status >= 200 && response.status < 300;
+              
               await supabase.from("integracoes_totvs_calcula_pedido").insert({
                 venda_id,
                 numero_venda: `${venda.numero_venda}-L${numeroLote}-T${tentativa+1}`,
                 request_payload: payloadOrdenado,
-                response_payload: datasulData,
-                status: response.ok ? "sucesso" : "erro",
-                error_message: response.ok ? null : text,
-                tempo_resposta_ms: Date.now() - startTime,
+                response_payload: isResponseOk ? text : null,
+                status: isResponseOk ? "sucesso" : "erro",
+                error_message: isResponseOk ? null : `HTTP ${response.status} ${response.statusText}: ${text.substring(0, 1000)}`,
+                tempo_resposta_ms: responseTime,
               });
 
-              if (response.ok) {
-                sucesso = true;
-                
-                // Atualizar itens com dados do Datasul
-                const retornoArray = datasulData.retorno || datasulData.pedido;
-                if (Array.isArray(retornoArray)) {
-                  for (const itemDS of retornoArray) {
-                    const seq = itemDS["nr-sequencia"];
-                    if (seq) {
-                      await supabase.from("vendas_itens").update({
-                        datasul_dep_exp: Number(itemDS["dep-exp"]) || null,
-                        datasul_custo: Number(itemDS["custo"]) || null,
-                        datasul_divisao: Number(itemDS["divisao"]) || null,
-                        datasul_vl_tot_item: Number(itemDS["vl-tot-item"]) || null,
-                        datasul_vl_merc_liq: Number(itemDS["vl-merc-liq"]) || null,
-                        datasul_lote_mulven: Number(itemDS["lote-mulven"]) || null,
-                      }).eq("venda_id", venda_id).eq("sequencia_item", seq);
-                    }
+              if (!isResponseOk) {
+                throw new Error(`Datasul retornou status ${response.status} ${response.statusText}. Resposta: ${text.substring(0, 500)}`);
+              }
+
+              // Tentar fazer parse do JSON apenas se a resposta for OK
+              try {
+                datasulData = JSON.parse(text);
+                console.log(`Background: Lote ${numeroLote} - JSON parseado com sucesso`);
+              } catch (parseError) {
+                const parseErrorMsg = parseError instanceof Error ? parseError.message : String(parseError);
+                console.error(`Background: Lote ${numeroLote} - Erro ao fazer parse do JSON:`, parseError);
+                console.error(`Background: Resposta completa (primeiros 1000 chars): ${text.substring(0, 1000)}`);
+                throw new Error(`Resposta não é JSON válido. Parse error: ${parseErrorMsg}. Resposta: ${text.substring(0, 200)}`);
+              }
+
+              sucesso = true;
+              
+              // Atualizar itens com dados do Datasul
+              const retornoArray = datasulData.retorno || datasulData.pedido;
+              if (Array.isArray(retornoArray)) {
+                console.log(`Background: Lote ${numeroLote} - Atualizando ${retornoArray.length} itens`);
+                for (const itemDS of retornoArray) {
+                  const seq = itemDS["nr-sequencia"];
+                  if (seq) {
+                    await supabase.from("vendas_itens").update({
+                      datasul_dep_exp: Number(itemDS["dep-exp"]) || null,
+                      datasul_custo: Number(itemDS["custo"]) || null,
+                      datasul_divisao: Number(itemDS["divisao"]) || null,
+                      datasul_vl_tot_item: Number(itemDS["vl-tot-item"]) || null,
+                      datasul_vl_merc_liq: Number(itemDS["vl-merc-liq"]) || null,
+                      datasul_lote_mulven: Number(itemDS["lote-mulven"]) || null,
+                    }).eq("venda_id", venda_id).eq("sequencia_item", seq);
                   }
                 }
+                console.log(`Background: Lote ${numeroLote} - Itens atualizados com sucesso`);
               }
             } catch (error) {
-              console.error(`Background: Lote ${numeroLote} tentativa ${tentativa+1} falhou:`, error);
+              const errorMsg = error instanceof Error ? error.message : String(error);
+              console.error(`Background: Lote ${numeroLote} tentativa ${tentativa+1} falhou: ${errorMsg}`);
+              
+              // Se for a última tentativa, garantir que salvamos o erro
+              if (tentativa === 2) {
+                await supabase.from("integracoes_totvs_calcula_pedido").insert({
+                  venda_id,
+                  numero_venda: `${venda.numero_venda}-L${numeroLote}-ERRO-FINAL`,
+                  request_payload: payloadOrdenado,
+                  response_payload: null,
+                  status: "erro",
+                  error_message: `Falhou após 3 tentativas. Último erro: ${errorMsg}`,
+                  tempo_resposta_ms: null,
+                });
+              }
             }
           }
 
