@@ -4374,6 +4374,7 @@ export type Database = {
           created_at: string
           custo: number
           dtr: number
+          embedding: string | null
           grupo_estoque: number
           icms_sp_percent: number
           id: string
@@ -4398,6 +4399,7 @@ export type Database = {
           created_at?: string
           custo?: number
           dtr?: number
+          embedding?: string | null
           grupo_estoque?: number
           icms_sp_percent?: number
           id?: string
@@ -4422,6 +4424,7 @@ export type Database = {
           created_at?: string
           custo?: number
           dtr?: number
+          embedding?: string | null
           grupo_estoque?: number
           icms_sp_percent?: number
           id?: string
@@ -7146,6 +7149,22 @@ export type Database = {
           email: string
           roles: Database["public"]["Enums"]["app_role"][]
           user_id: string
+        }[]
+      }
+      match_produtos: {
+        Args: {
+          match_count?: number
+          match_threshold?: number
+          query_embedding: string
+        }
+        Returns: {
+          id: string
+          narrativa: string
+          nome: string
+          preco_venda: number
+          quantidade_em_maos: number
+          referencia_interna: string
+          similarity: number
         }[]
       }
       pode_acessar_cliente: {
