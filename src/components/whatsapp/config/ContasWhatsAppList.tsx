@@ -27,6 +27,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import NovaContaDialog from "./NovaContaDialog";
+import AgenteVendasToggle from "./AgenteVendasToggle";
 
 const ContasWhatsAppList = () => {
   const { toast } = useToast();
@@ -211,6 +212,14 @@ const ContasWhatsAppList = () => {
                           Última sincronização: {format(new Date(conta.ultima_sincronizacao_em), "dd/MM/yyyy HH:mm", { locale: ptBR })}
                         </span>
                       )}
+                    </div>
+
+                    {/* Agente de Vendas */}
+                    <div className="mt-4">
+                      <AgenteVendasToggle 
+                        contaId={conta.id} 
+                        agenteAtivo={conta.agente_vendas_ativo || false}
+                      />
                     </div>
                   </div>
                 </div>
