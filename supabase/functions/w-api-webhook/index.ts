@@ -400,52 +400,120 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
 
         // Enviar via W-API
         if (respostaAgente) {
-          const sendUrl = `https://api.w-api.app/instances/${conta.w_api_instancia}/client/action/send-message`;
-          
-          // Obter número do contato
-          const { data: contatoData } = await supabase
-            .from('whatsapp_contatos')
-            .select('numero_whatsapp')
-            .eq('id', contato.id)
-            .single();
+          try {
+            // Obter número do contato
+            const { data: contatoData } = await supabase
+              .from('whatsapp_contatos')
+              .select('numero_whatsapp')
+              .eq('id', contato.id)
+              .single();
 
-          const numeroDestinatario = contatoData?.numero_whatsapp;
-          
-          const sendResponse = await fetch(sendUrl, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${conta.w_api_token}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              chatId: `${numeroDestinatario}@c.us`,
-              contentType: 'string',
-              content: agenteData.resposta
-            }),
-          });
-
-          if (sendResponse.ok) {
-            const sendResult = await sendResponse.json();
-            console.log('✅ Resposta do agente enviada via W-API');
+            const numeroDestinatario = contatoData?.numero_whatsapp;
             
-            // Atualizar status da mensagem
-            await supabase
-              .from('whatsapp_mensagens')
-              .update({
-                status: 'enviada',
-                mensagem_externa_id: sendResult.messageId,
-                status_enviada_em: new Date().toISOString()
-              })
-              .eq('id', respostaAgente.id);
-          } else {
-            console.error('❌ Erro ao enviar resposta via W-API');
+            // Validações antes do envio
+            if (!numeroDestinatario) {
+              console.error('❌ Número do destinatário não encontrado');
+              console.error('Contato ID:', contato.id);
+              await supabase
+                .from('whatsapp_mensagens')
+                .update({
+                  status: 'erro',
+                  erro_mensagem: 'Número do destinatário não encontrado',
+                  status_falhou_em: new Date().toISOString()
+                })
+                .eq('id', respostaAgente.id);
+              return;
+            }
+
+            if (!conta.w_api_token || !conta.w_api_instancia) {
+              console.error('❌ Credenciais W-API não configuradas');
+              console.error('Token presente:', !!conta.w_api_token);
+              console.error('Instância presente:', !!conta.w_api_instancia);
+              await supabase
+                .from('whatsapp_mensagens')
+                .update({
+                  status: 'erro',
+                  erro_mensagem: 'Credenciais W-API não configuradas',
+                  status_falhou_em: new Date().toISOString()
+                })
+                .eq('id', respostaAgente.id);
+              return;
+            }
+
+            // Limpar número (remover + e outros caracteres)
+            const numeroLimpo = numeroDestinatario.replace(/[\+\-\s]/g, '');
+            const chatId = `${numeroLimpo}@c.us`;
+            const sendUrl = `https://api.w-api.app/instances/${conta.w_api_instancia}/client/action/send-message`;
+            
+            console.log('📤 Enviando mensagem via W-API');
+            console.log('Número destinatário:', numeroDestinatario);
+            console.log('Número limpo:', numeroLimpo);
+            console.log('Chat ID:', chatId);
+            console.log('URL:', sendUrl);
+            console.log('Instância:', conta.w_api_instancia);
+            
+            const sendResponse = await fetch(sendUrl, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${conta.w_api_token}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                chatId: chatId,
+                contentType: 'string',
+                content: agenteData.resposta
+              }),
+            });
+
+            console.log('📊 Status da resposta W-API:', sendResponse.status);
+
+            if (sendResponse.ok) {
+              const sendResult = await sendResponse.json();
+              console.log('✅ Resposta do agente enviada via W-API');
+              console.log('Message ID:', sendResult.messageId);
+              
+              // Atualizar status da mensagem
+              await supabase
+                .from('whatsapp_mensagens')
+                .update({
+                  status: 'enviada',
+                  mensagem_externa_id: sendResult.messageId,
+                  status_enviada_em: new Date().toISOString()
+                })
+                .eq('id', respostaAgente.id);
+            } else {
+              const errorBody = await sendResponse.text();
+              console.error('❌ Erro ao enviar resposta via W-API');
+              console.error('Status HTTP:', sendResponse.status);
+              console.error('Response Body:', errorBody);
+              console.error('Dados enviados:', {
+                chatId,
+                contentType: 'string',
+                content: agenteData.resposta,
+                instancia: conta.w_api_instancia
+              });
+              
+              // Marcar como erro
+              await supabase
+                .from('whatsapp_mensagens')
+                .update({
+                  status: 'erro',
+                  erro_mensagem: `W-API error ${sendResponse.status}: ${errorBody}`,
+                  status_falhou_em: new Date().toISOString()
+                })
+                .eq('id', respostaAgente.id);
+            }
+          } catch (sendError) {
+            const error = sendError as Error;
+            console.error('❌ Erro de rede ao enviar via W-API:', error);
+            console.error('Stack trace:', error.stack);
             
             // Marcar como erro
             await supabase
               .from('whatsapp_mensagens')
               .update({
                 status: 'erro',
-                erro_mensagem: 'Erro ao enviar via W-API',
+                erro_mensagem: `Network error: ${error.message}`,
                 status_falhou_em: new Date().toISOString()
               })
               .eq('id', respostaAgente.id);
