@@ -15,6 +15,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useProdutos } from "@/hooks/useProdutos";
 import { Tables } from "@/integrations/supabase/types";
 import { PopularEmbeddingsDialog } from "@/components/produtos/PopularEmbeddingsDialog";
+import { ProcessarFilaEmbeddingsDialog } from "@/components/produtos/ProcessarFilaEmbeddingsDialog";
 
 type Produto = Tables<"produtos">;
 type ViewMode = "grid" | "list";
@@ -276,6 +277,7 @@ export default function Produtos() {
             Exportar Excel
           </Button>
           <PopularEmbeddingsDialog />
+          <ProcessarFilaEmbeddingsDialog />
           <Button onClick={() => navigate('/importar-produtos')}>
             <Upload size={16} className="mr-2" />
             Importar Produtos

@@ -2318,6 +2318,57 @@ export type Database = {
           },
         ]
       }
+      embeddings_queue: {
+        Row: {
+          atualizado_em: string
+          criado_em: string
+          erro_mensagem: string | null
+          id: string
+          max_tentativas: number
+          processado_em: string | null
+          produto_id: string
+          status: string
+          tentativas: number
+        }
+        Insert: {
+          atualizado_em?: string
+          criado_em?: string
+          erro_mensagem?: string | null
+          id?: string
+          max_tentativas?: number
+          processado_em?: string | null
+          produto_id: string
+          status?: string
+          tentativas?: number
+        }
+        Update: {
+          atualizado_em?: string
+          criado_em?: string
+          erro_mensagem?: string | null
+          id?: string
+          max_tentativas?: number
+          processado_em?: string | null
+          produto_id?: string
+          status?: string
+          tentativas?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "embeddings_queue_produto_id_fkey"
+            columns: ["produto_id"]
+            isOneToOne: false
+            referencedRelation: "produtos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "embeddings_queue_produto_id_fkey"
+            columns: ["produto_id"]
+            isOneToOne: false
+            referencedRelation: "vw_produtos_mais_sugeridos_ia"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       empresas: {
         Row: {
           atualizado_em: string | null
