@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useProdutos } from "@/hooks/useProdutos";
 import { Tables } from "@/integrations/supabase/types";
+import { PopularEmbeddingsDialog } from "@/components/produtos/PopularEmbeddingsDialog";
 
 type Produto = Tables<"produtos">;
 type ViewMode = "grid" | "list";
@@ -274,6 +275,7 @@ export default function Produtos() {
             <Download size={16} className="mr-2" />
             Exportar Excel
           </Button>
+          <PopularEmbeddingsDialog />
           <Button onClick={() => navigate('/importar-produtos')}>
             <Upload size={16} className="mr-2" />
             Importar Produtos
