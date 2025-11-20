@@ -113,6 +113,7 @@ export default function VendaDetalhes() {
   const [probabilidade, setProbabilidade] = useState<number>(50);
   const [origemLead, setOrigemLead] = useState("");
   const [responsavelId, setResponsavelId] = useState<string>("");
+  const [validadeProposta, setValidadeProposta] = useState<string>("");
 
   // Carregar venda
   useEffect(() => {
@@ -129,6 +130,7 @@ export default function VendaDetalhes() {
         setProbabilidade(vendaEncontrada.probabilidade || 50);
         setOrigemLead(vendaEncontrada.origem_lead || "");
         setResponsavelId(vendaEncontrada.responsavel_id || "");
+        setValidadeProposta(vendaEncontrada.validade_proposta || "");
 
         // Carregar cliente
         if (vendaEncontrada.cliente_id) {
@@ -250,7 +252,8 @@ export default function VendaDetalhes() {
         valor_estimado: valorEstimado,
         probabilidade,
         origem_lead: origemLead,
-        responsavel_id: responsavelId || null
+        responsavel_id: responsavelId || null,
+        validade_proposta: validadeProposta || null
       });
 
       // Adicionar novos itens
@@ -358,8 +361,6 @@ export default function VendaDetalhes() {
 
           {/* Dados da Venda */}
           <div className="grid grid-cols-2 gap-4">
-            
-
             <div>
               <Label>Tipo de Frete</Label>
               <Select value={tipoFreteId} onValueChange={setTipoFreteId}>
@@ -400,6 +401,15 @@ export default function VendaDetalhes() {
                     </SelectItem>)}
                 </SelectContent>
               </Select>
+            </div>
+
+            <div>
+              <Label>Validade da Proposta</Label>
+              <Input
+                type="date"
+                value={validadeProposta}
+                onChange={(e) => setValidadeProposta(e.target.value)}
+              />
             </div>
           </div>
 
