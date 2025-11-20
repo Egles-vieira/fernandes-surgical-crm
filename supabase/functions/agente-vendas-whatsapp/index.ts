@@ -5,14 +5,14 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// 🔧 AJUSTADO: Interface alinhada com a tabela 'produtos' do BANCO-CRM.txt
+// Interface alinhada com a tabela 'produtos'
 interface ProdutoRelevante {
   id: string;
-  codigo: string; // Antes: referencia_interna
+  referencia_interna: string;
   nome: string;
   descricao: string | null;
   preco_venda: number;
-  estoque_atual: number; // Antes: quantidade_em_maos
+  quantidade_em_maos: number;
 }
 
 Deno.serve(async (req) => {
@@ -92,17 +92,17 @@ Exemplos:
     if (analise.tem_interesse && analise.palavras_chave?.length > 0) {
       console.log("🔍 Buscando no banco:", analise.palavras_chave);
 
-      // Melhoria: Busca unificada para evitar loops excessivos
-      // Nota: Usando 'ilike' nas colunas corretas do seu banco (nome e codigo)
-      const termosBusca = analise.palavras_chave.map((p: string) => `nome.ilike.%${p}%,codigo.ilike.%${p}%`).join(",");
+      // Busca por produtos usando os campos REAIS da tabela
+      const termosBusca = analise.palavras_chave
+        .map((p: string) => `nome.ilike.%${p}%,referencia_interna.ilike.%${p}%`)
+        .join(",");
 
       const { data, error } = await supabase
         .from("produtos")
-        .select("id, codigo, nome, descricao, preco_venda, estoque_atual") // Colunas corretas
+        .select("id, referencia_interna, nome, descricao, preco_venda, quantidade_em_maos")
         .or(termosBusca)
-        .eq("ativo", true) // Importante: Apenas produtos ativos
-        .gt("estoque_atual", 0) // Importante: Apenas com estoque
-        .limit(5); // Limita para não estourar o contexto
+        .gt("quantidade_em_maos", 0) // Apenas com estoque
+        .limit(5);
 
       if (error) {
         console.error("Erro Supabase:", error);
@@ -120,7 +120,7 @@ Exemplos:
     // Prepara o contexto dos produtos para o "Beto" ler
     const contextoProdutos = encontrouAlgo
       ? produtos
-          .map((p) => `ITEM: ${p.nome} | CÓD: ${p.codigo} | PREÇO: R$ ${p.preco_venda} | ESTOQUE: ${p.estoque_atual}`)
+          .map((p) => `ITEM: ${p.nome} | CÓD: ${p.referencia_interna} | PREÇO: R$ ${p.preco_venda.toFixed(2)} | ESTOQUE: ${p.quantidade_em_maos}`)
           .join("\n")
       : "Nenhum produto exato encontrado no sistema.";
 
