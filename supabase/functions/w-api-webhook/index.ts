@@ -380,10 +380,11 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
             whatsapp_contato_id: contato.id,
             corpo: agenteData.resposta,
             direcao: 'enviada',
-            tipo_mensagem: 'text',
+            tipo_mensagem: 'texto',
             status: 'pendente',
             criado_em: new Date().toISOString(),
-            metadados: { 
+            enviada_por_bot: true,
+            metadata: { 
               gerada_por_agente: true,
               tem_produtos: agenteData.tem_produtos,
               produtos: agenteData.produtos 
