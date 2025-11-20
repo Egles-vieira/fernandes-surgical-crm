@@ -322,7 +322,7 @@ export default function VendaDetalhes() {
       });
     }} onEfetivar={() => setShowAprovarDialog(true)} onSalvar={handleSalvar} isSaving={false} isCalculating={isCalculating} editandoVendaId={venda.id} />
 
-      <div className="flex items-center gap-4 mx-px mb-4">
+      <div className="flex items-center gap-4 mb-4 mx-[10px]">
         <Button variant="ghost" size="icon" onClick={() => navigate("/vendas")}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
@@ -345,7 +345,7 @@ export default function VendaDetalhes() {
           <IntegracaoDatasulLog vendaId={venda.id} />
         </Card>}
 
-      <Card className="p-6">
+      <Card className="p-6 mx-[10px]">
         <div className="space-y-6">
           {/* Cliente */}
           <div>
@@ -412,28 +412,16 @@ export default function VendaDetalhes() {
 
             <div>
               <Label>Validade da Proposta</Label>
-              <Input
-                type="date"
-                value={validadeProposta}
-                onChange={(e) => setValidadeProposta(e.target.value)}
-              />
+              <Input type="date" value={validadeProposta} onChange={e => setValidadeProposta(e.target.value)} />
             </div>
 
             <div>
               <Label>Faturamento Programado</Label>
-              <Input
-                type="date"
-                value={dataFaturamentoProgramado}
-                onChange={(e) => setDataFaturamentoProgramado(e.target.value)}
-              />
+              <Input type="date" value={dataFaturamentoProgramado} onChange={e => setDataFaturamentoProgramado(e.target.value)} />
             </div>
 
             <div className="flex items-center space-x-2">
-              <Switch
-                id="faturamento-parcial"
-                checked={faturamentoParcial}
-                onCheckedChange={setFaturamentoParcial}
-              />
+              <Switch id="faturamento-parcial" checked={faturamentoParcial} onCheckedChange={setFaturamentoParcial} />
               <Label htmlFor="faturamento-parcial">Faturamento Parcial</Label>
             </div>
           </div>
