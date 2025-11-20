@@ -425,10 +425,10 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
               return;
             }
 
-            if (!conta.w_api_token || !conta.w_api_instancia) {
+            if (!conta.token_wapi || !conta.instance_id_wapi) {
               console.error('❌ Credenciais W-API não configuradas');
-              console.error('Token presente:', !!conta.w_api_token);
-              console.error('Instância presente:', !!conta.w_api_instancia);
+              console.error('Token presente:', !!conta.token_wapi);
+              console.error('Instância presente:', !!conta.instance_id_wapi);
               await supabase
                 .from('whatsapp_mensagens')
                 .update({
@@ -443,21 +443,21 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
             // Limpar número (remover + e outros caracteres)
             const numeroLimpo = numeroDestinatario.replace(/[\+\-\s]/g, '');
             const chatId = `${numeroLimpo}@c.us`;
-            const sendUrl = `https://api.w-api.app/instances/${conta.w_api_instancia}/client/action/send-message`;
+            const sendUrl = `https://api.w-api.app/instances/${conta.instance_id_wapi}/client/action/send-message`;
             
             console.log('📤 Enviando mensagem via W-API');
             console.log('Número destinatário:', numeroDestinatario);
             console.log('Número limpo:', numeroLimpo);
             console.log('Chat ID:', chatId);
             console.log('URL:', sendUrl);
-            console.log('Instância:', conta.w_api_instancia);
+            console.log('Instância:', conta.instance_id_wapi);
             
             const sendResponse = await fetch(sendUrl, {
               method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${conta.w_api_token}`,
-                'Content-Type': 'application/json',
-              },
+          headers: {
+            'Authorization': `Bearer ${conta.token_wapi}`,
+            'Content-Type': 'application/json',
+          },
               body: JSON.stringify({
                 chatId: chatId,
                 contentType: 'string',
