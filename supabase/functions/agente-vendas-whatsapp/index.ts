@@ -10,7 +10,7 @@ interface ProdutoRelevante {
   id: string;
   referencia_interna: string;
   nome: string;
-  descricao: string | null;
+  narrativa: string | null;
   preco_venda: number;
   quantidade_em_maos: number;
 }
@@ -99,7 +99,7 @@ Exemplos:
 
       const { data, error } = await supabase
         .from("produtos")
-        .select("id, referencia_interna, nome, descricao, preco_venda, quantidade_em_maos")
+        .select("id, referencia_interna, nome, narrativa, preco_venda, quantidade_em_maos")
         .or(termosBusca)
         .gt("quantidade_em_maos", 0) // Apenas com estoque
         .limit(5);
