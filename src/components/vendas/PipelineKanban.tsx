@@ -174,7 +174,7 @@ export function PipelineKanban({
       {/* Kanban Board */}
       <div className="flex-1 min-h-0 px-[5px] pb-[5px]">
         <DragDropContext onDragEnd={onDragEnd}>
-          <div className="flex h-full gap-0 pb-4 min-w-max overflow-x-auto overflow-y-hidden custom-scrollbar">
+          <div className="flex h-full gap-0 min-w-max overflow-x-auto overflow-y-hidden custom-scrollbar">
             {ETAPAS_ATIVAS.map((etapa) => {
               const vendasEtapa = getVendasPorEtapa(etapa);
               const totalVal = calcularValorTotal(etapa);
