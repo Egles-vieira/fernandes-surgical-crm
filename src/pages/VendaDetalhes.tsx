@@ -28,16 +28,13 @@ import { IntegracaoDatasulLog } from "@/components/IntegracaoDatasulLog";
 import { Tables } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-
 type Produto = Tables<"produtos">;
 type Cliente = Tables<"clientes">;
-
 interface VendaWithItems extends Tables<"vendas"> {
   vendas_itens?: (Tables<"vendas_itens"> & {
     produtos?: Produto;
   })[];
 }
-
 interface ItemCarrinho {
   produto: Produto;
   quantidade: number;
@@ -50,18 +47,45 @@ interface ItemCarrinho {
   datasul_vl_merc_liq?: number | null;
   datasul_lote_mulven?: number | null;
 }
-
 export default function VendaDetalhes() {
-  const { id } = useParams<{ id: string }>();
+  const {
+    id
+  } = useParams<{
+    id: string;
+  }>();
   const navigate = useNavigate();
-  const { vendas, isLoading, addItem, updateVenda, updateItem, removeItem, aprovarVenda } = useVendas();
-  const { condicoes } = useCondicoesPagamento();
-  const { tipos: tiposFrete } = useTiposFrete();
-  const { tipos: tiposPedido } = useTiposPedido();
-  const { vendedores } = useVendedores();
-  const { calcularPedido, isCalculating } = useDatasulCalculaPedido();
-  const { toast } = useToast();
-  const { visibleColumns, toggleColumn } = useColumnVisibility("vendas_itens_columns", {
+  const {
+    vendas,
+    isLoading,
+    addItem,
+    updateVenda,
+    updateItem,
+    removeItem,
+    aprovarVenda
+  } = useVendas();
+  const {
+    condicoes
+  } = useCondicoesPagamento();
+  const {
+    tipos: tiposFrete
+  } = useTiposFrete();
+  const {
+    tipos: tiposPedido
+  } = useTiposPedido();
+  const {
+    vendedores
+  } = useVendedores();
+  const {
+    calcularPedido,
+    isCalculating
+  } = useDatasulCalculaPedido();
+  const {
+    toast
+  } = useToast();
+  const {
+    visibleColumns,
+    toggleColumn
+  } = useColumnVisibility("vendas_itens_columns", {
     precoTabela: true,
     precoUnit: true,
     desconto: true,
@@ -71,9 +95,8 @@ export default function VendaDetalhes() {
     vlTotalDS: true,
     vlMercLiq: true,
     loteMult: true,
-    deposito: true,
+    deposito: true
   });
-
   const [venda, setVenda] = useState<VendaWithItems | null>(null);
   const [showProdutoSearch, setShowProdutoSearch] = useState(false);
   const [showClienteSearch, setShowClienteSearch] = useState(false);
@@ -109,14 +132,11 @@ export default function VendaDetalhes() {
 
         // Carregar cliente
         if (vendaEncontrada.cliente_id) {
-          supabase
-            .from("clientes")
-            .select("*")
-            .eq("id", vendaEncontrada.cliente_id)
-            .single()
-            .then(({ data }) => {
-              if (data) setClienteSelecionado(data);
-            });
+          supabase.from("clientes").select("*").eq("id", vendaEncontrada.cliente_id).single().then(({
+            data
+          }) => {
+            if (data) setClienteSelecionado(data);
+          });
         }
 
         // Carregar itens no carrinho
@@ -131,66 +151,56 @@ export default function VendaDetalhes() {
             datasul_divisao: item.datasul_divisao,
             datasul_vl_tot_item: item.datasul_vl_tot_item,
             datasul_vl_merc_liq: item.datasul_vl_merc_liq,
-            datasul_lote_mulven: item.datasul_lote_mulven,
+            datasul_lote_mulven: item.datasul_lote_mulven
           }));
           setCarrinho(itens);
         }
       } else {
         toast({
           title: "Venda não encontrada",
-          variant: "destructive",
+          variant: "destructive"
         });
         navigate("/vendas");
       }
     }
   }, [id, vendas, navigate, toast]);
-
   const valorTotal = useMemo(() => {
     return carrinho.reduce((sum, item) => sum + item.valor_total, 0);
   }, [carrinho]);
-
   const handleAdicionarProduto = (produto: Produto) => {
     const itemExistente = carrinho.find(item => item.produto.id === produto.id);
     if (itemExistente) {
-      const novoCarrinho = carrinho.map(item =>
-        item.produto.id === produto.id
-          ? {
-              ...item,
-              quantidade: item.quantidade + 1,
-              valor_total: (item.quantidade + 1) * produto.preco_venda * (1 - item.desconto / 100)
-            }
-          : item
-      );
+      const novoCarrinho = carrinho.map(item => item.produto.id === produto.id ? {
+        ...item,
+        quantidade: item.quantidade + 1,
+        valor_total: (item.quantidade + 1) * produto.preco_venda * (1 - item.desconto / 100)
+      } : item);
       setCarrinho(novoCarrinho);
     } else {
-      setCarrinho([
-        ...carrinho,
-        {
-          produto,
-          quantidade: 1,
-          desconto: 0,
-          valor_total: produto.preco_venda
-        }
-      ]);
+      setCarrinho([...carrinho, {
+        produto,
+        quantidade: 1,
+        desconto: 0,
+        valor_total: produto.preco_venda
+      }]);
     }
     setShowProdutoSearch(false);
   };
-
   const handleRemoverItem = async (produtoId: string) => {
     if (!venda) return;
-
     const item = venda.vendas_itens?.find(i => i.produto_id === produtoId);
     if (item) {
       await removeItem.mutateAsync(item.id);
     }
     setCarrinho(carrinho.filter(item => item.produto.id !== produtoId));
   };
-
   const handleAtualizarItem = async (produtoId: string, campo: string, valor: any) => {
     const novoCarrinho = carrinho.map(item => {
       if (item.produto.id === produtoId) {
-        const novoItem = { ...item, [campo]: valor };
-        
+        const novoItem = {
+          ...item,
+          [campo]: valor
+        };
         if (campo === 'quantidade' || campo === 'desconto') {
           novoItem.valor_total = novoItem.quantidade * item.produto.preco_venda * (1 - novoItem.desconto / 100);
         }
@@ -203,33 +213,29 @@ export default function VendaDetalhes() {
               id: itemVenda.id,
               quantidade: novoItem.quantidade,
               desconto: novoItem.desconto,
-              valor_total: novoItem.valor_total,
+              valor_total: novoItem.valor_total
             });
           }
         }
-
         return novoItem;
       }
       return item;
     });
     setCarrinho(novoCarrinho);
   };
-
   const handleSelecionarCliente = (cliente: Cliente) => {
     setClienteSelecionado(cliente);
     setShowClienteSearch(false);
   };
-
   const handleSalvar = async () => {
     if (!clienteSelecionado || carrinho.length === 0 || !venda) {
       toast({
         title: "Campos obrigatórios",
         description: "Selecione um cliente e adicione pelo menos um produto",
-        variant: "destructive",
+        variant: "destructive"
       });
       return;
     }
-
     try {
       // Atualizar venda
       await updateVenda.mutateAsync({
@@ -244,7 +250,7 @@ export default function VendaDetalhes() {
         valor_estimado: valorEstimado,
         probabilidade,
         origem_lead: origemLead,
-        responsavel_id: responsavelId || null,
+        responsavel_id: responsavelId || null
       });
 
       // Adicionar novos itens
@@ -257,139 +263,95 @@ export default function VendaDetalhes() {
             quantidade: item.quantidade,
             preco_unitario: item.produto.preco_venda,
             desconto: item.desconto,
-            valor_total: item.valor_total,
+            valor_total: item.valor_total
           });
         }
       }
-
       toast({
-        title: "Venda atualizada com sucesso!",
+        title: "Venda atualizada com sucesso!"
       });
     } catch (error) {
       toast({
         title: "Erro ao salvar",
         description: "Ocorreu um erro ao salvar a venda",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   };
-
   const handleCalcularDatasul = async () => {
     if (!venda) return;
-    
     try {
       await calcularPedido(venda.id);
       toast({
         title: "Cálculo iniciado",
-        description: "O cálculo do pedido no Datasul foi iniciado. Você pode acompanhar o progresso nos logs.",
+        description: "O cálculo do pedido no Datasul foi iniciado. Você pode acompanhar o progresso nos logs."
       });
     } catch (error: any) {
       toast({
         title: "Erro ao calcular",
         description: error.message || "Ocorreu um erro ao iniciar o cálculo",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   };
-
   if (isLoading || !venda) {
-    return (
-      <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
+    return <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
+      </div>;
   }
+  return <div className="space-y-6">
+      <VendasActionBar status={venda.status as "rascunho" | "aprovada" | "cancelada"} onCalcular={handleCalcularDatasul} onCancelar={() => {
+      toast({
+        title: "Cancelar proposta",
+        description: "Funcionalidade em desenvolvimento"
+      });
+    }} onDiretoria={() => {
+      toast({
+        title: "Enviar para diretoria",
+        description: "Funcionalidade em desenvolvimento"
+      });
+    }} onEfetivar={() => setShowAprovarDialog(true)} onSalvar={handleSalvar} isSaving={false} isCalculating={isCalculating} editandoVendaId={venda.id} />
 
-  return (
-    <div className="space-y-6">
-      <VendasActionBar
-        status={venda.status as "rascunho" | "aprovada" | "cancelada"}
-        onCalcular={handleCalcularDatasul}
-        onCancelar={() => {
-          toast({
-            title: "Cancelar proposta",
-            description: "Funcionalidade em desenvolvimento",
-          });
-        }}
-        onDiretoria={() => {
-          toast({
-            title: "Enviar para diretoria",
-            description: "Funcionalidade em desenvolvimento",
-          });
-        }}
-        onEfetivar={() => setShowAprovarDialog(true)}
-        onSalvar={handleSalvar}
-        isSaving={false}
-        isCalculating={isCalculating}
-        editandoVendaId={venda.id}
-      />
-
-      <div className="flex items-center gap-4">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => navigate("/vendas")}
-        >
+      <div className="flex items-center gap-4 mx-px my-[5px]">
+        <Button variant="ghost" size="icon" onClick={() => navigate("/vendas")}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>
           <h1 className="text-3xl font-bold">Proposta #{numeroVenda || "Nova"}</h1>
           <div className="text-muted-foreground">
-            {venda.etapa_pipeline && (
-              <Badge variant="outline">{venda.etapa_pipeline}</Badge>
-            )}
+            {venda.etapa_pipeline && <Badge variant="outline">{venda.etapa_pipeline}</Badge>}
           </div>
         </div>
       </div>
 
-      {venda.status === "aprovada" && (
-        <div className="flex justify-end">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowLogsDialog(!showLogsDialog)}
-          >
+      {venda.status === "aprovada" && <div className="flex justify-end">
+          <Button variant="outline" size="sm" onClick={() => setShowLogsDialog(!showLogsDialog)}>
             {showLogsDialog ? "Ocultar" : "Ver"} Logs Datasul
           </Button>
-        </div>
-      )}
+        </div>}
 
       {/* Logs */}
-      {showLogsDialog && venda && (
-        <Card className="p-6">
+      {showLogsDialog && venda && <Card className="p-6">
           <IntegracaoDatasulLog vendaId={venda.id} />
-        </Card>
-      )}
+        </Card>}
 
       <Card className="p-6">
         <div className="space-y-6">
           {/* Cliente */}
           <div>
             <Label>Cliente *</Label>
-            {clienteSelecionado ? (
-              <div className="flex items-center gap-2 p-3 border rounded-md mt-2">
+            {clienteSelecionado ? <div className="flex items-center gap-2 p-3 border rounded-md mt-2">
                 <div className="flex-1">
                   <p className="font-medium">{clienteSelecionado.nome_emit}</p>
                   <p className="text-sm text-muted-foreground">{clienteSelecionado.cgc}</p>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowClienteSearch(true)}
-                >
+                <Button variant="ghost" size="sm" onClick={() => setShowClienteSearch(true)}>
                   Trocar
                 </Button>
-              </div>
-            ) : (
-              <Button
-                variant="outline"
-                className="w-full mt-2"
-                onClick={() => setShowClienteSearch(true)}
-              >
+              </div> : <Button variant="outline" className="w-full mt-2" onClick={() => setShowClienteSearch(true)}>
                 <Search className="h-4 w-4 mr-2" />
                 Buscar Cliente
-              </Button>
-            )}
+              </Button>}
           </div>
 
           <Separator />
@@ -398,11 +360,7 @@ export default function VendaDetalhes() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label>Número da Venda</Label>
-              <Input
-                value={numeroVenda}
-                onChange={(e) => setNumeroVenda(e.target.value)}
-                placeholder="Ex: V-2024-001"
-              />
+              <Input value={numeroVenda} onChange={e => setNumeroVenda(e.target.value)} placeholder="Ex: V-2024-001" />
             </div>
 
             <div>
@@ -412,11 +370,9 @@ export default function VendaDetalhes() {
                   <SelectValue placeholder="Selecione..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {tiposFrete?.map(tipo => (
-                    <SelectItem key={tipo.id} value={tipo.id}>
+                  {tiposFrete?.map(tipo => <SelectItem key={tipo.id} value={tipo.id}>
                       {tipo.nome}
-                    </SelectItem>
-                  ))}
+                    </SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -428,11 +384,9 @@ export default function VendaDetalhes() {
                   <SelectValue placeholder="Selecione..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {tiposPedido?.map(tipo => (
-                    <SelectItem key={tipo.id} value={tipo.id}>
+                  {tiposPedido?.map(tipo => <SelectItem key={tipo.id} value={tipo.id}>
                       {tipo.nome}
-                    </SelectItem>
-                  ))}
+                    </SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -444,11 +398,9 @@ export default function VendaDetalhes() {
                   <SelectValue placeholder="Selecione..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {condicoes?.map(cond => (
-                    <SelectItem key={cond.id} value={cond.id}>
+                  {condicoes?.map(cond => <SelectItem key={cond.id} value={cond.id}>
                       {cond.nome}
-                    </SelectItem>
-                  ))}
+                    </SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -469,23 +421,14 @@ export default function VendaDetalhes() {
                   </PopoverTrigger>
                   <PopoverContent className="w-56">
                     <div className="space-y-2">
-                      {Object.entries(visibleColumns).map(([key, visible]) => (
-                        <div key={key} className="flex items-center space-x-2">
-                          <Checkbox
-                            checked={visible}
-                            onCheckedChange={() => toggleColumn(key)}
-                          />
+                      {Object.entries(visibleColumns).map(([key, visible]) => <div key={key} className="flex items-center space-x-2">
+                          <Checkbox checked={visible} onCheckedChange={() => toggleColumn(key)} />
                           <label className="text-sm">{key}</label>
-                        </div>
-                      ))}
+                        </div>)}
                     </div>
                   </PopoverContent>
                 </Popover>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowProdutoSearch(true)}
-                >
+                <Button variant="outline" size="sm" onClick={() => setShowProdutoSearch(true)}>
                   <Search className="h-4 w-4 mr-2" />
                   Adicionar Produto
                 </Button>
@@ -513,8 +456,7 @@ export default function VendaDetalhes() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {carrinho.map((item, idx) => (
-                    <TableRow key={item.produto.id}>
+                  {carrinho.map((item, idx) => <TableRow key={item.produto.id}>
                       <TableCell>{idx + 1}</TableCell>
                       <TableCell>
                         <div>
@@ -522,72 +464,37 @@ export default function VendaDetalhes() {
                           <p className="text-sm text-muted-foreground">{item.produto.nome}</p>
                         </div>
                       </TableCell>
-                      {visibleColumns.precoTabela && (
-                        <TableCell>R$ {item.produto.preco_venda.toFixed(2)}</TableCell>
-                      )}
+                      {visibleColumns.precoTabela && <TableCell>R$ {item.produto.preco_venda.toFixed(2)}</TableCell>}
                       <TableCell>
-                        <Input
-                          type="number"
-                          value={item.quantidade}
-                          onChange={(e) => handleAtualizarItem(item.produto.id, 'quantidade', parseFloat(e.target.value) || 0)}
-                          className="w-20"
-                        />
+                        <Input type="number" value={item.quantidade} onChange={e => handleAtualizarItem(item.produto.id, 'quantidade', parseFloat(e.target.value) || 0)} className="w-20" />
                       </TableCell>
-                      {visibleColumns.desconto && (
-                        <TableCell>
-                          <Input
-                            type="number"
-                            value={item.desconto}
-                            onChange={(e) => handleAtualizarItem(item.produto.id, 'desconto', parseFloat(e.target.value) || 0)}
-                            className="w-20"
-                          />
-                        </TableCell>
-                      )}
-                      {visibleColumns.precoUnit && (
-                        <TableCell>
+                      {visibleColumns.desconto && <TableCell>
+                          <Input type="number" value={item.desconto} onChange={e => handleAtualizarItem(item.produto.id, 'desconto', parseFloat(e.target.value) || 0)} className="w-20" />
+                        </TableCell>}
+                      {visibleColumns.precoUnit && <TableCell>
                           R$ {(item.produto.preco_venda * (1 - item.desconto / 100)).toFixed(2)}
-                        </TableCell>
-                      )}
-                      {visibleColumns.total && (
-                        <TableCell className="font-medium">
+                        </TableCell>}
+                      {visibleColumns.total && <TableCell className="font-medium">
                           R$ {item.valor_total.toFixed(2)}
-                        </TableCell>
-                      )}
-                      {visibleColumns.deposito && (
-                        <TableCell>{item.datasul_dep_exp || "-"}</TableCell>
-                      )}
-                      {visibleColumns.custo && (
-                        <TableCell>
+                        </TableCell>}
+                      {visibleColumns.deposito && <TableCell>{item.datasul_dep_exp || "-"}</TableCell>}
+                      {visibleColumns.custo && <TableCell>
                           {item.datasul_custo ? `R$ ${item.datasul_custo.toFixed(2)}` : "-"}
-                        </TableCell>
-                      )}
-                      {visibleColumns.divisao && (
-                        <TableCell>{item.datasul_divisao || "-"}</TableCell>
-                      )}
-                      {visibleColumns.vlTotalDS && (
-                        <TableCell>
+                        </TableCell>}
+                      {visibleColumns.divisao && <TableCell>{item.datasul_divisao || "-"}</TableCell>}
+                      {visibleColumns.vlTotalDS && <TableCell>
                           {item.datasul_vl_tot_item ? `R$ ${item.datasul_vl_tot_item.toFixed(2)}` : "-"}
-                        </TableCell>
-                      )}
-                      {visibleColumns.vlMercLiq && (
-                        <TableCell>
+                        </TableCell>}
+                      {visibleColumns.vlMercLiq && <TableCell>
                           {item.datasul_vl_merc_liq ? `R$ ${item.datasul_vl_merc_liq.toFixed(2)}` : "-"}
-                        </TableCell>
-                      )}
-                      {visibleColumns.loteMult && (
-                        <TableCell>{item.datasul_lote_mulven || "-"}</TableCell>
-                      )}
+                        </TableCell>}
+                      {visibleColumns.loteMult && <TableCell>{item.datasul_lote_mulven || "-"}</TableCell>}
                       <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleRemoverItem(item.produto.id)}
-                        >
+                        <Button variant="ghost" size="icon" onClick={() => handleRemoverItem(item.produto.id)}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </TableCell>
-                    </TableRow>
-                  ))}
+                    </TableRow>)}
                 </TableBody>
               </Table>
             </div>
@@ -605,40 +512,19 @@ export default function VendaDetalhes() {
           {/* Observações */}
           <div>
             <Label>Observações</Label>
-            <Input
-              value={observacoes}
-              onChange={(e) => setObservacoes(e.target.value)}
-              placeholder="Observações adicionais..."
-            />
+            <Input value={observacoes} onChange={e => setObservacoes(e.target.value)} placeholder="Observações adicionais..." />
           </div>
         </div>
       </Card>
 
       {/* Dialogs */}
-      <ProdutoSearchDialog
-        open={showProdutoSearch}
-        onOpenChange={setShowProdutoSearch}
-        onSelectProduto={handleAdicionarProduto}
-      />
+      <ProdutoSearchDialog open={showProdutoSearch} onOpenChange={setShowProdutoSearch} onSelectProduto={handleAdicionarProduto} />
 
-      <ClienteSearchDialog
-        open={showClienteSearch}
-        onOpenChange={setShowClienteSearch}
-        onSelectCliente={handleSelecionarCliente}
-      />
+      <ClienteSearchDialog open={showClienteSearch} onOpenChange={setShowClienteSearch} onSelectCliente={handleSelecionarCliente} />
 
-      {showAprovarDialog && venda && (
-        <AprovarVendaDialog
-          open={showAprovarDialog}
-          onOpenChange={setShowAprovarDialog}
-          onConfirm={async () => {
-            await aprovarVenda.mutateAsync(venda.id);
-            setShowAprovarDialog(false);
-          }}
-          vendaNumero={numeroVenda}
-          vendaValor={valorTotal}
-        />
-      )}
-    </div>
-  );
+      {showAprovarDialog && venda && <AprovarVendaDialog open={showAprovarDialog} onOpenChange={setShowAprovarDialog} onConfirm={async () => {
+      await aprovarVenda.mutateAsync(venda.id);
+      setShowAprovarDialog(false);
+    }} vendaNumero={numeroVenda} vendaValor={valorTotal} />}
+    </div>;
 }
