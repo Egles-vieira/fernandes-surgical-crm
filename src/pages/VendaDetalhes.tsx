@@ -302,24 +302,6 @@ export default function VendaDetalhes() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4 mb-4">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => navigate("/vendas")}
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-        <div>
-          <h1 className="text-3xl font-bold">Proposta #{numeroVenda || "Nova"}</h1>
-          <div className="text-muted-foreground">
-            {venda.etapa_pipeline && (
-              <Badge variant="outline">{venda.etapa_pipeline}</Badge>
-            )}
-          </div>
-        </div>
-      </div>
-
       <VendasActionBar
         status={venda.status as "rascunho" | "aprovada" | "cancelada"}
         onCalcular={handleCalcularDatasul}
@@ -341,6 +323,24 @@ export default function VendaDetalhes() {
         isCalculating={isCalculating}
         editandoVendaId={venda.id}
       />
+
+      <div className="flex items-center gap-4">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => navigate("/vendas")}
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        <div>
+          <h1 className="text-3xl font-bold">Proposta #{numeroVenda || "Nova"}</h1>
+          <div className="text-muted-foreground">
+            {venda.etapa_pipeline && (
+              <Badge variant="outline">{venda.etapa_pipeline}</Badge>
+            )}
+          </div>
+        </div>
+      </div>
 
       {venda.status === "aprovada" && (
         <div className="flex justify-end">
