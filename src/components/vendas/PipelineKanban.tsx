@@ -133,7 +133,7 @@ export function PipelineKanban({
   return (
     <div className="flex flex-col h-screen bg-slate-50 p-[5px]">
       {/* Metrics HUD */}
-      <div className="px-6 py-5 pb-4 shrink-0">
+      <div className="px-[5px] py-[5px] pb-[5px] shrink-0">
         <div className="bg-white rounded-xl p-1 shadow-sm border border-slate-200 flex divide-x divide-slate-100">
           <div className="flex-1 px-5 py-3 flex items-center gap-4">
             <div className="p-3 bg-indigo-50 rounded-lg text-indigo-600">
@@ -172,7 +172,7 @@ export function PipelineKanban({
       </div>
 
       {/* Kanban Board */}
-      <div className="flex-1 min-h-0 px-6 pb-6">
+      <div className="flex-1 min-h-0 px-[5px] pb-[5px]">
         <DragDropContext onDragEnd={onDragEnd}>
           <div className="flex h-full gap-0 pb-4 min-w-max overflow-x-auto overflow-y-hidden custom-scrollbar">
             {ETAPAS_ATIVAS.map((etapa) => {
