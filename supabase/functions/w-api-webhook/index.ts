@@ -400,7 +400,7 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
 
         // Enviar via W-API
         if (respostaAgente) {
-          const sendUrl = `https://api.w-api.app/instances/${conta.instance_id_wapi}/client/action/send-message`;
+          const sendUrl = `https://api.w-api.app/instances/${conta.w_api_instancia}/client/action/send-message`;
           
           // Obter número do contato
           const { data: contatoData } = await supabase
@@ -414,7 +414,7 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
           const sendResponse = await fetch(sendUrl, {
             method: 'POST',
             headers: {
-              'Authorization': `Bearer ${conta.token_wapi}`,
+              'Authorization': `Bearer ${conta.w_api_token}`,
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
