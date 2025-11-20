@@ -131,7 +131,7 @@ export function PipelineKanban({
   };
 
   return (
-    <div className="flex flex-col h-screen bg-slate-50">
+    <div className="flex flex-col h-screen bg-slate-50 p-[5px]">
       {/* Metrics HUD */}
       <div className="px-6 py-5 pb-4 shrink-0">
         <div className="bg-white rounded-xl p-1 shadow-sm border border-slate-200 flex divide-x divide-slate-100">
