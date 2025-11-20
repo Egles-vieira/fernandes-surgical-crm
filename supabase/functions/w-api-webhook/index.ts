@@ -440,28 +440,24 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
               return;
             }
 
-            // Limpar número (remover + e outros caracteres)
-            const numeroLimpo = numeroDestinatario.replace(/[\+\-\s]/g, '');
-            const chatId = `${numeroLimpo}@c.us`;
-            const sendUrl = `https://api.w-api.app/instances/${conta.instance_id_wapi}/client/action/send-message`;
+            // Construir URL do W-API com instanceId como query parameter
+            const sendUrl = `https://api.w-api.app/v1/message/send-text?instanceId=${conta.instance_id_wapi}`;
             
             console.log('📤 Enviando mensagem via W-API');
             console.log('Número destinatário:', numeroDestinatario);
-            console.log('Número limpo:', numeroLimpo);
-            console.log('Chat ID:', chatId);
             console.log('URL:', sendUrl);
             console.log('Instância:', conta.instance_id_wapi);
             
             const sendResponse = await fetch(sendUrl, {
               method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${conta.token_wapi}`,
-            'Content-Type': 'application/json',
-          },
+              headers: {
+                'Authorization': `Bearer ${conta.token_wapi}`,
+                'Content-Type': 'application/json',
+              },
               body: JSON.stringify({
-                chatId: chatId,
-                contentType: 'string',
-                content: agenteData.resposta
+                phone: numeroDestinatario,
+                message: agenteData.resposta,
+                delayMessage: 3
               }),
             });
 
@@ -487,10 +483,10 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
               console.error('Status HTTP:', sendResponse.status);
               console.error('Response Body:', errorBody);
               console.error('Dados enviados:', {
-                chatId,
-                contentType: 'string',
-                content: agenteData.resposta,
-                instancia: conta.w_api_instancia
+                phone: numeroDestinatario,
+                message: agenteData.resposta,
+                delayMessage: 3,
+                instancia: conta.instance_id_wapi
               });
               
               // Marcar como erro
