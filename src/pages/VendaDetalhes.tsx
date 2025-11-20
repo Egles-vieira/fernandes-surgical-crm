@@ -116,6 +116,7 @@ export default function VendaDetalhes() {
   const [responsavelId, setResponsavelId] = useState<string>("");
   const [validadeProposta, setValidadeProposta] = useState<string>("");
   const [atendimentoParcial, setAtendimentoParcial] = useState(false);
+  const [dataFaturamentoProgramado, setDataFaturamentoProgramado] = useState<string>("");
 
   // Carregar venda
   useEffect(() => {
@@ -134,6 +135,7 @@ export default function VendaDetalhes() {
         setResponsavelId(vendaEncontrada.responsavel_id || "");
         setValidadeProposta(vendaEncontrada.validade_proposta || "");
         setAtendimentoParcial((vendaEncontrada as any).atendimento_parcial === "yes");
+        setDataFaturamentoProgramado((vendaEncontrada as any).data_faturamento_programado || "");
 
         // Carregar cliente
         if (vendaEncontrada.cliente_id) {
@@ -257,7 +259,8 @@ export default function VendaDetalhes() {
         origem_lead: origemLead,
         responsavel_id: responsavelId || null,
         validade_proposta: validadeProposta || null,
-        atendimento_parcial: atendimentoParcial ? "yes" : "no"
+        atendimento_parcial: atendimentoParcial ? "yes" : "no",
+        data_faturamento_programado: dataFaturamentoProgramado || null
       } as any);
 
       // Adicionar novos itens
@@ -413,6 +416,15 @@ export default function VendaDetalhes() {
                 type="date"
                 value={validadeProposta}
                 onChange={(e) => setValidadeProposta(e.target.value)}
+              />
+            </div>
+
+            <div>
+              <Label>Faturamento Programado</Label>
+              <Input
+                type="date"
+                value={dataFaturamentoProgramado}
+                onChange={(e) => setDataFaturamentoProgramado(e.target.value)}
               />
             </div>
 

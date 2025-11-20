@@ -5489,6 +5489,7 @@ export type Database = {
           cod_emitente: number | null
           condicao_pagamento_id: string | null
           created_at: string
+          data_faturamento_programado: string | null
           data_fechamento_prevista: string | null
           data_venda: string
           datasul_errordescription: string | null
@@ -5532,6 +5533,7 @@ export type Database = {
           cod_emitente?: number | null
           condicao_pagamento_id?: string | null
           created_at?: string
+          data_faturamento_programado?: string | null
           data_fechamento_prevista?: string | null
           data_venda?: string
           datasul_errordescription?: string | null
@@ -5575,6 +5577,7 @@ export type Database = {
           cod_emitente?: number | null
           condicao_pagamento_id?: string | null
           created_at?: string
+          data_faturamento_programado?: string | null
           data_fechamento_prevista?: string | null
           data_venda?: string
           datasul_errordescription?: string | null
