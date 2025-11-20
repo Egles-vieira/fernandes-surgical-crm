@@ -53,3 +53,9 @@ verify_jwt = true
 
 [functions.agente-vendas-whatsapp]
 verify_jwt = false
+
+[functions.gerar-embedding-produto]
+verify_jwt = true
+
+[functions.popular-embeddings]
+verify_jwt = true
