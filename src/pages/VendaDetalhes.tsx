@@ -312,7 +312,7 @@ export default function VendaDetalhes() {
       });
     }} onEfetivar={() => setShowAprovarDialog(true)} onSalvar={handleSalvar} isSaving={false} isCalculating={isCalculating} editandoVendaId={venda.id} />
 
-      <div className="flex items-center gap-4 mx-px my-[5px]">
+      <div className="flex items-center gap-4 mx-px mt-0 mb-4">
         <Button variant="ghost" size="icon" onClick={() => navigate("/vendas")}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
