@@ -12,6 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useVendas } from "@/hooks/useVendas";
 import { useCondicoesPagamento } from "@/hooks/useCondicoesPagamento";
@@ -114,6 +115,7 @@ export default function VendaDetalhes() {
   const [origemLead, setOrigemLead] = useState("");
   const [responsavelId, setResponsavelId] = useState<string>("");
   const [validadeProposta, setValidadeProposta] = useState<string>("");
+  const [atendimentoParcial, setAtendimentoParcial] = useState(false);
 
   // Carregar venda
   useEffect(() => {
@@ -131,6 +133,7 @@ export default function VendaDetalhes() {
         setOrigemLead(vendaEncontrada.origem_lead || "");
         setResponsavelId(vendaEncontrada.responsavel_id || "");
         setValidadeProposta(vendaEncontrada.validade_proposta || "");
+        setAtendimentoParcial((vendaEncontrada as any).atendimento_parcial === "yes");
 
         // Carregar cliente
         if (vendaEncontrada.cliente_id) {
@@ -253,8 +256,9 @@ export default function VendaDetalhes() {
         probabilidade,
         origem_lead: origemLead,
         responsavel_id: responsavelId || null,
-        validade_proposta: validadeProposta || null
-      });
+        validade_proposta: validadeProposta || null,
+        atendimento_parcial: atendimentoParcial ? "yes" : "no"
+      } as any);
 
       // Adicionar novos itens
       for (const item of carrinho) {
@@ -410,6 +414,15 @@ export default function VendaDetalhes() {
                 value={validadeProposta}
                 onChange={(e) => setValidadeProposta(e.target.value)}
               />
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="atendimento-parcial"
+                checked={atendimentoParcial}
+                onCheckedChange={setAtendimentoParcial}
+              />
+              <Label htmlFor="atendimento-parcial">Atendimento Parcial</Label>
             </div>
           </div>
 
