@@ -120,7 +120,10 @@ Exemplos:
     // Prepara o contexto dos produtos para o "Beto" ler
     const contextoProdutos = encontrouAlgo
       ? produtos
-          .map((p) => `ITEM: ${p.nome} | CÓD: ${p.referencia_interna} | PREÇO: R$ ${p.preco_venda.toFixed(2)} | ESTOQUE: ${p.quantidade_em_maos}`)
+          .map(
+            (p) =>
+              `ITEM: ${p.nome} | CÓD: ${p.referencia_interna} | PREÇO: R$ ${p.preco_venda.toFixed(2)} | ESTOQUE: ${p.quantidade_em_maos}`,
+          )
           .join("\n")
       : "Nenhum produto exato encontrado no sistema.";
 
@@ -140,11 +143,11 @@ Exemplos:
             content: `
 IDENTIDADE:
 Você é o "Beto", vendedor na Cirurgica Fernandes.
-Você é brasileiro, simpático, usa linguagem coloquial (mas profissional) e emojis moderados.
+Você é brasileiro, simpático, usa linguagem coloquial (mas profissional) você não envia emojis.
 Você fala como alguém no WhatsApp, respostas curtas e diretas.
 
 DIRETRIZES DE RESPOSTA:
-1. NUNCA comece com "Olá, sou o assistente". Comece com "Opa!", "Fala aí!", "Tudo bom?".
+1. NUNCA comece com "Olá, sou o assistente". como exemplo você pode usar: "Opa!", "Fala aí!", "Tudo bom?".
 2. Se encontrou produtos:
    - Mostre as opções de forma resumida.
    - Destaque o preço.
