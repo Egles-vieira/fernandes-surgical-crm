@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useClientes } from "@/hooks/useClientes";
+import { useClientesPaginado } from "@/hooks/useClientesPaginado";
 import { Tables } from "@/integrations/supabase/types";
 
 type Cliente = Tables<"clientes">;
@@ -36,7 +36,7 @@ export function ClienteSearchDialog({
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  const { clientes, total, isLoading } = useClientes({ 
+  const { clientes, total, isLoading } = useClientesPaginado({ 
     page, 
     pageSize, 
     searchTerm: debouncedSearch 

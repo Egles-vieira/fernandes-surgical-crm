@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useProdutos } from "@/hooks/useProdutos";
+import { useProdutosPaginado } from "@/hooks/useProdutosPaginado";
 
 interface ProdutoSearchDialogProps {
   open: boolean;
@@ -32,7 +32,7 @@ export function ProdutoSearchDialog({
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  const { produtos, total, isLoading } = useProdutos({ 
+  const { produtos, total, isLoading } = useProdutosPaginado({ 
     page, 
     pageSize, 
     searchTerm: debouncedSearch 

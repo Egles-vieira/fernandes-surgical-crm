@@ -12,6 +12,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { clienteSchema, type ClienteInput } from "@/lib/validations/cliente";
 import { useClientes } from "@/hooks/useClientes";
+import { useClientesPaginado } from "@/hooks/useClientesPaginado";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -41,14 +42,13 @@ export default function Clientes() {
     clientes,
     total,
     isLoading,
-    createCliente,
-    updateCliente,
-    deleteCliente
-  } = useClientes({
+  } = useClientesPaginado({
     page: currentPage,
     pageSize,
     searchTerm: debouncedSearch
   });
+
+  const { createCliente, updateCliente, deleteCliente } = useClientes();
   const [selectedCliente, setSelectedCliente] = useState<any>(null);
   const [showDetails, setShowDetails] = useState(false);
   const [showForm, setShowForm] = useState(false);
