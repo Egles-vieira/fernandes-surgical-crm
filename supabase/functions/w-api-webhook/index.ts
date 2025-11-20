@@ -344,7 +344,13 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
   console.log('✅ Mensagem W-API processada com sucesso');
 
   // 🤖 AGENTE DE VENDAS: Processar mensagem automaticamente se ativo
-  if (conta.agente_vendas_ativo && messageText && messageType === 'text') {
+  console.log('🔍 Verificando agente:', { 
+    agente_ativo: conta.agente_vendas_ativo, 
+    tem_texto: !!messageText, 
+    tipo: messageType 
+  });
+  
+  if (conta.agente_vendas_ativo && messageText && messageType === 'texto') {
     console.log('🤖 Agente de vendas ativo - processando mensagem');
     
     try {
