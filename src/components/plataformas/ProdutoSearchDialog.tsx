@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Search, Package, ChevronLeft, ChevronRight } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -64,6 +64,9 @@ export function ProdutoSearchDialog({
       <DialogContent className="max-w-2xl max-h-[85vh]">
         <DialogHeader>
           <DialogTitle>Buscar Produto</DialogTitle>
+          <DialogDescription>
+            Busque e selecione um produto para adicionar à proposta
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
