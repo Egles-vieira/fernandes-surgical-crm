@@ -358,10 +358,7 @@ export default function VendaDetalhes() {
 
           {/* Dados da Venda */}
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label>Número da Venda</Label>
-              <Input value={numeroVenda} onChange={e => setNumeroVenda(e.target.value)} placeholder="Ex: V-2024-001" />
-            </div>
+            
 
             <div>
               <Label>Tipo de Frete</Label>
