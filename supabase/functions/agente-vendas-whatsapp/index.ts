@@ -7,10 +7,10 @@ const corsHeaders = {
 
 interface ProdutoRelevante {
   id: string;
-  it_codigo: string;
-  descricao: string;
+  referencia_interna: string;
+  nome: string;
   preco_venda: number;
-  estoque_disponivel: number;
+  quantidade_em_maos: number;
 }
 
 Deno.serve(async (req) => {
@@ -135,9 +135,9 @@ Exemplos:
     for (const palavra of analise.palavras_chave) {
       const { data, error } = await supabase
         .from('produtos')
-        .select('id, it_codigo, descricao, preco_venda, estoque_disponivel')
-        .or(`descricao.ilike.%${palavra}%,it_codigo.ilike.%${palavra}%`)
-        .gt('estoque_disponivel', 0)
+        .select('id, referencia_interna, nome, preco_venda, quantidade_em_maos')
+        .or(`nome.ilike.%${palavra}%,referencia_interna.ilike.%${palavra}%`)
+        .gt('quantidade_em_maos', 0)
         .limit(3);
 
       if (data && data.length > 0) {
@@ -153,7 +153,7 @@ Exemplos:
     // 3️⃣ Gerar resposta natural com DeepSeek
     const contexto = produtos.length > 0
       ? `PRODUTOS ENCONTRADOS:\n${produtos.map((p, i) => 
-          `${i + 1}. ${p.descricao} (Cód: ${p.it_codigo}) - R$ ${p.preco_venda.toFixed(2)} - Estoque: ${p.estoque_disponivel}`
+          `${i + 1}. ${p.nome} (Cód: ${p.referencia_interna}) - R$ ${p.preco_venda.toFixed(2)} - Estoque: ${p.quantidade_em_maos}`
         ).join('\n')}`
       : 'Nenhum produto encontrado';
 
@@ -209,10 +209,10 @@ Responda de forma natural e breve!`
         tem_produtos: produtos.length > 0,
         produtos: produtos.map(p => ({
           id: p.id,
-          codigo: p.it_codigo,
-          descricao: p.descricao,
+          codigo: p.referencia_interna,
+          descricao: p.nome,
           preco: p.preco_venda,
-          estoque: p.estoque_disponivel
+          estoque: p.quantidade_em_maos
         }))
       }),
       {
