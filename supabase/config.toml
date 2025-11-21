@@ -62,3 +62,6 @@ verify_jwt = true
 
 [functions.processar-fila-embeddings]
 verify_jwt = true
+
+[functions.criar-venda-teste]
+verify_jwt = true
