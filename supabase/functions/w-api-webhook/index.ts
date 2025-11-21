@@ -127,6 +127,7 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
   let mediaMime: string | null = null;
   let mediaFileName: string | null = null;
   let mediaKind: 'image' | 'video' | 'audio' | 'document' | null = null;
+  let audioMetadata: any = null;
 
   try {
     const content = !isNewSchema && payload.data
@@ -150,16 +151,20 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
       mediaFileName = vid.fileName || null;
       mediaKind = 'video';
       if (!messageText && (vid.caption || vid.captionText)) messageText = vid.caption || vid.captionText;
-      } else if (aud) {
+    } else if (aud) {
         mediaUrl = aud.url || aud.mediaUrl || aud.directPath || null;
         mediaMime = aud.mimetype || aud.mimeType || 'audio/ogg';
         mediaFileName = aud.fileName || null;
         mediaKind = 'audio';
         
-        // Capturar mediaKey para descriptografia posterior
-        const mediaKey = aud.mediaKey;
-        if (mediaKey) {
-          console.log('🔑 mediaKey capturado para áudio');
+        // Capturar mediaKey e outros metadados para descriptografia
+        audioMetadata = {};
+        if (aud.mediaKey) {
+          audioMetadata.mediaKey = aud.mediaKey;
+          audioMetadata.fileEncSha256 = aud.fileEncSha256;
+          audioMetadata.fileSha256 = aud.fileSha256;
+          audioMetadata.fileLength = aud.fileLength;
+          console.log('🔑 Metadados de descriptografia capturados');
         }
         
         // Logs detalhados para debug de áudio
@@ -167,7 +172,8 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
           url: mediaUrl,
           mime: mediaMime,
           fileName: mediaFileName,
-          hasMediaKey: !!mediaKey,
+          hasMediaKey: !!aud.mediaKey,
+          metadata: audioMetadata,
           fullAudioObject: JSON.stringify(aud, null, 2)
         });
     } else if (doc) {
@@ -349,6 +355,8 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
     url_midia: mediaUrl,
     mime_type: mediaMime,
     nome_arquivo: mediaFileName,
+    // Metadados de descriptografia
+    metadata: mediaKind === 'audio' && audioMetadata ? audioMetadata : null,
   }).select().single();
 
   if (msgError) {
