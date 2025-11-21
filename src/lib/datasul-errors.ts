@@ -152,25 +152,10 @@ export function parseError(error: any): ParsedError {
   };
 }
 
-export function getCategoryIcon(categoria: ErrorCategory): string {
-  switch (categoria) {
-    case 'validacao':
-      return '⚠️';
-    case 'negocio':
-      return '🏢';
-    case 'tecnico':
-      return '⚙️';
-    case 'rede':
-      return '🌐';
-    default:
-      return '❌';
-  }
-}
-
 export function getCategoryLabel(categoria: ErrorCategory): string {
   switch (categoria) {
     case 'validacao':
-      return 'Erro de Validação';
+      return 'Validação';
     case 'negocio':
       return 'Erro de Negócio';
     case 'tecnico':
@@ -185,13 +170,13 @@ export function getCategoryLabel(categoria: ErrorCategory): string {
 export function getCategoryColor(categoria: ErrorCategory): string {
   switch (categoria) {
     case 'validacao':
-      return 'bg-yellow-500/10 text-yellow-700 border-yellow-500/20';
+      return 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border-yellow-500/20';
     case 'negocio':
       return 'bg-destructive/10 text-destructive border-destructive/20';
     case 'tecnico':
       return 'bg-muted text-muted-foreground border-border';
     case 'rede':
-      return 'bg-blue-500/10 text-blue-700 border-blue-500/20';
+      return 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20';
     default:
       return 'bg-destructive/10 text-destructive border-destructive/20';
   }

@@ -15,7 +15,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import {
   ParsedError,
-  getCategoryIcon,
   getCategoryLabel,
   getCategoryColor,
 } from "@/lib/datasul-errors";
@@ -35,15 +34,8 @@ export function DatasulErrorDialog({
 }: DatasulErrorDialogProps) {
   const [showDetails, setShowDetails] = useState(false);
 
-  // Debug logs
-  console.log("🟢 DatasulErrorDialog renderizado:", { open, hasError: !!error });
+  if (!error) return null;
 
-  if (!error) {
-    console.log("🟡 Modal não tem erro para exibir");
-    return null;
-  }
-
-  const categoryIcon = getCategoryIcon(error.categoria);
   const categoryLabel = getCategoryLabel(error.categoria);
   const categoryColor = getCategoryColor(error.categoria);
 
@@ -51,20 +43,25 @@ export function DatasulErrorDialog({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent className="max-w-2xl">
         <AlertDialogHeader>
-          <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-destructive/10">
-              <AlertCircle className="h-6 w-6 text-destructive" />
-            </div>
-            <div className="flex-1">
-              <AlertDialogTitle className="text-xl flex items-center gap-2">
-                <span>{categoryIcon}</span>
-                <span>{error.titulo}</span>
-              </AlertDialogTitle>
-              <div className="mt-2">
-                <Badge variant="outline" className={categoryColor}>
-                  {categoryLabel}
-                  {error.codigoErro && ` • Código: ${error.codigoErro}`}
-                </Badge>
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-destructive/10">
+                <AlertCircle className="h-6 w-6 text-destructive" />
+              </div>
+              <div className="flex-1">
+                <AlertDialogTitle className="text-xl">
+                  {error.titulo}
+                </AlertDialogTitle>
+                <div className="flex items-center gap-2 mt-1">
+                  <Badge variant="outline" className={categoryColor}>
+                    {categoryLabel}
+                  </Badge>
+                  {error.codigoErro && (
+                    <Badge variant="outline" className="bg-muted">
+                      Código: {error.codigoErro}
+                    </Badge>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -73,7 +70,7 @@ export function DatasulErrorDialog({
         <ScrollArea className="max-h-[60vh]">
           <div className="space-y-4 pr-4">
             {/* Mensagem Principal */}
-            <AlertDialogDescription className="text-base leading-relaxed">
+            <AlertDialogDescription className="text-base leading-relaxed text-foreground">
               {error.mensagem}
             </AlertDialogDescription>
 
@@ -81,16 +78,17 @@ export function DatasulErrorDialog({
 
             {/* Sugestões de Solução */}
             {error.sugestoes && error.sugestoes.length > 0 && (
-              <div className="space-y-2">
-                <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                  <span className="text-green-600">✅</span>
-                  Sugestões de Solução:
+              <div className="space-y-3 rounded-lg bg-muted/50 p-4">
+                <h4 className="text-sm font-semibold text-foreground">
+                  Como resolver:
                 </h4>
                 <ul className="space-y-2 text-sm text-muted-foreground">
                   {error.sugestoes.map((sugestao, index) => (
                     <li key={index} className="flex items-start gap-2">
-                      <span className="text-primary mt-0.5">•</span>
-                      <span>{sugestao}</span>
+                      <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">
+                        {index + 1}
+                      </span>
+                      <span className="flex-1 pt-0.5">{sugestao}</span>
                     </li>
                   ))}
                 </ul>
@@ -106,10 +104,9 @@ export function DatasulErrorDialog({
                     variant="ghost"
                     size="sm"
                     onClick={() => setShowDetails(!showDetails)}
-                    className="w-full justify-between"
+                    className="w-full justify-between hover:bg-muted"
                   >
-                    <span className="flex items-center gap-2 text-sm font-semibold">
-                      <span>📋</span>
+                    <span className="text-sm font-medium">
                       Detalhes Técnicos
                     </span>
                     {showDetails ? (
@@ -120,8 +117,8 @@ export function DatasulErrorDialog({
                   </Button>
 
                   {showDetails && (
-                    <div className="rounded-lg bg-muted p-4">
-                      <pre className="text-xs text-muted-foreground overflow-x-auto whitespace-pre-wrap break-words">
+                    <div className="rounded-lg border bg-muted/30 p-4">
+                      <pre className="text-xs text-muted-foreground overflow-x-auto whitespace-pre-wrap break-words font-mono">
                         {typeof error.detalhes === 'string'
                           ? error.detalhes
                           : JSON.stringify(error.detalhes, null, 2)}
@@ -134,7 +131,7 @@ export function DatasulErrorDialog({
           </div>
         </ScrollArea>
 
-        <AlertDialogFooter className="flex gap-2">
+        <AlertDialogFooter className="flex-row gap-2 sm:justify-between">
           {onViewLog && (
             <Button
               variant="outline"
@@ -149,7 +146,7 @@ export function DatasulErrorDialog({
             </Button>
           )}
           <AlertDialogAction onClick={() => onOpenChange(false)}>
-            Fechar
+            Entendi
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
