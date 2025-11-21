@@ -45,6 +45,7 @@ Deno.serve(async (req) => {
       .from('vendas')
       .insert({
         user_id: userId,
+        cliente_nome: '🧪 Cliente Teste',
         status: 'rascunho',
         etapa_pipeline: 'qualificacao',
         observacoes: '🧪 VENDA DE TESTE - 120 itens aleatórios para teste de cálculo',
