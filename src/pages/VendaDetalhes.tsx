@@ -1,12 +1,13 @@
 import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import type { Database } from "@/integrations/supabase/types";
-import { Search, Save, Trash2, Calculator, Loader2, ChevronLeft, ArrowLeft } from "lucide-react";
+import { Search, Save, Trash2, Calculator, Loader2, ChevronLeft, ArrowLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -126,6 +127,12 @@ export default function VendaDetalhes() {
   const [validadeProposta, setValidadeProposta] = useState<string>("");
   const [faturamentoParcial, setFaturamentoParcial] = useState(false);
   const [dataFaturamentoProgramado, setDataFaturamentoProgramado] = useState<string>("");
+  
+  // Pagination states for items table
+  const [currentItemsPage, setCurrentItemsPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
+  const [searchItemTerm, setSearchItemTerm] = useState("");
+  const [density, setDensity] = useState<"compact" | "normal" | "comfortable">("normal");
 
   // Carregar venda
   useEffect(() => {
@@ -531,6 +538,27 @@ export default function VendaDetalhes() {
             <div className="flex items-center justify-between mb-4">
               <Label>Itens da Venda *</Label>
               <div className="flex gap-2">
+                <div className="relative">
+                  <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar item..."
+                    value={searchItemTerm}
+                    onChange={(e) => setSearchItemTerm(e.target.value)}
+                    className="pl-8 w-[200px]"
+                  />
+                </div>
+                
+                <Select value={density} onValueChange={(value: "compact" | "normal" | "comfortable") => setDensity(value)}>
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="compact">Compacta</SelectItem>
+                    <SelectItem value="normal">Normal</SelectItem>
+                    <SelectItem value="comfortable">Confortável</SelectItem>
+                  </SelectContent>
+                </Select>
+                
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button variant="outline" size="sm">
@@ -554,68 +582,214 @@ export default function VendaDetalhes() {
             </div>
 
             <div className="border rounded-md">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-12">#</TableHead>
-                    <TableHead>Produto</TableHead>
-                    {visibleColumns.precoTabela && <TableHead>Preço Tabela</TableHead>}
-                    <TableHead>Qtd</TableHead>
-                    {visibleColumns.desconto && <TableHead>Desc %</TableHead>}
-                    {visibleColumns.precoUnit && <TableHead>Preço Unit</TableHead>}
-                    {visibleColumns.total && <TableHead>Total</TableHead>}
-                    {visibleColumns.deposito && <TableHead>Depósito</TableHead>}
-                    {visibleColumns.custo && <TableHead>Custo DS</TableHead>}
-                    {visibleColumns.divisao && <TableHead>Divisão DS</TableHead>}
-                    {visibleColumns.vlTotalDS && <TableHead>Vlr Tot DS</TableHead>}
-                    {visibleColumns.vlMercLiq && <TableHead>Vlr Merc Liq</TableHead>}
-                    {visibleColumns.loteMult && <TableHead>Lote Mult</TableHead>}
-                    <TableHead className="w-12"></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {carrinho.map((item, idx) => <TableRow key={item.produto.id}>
-                      <TableCell>{idx + 1}</TableCell>
-                      <TableCell>
-                        <div>
-                          <p className="font-medium">{item.produto.referencia_interna}</p>
-                          <p className="text-sm text-muted-foreground">{item.produto.nome}</p>
-                        </div>
-                      </TableCell>
-                      {visibleColumns.precoTabela && <TableCell>R$ {item.produto.preco_venda.toFixed(2)}</TableCell>}
-                      <TableCell>
-                        <Input type="number" value={item.quantidade} onChange={e => handleAtualizarItem(item.produto.id, 'quantidade', parseFloat(e.target.value) || 0)} className="w-20" />
-                      </TableCell>
-                      {visibleColumns.desconto && <TableCell>
-                          <Input type="number" value={item.desconto} onChange={e => handleAtualizarItem(item.produto.id, 'desconto', parseFloat(e.target.value) || 0)} className="w-20" />
-                        </TableCell>}
-                      {visibleColumns.precoUnit && <TableCell>
-                          R$ {(item.produto.preco_venda * (1 - item.desconto / 100)).toFixed(2)}
-                        </TableCell>}
-                      {visibleColumns.total && <TableCell className="font-medium">
-                          R$ {item.valor_total.toFixed(2)}
-                        </TableCell>}
-                      {visibleColumns.deposito && <TableCell>{item.datasul_dep_exp || "-"}</TableCell>}
-                      {visibleColumns.custo && <TableCell>
-                          {item.datasul_custo ? `R$ ${item.datasul_custo.toFixed(2)}` : "-"}
-                        </TableCell>}
-                      {visibleColumns.divisao && <TableCell>{item.datasul_divisao || "-"}</TableCell>}
-                      {visibleColumns.vlTotalDS && <TableCell>
-                          {item.datasul_vl_tot_item ? `R$ ${item.datasul_vl_tot_item.toFixed(2)}` : "-"}
-                        </TableCell>}
-                      {visibleColumns.vlMercLiq && <TableCell>
-                          {item.datasul_vl_merc_liq ? `R$ ${item.datasul_vl_merc_liq.toFixed(2)}` : "-"}
-                        </TableCell>}
-                      {visibleColumns.loteMult && <TableCell>{item.datasul_lote_mulven || "-"}</TableCell>}
-                      <TableCell>
-                        <Button variant="ghost" size="icon" onClick={() => handleRemoverItem(item.produto.id)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>)}
-                </TableBody>
-              </Table>
+              <ScrollArea className="h-[600px]">
+                <Table className={cn(
+                  "w-full caption-bottom text-sm",
+                  density === "compact" ? "text-xs" :
+                  density === "comfortable" ? "text-base" : ""
+                )}>
+                  <TableHeader className="sticky top-0 z-10 bg-background border-b">
+                    <TableRow>
+                      <TableHead className={`w-12 ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}>#</TableHead>
+                      <TableHead className={density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}>Produto</TableHead>
+                      {visibleColumns.precoTabela && <TableHead className={density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}>Preço Tabela</TableHead>}
+                      <TableHead className={density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}>Qtd</TableHead>
+                      {visibleColumns.desconto && <TableHead className={density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}>Desc %</TableHead>}
+                      {visibleColumns.precoUnit && <TableHead className={density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}>Preço Unit</TableHead>}
+                      {visibleColumns.total && <TableHead className={density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}>Total</TableHead>}
+                      {visibleColumns.deposito && <TableHead className={density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}>Depósito</TableHead>}
+                      {visibleColumns.custo && <TableHead className={density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}>Custo DS</TableHead>}
+                      {visibleColumns.divisao && <TableHead className={density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}>Divisão DS</TableHead>}
+                      {visibleColumns.vlTotalDS && <TableHead className={density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}>Vlr Tot DS</TableHead>}
+                      {visibleColumns.vlMercLiq && <TableHead className={density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}>Vlr Merc Liq</TableHead>}
+                      {visibleColumns.loteMult && <TableHead className={density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}>Lote Mult</TableHead>}
+                      <TableHead className={`w-12 ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {carrinho
+                      .filter(item => {
+                        if (!searchItemTerm) return true;
+                        const searchLower = searchItemTerm.toLowerCase();
+                        return (
+                          item.produto.nome.toLowerCase().includes(searchLower) ||
+                          item.produto.referencia_interna.toLowerCase().includes(searchLower)
+                        );
+                      })
+                      .slice((currentItemsPage - 1) * itemsPerPage, currentItemsPage * itemsPerPage)
+                      .map((item, index) => {
+                        const realIndex = (currentItemsPage - 1) * itemsPerPage + index;
+                        const paddingClass = density === "compact" ? "py-1 px-2" : density === "comfortable" ? "py-4 px-4" : "py-2 px-3";
+                        return (<TableRow key={item.produto.id}>
+                          <TableCell className={paddingClass}>{realIndex + 1}</TableCell>
+                          <TableCell className={paddingClass}>
+                            <div>
+                              <p className="font-medium">{item.produto.referencia_interna}</p>
+                              <p className="text-sm text-muted-foreground">{item.produto.nome}</p>
+                            </div>
+                          </TableCell>
+                          {visibleColumns.precoTabela && <TableCell className={paddingClass}>R$ {item.produto.preco_venda.toFixed(2)}</TableCell>}
+                          <TableCell className={paddingClass}>
+                            <Input 
+                              type="number" 
+                              value={item.quantidade} 
+                              onChange={e => handleAtualizarItem(item.produto.id, 'quantidade', parseFloat(e.target.value) || 0)} 
+                              className={`w-20 text-center ${density === "compact" ? "h-7 text-xs" : density === "comfortable" ? "h-12" : ""}`}
+                            />
+                          </TableCell>
+                          {visibleColumns.desconto && <TableCell className={paddingClass}>
+                              <Input 
+                                type="number" 
+                                value={item.desconto} 
+                                onChange={e => handleAtualizarItem(item.produto.id, 'desconto', parseFloat(e.target.value) || 0)} 
+                                className={`w-20 text-center ${density === "compact" ? "h-7 text-xs" : density === "comfortable" ? "h-12" : ""}`}
+                              />
+                            </TableCell>}
+                          {visibleColumns.precoUnit && <TableCell className={paddingClass}>
+                              R$ {(item.produto.preco_venda * (1 - item.desconto / 100)).toFixed(2)}
+                            </TableCell>}
+                          {visibleColumns.total && <TableCell className={`font-medium ${paddingClass}`}>
+                              R$ {item.valor_total.toFixed(2)}
+                            </TableCell>}
+                          {visibleColumns.deposito && <TableCell className={paddingClass}>{item.datasul_dep_exp || "-"}</TableCell>}
+                          {visibleColumns.custo && <TableCell className={paddingClass}>
+                              {item.datasul_custo ? `R$ ${item.datasul_custo.toFixed(2)}` : "-"}
+                            </TableCell>}
+                          {visibleColumns.divisao && <TableCell className={paddingClass}>{item.datasul_divisao || "-"}</TableCell>}
+                          {visibleColumns.vlTotalDS && <TableCell className={paddingClass}>
+                              {item.datasul_vl_tot_item ? `R$ ${item.datasul_vl_tot_item.toFixed(2)}` : "-"}
+                            </TableCell>}
+                          {visibleColumns.vlMercLiq && <TableCell className={paddingClass}>
+                              {item.datasul_vl_merc_liq ? `R$ ${item.datasul_vl_merc_liq.toFixed(2)}` : "-"}
+                            </TableCell>}
+                          {visibleColumns.loteMult && <TableCell className={paddingClass}>{item.datasul_lote_mulven || "-"}</TableCell>}
+                          <TableCell className={paddingClass}>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              onClick={() => handleRemoverItem(item.produto.id)}
+                              className={density === "compact" ? "h-7 w-7" : density === "comfortable" ? "h-12 w-12" : ""}
+                            >
+                              <Trash2 className={density === "compact" ? "h-3 w-3" : "h-4 w-4"} />
+                            </Button>
+                          </TableCell>
+                        </TableRow>);
+                      })}
+                  </TableBody>
+                </Table>
+              </ScrollArea>
             </div>
+
+            {/* Pagination for items */}
+            {carrinho.filter(item => {
+              if (!searchItemTerm) return true;
+              const searchLower = searchItemTerm.toLowerCase();
+              return (
+                item.produto.nome.toLowerCase().includes(searchLower) ||
+                item.produto.referencia_interna.toLowerCase().includes(searchLower)
+              );
+            }).length > itemsPerPage && (
+              <div className="flex items-center justify-between mt-4 gap-4">
+                <div className="text-sm text-muted-foreground">
+                  {carrinho.filter(item => {
+                    if (!searchItemTerm) return true;
+                    const searchLower = searchItemTerm.toLowerCase();
+                    return (
+                      item.produto.nome.toLowerCase().includes(searchLower) ||
+                      item.produto.referencia_interna.toLowerCase().includes(searchLower)
+                    );
+                  }).length} itens no total
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <Select 
+                    value={String(itemsPerPage)} 
+                    onValueChange={(value) => {
+                      setItemsPerPage(Number(value));
+                      setCurrentItemsPage(1);
+                    }}
+                  >
+                    <SelectTrigger className="w-[130px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="10">10 / página</SelectItem>
+                      <SelectItem value="20">20 / página</SelectItem>
+                      <SelectItem value="50">50 / página</SelectItem>
+                      <SelectItem value="100">100 / página</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <div className="flex items-center gap-1">
+                    <Button 
+                      variant="outline" 
+                      size="icon" 
+                      onClick={() => setCurrentItemsPage(1)} 
+                      disabled={currentItemsPage === 1}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                      <ChevronLeft className="h-4 w-4 -ml-3" />
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="icon" 
+                      onClick={() => setCurrentItemsPage(currentItemsPage - 1)} 
+                      disabled={currentItemsPage === 1}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <span className="text-sm px-3">
+                      Página {currentItemsPage} de {Math.ceil(carrinho.filter(item => {
+                        if (!searchItemTerm) return true;
+                        const searchLower = searchItemTerm.toLowerCase();
+                        return (
+                          item.produto.nome.toLowerCase().includes(searchLower) ||
+                          item.produto.referencia_interna.toLowerCase().includes(searchLower)
+                        );
+                      }).length / itemsPerPage) || 1}
+                    </span>
+                    <Button 
+                      variant="outline" 
+                      size="icon" 
+                      onClick={() => setCurrentItemsPage(currentItemsPage + 1)} 
+                      disabled={currentItemsPage === Math.ceil(carrinho.filter(item => {
+                        if (!searchItemTerm) return true;
+                        const searchLower = searchItemTerm.toLowerCase();
+                        return (
+                          item.produto.nome.toLowerCase().includes(searchLower) ||
+                          item.produto.referencia_interna.toLowerCase().includes(searchLower)
+                        );
+                      }).length / itemsPerPage)}
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="icon" 
+                      onClick={() => setCurrentItemsPage(Math.ceil(carrinho.filter(item => {
+                        if (!searchItemTerm) return true;
+                        const searchLower = searchItemTerm.toLowerCase();
+                        return (
+                          item.produto.nome.toLowerCase().includes(searchLower) ||
+                          item.produto.referencia_interna.toLowerCase().includes(searchLower)
+                        );
+                      }).length / itemsPerPage))} 
+                      disabled={currentItemsPage === Math.ceil(carrinho.filter(item => {
+                        if (!searchItemTerm) return true;
+                        const searchLower = searchItemTerm.toLowerCase();
+                        return (
+                          item.produto.nome.toLowerCase().includes(searchLower) ||
+                          item.produto.referencia_interna.toLowerCase().includes(searchLower)
+                        );
+                      }).length / itemsPerPage)}
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                      <ChevronRight className="h-4 w-4 -ml-3" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="flex justify-end mt-4 gap-8">
               <div className="text-right">
