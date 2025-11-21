@@ -102,7 +102,7 @@ Deno.serve(async (req) => {
     })
 
     const { error: itensError } = await supabaseClient
-      .from('itens_venda')
+      .from('vendas_itens')
       .insert(itens)
 
     if (itensError) {
