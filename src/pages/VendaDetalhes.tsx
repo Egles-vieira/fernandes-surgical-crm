@@ -581,14 +581,14 @@ export default function VendaDetalhes() {
               </div>
             </div>
 
-            <div className="border rounded-md">
+            <div className="border rounded-md overflow-hidden">
               <ScrollArea className="h-[600px]">
                 <Table className={cn(
                   "w-full caption-bottom text-sm",
                   density === "compact" ? "text-xs" :
                   density === "comfortable" ? "text-base" : ""
                 )}>
-                  <TableHeader className="sticky top-0 z-20 bg-background border-b shadow-sm">
+                  <TableHeader className="sticky top-0 z-20 bg-background border-b">
                     <TableRow className="hover:bg-transparent">
                       <TableHead className={`w-12 ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}>#</TableHead>
                       <TableHead className={density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}>Produto</TableHead>
