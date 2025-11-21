@@ -21,6 +21,9 @@ interface IntegracaoLog {
   status: string;
   error_message: string | null;
   tempo_resposta_ms: number;
+  tempo_preparacao_dados_ms: number | null;
+  tempo_api_ms: number | null;
+  tempo_tratamento_dados_ms: number | null;
   created_at: string;
 }
 
@@ -130,10 +133,6 @@ export function IntegracaoDatasulLog({ vendaId }: IntegracaoDatasulLogProps) {
             <p className="font-medium">{log.numero_venda}</p>
           </div>
           <div>
-            <p className="text-muted-foreground">Tempo Resposta</p>
-            <p className="font-medium">{log.tempo_resposta_ms}ms</p>
-          </div>
-          <div>
             <p className="text-muted-foreground">Data/Hora</p>
             <p className="font-medium">
               {formatDistanceToNow(new Date(log.created_at), {
@@ -141,6 +140,43 @@ export function IntegracaoDatasulLog({ vendaId }: IntegracaoDatasulLogProps) {
                 locale: ptBR,
               })}
             </p>
+          </div>
+          <div>
+            <p className="text-muted-foreground">Status</p>
+            <p className="font-medium">
+              {log.status === "sucesso" ? (
+                <span className="text-green-600">Sucesso</span>
+              ) : (
+                <span className="text-red-600">Erro</span>
+              )}
+            </p>
+          </div>
+        </div>
+
+        {/* Métricas de Tempo */}
+        <div className="rounded-lg border bg-muted/50 p-4">
+          <h4 className="mb-3 text-sm font-semibold">Métricas de Tempo</h4>
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Tempo Total:</span>
+                <span className="font-mono font-semibold">{log.tempo_resposta_ms || 0}ms</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Preparação dos dados:</span>
+                <span className="font-mono">{log.tempo_preparacao_dados_ms || 0}ms</span>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Retorno API:</span>
+                <span className="font-mono">{log.tempo_api_ms || 0}ms</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Tratamento dos dados:</span>
+                <span className="font-mono">{log.tempo_tratamento_dados_ms || 0}ms</span>
+              </div>
+            </div>
           </div>
         </div>
 
