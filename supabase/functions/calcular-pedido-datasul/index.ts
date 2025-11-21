@@ -255,7 +255,20 @@ Deno.serve(async (req) => {
               const mensagemErro = primeiroItem.errordescription || primeiroItem["msg-credito"] || "Erro desconhecido no Datasul";
               console.error(`Erro de negócio Datasul: ${primeiroItem.errornumber} - ${mensagemErro}`);
               
-              throw new Error(`Datasul: ${mensagemErro} (Código: ${primeiroItem.errornumber})`);
+              // Retornar erro estruturado
+              return new Response(
+                JSON.stringify({
+                  success: false,
+                  error: mensagemErro,
+                  error_code: String(primeiroItem.errornumber),
+                  error_category: 'negocio',
+                  error_details: primeiroItem,
+                }),
+                { 
+                  status: 400,
+                  headers: { ...corsHeaders, "Content-Type": "application/json" } 
+                }
+              );
             }
           }
           
@@ -317,10 +330,25 @@ Deno.serve(async (req) => {
 
   } catch (error) {
     console.error("Erro:", error);
+    
+    // Determinar categoria do erro
+    let errorCategory = 'tecnico';
+    let errorCode = null;
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    
+    if (errorMessage.includes('obrigatório') || errorMessage.includes('inválido')) {
+      errorCategory = 'validacao';
+    } else if (errorMessage.includes('timeout') || errorMessage.includes('ECONNREFUSED')) {
+      errorCategory = 'rede';
+    }
+    
     return new Response(
       JSON.stringify({
         success: false,
-        error: error instanceof Error ? error.message : "Erro desconhecido",
+        error: errorMessage,
+        error_code: errorCode,
+        error_category: errorCategory,
+        error_details: error instanceof Error ? error.toString() : String(error),
         tempo_resposta_ms: Date.now() - startTime,
       }),
       {

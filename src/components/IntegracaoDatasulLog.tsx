@@ -1,12 +1,16 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
-import { CheckCircle2, XCircle, Clock } from "lucide-react";
+import { AlertCircle, CheckCircle2, XCircle, Clock, Info } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useQuery } from "@tanstack/react-query";
+import { parseError } from "@/lib/datasul-errors";
+import { DatasulErrorDialog } from "@/components/vendas/DatasulErrorDialog";
 
 interface IntegracaoLog {
   id: string;
@@ -48,6 +52,8 @@ const formatJsonField = (field: any) => {
 };
 
 export function IntegracaoDatasulLog({ vendaId }: IntegracaoDatasulLogProps) {
+  const [showErrorDialog, setShowErrorDialog] = useState(false);
+  const [errorData, setErrorData] = useState<any>(null);
   const { data: log, isLoading: loading } = useQuery({
     queryKey: ["integracao-datasul-log", vendaId],
     queryFn: async () => {
@@ -139,9 +145,32 @@ export function IntegracaoDatasulLog({ vendaId }: IntegracaoDatasulLogProps) {
         </div>
 
         {log.error_message && (
-          <div className="rounded-md bg-destructive/10 p-3">
-            <p className="text-sm font-medium text-destructive">Erro:</p>
-            <p className="text-sm text-destructive/90">{log.error_message}</p>
+          <div className="mt-3 space-y-2">
+            <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+              <div className="flex gap-2">
+                <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="font-medium">Erro:</p>
+                  <p className="mt-1">{log.error_message}</p>
+                </div>
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const parsed = parseError({
+                  message: log.error_message,
+                  details: log.response_payload,
+                });
+                setErrorData(parsed);
+                setShowErrorDialog(true);
+              }}
+              className="w-full gap-2"
+            >
+              <Info className="h-4 w-4" />
+              Entender Este Erro
+            </Button>
           </div>
         )}
 
@@ -166,6 +195,12 @@ export function IntegracaoDatasulLog({ vendaId }: IntegracaoDatasulLogProps) {
           </TabsContent>
         </Tabs>
       </CardContent>
+      
+      <DatasulErrorDialog
+        open={showErrorDialog}
+        onOpenChange={setShowErrorDialog}
+        error={errorData}
+      />
     </Card>
   );
 }
