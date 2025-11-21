@@ -77,10 +77,12 @@ export function useDatasulCalculaPedido() {
 
       if (!data.success) {
         // Criar objeto de erro com todos os dados estruturados
+        console.log("🔴 Datasul retornou erro:", data);
         const errorObj: any = new Error(data.error || "Erro ao calcular pedido no Datasul");
         errorObj.error_code = data.error_code;
         errorObj.error_category = data.error_category;
         errorObj.error_details = data.error_details;
+        console.log("🔴 Objeto de erro criado:", errorObj);
         throw errorObj;
       }
 
@@ -121,14 +123,22 @@ export function useDatasulCalculaPedido() {
       return { ...data, itensAtualizados };
     } catch (error) {
       console.error("Erro ao calcular pedido:", error);
+      console.log("🔴 Erro capturado no catch:", {
+        error,
+        hasErrorCode: 'error_code' in (error as any),
+        errorCode: (error as any).error_code,
+        errorCategory: (error as any).error_category,
+      });
       
       // Fechar toast de loading
       toast.dismiss(toastId);
       
       // Processar e categorizar o erro
       const parsedError = parseError(error);
+      console.log("🔴 Erro processado:", parsedError);
       setErrorData(parsedError);
       setShowErrorDialog(true);
+      console.log("🔴 Modal deveria estar aberto agora. showErrorDialog=true");
       
       // Também mostrar toast para erros simples
       toast.error("Erro ao calcular pedido", {
