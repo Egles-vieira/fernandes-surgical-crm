@@ -249,14 +249,23 @@ export default function VendaDetalhes() {
     setShowClienteSearch(false);
   };
   const handleSalvar = async () => {
-    if (!clienteSelecionado || carrinho.length === 0 || !venda) {
+    // Validar campos obrigatórios
+    const camposObrigatorios = [];
+    if (!clienteSelecionado) camposObrigatorios.push("Cliente");
+    if (!tipoPedidoId) camposObrigatorios.push("Tipo de Pedido");
+    if (!condicaoPagamentoId) camposObrigatorios.push("Condição de Pagamento");
+    if (carrinho.length === 0) camposObrigatorios.push("Itens");
+
+    if (camposObrigatorios.length > 0) {
       toast({
-        title: "Campos obrigatórios",
-        description: "Selecione um cliente e adicione pelo menos um produto",
+        title: "Campos obrigatórios não preenchidos",
+        description: `Por favor, preencha: ${camposObrigatorios.join(", ")}`,
         variant: "destructive"
       });
       return;
     }
+
+    if (!venda) return;
     try {
       // Atualizar venda
       await updateVenda.mutateAsync({
@@ -307,10 +316,18 @@ export default function VendaDetalhes() {
     }
   };
   const handleCalcularDatasul = async () => {
-    if (!venda || !clienteSelecionado || carrinho.length === 0) {
+    // Validar campos obrigatórios antes de calcular
+    const camposObrigatorios = [];
+    if (!venda) camposObrigatorios.push("Venda");
+    if (!clienteSelecionado) camposObrigatorios.push("Cliente");
+    if (!tipoPedidoId) camposObrigatorios.push("Tipo de Pedido");
+    if (!condicaoPagamentoId) camposObrigatorios.push("Condição de Pagamento");
+    if (carrinho.length === 0) camposObrigatorios.push("Itens");
+
+    if (camposObrigatorios.length > 0) {
       toast({
-        title: "Campos obrigatórios",
-        description: "Selecione um cliente e adicione pelo menos um produto antes de calcular",
+        title: "Campos obrigatórios não preenchidos",
+        description: `Por favor, preencha: ${camposObrigatorios.join(", ")} antes de calcular`,
         variant: "destructive"
       });
       return;
@@ -451,9 +468,11 @@ export default function VendaDetalhes() {
             </div>
 
             <div>
-              <Label>Tipo de Pedido</Label>
+              <Label className={!tipoPedidoId ? "text-destructive" : ""}>
+                Tipo de Pedido *
+              </Label>
               <Select value={tipoPedidoId} onValueChange={setTipoPedidoId}>
-                <SelectTrigger>
+                <SelectTrigger className={!tipoPedidoId ? "border-destructive" : ""}>
                   <SelectValue placeholder="Selecione..." />
                 </SelectTrigger>
                 <SelectContent>
@@ -465,9 +484,11 @@ export default function VendaDetalhes() {
             </div>
 
             <div>
-              <Label>Condição de Pagamento</Label>
+              <Label className={!condicaoPagamentoId ? "text-destructive" : ""}>
+                Condição de Pagamento *
+              </Label>
               <Select value={condicaoPagamentoId} onValueChange={setCondicaoPagamentoId}>
-                <SelectTrigger>
+                <SelectTrigger className={!condicaoPagamentoId ? "border-destructive" : ""}>
                   <SelectValue placeholder="Selecione..." />
                 </SelectTrigger>
                 <SelectContent>
