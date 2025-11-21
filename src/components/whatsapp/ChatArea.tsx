@@ -423,6 +423,32 @@ const ChatArea = ({
     
     marcarComoLidas();
   }, [conversaId, queryClient]);
+
+  // Realtime: atualizar mensagens quando mídia for processada
+  useEffect(() => {
+    if (!conversaId) return;
+
+    const channel = supabase
+      .channel(`mensagens-${conversaId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'whatsapp_mensagens',
+          filter: `conversa_id=eq.${conversaId}`,
+        },
+        () => {
+          // Recarregar mensagens quando houver atualização (ex: áudio processado)
+          queryClient.invalidateQueries({ queryKey: ['whatsapp-mensagens', conversaId] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [conversaId, queryClient]);
   if (!conversaId) {
     return <Card className="h-full flex items-center justify-center bg-card/30 backdrop-blur">
         <div className="text-center">
