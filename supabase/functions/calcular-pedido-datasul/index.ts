@@ -155,10 +155,25 @@ Deno.serve(async (req) => {
     const authHeader = btoa(`${DATASUL_USER}:${DATASUL_PASS}`);
 
     const itensPayload = itensValidados.map((item: any) => {
-      // Calcular preço sem IPI usando a alíquota do produto
-      const aliquotaIpi = item.produtos.aliquota_ipi || 0;
-      const precoTabela = item.preco_tabela ?? 0;
-      const precoSemIpi = removerIPI(precoTabela, aliquotaIpi);
+      // 1. Determinar o preço base (preferência: preco_tabela, fallback: preco_unitario)
+      const precoBase = item.preco_tabela ?? item.preco_unitario ?? 0;
+      
+      // 2. Obter alíquota de IPI do produto
+      const aliquotaIpi = item.produtos?.aliquota_ipi ?? 0;
+      
+      // 3. Calcular preço sem IPI (usando a função existente)
+      const precoSemIpi = removerIPI(precoBase, aliquotaIpi);
+      
+      // 4. Log para debug
+      console.log(`Item ${item.sequencia_item} [${item.produtos.referencia_interna}]:`, {
+        preco_tabela: item.preco_tabela,
+        preco_unitario: item.preco_unitario,
+        precoBase,
+        aliquotaIpi: `${aliquotaIpi}%`,
+        precoSemIpi,
+        quantidade: item.quantidade,
+        desconto: item.desconto
+      });
       
       return {
         "nr-sequencia": item.sequencia_item,
@@ -166,13 +181,21 @@ Deno.serve(async (req) => {
         "cod-refer": "",
         "nat-operacao": empresaValidada.natureza_operacao,
         "qt-pedida": item.quantidade,
-        "vl-preuni": precoSemIpi,
-        "vl-pretab": precoTabela,
-        "vl-preori": precoSemIpi,
-        "vl-preco-base": precoSemIpi,
-        "per-des-item": item.desconto ?? 0,
+        "vl-preuni": precoSemIpi,           // Preço unitário sem IPI
+        "vl-pretab": precoBase,              // Preço de tabela original
+        "vl-preori": precoBase,              // Preço original (mesmo que tabela)
+        "vl-preco-base": precoSemIpi,        // Preço base para cálculo (sem IPI)
+        "per-des-item": item.desconto ?? 0,  // Percentual de desconto
       };
     });
+
+    // Validar se todos os itens têm preços válidos
+    const itensComPrecoZero = itensPayload.filter(i => i["vl-preuni"] === 0 || i["vl-pretab"] === 0);
+    if (itensComPrecoZero.length > 0) {
+      console.warn(`⚠️ ATENÇÃO: ${itensComPrecoZero.length} itens com preço zero:`, 
+        itensComPrecoZero.map(i => `Seq ${i["nr-sequencia"]}`).join(", ")
+      );
+    }
 
     const payload = {
       pedido: [{
