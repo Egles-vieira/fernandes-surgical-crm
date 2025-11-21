@@ -144,170 +144,152 @@ Deno.serve(async (req) => {
     const perfilValidado = perfil!;
     const itensValidados = itens!;
 
-    // Dividir em lotes de 25 itens
-    const TAMANHO_LOTE = 25;
-    const lotesDeItens = dividirEmLotes(itensValidados, TAMANHO_LOTE);
-    const totalLotes = lotesDeItens.length;
-
-    console.log(`${itensValidados.length} itens em ${totalLotes} lote(s)`);
+    console.log(`Processando ${itensValidados.length} itens em uma única requisição`);
 
     const authHeader = btoa(`${DATASUL_USER}:${DATASUL_PASS}`);
-    const resultadosLotes: any[] = [];
-    let tempoTotalMs = 0;
 
-    // Processar cada lote
-    for (let i = 0; i < totalLotes; i++) {
-      const lote = lotesDeItens[i];
-      const numeroLote = i + 1;
+    const itensPayload = itensValidados.map((item: any) => {
+      // Calcular preço sem IPI usando a alíquota do produto
+      const aliquotaIpi = item.produtos.aliquota_ipi || 0;
+      const precoTabela = item.preco_tabela ?? 0;
+      const precoSemIpi = removerIPI(precoTabela, aliquotaIpi);
       
-      console.log(`Processando lote ${numeroLote}/${totalLotes}`);
-
-      const itensPayload = lote.map((item: any) => {
-        // Calcular preço sem IPI usando a alíquota do produto
-        const aliquotaIpi = item.produtos.aliquota_ipi || 0;
-        const precoTabela = item.preco_tabela ?? 0;
-        const precoSemIpi = removerIPI(precoTabela, aliquotaIpi);
-        
-        console.log(`Item ${item.sequencia_item}: preço_tabela=${precoTabela}, aliquota_ipi=${aliquotaIpi}%, preco_sem_ipi=${precoSemIpi.toFixed(6)}`);
-        
-        return {
-          "nr-sequencia": item.sequencia_item,
-          "it-codigo": item.produtos.referencia_interna,
-          "cod-refer": "",
-          "nat-operacao": empresa.natureza_operacao,
-          "qt-pedida": item.quantidade,
-          "vl-preuni": precoSemIpi,
-          "vl-pretab": precoTabela, // Mantém o preço de tabela original
-          "vl-preori": precoSemIpi,
-          "vl-preco-base": precoSemIpi,
-          "per-des-item": item.desconto ?? 0,
-        };
-      });
-
-      const payload = {
-        pedido: [{
-          "cod-emitente": Number(clienteValidado.cod_emitente),
-          "tipo-pedido": tipoPedidoValidado.nome.toLowerCase(),
-          "cotacao": venda.numero_venda,
-          "cod-estabel": String(empresaValidada.codigo_estabelecimento),
-          "nat-operacao": String(empresaValidada.natureza_operacao),
-          "cod-cond-pag": Number(condicaoPagamentoValidada.codigo_integracao),
-          "cod-transp": 24249,
-          "vl-frete-inf": 0,
-          "cod-rep": Number(perfilValidado.codigo_vendedor),
-          "nr-tabpre": "SE-CFI",
-          "perc-desco1": 0,
-          "fat-parcial": venda.faturamento_parcial === "YES",
-          "item": itensPayload,
-        }]
+      return {
+        "nr-sequencia": item.sequencia_item,
+        "it-codigo": item.produtos.referencia_interna,
+        "cod-refer": "",
+        "nat-operacao": empresaValidada.natureza_operacao,
+        "qt-pedida": item.quantidade,
+        "vl-preuni": precoSemIpi,
+        "vl-pretab": precoTabela,
+        "vl-preori": precoSemIpi,
+        "vl-preco-base": precoSemIpi,
+        "per-des-item": item.desconto ?? 0,
       };
+    });
 
-      const payloadOrdenado = serializeOrderPayload(payload);
+    const payload = {
+      pedido: [{
+        "cod-emitente": Number(clienteValidado.cod_emitente),
+        "tipo-pedido": tipoPedidoValidado.nome.toLowerCase(),
+        "cotacao": venda.numero_venda,
+        "cod-estabel": String(empresaValidada.codigo_estabelecimento),
+        "nat-operacao": String(empresaValidada.natureza_operacao),
+        "cod-cond-pag": Number(condicaoPagamentoValidada.codigo_integracao),
+        "cod-transp": 24249,
+        "vl-frete-inf": 0,
+        "cod-rep": Number(perfilValidado.codigo_vendedor),
+        "nr-tabpre": "SE-CFI",
+        "perc-desco1": 0,
+        "fat-parcial": venda.faturamento_parcial === "YES",
+        "item": itensPayload,
+      }]
+    };
 
-      // Tentar até 3 vezes
-      let sucesso = false;
-      let datasulData: any = null;
+    const payloadOrdenado = serializeOrderPayload(payload);
 
-      for (let tentativa = 0; tentativa < 3 && !sucesso; tentativa++) {
-        try {
-          if (tentativa > 0) {
-            await new Promise(r => setTimeout(r, 2000 * tentativa));
-          }
+    // Tentar até 3 vezes
+    let sucesso = false;
+    let datasulData: any = null;
+    let tempoResposta = 0;
 
-          const fetchStart = Date.now();
-          const response = await fetch(DATASUL_PROXY_URL, {
-            method: "POST",
-            headers: {
-              Authorization: `Basic ${authHeader}`,
-              "Content-Type": "application/json",
-            },
-            body: payloadOrdenado,
-            signal: AbortSignal.timeout(40000),
-          });
+    for (let tentativa = 0; tentativa < 3 && !sucesso; tentativa++) {
+      try {
+        if (tentativa > 0) {
+          console.log(`Tentativa ${tentativa + 1} após falha anterior`);
+          await new Promise(r => setTimeout(r, 2000 * tentativa));
+        }
 
-          const fetchTime = Date.now() - fetchStart;
-          tempoTotalMs += fetchTime;
-          const text = await response.text();
+        const fetchStart = Date.now();
+        const response = await fetch(DATASUL_PROXY_URL, {
+          method: "POST",
+          headers: {
+            Authorization: `Basic ${authHeader}`,
+            "Content-Type": "application/json",
+          },
+          body: payloadOrdenado,
+          signal: AbortSignal.timeout(120000), // 2 minutos de timeout para processar tudo
+        });
 
-          // Salvar log
-          await supabase.from("integracoes_totvs_calcula_pedido").insert({
-            venda_id,
-            numero_venda: `${venda.numero_venda}-L${numeroLote}`,
-            request_payload: payloadOrdenado,
-            response_payload: response.ok ? text : null,
-            status: response.ok ? "sucesso" : "erro",
-            error_message: response.ok ? null : `HTTP ${response.status}: ${text.substring(0, 500)}`,
-            tempo_resposta_ms: fetchTime,
-          });
+        tempoResposta = Date.now() - fetchStart;
+        const text = await response.text();
 
-          if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${text.substring(0, 200)}`);
-          }
+        // Salvar log
+        await supabase.from("integracoes_totvs_calcula_pedido").insert({
+          venda_id,
+          numero_venda: venda.numero_venda,
+          request_payload: payloadOrdenado,
+          response_payload: response.ok ? text : null,
+          status: response.ok ? "sucesso" : "erro",
+          error_message: response.ok ? null : `HTTP ${response.status}: ${text.substring(0, 500)}`,
+          tempo_resposta_ms: tempoResposta,
+        });
 
-          datasulData = JSON.parse(text);
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${text.substring(0, 200)}`);
+        }
+
+        datasulData = JSON.parse(text);
+        
+        // Verificar se há erros de negócio no retorno do Datasul
+        const retornoArray = datasulData.retorno || datasulData.pedido;
+        if (Array.isArray(retornoArray) && retornoArray.length > 0) {
+          const primeiroItem = retornoArray[0];
           
-          // Verificar se há erros de negócio no retorno do Datasul
-          const retornoArray = datasulData.retorno || datasulData.pedido;
-          if (Array.isArray(retornoArray) && retornoArray.length > 0) {
-            const primeiroItem = retornoArray[0];
+          // Detectar erros de negócio
+          if (primeiroItem.errornumber && primeiroItem.errornumber !== 0) {
+            const mensagemErro = primeiroItem.errordescription || primeiroItem["msg-credito"] || "Erro desconhecido no Datasul";
+            console.error(`Erro de negócio Datasul: ${primeiroItem.errornumber} - ${mensagemErro}`);
             
-            // Detectar erros de negócio
-            if (primeiroItem.errornumber && primeiroItem.errornumber !== 0) {
-              const mensagemErro = primeiroItem.errordescription || primeiroItem["msg-credito"] || "Erro desconhecido no Datasul";
-              console.error(`Erro de negócio Datasul: ${primeiroItem.errornumber} - ${mensagemErro}`);
-              
-              // Retornar erro estruturado com status 200 para que o frontend receba os dados
-              return new Response(
-                JSON.stringify({
-                  success: false,
-                  error: mensagemErro,
-                  error_code: String(primeiroItem.errornumber),
-                  error_category: 'negocio',
-                  error_details: primeiroItem,
-                }),
-                { 
-                  status: 200,
-                  headers: { ...corsHeaders, "Content-Type": "application/json" } 
-                }
-              );
-            }
-          }
-          
-          sucesso = true;
-
-          // Atualizar itens
-          if (Array.isArray(retornoArray)) {
-            for (const itemDS of retornoArray) {
-              const seq = itemDS["nr-sequencia"];
-              if (seq) {
-                await supabase.from("vendas_itens").update({
-                  datasul_dep_exp: Number(itemDS["dep-exp"]) || null,
-                  datasul_custo: Number(itemDS["custo"]) || null,
-                  datasul_divisao: Number(itemDS["divisao"]) || null,
-                  datasul_vl_tot_item: Number(itemDS["vl-tot-item"]) || null,
-                  datasul_vl_merc_liq: Number(itemDS["vl-merc-liq"]) || null,
-                  datasul_lote_mulven: Number(itemDS["lote-mulven"]) || null,
-                }).eq("venda_id", venda_id).eq("sequencia_item", seq);
+            // Retornar erro estruturado com status 200 para que o frontend receba os dados
+            return new Response(
+              JSON.stringify({
+                success: false,
+                error: mensagemErro,
+                error_code: String(primeiroItem.errornumber),
+                error_category: 'negocio',
+                error_details: primeiroItem,
+              }),
+              { 
+                status: 200,
+                headers: { ...corsHeaders, "Content-Type": "application/json" } 
               }
+            );
+          }
+        }
+        
+        sucesso = true;
+
+        // Atualizar itens
+        if (Array.isArray(retornoArray)) {
+          console.log(`Atualizando ${retornoArray.length} itens no banco de dados`);
+          for (const itemDS of retornoArray) {
+            const seq = itemDS["nr-sequencia"];
+            if (seq) {
+              await supabase.from("vendas_itens").update({
+                datasul_dep_exp: Number(itemDS["dep-exp"]) || null,
+                datasul_custo: Number(itemDS["custo"]) || null,
+                datasul_divisao: Number(itemDS["divisao"]) || null,
+                datasul_vl_tot_item: Number(itemDS["vl-tot-item"]) || null,
+                datasul_vl_merc_liq: Number(itemDS["vl-merc-liq"]) || null,
+                datasul_lote_mulven: Number(itemDS["lote-mulven"]) || null,
+              }).eq("venda_id", venda_id).eq("sequencia_item", seq);
             }
           }
-
-          resultadosLotes.push({ lote: numeroLote, tempo_ms: fetchTime });
-        } catch (error) {
-          console.error(`Lote ${numeroLote} tentativa ${tentativa+1} erro:`, error);
-          if (tentativa === 2) {
-            resultadosLotes.push({ lote: numeroLote, erro: String(error) });
-          }
+        }
+      } catch (error) {
+        console.error(`Tentativa ${tentativa + 1} erro:`, error);
+        if (tentativa === 2) {
+          throw error; // Última tentativa falhou, propagar o erro
         }
       }
     }
 
     // Atualizar status da venda
-    const todosOK = resultadosLotes.every(r => !r.erro);
     await supabase.from("vendas").update({
       ultima_integracao_datasul_em: new Date().toISOString(),
-      ultima_integracao_datasul_status: todosOK ? "sucesso_completo" : "parcial",
-      ultima_integracao_datasul_resposta: { lotes: resultadosLotes },
+      ultima_integracao_datasul_status: "sucesso_completo",
+      ultima_integracao_datasul_resposta: datasulData,
     }).eq("id", venda_id);
 
     const tempoTotal = Date.now() - startTime;
@@ -319,12 +301,10 @@ Deno.serve(async (req) => {
         numero_venda: venda.numero_venda,
         resumo: {
           total_itens: itensValidados.length,
-          total_lotes: totalLotes,
-          lotes_processados: resultadosLotes.filter(r => !r.erro).length,
-          tempo_resposta_ms: tempoTotal,
+          tempo_resposta_ms: tempoResposta,
         },
         processamento_completo: true,
-        lotes: resultadosLotes,
+        datasul_response: datasulData,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
