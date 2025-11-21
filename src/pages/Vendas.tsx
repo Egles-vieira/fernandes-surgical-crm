@@ -1321,14 +1321,14 @@ export default function Vendas() {
             {carrinho.length > 0 ? (
               <>
                 <div className="border rounded-lg">
-                  <div className="h-[600px] overflow-auto relative">
+                  <ScrollArea className="h-[600px]">
                     <table className={cn(
                       "w-full caption-bottom text-sm",
                       density === "compact" ? "text-xs" :
                       density === "comfortable" ? "text-base" : ""
                     )}>
-                      <thead className="sticky top-0 z-10 bg-background">
-                        <tr className="border-b">
+                      <thead className="sticky top-0 z-10 bg-background border-b">
+                        <tr>
                           <th className={`w-16 text-center font-medium text-muted-foreground ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"} px-4`}>Seq</th>
                           <th className={`text-left font-medium text-muted-foreground ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"} px-4`}>Código</th>
                           <th className={`text-left font-medium text-muted-foreground ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"} px-4`}>Produto</th>
@@ -1398,44 +1398,51 @@ export default function Vendas() {
                           )}
                           {visibleColumns.custo && (
                             <td className={`text-right text-xs ${paddingClass}`}>
-                              {item.datasul_custo ? formatCurrency(item.datasul_custo) : '-'}
+                              {item.datasul_custo ? formatCurrency(item.datasul_custo) : "-"}
                             </td>
                           )}
                           {visibleColumns.divisao && (
                             <td className={`text-right text-xs ${paddingClass}`}>
-                              {item.datasul_divisao ? item.datasul_divisao.toFixed(6) : '-'}
+                              {item.datasul_divisao ? formatCurrency(item.datasul_divisao) : "-"}
                             </td>
                           )}
                           {visibleColumns.vlTotalDS && (
                             <td className={`text-right text-xs ${paddingClass}`}>
-                              {item.datasul_vl_tot_item ? formatCurrency(item.datasul_vl_tot_item) : '-'}
+                              {item.datasul_vl_tot_item ? formatCurrency(item.datasul_vl_tot_item) : "-"}
                             </td>
                           )}
                           {visibleColumns.vlMercLiq && (
                             <td className={`text-right text-xs ${paddingClass}`}>
-                              {item.datasul_vl_merc_liq ? formatCurrency(item.datasul_vl_merc_liq) : '-'}
+                              {item.datasul_vl_merc_liq ? formatCurrency(item.datasul_vl_merc_liq) : "-"}
                             </td>
                           )}
                           {visibleColumns.loteMult && (
-                            <td className={`text-center text-xs ${paddingClass}`}>
-                              {item.datasul_lote_mulven || '-'}
+                            <td className={`text-center ${paddingClass}`}>
+                              {item.datasul_lote_mulven || "-"}
                             </td>
                           )}
                           {visibleColumns.deposito && (
-                            <td className={`text-center text-xs ${paddingClass}`}>
-                              {item.datasul_dep_exp || '-'}
+                            <td className={`text-center ${paddingClass}`}>
+                              {item.datasul_dep_exp || "-"}
                             </td>
                           )}
                           <td className={`text-center ${paddingClass}`}>
-                            <Button variant="ghost" size="sm" onClick={() => handleRemoveItem(realIndex)}>
-                              <Trash2 size={16} className="text-destructive" />
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleRemoveItem(realIndex)}
+                              className={density === "compact" ? "h-7 w-7" : density === "comfortable" ? "h-12 w-12" : ""}
+                            >
+                              <Trash2 className={density === "compact" ? "h-3 w-3" : "h-4 w-4"} />
                             </Button>
                           </td>
                         </tr>
-                      )})}
+                      );
+                      })}
                       </tbody>
                     </table>
-                  </div>
+                  </ScrollArea>
                 </div>
 
                 {/* Pagination for items */}
