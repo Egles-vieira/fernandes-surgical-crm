@@ -156,11 +156,18 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
         mediaFileName = aud.fileName || null;
         mediaKind = 'audio';
         
+        // Capturar mediaKey para descriptografia posterior
+        const mediaKey = aud.mediaKey;
+        if (mediaKey) {
+          console.log('🔑 mediaKey capturado para áudio');
+        }
+        
         // Logs detalhados para debug de áudio
         console.log('🎤 Áudio detectado:', {
           url: mediaUrl,
           mime: mediaMime,
           fileName: mediaFileName,
+          hasMediaKey: !!mediaKey,
           fullAudioObject: JSON.stringify(aud, null, 2)
         });
     } else if (doc) {

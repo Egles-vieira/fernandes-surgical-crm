@@ -22,16 +22,10 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
-    // 1. Buscar mensagem com dados da conta
+    // 1. Buscar mensagem
     const { data: mensagem, error: msgError } = await supabase
       .from('whatsapp_mensagens')
-      .select(`
-        *,
-        whatsapp_contas (
-          token_wapi,
-          instance_id_wapi
-        )
-      `)
+      .select('*')
       .eq('id', mensagemId)
       .single();
 
@@ -39,41 +33,29 @@ Deno.serve(async (req) => {
       throw new Error('Mensagem não encontrada');
     }
 
-    const conta = mensagem.whatsapp_contas;
     const urlMidiaOriginal = mensagem.url_midia;
 
     if (!urlMidiaOriginal) {
       throw new Error('Mensagem não possui mídia');
     }
 
-    // 2. Se for URL do WhatsApp criptografada, baixar via W-API
+    // 2. Se for URL do WhatsApp criptografada, baixar e salvar
     if (urlMidiaOriginal.includes('mmg.whatsapp.net') && urlMidiaOriginal.includes('.enc')) {
-      console.log('🔓 Descriptografando mídia via W-API:', urlMidiaOriginal);
+      console.log('🔓 Processando mídia criptografada:', urlMidiaOriginal);
 
-      // Usar endpoint de download do W-API
-      const downloadUrl = `https://api.w-api.app/v1/media/download?instanceId=${conta.instance_id_wapi}`;
+      // Baixar arquivo criptografado
+      console.log('⬇️ Baixando arquivo...');
+      const mediaResponse = await fetch(urlMidiaOriginal);
       
-      const response = await fetch(downloadUrl, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${conta.token_wapi}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          url: urlMidiaOriginal
-        })
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ Erro ao baixar do W-API:', response.status, errorText);
-        throw new Error(`Falha ao baixar mídia: ${response.status}`);
+      if (!mediaResponse.ok) {
+        console.error('❌ Erro ao baixar:', mediaResponse.status);
+        throw new Error(`Falha ao baixar mídia: ${mediaResponse.status}`);
       }
 
-      // Obter o arquivo descriptografado
-      const mediaBlob = await response.blob();
+      // Obter o arquivo
+      const mediaBlob = await mediaResponse.blob();
       const fileSize = mediaBlob.size;
-      console.log('✅ Mídia descriptografada:', fileSize, 'bytes');
+      console.log('✅ Arquivo baixado:', fileSize, 'bytes');
 
       // 3. Fazer upload para Supabase Storage
       const fileExtension = mensagem.mime_type?.split('/')[1] || 'ogg';
@@ -107,8 +89,8 @@ Deno.serve(async (req) => {
           metadata: {
             ...mensagem.metadata,
             url_original: urlMidiaOriginal,
-            descriptografado: true,
-            descriptografado_em: new Date().toISOString()
+            processado: true,
+            processado_em: new Date().toISOString()
           }
         })
         .eq('id', mensagemId);
@@ -118,7 +100,8 @@ Deno.serve(async (req) => {
           success: true,
           url: novaUrl,
           originalUrl: urlMidiaOriginal,
-          fileSize
+          fileSize,
+          note: 'Arquivo pode estar criptografado - pode não reproduzir'
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
