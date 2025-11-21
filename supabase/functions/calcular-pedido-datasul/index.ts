@@ -165,9 +165,10 @@ Deno.serve(async (req) => {
       const itensPayload = lote.map((item: any) => {
         // Calcular preço sem IPI usando a alíquota do produto
         const aliquotaIpi = item.produtos.aliquota_ipi || 0;
-        const precoSemIpi = removerIPI(item.preco_tabela, aliquotaIpi);
+        const precoTabela = item.preco_tabela ?? 0;
+        const precoSemIpi = removerIPI(precoTabela, aliquotaIpi);
         
-        console.log(`Item ${item.sequencia_item}: preço_tabela=${item.preco_tabela}, aliquota_ipi=${aliquotaIpi}%, preco_sem_ipi=${precoSemIpi.toFixed(6)}`);
+        console.log(`Item ${item.sequencia_item}: preço_tabela=${precoTabela}, aliquota_ipi=${aliquotaIpi}%, preco_sem_ipi=${precoSemIpi.toFixed(6)}`);
         
         return {
           "nr-sequencia": item.sequencia_item,
@@ -176,10 +177,10 @@ Deno.serve(async (req) => {
           "nat-operacao": empresa.natureza_operacao,
           "qt-pedida": item.quantidade,
           "vl-preuni": precoSemIpi,
-          "vl-pretab": item.preco_tabela, // Mantém o preço de tabela original
+          "vl-pretab": precoTabela, // Mantém o preço de tabela original
           "vl-preori": precoSemIpi,
           "vl-preco-base": precoSemIpi,
-          "per-des-item": item.desconto,
+          "per-des-item": item.desconto ?? 0,
         };
       });
 
