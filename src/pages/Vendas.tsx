@@ -33,6 +33,8 @@ import { IntegracaoDatasulLog } from "@/components/IntegracaoDatasulLog";
 import { Tables } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { useRoles } from "@/hooks/useRoles";
+import { useEmpresa } from "@/hooks/useEmpresa";
 import { cn } from "@/lib/utils";
 type Produto = Tables<"produtos">;
 type Cliente = Tables<"clientes">;
@@ -65,6 +67,8 @@ export default function Vendas() {
   const { ehGestor, subordinados, nivelHierarquico, podeAcessarCliente } = useHierarquia();
   const { calcularPedido, isCalculating } = useDatasulCalculaPedido();
   const { user } = useAuth();
+  const { isAdmin } = useRoles();
+  const { empresa } = useEmpresa();
   const { toast } = useToast();
   const { visibleColumns, toggleColumn, resetColumns } = useColumnVisibility("vendas_itens_columns", {
     precoTabela: true,
@@ -980,6 +984,17 @@ export default function Vendas() {
           isCalculating={isCalculating}
           editandoVendaId={editandoVendaId}
         />
+
+        {/* Logo da empresa - visível apenas para admins */}
+        {isAdmin && empresa?.url_logo_expandido && (
+          <div className="fixed top-20 left-8 z-10 bg-background/95 backdrop-blur-sm p-3 rounded-lg shadow-lg border border-border">
+            <img 
+              src={empresa.url_logo_expandido} 
+              alt="Logo da empresa" 
+              className="h-12 object-contain"
+            />
+          </div>
+        )}
 
         <div className="pt-20 p-8 space-y-6">
           {/* Header */}
