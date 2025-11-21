@@ -150,11 +150,19 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
       mediaFileName = vid.fileName || null;
       mediaKind = 'video';
       if (!messageText && (vid.caption || vid.captionText)) messageText = vid.caption || vid.captionText;
-    } else if (aud) {
-      mediaUrl = aud.url || aud.mediaUrl || aud.directPath || null;
-      mediaMime = aud.mimetype || aud.mimeType || 'audio/ogg';
-      mediaFileName = aud.fileName || null;
-      mediaKind = 'audio';
+      } else if (aud) {
+        mediaUrl = aud.url || aud.mediaUrl || aud.directPath || null;
+        mediaMime = aud.mimetype || aud.mimeType || 'audio/ogg';
+        mediaFileName = aud.fileName || null;
+        mediaKind = 'audio';
+        
+        // Logs detalhados para debug de áudio
+        console.log('🎤 Áudio detectado:', {
+          url: mediaUrl,
+          mime: mediaMime,
+          fileName: mediaFileName,
+          fullAudioObject: JSON.stringify(aud, null, 2)
+        });
     } else if (doc) {
       mediaUrl = doc.url || doc.mediaUrl || doc.directPath || null;
       mediaMime = doc.mimetype || doc.mimeType || null;
@@ -344,12 +352,21 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
   console.log('✅ Mensagem W-API processada com sucesso');
 
   // 🤖 AGENTE DE VENDAS: Processar mensagem automaticamente se ativo
-  console.log('🔍 Verificando agente:', { 
-    agente_ativo: conta.agente_vendas_ativo, 
-    tem_texto: !!messageText, 
-    tipo: messageType,
-    tem_midia: !!mediaUrl 
-  });
+      console.log('🔍 Verificando agente:', { 
+        agente_ativo: conta.agente_vendas_ativo, 
+        tem_texto: !!messageText, 
+        tipo: messageType,
+        tem_midia: !!mediaUrl 
+      });
+      
+      console.log('📋 Dados para o agente:', {
+        conversaId: conversa.id,
+        contatoId: contato.id,
+        tipoMensagem: messageType,
+        urlMidia: mediaUrl || null,
+        temTexto: !!messageText,
+        textoLength: messageText?.length || 0
+      });
   
   // Ativar agente para mensagens de texto OU áudio (que será transcrito)
   if (conta.agente_vendas_ativo && (messageType === 'texto' || messageType === 'audio')) {

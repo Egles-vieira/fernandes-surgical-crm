@@ -21,25 +21,53 @@ interface ProdutoRelevante {
 // 1. Transcrição de Áudio (Whisper)
 async function transcreverAudio(audioUrl: string, openAiKey: string): Promise<string> {
   try {
-    console.log('🎧 Baixando áudio:', audioUrl);
-    const audioResponse = await fetch(audioUrl);
+    console.log('🎧 Baixando áudio de:', audioUrl);
+    
+    // Headers para W-API caso a URL precise de autenticação
+    const headers: HeadersInit = {};
+    if (audioUrl.includes('w-api.app')) {
+      const wapiToken = Deno.env.get('W_API_TOKEN');
+      if (wapiToken) {
+        headers['Authorization'] = `Bearer ${wapiToken}`;
+        console.log('🔑 Adicionando token W-API para download');
+      }
+    }
+    
+    const audioResponse = await fetch(audioUrl, { headers });
+    
+    if (!audioResponse.ok) {
+      console.error('❌ Erro ao baixar áudio:', audioResponse.status, audioResponse.statusText);
+      return "";
+    }
+    
     const audioBlob = await audioResponse.blob();
+    console.log('✅ Áudio baixado:', audioBlob.size, 'bytes');
 
     const formData = new FormData();
     formData.append('file', audioBlob, 'audio.ogg');
     formData.append('model', 'whisper-1');
     formData.append('language', 'pt');
+    formData.append('response_format', 'text');
 
+    console.log('🔄 Enviando para Whisper API...');
     const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${openAiKey}` },
       body: formData,
     });
 
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ Erro na Whisper API:', response.status, errorText);
+      return "";
+    }
+
     const data = await response.json();
-    return data.text || "";
+    const transcricao = data.text || "";
+    console.log('✅ Transcrição concluída:', transcricao.length, 'caracteres');
+    return transcricao;
   } catch (e) {
-    console.error('Erro na transcrição:', e);
+    console.error('❌ Erro na transcrição:', e);
     return "";
   }
 }
@@ -96,23 +124,45 @@ Deno.serve(async (req) => {
       }
     });
 
-    // ------------------------------------------------------------------------
-    // 0️⃣ TRATAMENTO DE ÁUDIO
-    // ------------------------------------------------------------------------
-    if (tipoMensagem === 'audio' || tipoMensagem === 'voice') {
-      if (urlMidia) {
+  // ------------------------------------------------------------------------
+  // 0️⃣ TRATAMENTO DE ÁUDIO
+  // ------------------------------------------------------------------------
+  if (tipoMensagem === 'audio' || tipoMensagem === 'voice') {
+    if (urlMidia) {
+      console.log('🎧 Tentando transcrever áudio:', urlMidia);
+      try {
         const transcricao = await transcreverAudio(urlMidia, openAiApiKey);
         if (transcricao) {
-          console.log(`🗣️ Áudio transcrito: "${transcricao}"`);
-          mensagemTexto = transcricao; // Substitui o texto vazio pelo transcrito
+          console.log(`🗣️ Áudio transcrito com sucesso: "${transcricao}"`);
+          mensagemTexto = transcricao;
         } else {
+          console.error('❌ Transcrição retornou vazio');
           return new Response(
-            JSON.stringify({ resposta: "Não consegui ouvir seu áudio direito. Pode escrever?" }),
+            JSON.stringify({ 
+              resposta: "Recebi seu áudio mas não consegui entender. Pode enviar uma mensagem de texto?" 
+            }),
             { headers: { ...corsHeaders, "Content-Type": "application/json" } }
           );
         }
+      } catch (erro) {
+        console.error('❌ Erro ao transcrever áudio:', erro);
+        return new Response(
+          JSON.stringify({ 
+            resposta: "Tive um problema ao processar seu áudio. Pode tentar novamente ou enviar uma mensagem de texto?" 
+          }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
       }
+    } else {
+      console.error('❌ URL de mídia não fornecida para áudio');
+      return new Response(
+        JSON.stringify({ 
+          resposta: "Recebi sua mensagem de voz mas não consegui acessá-la. Pode tentar novamente?" 
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
+  }
 
     // ------------------------------------------------------------------------
     // 1️⃣ CÉREBRO LÓGICO (Analista DeepSeek)
