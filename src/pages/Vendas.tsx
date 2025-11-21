@@ -799,34 +799,31 @@ export default function Vendas() {
   const handleCriarVendaTeste = async () => {
     setIsCreatingTest(true);
     try {
+      // Verificar se o usuário está autenticado
       const { data: { session } } = await supabase.auth.getSession();
       
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/criar-venda-teste`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${session?.access_token}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
+      if (!session?.access_token) {
+        throw new Error("Você precisa estar logado para criar uma venda de teste");
+      }
 
-      const result = await response.json();
+      // Usar o método invoke do Supabase ao invés de fetch direto
+      const { data, error } = await supabase.functions.invoke('criar-venda-teste', {
+        body: {},
+      });
 
-      if (!response.ok) throw new Error(result.error);
+      if (error) throw error;
 
       toast({
         title: "Venda de teste criada!",
-        description: `${result.total_itens} itens adicionados. Valor total: R$ ${result.valor_total.toFixed(2)}`,
+        description: `${data.total_itens} itens adicionados. Valor total: R$ ${data.valor_total.toFixed(2)}`,
       });
 
-      navigate(`/vendas/${result.venda_id}`);
+      navigate(`/vendas/${data.venda_id}`);
     } catch (error: any) {
       console.error('Erro:', error);
       toast({
         title: "Erro ao criar venda de teste",
-        description: error.message,
+        description: error.message || "Não foi possível criar a venda de teste",
         variant: "destructive",
       });
     } finally {
