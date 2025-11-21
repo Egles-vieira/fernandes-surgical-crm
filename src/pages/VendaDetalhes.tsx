@@ -174,6 +174,10 @@ export default function VendaDetalhes() {
   const valorTotal = useMemo(() => {
     return carrinho.reduce((sum, item) => sum + item.valor_total, 0);
   }, [carrinho]);
+
+  const valorTotalLiquido = useMemo(() => {
+    return carrinho.reduce((sum, item) => sum + (item.datasul_vl_merc_liq || 0), 0);
+  }, [carrinho]);
   const handleAdicionarProduto = (produto: Produto) => {
     // Validar se produto tem preço
     if (!produto.preco_venda || produto.preco_venda <= 0) {
@@ -587,10 +591,14 @@ export default function VendaDetalhes() {
               </Table>
             </div>
 
-            <div className="flex justify-end mt-4">
+            <div className="flex justify-end mt-4 gap-8">
               <div className="text-right">
                 <p className="text-sm text-muted-foreground">Valor Total</p>
                 <p className="text-2xl font-bold">R$ {valorTotal.toFixed(2)}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-sm text-muted-foreground">Valor Total Líquido</p>
+                <p className="text-2xl font-bold text-primary">R$ {valorTotalLiquido.toFixed(2)}</p>
               </div>
             </div>
           </div>
