@@ -81,7 +81,7 @@ export default function Header({ collapsed, onToggle }: HeaderProps) {
       case "/vendas":
         return {
           title: "Vendas",
-          description: "Gerencie suas oportunidades e pipeline de vendas",
+          description: "Gerencie suas propostas e pipeline de vendas",
           breadcrumb: "Cirúrgica Fernandes / Vendas",
         };
       case "/plataformas":
