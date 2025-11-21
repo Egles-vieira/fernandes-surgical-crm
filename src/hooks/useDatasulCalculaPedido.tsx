@@ -23,6 +23,9 @@ interface DatasulResponse {
   }>;
   datasul_response?: any;
   error?: string;
+  error_code?: string;
+  error_category?: string;
+  error_details?: any;
   details?: string;
 }
 
@@ -73,7 +76,12 @@ export function useDatasulCalculaPedido() {
       }
 
       if (!data.success) {
-        throw new Error(data.error || "Erro ao calcular pedido no Datasul");
+        // Criar objeto de erro com todos os dados estruturados
+        const errorObj: any = new Error(data.error || "Erro ao calcular pedido no Datasul");
+        errorObj.error_code = data.error_code;
+        errorObj.error_category = data.error_category;
+        errorObj.error_details = data.error_details;
+        throw errorObj;
       }
 
       console.log("Resposta Datasul:", data);
