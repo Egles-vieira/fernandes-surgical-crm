@@ -126,6 +126,48 @@ Deno.serve(async (req) => {
 
     console.log('💾 Transcrição salva no banco de dados');
 
+    // Chamar o agente de vendas para processar a transcrição
+    try {
+      console.log('🤖 Chamando agente de vendas para processar transcrição...');
+      
+      const { data: agenteData, error: agenteError } = await supabase.functions.invoke('agente-vendas-whatsapp', {
+        body: {
+          mensagemTexto: textoTranscrito,
+          conversaId: mensagem.conversa_id,
+          tipoMensagem: 'audio_transcrito'
+        }
+      });
+
+      if (agenteError) {
+        console.error('⚠️ Erro ao chamar agente de vendas:', agenteError);
+      } else {
+        console.log('✅ Agente de vendas processou a transcrição:', agenteData);
+        
+        // Enviar resposta do agente de volta para o WhatsApp
+        if (agenteData?.resposta) {
+          const { error: respostaError } = await supabase
+            .from('whatsapp_mensagens')
+            .insert({
+              conversa_id: mensagem.conversa_id,
+              conta_id: mensagem.conta_id,
+              tipo_mensagem: 'text',
+              conteudo_texto: agenteData.resposta,
+              direcao: 'saida',
+              status: 'pendente'
+            });
+
+          if (respostaError) {
+            console.error('❌ Erro ao salvar resposta do agente:', respostaError);
+          } else {
+            console.log('✅ Resposta do agente salva no banco de dados');
+          }
+        }
+      }
+    } catch (agenteError) {
+      console.error('⚠️ Erro não crítico ao processar com agente:', agenteError);
+      // Não falhar a transcrição se o agente falhar
+    }
+
     return new Response(
       JSON.stringify({ 
         success: true, 
