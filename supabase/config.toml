@@ -48,6 +48,9 @@ verify_jwt = true
 [functions.w-api-webhook]
 verify_jwt = false
 
+[functions.w-api-baixar-midia]
+verify_jwt = false
+
 [functions.calcular-pedido-datasul]
 verify_jwt = true
 
