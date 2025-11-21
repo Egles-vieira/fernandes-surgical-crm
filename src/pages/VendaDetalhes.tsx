@@ -21,6 +21,7 @@ import { useTiposPedido } from "@/hooks/useTiposPedido";
 import { useVendedores } from "@/hooks/useVendedores";
 import { useDatasulCalculaPedido } from "@/hooks/useDatasulCalculaPedido";
 import { useColumnVisibility } from "@/hooks/useColumnVisibility";
+import { useUserRole } from "@/hooks/useUserRole";
 import { ProdutoSearchDialog } from "@/components/ProdutoSearchDialog";
 import { ClienteSearchDialog } from "@/components/ClienteSearchDialog";
 import { VendasActionBar } from "@/components/VendasActionBar";
@@ -84,6 +85,10 @@ export default function VendaDetalhes() {
     showErrorDialog,
     closeErrorDialog
   } = useDatasulCalculaPedido();
+  
+  const { data: userRoleData } = useUserRole();
+  const isAdmin = userRoleData?.isAdmin || false;
+  
   const {
     toast
   } = useToast();
@@ -428,7 +433,7 @@ export default function VendaDetalhes() {
       </div>
 
       {/* Logs do Cálculo Datasul */}
-      {venda && (
+      {isAdmin && venda && (
         <Card className="p-6" id="integracao-log">
           <IntegracaoDatasulLog vendaId={venda.id} />
         </Card>
