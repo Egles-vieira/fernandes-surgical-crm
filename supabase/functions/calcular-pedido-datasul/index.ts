@@ -244,10 +244,24 @@ Deno.serve(async (req) => {
           }
 
           datasulData = JSON.parse(text);
+          
+          // Verificar se há erros de negócio no retorno do Datasul
+          const retornoArray = datasulData.retorno || datasulData.pedido;
+          if (Array.isArray(retornoArray) && retornoArray.length > 0) {
+            const primeiroItem = retornoArray[0];
+            
+            // Detectar erros de negócio
+            if (primeiroItem.errornumber && primeiroItem.errornumber !== 0) {
+              const mensagemErro = primeiroItem.errordescription || primeiroItem["msg-credito"] || "Erro desconhecido no Datasul";
+              console.error(`Erro de negócio Datasul: ${primeiroItem.errornumber} - ${mensagemErro}`);
+              
+              throw new Error(`Datasul: ${mensagemErro} (Código: ${primeiroItem.errornumber})`);
+            }
+          }
+          
           sucesso = true;
 
           // Atualizar itens
-          const retornoArray = datasulData.retorno || datasulData.pedido;
           if (Array.isArray(retornoArray)) {
             for (const itemDS of retornoArray) {
               const seq = itemDS["nr-sequencia"];
