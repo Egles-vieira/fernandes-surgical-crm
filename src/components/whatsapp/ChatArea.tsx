@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Send, Paperclip, Phone, Video, MoreVertical, MessageSquare, Clock, CheckCheck, ChevronRight, Mail, Building2, Briefcase, Tag, TrendingUp, ExternalLink, AlertCircle, RotateCw, Image as ImageIcon, FileText, Mic, ListIcon } from "lucide-react";
+import { Send, Paperclip, Phone, Video, MoreVertical, MessageSquare, Clock, CheckCheck, Check, ChevronRight, Mail, Building2, Briefcase, Tag, TrendingUp, ExternalLink, AlertCircle, RotateCw, Image as ImageIcon, FileText, Mic, ListIcon, X, Smile } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -735,7 +735,50 @@ const ChatArea = ({
                       )}
                       {(msg.tipo_midia === 'audio' || msg.tipo_mensagem === 'audio' || msg.mime_type?.startsWith('audio/')) && (
                         <div className="p-3">
-                          <audio src={msg.url_midia} controls className="w-full" />
+                          {msg.url_midia ? (
+                            <>
+                              <div className="flex items-center gap-2 mb-2">
+                                <Mic className="w-4 h-4 text-muted-foreground" />
+                                <span className="text-xs text-muted-foreground">
+                                  Mensagem de voz
+                                  {msg.duracao_midia_segundos && ` • ${Math.floor(msg.duracao_midia_segundos)}s`}
+                                </span>
+                              </div>
+                              <audio 
+                                src={msg.url_midia} 
+                                controls 
+                                className="w-full max-w-sm"
+                                onError={(e) => {
+                                  console.error('Erro ao carregar áudio:', msg.url_midia);
+                                  const fallback = e.currentTarget.parentElement?.querySelector('.audio-error-fallback');
+                                  if (fallback) {
+                                    fallback.classList.remove('hidden');
+                                    e.currentTarget.style.display = 'none';
+                                  }
+                                }}
+                              />
+                              {/* Fallback caso o áudio não carregue */}
+                              <div className="hidden audio-error-fallback mt-2">
+                                <p className="text-xs text-muted-foreground mb-2">
+                                  Não foi possível reproduzir o áudio
+                                </p>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => window.open(msg.url_midia, '_blank')}
+                                  className="text-xs h-8"
+                                >
+                                  <ExternalLink className="w-3 h-3 mr-1" />
+                                  Tentar abrir diretamente
+                                </Button>
+                              </div>
+                            </>
+                          ) : (
+                            <div className="flex items-center gap-2 text-muted-foreground">
+                              <Mic className="w-4 h-4" />
+                              <span className="text-xs">Áudio indisponível</span>
+                            </div>
+                          )}
                         </div>
                       )}
                       {(msg.tipo_midia === 'document' || msg.tipo_mensagem === 'documento' || (msg.mime_type && !msg.mime_type?.startsWith('image/') && !msg.mime_type?.startsWith('video/') && !msg.mime_type?.startsWith('audio/'))) && (
