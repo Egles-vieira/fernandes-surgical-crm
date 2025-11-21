@@ -581,8 +581,7 @@ export default function VendaDetalhes() {
               </div>
             </div>
 
-            <div className="border rounded-md overflow-hidden">
-              <ScrollArea className="h-[600px]">
+            <div className="border rounded-md overflow-auto h-[600px]">
                 <Table className={cn(
                   "w-full caption-bottom text-sm",
                   density === "compact" ? "text-xs" :
@@ -677,7 +676,6 @@ export default function VendaDetalhes() {
                       })}
                   </TableBody>
                 </Table>
-              </ScrollArea>
             </div>
 
             {/* Pagination for items */}
