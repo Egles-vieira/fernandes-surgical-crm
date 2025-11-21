@@ -775,35 +775,21 @@ const ChatArea = ({
                                 controls 
                                 className="w-full max-w-sm"
                                 onError={(e) => {
-                                  console.error('Erro ao carregar áudio:', msg.url_midia);
-                                  const fallback = e.currentTarget.parentElement?.querySelector('.audio-error-fallback');
-                                  if (fallback) {
-                                    fallback.classList.remove('hidden');
-                                    e.currentTarget.style.display = 'none';
-                                  }
+                                  console.error('Erro ao carregar áudio:', e.currentTarget.src);
                                 }}
                               />
-                              {/* Fallback caso o áudio não carregue */}
-                              <div className="hidden audio-error-fallback mt-2">
-                                <p className="text-xs text-muted-foreground mb-2">
-                                  Não foi possível reproduzir o áudio
-                                </p>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => window.open(msg.url_midia, '_blank')}
-                                  className="text-xs h-8"
-                                >
-                                  <ExternalLink className="w-3 h-3 mr-1" />
-                                  Tentar abrir diretamente
-                                </Button>
-                              </div>
+                              {msg.transcricao_audio && (
+                                <div className="mt-3 pt-3 border-t border-border/50">
+                                  <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                                    Transcrição:
+                                  </p>
+                                  <p className="text-sm italic">{msg.transcricao_audio}</p>
+                                </div>
+                              )}
                             </>
                           ) : (
-                            <div className="flex items-center gap-2 text-muted-foreground">
-                              <Mic className="w-4 h-4" />
-                              <span className="text-xs">Áudio indisponível</span>
-                            </div>
+                            <p className="text-xs text-muted-foreground">Carregando áudio...</p>
                           )}
                         </div>
                       )}

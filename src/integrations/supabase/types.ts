@@ -6352,6 +6352,8 @@ export type Database = {
           tipo_botao: string | null
           tipo_mensagem: string
           tipo_midia: string | null
+          transcricao_audio: string | null
+          transcricao_processada_em: string | null
           url_midia: string | null
           whatsapp_conta_id: string
           whatsapp_contato_id: string
@@ -6419,6 +6421,8 @@ export type Database = {
           tipo_botao?: string | null
           tipo_mensagem?: string
           tipo_midia?: string | null
+          transcricao_audio?: string | null
+          transcricao_processada_em?: string | null
           url_midia?: string | null
           whatsapp_conta_id: string
           whatsapp_contato_id: string
@@ -6486,6 +6490,8 @@ export type Database = {
           tipo_botao?: string | null
           tipo_mensagem?: string
           tipo_midia?: string | null
+          transcricao_audio?: string | null
+          transcricao_processada_em?: string | null
           url_midia?: string | null
           whatsapp_conta_id?: string
           whatsapp_contato_id?: string
