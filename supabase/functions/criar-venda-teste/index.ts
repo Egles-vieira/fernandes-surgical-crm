@@ -65,7 +65,7 @@ Deno.serve(async (req) => {
     // 2. Buscar 120 produtos aleatórios
     const { data: produtos, error: produtosError } = await supabaseClient
       .from('produtos')
-      .select('id, it_codigo, descricao, preco_venda')
+      .select('id, referencia_interna, nome, preco_venda')
       .limit(120)
 
     if (produtosError) {
@@ -90,8 +90,8 @@ Deno.serve(async (req) => {
       return {
         venda_id: venda.id,
         produto_id: produto.id,
-        codigo_produto: produto.it_codigo,
-        descricao: produto.descricao,
+        codigo_produto: produto.referencia_interna,
+        descricao: produto.nome,
         quantidade,
         preco_unitario,
         percentual_desconto,
