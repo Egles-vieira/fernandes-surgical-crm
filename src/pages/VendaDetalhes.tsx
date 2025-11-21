@@ -273,7 +273,9 @@ export default function VendaDetalhes() {
         data_faturamento_programado: dataFaturamentoProgramado || null
       } as any);
 
-      // Adicionar novos itens
+      // Adicionar novos itens com sequencia_item
+      let sequenciaAtual = (venda.vendas_itens?.length || 0) + 1;
+      
       for (const item of carrinho) {
         const itemExistente = venda.vendas_itens?.find(i => i.produto_id === item.produto.id);
         if (!itemExistente) {
@@ -282,8 +284,10 @@ export default function VendaDetalhes() {
             produto_id: item.produto.id,
             quantidade: item.quantidade,
             preco_unitario: item.produto.preco_venda,
+            preco_tabela: item.produto.preco_venda, // Usar o mesmo preço como tabela
             desconto: item.desconto,
-            valor_total: item.valor_total
+            valor_total: item.valor_total,
+            sequencia_item: sequenciaAtual++
           });
         }
       }
@@ -299,12 +303,66 @@ export default function VendaDetalhes() {
     }
   };
   const handleCalcularDatasul = async () => {
-    if (!venda) return;
+    if (!venda || !clienteSelecionado || carrinho.length === 0) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Selecione um cliente e adicione pelo menos um produto antes de calcular",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
+      // Salvar automaticamente antes de calcular
+      toast({
+        title: "Salvando proposta...",
+        description: "Salvando alterações antes de calcular no Datasul"
+      });
+
+      // Atualizar venda
+      await updateVenda.mutateAsync({
+        id: venda.id,
+        cliente_id: clienteSelecionado.id,
+        numero_venda: numeroVenda,
+        tipo_frete_id: tipoFreteId || null,
+        tipo_pedido_id: tipoPedidoId || null,
+        condicao_pagamento_id: condicaoPagamentoId || null,
+        observacoes,
+        valor_total: valorTotal,
+        valor_estimado: valorEstimado,
+        probabilidade,
+        origem_lead: origemLead,
+        responsavel_id: responsavelId || null,
+        validade_proposta: validadeProposta || null,
+        faturamento_parcial: faturamentoParcial ? "YES" : "NO",
+        data_faturamento_programado: dataFaturamentoProgramado || null
+      } as any);
+
+      // Adicionar novos itens com sequencia_item
+      let sequenciaAtual = (venda.vendas_itens?.length || 0) + 1;
+      
+      for (const item of carrinho) {
+        const itemExistente = venda.vendas_itens?.find(i => i.produto_id === item.produto.id);
+        if (!itemExistente) {
+          await addItem.mutateAsync({
+            venda_id: venda.id,
+            produto_id: item.produto.id,
+            quantidade: item.quantidade,
+            preco_unitario: item.produto.preco_venda,
+            preco_tabela: item.produto.preco_venda, // Usar o mesmo preço como tabela
+            desconto: item.desconto,
+            valor_total: item.valor_total,
+            sequencia_item: sequenciaAtual++
+          });
+        }
+      }
+
+      // Agora calcular no Datasul
       await calcularPedido(venda.id);
+      
       toast({
         title: "Cálculo iniciado",
-        description: "O cálculo do pedido no Datasul foi iniciado. Você pode acompanhar o progresso nos logs."
+        description: "Proposta salva e cálculo no Datasul iniciado com sucesso!"
       });
     } catch (error: any) {
       toast({
