@@ -149,11 +149,14 @@ Deno.serve(async (req) => {
             .from('whatsapp_mensagens')
             .insert({
               conversa_id: mensagem.conversa_id,
-              conta_id: mensagem.conta_id,
-              tipo_mensagem: 'text',
-              conteudo_texto: agenteData.resposta,
-              direcao: 'saida',
-              status: 'pendente'
+              whatsapp_conta_id: mensagem.whatsapp_conta_id,
+              whatsapp_contato_id: mensagem.whatsapp_contato_id,
+              tipo_mensagem: 'texto',
+              corpo: agenteData.resposta,
+              direcao: 'enviada',
+              status: 'pendente',
+              enviada_por_bot: true,
+              metadata: { gerada_por_agente: true }
             });
 
           if (respostaError) {

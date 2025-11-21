@@ -90,9 +90,14 @@ async function transcreverAudio(audioUrl: string, openAiKey: string, supabase: a
       return "";
     }
 
-    const data = await response.json();
-    const transcricao = data.text || "";
-    console.log('✅ Transcrição concluída:', transcricao.length, 'caracteres');
+    const transcricao = await response.text();
+    
+    if (!transcricao) {
+      console.error('❌ Transcrição retornou vazio');
+      return "";
+    }
+    
+    console.log('✅ Transcrição concluída:', transcricao.substring(0, 100), '...');
     return transcricao;
   } catch (e) {
     console.error('❌ Erro na transcrição:', e);
