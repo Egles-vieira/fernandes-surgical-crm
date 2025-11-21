@@ -193,6 +193,22 @@ Deno.serve(async (req) => {
         })
         .eq('id', mensagemId);
 
+      // 6. Chamar transcrição de áudio automaticamente
+      console.log('🎤 Iniciando transcrição do áudio...');
+      try {
+        const transcricaoResponse = await supabase.functions.invoke('transcrever-audio-whatsapp', {
+          body: { mensagemId }
+        });
+        
+        if (transcricaoResponse.error) {
+          console.error('⚠️ Erro na transcrição (não crítico):', transcricaoResponse.error);
+        } else {
+          console.log('✅ Transcrição iniciada com sucesso');
+        }
+      } catch (transcError) {
+        console.error('⚠️ Falha ao iniciar transcrição (não crítico):', transcError);
+      }
+
       return new Response(
         JSON.stringify({
           success: true,
