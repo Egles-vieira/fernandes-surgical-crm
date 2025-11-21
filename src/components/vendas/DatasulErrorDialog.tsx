@@ -41,7 +41,7 @@ export function DatasulErrorDialog({
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="max-w-2xl bg-background border-primary/20">
+      <AlertDialogContent className="max-w-2xl bg-white dark:bg-white border-primary/20">
         <AlertDialogHeader>
           <div className="space-y-3">
             <div className="flex items-center gap-3">
