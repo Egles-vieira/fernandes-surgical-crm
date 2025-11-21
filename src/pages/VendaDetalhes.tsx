@@ -26,6 +26,7 @@ import { ClienteSearchDialog } from "@/components/ClienteSearchDialog";
 import { VendasActionBar } from "@/components/VendasActionBar";
 import { AprovarVendaDialog } from "@/components/vendas/AprovarVendaDialog";
 import { IntegracaoDatasulLog } from "@/components/IntegracaoDatasulLog";
+import { DatasulErrorDialog } from "@/components/vendas/DatasulErrorDialog";
 import { Tables } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -78,7 +79,10 @@ export default function VendaDetalhes() {
   } = useVendedores();
   const {
     calcularPedido,
-    isCalculating
+    isCalculating,
+    errorData,
+    showErrorDialog,
+    closeErrorDialog
   } = useDatasulCalculaPedido();
   const {
     toast
@@ -425,7 +429,7 @@ export default function VendaDetalhes() {
 
       {/* Logs do Cálculo Datasul */}
       {venda && (
-        <Card className="p-6">
+        <Card className="p-6" id="integracao-log">
           <IntegracaoDatasulLog vendaId={venda.id} />
         </Card>
       )}
@@ -639,5 +643,14 @@ export default function VendaDetalhes() {
       await aprovarVenda.mutateAsync(venda.id);
       setShowAprovarDialog(false);
     }} vendaNumero={numeroVenda} vendaValor={valorTotal} />}
+
+      <DatasulErrorDialog
+        open={showErrorDialog}
+        onOpenChange={closeErrorDialog}
+        error={errorData}
+        onViewLog={() => {
+          document.getElementById('integracao-log')?.scrollIntoView({ behavior: 'smooth' });
+        }}
+      />
     </div>;
 }

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
+import { parseError, ParsedError } from "@/lib/datasul-errors";
 
 interface DatasulResponse {
   success: boolean;
@@ -34,6 +35,8 @@ interface ProgressoCalculo {
 export function useDatasulCalculaPedido() {
   const [isCalculating, setIsCalculating] = useState(false);
   const [progresso, setProgresso] = useState<ProgressoCalculo | null>(null);
+  const [errorData, setErrorData] = useState<ParsedError | null>(null);
+  const [showErrorDialog, setShowErrorDialog] = useState(false);
   const queryClient = useQueryClient();
 
   const calcularPedido = async (vendaId: string) => {
@@ -114,8 +117,14 @@ export function useDatasulCalculaPedido() {
       // Fechar toast de loading
       toast.dismiss(toastId);
       
+      // Processar e categorizar o erro
+      const parsedError = parseError(error);
+      setErrorData(parsedError);
+      setShowErrorDialog(true);
+      
+      // Também mostrar toast para erros simples
       toast.error("Erro ao calcular pedido", {
-        description: error instanceof Error ? error.message : "Erro desconhecido",
+        description: parsedError.mensagem.substring(0, 100),
       });
 
       return null;
@@ -129,5 +138,8 @@ export function useDatasulCalculaPedido() {
     calcularPedido,
     isCalculating,
     progresso,
+    errorData,
+    showErrorDialog,
+    closeErrorDialog: () => setShowErrorDialog(false),
   };
 }
