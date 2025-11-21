@@ -35,7 +35,13 @@ export function DatasulErrorDialog({
 }: DatasulErrorDialogProps) {
   const [showDetails, setShowDetails] = useState(false);
 
-  if (!error) return null;
+  // Debug logs
+  console.log("🟢 DatasulErrorDialog renderizado:", { open, hasError: !!error });
+
+  if (!error) {
+    console.log("🟡 Modal não tem erro para exibir");
+    return null;
+  }
 
   const categoryIcon = getCategoryIcon(error.categoria);
   const categoryLabel = getCategoryLabel(error.categoria);
