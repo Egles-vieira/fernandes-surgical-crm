@@ -12,34 +12,39 @@ Deno.serve(async (req) => {
       throw new Error('Sem autorização')
     }
 
+    // Extrair o token JWT
+    const token = authHeader.replace('Bearer ', '')
+    
+    // Decodificar o token JWT para obter o user_id
+    const parts = token.split('.')
+    if (parts.length !== 3) {
+      throw new Error('Token JWT inválido')
+    }
+    
+    const payload = JSON.parse(atob(parts[1]))
+    const userId = payload.sub
+    
+    if (!userId) {
+      throw new Error('User ID não encontrado no token')
+    }
+
+    console.log('Usuário autenticado:', userId)
+
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
       { 
         global: { 
           headers: { Authorization: authHeader } 
-        },
-        auth: {
-          persistSession: false
         }
       }
     )
-
-    // Obter o usuário do token JWT
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser()
-    
-    if (userError || !user) {
-      console.error('Erro ao obter usuário:', userError)
-      throw new Error('Usuário não autenticado')
-    }
-
-    console.log('Usuário autenticado:', user.id)
 
     // 1. Criar a venda
     const { data: venda, error: vendaError } = await supabaseClient
       .from('vendas')
       .insert({
-        user_id: user.id,
+        user_id: userId,
         status: 'rascunho',
         etapa_pipeline: 'qualificacao',
         observacoes: '🧪 VENDA DE TESTE - 120 itens aleatórios para teste de cálculo',
