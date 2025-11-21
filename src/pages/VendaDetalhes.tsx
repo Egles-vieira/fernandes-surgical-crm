@@ -588,8 +588,8 @@ export default function VendaDetalhes() {
                   density === "compact" ? "text-xs" :
                   density === "comfortable" ? "text-base" : ""
                 )}>
-                  <TableHeader className="sticky top-0 z-10 bg-background border-b">
-                    <TableRow>
+                  <TableHeader className="sticky top-0 z-20 bg-background border-b shadow-sm">
+                    <TableRow className="hover:bg-transparent">
                       <TableHead className={`w-12 ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}>#</TableHead>
                       <TableHead className={density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}>Produto</TableHead>
                       {visibleColumns.precoTabela && <TableHead className={density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}>Preço Tabela</TableHead>}
