@@ -99,9 +99,9 @@ export function useDatasulCalculaPedido() {
       // Fechar toast de loading e mostrar sucesso
       toast.dismiss(toastId);
       
-      const tempoSegundos = ((data.resumo?.tempo_resposta_ms || 0) / 1000).toFixed(1);
-      const totalLotes = data.resumo?.total_lotes || 1;
-      const lotesBackground = data.resumo?.lotes_em_background || 0;
+      const tempoSegundos = ((data.resumo?.tempo_resposta_ms ?? 0) / 1000).toFixed(1);
+      const totalLotes = data.resumo?.total_lotes ?? 1;
+      const lotesBackground = data.resumo?.lotes_em_background ?? 0;
       
       if (lotesBackground > 0) {
         toast.success("Cálculo iniciado com sucesso", {
