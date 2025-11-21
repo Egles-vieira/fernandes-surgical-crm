@@ -41,23 +41,23 @@ export function DatasulErrorDialog({
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="max-w-2xl">
+      <AlertDialogContent className="max-w-2xl bg-background border-primary/20">
         <AlertDialogHeader>
           <div className="space-y-3">
             <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-destructive/10">
-                <AlertCircle className="h-6 w-6 text-destructive" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 border border-primary/20">
+                <AlertCircle className="h-6 w-6 text-primary" />
               </div>
               <div className="flex-1">
-                <AlertDialogTitle className="text-xl">
+                <AlertDialogTitle className="text-xl text-foreground">
                   {error.titulo}
                 </AlertDialogTitle>
                 <div className="flex items-center gap-2 mt-1">
-                  <Badge variant="outline" className={categoryColor}>
+                  <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30">
                     {categoryLabel}
                   </Badge>
                   {error.codigoErro && (
-                    <Badge variant="outline" className="bg-muted">
+                    <Badge variant="outline" className="bg-muted/50 border-muted-foreground/20">
                       Código: {error.codigoErro}
                     </Badge>
                   )}
@@ -78,14 +78,14 @@ export function DatasulErrorDialog({
 
             {/* Sugestões de Solução */}
             {error.sugestoes && error.sugestoes.length > 0 && (
-              <div className="space-y-3 rounded-lg bg-muted/50 p-4">
+              <div className="space-y-3 rounded-lg bg-primary/5 border border-primary/20 p-4">
                 <h4 className="text-sm font-semibold text-foreground">
                   Como resolver:
                 </h4>
                 <ul className="space-y-2 text-sm text-muted-foreground">
                   {error.sugestoes.map((sugestao, index) => (
                     <li key={index} className="flex items-start gap-2">
-                      <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">
+                      <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-medium">
                         {index + 1}
                       </span>
                       <span className="flex-1 pt-0.5">{sugestao}</span>
@@ -104,7 +104,7 @@ export function DatasulErrorDialog({
                     variant="ghost"
                     size="sm"
                     onClick={() => setShowDetails(!showDetails)}
-                    className="w-full justify-between hover:bg-muted"
+                    className="w-full justify-between hover:bg-primary/5"
                   >
                     <span className="text-sm font-medium">
                       Detalhes Técnicos
@@ -117,7 +117,7 @@ export function DatasulErrorDialog({
                   </Button>
 
                   {showDetails && (
-                    <div className="rounded-lg border bg-muted/30 p-4">
+                    <div className="rounded-lg border border-primary/10 bg-primary/5 p-4">
                       <pre className="text-xs text-muted-foreground overflow-x-auto whitespace-pre-wrap break-words font-mono">
                         {typeof error.detalhes === 'string'
                           ? error.detalhes
