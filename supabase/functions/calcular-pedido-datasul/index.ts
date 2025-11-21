@@ -255,7 +255,7 @@ Deno.serve(async (req) => {
               const mensagemErro = primeiroItem.errordescription || primeiroItem["msg-credito"] || "Erro desconhecido no Datasul";
               console.error(`Erro de negócio Datasul: ${primeiroItem.errornumber} - ${mensagemErro}`);
               
-              // Retornar erro estruturado
+              // Retornar erro estruturado com status 200 para que o frontend receba os dados
               return new Response(
                 JSON.stringify({
                   success: false,
@@ -265,7 +265,7 @@ Deno.serve(async (req) => {
                   error_details: primeiroItem,
                 }),
                 { 
-                  status: 400,
+                  status: 200,
                   headers: { ...corsHeaders, "Content-Type": "application/json" } 
                 }
               );
@@ -352,7 +352,7 @@ Deno.serve(async (req) => {
         tempo_resposta_ms: Date.now() - startTime,
       }),
       {
-        status: 500,
+        status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       }
     );
