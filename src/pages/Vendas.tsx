@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import type { Database } from "@/integrations/supabase/types";
-import { Search, Plus, Eye, Trash2, ShoppingCart, Save, Users, Edit, CheckCircle, Settings, Loader2, Calculator, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, Plus, Eye, Trash2, ShoppingCart, Save, Users, Edit, CheckCircle, Settings, Loader2, Calculator, ChevronLeft, ChevronRight, TestTube } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -70,6 +70,7 @@ export default function Vendas() {
   const { isAdmin } = useRoles();
   const { empresa } = useEmpresa();
   const { toast } = useToast();
+  const [isCreatingTest, setIsCreatingTest] = useState(false);
   const { visibleColumns, toggleColumn, resetColumns } = useColumnVisibility("vendas_itens_columns", {
     precoTabela: true,
     precoUnit: true,
@@ -792,6 +793,44 @@ export default function Vendas() {
           variant: "destructive",
         });
       }
+    }
+  };
+
+  const handleCriarVendaTeste = async () => {
+    setIsCreatingTest(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/criar-venda-teste`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session?.access_token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) throw new Error(result.error);
+
+      toast({
+        title: "Venda de teste criada!",
+        description: `${result.total_itens} itens adicionados. Valor total: R$ ${result.valor_total.toFixed(2)}`,
+      });
+
+      navigate(`/vendas/${result.venda_id}`);
+    } catch (error: any) {
+      console.error('Erro:', error);
+      toast({
+        title: "Erro ao criar venda de teste",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsCreatingTest(false);
     }
   };
 
@@ -1564,6 +1603,8 @@ export default function Vendas() {
             ...newFilters,
           }))
         }
+        onCriarVendaTeste={handleCriarVendaTeste}
+        isCreatingTest={isCreatingTest}
       />
 
       <div className="pt-6">
