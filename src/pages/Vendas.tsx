@@ -1569,7 +1569,35 @@ export default function Vendas() {
             onEditarVenda={(venda) => {
               navigate(`/vendas/${venda.id}`);
             }}
-            onNovaVenda={() => setView("nova")}
+            onNovaVenda={async () => {
+              try {
+                const numeroVenda = `V${Date.now().toString().slice(-8)}`;
+                
+                const novaVenda = await createVenda.mutateAsync({
+                  numero_venda: numeroVenda,
+                  cliente_nome: "Cliente não definido",
+                  cliente_cnpj: "",
+                  status: "rascunho",
+                  valor_total: 0,
+                  etapa_pipeline: "prospeccao",
+                  probabilidade: 50,
+                });
+
+                toast({
+                  title: "Proposta criada!",
+                  description: `Proposta ${numeroVenda} criada com sucesso.`,
+                  variant: "success",
+                });
+
+                navigate(`/vendas/${novaVenda.id}`);
+              } catch (error) {
+                toast({
+                  title: "Erro ao criar proposta",
+                  description: "Não foi possível criar a proposta. Tente novamente.",
+                  variant: "destructive",
+                });
+              }
+            }}
             onDuplicarVenda={handleDuplicarVenda}
           />
         ) : (
