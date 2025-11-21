@@ -175,6 +175,16 @@ export default function VendaDetalhes() {
     return carrinho.reduce((sum, item) => sum + item.valor_total, 0);
   }, [carrinho]);
   const handleAdicionarProduto = (produto: Produto) => {
+    // Validar se produto tem preço
+    if (!produto.preco_venda || produto.preco_venda <= 0) {
+      toast({
+        title: "Produto sem preço",
+        description: `O produto ${produto.nome} não possui preço de tabela definido. Configure o preço antes de adicionar.`,
+        variant: "destructive"
+      });
+      return;
+    }
+
     const itemExistente = carrinho.find(item => item.produto.id === produto.id);
     if (itemExistente) {
       const novoCarrinho = carrinho.map(item => item.produto.id === produto.id ? {
