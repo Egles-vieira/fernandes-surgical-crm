@@ -90,14 +90,11 @@ Deno.serve(async (req) => {
       return {
         venda_id: venda.id,
         produto_id: produto.id,
-        codigo_produto: produto.referencia_interna,
-        descricao: produto.nome,
         quantidade,
         preco_unitario,
-        percentual_desconto,
-        valor_desconto,
+        desconto: valor_desconto,
         valor_total,
-        sequencia: index + 1
+        sequencia_item: index + 1
       }
     })
 
