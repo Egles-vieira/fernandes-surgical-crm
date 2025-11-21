@@ -19,21 +19,49 @@ interface ProdutoRelevante {
 // --- FUNÇÕES AUXILIARES ---
 
 // 1. Transcrição de Áudio (Whisper)
-async function transcreverAudio(audioUrl: string, openAiKey: string): Promise<string> {
+async function transcreverAudio(audioUrl: string, openAiKey: string, supabase: any, conversaId: string): Promise<string> {
   try {
-    console.log('🎧 Baixando áudio de:', audioUrl);
+    console.log('🎧 Processando áudio:', audioUrl);
     
-    // Headers para W-API caso a URL precise de autenticação
-    const headers: HeadersInit = {};
-    if (audioUrl.includes('w-api.app')) {
-      const wapiToken = Deno.env.get('W_API_TOKEN');
-      if (wapiToken) {
-        headers['Authorization'] = `Bearer ${wapiToken}`;
-        console.log('🔑 Adicionando token W-API para download');
+    let urlParaBaixar = audioUrl;
+
+    // Se for URL criptografada do WhatsApp, descriptografar primeiro
+    if (audioUrl.includes('mmg.whatsapp.net') && audioUrl.includes('.enc')) {
+      console.log('🔓 Detectado áudio criptografado, buscando mensagem...');
+      
+      // Buscar mensagem pelo URL para descriptografar
+      const { data: mensagem } = await supabase
+        .from('whatsapp_mensagens')
+        .select('id')
+        .eq('conversa_id', conversaId)
+        .eq('url_midia', audioUrl)
+        .order('criado_em', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (mensagem) {
+        console.log('📞 Chamando função de descriptografia...');
+        
+        // Chamar edge function para descriptografar
+        const { data: descriptData, error: descriptError } = await supabase.functions.invoke(
+          'w-api-baixar-midia',
+          { body: { mensagemId: mensagem.id } }
+        );
+
+        if (descriptError || !descriptData?.url) {
+          console.error('❌ Erro ao descriptografar:', descriptError);
+          return "";
+        }
+
+        urlParaBaixar = descriptData.url;
+        console.log('✅ Áudio descriptografado, nova URL:', urlParaBaixar);
+      } else {
+        console.warn('⚠️ Mensagem não encontrada para descriptografia');
       }
     }
     
-    const audioResponse = await fetch(audioUrl, { headers });
+    console.log('🎧 Baixando áudio de:', urlParaBaixar);
+    const audioResponse = await fetch(urlParaBaixar);
     
     if (!audioResponse.ok) {
       console.error('❌ Erro ao baixar áudio:', audioResponse.status, audioResponse.statusText);
@@ -131,7 +159,7 @@ Deno.serve(async (req) => {
     if (urlMidia) {
       console.log('🎧 Tentando transcrever áudio:', urlMidia);
       try {
-        const transcricao = await transcreverAudio(urlMidia, openAiApiKey);
+        const transcricao = await transcreverAudio(urlMidia, openAiApiKey, supabase, conversaId);
         if (transcricao) {
           console.log(`🗣️ Áudio transcrito com sucesso: "${transcricao}"`);
           mensagemTexto = transcricao;
