@@ -74,6 +74,9 @@ Deno.serve(async (req) => {
   }
 
   const startTime = Date.now();
+  let tempoPreparacao = 0;
+  let tempoApi = 0;
+  let tempoTratamento = 0;
 
   try {
     const { venda_id } = await req.json();
@@ -97,6 +100,9 @@ Deno.serve(async (req) => {
     }
 
     console.log("Iniciando cálculo para venda:", venda_id);
+    
+    // ============ INÍCIO: PREPARAÇÃO DOS DADOS ============
+    const inicioPreparacao = Date.now();
 
     // Buscar todos os dados necessários
     const { data: venda } = await supabase.from("vendas").select("*").eq("id", venda_id).single();
@@ -187,6 +193,10 @@ Deno.serve(async (req) => {
     };
 
     const payloadOrdenado = serializeOrderPayload(payload);
+    
+    tempoPreparacao = Date.now() - inicioPreparacao;
+    console.log(`✅ Preparação dos dados concluída em ${tempoPreparacao}ms`);
+    // ============ FIM: PREPARAÇÃO DOS DADOS ============
 
     // Tentar até 3 vezes
     let sucesso = false;
@@ -200,6 +210,7 @@ Deno.serve(async (req) => {
           await new Promise(r => setTimeout(r, 2000 * tentativa));
         }
 
+        // ============ INÍCIO: CHAMADA API ============
         const fetchStart = Date.now();
         const response = await fetch(DATASUL_PROXY_URL, {
           method: "POST",
@@ -211,10 +222,13 @@ Deno.serve(async (req) => {
           signal: AbortSignal.timeout(120000), // 2 minutos de timeout para processar tudo
         });
 
-        tempoResposta = Date.now() - fetchStart;
+        tempoApi = Date.now() - fetchStart;
+        console.log(`✅ API Datasul respondeu em ${tempoApi}ms`);
+        // ============ FIM: CHAMADA API ============
+        
         const text = await response.text();
 
-        // Salvar log
+        // Salvar log (sem as métricas ainda, serão atualizadas no final)
         await supabase.from("integracoes_totvs_calcula_pedido").insert({
           venda_id,
           numero_venda: venda.numero_venda,
@@ -222,7 +236,9 @@ Deno.serve(async (req) => {
           response_payload: response.ok ? text : null,
           status: response.ok ? "sucesso" : "erro",
           error_message: response.ok ? null : `HTTP ${response.status}: ${text.substring(0, 500)}`,
-          tempo_resposta_ms: tempoResposta,
+          tempo_resposta_ms: Date.now() - startTime,
+          tempo_preparacao_dados_ms: tempoPreparacao,
+          tempo_api_ms: tempoApi,
         });
 
         if (!response.ok) {
@@ -260,6 +276,9 @@ Deno.serve(async (req) => {
         
         sucesso = true;
 
+        // ============ INÍCIO: TRATAMENTO DOS DADOS ============
+        const inicioTratamento = Date.now();
+        
         // Atualizar itens
         if (Array.isArray(retornoArray)) {
           console.log(`Atualizando ${retornoArray.length} itens no banco de dados`);
@@ -277,6 +296,10 @@ Deno.serve(async (req) => {
             }
           }
         }
+        
+        tempoTratamento = Date.now() - inicioTratamento;
+        console.log(`✅ Tratamento dos dados concluído em ${tempoTratamento}ms`);
+        // ============ FIM: TRATAMENTO DOS DADOS ============
       } catch (error) {
         console.error(`Tentativa ${tentativa + 1} erro:`, error);
         if (tentativa === 2) {
@@ -293,6 +316,19 @@ Deno.serve(async (req) => {
     }).eq("id", venda_id);
 
     const tempoTotal = Date.now() - startTime;
+    
+    // Atualizar log com tempo de tratamento
+    await supabase
+      .from("integracoes_totvs_calcula_pedido")
+      .update({ 
+        tempo_tratamento_dados_ms: tempoTratamento,
+        tempo_resposta_ms: tempoTotal,
+      })
+      .eq("venda_id", venda_id)
+      .order("created_at", { ascending: false })
+      .limit(1);
+    
+    console.log(`🎉 Processo completo em ${tempoTotal}ms (Prep: ${tempoPreparacao}ms | API: ${tempoApi}ms | Trat: ${tempoTratamento}ms)`);
 
     return new Response(
       JSON.stringify({
@@ -301,7 +337,10 @@ Deno.serve(async (req) => {
         numero_venda: venda.numero_venda,
         resumo: {
           total_itens: itensValidados.length,
-          tempo_resposta_ms: tempoResposta,
+          tempo_resposta_ms: tempoTotal,
+          tempo_preparacao_dados_ms: tempoPreparacao,
+          tempo_api_ms: tempoApi,
+          tempo_tratamento_dados_ms: tempoTratamento,
         },
         processamento_completo: true,
         datasul_response: datasulData,

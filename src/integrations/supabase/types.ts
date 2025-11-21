@@ -3387,7 +3387,10 @@ export type Database = {
           request_payload: string
           response_payload: string | null
           status: string
+          tempo_api_ms: number | null
+          tempo_preparacao_dados_ms: number | null
           tempo_resposta_ms: number | null
+          tempo_tratamento_dados_ms: number | null
           venda_id: string | null
         }
         Insert: {
@@ -3398,7 +3401,10 @@ export type Database = {
           request_payload: string
           response_payload?: string | null
           status: string
+          tempo_api_ms?: number | null
+          tempo_preparacao_dados_ms?: number | null
           tempo_resposta_ms?: number | null
+          tempo_tratamento_dados_ms?: number | null
           venda_id?: string | null
         }
         Update: {
@@ -3409,7 +3415,10 @@ export type Database = {
           request_payload?: string
           response_payload?: string | null
           status?: string
+          tempo_api_ms?: number | null
+          tempo_preparacao_dados_ms?: number | null
           tempo_resposta_ms?: number | null
+          tempo_tratamento_dados_ms?: number | null
           venda_id?: string | null
         }
         Relationships: [
