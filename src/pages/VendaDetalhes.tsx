@@ -406,16 +406,12 @@ export default function VendaDetalhes() {
         </div>
       </div>
 
-      {venda.status === "aprovada" && <div className="flex justify-end">
-          <Button variant="outline" size="sm" onClick={() => setShowLogsDialog(!showLogsDialog)}>
-            {showLogsDialog ? "Ocultar" : "Ver"} Logs Datasul
-          </Button>
-        </div>}
-
-      {/* Logs */}
-      {showLogsDialog && venda && <Card className="p-6">
+      {/* Logs do Cálculo Datasul */}
+      {venda && (
+        <Card className="p-6">
           <IntegracaoDatasulLog vendaId={venda.id} />
-        </Card>}
+        </Card>
+      )}
 
       <Card className="p-6 mx-[10px]">
         <div className="space-y-6">
