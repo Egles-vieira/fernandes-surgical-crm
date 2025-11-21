@@ -52,19 +52,26 @@ Deno.serve(async (req) => {
         throw new Error(`Falha ao baixar mídia: ${mediaResponse.status}`);
       }
 
-      // Obter o arquivo
-      const mediaBlob = await mediaResponse.blob();
-      const fileSize = mediaBlob.size;
+      // Obter o arquivo como ArrayBuffer
+      const mediaArrayBuffer = await mediaResponse.arrayBuffer();
+      const fileSize = mediaArrayBuffer.byteLength;
       console.log('✅ Arquivo baixado:', fileSize, 'bytes');
 
-      // 3. Fazer upload para Supabase Storage
-      const fileExtension = mensagem.mime_type?.split('/')[1] || 'ogg';
+      // Determinar mime type e extensão
+      const mimeType = mensagem.mime_type || 'audio/ogg; codecs=opus';
+      const fileExtension = mimeType.includes('ogg') ? 'ogg' : mimeType.split('/')[1]?.split(';')[0] || 'ogg';
+      console.log('📝 Mime type:', mimeType, '| Extensão:', fileExtension);
+
+      // 3. Criar Blob com mime type correto
+      const correctBlob = new Blob([mediaArrayBuffer], { type: mimeType });
+      
+      // 4. Fazer upload para Supabase Storage
       const fileName = `whatsapp-audio/${mensagemId}.${fileExtension}`;
 
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('whatsapp-midias')
-        .upload(fileName, mediaBlob, {
-          contentType: mensagem.mime_type || 'audio/ogg',
+        .upload(fileName, correctBlob, {
+          contentType: mimeType,
           upsert: true
         });
 
