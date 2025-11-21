@@ -102,6 +102,8 @@ Deno.serve(async (req) => {
     const { data: venda } = await supabase.from("vendas").select("*").eq("id", venda_id).single();
     if (!venda) throw new Error("Venda não encontrada");
 
+    console.log("Venda encontrada:", { id: venda.id, cliente_id: venda.cliente_id, vendedor_id: venda.vendedor_id });
+
     const { data: cliente } = await supabase.from("clientes").select("cod_emitente").eq("id", venda.cliente_id).single();
     const { data: empresa } = await supabase.from("empresas").select("*").limit(1).single();
     const { data: tipoPedido } = await supabase.from("tipos_pedido").select("nome").eq("id", venda.tipo_pedido_id).single();
@@ -109,16 +111,45 @@ Deno.serve(async (req) => {
     const { data: perfil } = await supabase.from("perfis_usuario").select("codigo_vendedor").eq("id", venda.vendedor_id).single();
     const { data: itens } = await supabase.from("vendas_itens").select("*, produtos(*)").eq("venda_id", venda_id).order("sequencia_item");
 
-    if (!cliente || !empresa || !tipoPedido || !condicaoPagamento || !perfil || !itens?.length) {
-      throw new Error("Dados incompletos para calcular pedido");
+    // Log detalhado de quais dados foram encontrados
+    console.log("Dados encontrados:", {
+      cliente: !!cliente,
+      empresa: !!empresa,
+      tipoPedido: !!tipoPedido,
+      condicaoPagamento: !!condicaoPagamento,
+      perfil: !!perfil,
+      itens: itens?.length || 0
+    });
+
+    // Validação detalhada para melhor diagnóstico
+    const dadosFaltantes = [];
+    if (!cliente) dadosFaltantes.push("cliente");
+    if (!empresa) dadosFaltantes.push("empresa");
+    if (!tipoPedido) dadosFaltantes.push("tipoPedido");
+    if (!condicaoPagamento) dadosFaltantes.push("condicaoPagamento");
+    if (!perfil) dadosFaltantes.push("perfil (vendedor)");
+    if (!itens?.length) dadosFaltantes.push("itens");
+
+    if (dadosFaltantes.length > 0) {
+      const mensagemErro = `Dados incompletos para calcular pedido. Faltando: ${dadosFaltantes.join(", ")}`;
+      console.error(mensagemErro);
+      throw new Error(mensagemErro);
     }
+
+    // Garantir que TypeScript entenda que os dados não são null após validação
+    const clienteValidado = cliente!;
+    const empresaValidada = empresa!;
+    const tipoPedidoValidado = tipoPedido!;
+    const condicaoPagamentoValidada = condicaoPagamento!;
+    const perfilValidado = perfil!;
+    const itensValidados = itens!;
 
     // Dividir em lotes de 25 itens
     const TAMANHO_LOTE = 25;
-    const lotesDeItens = dividirEmLotes(itens, TAMANHO_LOTE);
+    const lotesDeItens = dividirEmLotes(itensValidados, TAMANHO_LOTE);
     const totalLotes = lotesDeItens.length;
 
-    console.log(`${itens.length} itens em ${totalLotes} lote(s)`);
+    console.log(`${itensValidados.length} itens em ${totalLotes} lote(s)`);
 
     const authHeader = btoa(`${DATASUL_USER}:${DATASUL_PASS}`);
     const resultadosLotes: any[] = [];
@@ -154,15 +185,15 @@ Deno.serve(async (req) => {
 
       const payload = {
         pedido: [{
-          "cod-emitente": Number(cliente.cod_emitente),
-          "tipo-pedido": tipoPedido.nome.toLowerCase(),
+          "cod-emitente": Number(clienteValidado.cod_emitente),
+          "tipo-pedido": tipoPedidoValidado.nome.toLowerCase(),
           "cotacao": venda.numero_venda,
-          "cod-estabel": String(empresa.codigo_estabelecimento),
-          "nat-operacao": String(empresa.natureza_operacao),
-          "cod-cond-pag": Number(condicaoPagamento.codigo_integracao),
+          "cod-estabel": String(empresaValidada.codigo_estabelecimento),
+          "nat-operacao": String(empresaValidada.natureza_operacao),
+          "cod-cond-pag": Number(condicaoPagamentoValidada.codigo_integracao),
           "cod-transp": 24249,
           "vl-frete-inf": 0,
-          "cod-rep": Number(perfil.codigo_vendedor),
+          "cod-rep": Number(perfilValidado.codigo_vendedor),
           "nr-tabpre": "SE-CFI",
           "perc-desco1": 0,
           "fat-parcial": venda.faturamento_parcial === "YES",
@@ -259,7 +290,7 @@ Deno.serve(async (req) => {
         venda_id,
         numero_venda: venda.numero_venda,
         resumo: {
-          total_itens: itens.length,
+          total_itens: itensValidados.length,
           total_lotes: totalLotes,
           lotes_processados: resultadosLotes.filter(r => !r.erro).length,
           tempo_resposta_ms: tempoTotal,
