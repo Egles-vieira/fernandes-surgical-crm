@@ -161,14 +161,14 @@ export function PipelineKanban({
               <Briefcase size={20} />
             </div>
             <div>
-              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Oportunidades</p>
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Propostas</p>
               <p className="text-xl font-bold text-slate-900 tracking-tight">{stats.count} <span className="text-sm font-medium text-slate-400">Ativas</span></p>
             </div>
           </div>
           <div className="px-5 py-3 flex items-center">
             <Button onClick={onNovaVenda} className="bg-indigo-600 hover:bg-indigo-700 shadow-md flex items-center gap-2">
               <Plus size={16} />
-              Nova Oportunidade
+              Nova Proposta
             </Button>
           </div>
         </div>

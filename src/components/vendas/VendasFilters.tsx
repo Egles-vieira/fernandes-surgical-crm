@@ -71,7 +71,7 @@ export function VendasFilters({ view, onViewChange, onFilterChange }: VendasFilt
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="todos">Todos os responsáveis</SelectItem>
-          <SelectItem value="eu">Minhas oportunidades</SelectItem>
+          <SelectItem value="eu">Minhas propostas</SelectItem>
           <SelectItem value="equipe">Minha equipe</SelectItem>
           <SelectItem value="sem">Sem responsável</SelectItem>
         </SelectContent>
