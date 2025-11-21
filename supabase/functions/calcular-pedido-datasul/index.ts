@@ -47,6 +47,19 @@ function serializeOrderPayload(data: any): string {
   return JSON.stringify(ordered, null, 2);
 }
 
+/**
+ * Remove o IPI do preço
+ * @param preco - Preço com IPI incluído (tb-preco)
+ * @param aliquotaIpi - Alíquota do IPI em percentual (ex: 5.2 para 5.2%)
+ * @returns Preço sem IPI
+ */
+function removerIPI(preco: number, aliquotaIpi: number): number {
+  if (!aliquotaIpi || aliquotaIpi === 0) {
+    return preco;
+  }
+  return preco / (1 + aliquotaIpi / 100);
+}
+
 function dividirEmLotes<T>(array: T[], tamanhoLote: number): T[][] {
   const lotes: T[][] = [];
   for (let i = 0; i < array.length; i += tamanhoLote) {
@@ -118,18 +131,26 @@ Deno.serve(async (req) => {
       
       console.log(`Processando lote ${numeroLote}/${totalLotes}`);
 
-      const itensPayload = lote.map((item: any) => ({
-        "nr-sequencia": item.sequencia_item,
-        "it-codigo": item.produtos.referencia_interna,
-        "cod-refer": "",
-        "nat-operacao": empresa.natureza_operacao,
-        "qt-pedida": item.quantidade,
-        "vl-preuni": item.preco_tabela,
-        "vl-pretab": item.preco_tabela,
-        "vl-preori": item.preco_tabela,
-        "vl-preco-base": item.preco_tabela,
-        "per-des-item": item.desconto,
-      }));
+      const itensPayload = lote.map((item: any) => {
+        // Calcular preço sem IPI usando a alíquota do produto
+        const aliquotaIpi = item.produtos.aliquota_ipi || 0;
+        const precoSemIpi = removerIPI(item.preco_tabela, aliquotaIpi);
+        
+        console.log(`Item ${item.sequencia_item}: preço_tabela=${item.preco_tabela}, aliquota_ipi=${aliquotaIpi}%, preco_sem_ipi=${precoSemIpi.toFixed(6)}`);
+        
+        return {
+          "nr-sequencia": item.sequencia_item,
+          "it-codigo": item.produtos.referencia_interna,
+          "cod-refer": "",
+          "nat-operacao": empresa.natureza_operacao,
+          "qt-pedida": item.quantidade,
+          "vl-preuni": precoSemIpi,
+          "vl-pretab": item.preco_tabela, // Mantém o preço de tabela original
+          "vl-preori": precoSemIpi,
+          "vl-preco-base": precoSemIpi,
+          "per-des-item": item.desconto,
+        };
+      });
 
       const payload = {
         pedido: [{
