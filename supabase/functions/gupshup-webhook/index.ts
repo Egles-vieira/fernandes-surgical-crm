@@ -269,7 +269,7 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
   }
 
   // Salvar mensagem
-  await supabase
+  const { data: novaMensagem } = await supabase
     .from('whatsapp_mensagens')
     .insert({
       conversa_id: conversa.id,
@@ -282,9 +282,91 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
       id_mensagem_externa: payload.id || payload.gsId,
       recebida_em: new Date().toISOString(),
       criado_em: new Date().toISOString(),
-    });
+    })
+    .select()
+    .single();
 
   console.log('Mensagem recebida processada com sucesso');
+
+  // 🤖 AGENTE DE VENDAS: Processar mensagem automaticamente se ativo
+  // Buscar configuração da conta para verificar se agente está ativo
+  const { data: contaCompleta } = await supabase
+    .from('whatsapp_contas')
+    .select('agente_vendas_ativo')
+    .eq('id', conta.id)
+    .single();
+
+  console.log('🔍 Verificando agente:', { 
+    agente_ativo: contaCompleta?.agente_vendas_ativo, 
+    tem_texto: !!corpoMensagem, 
+    tipo: tipoMensagem
+  });
+  
+  // Ativar agente para mensagens de texto (Gupshup não suporta áudio direto ainda)
+  if (contaCompleta?.agente_vendas_ativo && corpoMensagem && tipoMensagem === 'text') {
+    console.log('🤖 Agente de vendas ativo - processando mensagem');
+    
+    try {
+      // Chamar agente de vendas
+      const { data: agenteData, error: agenteError } = await supabase.functions.invoke('agente-vendas-whatsapp', {
+        body: {
+          mensagemTexto: corpoMensagem,
+          conversaId: conversa.id,
+          contatoId: contato.id,
+          tipoMensagem: 'texto'
+        }
+      });
+
+      if (agenteError) {
+        console.error('❌ Erro ao invocar agente:', agenteError);
+        return;
+      }
+
+      if (agenteData?.resposta) {
+        console.log('🤖 Resposta do agente:', agenteData.resposta);
+        
+        // Inserir resposta do agente no banco
+        const { data: respostaAgente } = await supabase
+          .from('whatsapp_mensagens')
+          .insert({
+            conversa_id: conversa.id,
+            whatsapp_conta_id: conta.id,
+            whatsapp_contato_id: contato.id,
+            corpo: agenteData.resposta,
+            direcao: 'enviada',
+            tipo_mensagem: 'text',
+            status: 'pendente',
+            criado_em: new Date().toISOString(),
+            enviada_por_bot: true,
+            metadata: { 
+              gerada_por_agente: true,
+              produtos_encontrados: agenteData.produtos_encontrados || []
+            }
+          })
+          .select()
+          .single();
+
+        // Enviar via Gupshup
+        if (respostaAgente) {
+          try {
+            const { data: envioData, error: envioError } = await supabase.functions.invoke('gupshup-enviar-mensagem', {
+              body: { mensagemId: respostaAgente.id }
+            });
+
+            if (envioError) {
+              console.error('❌ Erro ao enviar resposta do agente:', envioError);
+            } else {
+              console.log('✅ Resposta do agente enviada via Gupshup');
+            }
+          } catch (envioError) {
+            console.error('❌ Erro ao enviar via Gupshup:', envioError);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('❌ Erro no agente de vendas:', error);
+    }
+  }
 }
 
 async function processarStatusMensagem(supabase: any, payload: any) {

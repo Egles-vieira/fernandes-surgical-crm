@@ -347,19 +347,23 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
   console.log('🔍 Verificando agente:', { 
     agente_ativo: conta.agente_vendas_ativo, 
     tem_texto: !!messageText, 
-    tipo: messageType 
+    tipo: messageType,
+    tem_midia: !!mediaUrl 
   });
   
-  if (conta.agente_vendas_ativo && messageText && messageType === 'texto') {
+  // Ativar agente para mensagens de texto OU áudio (que será transcrito)
+  if (conta.agente_vendas_ativo && (messageType === 'texto' || messageType === 'audio')) {
     console.log('🤖 Agente de vendas ativo - processando mensagem');
     
     try {
-      // Chamar agente de vendas
+      // Chamar agente de vendas com suporte a áudio
       const { data: agenteData, error: agenteError } = await supabase.functions.invoke('agente-vendas-whatsapp', {
         body: {
-          mensagemTexto: messageText,
+          mensagemTexto: messageText || '', // Pode estar vazio se for áudio
           conversaId: conversa.id,
-          contatoId: contato.id
+          contatoId: contato.id,
+          tipoMensagem: messageType,
+          urlMidia: mediaUrl || null
         }
       });
 
@@ -386,8 +390,8 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
             enviada_por_bot: true,
             metadata: { 
               gerada_por_agente: true,
-              tem_produtos: agenteData.tem_produtos,
-              produtos: agenteData.produtos 
+              tipo_origem: messageType, // texto ou audio
+              produtos_encontrados: agenteData.produtos_encontrados || []
             }
           })
           .select()
