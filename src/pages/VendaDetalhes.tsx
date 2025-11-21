@@ -84,13 +84,6 @@ export default function VendaDetalhes() {
     showErrorDialog,
     closeErrorDialog
   } = useDatasulCalculaPedido();
-  
-  // Debug - ver quando os estados mudam
-  console.log("🟣 VendaDetalhes - Estados do modal:", { 
-    showErrorDialog, 
-    hasErrorData: !!errorData,
-    errorData 
-  });
   const {
     toast
   } = useToast();

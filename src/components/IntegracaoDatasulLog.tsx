@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
-import { AlertCircle, CheckCircle2, XCircle, Clock, Info } from "lucide-react";
+import { AlertCircle, CheckCircle2, XCircle, Clock } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useQuery } from "@tanstack/react-query";
@@ -168,7 +168,6 @@ export function IntegracaoDatasulLog({ vendaId }: IntegracaoDatasulLogProps) {
               }}
               className="w-full gap-2"
             >
-              <Info className="h-4 w-4" />
               Entender Este Erro
             </Button>
           </div>
