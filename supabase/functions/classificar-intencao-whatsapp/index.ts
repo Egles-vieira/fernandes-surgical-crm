@@ -43,14 +43,16 @@ Deno.serve(async (req) => {
 
     console.log('🧠 Classificando intenção:', mensagemTexto);
 
-    // Prompt estruturado para DeepSeek
+    // Prompt estruturado para DeepSeek com contexto histórico
     const prompt = `Você é um classificador de intenções para um sistema de vendas via WhatsApp.
 
-CONTEXTO ANTERIOR:
+CONTEXTO ANTERIOR DA CONVERSA:
 ${contextoAnterior || 'Primeira interação'}
 
-MENSAGEM DO CLIENTE:
+MENSAGEM ATUAL DO CLIENTE:
 "${mensagemTexto}"
+
+IMPORTANTE: Se o CONTEXTO ANTERIOR menciona produtos específicos e o cliente agora diz algo como "quero X unidades", "fechou", "vou levar", isso se refere aos produtos já discutidos.
 
 TAREFA:
 Classifique a intenção em JSON estrito com:
@@ -59,7 +61,7 @@ Classifique a intenção em JSON estrito com:
   "confianca": number, // 0-1
   "palavrasChave": string[], // Termos relevantes extraídos
   "entidades": {
-    "produtos": string[], // Nomes de produtos mencionados
+    "produtos": string[], // Nomes de produtos mencionados OU produtos do contexto se aplicável
     "quantidades": number[], // Quantidades numéricas
     "valores": number[] // Valores monetários (sem R$)
   },
@@ -69,9 +71,12 @@ Classifique a intenção em JSON estrito com:
 EXEMPLOS:
 - "Oi, bom dia" -> intencao: saudacao
 - "Tem parafuso sextavado?" -> intencao: buscar_produto, palavrasChave: ["parafuso", "sextavado"]
-- "Quero 10 unidades desse" -> intencao: adicionar_produto, entidades: { quantidades: [10] }
+- "Quero 10 unidades desse" (após falar de um produto) -> intencao: confirmar_itens, entidades: { quantidades: [10] }
+- "Quero 1000 unidades" (após discussão de produtos) -> intencao: confirmar_itens, entidades: { quantidades: [1000] }
 - "Fechou, pode enviar" -> intencao: finalizar_pedido
-- "Esse tá caro, faz desconto?" -> intencao: negociar_preco`;
+- "Esse tá caro, faz desconto?" -> intencao: negociar_preco
+
+REGRA CRUCIAL: Se houver produtos no CONTEXTO ANTERIOR e o cliente mencionar quantidade ou confirmação (quero, vou levar, fechou), classifique como "confirmar_itens" ou "adicionar_produto", NÃO como "buscar_produto".`;
 
     const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
       method: 'POST',
