@@ -86,3 +86,12 @@ verify_jwt = false
 
 [functions.processar-feedback-produto]
 verify_jwt = false
+
+[functions.atualizar-scores-ml]
+verify_jwt = false
+
+[functions.coletar-metricas-diarias]
+verify_jwt = false
+
+[functions.enviar-proposta-whatsapp]
+verify_jwt = false
