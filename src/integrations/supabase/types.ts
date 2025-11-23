@@ -4571,6 +4571,57 @@ export type Database = {
         }
         Relationships: []
       }
+      produtos_score_ajuste: {
+        Row: {
+          atualizado_em: string | null
+          id: string
+          produto_id: string
+          score_ml: number | null
+          taxa_conversao: number | null
+          total_feedbacks_negativos: number | null
+          total_feedbacks_positivos: number | null
+          total_vezes_comprado: number | null
+          total_vezes_sugerido: number | null
+        }
+        Insert: {
+          atualizado_em?: string | null
+          id?: string
+          produto_id: string
+          score_ml?: number | null
+          taxa_conversao?: number | null
+          total_feedbacks_negativos?: number | null
+          total_feedbacks_positivos?: number | null
+          total_vezes_comprado?: number | null
+          total_vezes_sugerido?: number | null
+        }
+        Update: {
+          atualizado_em?: string | null
+          id?: string
+          produto_id?: string
+          score_ml?: number | null
+          taxa_conversao?: number | null
+          total_feedbacks_negativos?: number | null
+          total_feedbacks_positivos?: number | null
+          total_vezes_comprado?: number | null
+          total_vezes_sugerido?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "produtos_score_ajuste_produto_id_fkey"
+            columns: ["produto_id"]
+            isOneToOne: false
+            referencedRelation: "produtos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "produtos_score_ajuste_produto_id_fkey"
+            columns: ["produto_id"]
+            isOneToOne: false
+            referencedRelation: "vw_produtos_mais_sugeridos_ia"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string | null
@@ -5813,6 +5864,87 @@ export type Database = {
           },
         ]
       }
+      whatsapp_aprovacoes_diretoria: {
+        Row: {
+          aprovado_em: string | null
+          aprovado_por_id: string | null
+          atualizado_em: string | null
+          expira_em: string | null
+          id: string
+          motivo_aprovacao: string | null
+          motivo_decisao: string | null
+          proposta_id: string
+          solicitado_em: string | null
+          solicitado_por_id: string | null
+          status: Database["public"]["Enums"]["status_aprovacao"] | null
+          valor_proposta: number
+        }
+        Insert: {
+          aprovado_em?: string | null
+          aprovado_por_id?: string | null
+          atualizado_em?: string | null
+          expira_em?: string | null
+          id?: string
+          motivo_aprovacao?: string | null
+          motivo_decisao?: string | null
+          proposta_id: string
+          solicitado_em?: string | null
+          solicitado_por_id?: string | null
+          status?: Database["public"]["Enums"]["status_aprovacao"] | null
+          valor_proposta: number
+        }
+        Update: {
+          aprovado_em?: string | null
+          aprovado_por_id?: string | null
+          atualizado_em?: string | null
+          expira_em?: string | null
+          id?: string
+          motivo_aprovacao?: string | null
+          motivo_decisao?: string | null
+          proposta_id?: string
+          solicitado_em?: string | null
+          solicitado_por_id?: string | null
+          status?: Database["public"]["Enums"]["status_aprovacao"] | null
+          valor_proposta?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_aprovacoes_diretoria_aprovado_por_id_fkey"
+            columns: ["aprovado_por_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_usuario"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_aprovacoes_diretoria_aprovado_por_id_fkey"
+            columns: ["aprovado_por_id"]
+            isOneToOne: false
+            referencedRelation: "vw_performance_vendedor"
+            referencedColumns: ["vendedor_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_aprovacoes_diretoria_proposta_id_fkey"
+            columns: ["proposta_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_propostas_comerciais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_aprovacoes_diretoria_solicitado_por_id_fkey"
+            columns: ["solicitado_por_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_usuario"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_aprovacoes_diretoria_solicitado_por_id_fkey"
+            columns: ["solicitado_por_id"]
+            isOneToOne: false
+            referencedRelation: "vw_performance_vendedor"
+            referencedColumns: ["vendedor_id"]
+          },
+        ]
+      }
       whatsapp_configuracao_global: {
         Row: {
           configurado_em: string | null
@@ -6122,6 +6254,7 @@ export type Database = {
           conversa_externa_id: string | null
           criado_em: string | null
           emoji_sentimento: string | null
+          estagio_agente: string | null
           fechada_em: string | null
           gerenciada_por_bot: boolean | null
           id: string
@@ -6133,6 +6266,8 @@ export type Database = {
           oportunidade_id: string | null
           origem: string | null
           prioridade: string | null
+          produtos_carrinho: string[] | null
+          proposta_ativa_id: string | null
           resolvida_em: string | null
           sentimento_cliente: string | null
           status: string | null
@@ -6147,6 +6282,7 @@ export type Database = {
           transferida_em: string | null
           transferida_para_humano: boolean | null
           ultima_analise_sentimento_em: string | null
+          ultima_intencao_detectada: string | null
           ultima_interacao_agente_em: string | null
           ultima_interacao_cliente_em: string | null
           ultima_mensagem_em: string | null
@@ -6167,6 +6303,7 @@ export type Database = {
           conversa_externa_id?: string | null
           criado_em?: string | null
           emoji_sentimento?: string | null
+          estagio_agente?: string | null
           fechada_em?: string | null
           gerenciada_por_bot?: boolean | null
           id?: string
@@ -6178,6 +6315,8 @@ export type Database = {
           oportunidade_id?: string | null
           origem?: string | null
           prioridade?: string | null
+          produtos_carrinho?: string[] | null
+          proposta_ativa_id?: string | null
           resolvida_em?: string | null
           sentimento_cliente?: string | null
           status?: string | null
@@ -6192,6 +6331,7 @@ export type Database = {
           transferida_em?: string | null
           transferida_para_humano?: boolean | null
           ultima_analise_sentimento_em?: string | null
+          ultima_intencao_detectada?: string | null
           ultima_interacao_agente_em?: string | null
           ultima_interacao_cliente_em?: string | null
           ultima_mensagem_em?: string | null
@@ -6212,6 +6352,7 @@ export type Database = {
           conversa_externa_id?: string | null
           criado_em?: string | null
           emoji_sentimento?: string | null
+          estagio_agente?: string | null
           fechada_em?: string | null
           gerenciada_por_bot?: boolean | null
           id?: string
@@ -6223,6 +6364,8 @@ export type Database = {
           oportunidade_id?: string | null
           origem?: string | null
           prioridade?: string | null
+          produtos_carrinho?: string[] | null
+          proposta_ativa_id?: string | null
           resolvida_em?: string | null
           sentimento_cliente?: string | null
           status?: string | null
@@ -6237,6 +6380,7 @@ export type Database = {
           transferida_em?: string | null
           transferida_para_humano?: boolean | null
           ultima_analise_sentimento_em?: string | null
+          ultima_intencao_detectada?: string | null
           ultima_interacao_agente_em?: string | null
           ultima_interacao_cliente_em?: string | null
           ultima_mensagem_em?: string | null
@@ -6273,6 +6417,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "whatsapp_conversas_proposta_ativa_id_fkey"
+            columns: ["proposta_ativa_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_propostas_comerciais"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "whatsapp_conversas_whatsapp_conta_id_fkey"
             columns: ["whatsapp_conta_id"]
             isOneToOne: false
@@ -6284,6 +6435,215 @@ export type Database = {
             columns: ["whatsapp_contato_id"]
             isOneToOne: false
             referencedRelation: "whatsapp_contatos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_conversas_memoria: {
+        Row: {
+          conteudo_resumido: string
+          conversa_id: string
+          criado_em: string | null
+          embedding: string | null
+          expira_em: string | null
+          id: string
+          intencao_detectada: string | null
+          mensagem_id: string | null
+          produtos_mencionados: string[] | null
+          relevancia_score: number | null
+          sentimento: string | null
+          tipo_interacao: string
+        }
+        Insert: {
+          conteudo_resumido: string
+          conversa_id: string
+          criado_em?: string | null
+          embedding?: string | null
+          expira_em?: string | null
+          id?: string
+          intencao_detectada?: string | null
+          mensagem_id?: string | null
+          produtos_mencionados?: string[] | null
+          relevancia_score?: number | null
+          sentimento?: string | null
+          tipo_interacao: string
+        }
+        Update: {
+          conteudo_resumido?: string
+          conversa_id?: string
+          criado_em?: string | null
+          embedding?: string | null
+          expira_em?: string | null
+          id?: string
+          intencao_detectada?: string | null
+          mensagem_id?: string | null
+          produtos_mencionados?: string[] | null
+          relevancia_score?: number | null
+          sentimento?: string | null
+          tipo_interacao?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_conversas_memoria_conversa_id_fkey"
+            columns: ["conversa_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_conversas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_conversas_memoria_mensagem_id_fkey"
+            columns: ["mensagem_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_mensagens"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_feedback_produtos: {
+        Row: {
+          comentario_cliente: string | null
+          conversa_id: string
+          criado_em: string | null
+          foi_comprado: boolean | null
+          foi_sugerido: boolean | null
+          id: string
+          motivo_rejeicao: string | null
+          produto_id: string
+          proposta_id: string | null
+          query_busca: string | null
+          score_ajuste: number | null
+          tipo: Database["public"]["Enums"]["tipo_feedback"]
+        }
+        Insert: {
+          comentario_cliente?: string | null
+          conversa_id: string
+          criado_em?: string | null
+          foi_comprado?: boolean | null
+          foi_sugerido?: boolean | null
+          id?: string
+          motivo_rejeicao?: string | null
+          produto_id: string
+          proposta_id?: string | null
+          query_busca?: string | null
+          score_ajuste?: number | null
+          tipo: Database["public"]["Enums"]["tipo_feedback"]
+        }
+        Update: {
+          comentario_cliente?: string | null
+          conversa_id?: string
+          criado_em?: string | null
+          foi_comprado?: boolean | null
+          foi_sugerido?: boolean | null
+          id?: string
+          motivo_rejeicao?: string | null
+          produto_id?: string
+          proposta_id?: string | null
+          query_busca?: string | null
+          score_ajuste?: number | null
+          tipo?: Database["public"]["Enums"]["tipo_feedback"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_feedback_produtos_conversa_id_fkey"
+            columns: ["conversa_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_conversas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_feedback_produtos_produto_id_fkey"
+            columns: ["produto_id"]
+            isOneToOne: false
+            referencedRelation: "produtos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_feedback_produtos_produto_id_fkey"
+            columns: ["produto_id"]
+            isOneToOne: false
+            referencedRelation: "vw_produtos_mais_sugeridos_ia"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_feedback_produtos_proposta_id_fkey"
+            columns: ["proposta_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_propostas_comerciais"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_interacoes: {
+        Row: {
+          conversa_id: string
+          criado_em: string | null
+          descricao: string | null
+          executado_por_bot: boolean | null
+          executado_por_id: string | null
+          id: string
+          mensagem_id: string | null
+          metadata: Json | null
+          proposta_id: string | null
+          tipo_evento: string
+        }
+        Insert: {
+          conversa_id: string
+          criado_em?: string | null
+          descricao?: string | null
+          executado_por_bot?: boolean | null
+          executado_por_id?: string | null
+          id?: string
+          mensagem_id?: string | null
+          metadata?: Json | null
+          proposta_id?: string | null
+          tipo_evento: string
+        }
+        Update: {
+          conversa_id?: string
+          criado_em?: string | null
+          descricao?: string | null
+          executado_por_bot?: boolean | null
+          executado_por_id?: string | null
+          id?: string
+          mensagem_id?: string | null
+          metadata?: Json | null
+          proposta_id?: string | null
+          tipo_evento?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_interacoes_conversa_id_fkey"
+            columns: ["conversa_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_conversas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_interacoes_executado_por_id_fkey"
+            columns: ["executado_por_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_usuario"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_interacoes_executado_por_id_fkey"
+            columns: ["executado_por_id"]
+            isOneToOne: false
+            referencedRelation: "vw_performance_vendedor"
+            referencedColumns: ["vendedor_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_interacoes_mensagem_id_fkey"
+            columns: ["mensagem_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_mensagens"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_interacoes_proposta_id_fkey"
+            columns: ["proposta_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_propostas_comerciais"
             referencedColumns: ["id"]
           },
         ]
@@ -6516,6 +6876,261 @@ export type Database = {
             columns: ["whatsapp_contato_id"]
             isOneToOne: false
             referencedRelation: "whatsapp_contatos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_metricas_agente: {
+        Row: {
+          criado_em: string | null
+          data: string
+          id: string
+          taxa_conversao_proposta: number | null
+          tempo_medio_resposta_segundos: number | null
+          total_conversas_fechadas: number | null
+          total_conversas_iniciadas: number | null
+          total_mensagens_enviadas_bot: number | null
+          total_mensagens_recebidas: number | null
+          total_propostas_aceitas: number | null
+          total_propostas_geradas: number | null
+          total_propostas_rejeitadas: number | null
+          whatsapp_conta_id: string | null
+        }
+        Insert: {
+          criado_em?: string | null
+          data: string
+          id?: string
+          taxa_conversao_proposta?: number | null
+          tempo_medio_resposta_segundos?: number | null
+          total_conversas_fechadas?: number | null
+          total_conversas_iniciadas?: number | null
+          total_mensagens_enviadas_bot?: number | null
+          total_mensagens_recebidas?: number | null
+          total_propostas_aceitas?: number | null
+          total_propostas_geradas?: number | null
+          total_propostas_rejeitadas?: number | null
+          whatsapp_conta_id?: string | null
+        }
+        Update: {
+          criado_em?: string | null
+          data?: string
+          id?: string
+          taxa_conversao_proposta?: number | null
+          tempo_medio_resposta_segundos?: number | null
+          total_conversas_fechadas?: number | null
+          total_conversas_iniciadas?: number | null
+          total_mensagens_enviadas_bot?: number | null
+          total_mensagens_recebidas?: number | null
+          total_propostas_aceitas?: number | null
+          total_propostas_geradas?: number | null
+          total_propostas_rejeitadas?: number | null
+          whatsapp_conta_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_metricas_agente_whatsapp_conta_id_fkey"
+            columns: ["whatsapp_conta_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_contas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_propostas_comerciais: {
+        Row: {
+          aceito_em: string | null
+          aprovada_por_diretoria_em: string | null
+          aprovada_por_id: string | null
+          atualizado_em: string | null
+          condicao_pagamento: string | null
+          conversa_id: string
+          criado_em: string | null
+          desconto_percentual: number | null
+          desconto_valor: number | null
+          enviado_em: string | null
+          expira_em: string | null
+          id: string
+          impostos_percentual: number | null
+          impostos_valor: number | null
+          mensagem_negociacao: string | null
+          mensagem_proposta_id: string | null
+          motivo_rejeicao_diretoria: string | null
+          numero_proposta: string
+          observacoes: string | null
+          oportunidade_id: string | null
+          prazo_entrega_dias: number | null
+          requer_aprovacao_diretoria: boolean | null
+          status: Database["public"]["Enums"]["status_proposta"] | null
+          subtotal: number
+          total_contraproposta: number | null
+          validade_dias: number | null
+          valor_frete: number | null
+          valor_total: number
+        }
+        Insert: {
+          aceito_em?: string | null
+          aprovada_por_diretoria_em?: string | null
+          aprovada_por_id?: string | null
+          atualizado_em?: string | null
+          condicao_pagamento?: string | null
+          conversa_id: string
+          criado_em?: string | null
+          desconto_percentual?: number | null
+          desconto_valor?: number | null
+          enviado_em?: string | null
+          expira_em?: string | null
+          id?: string
+          impostos_percentual?: number | null
+          impostos_valor?: number | null
+          mensagem_negociacao?: string | null
+          mensagem_proposta_id?: string | null
+          motivo_rejeicao_diretoria?: string | null
+          numero_proposta: string
+          observacoes?: string | null
+          oportunidade_id?: string | null
+          prazo_entrega_dias?: number | null
+          requer_aprovacao_diretoria?: boolean | null
+          status?: Database["public"]["Enums"]["status_proposta"] | null
+          subtotal?: number
+          total_contraproposta?: number | null
+          validade_dias?: number | null
+          valor_frete?: number | null
+          valor_total: number
+        }
+        Update: {
+          aceito_em?: string | null
+          aprovada_por_diretoria_em?: string | null
+          aprovada_por_id?: string | null
+          atualizado_em?: string | null
+          condicao_pagamento?: string | null
+          conversa_id?: string
+          criado_em?: string | null
+          desconto_percentual?: number | null
+          desconto_valor?: number | null
+          enviado_em?: string | null
+          expira_em?: string | null
+          id?: string
+          impostos_percentual?: number | null
+          impostos_valor?: number | null
+          mensagem_negociacao?: string | null
+          mensagem_proposta_id?: string | null
+          motivo_rejeicao_diretoria?: string | null
+          numero_proposta?: string
+          observacoes?: string | null
+          oportunidade_id?: string | null
+          prazo_entrega_dias?: number | null
+          requer_aprovacao_diretoria?: boolean | null
+          status?: Database["public"]["Enums"]["status_proposta"] | null
+          subtotal?: number
+          total_contraproposta?: number | null
+          validade_dias?: number | null
+          valor_frete?: number | null
+          valor_total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_propostas_comerciais_aprovada_por_id_fkey"
+            columns: ["aprovada_por_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_usuario"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_propostas_comerciais_aprovada_por_id_fkey"
+            columns: ["aprovada_por_id"]
+            isOneToOne: false
+            referencedRelation: "vw_performance_vendedor"
+            referencedColumns: ["vendedor_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_propostas_comerciais_conversa_id_fkey"
+            columns: ["conversa_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_conversas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_propostas_comerciais_mensagem_proposta_id_fkey"
+            columns: ["mensagem_proposta_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_mensagens"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_propostas_comerciais_oportunidade_id_fkey"
+            columns: ["oportunidade_id"]
+            isOneToOne: false
+            referencedRelation: "oportunidades"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_propostas_itens: {
+        Row: {
+          criado_em: string | null
+          desconto_percentual: number | null
+          desconto_valor: number | null
+          id: string
+          nome_produto: string
+          observacoes: string | null
+          ordem: number | null
+          preco_unitario: number
+          produto_id: string
+          proposta_id: string
+          quantidade: number
+          referencia_interna: string | null
+          subtotal: number
+        }
+        Insert: {
+          criado_em?: string | null
+          desconto_percentual?: number | null
+          desconto_valor?: number | null
+          id?: string
+          nome_produto: string
+          observacoes?: string | null
+          ordem?: number | null
+          preco_unitario: number
+          produto_id: string
+          proposta_id: string
+          quantidade: number
+          referencia_interna?: string | null
+          subtotal: number
+        }
+        Update: {
+          criado_em?: string | null
+          desconto_percentual?: number | null
+          desconto_valor?: number | null
+          id?: string
+          nome_produto?: string
+          observacoes?: string | null
+          ordem?: number | null
+          preco_unitario?: number
+          produto_id?: string
+          proposta_id?: string
+          quantidade?: number
+          referencia_interna?: string | null
+          subtotal?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_propostas_itens_produto_id_fkey"
+            columns: ["produto_id"]
+            isOneToOne: false
+            referencedRelation: "produtos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_propostas_itens_produto_id_fkey"
+            columns: ["produto_id"]
+            isOneToOne: false
+            referencedRelation: "vw_produtos_mais_sugeridos_ia"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_propostas_itens_proposta_id_fkey"
+            columns: ["proposta_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_propostas_comerciais"
             referencedColumns: ["id"]
           },
         ]
@@ -7276,6 +7891,21 @@ export type Database = {
         Args: { _meta_id: string }
         Returns: undefined
       }
+      recuperar_contexto_relevante: {
+        Args: {
+          p_conversa_id: string
+          p_limite?: number
+          p_query_embedding: string
+        }
+        Returns: {
+          conteudo: string
+          criado_em: string
+          memoria_id: string
+          produtos: string[]
+          relevancia: number
+          tipo_interacao: string
+        }[]
+      }
       registrar_feedback_ia: {
         Args: {
           p_feedback_tipo: string
@@ -7340,6 +7970,16 @@ export type Database = {
         | "concluida"
         | "erro"
         | "cancelada"
+      status_aprovacao: "pendente" | "aprovada" | "rejeitada" | "expirada"
+      status_proposta:
+        | "rascunho"
+        | "enviada"
+        | "aceita"
+        | "rejeitada"
+        | "negociacao"
+        | "aprovacao_pendente"
+        | "aprovada_diretoria"
+        | "rejeitada_diretoria"
       status_solicitacao_cadastro:
         | "rascunho"
         | "em_analise"
@@ -7353,6 +7993,7 @@ export type Database = {
         | "fechado"
         | "cancelado"
       tipo_endereco: "principal" | "entrega" | "cobranca"
+      tipo_feedback: "positivo" | "negativo" | "neutro"
       tipo_ticket:
         | "reclamacao"
         | "duvida"
@@ -7525,6 +8166,17 @@ export const Constants = {
         "erro",
         "cancelada",
       ],
+      status_aprovacao: ["pendente", "aprovada", "rejeitada", "expirada"],
+      status_proposta: [
+        "rascunho",
+        "enviada",
+        "aceita",
+        "rejeitada",
+        "negociacao",
+        "aprovacao_pendente",
+        "aprovada_diretoria",
+        "rejeitada_diretoria",
+      ],
       status_solicitacao_cadastro: [
         "rascunho",
         "em_analise",
@@ -7540,6 +8192,7 @@ export const Constants = {
         "cancelado",
       ],
       tipo_endereco: ["principal", "entrega", "cobranca"],
+      tipo_feedback: ["positivo", "negativo", "neutro"],
       tipo_ticket: [
         "reclamacao",
         "duvida",
