@@ -7233,43 +7233,24 @@ export type Database = {
           similarity: number
         }[]
       }
-      match_produtos_hibrido:
-        | {
-            Args: {
-              match_count: number
-              match_threshold: number
-              query_embedding: string
-              query_text: string
-            }
-            Returns: {
-              descricao: string
-              id: string
-              match_type: string
-              nome: string
-              preco_venda: number
-              quantidade_em_maos: number
-              referencia_interna: string
-              similarity: number
-              unidade: string
-            }[]
-          }
-        | {
-            Args: {
-              match_count?: number
-              match_threshold?: number
-              query_embedding: string
-              query_text: string
-            }
-            Returns: {
-              id: string
-              narrativa: string
-              nome: string
-              preco_venda: number
-              quantidade_em_maos: number
-              referencia_interna: string
-              similarity: number
-            }[]
-          }
+      match_produtos_hibrido: {
+        Args: {
+          match_count?: number
+          match_threshold?: number
+          query_embedding: string
+          query_text: string
+        }
+        Returns: {
+          id: string
+          match_type: string
+          narrativa: string
+          nome: string
+          preco_venda: number
+          quantidade_em_maos: number
+          referencia_interna: string
+          similarity: number
+        }[]
+      }
       pode_acessar_cliente: {
         Args: { _cliente_id: string; _user_id: string }
         Returns: boolean
