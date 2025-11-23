@@ -95,20 +95,31 @@ async function gerarEmbedding(texto: string, openAiKey: string): Promise<number[
 
 async function salvarMemoria(supabase: any, conversaId: string, conteudo: string, tipo: string, openAiKey: string) {
   try {
+    console.log(`💾 Salvando memória: [${tipo}] ${conteudo.substring(0, 50)}...`);
+    
     const embedding = await gerarEmbedding(conteudo, openAiKey);
     
-    await supabase.from('whatsapp_conversas_memoria').insert({
+    if (!embedding || embedding.length === 0) {
+      console.error('⚠️ Embedding vazio - pulando salvamento');
+      return;
+    }
+    
+    const { data, error } = await supabase.from('whatsapp_conversas_memoria').insert({
       conversa_id: conversaId,
       tipo_interacao: tipo,
       conteudo,
       embedding,
       relevancia: 1.0,
       expira_em: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString()
-    });
+    }).select();
     
-    console.log('💾 Memória salva:', tipo);
+    if (error) {
+      console.error('❌ Erro ao salvar memória:', error);
+    } else {
+      console.log('✅ Memória salva:', data?.[0]?.id);
+    }
   } catch (e) {
-    console.error('Erro ao salvar memória:', e);
+    console.error('❌ Erro ao salvar memória:', e);
   }
 }
 
@@ -262,15 +273,46 @@ Deno.serve(async (req) => {
       .single();
 
     const estagioAtual = conversa?.estagio_agente || 'inicial';
-    console.log('📍 Estágio atual:', estagioAtual);
+    console.log('📍 Estágio:', estagioAtual, '| Carrinho:', conversa?.produtos_carrinho?.length || 0, 'produtos');
+
+    // Salvar mensagem do cliente na memória
+    await salvarMemoria(supabase, conversaId, `Cliente: ${mensagemTexto}`, 'mensagem_recebida', openAiApiKey);
 
     // === ETAPA 2: RECUPERAR CONTEXTO HISTÓRICO ===
-    const { data: contextoData } = await supabase.functions.invoke('recuperar-contexto-conversa', {
-      body: { conversaId, queryTexto: mensagemTexto, limite: 3 }
-    });
+    
+    // Primeiro: buscar últimas 5 mensagens direto da memória (fallback simples)
+    const { data: memoriasRecentes, error: memoriaError } = await supabase
+      .from('whatsapp_conversas_memoria')
+      .select('tipo_interacao, conteudo, criado_em')
+      .eq('conversa_id', conversaId)
+      .order('criado_em', { ascending: false })
+      .limit(5);
 
-    const contextoRelevante = contextoData?.contextoRelevante || '';
-    console.log('🧠 Contexto recuperado');
+    let contextoRelevante = '';
+    
+    if (memoriasRecentes && memoriasRecentes.length > 0) {
+      contextoRelevante = memoriasRecentes
+        .reverse()
+        .map(m => `[${m.tipo_interacao}] ${m.conteudo}`)
+        .join('\n');
+      console.log('🧠 Contexto:', memoriasRecentes.length, 'memórias recentes');
+    } else {
+      console.log('⚠️ Nenhuma memória encontrada');
+    }
+
+    // Tentar busca semântica (opcional, se falhar usa o contexto acima)
+    try {
+      const { data: contextoData } = await supabase.functions.invoke('recuperar-contexto-conversa', {
+        body: { conversaId, queryTexto: mensagemTexto, limite: 5 }
+      });
+
+      if (contextoData?.contextoRelevante && contextoData.contextoRelevante !== 'Nenhum contexto anterior relevante.') {
+        contextoRelevante = contextoData.contextoRelevante;
+        console.log('🎯 Contexto semântico:', contextoData.memorias?.length, 'memórias');
+      }
+    } catch (err) {
+      console.warn('⚠️ Busca semântica falhou, usando memórias recentes');
+    }
 
     // === ETAPA 3: CLASSIFICAR INTENÇÃO COM CONTEXTO ===
     
@@ -283,8 +325,57 @@ Deno.serve(async (req) => {
         .in('id', conversa.produtos_carrinho);
       
       if (produtosCarrinho && produtosCarrinho.length > 0) {
-        contextoCompleto += `\n\nPRODUTOS NO CARRINHO:\n${produtosCarrinho.map(p => `- ${p.nome} (${p.referencia_interna}) - R$ ${p.preco_venda}`).join('\n')}`;
+        contextoCompleto += `\n\n=== PRODUTOS JÁ NO CARRINHO ===\n${produtosCarrinho.map(p => `- ${p.nome} (${p.referencia_interna}) - R$ ${p.preco_venda.toFixed(2)}`).join('\n')}`;
+        console.log('🛒 Carrinho:', produtosCarrinho.length, 'produtos');
       }
+    }
+
+    // VERIFICAÇÃO RÁPIDA: Se há produtos no carrinho e o cliente menciona quantidade/confirmação
+    const temCarrinho = conversa?.produtos_carrinho && conversa.produtos_carrinho.length > 0;
+    const mencionaQuantidade = /(\d+)\s*(unidades?|caixas?|peças?|pcs?|quero|vou levar|fechou)/i.test(mensagemTexto);
+    
+    if (temCarrinho && mencionaQuantidade) {
+      console.log('⚡ Atalho: Detectado confirmação com carrinho cheio');
+      
+      // Pular classificação e ir direto para confirmar itens
+      const quantidadeMatch = mensagemTexto.match(/(\d+)/);
+      const quantidade = quantidadeMatch ? parseInt(quantidadeMatch[1]) : 1;
+
+      const { data: produtosCarrinho } = await supabase
+        .from('produtos')
+        .select('id, nome, referencia_interna, preco_venda, quantidade_em_maos')
+        .in('id', conversa.produtos_carrinho);
+
+      const produtosComQuantidade = (produtosCarrinho || []).map(p => ({
+        ...p,
+        quantidade
+      }));
+
+      const proposta = await criarProposta(supabase, conversaId, produtosComQuantidade, clienteId);
+      
+      if (!proposta) {
+        return new Response(
+          JSON.stringify({ resposta: "Ops, tive um problema ao gerar a proposta. Tenta de novo?" }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const { data: itens } = await supabase
+        .from('whatsapp_propostas_itens')
+        .select(`
+          *,
+          produtos:produto_id (nome, referencia_interna)
+        `)
+        .eq('proposta_id', proposta.id);
+
+      const mensagemProposta = await formatarPropostaWhatsApp(proposta, itens || []);
+      
+      await salvarMemoria(supabase, conversaId, `Proposta ${proposta.numero_proposta} criada com ${quantidade} unidades`, 'proposta_enviada', openAiApiKey);
+
+      return new Response(
+        JSON.stringify({ resposta: mensagemProposta, proposta_id: proposta.id }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const { data: intencaoData } = await supabase.functions.invoke('classificar-intencao-whatsapp', {
@@ -296,7 +387,7 @@ Deno.serve(async (req) => {
     });
 
     const intencao = intencaoData || { intencao: 'outro', confianca: 0 };
-    console.log('🎯 Intenção:', intencao.intencao, 'Confiança:', intencao.confianca);
+    console.log('🎯 Intenção:', intencao.intencao, '| Confiança:', intencao.confianca);
 
     // Atualizar última intenção
     await supabase
