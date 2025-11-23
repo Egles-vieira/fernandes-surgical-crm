@@ -257,6 +257,7 @@ Exemplos:
 
       // A. Gerar Embedding da pergunta
       const vetorPergunta = await gerarEmbedding(termoBusca, openAiApiKey);
+      console.log('✅ Embedding gerado:', vetorPergunta.length, 'dimensões');
 
       // B. Chamar a função RPC Híbrida
       if (vetorPergunta.length > 0) {
@@ -265,6 +266,15 @@ Exemplos:
           query_embedding: vetorPergunta, // Para busca semântica (vector)
           match_threshold: 0.5,           // Similaridade mínima (50%)
           match_count: 5                  // Max produtos
+        });
+        
+        console.log('📊 Resultado da busca híbrida:', {
+          total: data?.length || 0,
+          produtos: data?.map((p: any) => ({ 
+            nome: p.nome, 
+            similarity: p.similarity, 
+            match_type: p.match_type 
+          }))
         });
 
         if (error) {
