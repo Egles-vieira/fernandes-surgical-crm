@@ -272,17 +272,31 @@ Deno.serve(async (req) => {
     const contextoRelevante = contextoData?.contextoRelevante || '';
     console.log('🧠 Contexto recuperado');
 
-    // === ETAPA 3: CLASSIFICAR INTENÇÃO ===
+    // === ETAPA 3: CLASSIFICAR INTENÇÃO COM CONTEXTO ===
+    
+    // Enriquecer contexto com produtos do carrinho
+    let contextoCompleto = contextoRelevante;
+    if (conversa?.produtos_carrinho && conversa.produtos_carrinho.length > 0) {
+      const { data: produtosCarrinho } = await supabase
+        .from('produtos')
+        .select('nome, referencia_interna, preco_venda')
+        .in('id', conversa.produtos_carrinho);
+      
+      if (produtosCarrinho && produtosCarrinho.length > 0) {
+        contextoCompleto += `\n\nPRODUTOS NO CARRINHO:\n${produtosCarrinho.map(p => `- ${p.nome} (${p.referencia_interna}) - R$ ${p.preco_venda}`).join('\n')}`;
+      }
+    }
+
     const { data: intencaoData } = await supabase.functions.invoke('classificar-intencao-whatsapp', {
       body: { 
         mensagemTexto, 
         conversaId,
-        contextoAnterior: contextoRelevante 
+        contextoAnterior: contextoCompleto 
       }
     });
 
     const intencao = intencaoData || { intencao: 'outro', confianca: 0 };
-    console.log('🎯 Intenção:', intencao.intencao);
+    console.log('🎯 Intenção:', intencao.intencao, 'Confiança:', intencao.confianca);
 
     // Atualizar última intenção
     await supabase
@@ -381,7 +395,7 @@ CLIENTE DISSE: "${mensagemTexto}"`
       );
     }
 
-    // 4B: CONFIRMAR ITENS / ADICIONAR AO CARRINHO
+    // 4B: CONFIRMAR ITENS / ADICIONAR AO CARRINHO / ESPECIFICAR QUANTIDADE
     if (intencao.intencao === 'confirmar_itens' || intencao.intencao === 'adicionar_produto') {
       const carrinho = conversa?.produtos_carrinho || [];
       
@@ -392,14 +406,26 @@ CLIENTE DISSE: "${mensagemTexto}"`
         );
       }
 
+      // Extrair quantidade da mensagem
+      const quantidadeMatch = mensagemTexto.match(/(\d+)\s*(unidades?|caixas?|peças?|pcs?)?/i);
+      const quantidade = quantidadeMatch ? parseInt(quantidadeMatch[1]) : 1;
+
+      console.log(`📦 Quantidade detectada: ${quantidade}`);
+
       // Buscar produtos do carrinho
       const { data: produtosCarrinho } = await supabase
         .from('produtos')
         .select('id, nome, referencia_interna, preco_venda, quantidade_em_maos')
         .in('id', carrinho);
 
+      // Adicionar quantidade aos produtos
+      const produtosComQuantidade = (produtosCarrinho || []).map(p => ({
+        ...p,
+        quantidade
+      }));
+
       // Criar proposta
-      const proposta = await criarProposta(supabase, conversaId, produtosCarrinho || [], clienteId);
+      const proposta = await criarProposta(supabase, conversaId, produtosComQuantidade, clienteId);
       
       if (!proposta) {
         return new Response(
@@ -419,7 +445,7 @@ CLIENTE DISSE: "${mensagemTexto}"`
 
       const mensagemProposta = await formatarPropostaWhatsApp(proposta, itens || []);
       
-      await salvarMemoria(supabase, conversaId, `Proposta ${proposta.numero_proposta} enviada`, 'proposta_enviada', openAiApiKey);
+      await salvarMemoria(supabase, conversaId, `Proposta ${proposta.numero_proposta} criada com ${quantidade} unidades`, 'proposta_enviada', openAiApiKey);
 
       return new Response(
         JSON.stringify({ resposta: mensagemProposta, proposta_id: proposta.id }),
