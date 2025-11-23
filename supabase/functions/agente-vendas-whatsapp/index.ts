@@ -123,7 +123,7 @@ async function salvarMemoria(supabase: any, conversaId: string, conteudo: string
   }
 }
 
-async function criarProposta(supabase: any, conversaId: string, produtos: any[], clienteId: string) {
+async function criarProposta(supabase: any, conversaId: string, produtos: any[], clienteId: string | null) {
   try {
     const subtotal = produtos.reduce((sum, p) => sum + (p.preco_venda * (p.quantidade || 1)), 0);
     
@@ -133,7 +133,6 @@ async function criarProposta(supabase: any, conversaId: string, produtos: any[],
       .from('whatsapp_propostas_comerciais')
       .insert({
         conversa_id: conversaId,
-        cliente_id: clienteId,
         status: 'rascunho',
         subtotal,
         desconto_percentual: 0,
@@ -391,59 +390,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    // VERIFICAÇÃO RÁPIDA: Se há produtos no carrinho e o cliente menciona quantidade/confirmação
-    const temCarrinho = conversa?.produtos_carrinho && conversa.produtos_carrinho.length > 0;
-    const mencionaQuantidade = /(\d+)\s*(unidades?|caixas?|peças?|pcs?|quero|vou levar|fechou)/i.test(mensagemTexto);
-    
-    if (temCarrinho && mencionaQuantidade) {
-      console.log('⚡ Atalho: Detectado confirmação com carrinho cheio');
-      
-      // Pular classificação e ir direto para confirmar itens
-      const quantidadeMatch = mensagemTexto.match(/(\d+)/);
-      const quantidade = quantidadeMatch ? parseInt(quantidadeMatch[1]) : 1;
-
-      const { data: produtosCarrinho } = await supabase
-        .from('produtos')
-        .select('id, nome, referencia_interna, preco_venda, quantidade_em_maos')
-        .in('id', conversa.produtos_carrinho);
-
-      const produtosComQuantidade = (produtosCarrinho || []).map(p => ({
-        ...p,
-        quantidade
-      }));
-
-      const proposta = await criarProposta(supabase, conversaId, produtosComQuantidade, clienteId);
-      
-      if (!proposta) {
-        return new Response(
-          JSON.stringify({ resposta: "Ops, tive um problema ao gerar a proposta. Tenta de novo?" }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
-      const { data: itens, error: itensError } = await supabase
-        .from('whatsapp_propostas_itens')
-        .select(`
-          *,
-          produtos:produto_id (nome, referencia_interna)
-        `)
-        .eq('proposta_id', proposta.id);
-
-      if (itensError) {
-        console.error('❌ Erro ao buscar itens (atalho):', itensError);
-      }
-
-      console.log(`📋 Itens encontrados (atalho): ${itens?.length || 0}`);
-
-      const mensagemProposta = await formatarPropostaWhatsApp(proposta, itens || []);
-      
-      await salvarMemoria(supabase, conversaId, `Proposta ${proposta.numero_proposta} criada com ${quantidade} unidades`, 'proposta_enviada', openAiApiKey);
-
-      return new Response(
-        JSON.stringify({ resposta: mensagemProposta, proposta_id: proposta.id }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+    // Não usar atalhos - seguir o fluxo de classificação de intenção
 
     const { data: intencaoData } = await supabase.functions.invoke('classificar-intencao-whatsapp', {
       body: { 
