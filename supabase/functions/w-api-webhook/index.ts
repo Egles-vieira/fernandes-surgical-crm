@@ -388,12 +388,26 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
     console.log('🤖 Agente de vendas ativo - processando mensagem');
     
     try {
+      // Buscar cliente_id do contato CRM
+      let clienteId = null;
+      if (contatoIdCRM) {
+        const { data: contatoCRM } = await supabase
+          .from('contatos')
+          .select('cliente_id')
+          .eq('id', contatoIdCRM)
+          .single();
+        
+        clienteId = contatoCRM?.cliente_id;
+        console.log('👤 Cliente ID encontrado:', clienteId);
+      }
+
       // Chamar agente de vendas com suporte a áudio
       const { data: agenteData, error: agenteError } = await supabase.functions.invoke('agente-vendas-whatsapp', {
         body: {
           mensagemTexto: messageText || '', // Pode estar vazio se for áudio
           conversaId: conversa.id,
           contatoId: contato.id,
+          clienteId: clienteId, // Passar cliente ID
           tipoMensagem: messageType,
           urlMidia: mediaUrl || null
         }
