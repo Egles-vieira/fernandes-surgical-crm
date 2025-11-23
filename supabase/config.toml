@@ -71,3 +71,18 @@ verify_jwt = true
 
 [functions.criar-venda-teste]
 verify_jwt = true
+
+[functions.classificar-intencao-whatsapp]
+verify_jwt = false
+
+[functions.recuperar-contexto-conversa]
+verify_jwt = false
+
+[functions.processar-resposta-cliente]
+verify_jwt = false
+
+[functions.criar-oportunidade-venda]
+verify_jwt = false
+
+[functions.processar-feedback-produto]
+verify_jwt = false
