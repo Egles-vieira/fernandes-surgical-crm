@@ -107,9 +107,9 @@ async function salvarMemoria(supabase: any, conversaId: string, conteudo: string
     const { data, error } = await supabase.from('whatsapp_conversas_memoria').insert({
       conversa_id: conversaId,
       tipo_interacao: tipo,
-      conteudo,
+      conteudo_resumido: conteudo,
       embedding,
-      relevancia: 1.0,
+      relevancia_score: 1.0,
       expira_em: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString()
     }).select();
     
@@ -126,6 +126,8 @@ async function salvarMemoria(supabase: any, conversaId: string, conteudo: string
 async function criarProposta(supabase: any, conversaId: string, produtos: any[], clienteId: string) {
   try {
     const subtotal = produtos.reduce((sum, p) => sum + (p.preco_venda * (p.quantidade || 1)), 0);
+    
+    console.log(`📋 Criando proposta com ${produtos.length} produtos, subtotal: R$ ${subtotal.toFixed(2)}`);
     
     const { data: proposta, error } = await supabase
       .from('whatsapp_propostas_comerciais')
@@ -144,7 +146,10 @@ async function criarProposta(supabase: any, conversaId: string, produtos: any[],
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('❌ Erro ao criar proposta:', error);
+      throw error;
+    }
 
     // Inserir itens
     const itens = produtos.map(p => ({
@@ -157,7 +162,19 @@ async function criarProposta(supabase: any, conversaId: string, produtos: any[],
       subtotal_item: p.preco_venda * (p.quantidade || 1)
     }));
 
-    await supabase.from('whatsapp_propostas_itens').insert(itens);
+    console.log(`📦 Inserindo ${itens.length} itens na proposta`);
+    
+    const { data: itensInseridos, error: itensError } = await supabase
+      .from('whatsapp_propostas_itens')
+      .insert(itens)
+      .select();
+
+    if (itensError) {
+      console.error('❌ Erro ao inserir itens:', itensError);
+      throw itensError;
+    }
+
+    console.log(`✅ ${itensInseridos.length} itens inseridos com sucesso`);
 
     // Atualizar conversa
     await supabase
@@ -180,25 +197,38 @@ async function criarProposta(supabase: any, conversaId: string, produtos: any[],
     console.log('📋 Proposta criada:', proposta.numero_proposta);
     return proposta;
   } catch (e) {
-    console.error('Erro ao criar proposta:', e);
+    console.error('❌ Erro ao criar proposta:', e);
     return null;
   }
 }
 
 async function formatarPropostaWhatsApp(proposta: any, itens: any[]): Promise<string> {
+  console.log(`📝 Formatando proposta ${proposta.numero_proposta} com ${itens.length} itens`);
+  
   let mensagem = `*📋 PROPOSTA ${proposta.numero_proposta}*\n\n`;
   
+  if (itens.length === 0) {
+    console.warn('⚠️ Nenhum item na proposta!');
+    mensagem += `⚠️ Proposta sem itens\n\n`;
+  }
+  
   itens.forEach((item, idx) => {
-    mensagem += `${idx + 1}. *${item.produtos?.nome || 'Produto'}*\n`;
-    mensagem += `   Cód: ${item.produtos?.referencia_interna}\n`;
+    const nomeProduto = item.produtos?.nome || item.produto_nome || 'Produto';
+    const codProduto = item.produtos?.referencia_interna || item.produto_referencia || 'N/A';
+    
+    console.log(`  Item ${idx + 1}: ${nomeProduto} (${codProduto})`);
+    
+    mensagem += `${idx + 1}. *${nomeProduto}*\n`;
+    mensagem += `   Cód: ${codProduto}\n`;
     mensagem += `   Qtd: ${item.quantidade} x R$ ${item.preco_unitario.toFixed(2)}\n`;
     mensagem += `   Subtotal: R$ ${item.subtotal_item.toFixed(2)}\n\n`;
   });
 
+  mensagem += `━━━━━━━━━━━━━━━━━━\n`;
   mensagem += `*Subtotal:* R$ ${proposta.subtotal.toFixed(2)}\n`;
   
   if (proposta.desconto_valor > 0) {
-    mensagem += `*Desconto:* -R$ ${proposta.desconto_valor.toFixed(2)}\n`;
+    mensagem += `*Desconto (${proposta.desconto_percentual.toFixed(1)}%):* -R$ ${proposta.desconto_valor.toFixed(2)}\n`;
   }
   
   if (proposta.valor_frete > 0) {
@@ -206,11 +236,13 @@ async function formatarPropostaWhatsApp(proposta: any, itens: any[]): Promise<st
   }
   
   if (proposta.impostos_valor > 0) {
-    mensagem += `*Impostos:* R$ ${proposta.impostos_valor.toFixed(2)}\n`;
+    mensagem += `*Impostos (${proposta.impostos_percentual.toFixed(1)}%):* R$ ${proposta.impostos_valor.toFixed(2)}\n`;
   }
   
-  mensagem += `\n*VALOR TOTAL: R$ ${proposta.valor_total.toFixed(2)}*\n\n`;
-  mensagem += `O que você acha? Podemos fechar?`;
+  mensagem += `━━━━━━━━━━━━━━━━━━\n`;
+  mensagem += `*💰 VALOR TOTAL: R$ ${proposta.valor_total.toFixed(2)}*\n\n`;
+  mensagem += `📅 Válida até: ${new Date(proposta.valida_ate || Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString('pt-BR')}\n\n`;
+  mensagem += `O que você acha? Podemos fechar esse pedido?`;
   
   return mensagem;
 }
@@ -225,7 +257,7 @@ Deno.serve(async (req) => {
   try {
     let { mensagemTexto, conversaId, tipoMensagem, urlMidia, clienteId } = await req.json();
 
-    console.log("🤖 Agente Vendas v2 - Iniciando", { conversaId, tipoMensagem });
+    console.log("🤖 Agente Vendas v2 - Iniciando", { conversaId, tipoMensagem, clienteId });
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -243,6 +275,35 @@ Deno.serve(async (req) => {
         detectSessionInUrl: false,
       }
     });
+
+    // Se não tiver clienteId, buscar da conversa/contato
+    if (!clienteId) {
+      const { data: conv } = await supabase
+        .from('whatsapp_conversas')
+        .select('whatsapp_contato_id')
+        .eq('id', conversaId)
+        .single();
+      
+      if (conv?.whatsapp_contato_id) {
+        const { data: contato } = await supabase
+          .from('whatsapp_contatos')
+          .select('contato_id')
+          .eq('id', conv.whatsapp_contato_id)
+          .single();
+        
+        if (contato?.contato_id) {
+          const { data: contatoCRM } = await supabase
+            .from('contatos')
+            .select('cliente_id')
+            .eq('id', contato.contato_id)
+            .single();
+          
+          clienteId = contatoCRM?.cliente_id;
+        }
+      }
+      
+      console.log('🔍 Cliente ID encontrado via conversa:', clienteId);
+    }
 
     // === ETAPA 0: TRANSCRIÇÃO DE ÁUDIO ===
     if (tipoMensagem === 'audio' || tipoMensagem === 'voice') {
@@ -283,7 +344,7 @@ Deno.serve(async (req) => {
     // Primeiro: buscar últimas 5 mensagens direto da memória (fallback simples)
     const { data: memoriasRecentes, error: memoriaError } = await supabase
       .from('whatsapp_conversas_memoria')
-      .select('tipo_interacao, conteudo, criado_em')
+      .select('tipo_interacao, conteudo_resumido, criado_em')
       .eq('conversa_id', conversaId)
       .order('criado_em', { ascending: false })
       .limit(5);
@@ -293,7 +354,7 @@ Deno.serve(async (req) => {
     if (memoriasRecentes && memoriasRecentes.length > 0) {
       contextoRelevante = memoriasRecentes
         .reverse()
-        .map(m => `[${m.tipo_interacao}] ${m.conteudo}`)
+        .map(m => `[${m.tipo_interacao}] ${m.conteudo_resumido}`)
         .join('\n');
       console.log('🧠 Contexto:', memoriasRecentes.length, 'memórias recentes');
     } else {
@@ -360,13 +421,19 @@ Deno.serve(async (req) => {
         );
       }
 
-      const { data: itens } = await supabase
+      const { data: itens, error: itensError } = await supabase
         .from('whatsapp_propostas_itens')
         .select(`
           *,
           produtos:produto_id (nome, referencia_interna)
         `)
         .eq('proposta_id', proposta.id);
+
+      if (itensError) {
+        console.error('❌ Erro ao buscar itens (atalho):', itensError);
+      }
+
+      console.log(`📋 Itens encontrados (atalho): ${itens?.length || 0}`);
 
       const mensagemProposta = await formatarPropostaWhatsApp(proposta, itens || []);
       
@@ -526,13 +593,19 @@ CLIENTE DISSE: "${mensagemTexto}"`
       }
 
       // Buscar itens completos
-      const { data: itens } = await supabase
+      const { data: itens, error: itensError } = await supabase
         .from('whatsapp_propostas_itens')
         .select(`
           *,
           produtos:produto_id (nome, referencia_interna)
         `)
         .eq('proposta_id', proposta.id);
+
+      if (itensError) {
+        console.error('❌ Erro ao buscar itens da proposta:', itensError);
+      }
+
+      console.log(`📋 Itens encontrados: ${itens?.length || 0}`);
 
       const mensagemProposta = await formatarPropostaWhatsApp(proposta, itens || []);
       

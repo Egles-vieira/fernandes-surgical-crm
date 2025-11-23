@@ -68,7 +68,7 @@ Deno.serve(async (req) => {
       throw error;
     }
 
-    // Formatar contexto como texto
+    // Formatar contexto como texto  
     const contextoFormatado = memorias && memorias.length > 0
       ? memorias.map((m: any) => 
           `[${m.tipo_interacao}] ${m.conteudo} (relevância: ${(m.relevancia * 100).toFixed(0)}%)`
