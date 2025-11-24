@@ -39,7 +39,227 @@ interface ContextoConversa {
   contextoHistorico: string;
 }
 
+interface PerfilCliente {
+  tipo: 'cliente_novo' | 'cliente_vip' | 'cliente_regular' | 'lead';
+  marcadores: string[];
+  historico_compras: number;
+  ticket_medio: number;
+  ultima_compra_dias: number;
+  nome?: string;
+}
+
 // === FUNÇÕES AUXILIARES ===
+
+// Buscar perfil do cliente
+async function buscarPerfilCliente(clienteId: string | null, supabase: any): Promise<PerfilCliente> {
+  console.log('👤 Buscando perfil do cliente:', clienteId);
+  
+  if (!clienteId) {
+    return {
+      tipo: 'lead',
+      marcadores: ['cliente_novo'],
+      historico_compras: 0,
+      ticket_medio: 0,
+      ultima_compra_dias: 9999
+    };
+  }
+  
+  try {
+    // Buscar dados do cliente
+    const { data: cliente } = await supabase
+      .from('clientes')
+      .select('nome_emit, nome_fantasia, criado_em')
+      .eq('id', clienteId)
+      .single();
+    
+    // Buscar histórico de vendas
+    const { data: vendas } = await supabase
+      .from('vendas')
+      .select('valor_total, criado_em')
+      .eq('cliente_id', clienteId)
+      .order('criado_em', { ascending: false });
+    
+    const totalCompras = vendas?.length || 0;
+    const ticketMedio = vendas?.reduce((sum: number, v: any) => sum + (v.valor_total || 0), 0) / (totalCompras || 1);
+    
+    // Calcular dias desde última compra
+    let ultimaCompraDias = 9999;
+    if (vendas && vendas.length > 0) {
+      const ultimaCompra = new Date(vendas[0].criado_em);
+      const hoje = new Date();
+      ultimaCompraDias = Math.floor((hoje.getTime() - ultimaCompra.getTime()) / (1000 * 60 * 60 * 24));
+    }
+    
+    // Determinar tipo de cliente
+    let tipo: 'cliente_novo' | 'cliente_vip' | 'cliente_regular' = 'cliente_regular';
+    const marcadores: string[] = [];
+    
+    if (totalCompras === 0) {
+      tipo = 'cliente_novo';
+      marcadores.push('cliente_novo');
+    } else if (totalCompras > 10 && ticketMedio > 5000) {
+      tipo = 'cliente_vip';
+      marcadores.push('cliente_vip', 'alto_valor');
+    } else {
+      tipo = 'cliente_regular';
+    }
+    
+    // Marcadores adicionais
+    if (ticketMedio > 10000) marcadores.push('ticket_alto');
+    if (totalCompras > 20) marcadores.push('frequente');
+    if (ultimaCompraDias > 90 && totalCompras > 0) marcadores.push('inativo');
+    if (ultimaCompraDias < 30 && totalCompras > 0) marcadores.push('ativo_recente');
+    
+    const perfil = {
+      tipo,
+      marcadores,
+      historico_compras: totalCompras,
+      ticket_medio: ticketMedio,
+      ultima_compra_dias: ultimaCompraDias,
+      nome: cliente?.nome_fantasia || cliente?.nome_emit
+    };
+    
+    console.log('✅ Perfil:', perfil);
+    return perfil;
+    
+  } catch (error) {
+    console.error('❌ Erro ao buscar perfil:', error);
+    return {
+      tipo: 'lead',
+      marcadores: ['erro_perfil'],
+      historico_compras: 0,
+      ticket_medio: 0,
+      ultima_compra_dias: 9999
+    };
+  }
+}
+
+// Gerar resposta personalizada baseada no perfil e contexto
+async function gerarRespostaPersonalizada(
+  mensagemCliente: string,
+  contextoHistorico: string,
+  perfil: PerfilCliente,
+  produtos: any[],
+  estado: EstadoConversa,
+  lovableApiKey: string
+): Promise<string> {
+  console.log('🎨 Gerando resposta personalizada - Estado:', estado, '| Perfil:', perfil.tipo);
+  
+  // Construir prompt contextualizado
+  let systemPrompt = `Você é o Beto, vendedor experiente e simpático da Cirúrgica Fernandes.
+
+PERFIL DO CLIENTE:
+- Tipo: ${perfil.tipo}
+- Nome: ${perfil.nome || 'não informado'}
+- Histórico: ${perfil.historico_compras} compra(s) anterior(es)
+- Ticket médio: R$ ${perfil.ticket_medio.toFixed(2)}
+- Última compra: ${perfil.ultima_compra_dias < 9999 ? `há ${perfil.ultima_compra_dias} dias` : 'nunca comprou'}
+${perfil.marcadores.length > 0 ? `- Marcadores: ${perfil.marcadores.join(', ')}` : ''}
+
+ESTÁGIO DA CONVERSA: ${estado}
+
+CONTEXTO DA CONVERSA:
+${contextoHistorico}
+
+SOBRE A EMPRESA:
+- Cirúrgica Fernandes vende produtos hospitalares e cirúrgicos
+- Atende hospitais, clínicas e profissionais de saúde
+- Grande variedade em estoque, diversas marcas reconhecidas
+
+SUA PERSONALIDADE:
+- Simpático e profissional
+- Direto ao ponto, sem enrolação
+- Usa linguagem natural e informal (você, não "senhor/senhora")
+- Máximo 2 emojis por mensagem (use com moderação)
+- Faz perguntas para entender melhor a necessidade
+- Empático e atencioso`;
+
+  // Adicionar instruções específicas por perfil
+  if (perfil.tipo === 'cliente_vip') {
+    systemPrompt += `\n\nINSTRUÇÕES ESPECIAIS (CLIENTE VIP):
+- Reconheça que é um cliente especial e agradeça a preferência
+- Ofereça atenção diferenciada e personalizada
+- Mencione que pode verificar condições especiais se necessário`;
+  } else if (perfil.tipo === 'cliente_novo') {
+    systemPrompt += `\n\nINSTRUÇÕES ESPECIAIS (CLIENTE NOVO):
+- Dê boas-vindas calorosas
+- Se apresente brevemente como Beto da Cirúrgica Fernandes
+- Explique que está aqui para ajudar a encontrar o que precisa`;
+  } else if (perfil.marcadores.includes('inativo')) {
+    systemPrompt += `\n\nINSTRUÇÕES ESPECIAIS (CLIENTE INATIVO):
+- Mencione que é bom ter ele de volta
+- Mostre entusiasmo em ajudar novamente`;
+  }
+  
+  // Adicionar contexto de produtos se houver
+  if (produtos && produtos.length > 0) {
+    systemPrompt += `\n\nPRODUTOS ENCONTRADOS:
+${produtos.slice(0, 5).map(p => 
+  `• ${p.nome} (${p.referencia_interna}) - R$ ${p.preco_venda?.toFixed(2) || 'N/A'} - Estoque: ${p.quantidade_em_maos || 0}`
+).join('\n')}`;
+  }
+  
+  // Instruções específicas por estágio
+  if (estado === 'sugestao_produtos') {
+    systemPrompt += `\n\nINSTRUÇÕES PARA SUGESTÃO DE PRODUTOS:
+- Apresente os 2-3 melhores produtos (não todos)
+- Destaque DIFERENCIAIS de cada um: "Mais vendido", "Melhor custo-benefício", "Alta qualidade", "Recomendado para..."
+- Use linguagem de vendas persuasiva mas não agressiva
+- Pergunte se quer saber mais detalhes ou já quer fechar
+- Seja conciso (máximo 4-5 linhas)`;
+  } else if (estado === 'proposta_apresentada') {
+    systemPrompt += `\n\nINSTRUÇÕES PARA PROPOSTA:
+- Use linguagem de fechamento positiva
+- Reforce benefícios da escolha
+- Ofereça flexibilidade: parcelamento, desconto para volume
+- Mostre confiança no valor da proposta`;
+  } else if (estado === 'negociacao_ativa') {
+    systemPrompt += `\n\nINSTRUÇÕES PARA NEGOCIAÇÃO:
+- Seja empático com a preocupação de preço
+- Mostre valor agregado (qualidade, economia no longo prazo)
+- Ofereça alternativas criativas
+- Mantenha tom positivo e solucionador`;
+  }
+  
+  systemPrompt += `\n\nCLIENTE DISSE: "${mensagemCliente}"
+
+TAREFA: Responda de forma natural, contextualizada e persuasiva. Seja autêntico como um vendedor experiente.`;
+
+  try {
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${lovableApiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: mensagemCliente }
+        ],
+        temperature: 0.85,
+        max_tokens: 300
+      })
+    });
+    
+    if (!response.ok) {
+      console.error('❌ Erro na API Lovable:', response.status);
+      throw new Error('Falha na API');
+    }
+    
+    const data = await response.json();
+    const respostaGerada = data.choices[0].message.content;
+    
+    console.log('✅ Resposta gerada:', respostaGerada.substring(0, 100) + '...');
+    return respostaGerada;
+    
+  } catch (error) {
+    console.error('❌ Erro ao gerar resposta:', error);
+    // Fallback simples
+    return "Desculpa, tive um problema técnico. Pode repetir?";
+  }
+}
 
 // Banco de perguntas qualificadoras
 const PERGUNTAS_QUALIFICADORAS = {
@@ -598,6 +818,9 @@ Deno.serve(async (req) => {
       console.log('🔍 Cliente ID encontrado via conversa:', clienteId);
     }
 
+    // === ETAPA 0.5: BUSCAR PERFIL DO CLIENTE ===
+    const perfilCliente = await buscarPerfilCliente(clienteId, supabase);
+
     // === ETAPA 0: TRANSCRIÇÃO DE ÁUDIO ===
     if (tipoMensagem === 'audio' || tipoMensagem === 'voice') {
       if (!urlMidia) {
@@ -801,42 +1024,16 @@ Deno.serve(async (req) => {
         })
         .eq('id', conversaId);
 
-      // Gerar resposta humanizada
-      const contextoProdutos = produtos
-        .map((p: any) => 
-          `${p.nome} | Cód: ${p.referencia_interna} | R$ ${p.preco_venda.toFixed(2)} | Estoque: ${p.quantidade_em_maos}`
-        )
-        .join('\n');
-
-      const respostaResponse = await fetch("https://api.deepseek.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${deepseekApiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "deepseek-chat",
-          messages: [
-            {
-              role: "system",
-              content: `Você é o Beto, vendedor simpático da Cirúrgica Fernandes.
-Apresente os produtos encontrados de forma concisa, com preço.
-Pergunte se o cliente quer fechar ou precisa de mais informações.
-NÃO use emojis. Seja direto.
-
-PRODUTOS ENCONTRADOS:
-${contextoProdutos}
-
-CLIENTE DISSE: "${mensagemTexto}"`
-            }
-          ],
-          temperature: 0.7,
-          max_tokens: 300
-        })
-      });
-
-      const respostaJson = await respostaResponse.json();
-      const resposta = respostaJson.choices[0].message.content;
+      // Gerar resposta humanizada e personalizada
+      const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+      const resposta = await gerarRespostaPersonalizada(
+        mensagemTexto,
+        contextoCompleto,
+        perfilCliente,
+        produtos,
+        proximoEstado,
+        lovableApiKey!
+      );
 
       await salvarMemoria(supabase, conversaId, `Beto: ${resposta}`, 'resposta_enviada', openAiApiKey);
 
@@ -860,45 +1057,16 @@ CLIENTE DISSE: "${mensagemTexto}"`
         );
       }
 
-      const contextoProdutos = produtosCarrinho
-        .map((p: any) => 
-          `${p.nome} | Cód: ${p.referencia_interna} | R$ ${p.preco_venda.toFixed(2)} | Estoque: ${p.quantidade_em_maos}`
-        )
-        .join('\n');
-
-      const respostaResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${Deno.env.get('LOVABLE_API_KEY')}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
-          messages: [
-            {
-              role: "system",
-              content: `Você é o Beto, vendedor da Cirúrgica Fernandes.
-
-PRODUTOS ENCONTRADOS:
-${contextoProdutos}
-
-INSTRUÇÕES:
-- Apresente os 2-3 melhores produtos de forma concisa
-- Destaque diferenciais: "Mais vendido", "Melhor preço", "Alta qualidade"
-- Pergunte se o cliente quer fechar ou precisa de mais informações
-- Máximo 2 emojis
-- Seja direto e amigável
-
-CLIENTE DISSE: "${mensagemTexto}"`
-            }
-          ],
-          temperature: 0.8,
-          max_tokens: 250
-        })
-      });
-
-      const respostaJson = await respostaResponse.json();
-      const resposta = respostaJson.choices[0].message.content;
+      // Gerar resposta humanizada e personalizada
+      const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+      const resposta = await gerarRespostaPersonalizada(
+        mensagemTexto,
+        contextoCompleto,
+        perfilCliente,
+        produtosCarrinho,
+        proximoEstado,
+        lovableApiKey!
+      );
 
       await salvarMemoria(supabase, conversaId, `Beto apresentou produtos: ${resposta}`, 'produtos_apresentados', openAiApiKey);
 
@@ -1134,64 +1302,15 @@ CLIENTE DISSE: "${mensagemTexto}"`
     
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
     
-    // Buscar últimas mensagens para contexto
-    const { data: ultimasMensagens } = await supabase
-      .from('whatsapp_mensagens')
-      .select('corpo, direcao, criado_em')
-      .eq('conversa_id', conversaId)
-      .order('criado_em', { ascending: false })
-      .limit(5);
-    
-    const historicoChat = ultimasMensagens
-      ?.reverse()
-      .map(m => `${m.direcao === 'recebida' ? 'Cliente' : 'Beto'}: ${m.corpo}`)
-      .join('\n') || '';
-    
-    const respostaResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${lovableApiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          {
-            role: "system",
-            content: `Você é o Beto, vendedor experiente e simpático da Cirúrgica Fernandes.
-
-SOBRE A EMPRESA:
-- Vende produtos hospitalares e cirúrgicos
-- Atende hospitais, clínicas e profissionais de saúde
-- Tem grande variedade de produtos em estoque
-- Trabalha com diversas marcas reconhecidas
-
-SUA PERSONALIDADE:
-- Simpático mas profissional
-- Direto ao ponto, sem enrolação
-- Usa linguagem natural e informal (você, não "senhor/senhora")
-- NÃO usa emojis em excesso (máximo 1-2 por mensagem)
-- Faz perguntas para entender melhor a necessidade
-
-CONTEXTO DA CONVERSA:
-${historicoChat}
-
-INSTRUÇÕES:
-1. Se for saudação: Cumprimente de volta e pergunte como pode ajudar
-2. Se for dúvida geral: Responda e ofereça ajuda para encontrar produtos
-3. Se cliente parecer perdido: Ajude a direcionar o que ele precisa
-4. Mantenha respostas curtas (máximo 3 linhas)
-5. Sempre finalize oferecendo ajuda concreta`
-          },
-          { role: "user", content: mensagemTexto }
-        ],
-        temperature: 0.8,
-        max_tokens: 150
-      })
-    });
-
-    const respostaJson = await respostaResponse.json();
-    const resposta = respostaJson.choices[0].message.content;
+    // Gerar resposta humanizada e personalizada
+    const resposta = await gerarRespostaPersonalizada(
+      mensagemTexto,
+      contextoCompleto,
+      perfilCliente,
+      [],
+      proximoEstado,
+      lovableApiKey!
+    );
 
     await salvarMemoria(supabase, conversaId, `Beto: ${resposta}`, 'conversa_geral', openAiApiKey);
 
