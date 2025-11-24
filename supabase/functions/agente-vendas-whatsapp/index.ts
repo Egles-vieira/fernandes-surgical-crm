@@ -214,15 +214,15 @@ async function formatarPropostaWhatsApp(proposta: any, itens: any[]): Promise<st
   }
   
   itens.forEach((item, idx) => {
-    const nomeProduto = item.produtos?.nome || item.produto_nome || 'Produto';
-    const codProduto = item.produtos?.referencia_interna || item.produto_referencia || 'N/A';
+    const nomeProduto = item.produtos?.nome || item.nome_produto || 'Produto';
+    const codProduto = item.produtos?.referencia_interna || item.referencia_interna || 'N/A';
     
     console.log(`  Item ${idx + 1}: ${nomeProduto} (${codProduto})`);
     
     mensagem += `${idx + 1}. *${nomeProduto}*\n`;
     mensagem += `   Cód: ${codProduto}\n`;
     mensagem += `   Qtd: ${item.quantidade} x R$ ${item.preco_unitario.toFixed(2)}\n`;
-    mensagem += `   Subtotal: R$ ${item.subtotal_item.toFixed(2)}\n\n`;
+    mensagem += `   Subtotal: R$ ${item.subtotal.toFixed(2)}\n\n`;
   });
 
   mensagem += `━━━━━━━━━━━━━━━━━━\n`;
