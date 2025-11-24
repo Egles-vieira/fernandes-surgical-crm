@@ -158,7 +158,9 @@ async function criarProposta(supabase: any, conversaId: string, produtos: any[],
       preco_unitario: p.preco_venda,
       desconto_percentual: 0,
       desconto_valor: 0,
-      subtotal_item: p.preco_venda * (p.quantidade || 1)
+      subtotal: p.preco_venda * (p.quantidade || 1),
+      referencia_interna: p.referencia_interna || null,
+      nome_produto: p.nome
     }));
 
     console.log(`📦 Inserindo ${itens.length} itens na proposta`);

@@ -93,5 +93,8 @@ verify_jwt = false
 [functions.coletar-metricas-diarias]
 verify_jwt = false
 
+[functions.criar-oportunidade-venda]
+verify_jwt = false
+
 [functions.enviar-proposta-whatsapp]
 verify_jwt = false
