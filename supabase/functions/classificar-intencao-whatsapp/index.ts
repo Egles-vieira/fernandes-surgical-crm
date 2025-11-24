@@ -71,7 +71,7 @@ Classifique a intenção em JSON estrito com:
 {
   "intencao": string, // Uma de: saudacao, duvida, buscar_produto, confirmar_itens, negociar_preco, finalizar_pedido, outro
   "confianca": number, // 0-1
-  "palavrasChave": string[], // Termos relevantes extraídos
+  "palavrasChave": string[], // APENAS termos técnicos de produtos (marcas, modelos, especificações técnicas, códigos). NUNCA inclua verbos como "cotar", "comprar", "quero", "preciso"
   "entidades": {
     "produtos": string[], // Nomes de produtos mencionados OU produtos do contexto se aplicável
     "quantidades": number[], // Quantidades numéricas
@@ -79,6 +79,12 @@ Classifique a intenção em JSON estrito com:
   },
   "proximaAcao": string // Descrição do que o agente deve fazer
 }
+
+PALAVRAS QUE NUNCA DEVEM ESTAR EM palavrasChave:
+- Verbos de ação: cotar, comprar, quero, preciso, gostaria, pode, tem, vende
+- Cumprimentos: oi, olá, bom dia, boa tarde
+- Quantificadores genéricos: muito, pouco, mais, menos
+APENAS inclua termos técnicos: nomes de produtos, códigos, marcas, especificações, medidas
 
 EXEMPLOS:
 - "Oi, bom dia" -> intencao: saudacao

@@ -983,8 +983,24 @@ Deno.serve(async (req) => {
     
     // ESTADO: REFINAMENTO DE BUSCA ou continuação após descoberta
     if (proximoEstado === 'descoberta_necessidade' || proximoEstado === 'refinamento_busca') {
-      const termoBusca = intencao.palavrasChave?.join(' ') || mensagemTexto;
-      console.log('🔍 Buscando produtos:', termoBusca);
+      // Filtrar palavras não-técnicas das palavrasChave
+      const palavrasProibidas = ['cotar', 'cotação', 'comprar', 'quero', 'preciso', 'gostaria', 'pode', 'tem', 'vende', 'oi', 'olá', 'bom', 'dia', 'tarde', 'noite'];
+      
+      let termoBusca: string;
+      
+      if (intencao.palavrasChave && intencao.palavrasChave.length > 0) {
+        const palavrasFiltradas = intencao.palavrasChave.filter(
+          (palavra: string) => !palavrasProibidas.includes(palavra.toLowerCase())
+        );
+        termoBusca = palavrasFiltradas.length > 0 
+          ? palavrasFiltradas.join(' ') 
+          : (intencao.entidades?.produtos?.[0] || mensagemTexto);
+      } else {
+        // Fallback: usar produtos das entidades ou mensagem completa
+        termoBusca = intencao.entidades?.produtos?.[0] || mensagemTexto;
+      }
+      
+      console.log('🔍 Buscando produtos:', termoBusca, '| Palavras originais:', intencao.palavrasChave);
 
       const vetorPergunta = await gerarEmbedding(termoBusca, openAiApiKey);
       
