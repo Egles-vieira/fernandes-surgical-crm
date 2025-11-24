@@ -5,6 +5,22 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// === TIPOS E ENUMS ===
+
+type EstadoConversa = 
+  | 'saudacao_inicial'           // Primeira interação
+  | 'descoberta_necessidade'     // Fazendo perguntas qualificadoras
+  | 'sugestao_produtos'          // Mostrou produtos, aguardando reação
+  | 'aguardando_escolha'         // Cliente viu opções, precisa escolher
+  | 'confirmacao_quantidade'     // Cliente escolheu, confirmar qtd
+  | 'refinamento_busca'          // Cliente pediu mais opções
+  | 'montagem_proposta'          // Preparando proposta
+  | 'proposta_apresentada'       // Proposta enviada, aguardando decisão
+  | 'negociacao_ativa'           // Cliente quer negociar
+  | 'aguardando_aprovacao'       // Aguardando aprovação diretoria
+  | 'fechamento'                 // Pedido confirmado
+  | 'pos_venda';                 // Acompanhamento após venda
+
 interface ProdutoRelevante {
   id: string;
   referencia_interna: string;
@@ -15,7 +31,76 @@ interface ProdutoRelevante {
   similarity?: number;
 }
 
+interface ContextoConversa {
+  estadoAtual: EstadoConversa;
+  intencao: any;
+  carrinho: string[];
+  propostaId: string | null;
+  contextoHistorico: string;
+}
+
 // === FUNÇÕES AUXILIARES ===
+
+// Função de transição de estados
+function determinarProximoEstado(contexto: ContextoConversa): EstadoConversa {
+  const { estadoAtual, intencao, carrinho, propostaId } = contexto;
+  
+  console.log(`🔄 Transição de estado: ${estadoAtual} + ${intencao.intencao}`);
+  
+  // Regras de transição por estado atual
+  switch(estadoAtual) {
+    case 'saudacao_inicial':
+      if (intencao.intencao === 'buscar_produto') return 'descoberta_necessidade';
+      if (intencao.intencao === 'saudacao' || intencao.intencao === 'duvida') return 'saudacao_inicial';
+      break;
+    
+    case 'descoberta_necessidade':
+      if (intencao.intencao === 'buscar_produto' && carrinho.length > 0) return 'sugestao_produtos';
+      if (intencao.intencao === 'buscar_produto') return 'descoberta_necessidade'; // continua descobrindo
+      break;
+    
+    case 'sugestao_produtos':
+      if (intencao.intencao === 'confirmar_itens' || intencao.intencao === 'adicionar_produto') return 'aguardando_escolha';
+      if (intencao.intencao === 'buscar_produto') return 'refinamento_busca';
+      break;
+    
+    case 'aguardando_escolha':
+      if (intencao.intencao === 'confirmar_itens') return 'confirmacao_quantidade';
+      if (intencao.intencao === 'buscar_produto') return 'refinamento_busca';
+      break;
+    
+    case 'confirmacao_quantidade':
+      return 'montagem_proposta';
+    
+    case 'montagem_proposta':
+      if (propostaId) return 'proposta_apresentada';
+      break;
+    
+    case 'proposta_apresentada':
+      if (intencao.intencao === 'negociar_preco') return 'negociacao_ativa';
+      if (intencao.intencao === 'finalizar_pedido') return 'fechamento';
+      if (intencao.intencao === 'buscar_produto') return 'refinamento_busca';
+      break;
+    
+    case 'negociacao_ativa':
+      if (intencao.intencao === 'finalizar_pedido') return 'fechamento';
+      break;
+    
+    case 'refinamento_busca':
+      if (carrinho.length > 0) return 'sugestao_produtos';
+      break;
+    
+    case 'fechamento':
+      return 'pos_venda';
+    
+    case 'aguardando_aprovacao':
+      // Permanece aguardando até aprovação externa
+      break;
+  }
+  
+  // Se não houver transição, permanece no estado atual
+  return estadoAtual;
+}
 
 async function transcreverAudio(audioUrl: string, openAiKey: string, supabase: any, conversaId: string): Promise<string> {
   try {
@@ -334,8 +419,21 @@ Deno.serve(async (req) => {
       .eq('id', conversaId)
       .single();
 
-    const estagioAtual = conversa?.estagio_agente || 'inicial';
-    console.log('📍 Estágio:', estagioAtual, '| Carrinho:', conversa?.produtos_carrinho?.length || 0, 'produtos');
+    // Normalizar estado para os novos tipos
+    const mapearEstadoAntigo = (estadoAntigo: string): EstadoConversa => {
+      const mapa: Record<string, EstadoConversa> = {
+        'inicial': 'saudacao_inicial',
+        'buscando_produto': 'descoberta_necessidade',
+        'confirmando_itens': 'aguardando_escolha',
+        'negociacao': 'negociacao_ativa',
+        'aguardando_aprovacao': 'aguardando_aprovacao',
+        'fechamento': 'fechamento'
+      };
+      return mapa[estadoAntigo] || 'saudacao_inicial';
+    };
+
+    const estadoAtual = mapearEstadoAntigo(conversa?.estagio_agente || 'inicial');
+    console.log('📍 Estado:', estadoAtual, '| Carrinho:', conversa?.produtos_carrinho?.length || 0, 'produtos');
 
     // Salvar mensagem do cliente na memória
     await salvarMemoria(supabase, conversaId, `Cliente: ${mensagemTexto}`, 'mensagem_recebida', openAiApiKey);
@@ -405,16 +503,31 @@ Deno.serve(async (req) => {
     const intencao = intencaoData || { intencao: 'outro', confianca: 0 };
     console.log('🎯 Intenção:', intencao.intencao, '| Confiança:', intencao.confianca);
 
-    // Atualizar última intenção
+    // === ETAPA 4: DETERMINAR PRÓXIMO ESTADO ===
+    const contextoTransicao: ContextoConversa = {
+      estadoAtual,
+      intencao,
+      carrinho: conversa?.produtos_carrinho || [],
+      propostaId: conversa?.proposta_ativa_id || null,
+      contextoHistorico: contextoCompleto
+    };
+
+    const proximoEstado = determinarProximoEstado(contextoTransicao);
+    console.log(`➡️  Estado: ${estadoAtual} → ${proximoEstado}`);
+
+    // Atualizar estado e intenção no banco
     await supabase
       .from('whatsapp_conversas')
-      .update({ ultima_intencao_detectada: intencao.intencao })
+      .update({ 
+        ultima_intencao_detectada: intencao.intencao,
+        estagio_agente: proximoEstado 
+      })
       .eq('id', conversaId);
 
-    // === ETAPA 4: ROTEAMENTO POR INTENÇÃO ===
+    // === ETAPA 5: PROCESSAMENTO POR ESTADO ===
     
-    // 4A: BUSCAR PRODUTO
-    if (intencao.intencao === 'buscar_produto') {
+    // ESTADO: DESCOBERTA DE NECESSIDADE ou REFINAMENTO
+    if (proximoEstado === 'descoberta_necessidade' || proximoEstado === 'refinamento_busca') {
       const termoBusca = intencao.palavrasChave?.join(' ') || mensagemTexto;
       console.log('🔍 Buscando produtos:', termoBusca);
 
@@ -447,13 +560,12 @@ Deno.serve(async (req) => {
         openAiApiKey
       );
 
-      // Atualizar carrinho
+      // Atualizar carrinho (sobrescreve se refinamento, mantém se descoberta)
       const produtosIds = produtos.map((p: any) => p.id);
       await supabase
         .from('whatsapp_conversas')
         .update({ 
-          produtos_carrinho: produtosIds,
-          estagio_agente: 'buscando_produto'
+          produtos_carrinho: produtosIds
         })
         .eq('id', conversaId);
 
@@ -502,8 +614,70 @@ CLIENTE DISSE: "${mensagemTexto}"`
       );
     }
 
-    // 4B: CONFIRMAR ITENS / ADICIONAR AO CARRINHO / ESPECIFICAR QUANTIDADE
-    if (intencao.intencao === 'confirmar_itens' || intencao.intencao === 'adicionar_produto') {
+    // ESTADO: SUGESTÃO DE PRODUTOS (produtos já buscados, apresentar)
+    if (proximoEstado === 'sugestao_produtos' && conversa?.produtos_carrinho && conversa.produtos_carrinho.length > 0) {
+      const { data: produtosCarrinho } = await supabase
+        .from('produtos')
+        .select('id, nome, referencia_interna, preco_venda, quantidade_em_maos')
+        .in('id', conversa.produtos_carrinho);
+
+      if (!produtosCarrinho || produtosCarrinho.length === 0) {
+        return new Response(
+          JSON.stringify({ resposta: "Ops, perdi o carrinho. Pode me dizer o que precisa novamente?" }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const contextoProdutos = produtosCarrinho
+        .map((p: any) => 
+          `${p.nome} | Cód: ${p.referencia_interna} | R$ ${p.preco_venda.toFixed(2)} | Estoque: ${p.quantidade_em_maos}`
+        )
+        .join('\n');
+
+      const respostaResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${Deno.env.get('LOVABLE_API_KEY')}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          messages: [
+            {
+              role: "system",
+              content: `Você é o Beto, vendedor da Cirúrgica Fernandes.
+
+PRODUTOS ENCONTRADOS:
+${contextoProdutos}
+
+INSTRUÇÕES:
+- Apresente os 2-3 melhores produtos de forma concisa
+- Destaque diferenciais: "Mais vendido", "Melhor preço", "Alta qualidade"
+- Pergunte se o cliente quer fechar ou precisa de mais informações
+- Máximo 2 emojis
+- Seja direto e amigável
+
+CLIENTE DISSE: "${mensagemTexto}"`
+            }
+          ],
+          temperature: 0.8,
+          max_tokens: 250
+        })
+      });
+
+      const respostaJson = await respostaResponse.json();
+      const resposta = respostaJson.choices[0].message.content;
+
+      await salvarMemoria(supabase, conversaId, `Beto apresentou produtos: ${resposta}`, 'produtos_apresentados', openAiApiKey);
+
+      return new Response(
+        JSON.stringify({ resposta, produtos_encontrados: produtosCarrinho }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // ESTADO: AGUARDANDO ESCOLHA / CONFIRMAÇÃO DE QUANTIDADE
+    if (proximoEstado === 'aguardando_escolha' || proximoEstado === 'confirmacao_quantidade') {
       const carrinho = conversa?.produtos_carrinho || [];
       
       if (carrinho.length === 0) {
@@ -531,6 +705,8 @@ CLIENTE DISSE: "${mensagemTexto}"`
         quantidade
       }));
 
+      console.log(`📋 Montando proposta com ${produtosComQuantidade.length} produtos`);
+      
       // Criar proposta
       const proposta = await criarProposta(supabase, conversaId, produtosComQuantidade, clienteId);
       
@@ -566,8 +742,34 @@ CLIENTE DISSE: "${mensagemTexto}"`
       );
     }
 
-    // 4C: NEGOCIAR PREÇO
-    if (intencao.intencao === 'negociar_preco') {
+    // ESTADO: PROPOSTA APRESENTADA (aguardando feedback do cliente)
+    if (proximoEstado === 'proposta_apresentada' && conversa?.proposta_ativa_id) {
+      // Proposta já foi criada e enviada, agora aguarda resposta
+      // Este estado é passivo, a ação ocorre quando cliente responde
+      
+      const { data: proposta } = await supabase
+        .from('whatsapp_propostas_comerciais')
+        .select('*')
+        .eq('id', conversa.proposta_ativa_id)
+        .single();
+
+      if (proposta) {
+        const { data: itens } = await supabase
+          .from('whatsapp_propostas_itens')
+          .select('*, produtos:produto_id (nome, referencia_interna)')
+          .eq('proposta_id', proposta.id);
+
+        const mensagemProposta = await formatarPropostaWhatsApp(proposta, itens || []);
+        
+        return new Response(
+          JSON.stringify({ resposta: mensagemProposta, proposta_id: proposta.id }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
+
+    // ESTADO: NEGOCIAÇÃO ATIVA
+    if (proximoEstado === 'negociacao_ativa') {
       if (!conversa?.proposta_ativa_id) {
         return new Response(
           JSON.stringify({ resposta: "Ainda não temos uma proposta ativa. Vamos ver os produtos primeiro?" }),
@@ -645,8 +847,8 @@ CLIENTE DISSE: "${mensagemTexto}"`
       }
     }
 
-    // 4D: FINALIZAR PEDIDO
-    if (intencao.intencao === 'finalizar_pedido') {
+    // ESTADO: FECHAMENTO
+    if (proximoEstado === 'fechamento') {
       if (!conversa?.proposta_ativa_id) {
         return new Response(
           JSON.stringify({ resposta: "Ainda não temos uma proposta. Quer ver alguns produtos?" }),
@@ -682,7 +884,6 @@ CLIENTE DISSE: "${mensagemTexto}"`
       await supabase
         .from('whatsapp_conversas')
         .update({ 
-          estagio_agente: 'fechamento',
           status: 'fechado'
         })
         .eq('id', conversaId);
@@ -696,8 +897,8 @@ CLIENTE DISSE: "${mensagemTexto}"`
       );
     }
 
-    // 4E: SAUDAÇÃO / DÚVIDA / OUTRO - Conversa natural
-    console.log('💬 Resposta conversacional para:', intencao.intencao);
+    // ESTADO: SAUDAÇÃO INICIAL ou OUTROS - Conversa natural
+    console.log('💬 Resposta conversacional - Estado:', proximoEstado);
     
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
     
