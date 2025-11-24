@@ -696,35 +696,71 @@ CLIENTE DISSE: "${mensagemTexto}"`
       );
     }
 
-    // 4E: SAUDAÇÃO / DÚVIDA / OUTRO
-    const respostaResponse = await fetch("https://api.deepseek.com/v1/chat/completions", {
+    // 4E: SAUDAÇÃO / DÚVIDA / OUTRO - Conversa natural
+    console.log('💬 Resposta conversacional para:', intencao.intencao);
+    
+    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+    
+    // Buscar últimas mensagens para contexto
+    const { data: ultimasMensagens } = await supabase
+      .from('whatsapp_mensagens')
+      .select('corpo, direcao, criado_em')
+      .eq('conversa_id', conversaId)
+      .order('criado_em', { ascending: false })
+      .limit(5);
+    
+    const historicoChat = ultimasMensagens
+      ?.reverse()
+      .map(m => `${m.direcao === 'recebida' ? 'Cliente' : 'Beto'}: ${m.corpo}`)
+      .join('\n') || '';
+    
+    const respostaResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${deepseekApiKey}`,
+        Authorization: `Bearer ${lovableApiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "deepseek-chat",
+        model: "google/gemini-2.5-flash",
         messages: [
           {
             role: "system",
-            content: `Você é o Beto, vendedor da Cirúrgica Fernandes.
-Responda de forma simpática e profissional.
-Se for saudação, cumprimente e pergunte como pode ajudar.
-Se for dúvida, responda e ofereça ajuda.
-NÃO use emojis. Seja breve e direto.`
+            content: `Você é o Beto, vendedor experiente e simpático da Cirúrgica Fernandes.
+
+SOBRE A EMPRESA:
+- Vende produtos hospitalares e cirúrgicos
+- Atende hospitais, clínicas e profissionais de saúde
+- Tem grande variedade de produtos em estoque
+- Trabalha com diversas marcas reconhecidas
+
+SUA PERSONALIDADE:
+- Simpático mas profissional
+- Direto ao ponto, sem enrolação
+- Usa linguagem natural e informal (você, não "senhor/senhora")
+- NÃO usa emojis em excesso (máximo 1-2 por mensagem)
+- Faz perguntas para entender melhor a necessidade
+
+CONTEXTO DA CONVERSA:
+${historicoChat}
+
+INSTRUÇÕES:
+1. Se for saudação: Cumprimente de volta e pergunte como pode ajudar
+2. Se for dúvida geral: Responda e ofereça ajuda para encontrar produtos
+3. Se cliente parecer perdido: Ajude a direcionar o que ele precisa
+4. Mantenha respostas curtas (máximo 3 linhas)
+5. Sempre finalize oferecendo ajuda concreta`
           },
           { role: "user", content: mensagemTexto }
         ],
-        temperature: 0.7,
-        max_tokens: 200
+        temperature: 0.8,
+        max_tokens: 150
       })
     });
 
     const respostaJson = await respostaResponse.json();
     const resposta = respostaJson.choices[0].message.content;
 
-    await salvarMemoria(supabase, conversaId, `Beto: ${resposta}`, 'resposta_enviada', openAiApiKey);
+    await salvarMemoria(supabase, conversaId, `Beto: ${resposta}`, 'conversa_geral', openAiApiKey);
 
     return new Response(
       JSON.stringify({ resposta }),

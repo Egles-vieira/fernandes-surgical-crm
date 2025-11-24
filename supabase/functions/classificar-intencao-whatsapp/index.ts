@@ -52,12 +52,24 @@ ${contextoAnterior || 'Primeira interação'}
 MENSAGEM ATUAL DO CLIENTE:
 "${mensagemTexto}"
 
-IMPORTANTE: Se o CONTEXTO ANTERIOR menciona produtos específicos e o cliente agora diz algo como "quero X unidades", "fechou", "vou levar", isso se refere aos produtos já discutidos.
+REGRAS DE CLASSIFICAÇÃO:
+1. SAUDAÇÃO: Cumprimentos simples como "oi", "olá", "bom dia", "tudo bem"
+2. DUVIDA: Perguntas gerais sobre empresa, horários, formas de pagamento
+3. BUSCAR_PRODUTO: Cliente menciona produto específico, código, modelo ou característica técnica
+4. CONFIRMAR_ITENS: Cliente confirma quantidade de produtos já discutidos ("quero X", "fechou", "vou levar")
+5. NEGOCIAR_PRECO: Cliente pede desconto ou negocia valores
+6. FINALIZAR_PEDIDO: Cliente aceita proposta e quer fechar ("pode enviar", "confirmo", "fechado")
+7. OUTRO: Qualquer outra mensagem
+
+IMPORTANTE: 
+- Se a mensagem é apenas cumprimento SEM mencionar produtos, classifique como SAUDACAO
+- Se é uma pergunta geral SEM produto específico, classifique como DUVIDA
+- Só classifique como BUSCAR_PRODUTO se houver menção clara a produto, código ou especificação técnica
 
 TAREFA:
 Classifique a intenção em JSON estrito com:
 {
-  "intencao": string, // Uma de: buscar_produto, confirmar_itens, negociar_preco, adicionar_produto, remover_produto, finalizar_pedido, duvida, saudacao, outro
+  "intencao": string, // Uma de: saudacao, duvida, buscar_produto, confirmar_itens, negociar_preco, finalizar_pedido, outro
   "confianca": number, // 0-1
   "palavrasChave": string[], // Termos relevantes extraídos
   "entidades": {
@@ -70,13 +82,15 @@ Classifique a intenção em JSON estrito com:
 
 EXEMPLOS:
 - "Oi, bom dia" -> intencao: saudacao
-- "Tem parafuso sextavado?" -> intencao: buscar_produto, palavrasChave: ["parafuso", "sextavado"]
-- "Quero 10 unidades desse" (após falar de um produto) -> intencao: confirmar_itens, entidades: { quantidades: [10] }
-- "Quero 1000 unidades" (após discussão de produtos) -> intencao: confirmar_itens, entidades: { quantidades: [1000] }
+- "Tudo bem?" -> intencao: saudacao
+- "Vocês trabalham com que?" -> intencao: duvida
+- "Qual o horário de atendimento?" -> intencao: duvida
+- "Tem sonda aramada 4,5?" -> intencao: buscar_produto
+- "Preciso de parafuso sextavado M6" -> intencao: buscar_produto
+- "Quero 10 unidades" (após discussão) -> intencao: confirmar_itens
 - "Fechou, pode enviar" -> intencao: finalizar_pedido
-- "Esse tá caro, faz desconto?" -> intencao: negociar_preco
+- "Esse tá caro, faz desconto?" -> intencao: negociar_preco`;
 
-REGRA CRUCIAL: Se houver produtos no CONTEXTO ANTERIOR e o cliente mencionar quantidade ou confirmação (quero, vou levar, fechou), classifique como "confirmar_itens" ou "adicionar_produto", NÃO como "buscar_produto".`;
 
     const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
       method: 'POST',
