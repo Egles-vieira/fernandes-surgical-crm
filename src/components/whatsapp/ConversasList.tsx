@@ -229,7 +229,7 @@ const ConversasList = ({
           if (cargo) displayName += ` | ${cargo}`;
           if (nomeEmpresa) displayName += ` | ${nomeEmpresa}`;
           const iniciais = nomeContato?.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-          return <div key={conversa.id} onClick={() => onSelectConversa(conversa.id)} className={cn("p-4 border-b border-border/30 cursor-pointer transition-all hover:bg-muted/30", conversaSelecionada === conversa.id && "bg-primary/10 border-l-4 border-l-primary")}>
+          return <div key={conversa.id} onClick={() => onSelectConversa(conversa.id)} className={cn("p-4 border-b border-border/30 cursor-pointer transition-all hover:bg-muted/30 animate-slide-in-left", conversaSelecionada === conversa.id && "bg-primary/10 border-l-4 border-l-primary")}>
                 <div className="flex gap-3">
                   <div className="relative">
                     <Avatar className="w-12 h-12">
