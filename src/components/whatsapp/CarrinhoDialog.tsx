@@ -35,13 +35,21 @@ export const CarrinhoDialog = ({ open, onOpenChange, conversaId }: CarrinhoDialo
   const { data: conversa, isLoading } = useQuery({
     queryKey: ['whatsapp-conversa-carrinho', conversaId],
     queryFn: async () => {
+      console.log('🛒 Buscando carrinho para conversaId:', conversaId);
       const { data, error } = await supabase
         .from('whatsapp_conversas')
         .select('produtos_carrinho')
         .eq('id', conversaId)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Erro ao buscar carrinho:', error);
+        throw error;
+      }
+      console.log('✅ Dados do carrinho:', data);
+      console.log('📦 produtos_carrinho:', data?.produtos_carrinho);
+      console.log('📦 tipo:', typeof data?.produtos_carrinho);
+      console.log('📦 isArray:', Array.isArray(data?.produtos_carrinho));
       return data;
     },
     enabled: open && !!conversaId
@@ -52,9 +60,11 @@ export const CarrinhoDialog = ({ open, onOpenChange, conversaId }: CarrinhoDialo
     queryKey: ['produtos-carrinho', conversa?.produtos_carrinho],
     queryFn: async (): Promise<ProdutoCarrinho[]> => {
       const carrinho = conversa?.produtos_carrinho || [];
+      console.log('🔍 Processando carrinho:', carrinho);
       
       // Carrinho formato: [{ id: uuid, quantidade: number }]
       if (!Array.isArray(carrinho) || carrinho.length === 0) {
+        console.log('⚠️ Carrinho vazio ou não é array');
         return [];
       }
 
@@ -62,14 +72,23 @@ export const CarrinhoDialog = ({ open, onOpenChange, conversaId }: CarrinhoDialo
         .map((item: any) => item?.id)
         .filter((id: any): id is string => typeof id === 'string' && id !== null && id !== undefined);
 
-      if (produtoIds.length === 0) return [];
+      console.log('🆔 IDs dos produtos:', produtoIds);
+
+      if (produtoIds.length === 0) {
+        console.log('⚠️ Nenhum ID válido encontrado');
+        return [];
+      }
 
       const { data, error } = await supabase
         .from('produtos')
         .select('id, nome, referencia_interna, preco_venda, quantidade_em_maos')
         .in('id', produtoIds);
 
-      if (error) throw error;
+      console.log('📊 Produtos encontrados:', data);
+      if (error) {
+        console.error('❌ Erro ao buscar produtos:', error);
+        throw error;
+      }
       if (!data) return [];
 
       // Mapear produtos com quantidades do carrinho
@@ -90,6 +109,7 @@ export const CarrinhoDialog = ({ open, onOpenChange, conversaId }: CarrinhoDialo
         };
       });
       
+      console.log('✅ Produtos com quantidade:', produtosComQuantidade);
       return produtosComQuantidade;
     },
     enabled: !!conversa?.produtos_carrinho && Array.isArray(conversa.produtos_carrinho) && conversa.produtos_carrinho.length > 0
