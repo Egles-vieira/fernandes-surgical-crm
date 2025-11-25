@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Send, Paperclip, Phone, Video, MoreVertical, MessageSquare, Clock, CheckCheck, Check, ChevronRight, Mail, Building2, Briefcase, Tag, TrendingUp, ExternalLink, AlertCircle, RotateCw, Image as ImageIcon, FileText, Mic, ListIcon, X, Smile } from "lucide-react";
+import { Send, Paperclip, Phone, Video, MoreVertical, MessageSquare, Clock, CheckCheck, Check, ChevronRight, Mail, Building2, Briefcase, Tag, TrendingUp, ExternalLink, AlertCircle, RotateCw, Image as ImageIcon, FileText, Mic, ListIcon, X, Smile, ShoppingCart } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -22,6 +22,7 @@ import AudioRecorder from "./AudioRecorder";
 import { MessageActions } from "./MessageActions";
 import { ButtonMessageBuilder } from "./ButtonMessageBuilder";
 import { Separator } from "@/components/ui/separator";
+import { CarrinhoDialog } from "./CarrinhoDialog";
 interface ChatAreaProps {
   conversaId: string | null;
   contaId: string;
@@ -40,6 +41,7 @@ const ChatArea = ({
   const [mediaType, setMediaType] = useState<'image' | 'video' | 'document'>('image');
   const [imagemExpandida, setImagemExpandida] = useState<string | null>(null);
   const [imagensComErro, setImagensComErro] = useState<Set<string>>(new Set());
+  const [carrinhoOpen, setCarrinhoOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const {
     toast
@@ -494,6 +496,19 @@ const ChatArea = ({
           </div>
 
           <div className="flex items-center gap-2">
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={() => setCarrinhoOpen(true)}
+              className="relative"
+            >
+              <ShoppingCart className="w-4 h-4" />
+              {conversa?.produtos_carrinho && Array.isArray(conversa.produtos_carrinho) && conversa.produtos_carrinho.length > 0 && (
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-primary text-primary-foreground text-xs rounded-full flex items-center justify-center font-bold">
+                  {conversa.produtos_carrinho.length}
+                </span>
+              )}
+            </Button>
             <Button variant="ghost" size="icon">
               <Phone className="w-4 h-4" />
             </Button>
@@ -977,6 +992,13 @@ const ChatArea = ({
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Dialog do Carrinho */}
+      <CarrinhoDialog 
+        open={carrinhoOpen}
+        onOpenChange={setCarrinhoOpen}
+        conversaId={conversaId}
+      />
     </Card>;
 };
 export default ChatArea;
