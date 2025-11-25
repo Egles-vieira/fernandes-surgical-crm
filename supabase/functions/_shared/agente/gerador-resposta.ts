@@ -191,6 +191,7 @@ export async function executarFerramenta(
   switch (nomeFerramenta) {
     case 'buscar_produtos': {
       const { termo_busca } = argumentos;
+      console.log(`🔍 Buscando produtos para: "${termo_busca}"`);
       
       // Gerar embedding para busca semântica
       const embeddingResponse = await fetch("https://api.openai.com/v1/embeddings", {
@@ -205,10 +206,18 @@ export async function executarFerramenta(
         })
       });
       
+      if (!embeddingResponse.ok) {
+        const errorText = await embeddingResponse.text();
+        console.error('❌ Erro ao gerar embedding:', errorText);
+        throw new Error(`Erro ao gerar embedding: ${errorText}`);
+      }
+      
       const embeddingData = await embeddingResponse.json();
       const vetor = embeddingData.data[0].embedding;
+      console.log(`✅ Embedding gerado com ${vetor.length} dimensões`);
       
       // Buscar produtos usando RPC híbrido
+      console.log('📞 Chamando match_produtos_hibrido...');
       const { data: produtos, error } = await supabase.rpc('match_produtos_hibrido', {
         query_text: termo_busca,
         query_embedding: vetor,
@@ -216,12 +225,27 @@ export async function executarFerramenta(
         match_count: 5
       });
       
-      if (error || !produtos || produtos.length === 0) {
-        console.log('❌ Nenhum produto encontrado');
-        return { produtos: [], mensagem: `Não encontrei produtos para "${termo_busca}"` };
+      if (error) {
+        console.error('❌ Erro na busca:', error);
+        return { 
+          produtos: [], 
+          mensagem: `Erro ao buscar produtos: ${error.message}` 
+        };
       }
       
-      console.log(`✅ ${produtos.length} produto(s) encontrado(s)`);
+      if (!produtos || produtos.length === 0) {
+        console.log('⚠️ Nenhum produto encontrado na base de dados');
+        console.log('📊 Detalhes da busca:', { termo_busca, match_threshold: 0.5, match_count: 5 });
+        return { 
+          produtos: [], 
+          mensagem: `Não encontrei produtos em estoque para "${termo_busca}". Vou verificar alternativas.` 
+        };
+      }
+      
+      console.log(`✅ ${produtos.length} produto(s) encontrado(s):`);
+      produtos.forEach((p: any, i: number) => {
+        console.log(`   ${i+1}. ${p.nome} (${p.referencia_interna}) - R$ ${p.preco_venda} - Estoque: ${p.quantidade_em_maos}`);
+      });
       
       return {
         produtos: produtos.map((p: any) => ({
