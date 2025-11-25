@@ -65,6 +65,15 @@ Use-as APENAS quando necessário e fizer sentido no contexto:
    - Use quando: cliente confirmou produtos e está pronto para fechar
    - Requer: carrinho com produtos + confirmação do cliente
 
+4. validar_dados_cliente: Para validar CNPJ e endereço antes de finalizar
+   - Use quando: cliente está pronto para finalizar compra
+   - Retorna: CNPJ vinculado e lista de endereços disponíveis
+   - Cliente deve confirmar CNPJ e escolher endereço
+
+5. finalizar_pedido: Para criar venda no sistema
+   - Use APENAS após validar_dados_cliente
+   - Requer: confirmação de CNPJ e endereço pelo cliente
+
 COMPORTAMENTO INTELIGENTE:
 - Analise o CONTEXTO COMPLETO da conversa
 - Se cliente já forneceu informações (tipo de produto, quantidade, urgência), NÃO pergunte de novo
@@ -135,16 +144,32 @@ COMPORTAMENTO INTELIGENTE:
     {
       type: "function",
       function: {
+        name: "validar_dados_cliente",
+        description: "Valida dados do cliente (CNPJ e endereços) antes de finalizar a compra. Use quando cliente aceitar a proposta e estiver pronto para fechar.",
+        parameters: {
+          type: "object",
+          properties: {}
+        }
+      }
+    },
+    {
+      type: "function",
+      function: {
         name: "finalizar_pedido",
-        description: "Finaliza o pedido e cria a venda no sistema quando o cliente confirmar a compra. Use APENAS quando o cliente explicitamente confirmar que quer fechar/comprar.",
+        description: "Finaliza o pedido e cria a venda no sistema. Use APENAS depois de validar_dados_cliente e cliente confirmar CNPJ e endereço.",
         parameters: {
           type: "object",
           properties: {
-            confirmacao: {
+            cnpj_confirmado: {
               type: "string",
-              description: "Mensagem de confirmação do cliente"
+              description: "CNPJ confirmado pelo cliente"
+            },
+            endereco_id: {
+              type: "string",
+              description: "ID do endereço escolhido pelo cliente"
             }
-          }
+          },
+          required: ["cnpj_confirmado", "endereco_id"]
         }
       }
     }
@@ -390,8 +415,90 @@ export async function executarFerramenta(
       return { erro: "Falha ao criar proposta" };
     }
     
+    case 'validar_dados_cliente': {
+      console.log('🔍 Validando dados do cliente');
+      
+      // Buscar contato e cliente vinculado
+      const { data: conversa } = await supabase
+        .from('whatsapp_conversas')
+        .select(`
+          whatsapp_contato_id,
+          whatsapp_contatos (
+            nome,
+            cliente_id,
+            clientes (
+              id,
+              nome_emit,
+              cgc,
+              cliente_enderecos (
+                id,
+                tipo,
+                endereco,
+                numero,
+                bairro,
+                cidade,
+                estado,
+                cep,
+                is_principal
+              )
+            )
+          )
+        `)
+        .eq('id', conversaId)
+        .single();
+      
+      if (!conversa?.whatsapp_contatos) {
+        return { erro: "Contato não encontrado" };
+      }
+      
+      const contato = Array.isArray(conversa.whatsapp_contatos) 
+        ? conversa.whatsapp_contatos[0] 
+        : conversa.whatsapp_contatos;
+      
+      if (!contato.cliente_id || !contato.clientes) {
+        return { 
+          erro: "cliente_nao_vinculado",
+          mensagem: "Você ainda não está cadastrado em nosso sistema. Vou precisar de alguns dados antes de finalizar."
+        };
+      }
+      
+      const clienteData = contato.clientes;
+      const cliente = Array.isArray(clienteData) ? clienteData[0] : clienteData;
+      const enderecos = cliente.cliente_enderecos || [];
+      
+      if (enderecos.length === 0) {
+        return {
+          erro: "sem_enderecos",
+          cnpj: cliente.cgc,
+          mensagem: "Cliente encontrado mas sem endereços cadastrados"
+        };
+      }
+      
+      // Formatar endereços para o agente
+      const enderecosFormatados = enderecos.map((e: any, idx: number) => ({
+        id: e.id,
+        numero: idx + 1,
+        tipo: e.tipo,
+        endereco_completo: `${e.endereco}${e.numero ? ', ' + e.numero : ''}, ${e.bairro}, ${e.cidade}/${e.estado} - CEP: ${e.cep}`,
+        is_principal: e.is_principal
+      }));
+      
+      console.log(`✅ Cliente validado: ${cliente.nome_emit} (${cliente.cgc})`);
+      console.log(`📍 ${enderecosFormatados.length} endereço(s) encontrado(s)`);
+      
+      return {
+        sucesso: true,
+        cliente_nome: cliente.nome_emit,
+        cnpj: cliente.cgc,
+        enderecos: enderecosFormatados
+      };
+    }
+    
     case 'finalizar_pedido': {
+      const { cnpj_confirmado, endereco_id } = argumentos;
       console.log('🎯 Finalizando pedido e criando venda no sistema');
+      console.log(`   CNPJ: ${cnpj_confirmado}`);
+      console.log(`   Endereço ID: ${endereco_id}`);
       
       // Buscar proposta ativa da conversa
       const { data: conversa } = await supabase
@@ -418,7 +525,9 @@ export async function executarFerramenta(
           },
           body: JSON.stringify({
             propostaId: conversa.proposta_ativa_id,
-            conversaId: conversaId
+            conversaId: conversaId,
+            cnpjConfirmado: cnpj_confirmado,
+            enderecoId: endereco_id
           })
         });
         
@@ -431,7 +540,7 @@ export async function executarFerramenta(
         const resultado = await response.json();
         console.log('✅ Pedido finalizado:', resultado.venda.numero_venda);
         
-        // Limpar carrinho
+        // Limpar carrinho e atualizar estágio
         await supabase
           .from('whatsapp_conversas')
           .update({ 

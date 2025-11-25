@@ -8,6 +8,8 @@ const corsHeaders = {
 interface RequestBody {
   propostaId: string;
   conversaId: string;
+  cnpjConfirmado?: string;
+  enderecoId?: string;
 }
 
 Deno.serve(async (req) => {
@@ -22,8 +24,10 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const { propostaId, conversaId }: RequestBody = await req.json();
+    const { propostaId, conversaId, cnpjConfirmado, enderecoId }: RequestBody = await req.json();
     console.log(`🔄 Convertendo proposta ${propostaId} em venda`);
+    console.log(`   CNPJ confirmado: ${cnpjConfirmado || 'não informado'}`);
+    console.log(`   Endereço ID: ${enderecoId || 'não informado'}`);
 
     // Buscar proposta e seus itens
     const { data: proposta, error: propostaError } = await supabaseClient
@@ -110,22 +114,24 @@ Deno.serve(async (req) => {
     console.log(`📝 Número da venda: ${numeroVenda}`);
 
     // Criar venda
+    const vendaData: any = {
+      numero_venda: numeroVenda,
+      cliente_nome: cliente?.nome_emit || contato?.nome || 'Cliente WhatsApp',
+      cliente_cnpj: cnpjConfirmado || cliente?.cgc,
+      cliente_id: cliente?.id,
+      valor_total: proposta.subtotal,
+      desconto: proposta.desconto_percentual || 0,
+      valor_final: proposta.valor_total,
+      origem_lead: 'whatsapp',
+      status: 'pendente',
+      etapa_pipeline: 'proposta',
+      observacoes: `Venda gerada automaticamente via WhatsApp\nProposta: ${proposta.numero_proposta}${enderecoId ? `\nEndereço ID: ${enderecoId}` : ''}`,
+      user_id: (await supabaseClient.auth.getUser()).data.user?.id || '00000000-0000-0000-0000-000000000000'
+    };
+
     const { data: venda, error: vendaError } = await supabaseClient
       .from('vendas')
-      .insert({
-        numero_venda: numeroVenda,
-        cliente_nome: cliente?.nome_emit || contato?.nome || 'Cliente WhatsApp',
-        cliente_cnpj: cliente?.cgc,
-        cliente_id: cliente?.id,
-        valor_total: proposta.subtotal,
-        desconto: proposta.desconto_percentual || 0,
-        valor_final: proposta.valor_total,
-        origem_lead: 'whatsapp',
-        status: 'pendente',
-        etapa_pipeline: 'proposta',
-        observacoes: `Venda gerada automaticamente via WhatsApp\nProposta: ${proposta.numero_proposta}`,
-        user_id: (await supabaseClient.auth.getUser()).data.user?.id || '00000000-0000-0000-0000-000000000000'
-      })
+      .insert(vendaData)
       .select()
       .single();
 
