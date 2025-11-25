@@ -115,41 +115,62 @@ export default function NovoContatoDialog({ open, onOpenChange, clienteId, conta
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-full sm:max-w-2xl overflow-y-auto">
-        <SheetHeader className="border-b pb-4 mb-6">
-          <SheetTitle className="text-2xl font-bold flex items-center gap-2">
-            <UserPlus className="h-6 w-6 text-primary" />
-            Novo Contato
-          </SheetTitle>
+      <SheetContent side="right" className="w-full sm:max-w-3xl overflow-y-auto p-0">
+        <SheetHeader className="sticky top-0 z-10 bg-background border-b px-6 py-5">
+          <div className="flex items-center justify-between">
+            <SheetTitle className="text-xl font-semibold flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <UserPlus className="h-5 w-5 text-primary" />
+              </div>
+              Novo Contato
+            </SheetTitle>
+          </div>
         </SheetHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        <div className="px-6 py-6">
+
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-0">
           <Tabs defaultValue="basico" className="w-full">
-            <TabsList className="grid w-full grid-cols-5 h-auto p-1 bg-muted/50">
-              <TabsTrigger value="basico" className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm py-3">
+            <TabsList className="w-full justify-start h-auto p-0 bg-transparent border-b rounded-none gap-6">
+              <TabsTrigger 
+                value="basico" 
+                className="flex items-center gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-0 pb-3"
+              >
                 <User className="h-4 w-4" />
-                <span className="hidden sm:inline">Básico</span>
+                <span>Básico</span>
               </TabsTrigger>
-              <TabsTrigger value="contato" className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm py-3">
+              <TabsTrigger 
+                value="contato" 
+                className="flex items-center gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-0 pb-3"
+              >
                 <Phone className="h-4 w-4" />
-                <span className="hidden sm:inline">Contato</span>
+                <span>Contato</span>
               </TabsTrigger>
-              <TabsTrigger value="qualificacao" className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm py-3">
+              <TabsTrigger 
+                value="qualificacao" 
+                className="flex items-center gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-0 pb-3"
+              >
                 <Target className="h-4 w-4" />
-                <span className="hidden sm:inline">Qualificação</span>
+                <span>Qualificação</span>
               </TabsTrigger>
-              <TabsTrigger value="social" className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm py-3">
+              <TabsTrigger 
+                value="social" 
+                className="flex items-center gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-0 pb-3"
+              >
                 <Share2 className="h-4 w-4" />
-                <span className="hidden sm:inline">Social</span>
+                <span>Social</span>
               </TabsTrigger>
-              <TabsTrigger value="observacoes" className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm py-3">
+              <TabsTrigger 
+                value="observacoes" 
+                className="flex items-center gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-0 pb-3"
+              >
                 <FileText className="h-4 w-4" />
-                <span className="hidden sm:inline">Notas</span>
+                <span>Notas</span>
               </TabsTrigger>
             </TabsList>
 
             {/* Aba: Informações Básicas */}
-            <TabsContent value="basico" className="space-y-4 mt-4">
+            <TabsContent value="basico" className="space-y-6 mt-6">
               <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="tratamento">Tratamento</Label>
@@ -199,7 +220,7 @@ export default function NovoContatoDialog({ open, onOpenChange, clienteId, conta
             </TabsContent>
 
             {/* Aba: Contato & Preferências */}
-            <TabsContent value="contato" className="space-y-4 mt-4">
+            <TabsContent value="contato" className="space-y-6 mt-6">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
@@ -265,8 +286,8 @@ export default function NovoContatoDialog({ open, onOpenChange, clienteId, conta
                 </div>
               </div>
 
-              <div className="space-y-4 border-t pt-4">
-                <h4 className="text-sm font-medium">LGPD & Consentimentos</h4>
+              <div className="space-y-4 border-t pt-6 mt-6">
+                <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">LGPD & Consentimentos</h4>
                 <div className="flex items-center justify-between">
                   <Label htmlFor="consentimento_lgpd">Consentimento LGPD</Label>
                   <Switch id="consentimento_lgpd" onCheckedChange={(checked) => setValue("consentimento_lgpd", checked)} />
@@ -279,7 +300,7 @@ export default function NovoContatoDialog({ open, onOpenChange, clienteId, conta
             </TabsContent>
 
             {/* Aba: Qualificação & Vendas */}
-            <TabsContent value="qualificacao" className="space-y-4 mt-4">
+            <TabsContent value="qualificacao" className="space-y-6 mt-6">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="nivel_autoridade">Nível de Autoridade</Label>
@@ -335,7 +356,7 @@ export default function NovoContatoDialog({ open, onOpenChange, clienteId, conta
             </TabsContent>
 
             {/* Aba: Redes Sociais */}
-            <TabsContent value="social" className="space-y-4 mt-4">
+            <TabsContent value="social" className="space-y-6 mt-6">
               <div className="space-y-2">
                 <Label htmlFor="linkedin_url">LinkedIn</Label>
                 <Input id="linkedin_url" {...register("linkedin_url")} placeholder="https://linkedin.com/in/..." />
@@ -364,7 +385,7 @@ export default function NovoContatoDialog({ open, onOpenChange, clienteId, conta
             </TabsContent>
 
             {/* Aba: Observações */}
-            <TabsContent value="descricao" className="space-y-4 mt-4">
+            <TabsContent value="observacoes" className="space-y-6 mt-6">
               <div className="space-y-2">
                 <Label htmlFor="dores_identificadas">Dores Identificadas</Label>
                 <Textarea id="dores_identificadas" {...register("dores_identificadas")} rows={4} placeholder="Quais problemas o contato enfrenta?" />
@@ -382,16 +403,24 @@ export default function NovoContatoDialog({ open, onOpenChange, clienteId, conta
             </TabsContent>
           </Tabs>
 
-          <SheetFooter className="border-t pt-6 flex gap-3">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting} className="flex-1">
-              Cancelar
-            </Button>
-            <Button type="submit" disabled={isSubmitting} className="flex-1">
-              <UserPlus className="h-4 w-4 mr-2" />
-              {isSubmitting ? "Salvando..." : "Salvar Contato"}
-            </Button>
-          </SheetFooter>
+          <div className="sticky bottom-0 bg-background border-t px-6 py-4 mt-8 -mx-6">
+            <div className="flex gap-3">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => onOpenChange(false)} 
+                disabled={isSubmitting} 
+                className="flex-1"
+              >
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={isSubmitting} className="flex-1">
+                {isSubmitting ? "Salvando..." : "Salvar Contato"}
+              </Button>
+            </div>
+          </div>
         </form>
+        </div>
       </SheetContent>
     </Sheet>
   );
