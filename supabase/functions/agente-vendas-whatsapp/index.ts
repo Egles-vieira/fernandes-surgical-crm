@@ -93,7 +93,8 @@ Deno.serve(async (req) => {
       }
       
       mensagemTexto = transcricao;
-      await salvarMemoria(supabase, conversaId, `Cliente (áudio): ${transcricao}`, 'mensagem_recebida', openAiApiKey);
+      salvarMemoria(supabase, conversaId, `Cliente (áudio): ${transcricao}`, 'mensagem_recebida', openAiApiKey)
+        .catch(err => console.warn('⚠️ Erro ao salvar memória:', err));
     }
 
     // === ETAPA 1: BUSCAR ESTADO DA CONVERSA ===
@@ -106,44 +107,28 @@ Deno.serve(async (req) => {
     const estadoAtual = mapearEstadoAntigo(conversa?.estagio_agente || 'inicial');
     console.log('📍 Estado:', estadoAtual, '| Carrinho:', conversa?.produtos_carrinho?.length || 0, 'produtos');
 
-    // Salvar mensagem do cliente na memória
-    await salvarMemoria(supabase, conversaId, `Cliente: ${mensagemTexto}`, 'mensagem_recebida', openAiApiKey);
+    // Salvar mensagem do cliente na memória (assíncrono)
+    salvarMemoria(supabase, conversaId, `Cliente: ${mensagemTexto}`, 'mensagem_recebida', openAiApiKey)
+      .catch(err => console.warn('⚠️ Erro ao salvar memória:', err));
 
-    // === ETAPA 2: RECUPERAR CONTEXTO HISTÓRICO ===
+    // === ETAPA 2: RECUPERAR CONTEXTO HISTÓRICO (SIMPLIFICADO) ===
     
-    // Primeiro: buscar últimas 5 mensagens direto da memória (fallback simples)
-    const { data: memoriasRecentes, error: memoriaError } = await supabase
+    // Buscar últimas 3 mensagens direto da memória (mais rápido)
+    const { data: memoriasRecentes } = await supabase
       .from('whatsapp_conversas_memoria')
-      .select('tipo_interacao, conteudo_resumido, criado_em')
+      .select('tipo_interacao, conteudo_resumido')
       .eq('conversa_id', conversaId)
       .order('criado_em', { ascending: false })
-      .limit(5);
+      .limit(3);
 
-    let contextoRelevante = '';
+    const contextoRelevante = memoriasRecentes && memoriasRecentes.length > 0
+      ? memoriasRecentes
+          .reverse()
+          .map(m => `[${m.tipo_interacao}] ${m.conteudo_resumido}`)
+          .join('\n')
+      : '';
     
-    if (memoriasRecentes && memoriasRecentes.length > 0) {
-      contextoRelevante = memoriasRecentes
-        .reverse()
-        .map(m => `[${m.tipo_interacao}] ${m.conteudo_resumido}`)
-        .join('\n');
-      console.log('🧠 Contexto:', memoriasRecentes.length, 'memórias recentes');
-    } else {
-      console.log('⚠️ Nenhuma memória encontrada');
-    }
-
-    // Tentar busca semântica (opcional, se falhar usa o contexto acima)
-    try {
-      const { data: contextoData } = await supabase.functions.invoke('recuperar-contexto-conversa', {
-        body: { conversaId, queryTexto: mensagemTexto, limite: 5 }
-      });
-
-      if (contextoData?.contextoRelevante && contextoData.contextoRelevante !== 'Nenhum contexto anterior relevante.') {
-        contextoRelevante = contextoData.contextoRelevante;
-        console.log('🎯 Contexto semântico:', contextoData.memorias?.length, 'memórias');
-      }
-    } catch (err) {
-      console.warn('⚠️ Busca semântica falhou, usando memórias recentes');
-    }
+    console.log('🧠 Contexto:', memoriasRecentes?.length || 0, 'memórias');
 
     // === ETAPA 3: CLASSIFICAR INTENÇÃO COM CONTEXTO ===
     
@@ -254,22 +239,15 @@ Deno.serve(async (req) => {
       if (error || !produtos || produtos.length === 0) {
         const respostaSemProdutos = `Putz, não encontrei nada com "${termoBusca}". Pode me dar mais detalhes? Código, modelo, marca?`;
         
-        await salvarMemoria(supabase, conversaId, `Cliente buscou: ${termoBusca} - Sem resultados`, 'busca_vazia', openAiApiKey);
+        // Salvar memória de forma assíncrona
+        salvarMemoria(supabase, conversaId, `Cliente buscou: ${termoBusca} - Sem resultados`, 'busca_vazia', openAiApiKey)
+          .catch(err => console.warn('⚠️ Erro ao salvar memória:', err));
         
         return new Response(
           JSON.stringify({ resposta: respostaSemProdutos }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-
-      // Salvar na memória
-      await salvarMemoria(
-        supabase, 
-        conversaId, 
-        `Produtos encontrados para "${termoBusca}": ${produtos.map((p: any) => p.nome).join(', ')}`, 
-        'produtos_sugeridos',
-        openAiApiKey
-      );
 
       // Atualizar carrinho (sobrescreve se refinamento, mantém se descoberta)
       const produtosIds = produtos.map((p: any) => p.id);
@@ -291,7 +269,11 @@ Deno.serve(async (req) => {
         lovableApiKey!
       );
 
-      await salvarMemoria(supabase, conversaId, `Beto: ${resposta}`, 'resposta_enviada', openAiApiKey);
+      // Salvar memórias de forma assíncrona (não bloqueante)
+      Promise.all([
+        salvarMemoria(supabase, conversaId, `Produtos encontrados para "${termoBusca}": ${produtos.map((p: any) => p.nome).join(', ')}`, 'produtos_sugeridos', openAiApiKey),
+        salvarMemoria(supabase, conversaId, `Beto: ${resposta}`, 'resposta_enviada', openAiApiKey)
+      ]).catch(err => console.warn('⚠️ Erro ao salvar memórias:', err));
 
       return new Response(
         JSON.stringify({ resposta, produtos_encontrados: produtos }),
@@ -324,7 +306,8 @@ Deno.serve(async (req) => {
         lovableApiKey!
       );
 
-      await salvarMemoria(supabase, conversaId, `Beto apresentou produtos: ${resposta}`, 'produtos_apresentados', openAiApiKey);
+      await salvarMemoria(supabase, conversaId, `Beto apresentou produtos: ${resposta}`, 'produtos_apresentados', openAiApiKey)
+        .catch(err => console.warn('⚠️ Erro ao salvar memória:', err));
 
       return new Response(
         JSON.stringify({ resposta, produtos_encontrados: produtosCarrinho }),
@@ -390,7 +373,8 @@ Deno.serve(async (req) => {
 
       const mensagemProposta = await formatarPropostaWhatsApp(proposta, itens || []);
       
-      await salvarMemoria(supabase, conversaId, `Proposta ${proposta.numero_proposta} criada com ${quantidade} unidades`, 'proposta_enviada', openAiApiKey);
+      salvarMemoria(supabase, conversaId, `Proposta ${proposta.numero_proposta} criada com ${quantidade} unidades`, 'proposta_enviada', openAiApiKey)
+        .catch(err => console.warn('⚠️ Erro ao salvar memória:', err));
 
       return new Response(
         JSON.stringify({ resposta: mensagemProposta, proposta_id: proposta.id }),
@@ -447,13 +431,13 @@ Deno.serve(async (req) => {
         }
       });
 
-      await salvarMemoria(
+      salvarMemoria(
         supabase, 
         conversaId, 
         `Pedido fechado - Oportunidade criada`, 
         'pedido_fechado',
         openAiApiKey
-      );
+      ).catch(err => console.warn('⚠️ Erro ao salvar memória:', err));
 
       await supabase
         .from('whatsapp_conversas')
@@ -488,7 +472,8 @@ Deno.serve(async (req) => {
       lovableApiKey!
     );
 
-    await salvarMemoria(supabase, conversaId, `Beto: ${resposta}`, 'conversa_geral', openAiApiKey);
+    salvarMemoria(supabase, conversaId, `Beto: ${resposta}`, 'conversa_geral', openAiApiKey)
+      .catch(err => console.warn('⚠️ Erro ao salvar memória:', err));
 
     return new Response(
       JSON.stringify({ resposta }),
