@@ -193,14 +193,25 @@ Deno.serve(async (req) => {
         }
 
         // Processar proposta criada
-        if (functionName === "criar_proposta" && resultado.sucesso) {
-          const { data: proposta } = await supabase
-            .from("whatsapp_propostas_comerciais")
-            .select("*")
-            .eq("id", resultado.proposta_id)
-            .single();
+        if (functionName === "criar_proposta") {
+          console.log("🔍 Proposta criada detectada. Resultado:", JSON.stringify(resultado));
+          
+          if (resultado.sucesso) {
+            console.log("✅ Resultado com sucesso. Buscando proposta ID:", resultado.proposta_id);
+            
+            const { data: proposta, error: propostaError } = await supabase
+              .from("whatsapp_propostas_comerciais")
+              .select("*")
+              .eq("id", resultado.proposta_id)
+              .single();
 
-          if (proposta) {
+            if (propostaError) {
+              console.error("❌ Erro ao buscar proposta:", propostaError);
+            }
+            
+            console.log("📋 Proposta encontrada:", proposta ? "sim" : "não");
+
+            if (proposta) {
             const { data: itens } = await supabase
               .from("whatsapp_propostas_itens")
               .select("*, produtos:produto_id (nome, referencia_interna)")
@@ -241,7 +252,12 @@ Deno.serve(async (req) => {
             });
 
             console.log("✅ Validação automática concluída:", dadosCliente.sucesso ? "sucesso" : "erro");
+          } else {
+            console.warn("⚠️ Proposta não encontrada no banco. Pulando validação automática.");
           }
+        } else {
+          console.warn("⚠️ criar_proposta falhou. Resultado.sucesso:", resultado.sucesso);
+        }
         }
 
         // Processar validação de dados do cliente
