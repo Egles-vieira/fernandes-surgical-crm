@@ -14,6 +14,60 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// === FUNÇÃO AUXILIAR: ENVIAR MENSAGEM VIA WHATSAPP ===
+async function enviarMensagemWhatsApp(
+  supabase: any,
+  conversaId: string,
+  mensagem: string
+): Promise<void> {
+  try {
+    // Buscar dados da conversa
+    const { data: conversa } = await supabase
+      .from('whatsapp_conversas')
+      .select(`
+        whatsapp_contato_id,
+        whatsapp_contatos!inner (
+          numero_whatsapp,
+          whatsapp_conta_id,
+          whatsapp_contas!inner (
+            instance_id,
+            api_key
+          )
+        )
+      `)
+      .eq('id', conversaId)
+      .single();
+
+    if (!conversa?.whatsapp_contatos) {
+      console.error('❌ Dados da conversa não encontrados');
+      return;
+    }
+
+    const numeroDestino = conversa.whatsapp_contatos.numero_whatsapp;
+    const conta = conversa.whatsapp_contatos.whatsapp_contas;
+
+    console.log('📤 Enviando mensagem para:', numeroDestino);
+
+    // Enviar via W-API
+    const { error } = await supabase.functions.invoke('w-api-enviar-mensagem', {
+      body: {
+        instanceId: conta.instance_id,
+        apiKey: conta.api_key,
+        numeroDestino,
+        mensagem
+      }
+    });
+
+    if (error) {
+      console.error('❌ Erro ao enviar mensagem:', error);
+    } else {
+      console.log('✅ Mensagem enviada com sucesso');
+    }
+  } catch (error) {
+    console.error('❌ Erro ao enviar mensagem WhatsApp:', error);
+  }
+}
+
 // === HANDLER PRINCIPAL ===
 
 Deno.serve(async (req) => {
@@ -78,16 +132,26 @@ Deno.serve(async (req) => {
     // === ETAPA 0: TRANSCRIÇÃO DE ÁUDIO ===
     if (tipoMensagem === 'audio' || tipoMensagem === 'voice') {
       if (!urlMidia) {
+        const respostaErro = "Não consegui acessar seu áudio. Tente novamente?";
+        
+        // Enviar resposta via WhatsApp
+        await enviarMensagemWhatsApp(supabase, conversaId, respostaErro);
+        
         return new Response(
-          JSON.stringify({ resposta: "Não consegui acessar seu áudio. Tente novamente?" }),
+          JSON.stringify({ resposta: respostaErro }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
       const transcricao = await transcreverAudio(urlMidia, openAiApiKey, supabase, conversaId);
       if (!transcricao) {
+        const respostaErroTranscricao = "Não consegui entender seu áudio. Pode enviar texto?";
+        
+        // Enviar resposta via WhatsApp
+        await enviarMensagemWhatsApp(supabase, conversaId, respostaErroTranscricao);
+        
         return new Response(
-          JSON.stringify({ resposta: "Não consegui entender seu áudio. Pode enviar texto?" }),
+          JSON.stringify({ resposta: respostaErroTranscricao }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
@@ -252,12 +316,15 @@ Deno.serve(async (req) => {
       });
 
       if (error || !produtos || produtos.length === 0) {
+        const respostaSemProdutos = `Putz, não encontrei nada com "${termoBusca}". Pode me dar mais detalhes? Código, modelo, marca?`;
+        
         await salvarMemoria(supabase, conversaId, `Cliente buscou: ${termoBusca} - Sem resultados`, 'busca_vazia', openAiApiKey);
         
+        // Enviar resposta via WhatsApp
+        await enviarMensagemWhatsApp(supabase, conversaId, respostaSemProdutos);
+        
         return new Response(
-          JSON.stringify({ 
-            resposta: `Putz, não encontrei nada com "${termoBusca}". Pode me dar mais detalhes? Código, modelo, marca?` 
-          }),
+          JSON.stringify({ resposta: respostaSemProdutos }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
@@ -292,6 +359,9 @@ Deno.serve(async (req) => {
       );
 
       await salvarMemoria(supabase, conversaId, `Beto: ${resposta}`, 'resposta_enviada', openAiApiKey);
+      
+      // Enviar resposta via WhatsApp
+      await enviarMensagemWhatsApp(supabase, conversaId, resposta);
 
       return new Response(
         JSON.stringify({ resposta, produtos_encontrados: produtos }),
@@ -307,8 +377,13 @@ Deno.serve(async (req) => {
         .in('id', conversa.produtos_carrinho);
 
       if (!produtosCarrinho || produtosCarrinho.length === 0) {
+        const respostaCarrinhoPerdido = "Ops, perdi o carrinho. Pode me dizer o que precisa novamente?";
+        
+        // Enviar resposta via WhatsApp
+        await enviarMensagemWhatsApp(supabase, conversaId, respostaCarrinhoPerdido);
+        
         return new Response(
-          JSON.stringify({ resposta: "Ops, perdi o carrinho. Pode me dizer o que precisa novamente?" }),
+          JSON.stringify({ resposta: respostaCarrinhoPerdido }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
@@ -325,6 +400,9 @@ Deno.serve(async (req) => {
       );
 
       await salvarMemoria(supabase, conversaId, `Beto apresentou produtos: ${resposta}`, 'produtos_apresentados', openAiApiKey);
+      
+      // Enviar resposta via WhatsApp
+      await enviarMensagemWhatsApp(supabase, conversaId, resposta);
 
       return new Response(
         JSON.stringify({ resposta, produtos_encontrados: produtosCarrinho }),
@@ -337,8 +415,13 @@ Deno.serve(async (req) => {
       const carrinho = conversa?.produtos_carrinho || [];
       
       if (carrinho.length === 0) {
+        const respostaCarrinhoVazio = "Você ainda não adicionou nenhum produto. O que você precisa?";
+        
+        // Enviar resposta via WhatsApp
+        await enviarMensagemWhatsApp(supabase, conversaId, respostaCarrinhoVazio);
+        
         return new Response(
-          JSON.stringify({ resposta: "Você ainda não adicionou nenhum produto. O que você precisa?" }),
+          JSON.stringify({ resposta: respostaCarrinhoVazio }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
@@ -391,6 +474,9 @@ Deno.serve(async (req) => {
       const mensagemProposta = await formatarPropostaWhatsApp(proposta, itens || []);
       
       await salvarMemoria(supabase, conversaId, `Proposta ${proposta.numero_proposta} criada com ${quantidade} unidades`, 'proposta_enviada', openAiApiKey);
+      
+      // Enviar proposta via WhatsApp
+      await enviarMensagemWhatsApp(supabase, conversaId, mensagemProposta);
 
       return new Response(
         JSON.stringify({ resposta: mensagemProposta, proposta_id: proposta.id }),
@@ -414,6 +500,9 @@ Deno.serve(async (req) => {
 
         const mensagemProposta = await formatarPropostaWhatsApp(proposta, itens || []);
         
+        // Enviar proposta via WhatsApp
+        await enviarMensagemWhatsApp(supabase, conversaId, mensagemProposta);
+        
         return new Response(
           JSON.stringify({ resposta: mensagemProposta, proposta_id: proposta.id }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -424,8 +513,13 @@ Deno.serve(async (req) => {
     // ESTADO: NEGOCIAÇÃO ATIVA
     if (proximoEstado === 'negociacao_ativa') {
       if (!conversa?.proposta_ativa_id) {
+        const respostaSemProposta = "Ainda não temos uma proposta ativa. Vamos ver os produtos primeiro?";
+        
+        // Enviar resposta via WhatsApp
+        await enviarMensagemWhatsApp(supabase, conversaId, respostaSemProposta);
+        
         return new Response(
-          JSON.stringify({ resposta: "Ainda não temos uma proposta ativa. Vamos ver os produtos primeiro?" }),
+          JSON.stringify({ resposta: respostaSemProposta }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
@@ -471,10 +565,13 @@ Deno.serve(async (req) => {
               expira_em: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString()
             });
 
+            const respostaAprovacao = `Entendi, você quer ${percentualDesconto.toFixed(1)}% de desconto. Esse valor precisa de aprovação da diretoria. Vou pedir autorização e te retorno em breve, ok?`;
+            
+            // Enviar resposta via WhatsApp
+            await enviarMensagemWhatsApp(supabase, conversaId, respostaAprovacao);
+            
             return new Response(
-              JSON.stringify({ 
-                resposta: `Entendi, você quer ${percentualDesconto.toFixed(1)}% de desconto. Esse valor precisa de aprovação da diretoria. Vou pedir autorização e te retorno em breve, ok?` 
-              }),
+              JSON.stringify({ resposta: respostaAprovacao }),
               { headers: { ...corsHeaders, "Content-Type": "application/json" } }
             );
           }
@@ -490,10 +587,13 @@ Deno.serve(async (req) => {
             })
             .eq('id', proposta.id);
 
+          const respostaDesconto = `Consegui aprovar ${percentualDesconto.toFixed(1)}% de desconto! Valor total fica R$ ${novoTotal.toFixed(2)}. Fechamos?`;
+          
+          // Enviar resposta via WhatsApp
+          await enviarMensagemWhatsApp(supabase, conversaId, respostaDesconto);
+          
           return new Response(
-            JSON.stringify({ 
-              resposta: `Consegui aprovar ${percentualDesconto.toFixed(1)}% de desconto! Valor total fica R$ ${novoTotal.toFixed(2)}. Fechamos?` 
-            }),
+            JSON.stringify({ resposta: respostaDesconto }),
             { headers: { ...corsHeaders, "Content-Type": "application/json" } }
           );
         }
@@ -503,8 +603,13 @@ Deno.serve(async (req) => {
     // ESTADO: FECHAMENTO
     if (proximoEstado === 'fechamento') {
       if (!conversa?.proposta_ativa_id) {
+        const respostaSemProposta = "Ainda não temos uma proposta. Quer ver alguns produtos?";
+        
+        // Enviar resposta via WhatsApp
+        await enviarMensagemWhatsApp(supabase, conversaId, respostaSemProposta);
+        
         return new Response(
-          JSON.stringify({ resposta: "Ainda não temos uma proposta. Quer ver alguns produtos?" }),
+          JSON.stringify({ resposta: respostaSemProposta }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
@@ -541,9 +646,14 @@ Deno.serve(async (req) => {
         })
         .eq('id', conversaId);
 
+      const respostaFechamento = `Show! Pedido confirmado! 🎉\n\nVou processar tudo por aqui e te mando os detalhes de pagamento e entrega. Qualquer coisa, só chamar!`;
+      
+      // Enviar resposta via WhatsApp
+      await enviarMensagemWhatsApp(supabase, conversaId, respostaFechamento);
+      
       return new Response(
         JSON.stringify({ 
-          resposta: `Show! Pedido confirmado! 🎉\n\nVou processar tudo por aqui e te mando os detalhes de pagamento e entrega. Qualquer coisa, só chamar!`,
+          resposta: respostaFechamento,
           oportunidade_id: oportunidade?.id
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -566,6 +676,9 @@ Deno.serve(async (req) => {
     );
 
     await salvarMemoria(supabase, conversaId, `Beto: ${resposta}`, 'conversa_geral', openAiApiKey);
+    
+    // Enviar resposta via WhatsApp
+    await enviarMensagemWhatsApp(supabase, conversaId, resposta);
 
     return new Response(
       JSON.stringify({ resposta }),
