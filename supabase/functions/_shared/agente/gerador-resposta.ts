@@ -444,7 +444,7 @@ export async function executarFerramenta(
     case "validar_dados_cliente": {
       console.log("🔍 Validando dados do cliente");
 
-      // Buscar contato e cliente vinculado (caminho correto)
+      // Buscar contato e cliente vinculado
       const { data: conversa } = await supabase
         .from("whatsapp_conversas")
         .select(
@@ -460,17 +460,7 @@ export async function executarFerramenta(
               clientes (
                 id,
                 nome_emit,
-                cgc,
-                cliente_enderecos (
-                  id,
-                  tipo,
-                  logradouro,
-                  numero,
-                  bairro,
-                  cidade,
-                  estado,
-                  cep
-                )
+                cgc
               )
             )
           )
@@ -506,9 +496,22 @@ export async function executarFerramenta(
 
       const clienteData = contato.clientes;
       const cliente = Array.isArray(clienteData) ? clienteData[0] : clienteData;
-      const enderecos = cliente.cliente_enderecos || [];
 
-      if (enderecos.length === 0) {
+      // Buscar endereços na tabela correta (enderecos_clientes)
+      const { data: enderecos, error: enderecosError } = await supabase
+        .from("enderecos_clientes")
+        .select("id, tipo, endereco, cep, bairro, cidade, estado, numero")
+        .eq("cliente_id", cliente.id);
+
+      if (enderecosError) {
+        console.error("❌ Erro ao buscar endereços:", enderecosError);
+        return {
+          erro: "erro_buscar_enderecos",
+          mensagem: "Erro ao consultar endereços cadastrados",
+        };
+      }
+
+      if (!enderecos || enderecos.length === 0) {
         return {
           erro: "sem_enderecos",
           cnpj: cliente.cgc,
@@ -516,12 +519,12 @@ export async function executarFerramenta(
         };
       }
 
-      // Formatar endereços para o agente
+      // Formatar endereços para o agente apresentar ao cliente
       const enderecosFormatados = enderecos.map((e: any, idx: number) => ({
         id: e.id,
         numero: idx + 1,
         tipo: e.tipo || "entrega",
-        endereco_completo: `${e.logradouro || e.endereco || ""}${e.numero ? ", " + e.numero : ""}, ${e.bairro || ""}, ${e.cidade || ""}/${e.estado || ""} - CEP: ${e.cep || ""}`,
+        endereco_completo: `${e.endereco || ""}${e.numero ? ", " + e.numero : ""}, ${e.bairro || ""}, ${e.cidade || ""}/${e.estado || ""} - CEP: ${e.cep || ""}`,
       }));
 
       console.log(`✅ Cliente validado: ${cliente.nome_emit} (${cliente.cgc})`);
