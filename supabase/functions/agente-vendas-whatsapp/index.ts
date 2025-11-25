@@ -171,11 +171,17 @@ Deno.serve(async (req) => {
         if (functionName === 'buscar_produtos' && resultado.produtos) {
           produtosEncontrados = resultado.produtos;
 
-          // Atualizar carrinho
-          const produtosIds = resultado.produtos.map((p: any) => p.id);
+          // Atualizar carrinho com formato correto: [{ id, quantidade }]
+          const produtosCarrinho = resultado.produtos.map((p: any) => ({
+            id: p.id,
+            quantidade: 1 // quantidade padrão inicial
+          }));
+          
+          console.log('🛒 Atualizando carrinho com:', produtosCarrinho.map((p: any) => `${p.id} (${p.quantidade}x)`));
+          
           await supabase
             .from('whatsapp_conversas')
-            .update({ produtos_carrinho: produtosIds })
+            .update({ produtos_carrinho: produtosCarrinho })
             .eq('id', conversaId);
 
           // Salvar na memória

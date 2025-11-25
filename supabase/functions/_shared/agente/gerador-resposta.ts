@@ -316,7 +316,14 @@ export async function executarFerramenta(
       }
       
       // Extrair apenas os IDs para buscar os produtos
-      const produtoIds = carrinho.map((item: any) => item.id);
+      const produtoIds = carrinho
+        .map((item: any) => item.id)
+        .filter((id: string) => id !== undefined && id !== null); // Filtrar IDs inválidos
+      
+      if (produtoIds.length === 0) {
+        console.error('❌ Carrinho não contém IDs válidos:', carrinho);
+        return { erro: "Carrinho não contém produtos válidos" };
+      }
       
       console.log(`📦 Buscando ${produtoIds.length} produtos do carrinho:`, produtoIds);
       
