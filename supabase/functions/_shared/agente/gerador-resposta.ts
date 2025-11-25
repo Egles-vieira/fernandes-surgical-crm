@@ -318,11 +318,25 @@ export async function executarFerramenta(
       // Extrair apenas os IDs para buscar os produtos
       const produtoIds = carrinho.map((item: any) => item.id);
       
+      console.log(`📦 Buscando ${produtoIds.length} produtos do carrinho:`, produtoIds);
+      
       // Buscar detalhes dos produtos
-      const { data: produtos } = await supabase
+      const { data: produtos, error: produtosError } = await supabase
         .from('produtos')
         .select('*')
         .in('id', produtoIds);
+      
+      if (produtosError) {
+        console.error('❌ Erro ao buscar produtos:', produtosError);
+        return { erro: `Erro ao buscar produtos: ${produtosError.message}` };
+      }
+      
+      if (!produtos || produtos.length === 0) {
+        console.error('❌ Nenhum produto encontrado para os IDs:', produtoIds);
+        return { erro: "Produtos do carrinho não encontrados" };
+      }
+      
+      console.log(`✅ ${produtos.length} produtos encontrados`);
       
       // Importar função de criar proposta
       const { criarProposta } = await import('./proposta-handler.ts');
