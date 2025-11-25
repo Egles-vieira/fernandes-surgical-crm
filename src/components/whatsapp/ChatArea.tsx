@@ -694,7 +694,7 @@ const ChatArea = ({
 
       {/* Mensagens */}
       <ScrollArea className="flex-1 min-h-0">
-        <div className="p-4 space-y-4">
+        <div className="p-4 space-y-4 bg-background">
           {mensagens?.map(msg => {
           const isEnviada = msg.direcao === 'enviada';
           const isErro = msg.status === 'erro';
