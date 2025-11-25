@@ -131,6 +131,22 @@ COMPORTAMENTO INTELIGENTE:
           }
         }
       }
+    },
+    {
+      type: "function",
+      function: {
+        name: "finalizar_pedido",
+        description: "Finaliza o pedido e cria a venda no sistema quando o cliente confirmar a compra. Use APENAS quando o cliente explicitamente confirmar que quer fechar/comprar.",
+        parameters: {
+          type: "object",
+          properties: {
+            confirmacao: {
+              type: "string",
+              description: "Mensagem de confirmação do cliente"
+            }
+          }
+        }
+      }
     }
   ];
 
@@ -372,6 +388,69 @@ export async function executarFerramenta(
       }
       
       return { erro: "Falha ao criar proposta" };
+    }
+    
+    case 'finalizar_pedido': {
+      console.log('🎯 Finalizando pedido e criando venda no sistema');
+      
+      // Buscar proposta ativa da conversa
+      const { data: conversa } = await supabase
+        .from('whatsapp_conversas')
+        .select('proposta_ativa_id')
+        .eq('id', conversaId)
+        .single();
+      
+      if (!conversa?.proposta_ativa_id) {
+        console.error('❌ Nenhuma proposta ativa encontrada');
+        return { erro: "Nenhuma proposta ativa para finalizar" };
+      }
+      
+      // Chamar edge function para converter proposta em venda
+      const supabaseUrl = Deno.env.get('SUPABASE_URL');
+      const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+      
+      try {
+        const response = await fetch(`${supabaseUrl}/functions/v1/converter-proposta-venda`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${supabaseKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            propostaId: conversa.proposta_ativa_id,
+            conversaId: conversaId
+          })
+        });
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('❌ Erro ao converter proposta:', errorText);
+          return { erro: "Erro ao finalizar pedido" };
+        }
+        
+        const resultado = await response.json();
+        console.log('✅ Pedido finalizado:', resultado.venda.numero_venda);
+        
+        // Limpar carrinho
+        await supabase
+          .from('whatsapp_conversas')
+          .update({ 
+            produtos_carrinho: [],
+            estagio_agente: 'fechamento',
+            proposta_ativa_id: null
+          })
+          .eq('id', conversaId);
+        
+        return { 
+          sucesso: true, 
+          numero_pedido: resultado.venda.numero_venda,
+          valor_total: resultado.venda.valor_total
+        };
+        
+      } catch (error) {
+        console.error('❌ Erro na conversão:', error);
+        return { erro: "Erro ao processar pedido" };
+      }
     }
     
     default:
