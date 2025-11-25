@@ -6966,6 +6966,7 @@ export type Database = {
           validade_dias: number | null
           valor_frete: number | null
           valor_total: number
+          venda_id: string | null
         }
         Insert: {
           aceito_em?: string | null
@@ -6996,6 +6997,7 @@ export type Database = {
           validade_dias?: number | null
           valor_frete?: number | null
           valor_total: number
+          venda_id?: string | null
         }
         Update: {
           aceito_em?: string | null
@@ -7026,6 +7028,7 @@ export type Database = {
           validade_dias?: number | null
           valor_frete?: number | null
           valor_total?: number
+          venda_id?: string | null
         }
         Relationships: [
           {
@@ -7061,6 +7064,13 @@ export type Database = {
             columns: ["oportunidade_id"]
             isOneToOne: false
             referencedRelation: "oportunidades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_propostas_comerciais_venda_id_fkey"
+            columns: ["venda_id"]
+            isOneToOne: false
+            referencedRelation: "vendas"
             referencedColumns: ["id"]
           },
         ]
