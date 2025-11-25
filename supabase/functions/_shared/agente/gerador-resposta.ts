@@ -276,19 +276,26 @@ export async function executarFerramenta(
         .eq('id', conversaId)
         .single();
       
-      const carrinhoAtual = conversa?.produtos_carrinho || [];
+      // Carrinho agora é array de objetos { id, quantidade }
+      const carrinhoAtual: Array<{ id: string, quantidade: number }> = conversa?.produtos_carrinho || [];
       
-      // Adicionar produto ao carrinho (evitar duplicados)
-      if (!carrinhoAtual.includes(produto_id)) {
-        carrinhoAtual.push(produto_id);
-        
-        await supabase
-          .from('whatsapp_conversas')
-          .update({ produtos_carrinho: carrinhoAtual })
-          .eq('id', conversaId);
-        
-        console.log(`✅ Produto adicionado ao carrinho: ${produto_id}`);
+      // Verificar se produto já existe no carrinho
+      const itemExistente = carrinhoAtual.find((item: any) => item.id === produto_id);
+      
+      if (itemExistente) {
+        // Se já existe, atualizar quantidade
+        itemExistente.quantidade = quantidade || 1;
+      } else {
+        // Se não existe, adicionar novo item
+        carrinhoAtual.push({ id: produto_id, quantidade: quantidade || 1 });
       }
+      
+      await supabase
+        .from('whatsapp_conversas')
+        .update({ produtos_carrinho: carrinhoAtual })
+        .eq('id', conversaId);
+      
+      console.log(`✅ Produto adicionado ao carrinho: ${produto_id} (qtd: ${quantidade || 1})`);
       
       return { sucesso: true, carrinho_total: carrinhoAtual.length };
     }
@@ -301,26 +308,35 @@ export async function executarFerramenta(
         .eq('id', conversaId)
         .single();
       
-      const carrinho = conversa?.produtos_carrinho || [];
+      // Carrinho agora é array de objetos { id, quantidade }
+      const carrinho: Array<{ id: string, quantidade: number }> = conversa?.produtos_carrinho || [];
       
       if (carrinho.length === 0) {
         return { erro: "Carrinho vazio" };
       }
       
+      // Extrair apenas os IDs para buscar os produtos
+      const produtoIds = carrinho.map((item: any) => item.id);
+      
       // Buscar detalhes dos produtos
       const { data: produtos } = await supabase
         .from('produtos')
         .select('*')
-        .in('id', carrinho);
+        .in('id', produtoIds);
       
       // Importar função de criar proposta
       const { criarProposta } = await import('./proposta-handler.ts');
       
-      // Adicionar quantidade padrão se não tiver
-      const produtosComQtd = produtos.map((p: any) => ({
-        ...p,
-        quantidade: 1 // TODO: pegar quantidade do contexto
-      }));
+      // Mapear produtos com suas quantidades do carrinho
+      const produtosComQtd = produtos.map((p: any) => {
+        const itemCarrinho = carrinho.find((item: any) => item.id === p.id);
+        return {
+          ...p,
+          quantidade: itemCarrinho?.quantidade || 1
+        };
+      });
+      
+      console.log(`📦 Produtos com quantidades:`, produtosComQtd.map((p: any) => `${p.referencia_interna}: ${p.quantidade}x`));
       
       const proposta = await criarProposta(
         supabase,
