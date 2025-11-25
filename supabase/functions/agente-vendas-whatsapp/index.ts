@@ -216,8 +216,11 @@ Deno.serve(async (req) => {
         console.log('✅ Pulando perguntas - buscando produtos');
         // Continua para busca de produtos abaixo
       } else {
-        // Retorna a pergunta qualificadora
-        return respostaPerguntas;
+        // ✅ CORREÇÃO: Criar NOVO Response com os dados (body já foi consumido)
+        return new Response(
+          JSON.stringify(dadosResposta),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
       }
     }
     
