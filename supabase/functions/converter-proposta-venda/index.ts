@@ -10,6 +10,7 @@ interface RequestBody {
   conversaId: string;
   cnpjConfirmado?: string;
   enderecoId?: string;
+  clienteId?: string;
 }
 
 Deno.serve(async (req) => {
@@ -24,8 +25,9 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const { propostaId, conversaId, cnpjConfirmado, enderecoId }: RequestBody = await req.json();
+    const { propostaId, conversaId, cnpjConfirmado, enderecoId, clienteId }: RequestBody = await req.json();
     console.log(`🔄 Convertendo proposta ${propostaId} em venda`);
+    console.log(`   Cliente ID: ${clienteId || 'não informado'}`);
     console.log(`   CNPJ confirmado: ${cnpjConfirmado || 'não informado'}`);
     console.log(`   Endereço ID: ${enderecoId || 'não informado'}`);
 
@@ -55,19 +57,24 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Buscar dados do cliente pela conversa
+    // Buscar dados do cliente pela conversa (caminho correto)
     const { data: conversa, error: conversaError } = await supabaseClient
       .from('whatsapp_conversas')
       .select(`
         whatsapp_contato_id,
         whatsapp_contatos (
-          nome,
+          nome_whatsapp,
           numero,
-          cliente_id,
-          clientes (
+          contato_id,
+          contatos (
             id,
-            nome_emit,
-            cgc
+            primeiro_nome,
+            cliente_id,
+            clientes (
+              id,
+              nome_emit,
+              cgc
+            )
           )
         )
       `)
@@ -82,11 +89,20 @@ Deno.serve(async (req) => {
       );
     }
 
-    const contato = Array.isArray(conversa.whatsapp_contatos) 
+    const whatsappContato = Array.isArray(conversa.whatsapp_contatos) 
       ? conversa.whatsapp_contatos[0] 
       : conversa.whatsapp_contatos;
+    
+    const contato = whatsappContato?.contatos 
+      ? (Array.isArray(whatsappContato.contatos) 
+          ? whatsappContato.contatos[0] 
+          : whatsappContato.contatos)
+      : null;
+    
     const clienteData = contato?.clientes;
-    const cliente = Array.isArray(clienteData) ? clienteData[0] : clienteData;
+    const cliente = clienteData 
+      ? (Array.isArray(clienteData) ? clienteData[0] : clienteData)
+      : null;
 
     // Gerar número da venda (formato: VW-YYYYMM-#####)
     const hoje = new Date();
@@ -116,9 +132,10 @@ Deno.serve(async (req) => {
     // Criar venda
     const vendaData: any = {
       numero_venda: numeroVenda,
-      cliente_nome: cliente?.nome_emit || contato?.nome || 'Cliente WhatsApp',
+      cliente_nome: cliente?.nome_emit || whatsappContato?.nome_whatsapp || 'Cliente WhatsApp',
       cliente_cnpj: cnpjConfirmado || cliente?.cgc,
-      cliente_id: cliente?.id,
+      cliente_id: clienteId || cliente?.id,
+      endereco_id: enderecoId,
       valor_total: proposta.subtotal,
       desconto: proposta.desconto_percentual || 0,
       valor_final: proposta.valor_total,

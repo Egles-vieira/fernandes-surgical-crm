@@ -181,6 +181,10 @@ COMPORTAMENTO INTELIGENTE:
         parameters: {
           type: "object",
           properties: {
+            cliente_id: {
+              type: "string",
+              description: "UUID do cliente retornado por validar_dados_cliente",
+            },
             cnpj_confirmado: {
               type: "string",
               description: "CNPJ que o cliente confirmou (ex: '12.345.678/0001-90')",
@@ -190,7 +194,7 @@ COMPORTAMENTO INTELIGENTE:
               description: "UUID do endereço que o cliente escolheu da lista apresentada",
             },
           },
-          required: ["cnpj_confirmado", "endereco_id"],
+          required: ["cliente_id", "cnpj_confirmado", "endereco_id"],
         },
       },
     },
@@ -430,29 +434,33 @@ export async function executarFerramenta(
     case "validar_dados_cliente": {
       console.log("🔍 Validando dados do cliente");
 
-      // Buscar contato e cliente vinculado
+      // Buscar contato e cliente vinculado (caminho correto)
       const { data: conversa } = await supabase
         .from("whatsapp_conversas")
         .select(
           `
           whatsapp_contato_id,
           whatsapp_contatos (
-            nome,
-            cliente_id,
-            clientes (
+            nome_whatsapp,
+            contato_id,
+            contatos (
               id,
-              nome_emit,
-              cgc,
-              cliente_enderecos (
+              primeiro_nome,
+              cliente_id,
+              clientes (
                 id,
-                tipo,
-                endereco,
-                numero,
-                bairro,
-                cidade,
-                estado,
-                cep,
-                is_principal
+                nome_emit,
+                cgc,
+                cliente_enderecos (
+                  id,
+                  tipo,
+                  logradouro,
+                  numero,
+                  bairro,
+                  cidade,
+                  estado,
+                  cep
+                )
               )
             )
           )
@@ -462,17 +470,28 @@ export async function executarFerramenta(
         .single();
 
       if (!conversa?.whatsapp_contatos) {
-        return { erro: "Contato não encontrado" };
+        return { erro: "Contato WhatsApp não encontrado" };
       }
 
-      const contato = Array.isArray(conversa.whatsapp_contatos)
+      const whatsappContato = Array.isArray(conversa.whatsapp_contatos)
         ? conversa.whatsapp_contatos[0]
         : conversa.whatsapp_contatos;
+
+      if (!whatsappContato?.contatos) {
+        return {
+          erro: "contato_nao_vinculado",
+          mensagem: "Seu número ainda não está vinculado a um contato no sistema.",
+        };
+      }
+
+      const contato = Array.isArray(whatsappContato.contatos)
+        ? whatsappContato.contatos[0]
+        : whatsappContato.contatos;
 
       if (!contato.cliente_id || !contato.clientes) {
         return {
           erro: "cliente_nao_vinculado",
-          mensagem: "Você ainda não está cadastrado em nosso sistema. Vou precisar de alguns dados antes de finalizar.",
+          mensagem: "Você ainda não está cadastrado como cliente em nosso sistema. Vou precisar de alguns dados antes de finalizar.",
         };
       }
 
@@ -492,9 +511,8 @@ export async function executarFerramenta(
       const enderecosFormatados = enderecos.map((e: any, idx: number) => ({
         id: e.id,
         numero: idx + 1,
-        tipo: e.tipo,
-        endereco_completo: `${e.endereco}${e.numero ? ", " + e.numero : ""}, ${e.bairro}, ${e.cidade}/${e.estado} - CEP: ${e.cep}`,
-        is_principal: e.is_principal,
+        tipo: e.tipo || 'entrega',
+        endereco_completo: `${e.logradouro || e.endereco || ''}${e.numero ? ", " + e.numero : ""}, ${e.bairro || ''}, ${e.cidade || ''}/${e.estado || ''} - CEP: ${e.cep || ''}`,
       }));
 
       console.log(`✅ Cliente validado: ${cliente.nome_emit} (${cliente.cgc})`);
@@ -502,6 +520,7 @@ export async function executarFerramenta(
 
       return {
         sucesso: true,
+        cliente_id: cliente.id,
         cliente_nome: cliente.nome_emit,
         cnpj: cliente.cgc,
         enderecos: enderecosFormatados,
@@ -509,8 +528,9 @@ export async function executarFerramenta(
     }
 
     case "finalizar_pedido": {
-      const { cnpj_confirmado, endereco_id } = argumentos;
+      const { cliente_id, cnpj_confirmado, endereco_id } = argumentos;
       console.log("🎯 Finalizando pedido e criando venda no sistema");
+      console.log(`   Cliente ID: ${cliente_id}`);
       console.log(`   CNPJ: ${cnpj_confirmado}`);
       console.log(`   Endereço ID: ${endereco_id}`);
 
@@ -540,6 +560,7 @@ export async function executarFerramenta(
           body: JSON.stringify({
             propostaId: conversa.proposta_ativa_id,
             conversaId: conversaId,
+            clienteId: cliente_id,
             cnpjConfirmado: cnpj_confirmado,
             enderecoId: endereco_id,
           }),
