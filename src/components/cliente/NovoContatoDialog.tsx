@@ -115,17 +115,14 @@ export default function NovoContatoDialog({ open, onOpenChange, clienteId, conta
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-full sm:max-w-3xl overflow-y-auto p-0 bg-gradient-to-b from-muted/30 to-background">
-        <SheetHeader className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b px-6 py-5 shadow-sm">
+      <SheetContent side="right" className="w-full sm:max-w-3xl overflow-y-auto p-0">
+        <SheetHeader className="sticky top-0 z-10 bg-background border-b px-6 py-5">
           <div className="flex items-center justify-between">
             <SheetTitle className="text-xl font-semibold flex items-center gap-3">
-              <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg">
-                <UserPlus className="h-5 w-5 text-white" />
+              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <UserPlus className="h-5 w-5 text-primary" />
               </div>
-              <div>
-                <div className="text-foreground">Novo Contato</div>
-                <div className="text-xs font-normal text-muted-foreground mt-0.5">Adicionar informações do contato</div>
-              </div>
+              Novo Contato
             </SheetTitle>
           </div>
         </SheetHeader>
@@ -134,38 +131,38 @@ export default function NovoContatoDialog({ open, onOpenChange, clienteId, conta
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-0">
           <Tabs defaultValue="basico" className="w-full">
-            <TabsList className="w-full justify-start h-auto p-0 bg-card/50 backdrop-blur-sm border-b rounded-none gap-1 px-6">
+            <TabsList className="w-full justify-start h-auto p-0 bg-transparent border-b rounded-none gap-6">
               <TabsTrigger 
                 value="basico" 
-                className="flex items-center gap-2 rounded-t-lg border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-background data-[state=active]:shadow-sm px-4 py-3 text-muted-foreground data-[state=active]:text-primary font-medium"
+                className="flex items-center gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-0 pb-3"
               >
                 <User className="h-4 w-4" />
                 <span>Básico</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="contato" 
-                className="flex items-center gap-2 rounded-t-lg border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-background data-[state=active]:shadow-sm px-4 py-3 text-muted-foreground data-[state=active]:text-primary font-medium"
+                className="flex items-center gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-0 pb-3"
               >
                 <Phone className="h-4 w-4" />
                 <span>Contato</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="qualificacao" 
-                className="flex items-center gap-2 rounded-t-lg border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-background data-[state=active]:shadow-sm px-4 py-3 text-muted-foreground data-[state=active]:text-primary font-medium"
+                className="flex items-center gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-0 pb-3"
               >
                 <Target className="h-4 w-4" />
                 <span>Qualificação</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="social" 
-                className="flex items-center gap-2 rounded-t-lg border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-background data-[state=active]:shadow-sm px-4 py-3 text-muted-foreground data-[state=active]:text-primary font-medium"
+                className="flex items-center gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-0 pb-3"
               >
                 <Share2 className="h-4 w-4" />
                 <span>Social</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="observacoes" 
-                className="flex items-center gap-2 rounded-t-lg border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-background data-[state=active]:shadow-sm px-4 py-3 text-muted-foreground data-[state=active]:text-primary font-medium"
+                className="flex items-center gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-0 pb-3"
               >
                 <FileText className="h-4 w-4" />
                 <span>Notas</span>
@@ -173,7 +170,7 @@ export default function NovoContatoDialog({ open, onOpenChange, clienteId, conta
             </TabsList>
 
             {/* Aba: Informações Básicas */}
-            <TabsContent value="basico" className="space-y-6 mt-6 bg-background rounded-lg p-6 mx-6 border shadow-sm">
+            <TabsContent value="basico" className="space-y-6 mt-6">
               <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="tratamento">Tratamento</Label>
@@ -223,7 +220,7 @@ export default function NovoContatoDialog({ open, onOpenChange, clienteId, conta
             </TabsContent>
 
             {/* Aba: Contato & Preferências */}
-            <TabsContent value="contato" className="space-y-6 mt-6 bg-background rounded-lg p-6 mx-6 border shadow-sm">
+            <TabsContent value="contato" className="space-y-6 mt-6">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
@@ -303,7 +300,7 @@ export default function NovoContatoDialog({ open, onOpenChange, clienteId, conta
             </TabsContent>
 
             {/* Aba: Qualificação & Vendas */}
-            <TabsContent value="qualificacao" className="space-y-6 mt-6 bg-background rounded-lg p-6 mx-6 border shadow-sm">
+            <TabsContent value="qualificacao" className="space-y-6 mt-6">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="nivel_autoridade">Nível de Autoridade</Label>
@@ -359,7 +356,7 @@ export default function NovoContatoDialog({ open, onOpenChange, clienteId, conta
             </TabsContent>
 
             {/* Aba: Redes Sociais */}
-            <TabsContent value="social" className="space-y-6 mt-6 bg-background rounded-lg p-6 mx-6 border shadow-sm">
+            <TabsContent value="social" className="space-y-6 mt-6">
               <div className="space-y-2">
                 <Label htmlFor="linkedin_url">LinkedIn</Label>
                 <Input id="linkedin_url" {...register("linkedin_url")} placeholder="https://linkedin.com/in/..." />
@@ -388,7 +385,7 @@ export default function NovoContatoDialog({ open, onOpenChange, clienteId, conta
             </TabsContent>
 
             {/* Aba: Observações */}
-            <TabsContent value="observacoes" className="space-y-6 mt-6 bg-background rounded-lg p-6 mx-6 border shadow-sm">
+            <TabsContent value="observacoes" className="space-y-6 mt-6">
               <div className="space-y-2">
                 <Label htmlFor="dores_identificadas">Dores Identificadas</Label>
                 <Textarea id="dores_identificadas" {...register("dores_identificadas")} rows={4} placeholder="Quais problemas o contato enfrenta?" />
@@ -406,18 +403,18 @@ export default function NovoContatoDialog({ open, onOpenChange, clienteId, conta
             </TabsContent>
           </Tabs>
 
-          <div className="sticky bottom-0 bg-background/95 backdrop-blur-sm border-t px-6 py-4 mt-8 -mx-6 shadow-lg">
+          <div className="sticky bottom-0 bg-background border-t px-6 py-4 mt-8 -mx-6">
             <div className="flex gap-3">
               <Button 
                 type="button" 
                 variant="outline" 
                 onClick={() => onOpenChange(false)} 
                 disabled={isSubmitting} 
-                className="flex-1 border-2"
+                className="flex-1"
               >
                 Cancelar
               </Button>
-              <Button type="submit" disabled={isSubmitting} className="flex-1 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg">
+              <Button type="submit" disabled={isSubmitting} className="flex-1">
                 {isSubmitting ? "Salvando..." : "Salvar Contato"}
               </Button>
             </div>
