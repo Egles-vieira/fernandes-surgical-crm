@@ -127,7 +127,7 @@ Deno.serve(async (req) => {
     await salvarMemoria(supabase, conversaId, `Cliente: ${mensagemTexto}`, 'mensagem_recebida', openAiApiKey);
 
     // === GERAR RESPOSTA INTELIGENTE COM TOOL CALLING ===
-    const { resposta, ferramentasChamadas } = await gerarRespostaInteligente(
+    const { resposta: respostaInicial, toolCalls } = await gerarRespostaInteligente(
       mensagemTexto,
       historicoMensagens,
       perfilCliente,
@@ -136,93 +136,148 @@ Deno.serve(async (req) => {
       supabase
     );
 
-    console.log('💬 Resposta gerada:', resposta.substring(0, 100) + '...');
-    console.log('🔧 Ferramentas chamadas:', ferramentasChamadas.length);
+    console.log('🔧 Tool calls:', toolCalls.length);
 
-    // === EXECUTAR FERRAMENTAS SOLICITADAS ===
+    // === EXECUTAR FERRAMENTAS E GERAR RESPOSTA FINAL ===
     let produtosEncontrados: any[] = [];
-    let propostaGerada: any = null;
+    let respostaFinal = respostaInicial;
 
-    for (const ferramenta of ferramentasChamadas) {
-      const resultado = await executarFerramenta(
-        ferramenta.nome,
-        ferramenta.argumentos,
-        supabase,
-        conversaId,
-        openAiApiKey
-      );
+    if (toolCalls.length > 0) {
+      // Executar todas as ferramentas
+      const resultadosFerramentas: any[] = [];
 
-      console.log(`✅ Ferramenta ${ferramenta.nome} executada`);
+      for (const toolCall of toolCalls) {
+        const functionName = toolCall.function.name;
+        const args = JSON.parse(toolCall.function.arguments);
 
-      // Processar resultados
-      if (ferramenta.nome === 'buscar_produtos' && resultado.produtos) {
-        produtosEncontrados = resultado.produtos;
-        
-        // Atualizar carrinho com produtos encontrados
-        const produtosIds = resultado.produtos.map((p: any) => p.id);
-        await supabase
-          .from('whatsapp_conversas')
-          .update({ produtos_carrinho: produtosIds })
-          .eq('id', conversaId);
+        console.log(`⚙️ Executando: ${functionName}`);
 
-        // Salvar na memória
-        await salvarMemoria(
+        const resultado = await executarFerramenta(
+          functionName,
+          args,
           supabase,
           conversaId,
-          `Produtos encontrados: ${resultado.produtos.map((p: any) => p.nome).join(', ')}`,
-          'produtos_sugeridos',
           openAiApiKey
         );
-      }
 
-      if (ferramenta.nome === 'criar_proposta' && resultado.sucesso) {
-        propostaGerada = resultado;
+        resultadosFerramentas.push({
+          tool_call_id: toolCall.id,
+          role: "tool",
+          name: functionName,
+          content: JSON.stringify(resultado)
+        });
 
-        // Buscar proposta completa para formatar
-        const { data: proposta } = await supabase
-          .from('whatsapp_propostas_comerciais')
-          .select('*')
-          .eq('id', resultado.proposta_id)
-          .single();
+        // Processar produtos encontrados
+        if (functionName === 'buscar_produtos' && resultado.produtos) {
+          produtosEncontrados = resultado.produtos;
 
-        if (proposta) {
-          const { data: itens } = await supabase
-            .from('whatsapp_propostas_itens')
-            .select('*, produtos:produto_id (nome, referencia_interna)')
-            .eq('proposta_id', proposta.id);
-
-          // Formatar proposta para WhatsApp
-          const mensagemProposta = await formatarPropostaWhatsApp(proposta, itens || []);
+          // Atualizar carrinho
+          const produtosIds = resultado.produtos.map((p: any) => p.id);
+          await supabase
+            .from('whatsapp_conversas')
+            .update({ produtos_carrinho: produtosIds })
+            .eq('id', conversaId);
 
           // Salvar na memória
           await salvarMemoria(
             supabase,
             conversaId,
-            `Proposta ${proposta.numero_proposta} criada`,
-            'proposta_criada',
+            `Produtos encontrados: ${resultado.produtos.map((p: any) => p.nome).slice(0, 3).join(', ')}`,
+            'produtos_sugeridos',
             openAiApiKey
           );
+        }
 
-          // Retornar proposta formatada
-          return new Response(
-            JSON.stringify({ 
-              resposta: mensagemProposta,
-              proposta_id: proposta.id,
-              produtos_encontrados: produtosEncontrados
-            }),
-            { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
+        // Processar proposta criada
+        if (functionName === 'criar_proposta' && resultado.sucesso) {
+          const { data: proposta } = await supabase
+            .from('whatsapp_propostas_comerciais')
+            .select('*')
+            .eq('id', resultado.proposta_id)
+            .single();
+
+          if (proposta) {
+            const { data: itens } = await supabase
+              .from('whatsapp_propostas_itens')
+              .select('*, produtos:produto_id (nome, referencia_interna)')
+              .eq('proposta_id', proposta.id);
+
+            const mensagemProposta = await formatarPropostaWhatsApp(proposta, itens || []);
+
+            await salvarMemoria(
+              supabase,
+              conversaId,
+              `Proposta ${proposta.numero_proposta} criada`,
+              'proposta_criada',
+              openAiApiKey
+            );
+
+            return new Response(
+              JSON.stringify({
+                resposta: mensagemProposta,
+                proposta_id: proposta.id
+              }),
+              { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            );
+          }
+        }
+      }
+
+      // Segunda chamada ao DeepSeek com resultados das ferramentas
+      console.log('🔄 Gerando resposta final com resultados das ferramentas');
+
+      const response2 = await fetch("https://api.deepseek.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${deepseekApiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "deepseek-chat",
+          messages: [
+            {
+              role: "system",
+              content: `Você é o Beto, vendedor da Cirúrgica Fernandes. Apresente os produtos encontrados de forma natural, destacando 2-3 melhores opções com diferenciais. Seja direto e persuasivo mas não robotizado. Use no máximo 2 emojis.`
+            },
+            ...historicoMensagens.map(msg => ({
+              role: msg.role,
+              content: msg.content
+            })),
+            { role: "user", content: mensagemTexto },
+            { role: "assistant", content: null, tool_calls: toolCalls },
+            ...resultadosFerramentas
+          ],
+          temperature: 0.7,
+          max_tokens: 400
+        })
+      });
+
+      if (response2.ok) {
+        const data2 = await response2.json();
+        respostaFinal = data2.choices[0].message.content;
+        console.log('✅ Resposta final gerada');
+      } else {
+        console.error('❌ Erro na segunda chamada DeepSeek');
+        // Fallback: apresentar produtos manualmente
+        if (produtosEncontrados.length > 0) {
+          respostaFinal = `Show! Encontrei algumas opções de cânulas:\n\n` +
+            produtosEncontrados.slice(0, 3).map((p, i) => 
+              `${i + 1}. *${p.nome}*\n   Cód: ${p.referencia}\n   R$ ${p.preco.toFixed(2)} - Estoque: ${p.estoque} un\n`
+            ).join('\n') +
+            `\nQual te interessou mais?`;
         }
       }
     }
 
-    // === SALVAR RESPOSTA DO BETO NA MEMÓRIA ===
-    await salvarMemoria(supabase, conversaId, `Beto: ${resposta}`, 'resposta_enviada', openAiApiKey);
+    // === SALVAR RESPOSTA NA MEMÓRIA ===
+    if (respostaFinal) {
+      await salvarMemoria(supabase, conversaId, `Beto: ${respostaFinal}`, 'resposta_enviada', openAiApiKey);
+    }
 
     // === RETORNAR RESPOSTA ===
     return new Response(
-      JSON.stringify({ 
-        resposta,
+      JSON.stringify({
+        resposta: respostaFinal || "Desculpa, tive um probleminha. Pode repetir?",
         produtos_encontrados: produtosEncontrados.length > 0 ? produtosEncontrados : undefined
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }

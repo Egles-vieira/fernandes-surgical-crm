@@ -12,8 +12,8 @@ export async function gerarRespostaInteligente(
   deepseekApiKey: string,
   supabase: any
 ): Promise<{
-  resposta: string;
-  ferramentasChamadas: any[];
+  resposta: string | null;
+  toolCalls: any[];
 }> {
   console.log('🧠 Gerando resposta inteligente | Perfil:', perfil.tipo, '| Carrinho:', carrinhoAtual.length);
   
@@ -161,36 +161,17 @@ INSTRUÇÕES CRÍTICAS:
     
     console.log('✅ Resposta DeepSeek recebida');
     
-    // Processar tool calls se houver
-    const ferramentasChamadas: any[] = [];
-    
-    if (assistantMessage.tool_calls && assistantMessage.tool_calls.length > 0) {
-      console.log(`🔧 ${assistantMessage.tool_calls.length} ferramenta(s) chamada(s)`);
-      
-      for (const toolCall of assistantMessage.tool_calls) {
-        const functionName = toolCall.function.name;
-        const args = JSON.parse(toolCall.function.arguments);
-        
-        console.log(`🔧 Executando: ${functionName}`, args);
-        
-        ferramentasChamadas.push({
-          nome: functionName,
-          argumentos: args
-        });
-      }
-    }
-    
-    // Retornar resposta e ferramentas chamadas
+    // Retornar resposta e tool calls (não executar aqui)
     return {
-      resposta: assistantMessage.content || "Desculpa, tive um probleminha. Pode repetir?",
-      ferramentasChamadas
+      resposta: assistantMessage.content,
+      toolCalls: assistantMessage.tool_calls || []
     };
     
   } catch (error) {
     console.error('❌ Erro ao gerar resposta:', error);
     return {
       resposta: "Desculpa, tive um problema técnico. Pode repetir?",
-      ferramentasChamadas: []
+      toolCalls: []
     };
   }
 }
