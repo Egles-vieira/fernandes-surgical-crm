@@ -62,14 +62,19 @@ export const CarrinhoDialog = ({ open, onOpenChange, conversaId }: CarrinhoDialo
       const carrinho = conversa?.produtos_carrinho || [];
       console.log('🔍 Processando carrinho:', carrinho);
       
-      // Carrinho formato: [{ id: uuid, quantidade: number }]
+      // Carrinho pode ter dois formatos: [uuid, uuid] OU [{ id: uuid, quantidade: number }]
       if (!Array.isArray(carrinho) || carrinho.length === 0) {
         console.log('⚠️ Carrinho vazio ou não é array');
         return [];
       }
 
       const produtoIds: string[] = carrinho
-        .map((item: any) => item?.id)
+        .map((item: any) => {
+          // Se é string, é o próprio ID
+          if (typeof item === 'string') return item;
+          // Se é objeto, pega o campo id
+          return item?.id;
+        })
         .filter((id: any): id is string => typeof id === 'string' && id !== null && id !== undefined);
 
       console.log('🆔 IDs dos produtos:', produtoIds);
@@ -93,11 +98,16 @@ export const CarrinhoDialog = ({ open, onOpenChange, conversaId }: CarrinhoDialo
 
       // Mapear produtos com quantidades do carrinho
       const produtosComQuantidade: ProdutoCarrinho[] = data.map(produto => {
-        const carrinhoItem: any = carrinho.find((item: any) => 
-          item?.id === produto.id
-        );
+        const carrinhoItem: any = carrinho.find((item: any) => {
+          // Se item é string, compara direto
+          if (typeof item === 'string') return item === produto.id;
+          // Se é objeto, compara o campo id
+          return item?.id === produto.id;
+        });
         
-        const quantidade = carrinhoItem?.quantidade || 1;
+        // Se carrinhoItem é string, quantidade padrão = 1
+        // Se é objeto, usa a quantidade do objeto
+        const quantidade = typeof carrinhoItem === 'string' ? 1 : (carrinhoItem?.quantidade || 1);
         
         return {
           id: produto.id,
