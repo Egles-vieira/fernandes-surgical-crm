@@ -61,25 +61,39 @@ Use-as APENAS quando necessário e fizer sentido no contexto:
    - Use quando: cliente escolheu produto específico e quantidade
    - NÃO use sem confirmação explícita do cliente
 
-3. criar_proposta: Para gerar proposta comercial
-   - Use quando: cliente confirmou produtos e está pronto para fechar
+3. criar_proposta: Para gerar proposta comercial com os produtos do carrinho
+   - Use quando: cliente confirmou produtos e está pronto para receber proposta
    - Requer: carrinho com produtos + confirmação do cliente
+   - APÓS CRIAR: apresente a proposta e PERGUNTE se o cliente quer FINALIZAR o pedido
 
-4. validar_dados_cliente: Para validar CNPJ e endereço antes de finalizar
-   - Use quando: cliente está pronto para finalizar compra
-   - Retorna: CNPJ vinculado e lista de endereços disponíveis
-   - Cliente deve confirmar CNPJ e escolher endereço
+4. validar_dados_cliente: CRÍTICO - valida CNPJ e endereços do cliente
+   - Use quando: cliente ACEITAR/CONFIRMAR a proposta e quiser finalizar
+   - Exemplos de confirmação: "pode fechar", "confirmo", "quero esse pedido", "tá fechado"
+   - Retorna: CNPJ do cliente + lista de endereços disponíveis
+   - Você deve APRESENTAR o CNPJ e PERGUNTAR: "É nesse CNPJ mesmo? {cnpj}"
+   - Depois mostrar os endereços e PERGUNTAR: "Qual endereço você quer usar?"
 
-5. finalizar_pedido: Para criar venda no sistema
-   - Use APENAS após validar_dados_cliente
-   - Requer: confirmação de CNPJ e endereço pelo cliente
+5. finalizar_pedido: Cria a venda no sistema (última etapa)
+   - Use APENAS após: 1) validar_dados_cliente, 2) cliente confirmar CNPJ, 3) cliente escolher endereço
+   - Requer: CNPJ confirmado + ID do endereço escolhido
+   - Após finalizar: informe o número do pedido gerado
+
+FLUXO DE FECHAMENTO DE PEDIDO (siga esta sequência):
+1. Cliente aceita proposta ("pode fechar", "quero", "confirmo")
+2. Você chama validar_dados_cliente → recebe CNPJ e endereços
+3. Você pergunta: "Confirma o CNPJ {cnpj}?"
+4. Cliente confirma CNPJ
+5. Você mostra endereços numerados e pergunta: "Qual endereço você quer usar? Digite o número."
+6. Cliente escolhe endereço (ex: "1", "o primeiro", "endereço 2")
+7. Você chama finalizar_pedido com CNPJ e ID do endereço
+8. Você informa: "Pedido {numero} criado com sucesso! Vamos processar e enviar em breve."
 
 COMPORTAMENTO INTELIGENTE:
 - Analise o CONTEXTO COMPLETO da conversa
 - Se cliente já forneceu informações (tipo de produto, quantidade, urgência), NÃO pergunte de novo
 - Seja inteligente: se ele disse "preciso de 50 luvas de procedimento para UTI amanhã", você já tem TUDO
 - Use ferramentas quando APROPRIADO, não em toda mensagem
-- Converse naturalmente, não force fluxo sequencial`;
+- Converse naturalmente, mas SIGA O FLUXO DE FECHAMENTO quando cliente aceitar proposta`;
 
   // Definir ferramentas disponíveis
   const tools = [
@@ -145,7 +159,7 @@ COMPORTAMENTO INTELIGENTE:
       type: "function",
       function: {
         name: "validar_dados_cliente",
-        description: "Valida dados do cliente (CNPJ e endereços) antes de finalizar a compra. Use quando cliente aceitar a proposta e estiver pronto para fechar.",
+        description: "OBRIGATÓRIO ANTES DE FINALIZAR: Valida CNPJ e endereços do cliente. Use quando cliente ACEITAR/CONFIRMAR a proposta (ex: 'pode fechar', 'confirmo', 'quero finalizar', 'tá bom'). Retorna CNPJ e lista de endereços que você DEVE apresentar ao cliente para confirmação.",
         parameters: {
           type: "object",
           properties: {}
@@ -156,17 +170,17 @@ COMPORTAMENTO INTELIGENTE:
       type: "function",
       function: {
         name: "finalizar_pedido",
-        description: "Finaliza o pedido e cria a venda no sistema. Use APENAS depois de validar_dados_cliente e cliente confirmar CNPJ e endereço.",
+        description: "ÚLTIMA ETAPA: Finaliza o pedido e cria a venda no sistema. Use APENAS após: 1) ter chamado validar_dados_cliente, 2) cliente confirmar o CNPJ, 3) cliente escolher o endereço. Esta ferramenta cria o pedido oficial no sistema.",
         parameters: {
           type: "object",
           properties: {
             cnpj_confirmado: {
               type: "string",
-              description: "CNPJ confirmado pelo cliente"
+              description: "CNPJ que o cliente confirmou (ex: '12.345.678/0001-90')"
             },
             endereco_id: {
               type: "string",
-              description: "ID do endereço escolhido pelo cliente"
+              description: "UUID do endereço que o cliente escolheu da lista apresentada"
             }
           },
           required: ["cnpj_confirmado", "endereco_id"]

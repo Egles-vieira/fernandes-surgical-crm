@@ -208,7 +208,13 @@ Deno.serve(async (req) => {
               .select('*, produtos:produto_id (nome, referencia_interna)')
               .eq('proposta_id', proposta.id);
 
-            const mensagemProposta = await formatarPropostaWhatsApp(proposta, itens || []);
+            await supabase
+              .from('whatsapp_conversas')
+              .update({ 
+                proposta_ativa_id: resultado.proposta_id,
+                estagio_agente: 'aguardando_aprovacao'
+              })
+              .eq('id', conversaId);
 
             await salvarMemoria(
               supabase,
@@ -218,12 +224,54 @@ Deno.serve(async (req) => {
               openAiApiKey
             );
 
-            return new Response(
-              JSON.stringify({
-                resposta: mensagemProposta,
-                proposta_id: proposta.id
-              }),
-              { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            // AUTOMÁTICO: Validar dados do cliente imediatamente após criar proposta
+            console.log('🔍 Auto-validando dados do cliente...');
+            const dadosCliente = await executarFerramenta(
+              'validar_dados_cliente',
+              {},
+              supabase,
+              conversaId,
+              openAiApiKey
+            );
+
+            // Adicionar resultado da validação aos resultados das ferramentas
+            resultadosFerramentas.push({
+              tool_call_id: 'auto_validacao_' + Date.now(),
+              role: "tool",
+              name: 'validar_dados_cliente',
+              content: JSON.stringify(dadosCliente)
+            });
+
+            console.log('✅ Validação automática concluída:', dadosCliente.sucesso ? 'sucesso' : 'erro');
+          }
+        }
+
+        // Processar validação de dados do cliente
+        if (functionName === 'validar_dados_cliente') {
+          if (resultado.sucesso) {
+            console.log('✅ Dados validados:', resultado.cnpj);
+            await salvarMemoria(
+              supabase,
+              conversaId,
+              `Cliente validado: ${resultado.cliente_nome} | CNPJ: ${resultado.cnpj} | ${resultado.enderecos?.length || 0} endereço(s)`,
+              'dados_validados',
+              openAiApiKey
+            );
+          } else if (resultado.erro) {
+            console.warn('⚠️ Erro na validação:', resultado.erro);
+          }
+        }
+
+        // Processar finalização de pedido
+        if (functionName === 'finalizar_pedido') {
+          if (resultado.sucesso) {
+            console.log('✅ Pedido finalizado:', resultado.numero_pedido);
+            await salvarMemoria(
+              supabase,
+              conversaId,
+              `Pedido ${resultado.numero_pedido} finalizado - R$ ${resultado.valor_total}`,
+              'pedido_finalizado',
+              openAiApiKey
             );
           }
         }
