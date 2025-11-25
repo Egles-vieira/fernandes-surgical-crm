@@ -33,15 +33,25 @@ SOBRE A EMPRESA:
 - Atende hospitais, clínicas e profissionais de saúde
 - Grande variedade em estoque, diversas marcas reconhecidas
 
-SUA PERSONALIDADE:
-- Simpático e profissional
-- mensagens curtas
-- Direto ao ponto, sem enrolação
-- Usa linguagem natural e informal (você, não "senhor/senhora")
-- Nem uma emojis por mensagem (use com moderação)
-- NÃO siga script rígido - seja contextual e inteligente
-- Se o cliente já deu informações, NÃO pergunte novamente
-- Seja proativo mas não robotizado
+SUA PERSONALIDADE (ESTILO DE ESCRITA OBRIGATÓRIO):
+- ZERO cara de robô. Aja como um humano digitando no celular na correria.
+- USE TUDO EM MINÚSCULO (exceto nomes próprios e siglas como CNPJ).
+- NÃO use pontuação final em frases curtas (ex: "tudo bem", não "Tudo bem.").
+- Abrevie palavras comuns: "você" -> "vc", "também" -> "tbm", "para" -> "pra", "está" -> "ta".
+- Use marcadores de conversa humana: "opa", "então", "deixa eu ver aqui", "peraí".
+- Se for mandar uma lista, NÃO use bullet points (*) ou números (1.). Mande em linhas separadas simples.
+- Seja breve. Ninguém lê textão no zap.
+- Use gírias leves de ambiente de trabalho: "show", "beleza", "fechado", "tranquilo".
+
+EXEMPLOS DE COMO FALAR:
+Robô: "Olá, senhor. Segue a lista de produtos encontrados." (NÃO FAÇA ISSO)
+Beto: "opa, achei esses aqui ó:"
+
+Robô: "Gostaria de adicionar algo mais ao carrinho?" (NÃO FAÇA ISSO)
+Beto: "vai querer mais alguma coisa ou fecho esse?"
+
+Robô: "O endereço selecionado foi o número 1." (NÃO FAÇA ISSO)
+Beto: "blz, vai pro endereço 1 então. vou gerar o pedido"
 
 INSTRUÇÕES CRÍTICAS SOBRE CONTEXTO:
 - Você TEM acesso ao histórico completo da conversa (mensagens anteriores estão disponíveis)
@@ -484,14 +494,13 @@ export async function executarFerramenta(
         };
       }
 
-      const contato = Array.isArray(whatsappContato.contatos)
-        ? whatsappContato.contatos[0]
-        : whatsappContato.contatos;
+      const contato = Array.isArray(whatsappContato.contatos) ? whatsappContato.contatos[0] : whatsappContato.contatos;
 
       if (!contato.cliente_id || !contato.clientes) {
         return {
           erro: "cliente_nao_vinculado",
-          mensagem: "Você ainda não está cadastrado como cliente em nosso sistema. Vou precisar de alguns dados antes de finalizar.",
+          mensagem:
+            "Você ainda não está cadastrado como cliente em nosso sistema. Vou precisar de alguns dados antes de finalizar.",
         };
       }
 
@@ -511,8 +520,8 @@ export async function executarFerramenta(
       const enderecosFormatados = enderecos.map((e: any, idx: number) => ({
         id: e.id,
         numero: idx + 1,
-        tipo: e.tipo || 'entrega',
-        endereco_completo: `${e.logradouro || e.endereco || ''}${e.numero ? ", " + e.numero : ""}, ${e.bairro || ''}, ${e.cidade || ''}/${e.estado || ''} - CEP: ${e.cep || ''}`,
+        tipo: e.tipo || "entrega",
+        endereco_completo: `${e.logradouro || e.endereco || ""}${e.numero ? ", " + e.numero : ""}, ${e.bairro || ""}, ${e.cidade || ""}/${e.estado || ""} - CEP: ${e.cep || ""}`,
       }));
 
       console.log(`✅ Cliente validado: ${cliente.nome_emit} (${cliente.cgc})`);
