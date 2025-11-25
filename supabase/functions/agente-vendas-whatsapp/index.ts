@@ -1,13 +1,10 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
-// Importar módulos refatorados
-import type { EstadoConversa, ContextoConversa } from "../_shared/agente/types.ts";
+// Importar módulos do agente inteligente
 import { buscarPerfilCliente } from "../_shared/agente/perfil-cliente.ts";
-import { gerarRespostaPersonalizada } from "../_shared/agente/gerador-resposta.ts";
-import { fazerPerguntasQualificadoras } from "../_shared/agente/perguntas-qualificadoras.ts";
-import { mapearEstadoAntigo, determinarProximoEstado } from "../_shared/agente/estado-conversa.ts";
-import { transcreverAudio, gerarEmbedding, salvarMemoria } from "../_shared/agente/utils.ts";
-import { criarProposta, formatarPropostaWhatsApp } from "../_shared/agente/proposta-handler.ts";
+import { gerarRespostaInteligente, executarFerramenta } from "../_shared/agente/gerador-resposta.ts";
+import { transcreverAudio, salvarMemoria } from "../_shared/agente/utils.ts";
+import { formatarPropostaWhatsApp } from "../_shared/agente/proposta-handler.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -24,7 +21,7 @@ Deno.serve(async (req) => {
   try {
     let { mensagemTexto, conversaId, tipoMensagem, urlMidia, clienteId } = await req.json();
 
-    console.log("🤖 Agente Vendas v2 - Iniciando", { conversaId, tipoMensagem, clienteId });
+    console.log("🤖 Agente Vendas Inteligente v3 - Iniciando", { conversaId, tipoMensagem, clienteId });
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -43,7 +40,7 @@ Deno.serve(async (req) => {
       }
     });
 
-    // Se não tiver clienteId, buscar da conversa/contato
+    // === RESOLUÇÃO DE CLIENTE ===
     if (!clienteId) {
       const { data: conv } = await supabase
         .from('whatsapp_conversas')
@@ -69,13 +66,14 @@ Deno.serve(async (req) => {
         }
       }
       
-      console.log('🔍 Cliente ID encontrado via conversa:', clienteId);
+      console.log('🔍 Cliente ID:', clienteId || 'não encontrado');
     }
 
-    // === ETAPA 0.5: BUSCAR PERFIL DO CLIENTE ===
+    // === BUSCAR PERFIL DO CLIENTE ===
     const perfilCliente = await buscarPerfilCliente(clienteId, supabase);
+    console.log('👤 Perfil:', perfilCliente.tipo);
 
-    // === ETAPA 0: TRANSCRIÇÃO DE ÁUDIO ===
+    // === TRANSCRIÇÃO DE ÁUDIO (se necessário) ===
     if (tipoMensagem === 'audio' || tipoMensagem === 'voice') {
       if (!urlMidia) {
         return new Response(
@@ -93,404 +91,140 @@ Deno.serve(async (req) => {
       }
       
       mensagemTexto = transcricao;
-      await salvarMemoria(supabase, conversaId, `Cliente (áudio): ${transcricao}`, 'mensagem_recebida', openAiApiKey);
+      console.log('🎤 Áudio transcrito:', transcricao.substring(0, 50) + '...');
     }
 
-    // === ETAPA 1: BUSCAR ESTADO DA CONVERSA ===
-    const { data: conversa } = await supabase
-      .from('whatsapp_conversas')
-      .select('estagio_agente, proposta_ativa_id, produtos_carrinho, ultima_intencao_detectada')
-      .eq('id', conversaId)
-      .single();
-
-    const estadoAtual = mapearEstadoAntigo(conversa?.estagio_agente || 'inicial');
-    console.log('📍 Estado:', estadoAtual, '| Carrinho:', conversa?.produtos_carrinho?.length || 0, 'produtos');
-
-    // Salvar mensagem do cliente na memória
-    await salvarMemoria(supabase, conversaId, `Cliente: ${mensagemTexto}`, 'mensagem_recebida', openAiApiKey);
-
-    // === ETAPA 2: RECUPERAR CONTEXTO HISTÓRICO ===
-    
-    // Primeiro: buscar últimas 5 mensagens direto da memória (fallback simples)
-    const { data: memoriasRecentes, error: memoriaError } = await supabase
+    // === BUSCAR HISTÓRICO COMPLETO DA CONVERSA ===
+    const { data: memorias } = await supabase
       .from('whatsapp_conversas_memoria')
       .select('tipo_interacao, conteudo_resumido, criado_em')
       .eq('conversa_id', conversaId)
-      .order('criado_em', { ascending: false })
-      .limit(5);
+      .order('criado_em', { ascending: true })
+      .limit(20); // Últimas 20 interações
 
-    let contextoRelevante = '';
-    
-    if (memoriasRecentes && memoriasRecentes.length > 0) {
-      contextoRelevante = memoriasRecentes
-        .reverse()
-        .map(m => `[${m.tipo_interacao}] ${m.conteudo_resumido}`)
-        .join('\n');
-      console.log('🧠 Contexto:', memoriasRecentes.length, 'memórias recentes');
-    } else {
-      console.log('⚠️ Nenhuma memória encontrada');
-    }
-
-    // Tentar busca semântica (opcional, se falhar usa o contexto acima)
-    try {
-      const { data: contextoData } = await supabase.functions.invoke('recuperar-contexto-conversa', {
-        body: { conversaId, queryTexto: mensagemTexto, limite: 5 }
-      });
-
-      if (contextoData?.contextoRelevante && contextoData.contextoRelevante !== 'Nenhum contexto anterior relevante.') {
-        contextoRelevante = contextoData.contextoRelevante;
-        console.log('🎯 Contexto semântico:', contextoData.memorias?.length, 'memórias');
-      }
-    } catch (err) {
-      console.warn('⚠️ Busca semântica falhou, usando memórias recentes');
-    }
-
-    // === ETAPA 3: CLASSIFICAR INTENÇÃO COM CONTEXTO ===
-    
-    // Enriquecer contexto com produtos do carrinho
-    let contextoCompleto = contextoRelevante;
-    if (conversa?.produtos_carrinho && conversa.produtos_carrinho.length > 0) {
-      const { data: produtosCarrinho } = await supabase
-        .from('produtos')
-        .select('nome, referencia_interna, preco_venda')
-        .in('id', conversa.produtos_carrinho);
-      
-      if (produtosCarrinho && produtosCarrinho.length > 0) {
-        contextoCompleto += `\n\n=== PRODUTOS JÁ NO CARRINHO ===\n${produtosCarrinho.map(p => `- ${p.nome} (${p.referencia_interna}) - R$ ${p.preco_venda.toFixed(2)}`).join('\n')}`;
-        console.log('🛒 Carrinho:', produtosCarrinho.length, 'produtos');
-      }
-    }
-
-    const { data: intencaoData } = await supabase.functions.invoke('classificar-intencao-whatsapp', {
-      body: { 
-        mensagemTexto, 
-        conversaId,
-        contextoAnterior: contextoCompleto 
-      }
+    // Construir histórico no formato de mensagens
+    const historicoMensagens = (memorias || []).map(m => {
+      const isBot = m.tipo_interacao.includes('resposta') || m.tipo_interacao.includes('pergunta');
+      return {
+        role: isBot ? 'assistant' : 'user',
+        content: m.conteudo_resumido
+      };
     });
 
-    const intencao = intencaoData || { intencao: 'outro', confianca: 0 };
-    console.log('🎯 Intenção:', intencao.intencao, '| Confiança:', intencao.confianca);
+    console.log('📜 Histórico:', historicoMensagens.length, 'mensagens');
 
-    // === ETAPA 4: DETERMINAR PRÓXIMO ESTADO ===
-    const contextoTransicao: ContextoConversa = {
-      estadoAtual,
-      intencao,
-      carrinho: conversa?.produtos_carrinho || [],
-      propostaId: conversa?.proposta_ativa_id || null,
-      contextoHistorico: contextoCompleto
-    };
-
-    const proximoEstado = determinarProximoEstado(contextoTransicao);
-    console.log(`➡️  Estado: ${estadoAtual} → ${proximoEstado}`);
-
-    // Atualizar estado e intenção no banco
-    await supabase
+    // === BUSCAR CARRINHO ATUAL ===
+    const { data: conversa } = await supabase
       .from('whatsapp_conversas')
-      .update({ 
-        ultima_intencao_detectada: intencao.intencao,
-        estagio_agente: proximoEstado 
-      })
-      .eq('id', conversaId);
+      .select('produtos_carrinho, proposta_ativa_id')
+      .eq('id', conversaId)
+      .single();
 
-    // === ETAPA 5: PROCESSAMENTO POR ESTADO ===
-    
-    // ESTADO: DESCOBERTA DE NECESSIDADE
-    if (proximoEstado === 'descoberta_necessidade') {
-      console.log('🎯 Estado: Descoberta de Necessidade');
-      
-      // Fazer perguntas qualificadoras até ter informações suficientes
-      const respostaPerguntas = await fazerPerguntasQualificadoras(
-        supabase,
-        conversaId,
-        contextoCompleto,
-        mensagemTexto,
-        openAiApiKey,
-        corsHeaders
-      );
-      
-      const dadosResposta = await respostaPerguntas.json();
-      
-      // Se já tem informações suficientes, buscar produtos
-      if (dadosResposta.pular_pergunta) {
-        console.log('✅ Pulando perguntas - buscando produtos');
-        // Continua para busca de produtos abaixo
-      } else {
-        // ✅ CORREÇÃO: Criar NOVO Response com os dados (body já foi consumido)
-        return new Response(
-          JSON.stringify(dadosResposta),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-    }
-    
-    // ESTADO: REFINAMENTO DE BUSCA ou continuação após descoberta
-    if (proximoEstado === 'descoberta_necessidade' || proximoEstado === 'refinamento_busca') {
-      // Filtrar palavras não-técnicas das palavrasChave
-      const palavrasProibidas = ['cotar', 'cotação', 'comprar', 'quero', 'preciso', 'gostaria', 'pode', 'tem', 'vende', 'oi', 'olá', 'bom', 'dia', 'tarde', 'noite'];
-      
-      let termoBusca: string;
-      
-      if (intencao.palavrasChave && intencao.palavrasChave.length > 0) {
-        const palavrasFiltradas = intencao.palavrasChave.filter(
-          (palavra: string) => !palavrasProibidas.includes(palavra.toLowerCase())
-        );
-        termoBusca = palavrasFiltradas.length > 0 
-          ? palavrasFiltradas.join(' ') 
-          : (intencao.entidades?.produtos?.[0] || mensagemTexto);
-      } else {
-        // Fallback: usar produtos das entidades ou mensagem completa
-        termoBusca = intencao.entidades?.produtos?.[0] || mensagemTexto;
-      }
-      
-      console.log('🔍 Buscando produtos:', termoBusca, '| Palavras originais:', intencao.palavrasChave);
+    const carrinhoAtual = conversa?.produtos_carrinho || [];
+    console.log('🛒 Carrinho:', carrinhoAtual.length, 'produtos');
 
-      const vetorPergunta = await gerarEmbedding(termoBusca, openAiApiKey);
-      
-      const { data: produtos, error } = await supabase.rpc('match_produtos_hibrido', {
-        query_text: termoBusca,
-        query_embedding: vetorPergunta,
-        match_threshold: 0.5,
-        match_count: 5
-      });
+    // === SALVAR MENSAGEM DO CLIENTE NA MEMÓRIA ===
+    await salvarMemoria(supabase, conversaId, `Cliente: ${mensagemTexto}`, 'mensagem_recebida', openAiApiKey);
 
-      if (error || !produtos || produtos.length === 0) {
-        const respostaSemProdutos = `Putz, não encontrei nada com "${termoBusca}". Pode me dar mais detalhes? Código, modelo, marca?`;
-        
-        await salvarMemoria(supabase, conversaId, `Cliente buscou: ${termoBusca} - Sem resultados`, 'busca_vazia', openAiApiKey);
-        
-        return new Response(
-          JSON.stringify({ resposta: respostaSemProdutos }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
-      // Salvar na memória
-      await salvarMemoria(
-        supabase, 
-        conversaId, 
-        `Produtos encontrados para "${termoBusca}": ${produtos.map((p: any) => p.nome).join(', ')}`, 
-        'produtos_sugeridos',
-        openAiApiKey
-      );
-
-      // Atualizar carrinho (sobrescreve se refinamento, mantém se descoberta)
-      const produtosIds = produtos.map((p: any) => p.id);
-      await supabase
-        .from('whatsapp_conversas')
-        .update({ 
-          produtos_carrinho: produtosIds
-        })
-        .eq('id', conversaId);
-
-      // Gerar resposta humanizada e personalizada
-      const resposta = await gerarRespostaPersonalizada(
-        mensagemTexto,
-        contextoCompleto,
-        perfilCliente,
-        produtos,
-        proximoEstado,
-        deepseekApiKey!
-      );
-
-      await salvarMemoria(supabase, conversaId, `Beto: ${resposta}`, 'resposta_enviada', openAiApiKey);
-
-      return new Response(
-        JSON.stringify({ resposta, produtos_encontrados: produtos }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // ESTADO: SUGESTÃO DE PRODUTOS (produtos já buscados, apresentar)
-    if (proximoEstado === 'sugestao_produtos' && conversa?.produtos_carrinho && conversa.produtos_carrinho.length > 0) {
-      const { data: produtosCarrinho } = await supabase
-        .from('produtos')
-        .select('id, nome, referencia_interna, preco_venda, quantidade_em_maos')
-        .in('id', conversa.produtos_carrinho);
-
-      if (!produtosCarrinho || produtosCarrinho.length === 0) {
-        return new Response(
-          JSON.stringify({ resposta: "Ops, perdi o carrinho. Pode me dizer o que precisa novamente?" }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
-      // Gerar resposta humanizada e personalizada
-      const resposta = await gerarRespostaPersonalizada(
-        mensagemTexto,
-        contextoCompleto,
-        perfilCliente,
-        produtosCarrinho,
-        proximoEstado,
-        deepseekApiKey!
-      );
-
-      await salvarMemoria(supabase, conversaId, `Beto apresentou produtos: ${resposta}`, 'produtos_apresentados', openAiApiKey);
-
-      return new Response(
-        JSON.stringify({ resposta, produtos_encontrados: produtosCarrinho }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // ESTADO: AGUARDANDO ESCOLHA / CONFIRMAÇÃO DE QUANTIDADE
-    if (proximoEstado === 'aguardando_escolha' || proximoEstado === 'confirmacao_quantidade') {
-      const carrinho = conversa?.produtos_carrinho || [];
-      
-      if (carrinho.length === 0) {
-        return new Response(
-          JSON.stringify({ resposta: "Você ainda não adicionou nenhum produto. O que você precisa?" }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
-      // Extrair quantidade da mensagem
-      const quantidadeMatch = mensagemTexto.match(/(\d+)\s*(unidades?|caixas?|peças?|pcs?)?/i);
-      const quantidade = quantidadeMatch ? parseInt(quantidadeMatch[1]) : 1;
-
-      console.log(`📦 Quantidade detectada: ${quantidade}`);
-
-      // Buscar produtos do carrinho
-      const { data: produtosCarrinho } = await supabase
-        .from('produtos')
-        .select('id, nome, referencia_interna, preco_venda, quantidade_em_maos')
-        .in('id', carrinho);
-
-      // Adicionar quantidade aos produtos
-      const produtosComQuantidade = (produtosCarrinho || []).map(p => ({
-        ...p,
-        quantidade
-      }));
-
-      console.log(`📋 Montando proposta com ${produtosComQuantidade.length} produtos`);
-      
-      // Criar proposta
-      const proposta = await criarProposta(supabase, conversaId, produtosComQuantidade, clienteId);
-      
-      if (!proposta) {
-        return new Response(
-          JSON.stringify({ resposta: "Ops, tive um problema ao gerar a proposta. Tenta de novo?" }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
-      // Buscar itens completos
-      const { data: itens, error: itensError } = await supabase
-        .from('whatsapp_propostas_itens')
-        .select(`
-          *,
-          produtos:produto_id (nome, referencia_interna)
-        `)
-        .eq('proposta_id', proposta.id);
-
-      if (itensError) {
-        console.error('❌ Erro ao buscar itens da proposta:', itensError);
-      }
-
-      console.log(`📋 Itens encontrados: ${itens?.length || 0}`);
-
-      const mensagemProposta = await formatarPropostaWhatsApp(proposta, itens || []);
-      
-      await salvarMemoria(supabase, conversaId, `Proposta ${proposta.numero_proposta} criada com ${quantidade} unidades`, 'proposta_enviada', openAiApiKey);
-
-      return new Response(
-        JSON.stringify({ resposta: mensagemProposta, proposta_id: proposta.id }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // ESTADO: PROPOSTA APRESENTADA (aguardando feedback do cliente)
-    if (proximoEstado === 'proposta_apresentada' && conversa?.proposta_ativa_id) {
-      const { data: proposta } = await supabase
-        .from('whatsapp_propostas_comerciais')
-        .select('*')
-        .eq('id', conversa.proposta_ativa_id)
-        .single();
-
-      if (proposta) {
-        const { data: itens } = await supabase
-          .from('whatsapp_propostas_itens')
-          .select('*, produtos:produto_id (nome, referencia_interna)')
-          .eq('proposta_id', proposta.id);
-
-        const mensagemProposta = await formatarPropostaWhatsApp(proposta, itens || []);
-
-        return new Response(
-          JSON.stringify({ resposta: mensagemProposta, proposta_id: proposta.id }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-    }
-
-    // ESTADO: NEGOCIAÇÃO ATIVA
-    if (proximoEstado === 'negociacao_ativa') {
-      if (!conversa?.proposta_ativa_id) {
-        return new Response(
-          JSON.stringify({ resposta: "Ainda não temos uma proposta ativa. Vamos ver os produtos primeiro?" }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
-      // Atualizar proposta para aceita
-      await supabase
-        .from('whatsapp_propostas_comerciais')
-        .update({ 
-          status: 'aceita',
-          aceita_em: new Date().toISOString()
-        })
-        .eq('id', conversa.proposta_ativa_id);
-
-      // Criar oportunidade no CRM
-      const { data: oportunidade } = await supabase.functions.invoke('criar-oportunidade-venda', {
-        body: { 
-          propostaId: conversa.proposta_ativa_id,
-          clienteId 
-        }
-      });
-
-      await salvarMemoria(
-        supabase, 
-        conversaId, 
-        `Pedido fechado - Oportunidade criada`, 
-        'pedido_fechado',
-        openAiApiKey
-      );
-
-      await supabase
-        .from('whatsapp_conversas')
-        .update({ 
-          status: 'fechado'
-        })
-        .eq('id', conversaId);
-
-      const respostaFechamento = `Show! Pedido confirmado! 🎉\n\nVou processar tudo por aqui e te mando os detalhes de pagamento e entrega. Qualquer coisa, só chamar!`;
-
-      return new Response(
-        JSON.stringify({ 
-          resposta: respostaFechamento,
-          oportunidade_id: oportunidade?.id
-        }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // ESTADO: SAUDAÇÃO INICIAL ou OUTROS - Conversa natural
-    console.log('💬 Resposta conversacional - Estado:', proximoEstado);
-    
-    // Gerar resposta humanizada e personalizada
-    const resposta = await gerarRespostaPersonalizada(
+    // === GERAR RESPOSTA INTELIGENTE COM TOOL CALLING ===
+    const { resposta, ferramentasChamadas } = await gerarRespostaInteligente(
       mensagemTexto,
-      contextoCompleto,
+      historicoMensagens,
       perfilCliente,
-      [],
-      proximoEstado,
-      deepseekApiKey!
+      carrinhoAtual,
+      deepseekApiKey!,
+      supabase
     );
 
-    await salvarMemoria(supabase, conversaId, `Beto: ${resposta}`, 'conversa_geral', openAiApiKey);
+    console.log('💬 Resposta gerada:', resposta.substring(0, 100) + '...');
+    console.log('🔧 Ferramentas chamadas:', ferramentasChamadas.length);
 
+    // === EXECUTAR FERRAMENTAS SOLICITADAS ===
+    let produtosEncontrados: any[] = [];
+    let propostaGerada: any = null;
+
+    for (const ferramenta of ferramentasChamadas) {
+      const resultado = await executarFerramenta(
+        ferramenta.nome,
+        ferramenta.argumentos,
+        supabase,
+        conversaId,
+        openAiApiKey
+      );
+
+      console.log(`✅ Ferramenta ${ferramenta.nome} executada`);
+
+      // Processar resultados
+      if (ferramenta.nome === 'buscar_produtos' && resultado.produtos) {
+        produtosEncontrados = resultado.produtos;
+        
+        // Atualizar carrinho com produtos encontrados
+        const produtosIds = resultado.produtos.map((p: any) => p.id);
+        await supabase
+          .from('whatsapp_conversas')
+          .update({ produtos_carrinho: produtosIds })
+          .eq('id', conversaId);
+
+        // Salvar na memória
+        await salvarMemoria(
+          supabase,
+          conversaId,
+          `Produtos encontrados: ${resultado.produtos.map((p: any) => p.nome).join(', ')}`,
+          'produtos_sugeridos',
+          openAiApiKey
+        );
+      }
+
+      if (ferramenta.nome === 'criar_proposta' && resultado.sucesso) {
+        propostaGerada = resultado;
+
+        // Buscar proposta completa para formatar
+        const { data: proposta } = await supabase
+          .from('whatsapp_propostas_comerciais')
+          .select('*')
+          .eq('id', resultado.proposta_id)
+          .single();
+
+        if (proposta) {
+          const { data: itens } = await supabase
+            .from('whatsapp_propostas_itens')
+            .select('*, produtos:produto_id (nome, referencia_interna)')
+            .eq('proposta_id', proposta.id);
+
+          // Formatar proposta para WhatsApp
+          const mensagemProposta = await formatarPropostaWhatsApp(proposta, itens || []);
+
+          // Salvar na memória
+          await salvarMemoria(
+            supabase,
+            conversaId,
+            `Proposta ${proposta.numero_proposta} criada`,
+            'proposta_criada',
+            openAiApiKey
+          );
+
+          // Retornar proposta formatada
+          return new Response(
+            JSON.stringify({ 
+              resposta: mensagemProposta,
+              proposta_id: proposta.id,
+              produtos_encontrados: produtosEncontrados
+            }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+      }
+    }
+
+    // === SALVAR RESPOSTA DO BETO NA MEMÓRIA ===
+    await salvarMemoria(supabase, conversaId, `Beto: ${resposta}`, 'resposta_enviada', openAiApiKey);
+
+    // === RETORNAR RESPOSTA ===
     return new Response(
-      JSON.stringify({ resposta }),
+      JSON.stringify({ 
+        resposta,
+        produtos_encontrados: produtosEncontrados.length > 0 ? produtosEncontrados : undefined
+      }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
 
