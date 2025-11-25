@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -114,14 +114,14 @@ export default function NovoContatoDialog({ open, onOpenChange, clienteId, conta
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto border-2">
-        <DialogHeader className="border-b pb-4">
-          <DialogTitle className="text-2xl font-bold flex items-center gap-2">
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="right" className="w-full sm:max-w-2xl overflow-y-auto">
+        <SheetHeader className="border-b pb-4 mb-6">
+          <SheetTitle className="text-2xl font-bold flex items-center gap-2">
             <UserPlus className="h-6 w-6 text-primary" />
             Novo Contato
-          </DialogTitle>
-        </DialogHeader>
+          </SheetTitle>
+        </SheetHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <Tabs defaultValue="basico" className="w-full">
@@ -382,7 +382,7 @@ export default function NovoContatoDialog({ open, onOpenChange, clienteId, conta
             </TabsContent>
           </Tabs>
 
-          <DialogFooter className="border-t pt-6 flex gap-3">
+          <SheetFooter className="border-t pt-6 flex gap-3">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting} className="flex-1">
               Cancelar
             </Button>
@@ -390,9 +390,9 @@ export default function NovoContatoDialog({ open, onOpenChange, clienteId, conta
               <UserPlus className="h-4 w-4 mr-2" />
               {isSubmitting ? "Salvando..." : "Salvar Contato"}
             </Button>
-          </DialogFooter>
+          </SheetFooter>
         </form>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }
