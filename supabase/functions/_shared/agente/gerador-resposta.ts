@@ -1,4 +1,4 @@
-import type { PerfilCliente } from './types.ts';
+import type { PerfilCliente } from "./types.ts";
 
 /**
  * Gerar resposta inteligente usando DeepSeek com Tool Calling
@@ -10,23 +10,23 @@ export async function gerarRespostaInteligente(
   perfil: PerfilCliente,
   carrinhoAtual: string[],
   deepseekApiKey: string,
-  supabase: any
+  supabase: any,
 ): Promise<{
   resposta: string | null;
   toolCalls: any[];
 }> {
-  console.log('🧠 Gerando resposta inteligente | Perfil:', perfil.tipo, '| Carrinho:', carrinhoAtual.length);
-  
+  console.log("🧠 Gerando resposta inteligente | Perfil:", perfil.tipo, "| Carrinho:", carrinhoAtual.length);
+
   // Construir system prompt com contexto do cliente
   const systemPrompt = `Você é o Beto, vendedor experiente e simpático da Cirúrgica Fernandes.
 
 PERFIL DO CLIENTE:
 - Tipo: ${perfil.tipo}
-- Nome: ${perfil.nome || 'não informado'}
+- Nome: ${perfil.nome || "não informado"}
 - Histórico: ${perfil.historico_compras} compra(s) anterior(es)
 - Ticket médio: R$ ${perfil.ticket_medio.toFixed(2)}
-- Última compra: ${perfil.ultima_compra_dias < 9999 ? `há ${perfil.ultima_compra_dias} dias` : 'nunca comprou'}
-${perfil.marcadores.length > 0 ? `- Marcadores: ${perfil.marcadores.join(', ')}` : ''}
+- Última compra: ${perfil.ultima_compra_dias < 9999 ? `há ${perfil.ultima_compra_dias} dias` : "nunca comprou"}
+${perfil.marcadores.length > 0 ? `- Marcadores: ${perfil.marcadores.join(", ")}` : ""}
 
 SOBRE A EMPRESA:
 - Cirúrgica Fernandes vende produtos hospitalares e cirúrgicos
@@ -35,9 +35,10 @@ SOBRE A EMPRESA:
 
 SUA PERSONALIDADE:
 - Simpático e profissional
+- mensagens curtas
 - Direto ao ponto, sem enrolação
 - Usa linguagem natural e informal (você, não "senhor/senhora")
-- Máximo 2 emojis por mensagem (use com moderação)
+- Nem uma emojis por mensagem (use com moderação)
 - NÃO siga script rígido - seja contextual e inteligente
 - Se o cliente já deu informações, NÃO pergunte novamente
 - Seja proativo mas não robotizado
@@ -101,92 +102,98 @@ COMPORTAMENTO INTELIGENTE:
       type: "function",
       function: {
         name: "buscar_produtos",
-        description: "Busca produtos no catálogo da Cirúrgica Fernandes. Use quando o cliente menciona um produto específico ou quer ver opções disponíveis.",
+        description:
+          "Busca produtos no catálogo da Cirúrgica Fernandes. Use quando o cliente menciona um produto específico ou quer ver opções disponíveis.",
         parameters: {
           type: "object",
           properties: {
             termo_busca: {
               type: "string",
-              description: "Termo de busca (nome do produto, categoria, uso). Ex: 'luvas', 'sonda vesical', 'máscara N95'"
+              description:
+                "Termo de busca (nome do produto, categoria, uso). Ex: 'luvas', 'sonda vesical', 'máscara N95'",
             },
             contexto_adicional: {
               type: "string",
-              description: "Contexto da necessidade do cliente (procedimento, quantidade estimada, urgência)"
-            }
+              description: "Contexto da necessidade do cliente (procedimento, quantidade estimada, urgência)",
+            },
           },
-          required: ["termo_busca"]
-        }
-      }
+          required: ["termo_busca"],
+        },
+      },
     },
     {
       type: "function",
       function: {
         name: "adicionar_ao_carrinho",
-        description: "Adiciona um produto ao carrinho do cliente. Use APENAS quando o cliente confirmou explicitamente que quer o produto.",
+        description:
+          "Adiciona um produto ao carrinho do cliente. Use APENAS quando o cliente confirmou explicitamente que quer o produto.",
         parameters: {
           type: "object",
           properties: {
             produto_id: {
               type: "string",
-              description: "ID do produto a adicionar"
+              description: "ID do produto a adicionar",
             },
             quantidade: {
               type: "number",
-              description: "Quantidade desejada"
-            }
+              description: "Quantidade desejada",
+            },
           },
-          required: ["produto_id", "quantidade"]
-        }
-      }
+          required: ["produto_id", "quantidade"],
+        },
+      },
     },
     {
       type: "function",
       function: {
         name: "criar_proposta",
-        description: "Cria uma proposta comercial com os produtos do carrinho. Use quando o cliente está pronto para fechar o pedido.",
+        description:
+          "Cria uma proposta comercial com os produtos do carrinho. Use quando o cliente está pronto para fechar o pedido.",
         parameters: {
           type: "object",
           properties: {
             observacoes: {
               type: "string",
-              description: "Observações adicionais para a proposta"
-            }
-          }
-        }
-      }
+              description: "Observações adicionais para a proposta",
+            },
+          },
+        },
+      },
     },
     {
       type: "function",
       function: {
         name: "validar_dados_cliente",
-        description: "OBRIGATÓRIO ANTES DE FINALIZAR: Valida CNPJ e endereços do cliente. Use quando cliente ACEITAR/CONFIRMAR a proposta (ex: 'pode fechar', 'confirmo', 'quero finalizar', 'tá bom'). Retorna CNPJ e lista de endereços que você DEVE apresentar ao cliente para confirmação.",
+        description:
+          "OBRIGATÓRIO ANTES DE FINALIZAR: Valida CNPJ e endereços do cliente. Use quando cliente ACEITAR/CONFIRMAR a proposta (ex: 'pode fechar', 'confirmo', 'quero finalizar', 'tá bom'). Retorna CNPJ e lista de endereços que você DEVE apresentar ao cliente para confirmação.",
         parameters: {
           type: "object",
-          properties: {}
-        }
-      }
+          properties: {},
+        },
+      },
     },
     {
       type: "function",
       function: {
         name: "finalizar_pedido",
-        description: "ÚLTIMA ETAPA: Finaliza o pedido e cria a venda no sistema. Use APENAS após: 1) ter chamado validar_dados_cliente, 2) cliente confirmar o CNPJ, 3) cliente escolher o endereço. Esta ferramenta cria o pedido oficial no sistema.",
+        description:
+          "ÚLTIMA ETAPA: Finaliza o pedido e cria a venda no sistema. Use APENAS após: 1) ter chamado validar_dados_cliente, 2) cliente confirmar o CNPJ, 3) cliente escolher o endereço. Esta ferramenta cria o pedido oficial no sistema.",
         parameters: {
           type: "object",
           properties: {
             cnpj_confirmado: {
               type: "string",
-              description: "CNPJ que o cliente confirmou (ex: '12.345.678/0001-90')"
+              description: "CNPJ que o cliente confirmou (ex: '12.345.678/0001-90')",
             },
             endereco_id: {
               type: "string",
-              description: "UUID do endereço que o cliente escolheu da lista apresentada"
-            }
+              description: "UUID do endereço que o cliente escolheu da lista apresentada",
+            },
           },
-          required: ["cnpj_confirmado", "endereco_id"]
-        }
-      }
-    }
+          required: ["cnpj_confirmado", "endereco_id"],
+        },
+      },
+    },
   ];
 
   try {
@@ -201,40 +208,39 @@ COMPORTAMENTO INTELIGENTE:
         model: "deepseek-chat",
         messages: [
           { role: "system", content: systemPrompt },
-          ...historicoCompleto.map(msg => ({
+          ...historicoCompleto.map((msg) => ({
             role: msg.role,
-            content: msg.content
+            content: msg.content,
           })),
-          { role: "user", content: mensagemCliente }
+          { role: "user", content: mensagemCliente },
         ],
         tools,
         temperature: 0.7,
-        max_tokens: 500
-      })
+        max_tokens: 500,
+      }),
     });
-    
+
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('❌ Erro na API DeepSeek:', response.status, errorText);
+      console.error("❌ Erro na API DeepSeek:", response.status, errorText);
       throw new Error(`Falha na API: ${response.status}`);
     }
-    
+
     const data = await response.json();
     const assistantMessage = data.choices[0].message;
-    
-    console.log('✅ Resposta DeepSeek recebida');
-    
+
+    console.log("✅ Resposta DeepSeek recebida");
+
     // Retornar resposta e tool calls (não executar aqui)
     return {
       resposta: assistantMessage.content,
-      toolCalls: assistantMessage.tool_calls || []
+      toolCalls: assistantMessage.tool_calls || [],
     };
-    
   } catch (error) {
-    console.error('❌ Erro ao gerar resposta:', error);
+    console.error("❌ Erro ao gerar resposta:", error);
     return {
       resposta: "Desculpa, tive um problema técnico. Pode repetir?",
-      toolCalls: []
+      toolCalls: [],
     };
   }
 }
@@ -247,15 +253,15 @@ export async function executarFerramenta(
   argumentos: any,
   supabase: any,
   conversaId: string,
-  openAiApiKey: string
+  openAiApiKey: string,
 ): Promise<any> {
   console.log(`⚙️ Executando ferramenta: ${nomeFerramenta}`);
-  
+
   switch (nomeFerramenta) {
-    case 'buscar_produtos': {
+    case "buscar_produtos": {
       const { termo_busca } = argumentos;
       console.log(`🔍 Buscando produtos para: "${termo_busca}"`);
-      
+
       // Gerar embedding para busca semântica
       const embeddingResponse = await fetch("https://api.openai.com/v1/embeddings", {
         method: "POST",
@@ -265,78 +271,80 @@ export async function executarFerramenta(
         },
         body: JSON.stringify({
           model: "text-embedding-3-small",
-          input: termo_busca
-        })
+          input: termo_busca,
+        }),
       });
-      
+
       if (!embeddingResponse.ok) {
         const errorText = await embeddingResponse.text();
-        console.error('❌ Erro ao gerar embedding:', errorText);
+        console.error("❌ Erro ao gerar embedding:", errorText);
         throw new Error(`Erro ao gerar embedding: ${errorText}`);
       }
-      
+
       const embeddingData = await embeddingResponse.json();
       const vetor = embeddingData.data[0].embedding;
       console.log(`✅ Embedding gerado com ${vetor.length} dimensões`);
-      
+
       // Buscar produtos usando RPC híbrido
-      console.log('📞 Chamando match_produtos_hibrido...');
-      const { data: produtos, error } = await supabase.rpc('match_produtos_hibrido', {
+      console.log("📞 Chamando match_produtos_hibrido...");
+      const { data: produtos, error } = await supabase.rpc("match_produtos_hibrido", {
         query_text: termo_busca,
         query_embedding: vetor,
         match_threshold: 0.5,
-        match_count: 5
+        match_count: 5,
       });
-      
+
       if (error) {
-        console.error('❌ Erro na busca:', error);
-        return { 
-          produtos: [], 
-          mensagem: `Erro ao buscar produtos: ${error.message}` 
+        console.error("❌ Erro na busca:", error);
+        return {
+          produtos: [],
+          mensagem: `Erro ao buscar produtos: ${error.message}`,
         };
       }
-      
+
       if (!produtos || produtos.length === 0) {
-        console.log('⚠️ Nenhum produto encontrado na base de dados');
-        console.log('📊 Detalhes da busca:', { termo_busca, match_threshold: 0.5, match_count: 5 });
-        return { 
-          produtos: [], 
-          mensagem: `Não encontrei produtos em estoque para "${termo_busca}". Vou verificar alternativas.` 
+        console.log("⚠️ Nenhum produto encontrado na base de dados");
+        console.log("📊 Detalhes da busca:", { termo_busca, match_threshold: 0.5, match_count: 5 });
+        return {
+          produtos: [],
+          mensagem: `Não encontrei produtos em estoque para "${termo_busca}". Vou verificar alternativas.`,
         };
       }
-      
+
       console.log(`✅ ${produtos.length} produto(s) encontrado(s):`);
       produtos.forEach((p: any, i: number) => {
-        console.log(`   ${i+1}. ${p.nome} (${p.referencia_interna}) - R$ ${p.preco_venda} - Estoque: ${p.quantidade_em_maos}`);
+        console.log(
+          `   ${i + 1}. ${p.nome} (${p.referencia_interna}) - R$ ${p.preco_venda} - Estoque: ${p.quantidade_em_maos}`,
+        );
       });
-      
+
       return {
         produtos: produtos.map((p: any) => ({
           id: p.id,
           nome: p.nome,
           referencia: p.referencia_interna,
           preco: p.preco_venda,
-          estoque: p.quantidade_em_maos
-        }))
+          estoque: p.quantidade_em_maos,
+        })),
       };
     }
-    
-    case 'adicionar_ao_carrinho': {
+
+    case "adicionar_ao_carrinho": {
       const { produto_id, quantidade } = argumentos;
-      
+
       // Buscar carrinho atual
       const { data: conversa } = await supabase
-        .from('whatsapp_conversas')
-        .select('produtos_carrinho')
-        .eq('id', conversaId)
+        .from("whatsapp_conversas")
+        .select("produtos_carrinho")
+        .eq("id", conversaId)
         .single();
-      
+
       // Carrinho agora é array de objetos { id, quantidade }
-      const carrinhoAtual: Array<{ id: string, quantidade: number }> = conversa?.produtos_carrinho || [];
-      
+      const carrinhoAtual: Array<{ id: string; quantidade: number }> = conversa?.produtos_carrinho || [];
+
       // Verificar se produto já existe no carrinho
       const itemExistente = carrinhoAtual.find((item: any) => item.id === produto_id);
-      
+
       if (itemExistente) {
         // Se já existe, atualizar quantidade
         itemExistente.quantidade = quantidade || 1;
@@ -344,98 +352,89 @@ export async function executarFerramenta(
         // Se não existe, adicionar novo item
         carrinhoAtual.push({ id: produto_id, quantidade: quantidade || 1 });
       }
-      
-      await supabase
-        .from('whatsapp_conversas')
-        .update({ produtos_carrinho: carrinhoAtual })
-        .eq('id', conversaId);
-      
+
+      await supabase.from("whatsapp_conversas").update({ produtos_carrinho: carrinhoAtual }).eq("id", conversaId);
+
       console.log(`✅ Produto adicionado ao carrinho: ${produto_id} (qtd: ${quantidade || 1})`);
-      
+
       return { sucesso: true, carrinho_total: carrinhoAtual.length };
     }
-    
-    case 'criar_proposta': {
+
+    case "criar_proposta": {
       // Buscar produtos do carrinho
       const { data: conversa } = await supabase
-        .from('whatsapp_conversas')
-        .select('produtos_carrinho')
-        .eq('id', conversaId)
+        .from("whatsapp_conversas")
+        .select("produtos_carrinho")
+        .eq("id", conversaId)
         .single();
-      
+
       // Carrinho agora é array de objetos { id, quantidade }
-      const carrinho: Array<{ id: string, quantidade: number }> = conversa?.produtos_carrinho || [];
-      
+      const carrinho: Array<{ id: string; quantidade: number }> = conversa?.produtos_carrinho || [];
+
       if (carrinho.length === 0) {
         return { erro: "Carrinho vazio" };
       }
-      
+
       // Extrair apenas os IDs para buscar os produtos
-      const produtoIds = carrinho
-        .map((item: any) => item.id)
-        .filter((id: string) => id !== undefined && id !== null); // Filtrar IDs inválidos
-      
+      const produtoIds = carrinho.map((item: any) => item.id).filter((id: string) => id !== undefined && id !== null); // Filtrar IDs inválidos
+
       if (produtoIds.length === 0) {
-        console.error('❌ Carrinho não contém IDs válidos:', carrinho);
+        console.error("❌ Carrinho não contém IDs válidos:", carrinho);
         return { erro: "Carrinho não contém produtos válidos" };
       }
-      
+
       console.log(`📦 Buscando ${produtoIds.length} produtos do carrinho:`, produtoIds);
-      
+
       // Buscar detalhes dos produtos
-      const { data: produtos, error: produtosError } = await supabase
-        .from('produtos')
-        .select('*')
-        .in('id', produtoIds);
-      
+      const { data: produtos, error: produtosError } = await supabase.from("produtos").select("*").in("id", produtoIds);
+
       if (produtosError) {
-        console.error('❌ Erro ao buscar produtos:', produtosError);
+        console.error("❌ Erro ao buscar produtos:", produtosError);
         return { erro: `Erro ao buscar produtos: ${produtosError.message}` };
       }
-      
+
       if (!produtos || produtos.length === 0) {
-        console.error('❌ Nenhum produto encontrado para os IDs:', produtoIds);
+        console.error("❌ Nenhum produto encontrado para os IDs:", produtoIds);
         return { erro: "Produtos do carrinho não encontrados" };
       }
-      
+
       console.log(`✅ ${produtos.length} produtos encontrados`);
-      
+
       // Importar função de criar proposta
-      const { criarProposta } = await import('./proposta-handler.ts');
-      
+      const { criarProposta } = await import("./proposta-handler.ts");
+
       // Mapear produtos com suas quantidades do carrinho
       const produtosComQtd = produtos.map((p: any) => {
         const itemCarrinho = carrinho.find((item: any) => item.id === p.id);
         return {
           ...p,
-          quantidade: itemCarrinho?.quantidade || 1
+          quantidade: itemCarrinho?.quantidade || 1,
         };
       });
-      
-      console.log(`📦 Produtos com quantidades:`, produtosComQtd.map((p: any) => `${p.referencia_interna}: ${p.quantidade}x`));
-      
-      const proposta = await criarProposta(
-        supabase,
-        conversaId,
-        produtosComQtd,
-        null
+
+      console.log(
+        `📦 Produtos com quantidades:`,
+        produtosComQtd.map((p: any) => `${p.referencia_interna}: ${p.quantidade}x`),
       );
-      
+
+      const proposta = await criarProposta(supabase, conversaId, produtosComQtd, null);
+
       if (proposta) {
         console.log(`✅ Proposta criada: ${proposta.numero_proposta}`);
         return { sucesso: true, proposta_id: proposta.id, numero: proposta.numero_proposta };
       }
-      
+
       return { erro: "Falha ao criar proposta" };
     }
-    
-    case 'validar_dados_cliente': {
-      console.log('🔍 Validando dados do cliente');
-      
+
+    case "validar_dados_cliente": {
+      console.log("🔍 Validando dados do cliente");
+
       // Buscar contato e cliente vinculado
       const { data: conversa } = await supabase
-        .from('whatsapp_conversas')
-        .select(`
+        .from("whatsapp_conversas")
+        .select(
+          `
           whatsapp_contato_id,
           whatsapp_contatos (
             nome,
@@ -457,125 +456,125 @@ export async function executarFerramenta(
               )
             )
           )
-        `)
-        .eq('id', conversaId)
+        `,
+        )
+        .eq("id", conversaId)
         .single();
-      
+
       if (!conversa?.whatsapp_contatos) {
         return { erro: "Contato não encontrado" };
       }
-      
-      const contato = Array.isArray(conversa.whatsapp_contatos) 
-        ? conversa.whatsapp_contatos[0] 
+
+      const contato = Array.isArray(conversa.whatsapp_contatos)
+        ? conversa.whatsapp_contatos[0]
         : conversa.whatsapp_contatos;
-      
+
       if (!contato.cliente_id || !contato.clientes) {
-        return { 
+        return {
           erro: "cliente_nao_vinculado",
-          mensagem: "Você ainda não está cadastrado em nosso sistema. Vou precisar de alguns dados antes de finalizar."
+          mensagem: "Você ainda não está cadastrado em nosso sistema. Vou precisar de alguns dados antes de finalizar.",
         };
       }
-      
+
       const clienteData = contato.clientes;
       const cliente = Array.isArray(clienteData) ? clienteData[0] : clienteData;
       const enderecos = cliente.cliente_enderecos || [];
-      
+
       if (enderecos.length === 0) {
         return {
           erro: "sem_enderecos",
           cnpj: cliente.cgc,
-          mensagem: "Cliente encontrado mas sem endereços cadastrados"
+          mensagem: "Cliente encontrado mas sem endereços cadastrados",
         };
       }
-      
+
       // Formatar endereços para o agente
       const enderecosFormatados = enderecos.map((e: any, idx: number) => ({
         id: e.id,
         numero: idx + 1,
         tipo: e.tipo,
-        endereco_completo: `${e.endereco}${e.numero ? ', ' + e.numero : ''}, ${e.bairro}, ${e.cidade}/${e.estado} - CEP: ${e.cep}`,
-        is_principal: e.is_principal
+        endereco_completo: `${e.endereco}${e.numero ? ", " + e.numero : ""}, ${e.bairro}, ${e.cidade}/${e.estado} - CEP: ${e.cep}`,
+        is_principal: e.is_principal,
       }));
-      
+
       console.log(`✅ Cliente validado: ${cliente.nome_emit} (${cliente.cgc})`);
       console.log(`📍 ${enderecosFormatados.length} endereço(s) encontrado(s)`);
-      
+
       return {
         sucesso: true,
         cliente_nome: cliente.nome_emit,
         cnpj: cliente.cgc,
-        enderecos: enderecosFormatados
+        enderecos: enderecosFormatados,
       };
     }
-    
-    case 'finalizar_pedido': {
+
+    case "finalizar_pedido": {
       const { cnpj_confirmado, endereco_id } = argumentos;
-      console.log('🎯 Finalizando pedido e criando venda no sistema');
+      console.log("🎯 Finalizando pedido e criando venda no sistema");
       console.log(`   CNPJ: ${cnpj_confirmado}`);
       console.log(`   Endereço ID: ${endereco_id}`);
-      
+
       // Buscar proposta ativa da conversa
       const { data: conversa } = await supabase
-        .from('whatsapp_conversas')
-        .select('proposta_ativa_id')
-        .eq('id', conversaId)
+        .from("whatsapp_conversas")
+        .select("proposta_ativa_id")
+        .eq("id", conversaId)
         .single();
-      
+
       if (!conversa?.proposta_ativa_id) {
-        console.error('❌ Nenhuma proposta ativa encontrada');
+        console.error("❌ Nenhuma proposta ativa encontrada");
         return { erro: "Nenhuma proposta ativa para finalizar" };
       }
-      
+
       // Chamar edge function para converter proposta em venda
-      const supabaseUrl = Deno.env.get('SUPABASE_URL');
-      const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-      
+      const supabaseUrl = Deno.env.get("SUPABASE_URL");
+      const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
       try {
         const response = await fetch(`${supabaseUrl}/functions/v1/converter-proposta-venda`, {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Authorization': `Bearer ${supabaseKey}`,
-            'Content-Type': 'application/json',
+            Authorization: `Bearer ${supabaseKey}`,
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({
             propostaId: conversa.proposta_ativa_id,
             conversaId: conversaId,
             cnpjConfirmado: cnpj_confirmado,
-            enderecoId: endereco_id
-          })
+            enderecoId: endereco_id,
+          }),
         });
-        
+
         if (!response.ok) {
           const errorText = await response.text();
-          console.error('❌ Erro ao converter proposta:', errorText);
+          console.error("❌ Erro ao converter proposta:", errorText);
           return { erro: "Erro ao finalizar pedido" };
         }
-        
+
         const resultado = await response.json();
-        console.log('✅ Pedido finalizado:', resultado.venda.numero_venda);
-        
+        console.log("✅ Pedido finalizado:", resultado.venda.numero_venda);
+
         // Limpar carrinho e atualizar estágio
         await supabase
-          .from('whatsapp_conversas')
-          .update({ 
+          .from("whatsapp_conversas")
+          .update({
             produtos_carrinho: [],
-            estagio_agente: 'fechamento',
-            proposta_ativa_id: null
+            estagio_agente: "fechamento",
+            proposta_ativa_id: null,
           })
-          .eq('id', conversaId);
-        
-        return { 
-          sucesso: true, 
+          .eq("id", conversaId);
+
+        return {
+          sucesso: true,
           numero_pedido: resultado.venda.numero_venda,
-          valor_total: resultado.venda.valor_total
+          valor_total: resultado.venda.valor_total,
         };
-        
       } catch (error) {
-        console.error('❌ Erro na conversão:', error);
+        console.error("❌ Erro na conversão:", error);
         return { erro: "Erro ao processar pedido" };
       }
     }
-    
+
     default:
       console.warn(`⚠️ Ferramenta desconhecida: ${nomeFerramenta}`);
       return { erro: "Ferramenta não encontrada" };
