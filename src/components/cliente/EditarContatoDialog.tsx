@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -88,42 +88,46 @@ export default function EditarContatoDialog({ open, onOpenChange, contato, clien
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto border-2">
-        <DialogHeader className="border-b pb-4">
-          <DialogTitle className="text-2xl font-bold flex items-center gap-2">
-            <UserPlus className="h-6 w-6 text-primary" />
-            Editar Contato
-          </DialogTitle>
-        </DialogHeader>
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="right" className="w-full sm:max-w-3xl overflow-y-auto p-0">
+        <SheetHeader className="sticky top-0 z-10 bg-card border-b px-6 py-5">
+          <div className="flex items-center justify-between">
+            <SheetTitle className="text-xl font-semibold flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <UserPlus className="h-5 w-5 text-primary" />
+              </div>
+              Editar Contato
+            </SheetTitle>
+          </div>
+        </SheetHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="px-6 py-6">
           <Tabs defaultValue="basico" className="w-full">
-            <TabsList className="grid w-full grid-cols-5 h-auto p-1 bg-muted/50">
-              <TabsTrigger value="basico" className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm py-3">
+            <TabsList className="grid w-full grid-cols-5 mb-6 bg-transparent border-b rounded-none h-auto p-0">
+              <TabsTrigger value="basico" className="flex items-center gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent py-3 px-4">
                 <User className="h-4 w-4" />
                 <span className="hidden sm:inline">Básico</span>
               </TabsTrigger>
-              <TabsTrigger value="contato" className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm py-3">
+              <TabsTrigger value="contato" className="flex items-center gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent py-3 px-4">
                 <Phone className="h-4 w-4" />
                 <span className="hidden sm:inline">Contato</span>
               </TabsTrigger>
-              <TabsTrigger value="qualificacao" className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm py-3">
+              <TabsTrigger value="qualificacao" className="flex items-center gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent py-3 px-4">
                 <Target className="h-4 w-4" />
                 <span className="hidden sm:inline">Qualificação</span>
               </TabsTrigger>
-              <TabsTrigger value="social" className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm py-3">
+              <TabsTrigger value="social" className="flex items-center gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent py-3 px-4">
                 <Share2 className="h-4 w-4" />
                 <span className="hidden sm:inline">Social</span>
               </TabsTrigger>
-              <TabsTrigger value="observacoes" className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm py-3">
+              <TabsTrigger value="observacoes" className="flex items-center gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent py-3 px-4">
                 <FileText className="h-4 w-4" />
                 <span className="hidden sm:inline">Notas</span>
               </TabsTrigger>
             </TabsList>
 
             {/* Aba: Informações Básicas */}
-            <TabsContent value="basico" className="space-y-4 mt-4">
+            <TabsContent value="basico" className="space-y-6 mt-6">
               <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="tratamento">Tratamento</Label>
@@ -173,7 +177,7 @@ export default function EditarContatoDialog({ open, onOpenChange, contato, clien
             </TabsContent>
 
             {/* Aba: Contato & Preferências */}
-            <TabsContent value="contato" className="space-y-4 mt-4">
+            <TabsContent value="contato" className="space-y-6 mt-6">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
@@ -253,7 +257,7 @@ export default function EditarContatoDialog({ open, onOpenChange, contato, clien
             </TabsContent>
 
             {/* Aba: Qualificação & Vendas */}
-            <TabsContent value="qualificacao" className="space-y-4 mt-4">
+            <TabsContent value="qualificacao" className="space-y-6 mt-6">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="nivel_autoridade">Nível de Autoridade</Label>
@@ -309,7 +313,7 @@ export default function EditarContatoDialog({ open, onOpenChange, contato, clien
             </TabsContent>
 
             {/* Aba: Redes Sociais */}
-            <TabsContent value="social" className="space-y-4 mt-4">
+            <TabsContent value="social" className="space-y-6 mt-6">
               <div className="space-y-2">
                 <Label htmlFor="linkedin_url">LinkedIn</Label>
                 <Input id="linkedin_url" {...register("linkedin_url")} placeholder="https://linkedin.com/in/..." />
@@ -338,7 +342,7 @@ export default function EditarContatoDialog({ open, onOpenChange, contato, clien
             </TabsContent>
 
             {/* Aba: Observações */}
-            <TabsContent value="descricao" className="space-y-4 mt-4">
+            <TabsContent value="observacoes" className="space-y-6 mt-6">
               <div className="space-y-2">
                 <Label htmlFor="dores_identificadas">Dores Identificadas</Label>
                 <Textarea id="dores_identificadas" {...register("dores_identificadas")} rows={4} placeholder="Quais problemas o contato enfrenta?" />
@@ -356,17 +360,29 @@ export default function EditarContatoDialog({ open, onOpenChange, contato, clien
             </TabsContent>
           </Tabs>
 
-          <DialogFooter className="border-t pt-6 flex gap-3">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting} className="flex-1">
-              Cancelar
-            </Button>
-            <Button type="submit" disabled={isSubmitting} className="flex-1">
-              <UserPlus className="h-4 w-4 mr-2" />
-              {isSubmitting ? "Salvando..." : "Salvar Alterações"}
-            </Button>
-          </DialogFooter>
+          <div className="sticky bottom-0 bg-card border-t px-6 py-4 mt-8 -mx-6">
+            <div className="flex gap-3">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => onOpenChange(false)} 
+                disabled={isSubmitting}
+                className="flex-1"
+              >
+                Cancelar
+              </Button>
+              <Button 
+                type="submit" 
+                disabled={isSubmitting}
+                className="flex-1"
+              >
+                <UserPlus className="h-4 w-4 mr-2" />
+                {isSubmitting ? "Salvando..." : "Salvar Alterações"}
+              </Button>
+            </div>
+          </div>
         </form>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }
