@@ -116,7 +116,7 @@ export default function NovoContatoDialog({ open, onOpenChange, clienteId, conta
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="w-full sm:max-w-3xl overflow-y-auto p-0">
-        <SheetHeader className="sticky top-0 z-10 bg-background border-b px-6 py-5">
+        <SheetHeader className="sticky top-0 z-10 bg-card border-b px-6 py-5">
           <div className="flex items-center justify-between">
             <SheetTitle className="text-xl font-semibold flex items-center gap-3">
               <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
@@ -403,7 +403,7 @@ export default function NovoContatoDialog({ open, onOpenChange, clienteId, conta
             </TabsContent>
           </Tabs>
 
-          <div className="sticky bottom-0 bg-background border-t px-6 py-4 mt-8 -mx-6">
+          <div className="sticky bottom-0 bg-card border-t px-6 py-4 mt-8 -mx-6">
             <div className="flex gap-3">
               <Button 
                 type="button" 
