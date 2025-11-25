@@ -6266,7 +6266,7 @@ export type Database = {
           oportunidade_id: string | null
           origem: string | null
           prioridade: string | null
-          produtos_carrinho: string[] | null
+          produtos_carrinho: Json | null
           proposta_ativa_id: string | null
           resolvida_em: string | null
           sentimento_cliente: string | null
@@ -6315,7 +6315,7 @@ export type Database = {
           oportunidade_id?: string | null
           origem?: string | null
           prioridade?: string | null
-          produtos_carrinho?: string[] | null
+          produtos_carrinho?: Json | null
           proposta_ativa_id?: string | null
           resolvida_em?: string | null
           sentimento_cliente?: string | null
@@ -6364,7 +6364,7 @@ export type Database = {
           oportunidade_id?: string | null
           origem?: string | null
           prioridade?: string | null
-          produtos_carrinho?: string[] | null
+          produtos_carrinho?: Json | null
           proposta_ativa_id?: string | null
           resolvida_em?: string | null
           sentimento_cliente?: string | null
