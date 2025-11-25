@@ -204,8 +204,7 @@ INSTRUÇÕES:
       executado_por_bot: true
     });
     
-    salvarMemoria(supabase, conversaId, `Beto fez pergunta: ${perguntaBase}`, 'pergunta_qualificadora', openAiKey)
-      .catch(err => console.warn('⚠️ Erro ao salvar memória:', err));
+    await salvarMemoria(supabase, conversaId, `Beto fez pergunta: ${perguntaBase}`, 'pergunta_qualificadora', openAiKey);
     
     return new Response(
       JSON.stringify({ resposta: perguntaBase, tipo: 'pergunta_qualificadora' }),
@@ -225,9 +224,8 @@ INSTRUÇÕES:
     executado_por_bot: true
   });
   
-  // Salvar na memória (assíncrono)
-  salvarMemoria(supabase, conversaId, `Beto fez pergunta: ${perguntaPersonalizada}`, 'pergunta_qualificadora', openAiKey)
-    .catch(err => console.warn('⚠️ Erro ao salvar memória:', err));
+  // Salvar na memória
+  await salvarMemoria(supabase, conversaId, `Beto fez pergunta: ${perguntaPersonalizada}`, 'pergunta_qualificadora', openAiKey);
   
   console.log('❓ Pergunta enviada:', perguntaPersonalizada);
   
