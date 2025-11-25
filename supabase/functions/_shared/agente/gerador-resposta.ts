@@ -107,7 +107,6 @@ TAREFA: Responda de forma natural, contextualizada e persuasiva. Seja autêntico
           { role: "system", content: systemPrompt },
           { role: "user", content: mensagemCliente }
         ],
-        temperature: 0.85,
         max_tokens: 300
       })
     });

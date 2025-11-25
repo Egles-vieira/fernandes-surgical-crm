@@ -186,10 +186,31 @@ INSTRUÇÕES:
 - Faça parecer uma conversa natural, não um questionário`
         }
       ],
-      temperature: 0.8,
       max_tokens: 100
     })
   });
+  
+  if (!respostaIA.ok) {
+    console.error('❌ Erro ao chamar Lovable AI:', await respostaIA.text());
+    // Usar pergunta base como fallback
+    console.log('⚠️ Usando pergunta base como fallback:', perguntaBase);
+    
+    // Salvar interação mesmo com fallback
+    await supabase.from('whatsapp_interacoes').insert({
+      conversa_id: conversaId,
+      tipo_evento: 'pergunta_qualificadora',
+      descricao: `Pergunta (fallback): ${perguntaBase}`,
+      metadata: { lacunas, pergunta_base: perguntaBase, fallback: true },
+      executado_por_bot: true
+    });
+    
+    await salvarMemoria(supabase, conversaId, `Beto fez pergunta: ${perguntaBase}`, 'pergunta_qualificadora', openAiKey);
+    
+    return new Response(
+      JSON.stringify({ resposta: perguntaBase, tipo: 'pergunta_qualificadora' }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
   
   const respostaJson = await respostaIA.json();
   const perguntaPersonalizada = respostaJson.choices[0].message.content;
