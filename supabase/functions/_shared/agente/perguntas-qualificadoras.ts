@@ -154,16 +154,16 @@ export async function fazerPerguntasQualificadoras(
   const perguntaBase = escolherProximaPergunta(lacunas, contexto);
   
   // Usar IA para personalizar a pergunta com base no contexto
-  const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+  const deepseekApiKey = Deno.env.get('DEEPSEEK_API_KEY');
   
-  const respostaIA = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+  const respostaIA = await fetch("https://api.deepseek.com/v1/chat/completions", {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${lovableApiKey}`,
+      Authorization: `Bearer ${deepseekApiKey}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "google/gemini-2.5-flash",
+      model: "deepseek-chat",
       messages: [
         {
           role: "system",
@@ -186,12 +186,13 @@ INSTRUÇÕES:
 - Faça parecer uma conversa natural, não um questionário`
         }
       ],
-      max_tokens: 100
+      max_tokens: 100,
+      temperature: 0.7
     })
   });
   
   if (!respostaIA.ok) {
-    console.error('❌ Erro ao chamar Lovable AI:', await respostaIA.text());
+    console.error('❌ Erro ao chamar DeepSeek:', await respostaIA.text());
     // Usar pergunta base como fallback
     console.log('⚠️ Usando pergunta base como fallback:', perguntaBase);
     

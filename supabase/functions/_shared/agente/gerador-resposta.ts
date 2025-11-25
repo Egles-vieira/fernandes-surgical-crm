@@ -10,7 +10,7 @@ export async function gerarRespostaPersonalizada(
   perfil: PerfilCliente,
   produtos: any[],
   estado: EstadoConversa,
-  lovableApiKey: string
+  deepseekApiKey: string
 ): Promise<string> {
   console.log('🎨 Gerando resposta personalizada - Estado:', estado, '| Perfil:', perfil.tipo);
   
@@ -95,24 +95,25 @@ ${produtos.slice(0, 5).map(p =>
 TAREFA: Responda de forma natural, contextualizada e persuasiva. Seja autêntico como um vendedor experiente.`;
 
   try {
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${lovableApiKey}`,
+        Authorization: `Bearer ${deepseekApiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "deepseek-chat",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: mensagemCliente }
         ],
-        max_tokens: 300
+        max_tokens: 300,
+        temperature: 0.7
       })
     });
     
     if (!response.ok) {
-      console.error('❌ Erro na API Lovable:', response.status);
+      console.error('❌ Erro na API DeepSeek:', response.status);
       throw new Error('Falha na API');
     }
     
