@@ -9,9 +9,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
 import { useContatos } from "@/hooks/useContatos";
 import { contatoSchema, type ContatoInput } from "@/lib/validations/contato";
-import { UserPlus, User, Phone, Target, Share2, FileText } from "lucide-react";
+import { UserPlus, User, Phone, Target, Share2, FileText, Mail, MapPin, Calendar, Building2, Briefcase, Award, X, Check, MessageSquare, Shield } from "lucide-react";
 
 interface EditarContatoDialogProps {
   open: boolean;
@@ -89,169 +90,222 @@ export default function EditarContatoDialog({ open, onOpenChange, contato, clien
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-full sm:max-w-3xl overflow-y-auto p-0">
-        <SheetHeader className="sticky top-0 z-10 bg-card border-b px-6 py-5">
-          <div className="flex items-center justify-between">
-            <SheetTitle className="text-xl font-semibold flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                <UserPlus className="h-5 w-5 text-primary" />
+      <SheetContent side="right" className="w-full sm:max-w-4xl overflow-y-auto p-0 bg-card">
+        <SheetHeader className="sticky top-0 z-10 bg-card border-b px-8 py-6">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+                  <User className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <SheetTitle className="text-2xl font-semibold">
+                    Editar Contato
+                  </SheetTitle>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {contato?.primeiro_nome} {contato?.sobrenome}
+                  </p>
+                </div>
               </div>
-              Editar Contato
-            </SheetTitle>
+              <div className="flex items-center gap-2">
+                <Badge variant="secondary" className="h-7 px-3">
+                  Ativo
+                </Badge>
+              </div>
+            </div>
           </div>
         </SheetHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="px-6 py-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="px-8 py-6">
           <Tabs defaultValue="basico" className="w-full">
-            <TabsList className="grid w-full grid-cols-5 mb-6 bg-transparent border-b rounded-none h-auto p-0">
-              <TabsTrigger value="basico" className="flex items-center gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent py-3 px-4">
+            <TabsList className="grid w-full grid-cols-5 mb-8 bg-muted/30 rounded-lg h-12 p-1">
+              <TabsTrigger value="basico" className="flex items-center justify-center gap-2 rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all">
                 <User className="h-4 w-4" />
-                <span className="hidden sm:inline">Básico</span>
+                <span className="hidden sm:inline font-medium">Básico</span>
               </TabsTrigger>
-              <TabsTrigger value="contato" className="flex items-center gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent py-3 px-4">
+              <TabsTrigger value="contato" className="flex items-center justify-center gap-2 rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all">
                 <Phone className="h-4 w-4" />
-                <span className="hidden sm:inline">Contato</span>
+                <span className="hidden sm:inline font-medium">Contato</span>
               </TabsTrigger>
-              <TabsTrigger value="qualificacao" className="flex items-center gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent py-3 px-4">
+              <TabsTrigger value="qualificacao" className="flex items-center justify-center gap-2 rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all">
                 <Target className="h-4 w-4" />
-                <span className="hidden sm:inline">Qualificação</span>
+                <span className="hidden sm:inline font-medium">Qualificação</span>
               </TabsTrigger>
-              <TabsTrigger value="social" className="flex items-center gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent py-3 px-4">
+              <TabsTrigger value="social" className="flex items-center justify-center gap-2 rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all">
                 <Share2 className="h-4 w-4" />
-                <span className="hidden sm:inline">Social</span>
+                <span className="hidden sm:inline font-medium">Social</span>
               </TabsTrigger>
-              <TabsTrigger value="observacoes" className="flex items-center gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent py-3 px-4">
+              <TabsTrigger value="observacoes" className="flex items-center justify-center gap-2 rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all">
                 <FileText className="h-4 w-4" />
-                <span className="hidden sm:inline">Notas</span>
+                <span className="hidden sm:inline font-medium">Notas</span>
               </TabsTrigger>
             </TabsList>
 
             {/* Aba: Informações Básicas */}
             <TabsContent value="basico" className="space-y-6 mt-6">
-              <div className="grid grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="tratamento">Tratamento</Label>
-                  <Select value={watch("tratamento") || ""} onValueChange={(value) => setValue("tratamento", value as any)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Sr.">Sr.</SelectItem>
-                      <SelectItem value="Sra.">Sra.</SelectItem>
-                      <SelectItem value="Dr.">Dr.</SelectItem>
-                      <SelectItem value="Dra.">Dra.</SelectItem>
-                      <SelectItem value="Prof.">Prof.</SelectItem>
-                      <SelectItem value="Eng.">Eng.</SelectItem>
-                    </SelectContent>
-                  </Select>
+              <div className="space-y-6">
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="tratamento" className="text-sm font-medium flex items-center gap-2">
+                      <Award className="h-4 w-4 text-muted-foreground" />
+                      Tratamento
+                    </Label>
+                    <Select value={watch("tratamento") || ""} onValueChange={(value) => setValue("tratamento", value as any)}>
+                      <SelectTrigger className="h-11 bg-background">
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Sr.">Sr.</SelectItem>
+                        <SelectItem value="Sra.">Sra.</SelectItem>
+                        <SelectItem value="Dr.">Dr.</SelectItem>
+                        <SelectItem value="Dra.">Dra.</SelectItem>
+                        <SelectItem value="Prof.">Prof.</SelectItem>
+                        <SelectItem value="Eng.">Eng.</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="primeiro_nome" className="text-sm font-medium flex items-center gap-2">
+                      <User className="h-4 w-4 text-muted-foreground" />
+                      Nome *
+                    </Label>
+                    <Input id="primeiro_nome" {...register("primeiro_nome")} placeholder="João" className="h-11 bg-background" />
+                    {errors.primeiro_nome && <p className="text-sm text-destructive">{errors.primeiro_nome.message}</p>}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="sobrenome" className="text-sm font-medium">Sobrenome *</Label>
+                    <Input id="sobrenome" {...register("sobrenome")} placeholder="Silva" className="h-11 bg-background" />
+                    {errors.sobrenome && <p className="text-sm text-destructive">{errors.sobrenome.message}</p>}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="cargo" className="text-sm font-medium flex items-center gap-2">
+                      <Briefcase className="h-4 w-4 text-muted-foreground" />
+                      Cargo
+                    </Label>
+                    <Input id="cargo" {...register("cargo")} placeholder="Ex: Gerente de Compras" className="h-11 bg-background" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="departamento" className="text-sm font-medium flex items-center gap-2">
+                      <Building2 className="h-4 w-4 text-muted-foreground" />
+                      Departamento
+                    </Label>
+                    <Input id="departamento" {...register("departamento")} placeholder="Ex: Compras" className="h-11 bg-background" />
+                  </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="primeiro_nome">Nome *</Label>
-                  <Input id="primeiro_nome" {...register("primeiro_nome")} placeholder="João" />
-                  {errors.primeiro_nome && <p className="text-sm text-destructive">{errors.primeiro_nome.message}</p>}
+                  <Label htmlFor="data_nascimento" className="text-sm font-medium flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    Data de Nascimento
+                  </Label>
+                  <Input id="data_nascimento" type="date" {...register("data_nascimento")} className="h-11 bg-background" />
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="sobrenome">Sobrenome *</Label>
-                  <Input id="sobrenome" {...register("sobrenome")} placeholder="Silva" />
-                  {errors.sobrenome && <p className="text-sm text-destructive">{errors.sobrenome.message}</p>}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="cargo">Cargo</Label>
-                  <Input id="cargo" {...register("cargo")} placeholder="Ex: Gerente de Compras" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="departamento">Departamento</Label>
-                  <Input id="departamento" {...register("departamento")} placeholder="Ex: Compras" />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="data_nascimento">Data de Nascimento</Label>
-                <Input id="data_nascimento" type="date" {...register("data_nascimento")} />
               </div>
             </TabsContent>
 
             {/* Aba: Contato & Preferências */}
             <TabsContent value="contato" className="space-y-6 mt-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" {...register("email")} placeholder="email@exemplo.com" />
-                  {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
+              <div className="space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="email" className="text-sm font-medium flex items-center gap-2">
+                      <Mail className="h-4 w-4 text-muted-foreground" />
+                      Email
+                    </Label>
+                    <Input id="email" type="email" {...register("email")} placeholder="email@exemplo.com" className="h-11 bg-background" />
+                    {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="telefone" className="text-sm font-medium flex items-center gap-2">
+                      <Phone className="h-4 w-4 text-muted-foreground" />
+                      Telefone
+                    </Label>
+                    <Input id="telefone" {...register("telefone")} placeholder="(11) 3333-4444" className="h-11 bg-background" />
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="telefone">Telefone</Label>
-                  <Input id="telefone" {...register("telefone")} placeholder="(11) 3333-4444" />
-                </div>
-              </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="celular">Celular</Label>
-                  <Input id="celular" {...register("celular")} placeholder="(11) 99999-8888" />
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="celular" className="text-sm font-medium flex items-center gap-2">
+                      <Phone className="h-4 w-4 text-muted-foreground" />
+                      Celular
+                    </Label>
+                    <Input id="celular" {...register("celular")} placeholder="(11) 99999-8888" className="h-11 bg-background" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="whatsapp_numero" className="text-sm font-medium flex items-center gap-2">
+                      <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                      WhatsApp
+                    </Label>
+                    <Input id="whatsapp_numero" {...register("whatsapp_numero")} placeholder="(11) 99999-8888" className="h-11 bg-background" />
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="whatsapp_numero">WhatsApp</Label>
-                  <Input id="whatsapp_numero" {...register("whatsapp_numero")} placeholder="(11) 99999-8888" />
-                </div>
-              </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="preferencia_contato">Preferência de Contato</Label>
-                  <Select value={watch("preferencia_contato") || ""} onValueChange={(value) => setValue("preferencia_contato", value as any)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="email">Email</SelectItem>
-                      <SelectItem value="telefone">Telefone</SelectItem>
-                      <SelectItem value="whatsapp">WhatsApp</SelectItem>
-                      <SelectItem value="linkedin">LinkedIn</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="preferencia_contato" className="text-sm font-medium">Preferência de Contato</Label>
+                    <Select value={watch("preferencia_contato") || ""} onValueChange={(value) => setValue("preferencia_contato", value as any)}>
+                      <SelectTrigger className="h-11 bg-background">
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="email">Email</SelectItem>
+                        <SelectItem value="telefone">Telefone</SelectItem>
+                        <SelectItem value="whatsapp">WhatsApp</SelectItem>
+                        <SelectItem value="linkedin">LinkedIn</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="melhor_horario_contato" className="text-sm font-medium flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      Melhor Horário
+                    </Label>
+                    <Input id="melhor_horario_contato" {...register("melhor_horario_contato")} placeholder="Ex: 14h às 17h" className="h-11 bg-background" />
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="melhor_horario_contato">Melhor Horário</Label>
-                  <Input id="melhor_horario_contato" {...register("melhor_horario_contato")} placeholder="Ex: 14h às 17h" />
-                </div>
-              </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="idioma_preferido">Idioma</Label>
-                  <Input id="idioma_preferido" {...register("idioma_preferido")} placeholder="pt-BR" />
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="idioma_preferido" className="text-sm font-medium">Idioma</Label>
+                    <Input id="idioma_preferido" {...register("idioma_preferido")} placeholder="pt-BR" className="h-11 bg-background" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="frequencia_contato_preferida" className="text-sm font-medium">Frequência de Contato</Label>
+                    <Select value={watch("frequencia_contato_preferida") || ""} onValueChange={(value) => setValue("frequencia_contato_preferida", value as any)}>
+                      <SelectTrigger className="h-11 bg-background">
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="diaria">Diária</SelectItem>
+                        <SelectItem value="semanal">Semanal</SelectItem>
+                        <SelectItem value="quinzenal">Quinzenal</SelectItem>
+                        <SelectItem value="mensal">Mensal</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="frequencia_contato_preferida">Frequência de Contato</Label>
-                  <Select value={watch("frequencia_contato_preferida") || ""} onValueChange={(value) => setValue("frequencia_contato_preferida", value as any)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="diaria">Diária</SelectItem>
-                      <SelectItem value="semanal">Semanal</SelectItem>
-                      <SelectItem value="quinzenal">Quinzenal</SelectItem>
-                      <SelectItem value="mensal">Mensal</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
 
-              <div className="space-y-4 border-t pt-4">
-                <h4 className="text-sm font-medium">LGPD & Consentimentos</h4>
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="consentimento_lgpd">Consentimento LGPD</Label>
-                  <Switch id="consentimento_lgpd" checked={watch("consentimento_lgpd")} onCheckedChange={(checked) => setValue("consentimento_lgpd", checked)} />
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="aceita_marketing">Aceita Marketing</Label>
-                  <Switch id="aceita_marketing" checked={watch("aceita_marketing")} onCheckedChange={(checked) => setValue("aceita_marketing", checked)} />
+                <div className="space-y-4 border-t pt-6 mt-6">
+                  <h4 className="text-sm font-semibold flex items-center gap-2">
+                    <Shield className="h-4 w-4 text-primary" />
+                    LGPD & Consentimentos
+                  </h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="flex items-center justify-between p-4 rounded-lg border bg-background">
+                      <Label htmlFor="consentimento_lgpd" className="text-sm font-medium">Consentimento LGPD</Label>
+                      <Switch id="consentimento_lgpd" checked={watch("consentimento_lgpd")} onCheckedChange={(checked) => setValue("consentimento_lgpd", checked)} />
+                    </div>
+                    <div className="flex items-center justify-between p-4 rounded-lg border bg-background">
+                      <Label htmlFor="aceita_marketing" className="text-sm font-medium">Aceita Marketing</Label>
+                      <Switch id="aceita_marketing" checked={watch("aceita_marketing")} onCheckedChange={(checked) => setValue("aceita_marketing", checked)} />
+                    </div>
+                  </div>
                 </div>
               </div>
             </TabsContent>
@@ -360,23 +414,24 @@ export default function EditarContatoDialog({ open, onOpenChange, contato, clien
             </TabsContent>
           </Tabs>
 
-          <div className="sticky bottom-0 bg-card border-t px-6 py-4 mt-8 -mx-6">
+          <div className="sticky bottom-0 bg-card border-t px-8 py-5 mt-8 -mx-8">
             <div className="flex gap-3">
               <Button 
                 type="button" 
                 variant="outline" 
                 onClick={() => onOpenChange(false)} 
                 disabled={isSubmitting}
-                className="flex-1"
+                className="flex-1 h-11 font-medium"
               >
+                <X className="h-4 w-4 mr-2" />
                 Cancelar
               </Button>
               <Button 
                 type="submit" 
                 disabled={isSubmitting}
-                className="flex-1"
+                className="flex-1 h-11 font-medium bg-primary hover:bg-primary/90"
               >
-                <UserPlus className="h-4 w-4 mr-2" />
+                <Check className="h-4 w-4 mr-2" />
                 {isSubmitting ? "Salvando..." : "Salvar Alterações"}
               </Button>
             </div>
