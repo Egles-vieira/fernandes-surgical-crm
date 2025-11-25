@@ -284,14 +284,13 @@ Deno.serve(async (req) => {
         .eq('id', conversaId);
 
       // Gerar resposta humanizada e personalizada
-      const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
       const resposta = await gerarRespostaPersonalizada(
         mensagemTexto,
         contextoCompleto,
         perfilCliente,
         produtos,
         proximoEstado,
-        lovableApiKey!
+        deepseekApiKey!
       );
 
       await salvarMemoria(supabase, conversaId, `Beto: ${resposta}`, 'resposta_enviada', openAiApiKey);
@@ -317,14 +316,13 @@ Deno.serve(async (req) => {
       }
 
       // Gerar resposta humanizada e personalizada
-      const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
       const resposta = await gerarRespostaPersonalizada(
         mensagemTexto,
         contextoCompleto,
         perfilCliente,
         produtosCarrinho,
         proximoEstado,
-        lovableApiKey!
+        deepseekApiKey!
       );
 
       await salvarMemoria(supabase, conversaId, `Beto apresentou produtos: ${resposta}`, 'produtos_apresentados', openAiApiKey);
@@ -479,8 +477,6 @@ Deno.serve(async (req) => {
     // ESTADO: SAUDAÇÃO INICIAL ou OUTROS - Conversa natural
     console.log('💬 Resposta conversacional - Estado:', proximoEstado);
     
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
-    
     // Gerar resposta humanizada e personalizada
     const resposta = await gerarRespostaPersonalizada(
       mensagemTexto,
@@ -488,7 +484,7 @@ Deno.serve(async (req) => {
       perfilCliente,
       [],
       proximoEstado,
-      lovableApiKey!
+      deepseekApiKey!
     );
 
     await salvarMemoria(supabase, conversaId, `Beto: ${resposta}`, 'conversa_geral', openAiApiKey);
