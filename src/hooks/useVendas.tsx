@@ -12,6 +12,10 @@ interface VendaWithItems extends Venda {
   vendas_itens?: (VendaItem & {
     produtos?: Tables<"produtos">;
   })[];
+  clientes?: {
+    nome_emit: string | null;
+    nome_abrev: string | null;
+  };
 }
 
 export function useVendas() {
@@ -28,6 +32,10 @@ export function useVendas() {
         .from("vendas")
         .select(`
           *,
+          clientes!vendas_cliente_id_fkey (
+            nome_emit,
+            nome_abrev
+          ),
           vendas_itens (
             *,
             produtos (*)

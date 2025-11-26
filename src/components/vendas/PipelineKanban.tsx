@@ -26,6 +26,10 @@ export interface VendaPipeline {
   etapa_pipeline: EtapaPipeline;
   data_fechamento_prevista?: string | null;
   responsavel_id?: string | null;
+  clientes?: {
+    nome_emit: string | null;
+    nome_abrev: string | null;
+  };
 }
 interface PipelineKanbanProps {
   vendas: VendaPipeline[];
@@ -268,7 +272,9 @@ export function PipelineKanban({
                                   </div>
                                 )}
 
-                                <h4 className="font-bold text-slate-800 text-sm mb-1 leading-tight pr-2">{venda.cliente_nome}</h4>
+                                <h4 className="font-bold text-slate-800 text-sm mb-1 leading-tight pr-2">
+                                  {venda.clientes?.nome_emit || venda.clientes?.nome_abrev || venda.cliente_nome || "Cliente não definido"}
+                                </h4>
 
                                 <div className="flex items-end justify-between mt-3">
                                   <span className="font-bold text-slate-900">{formatCurrency(venda.valor_estimado || venda.valor_total)}</span>
