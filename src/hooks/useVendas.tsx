@@ -36,7 +36,16 @@ export function useVendas() {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data as VendaWithItems[];
+      
+      // Garantir que os itens sempre estejam ordenados pela sequência
+      const vendasComItensOrdenados = data?.map(venda => ({
+        ...venda,
+        vendas_itens: venda.vendas_itens?.sort((a, b) => 
+          (a.sequencia_item || 0) - (b.sequencia_item || 0)
+        )
+      }));
+      
+      return vendasComItensOrdenados as VendaWithItems[];
     },
   });
 
@@ -199,14 +208,17 @@ export function useVendas() {
       });
       if (error) throw error;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["vendas"] });
+    onSuccess: async () => {
+      // Invalidar e aguardar refetch para garantir ordem correta
+      await queryClient.invalidateQueries({ queryKey: ["vendas"] });
       toast({
-        title: "Sequência atualizada!",
-        description: "A ordem dos itens foi alterada com sucesso.",
+        title: "Ordem atualizada!",
+        description: "Os itens foram reordenados com sucesso.",
       });
     },
     onError: (error: any) => {
+      // Recarregar dados em caso de erro para reverter mudança
+      queryClient.invalidateQueries({ queryKey: ["vendas"] });
       toast({
         title: "Erro ao reordenar itens",
         description: error.message,

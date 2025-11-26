@@ -192,9 +192,13 @@ export default function VendaDetalhes() {
           });
         }
 
-        // Carregar itens no carrinho
+        // Carregar itens no carrinho - SEMPRE ordenados pela sequência
         if (vendaEncontrada.vendas_itens) {
-          const itens = vendaEncontrada.vendas_itens.map(item => ({
+          const itensOrdenados = [...vendaEncontrada.vendas_itens].sort((a, b) => 
+            (a.sequencia_item || 0) - (b.sequencia_item || 0)
+          );
+          
+          const itens = itensOrdenados.map(item => ({
             produto: item.produtos!,
             quantidade: item.quantidade,
             desconto: item.desconto,
