@@ -34,7 +34,7 @@ export function FunnelStagesBar({ etapaAtual = "proposta", onAvancarEtapa }: Fun
   const etapaAtualIndex = etapas.findIndex(e => e.id === etapaAtual);
 
   return (
-    <div className="sticky top-[60px] z-20 bg-background border-b shadow-sm px-8 py-6">
+    <div className="sticky top-[60px] z-20 bg-background border-b shadow-sm px-8 py-3">
       <div className="flex items-center justify-between max-w-7xl mx-auto">
         {/* Etapas em formato chevron */}
         <div className="flex items-center -space-x-3">
@@ -47,7 +47,7 @@ export function FunnelStagesBar({ etapaAtual = "proposta", onAvancarEtapa }: Fun
               <div
                 key={etapa.id}
                 className={cn(
-                  "relative flex items-center justify-center h-12 px-8 pl-10 transition-all",
+                  "relative flex items-center justify-center h-9 px-12 pl-14 transition-all",
                   "clip-path-chevron",
                   // Cores baseadas no estado
                   isConcluida && "bg-success/90 text-success-foreground",
@@ -55,12 +55,12 @@ export function FunnelStagesBar({ etapaAtual = "proposta", onAvancarEtapa }: Fun
                   isProxima && "bg-primary/80 text-primary-foreground",
                   !isConcluida && !isAtual && !isProxima && "bg-muted text-muted-foreground",
                   // Primeiro item tem padding diferente
-                  index === 0 && "pl-6 rounded-l-md"
+                  index === 0 && "pl-8 rounded-l-md"
                 )}
                 style={{
                   clipPath: index === 0 
-                    ? "polygon(0 0, calc(100% - 16px) 0, 100% 50%, calc(100% - 16px) 100%, 0 100%)"
-                    : "polygon(0 0, calc(100% - 16px) 0, 100% 50%, calc(100% - 16px) 100%, 0 100%, 16px 50%)"
+                    ? "polygon(0 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 0 100%)"
+                    : "polygon(0 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 0 100%, 14px 50%)"
                 }}
               >
                 <div className="flex items-center gap-2 relative z-10">
@@ -79,12 +79,12 @@ export function FunnelStagesBar({ etapaAtual = "proposta", onAvancarEtapa }: Fun
           {isFinalizada && (
             <div
               className={cn(
-                "relative flex items-center justify-center h-12 px-8 pl-10 rounded-r-md transition-all",
+                "relative flex items-center justify-center h-9 px-12 pl-14 rounded-r-md transition-all",
                 isGanho && "bg-success text-success-foreground",
                 isPerdido && "bg-destructive text-destructive-foreground"
               )}
               style={{
-                clipPath: "polygon(0 0, 100% 0, 100% 100%, 0 100%, 16px 50%)"
+                clipPath: "polygon(0 0, 100% 0, 100% 100%, 0 100%, 14px 50%)"
               }}
             >
               <div className="flex items-center gap-2 relative z-10">
