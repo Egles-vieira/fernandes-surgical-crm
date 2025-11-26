@@ -69,7 +69,7 @@ export function KanbanColumn({ etapa, config, vendas, valorTotal, onViewDetails 
             {...provided.droppableProps}
             className="flex-1 overflow-hidden"
           >
-            <ScrollArea className="h-full">
+            <ScrollArea className="h-[calc(100vh-240px)]">
               <div
                 className={`p-3 min-h-[200px] ${
                   snapshot.isDraggingOver ? "bg-primary/5" : ""
