@@ -2,22 +2,8 @@ import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import type { Database } from "@/integrations/supabase/types";
 import { Search, Save, Trash2, Calculator, Loader2, ChevronLeft, ArrowLeft, ChevronRight, GripVertical, Edit } from "lucide-react";
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent,
-} from "@dnd-kit/core";
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  useSortable,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -77,10 +63,9 @@ const formatCurrency = (value: number) => {
     style: 'currency',
     currency: 'BRL',
     minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
+    maximumFractionDigits: 2
   }).format(value);
 };
-
 export default function VendaDetalhes() {
   const {
     id
@@ -117,10 +102,10 @@ export default function VendaDetalhes() {
     showErrorDialog,
     closeErrorDialog
   } = useDatasulCalculaPedido();
-  
-  const { data: userRoleData } = useUserRole();
+  const {
+    data: userRoleData
+  } = useUserRole();
   const isAdmin = userRoleData?.isAdmin || false;
-  
   const {
     toast
   } = useToast();
@@ -160,7 +145,7 @@ export default function VendaDetalhes() {
   const [validadeProposta, setValidadeProposta] = useState<string>("");
   const [faturamentoParcial, setFaturamentoParcial] = useState(false);
   const [dataFaturamentoProgramado, setDataFaturamentoProgramado] = useState<string>("");
-  
+
   // Pagination states for items table
   const [currentItemsPage, setCurrentItemsPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
@@ -168,12 +153,9 @@ export default function VendaDetalhes() {
   const [density, setDensity] = useState<"compact" | "normal" | "comfortable">("normal");
 
   // Drag and drop sensors
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
+  const sensors = useSensors(useSensor(PointerSensor), useSensor(KeyboardSensor, {
+    coordinateGetter: sortableKeyboardCoordinates
+  }));
 
   // Carregar venda
   useEffect(() => {
@@ -205,10 +187,7 @@ export default function VendaDetalhes() {
 
         // Carregar itens no carrinho - SEMPRE ordenados pela sequência
         if (vendaEncontrada.vendas_itens) {
-          const itensOrdenados = [...vendaEncontrada.vendas_itens].sort((a, b) => 
-            (a.sequencia_item || 0) - (b.sequencia_item || 0)
-          );
-          
+          const itensOrdenados = [...vendaEncontrada.vendas_itens].sort((a, b) => (a.sequencia_item || 0) - (b.sequencia_item || 0));
           const itens = itensOrdenados.map(item => ({
             produto: item.produtos!,
             quantidade: item.quantidade,
@@ -235,7 +214,6 @@ export default function VendaDetalhes() {
   const valorTotal = useMemo(() => {
     return carrinho.reduce((sum, item) => sum + item.valor_total, 0);
   }, [carrinho]);
-
   const valorTotalLiquido = useMemo(() => {
     return carrinho.reduce((sum, item) => sum + (item.datasul_vl_merc_liq || 0), 0);
   }, [carrinho]);
@@ -249,7 +227,6 @@ export default function VendaDetalhes() {
       });
       return;
     }
-
     const itemExistente = carrinho.find(item => item.produto.id === produto.id);
     if (itemExistente) {
       const novoCarrinho = carrinho.map(item => item.produto.id === produto.id ? {
@@ -305,19 +282,16 @@ export default function VendaDetalhes() {
     });
     setCarrinho(novoCarrinho);
   };
-
   const handleEditarItem = (item: ItemCarrinho) => {
     setItemEditando(item);
     setShowEditarItem(true);
   };
-
   const handleSalvarEdicaoItem = async (produtoId: string, updates: any) => {
     const novoCarrinho = carrinho.map(item => {
       if (item.produto.id === produtoId) {
         const produto = updates.produto || item.produto;
         const quantidade = updates.quantidade ?? item.quantidade;
         const desconto = updates.desconto ?? item.desconto;
-        
         const novoItem = {
           ...item,
           produto,
@@ -357,7 +331,6 @@ export default function VendaDetalhes() {
             });
           }
         }
-
         return novoItem;
       }
       return item;
@@ -365,25 +338,22 @@ export default function VendaDetalhes() {
 
     // Se mudou o produto, precisa remover o item antigo do carrinho
     if (updates.produto) {
-      const novoCarrinhoSemDuplicata = novoCarrinho.filter(item => 
-        item.produto.id === updates.produto.id || item.produto.id !== produtoId
-      );
+      const novoCarrinhoSemDuplicata = novoCarrinho.filter(item => item.produto.id === updates.produto.id || item.produto.id !== produtoId);
       setCarrinho(novoCarrinhoSemDuplicata);
     } else {
       setCarrinho(novoCarrinho);
     }
   };
-
   const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-
+    const {
+      active,
+      over
+    } = event;
     if (!over || active.id === over.id) {
       return;
     }
-
     const oldIndex = carrinho.findIndex(item => item.produto.id === active.id);
     const newIndex = carrinho.findIndex(item => item.produto.id === over.id);
-
     const reorderedCarrinho = arrayMove(carrinho, oldIndex, newIndex);
     setCarrinho(reorderedCarrinho);
 
@@ -396,7 +366,6 @@ export default function VendaDetalhes() {
           sequencia_item: index + 1
         };
       }).filter(u => u.id);
-
       updateItemsSequence.mutate(updates);
     }
   };
@@ -411,7 +380,6 @@ export default function VendaDetalhes() {
     if (!tipoPedidoId) camposObrigatorios.push("Tipo de Pedido");
     if (!condicaoPagamentoId) camposObrigatorios.push("Condição de Pagamento");
     if (carrinho.length === 0) camposObrigatorios.push("Itens");
-
     if (camposObrigatorios.length > 0) {
       toast({
         title: "Campos obrigatórios não preenchidos",
@@ -420,7 +388,6 @@ export default function VendaDetalhes() {
       });
       return;
     }
-
     if (!venda) return;
     try {
       // Atualizar venda
@@ -444,12 +411,8 @@ export default function VendaDetalhes() {
 
       // Adicionar novos itens com sequencia_item
       // Calcular a próxima sequência disponível baseado nos itens ATUAIS
-      const maxSequencia = Math.max(
-        0,
-        ...(venda.vendas_itens?.map(i => i.sequencia_item || 0) || [])
-      );
+      const maxSequencia = Math.max(0, ...(venda.vendas_itens?.map(i => i.sequencia_item || 0) || []));
       let sequenciaAtual = maxSequencia + 1;
-      
       for (const item of carrinho) {
         const itemExistente = venda.vendas_itens?.find(i => i.produto_id === item.produto.id);
         if (!itemExistente) {
@@ -484,7 +447,6 @@ export default function VendaDetalhes() {
     if (!tipoPedidoId) camposObrigatorios.push("Tipo de Pedido");
     if (!condicaoPagamentoId) camposObrigatorios.push("Condição de Pagamento");
     if (carrinho.length === 0) camposObrigatorios.push("Itens");
-
     if (camposObrigatorios.length > 0) {
       toast({
         title: "Campos obrigatórios não preenchidos",
@@ -493,7 +455,6 @@ export default function VendaDetalhes() {
       });
       return;
     }
-
     try {
       // Salvar automaticamente antes de calcular
       toast({
@@ -522,12 +483,8 @@ export default function VendaDetalhes() {
 
       // Adicionar novos itens com sequencia_item
       // Calcular a próxima sequência disponível baseado nos itens ATUAIS
-      const maxSequencia = Math.max(
-        0,
-        ...(venda.vendas_itens?.map(i => i.sequencia_item || 0) || [])
-      );
+      const maxSequencia = Math.max(0, ...(venda.vendas_itens?.map(i => i.sequencia_item || 0) || []));
       let sequenciaAtual = maxSequencia + 1;
-      
       for (const item of carrinho) {
         const itemExistente = venda.vendas_itens?.find(i => i.produto_id === item.produto.id);
         if (!itemExistente) {
@@ -546,7 +503,6 @@ export default function VendaDetalhes() {
 
       // Agora calcular no Datasul
       await calcularPedido(venda.id);
-      
       toast({
         title: "Cálculo iniciado",
         description: "Proposta salva e cálculo no Datasul iniciado com sucesso!"
@@ -590,11 +546,9 @@ export default function VendaDetalhes() {
       </div>
 
       {/* Logs do Cálculo Datasul */}
-      {isAdmin && venda && (
-        <Card className="p-6" id="integracao-log">
+      {isAdmin && venda && <Card className="p-6" id="integracao-log">
           <IntegracaoDatasulLog vendaId={venda.id} />
-        </Card>
-      )}
+        </Card>}
 
       <Card className="p-6 mx-[10px]">
         <div className="space-y-6">
@@ -690,12 +644,7 @@ export default function VendaDetalhes() {
               <div className="flex gap-2">
                 <div className="relative">
                   <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Buscar item..."
-                    value={searchItemTerm}
-                    onChange={(e) => setSearchItemTerm(e.target.value)}
-                    className="pl-8 w-[200px]"
-                  />
+                  <Input placeholder="Buscar item..." value={searchItemTerm} onChange={e => setSearchItemTerm(e.target.value)} className="pl-8 w-[200px]" />
                 </div>
                 
                 <Select value={density} onValueChange={(value: "compact" | "normal" | "comfortable") => setDensity(value)}>
@@ -732,19 +681,8 @@ export default function VendaDetalhes() {
             </div>
 
             <div className="border rounded-md overflow-auto h-[600px] relative">
-              <DndContext
-                sensors={sensors}
-                collisionDetection={closestCenter}
-                onDragEnd={handleDragEnd}
-              >
-                <Table 
-                  disableWrapper={true}
-                  className={cn(
-                    "w-full caption-bottom text-sm",
-                    density === "compact" ? "text-xs" :
-                    density === "comfortable" ? "text-base" : ""
-                  )}
-                >
+              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                <Table disableWrapper={true} className={cn("w-full caption-bottom text-sm", density === "compact" ? "text-xs" : density === "comfortable" ? "text-base" : "")}>
                   <TableHeader className="sticky top-0 z-20 bg-background border-b shadow-sm">
                     <TableRow className="hover:bg-transparent border-b">
                       <TableHead className={`w-12 ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}></TableHead>
@@ -755,7 +693,7 @@ export default function VendaDetalhes() {
                       {visibleColumns.desconto && <TableHead className={density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}>Desc %</TableHead>}
                       {visibleColumns.precoUnit && <TableHead className={density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}>Preço Unit</TableHead>}
                       {visibleColumns.total && <TableHead className={density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}>Total</TableHead>}
-                      {visibleColumns.deposito && <TableHead className={density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}>Depósito</TableHead>}
+                      {visibleColumns.deposito && <TableHead className={density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}>Estoque</TableHead>}
                       {visibleColumns.custo && <TableHead className={density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}>Custo DS</TableHead>}
                       {visibleColumns.divisao && <TableHead className={density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}>Divisão DS</TableHead>}
                       {visibleColumns.vlTotalDS && <TableHead className={density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}>Vlr Tot DS</TableHead>}
@@ -765,45 +703,19 @@ export default function VendaDetalhes() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    <SortableContext
-                      items={carrinho
-                        .filter(item => {
-                          if (!searchItemTerm) return true;
-                          const searchLower = searchItemTerm.toLowerCase();
-                          return (
-                            item.produto.nome.toLowerCase().includes(searchLower) ||
-                            item.produto.referencia_interna.toLowerCase().includes(searchLower)
-                          );
-                        })
-                        .slice((currentItemsPage - 1) * itemsPerPage, currentItemsPage * itemsPerPage)
-                        .map(item => item.produto.id)}
-                      strategy={verticalListSortingStrategy}
-                    >
-                      {carrinho
-                        .filter(item => {
-                          if (!searchItemTerm) return true;
-                          const searchLower = searchItemTerm.toLowerCase();
-                          return (
-                            item.produto.nome.toLowerCase().includes(searchLower) ||
-                            item.produto.referencia_interna.toLowerCase().includes(searchLower)
-                          );
-                        })
-                        .slice((currentItemsPage - 1) * itemsPerPage, currentItemsPage * itemsPerPage)
-                        .map((item, index) => {
-                          const realIndex = (currentItemsPage - 1) * itemsPerPage + index;
-                          return (
-                            <SortableItemRow
-                              key={item.produto.id}
-                              item={item}
-                              index={realIndex}
-                              density={density}
-                              visibleColumns={visibleColumns}
-                              onUpdate={handleAtualizarItem}
-                              onEdit={handleEditarItem}
-                              onRemove={handleRemoverItem}
-                            />
-                          );
-                        })}
+                    <SortableContext items={carrinho.filter(item => {
+                    if (!searchItemTerm) return true;
+                    const searchLower = searchItemTerm.toLowerCase();
+                    return item.produto.nome.toLowerCase().includes(searchLower) || item.produto.referencia_interna.toLowerCase().includes(searchLower);
+                  }).slice((currentItemsPage - 1) * itemsPerPage, currentItemsPage * itemsPerPage).map(item => item.produto.id)} strategy={verticalListSortingStrategy}>
+                      {carrinho.filter(item => {
+                      if (!searchItemTerm) return true;
+                      const searchLower = searchItemTerm.toLowerCase();
+                      return item.produto.nome.toLowerCase().includes(searchLower) || item.produto.referencia_interna.toLowerCase().includes(searchLower);
+                    }).slice((currentItemsPage - 1) * itemsPerPage, currentItemsPage * itemsPerPage).map((item, index) => {
+                      const realIndex = (currentItemsPage - 1) * itemsPerPage + index;
+                      return <SortableItemRow key={item.produto.id} item={item} index={realIndex} density={density} visibleColumns={visibleColumns} onUpdate={handleAtualizarItem} onEdit={handleEditarItem} onRemove={handleRemoverItem} />;
+                    })}
                     </SortableContext>
                   </TableBody>
                 </Table>
@@ -812,33 +724,23 @@ export default function VendaDetalhes() {
 
             {/* Pagination for items */}
             {carrinho.filter(item => {
-              if (!searchItemTerm) return true;
-              const searchLower = searchItemTerm.toLowerCase();
-              return (
-                item.produto.nome.toLowerCase().includes(searchLower) ||
-                item.produto.referencia_interna.toLowerCase().includes(searchLower)
-              );
-            }).length > itemsPerPage && (
-              <div className="flex items-center justify-between mt-4 gap-4">
+            if (!searchItemTerm) return true;
+            const searchLower = searchItemTerm.toLowerCase();
+            return item.produto.nome.toLowerCase().includes(searchLower) || item.produto.referencia_interna.toLowerCase().includes(searchLower);
+          }).length > itemsPerPage && <div className="flex items-center justify-between mt-4 gap-4">
                 <div className="text-sm text-muted-foreground">
                   {carrinho.filter(item => {
-                    if (!searchItemTerm) return true;
-                    const searchLower = searchItemTerm.toLowerCase();
-                    return (
-                      item.produto.nome.toLowerCase().includes(searchLower) ||
-                      item.produto.referencia_interna.toLowerCase().includes(searchLower)
-                    );
-                  }).length} itens no total
+                if (!searchItemTerm) return true;
+                const searchLower = searchItemTerm.toLowerCase();
+                return item.produto.nome.toLowerCase().includes(searchLower) || item.produto.referencia_interna.toLowerCase().includes(searchLower);
+              }).length} itens no total
                 </div>
                 
                 <div className="flex items-center gap-2">
-                  <Select 
-                    value={String(itemsPerPage)} 
-                    onValueChange={(value) => {
-                      setItemsPerPage(Number(value));
-                      setCurrentItemsPage(1);
-                    }}
-                  >
+                  <Select value={String(itemsPerPage)} onValueChange={value => {
+                setItemsPerPage(Number(value));
+                setCurrentItemsPage(1);
+              }}>
                     <SelectTrigger className="w-[130px]">
                       <SelectValue />
                     </SelectTrigger>
@@ -851,75 +753,42 @@ export default function VendaDetalhes() {
                   </Select>
 
                   <div className="flex items-center gap-1">
-                    <Button 
-                      variant="outline" 
-                      size="icon" 
-                      onClick={() => setCurrentItemsPage(1)} 
-                      disabled={currentItemsPage === 1}
-                    >
+                    <Button variant="outline" size="icon" onClick={() => setCurrentItemsPage(1)} disabled={currentItemsPage === 1}>
                       <ChevronLeft className="h-4 w-4" />
                       <ChevronLeft className="h-4 w-4 -ml-3" />
                     </Button>
-                    <Button 
-                      variant="outline" 
-                      size="icon" 
-                      onClick={() => setCurrentItemsPage(currentItemsPage - 1)} 
-                      disabled={currentItemsPage === 1}
-                    >
+                    <Button variant="outline" size="icon" onClick={() => setCurrentItemsPage(currentItemsPage - 1)} disabled={currentItemsPage === 1}>
                       <ChevronLeft className="h-4 w-4" />
                     </Button>
                     <span className="text-sm px-3">
                       Página {currentItemsPage} de {Math.ceil(carrinho.filter(item => {
-                        if (!searchItemTerm) return true;
-                        const searchLower = searchItemTerm.toLowerCase();
-                        return (
-                          item.produto.nome.toLowerCase().includes(searchLower) ||
-                          item.produto.referencia_interna.toLowerCase().includes(searchLower)
-                        );
-                      }).length / itemsPerPage) || 1}
+                    if (!searchItemTerm) return true;
+                    const searchLower = searchItemTerm.toLowerCase();
+                    return item.produto.nome.toLowerCase().includes(searchLower) || item.produto.referencia_interna.toLowerCase().includes(searchLower);
+                  }).length / itemsPerPage) || 1}
                     </span>
-                    <Button 
-                      variant="outline" 
-                      size="icon" 
-                      onClick={() => setCurrentItemsPage(currentItemsPage + 1)} 
-                      disabled={currentItemsPage === Math.ceil(carrinho.filter(item => {
-                        if (!searchItemTerm) return true;
-                        const searchLower = searchItemTerm.toLowerCase();
-                        return (
-                          item.produto.nome.toLowerCase().includes(searchLower) ||
-                          item.produto.referencia_interna.toLowerCase().includes(searchLower)
-                        );
-                      }).length / itemsPerPage)}
-                    >
+                    <Button variant="outline" size="icon" onClick={() => setCurrentItemsPage(currentItemsPage + 1)} disabled={currentItemsPage === Math.ceil(carrinho.filter(item => {
+                  if (!searchItemTerm) return true;
+                  const searchLower = searchItemTerm.toLowerCase();
+                  return item.produto.nome.toLowerCase().includes(searchLower) || item.produto.referencia_interna.toLowerCase().includes(searchLower);
+                }).length / itemsPerPage)}>
                       <ChevronRight className="h-4 w-4" />
                     </Button>
-                    <Button 
-                      variant="outline" 
-                      size="icon" 
-                      onClick={() => setCurrentItemsPage(Math.ceil(carrinho.filter(item => {
-                        if (!searchItemTerm) return true;
-                        const searchLower = searchItemTerm.toLowerCase();
-                        return (
-                          item.produto.nome.toLowerCase().includes(searchLower) ||
-                          item.produto.referencia_interna.toLowerCase().includes(searchLower)
-                        );
-                      }).length / itemsPerPage))} 
-                      disabled={currentItemsPage === Math.ceil(carrinho.filter(item => {
-                        if (!searchItemTerm) return true;
-                        const searchLower = searchItemTerm.toLowerCase();
-                        return (
-                          item.produto.nome.toLowerCase().includes(searchLower) ||
-                          item.produto.referencia_interna.toLowerCase().includes(searchLower)
-                        );
-                      }).length / itemsPerPage)}
-                    >
+                    <Button variant="outline" size="icon" onClick={() => setCurrentItemsPage(Math.ceil(carrinho.filter(item => {
+                  if (!searchItemTerm) return true;
+                  const searchLower = searchItemTerm.toLowerCase();
+                  return item.produto.nome.toLowerCase().includes(searchLower) || item.produto.referencia_interna.toLowerCase().includes(searchLower);
+                }).length / itemsPerPage))} disabled={currentItemsPage === Math.ceil(carrinho.filter(item => {
+                  if (!searchItemTerm) return true;
+                  const searchLower = searchItemTerm.toLowerCase();
+                  return item.produto.nome.toLowerCase().includes(searchLower) || item.produto.referencia_interna.toLowerCase().includes(searchLower);
+                }).length / itemsPerPage)}>
                       <ChevronRight className="h-4 w-4" />
                       <ChevronRight className="h-4 w-4 -ml-3" />
                     </Button>
                   </div>
                 </div>
-              </div>
-            )}
+              </div>}
 
             <div className="flex justify-end mt-4 gap-8">
               <div className="text-right">
@@ -953,20 +822,12 @@ export default function VendaDetalhes() {
       setShowAprovarDialog(false);
     }} vendaNumero={numeroVenda} vendaValor={valorTotal} />}
 
-      <DatasulErrorDialog
-        open={showErrorDialog}
-        onOpenChange={closeErrorDialog}
-        error={errorData}
-        onViewLog={() => {
-          document.getElementById('integracao-log')?.scrollIntoView({ behavior: 'smooth' });
-        }}
-      />
+      <DatasulErrorDialog open={showErrorDialog} onOpenChange={closeErrorDialog} error={errorData} onViewLog={() => {
+      document.getElementById('integracao-log')?.scrollIntoView({
+        behavior: 'smooth'
+      });
+    }} />
 
-      <EditarItemVendaDialog
-        open={showEditarItem}
-        onOpenChange={setShowEditarItem}
-        item={itemEditando}
-        onSave={handleSalvarEdicaoItem}
-      />
+      <EditarItemVendaDialog open={showEditarItem} onOpenChange={setShowEditarItem} item={itemEditando} onSave={handleSalvarEdicaoItem} />
     </div>;
 }
