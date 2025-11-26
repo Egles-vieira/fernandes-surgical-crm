@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import ConversasList from "@/components/whatsapp/ConversasList";
 import ChatArea from "@/components/whatsapp/ChatArea";
 import { ConectarWAPIDialog } from "@/components/whatsapp/ConectarWAPIDialog";
+import { StatusDisponibilidadeBadge } from "@/components/whatsapp/StatusDisponibilidadeBadge";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 const WhatsApp = () => {
@@ -178,10 +179,13 @@ const WhatsApp = () => {
               </span>
             </div>
             
-            {contaAtiva.provedor === 'w_api' && contaAtiva.status !== 'ativo' && <Button size="sm" onClick={() => setConectarDialogOpen(true)} className="bg-gradient-to-br from-primary to-primary/90">
-                <Wifi className="w-4 h-4 mr-2" />
-                Conectar WhatsApp
-              </Button>}
+            <div className="flex items-center gap-2">
+              <StatusDisponibilidadeBadge />
+              {contaAtiva.provedor === 'w_api' && contaAtiva.status !== 'ativo' && <Button size="sm" onClick={() => setConectarDialogOpen(true)} className="bg-gradient-to-br from-primary to-primary/90">
+                  <Wifi className="w-4 h-4 mr-2" />
+                  Conectar WhatsApp
+                </Button>}
+            </div>
           </div>
 
           <div className="grid grid-cols-12 h-[calc(100%-57px)] min-h-0 overflow-hidden">
