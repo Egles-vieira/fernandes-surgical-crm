@@ -138,7 +138,7 @@ export function PipelineKanban({
   };
 
   return (
-    <div className="flex flex-col h-screen bg-slate-50 p-[5px]">
+    <div className="flex flex-col h-full bg-slate-50 p-2">
       {/* Metrics HUD */}
       <div className="px-[5px] py-[5px] pb-[5px] shrink-0">
         <div className="bg-white rounded-xl p-1 shadow-sm border border-slate-200 flex divide-x divide-slate-100">
@@ -180,8 +180,8 @@ export function PipelineKanban({
 
       {/* Kanban Board */}
       <div className="flex-1 min-h-0 px-[5px] pb-[5px]">
-        <DragDropContext onDragEnd={onDragEnd}>
-          <div className="flex h-full gap-0 min-w-max overflow-x-auto overflow-y-hidden custom-scrollbar">
+      <DragDropContext onDragEnd={onDragEnd}>
+        <div className="flex h-full gap-2 overflow-x-auto overflow-y-hidden custom-scrollbar">
             {ETAPAS_ATIVAS.map((etapa) => {
               const vendasEtapa = getVendasPorEtapa(etapa);
               const totalVal = calcularValorTotal(etapa);
