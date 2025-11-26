@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import type { Database } from "@/integrations/supabase/types";
-import { Search, Save, Trash2, Calculator, Loader2, ChevronLeft, ArrowLeft, ChevronRight, GripVertical, Edit } from "lucide-react";
+import { Search, Save, Trash2, Calculator, Loader2, ChevronLeft, ChevronRight, GripVertical, Edit } from "lucide-react";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -531,17 +531,12 @@ export default function VendaDetalhes() {
         title: "Enviar para diretoria",
         description: "Funcionalidade em desenvolvimento"
       });
-    }} onEfetivar={() => setShowAprovarDialog(true)} onSalvar={handleSalvar} isSaving={false} isCalculating={isCalculating} editandoVendaId={venda.id} />
+    }} onEfetivar={() => setShowAprovarDialog(true)} onSalvar={handleSalvar} isSaving={false} isCalculating={isCalculating} editandoVendaId={venda.id} onVoltar={() => navigate("/vendas")} />
 
-      <div className="flex items-center gap-4 mb-4 mx-[10px]">
-        <Button variant="ghost" size="icon" onClick={() => navigate("/vendas")}>
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-        <div>
-          <h1 className="text-2xl font-bold">Proposta #{numeroVenda || "Nova"}</h1>
-          <div className="text-muted-foreground">
-            {venda.etapa_pipeline && <Badge variant="outline">{venda.etapa_pipeline}</Badge>}
-          </div>
+      <div className="mx-[10px] mb-4">
+        <h1 className="text-2xl font-bold">Proposta #{numeroVenda || "Nova"}</h1>
+        <div className="text-muted-foreground">
+          {venda.etapa_pipeline && <Badge variant="outline">{venda.etapa_pipeline}</Badge>}
         </div>
       </div>
 
