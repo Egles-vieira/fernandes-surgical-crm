@@ -70,6 +70,17 @@ interface ItemCarrinho {
   datasul_vl_merc_liq?: number | null;
   datasul_lote_mulven?: number | null;
 }
+
+// Função auxiliar para formatar valores monetários no padrão brasileiro
+const formatCurrency = (value: number) => {
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value);
+};
+
 export default function VendaDetalhes() {
   const {
     id
@@ -913,11 +924,11 @@ export default function VendaDetalhes() {
             <div className="flex justify-end mt-4 gap-8">
               <div className="text-right">
                 <p className="text-sm text-muted-foreground">Valor Total</p>
-                <p className="text-2xl font-bold">R$ {valorTotal.toFixed(2)}</p>
+                <p className="text-2xl font-bold">{formatCurrency(valorTotal)}</p>
               </div>
               <div className="text-right">
                 <p className="text-sm text-muted-foreground">Valor Total Líquido</p>
-                <p className="text-2xl font-bold text-primary">R$ {valorTotalLiquido.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-primary">{formatCurrency(valorTotalLiquido)}</p>
               </div>
             </div>
           </div>
