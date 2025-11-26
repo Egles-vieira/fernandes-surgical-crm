@@ -1,4 +1,4 @@
-import { Calculator, X, ShieldCheck, CheckCircle, Save, Loader2 } from "lucide-react";
+import { Calculator, X, ShieldCheck, CheckCircle, Save, Loader2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 interface VendasActionBarProps {
@@ -11,6 +11,7 @@ interface VendasActionBarProps {
   isSaving?: boolean;
   isCalculating?: boolean;
   editandoVendaId?: string | null;
+  onVoltar?: () => void;
 }
 export function VendasActionBar({
   status,
@@ -21,7 +22,8 @@ export function VendasActionBar({
   onSalvar,
   isSaving = false,
   isCalculating = false,
-  editandoVendaId = null
+  editandoVendaId = null,
+  onVoltar
 }: VendasActionBarProps) {
   const getStatusInfo = () => {
     switch (status) {
@@ -51,6 +53,11 @@ export function VendasActionBar({
   return <div className="sticky top-0 z-30 bg-card border-b shadow-sm px-8 py-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
+          {onVoltar && (
+            <Button variant="ghost" size="icon" onClick={onVoltar}>
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          )}
           <span className="text-sm font-medium text-muted-foreground">
             Status da Proposta:
           </span>
