@@ -67,6 +67,13 @@ export type Database = {
             referencedColumns: ["vendedor_id"]
           },
           {
+            foreignKeyName: "alertas_metas_lido_por_fkey"
+            columns: ["lido_por"]
+            isOneToOne: false
+            referencedRelation: "vw_vendedores_disponiveis"
+            referencedColumns: ["user_id"]
+          },
+          {
             foreignKeyName: "alertas_metas_meta_id_fkey"
             columns: ["meta_id"]
             isOneToOne: false
@@ -1318,6 +1325,13 @@ export type Database = {
             referencedColumns: ["vendedor_id"]
           },
           {
+            foreignKeyName: "edi_condicoes_pagamento_criado_por_fkey"
+            columns: ["criado_por"]
+            isOneToOne: false
+            referencedRelation: "vw_vendedores_disponiveis"
+            referencedColumns: ["user_id"]
+          },
+          {
             foreignKeyName: "edi_condicoes_pagamento_plataforma_id_fkey"
             columns: ["plataforma_id"]
             isOneToOne: false
@@ -1522,6 +1536,13 @@ export type Database = {
             referencedColumns: ["vendedor_id"]
           },
           {
+            foreignKeyName: "edi_cotacoes_resgatada_por_fkey"
+            columns: ["resgatada_por"]
+            isOneToOne: false
+            referencedRelation: "vw_vendedores_disponiveis"
+            referencedColumns: ["user_id"]
+          },
+          {
             foreignKeyName: "edi_cotacoes_respondido_por_fkey"
             columns: ["respondido_por"]
             isOneToOne: false
@@ -1534,6 +1555,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "vw_performance_vendedor"
             referencedColumns: ["vendedor_id"]
+          },
+          {
+            foreignKeyName: "edi_cotacoes_respondido_por_fkey"
+            columns: ["respondido_por"]
+            isOneToOne: false
+            referencedRelation: "vw_vendedores_disponiveis"
+            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -1870,6 +1898,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "vw_performance_vendedor"
             referencedColumns: ["vendedor_id"]
+          },
+          {
+            foreignKeyName: "edi_logs_integracao_executado_por_fkey"
+            columns: ["executado_por"]
+            isOneToOne: false
+            referencedRelation: "vw_vendedores_disponiveis"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "edi_logs_integracao_plataforma_id_fkey"
@@ -2221,6 +2256,13 @@ export type Database = {
             referencedColumns: ["vendedor_id"]
           },
           {
+            foreignKeyName: "edi_produtos_vinculo_aprovado_por_fkey"
+            columns: ["aprovado_por"]
+            isOneToOne: false
+            referencedRelation: "vw_vendedores_disponiveis"
+            referencedColumns: ["user_id"]
+          },
+          {
             foreignKeyName: "edi_produtos_vinculo_criado_por_fkey"
             columns: ["criado_por"]
             isOneToOne: false
@@ -2233,6 +2275,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "vw_performance_vendedor"
             referencedColumns: ["vendedor_id"]
+          },
+          {
+            foreignKeyName: "edi_produtos_vinculo_criado_por_fkey"
+            columns: ["criado_por"]
+            isOneToOne: false
+            referencedRelation: "vw_vendedores_disponiveis"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "edi_produtos_vinculo_plataforma_id_fkey"
@@ -2308,6 +2357,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "vw_performance_vendedor"
             referencedColumns: ["vendedor_id"]
+          },
+          {
+            foreignKeyName: "edi_unidades_medida_criado_por_fkey"
+            columns: ["criado_por"]
+            isOneToOne: false
+            referencedRelation: "vw_vendedores_disponiveis"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "edi_unidades_medida_plataforma_id_fkey"
@@ -3213,6 +3269,13 @@ export type Database = {
             referencedRelation: "vw_performance_vendedor"
             referencedColumns: ["vendedor_id"]
           },
+          {
+            foreignKeyName: "historico_status_atendimento_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "vw_vendedores_disponiveis"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       ia_feedback_historico: {
@@ -3785,6 +3848,13 @@ export type Database = {
             referencedColumns: ["vendedor_id"]
           },
           {
+            foreignKeyName: "metas_equipe_criado_por_fkey"
+            columns: ["criado_por"]
+            isOneToOne: false
+            referencedRelation: "vw_vendedores_disponiveis"
+            referencedColumns: ["user_id"]
+          },
+          {
             foreignKeyName: "metas_equipe_equipe_id_fkey"
             columns: ["equipe_id"]
             isOneToOne: false
@@ -4215,11 +4285,15 @@ export type Database = {
           departamento: string | null
           empresa_id: string | null
           esta_ativo: boolean | null
+          esta_disponivel: boolean | null
           foto_perfil_url: string | null
           fuso_horario: string | null
           gerente_id: string | null
+          horario_trabalho_fim: string | null
+          horario_trabalho_inicio: string | null
           id: string
           idioma: string | null
+          max_conversas_simultaneas: number | null
           nome_completo: string | null
           numero_celular: string | null
           perfil_id: string | null
@@ -4240,11 +4314,15 @@ export type Database = {
           departamento?: string | null
           empresa_id?: string | null
           esta_ativo?: boolean | null
+          esta_disponivel?: boolean | null
           foto_perfil_url?: string | null
           fuso_horario?: string | null
           gerente_id?: string | null
+          horario_trabalho_fim?: string | null
+          horario_trabalho_inicio?: string | null
           id: string
           idioma?: string | null
+          max_conversas_simultaneas?: number | null
           nome_completo?: string | null
           numero_celular?: string | null
           perfil_id?: string | null
@@ -4265,11 +4343,15 @@ export type Database = {
           departamento?: string | null
           empresa_id?: string | null
           esta_ativo?: boolean | null
+          esta_disponivel?: boolean | null
           foto_perfil_url?: string | null
           fuso_horario?: string | null
           gerente_id?: string | null
+          horario_trabalho_fim?: string | null
+          horario_trabalho_inicio?: string | null
           id?: string
           idioma?: string | null
+          max_conversas_simultaneas?: number | null
           nome_completo?: string | null
           numero_celular?: string | null
           perfil_id?: string | null
@@ -4424,6 +4506,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "vw_performance_vendedor"
             referencedColumns: ["vendedor_id"]
+          },
+          {
+            foreignKeyName: "plataformas_edi_criado_por_fkey"
+            columns: ["criado_por"]
+            isOneToOne: false
+            referencedRelation: "vw_vendedores_disponiveis"
+            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -4720,6 +4809,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "vw_performance_vendedor"
             referencedColumns: ["vendedor_id"]
+          },
+          {
+            foreignKeyName: "progresso_metas_registrado_por_fkey"
+            columns: ["registrado_por"]
+            isOneToOne: false
+            referencedRelation: "vw_vendedores_disponiveis"
+            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -5923,6 +6019,13 @@ export type Database = {
             referencedColumns: ["vendedor_id"]
           },
           {
+            foreignKeyName: "whatsapp_aprovacoes_diretoria_aprovado_por_id_fkey"
+            columns: ["aprovado_por_id"]
+            isOneToOne: false
+            referencedRelation: "vw_vendedores_disponiveis"
+            referencedColumns: ["user_id"]
+          },
+          {
             foreignKeyName: "whatsapp_aprovacoes_diretoria_proposta_id_fkey"
             columns: ["proposta_id"]
             isOneToOne: false
@@ -5942,6 +6045,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "vw_performance_vendedor"
             referencedColumns: ["vendedor_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_aprovacoes_diretoria_solicitado_por_id_fkey"
+            columns: ["solicitado_por_id"]
+            isOneToOne: false
+            referencedRelation: "vw_vendedores_disponiveis"
+            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -6633,6 +6743,13 @@ export type Database = {
             referencedColumns: ["vendedor_id"]
           },
           {
+            foreignKeyName: "whatsapp_interacoes_executado_por_id_fkey"
+            columns: ["executado_por_id"]
+            isOneToOne: false
+            referencedRelation: "vw_vendedores_disponiveis"
+            referencedColumns: ["user_id"]
+          },
+          {
             foreignKeyName: "whatsapp_interacoes_mensagem_id_fkey"
             columns: ["mensagem_id"]
             isOneToOne: false
@@ -6644,6 +6761,47 @@ export type Database = {
             columns: ["proposta_id"]
             isOneToOne: false
             referencedRelation: "whatsapp_propostas_comerciais"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_log_atribuicoes: {
+        Row: {
+          conversa_id: string
+          criado_em: string | null
+          criado_por: string | null
+          foi_automatico: boolean | null
+          id: string
+          motivo: string
+          vendedor_anterior_id: string | null
+          vendedor_novo_id: string | null
+        }
+        Insert: {
+          conversa_id: string
+          criado_em?: string | null
+          criado_por?: string | null
+          foi_automatico?: boolean | null
+          id?: string
+          motivo: string
+          vendedor_anterior_id?: string | null
+          vendedor_novo_id?: string | null
+        }
+        Update: {
+          conversa_id?: string
+          criado_em?: string | null
+          criado_por?: string | null
+          foi_automatico?: boolean | null
+          id?: string
+          motivo?: string
+          vendedor_anterior_id?: string | null
+          vendedor_novo_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_log_atribuicoes_conversa_id_fkey"
+            columns: ["conversa_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_conversas"
             referencedColumns: ["id"]
           },
         ]
@@ -7044,6 +7202,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "vw_performance_vendedor"
             referencedColumns: ["vendedor_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_propostas_comerciais_aprovada_por_id_fkey"
+            columns: ["aprovada_por_id"]
+            isOneToOne: false
+            referencedRelation: "vw_vendedores_disponiveis"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "whatsapp_propostas_comerciais_conversa_id_fkey"
@@ -7532,6 +7697,13 @@ export type Database = {
             referencedColumns: ["vendedor_id"]
           },
           {
+            foreignKeyName: "metas_equipe_criado_por_fkey"
+            columns: ["criado_por"]
+            isOneToOne: false
+            referencedRelation: "vw_vendedores_disponiveis"
+            referencedColumns: ["user_id"]
+          },
+          {
             foreignKeyName: "metas_equipe_equipe_id_fkey"
             columns: ["equipe_id"]
             isOneToOne: false
@@ -7661,6 +7833,20 @@ export type Database = {
         }
         Relationships: []
       }
+      vw_vendedores_disponiveis: {
+        Row: {
+          conversas_ativas: number | null
+          conversas_disponiveis: number | null
+          esta_disponivel: boolean | null
+          horario_trabalho_fim: string | null
+          horario_trabalho_inicio: string | null
+          max_conversas_simultaneas: number | null
+          nome_completo: string | null
+          pode_receber_conversa: boolean | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       ajustar_score_aprendizado: {
@@ -7671,6 +7857,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      atribuir_conversas_em_fila: { Args: never; Returns: number }
       atualizar_progresso_meta: {
         Args: {
           _meta_id: string
