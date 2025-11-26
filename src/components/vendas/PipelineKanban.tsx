@@ -33,7 +33,7 @@ export function PipelineKanban({ vendas, onDragEnd, onViewDetails }: PipelineKan
   }, 0);
 
   return (
-    <div className="flex flex-col h-full overflow-hidden">
+    <div className="flex flex-col h-full">
       <PipelineTotalHUD valorTotal={totalPipeline} />
       <KanbanBoard vendas={vendas} onDragEnd={onDragEnd} onViewDetails={onViewDetails} />
     </div>
