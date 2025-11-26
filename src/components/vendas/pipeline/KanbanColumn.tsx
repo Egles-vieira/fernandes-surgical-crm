@@ -46,7 +46,7 @@ export function KanbanColumn({ etapa, config, vendas, valorTotal, onViewDetails 
     <div className="flex flex-col w-80 shrink-0 bg-muted/30 rounded-lg">
       {/* Header fixo da coluna */}
       <div
-        className={`sticky top-0 z-10 px-4 py-3 rounded-t-lg ${config.bgColor} ${config.textColor}`}
+        className={`sticky top-0 z-[5] px-4 py-3 rounded-t-lg ${config.bgColor} ${config.textColor}`}
       >
         <div className="flex items-center justify-between mb-1">
           <h3 className="font-semibold text-sm uppercase tracking-wide">
