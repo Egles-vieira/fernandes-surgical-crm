@@ -211,10 +211,10 @@ export function PipelineKanban({
                               <div 
                                 ref={provided.innerRef}
                                 {...provided.draggableProps}
-                                className={`bg-white p-4 rounded-lg shadow-sm border border-slate-200 group/card relative transition-all duration-200 ${
+                                className={`bg-white p-4 rounded-xl shadow-sm border border-slate-200 group/card relative transition-all duration-200 ${
                                   snapshot.isDragging 
                                     ? 'z-50 shadow-2xl rotate-2 scale-105 ring-2 ring-indigo-500/50 cursor-grabbing' 
-                                    : 'hover:shadow-lg hover:border-indigo-300 hover:-translate-y-1 cursor-grab'
+                                    : 'hover:shadow-xl hover:border-indigo-300 hover:-translate-y-1 cursor-grab'
                                 }`}
                                 style={{...provided.draggableProps.style}}
                                 onClick={() => {
@@ -224,7 +224,7 @@ export function PipelineKanban({
                                 }}
                               >
                                 {/* Top Accent Line */}
-                                <div className={`absolute top-0 left-3 right-3 h-0.5 ${config.color} opacity-0 group-hover/card:opacity-100 transition-opacity`}></div>
+                                <div className={`absolute top-0 left-0 right-0 h-1 ${config.color} rounded-t-xl opacity-0 group-hover/card:opacity-100 transition-opacity`}></div>
                                 
                                 {/* Actions Menu */}
                                 <DropdownMenu>
@@ -232,7 +232,7 @@ export function PipelineKanban({
                                     <Button
                                       variant="ghost"
                                       size="icon"
-                                      className="absolute top-2 right-2 h-7 w-7 opacity-0 group-hover/card:opacity-100 transition-opacity hover:bg-slate-100"
+                                      className="absolute top-2 right-2 h-7 w-7 opacity-0 group-hover/card:opacity-100 transition-opacity hover:bg-slate-100 z-10"
                                       onClick={(e) => e.stopPropagation()}
                                     >
                                       <MoreVertical size={14} />
@@ -252,49 +252,75 @@ export function PipelineKanban({
                                 {/* Grip Handle */}
                                 <div 
                                   {...provided.dragHandleProps}
-                                  className="absolute top-2 right-10 text-slate-300 hover:text-slate-500 cursor-grab p-1 opacity-0 group-hover/card:opacity-100 transition-opacity"
+                                  className="absolute top-2 right-10 text-slate-300 hover:text-slate-500 cursor-grab p-1 opacity-0 group-hover/card:opacity-100 transition-opacity z-10"
                                   title="Arraste para mover"
                                 >
                                   <GripVertical size={14} />
                                 </div>
 
-                                <div className="flex justify-between items-start mb-2 pr-6">
-                                  <div className="flex gap-1 flex-wrap">
-                                    <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wide bg-slate-50 text-slate-500">
-                                      {venda.numero_venda}
-                                    </span>
+                                {/* Header with Number and Probability */}
+                                <div className="flex justify-between items-start mb-3 pr-8">
+                                  <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold uppercase tracking-wide bg-gradient-to-r from-indigo-50 to-blue-50 text-indigo-700 border border-indigo-100">
+                                    {venda.numero_venda}
+                                  </span>
+                                  <div className="flex items-center gap-1.5">
+                                    {venda.probabilidade >= 70 && (
+                                      <div className="w-5 h-5 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-500 flex items-center justify-center text-white shadow-sm">
+                                        <Sparkles size={10} strokeWidth={2.5} />
+                                      </div>
+                                    )}
+                                    <div className={`text-xs font-bold ${
+                                      venda.probabilidade >= 70 ? 'text-emerald-600' : 
+                                      venda.probabilidade >= 40 ? 'text-amber-600' : 
+                                      'text-red-600'
+                                    }`}>
+                                      {venda.probabilidade}%
+                                    </div>
                                   </div>
                                 </div>
-                                
-                                {venda.data_fechamento_prevista && (
-                                  <div className="text-[10px] text-slate-400 flex items-center gap-1 mb-1">
-                                    <Clock size={10} /> {new Date(venda.data_fechamento_prevista).toLocaleDateString("pt-BR")}
-                                  </div>
-                                )}
 
-                                <h4 className="font-bold text-slate-800 text-sm mb-1 leading-tight pr-2">
+                                {/* Client Name */}
+                                <h4 className="font-bold text-slate-800 text-base mb-2 leading-tight pr-2 line-clamp-2">
                                   {venda.clientes?.nome_emit || venda.clientes?.nome_abrev || venda.cliente_nome || "Cliente não definido"}
                                 </h4>
 
-                                <div className="flex items-end justify-between mt-3">
-                                  <span className="font-bold text-slate-900">{formatCurrency(venda.valor_estimado || venda.valor_total)}</span>
-                                  
-                                  {/* Probability indicator */}
-                                  <div className="flex items-center gap-2">
-                                    {venda.probabilidade >= 70 && (
-                                      <div className="w-6 h-6 rounded-full bg-emerald-100 border border-white flex items-center justify-center text-emerald-600">
-                                        <Sparkles size={10} />
+                                {/* Date Info */}
+                                {venda.data_fechamento_prevista && (
+                                  <div className="flex items-center gap-1.5 mb-3 text-xs text-slate-500 bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-100">
+                                    <Clock size={12} strokeWidth={2} className="text-slate-400" />
+                                    <span className="font-medium">Previsão:</span>
+                                    <span className="font-semibold text-slate-700">
+                                      {new Date(venda.data_fechamento_prevista).toLocaleDateString("pt-BR", { 
+                                        day: '2-digit', 
+                                        month: 'short' 
+                                      })}
+                                    </span>
+                                  </div>
+                                )}
+
+                                {/* Value Section */}
+                                <div className="mt-3 pt-3 border-t border-slate-100">
+                                  <div className="flex items-center justify-between">
+                                    <div>
+                                      <div className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold mb-0.5">Valor Estimado</div>
+                                      <div className="text-lg font-bold text-slate-900">
+                                        {formatCurrency(venda.valor_estimado || venda.valor_total)}
                                       </div>
-                                    )}
-                                    <div className="text-xs font-semibold text-slate-500">{venda.probabilidade}%</div>
+                                    </div>
+                                    <div className="text-right">
+                                      <div className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold mb-0.5">Potencial</div>
+                                      <div className="text-sm font-bold text-indigo-600">
+                                        {formatCurrency((venda.valor_estimado || venda.valor_total) * (venda.probabilidade / 100))}
+                                      </div>
+                                    </div>
                                   </div>
                                 </div>
 
                                 {/* Alert for low probability */}
                                 {etapa === 'negociacao' && venda.probabilidade < 40 && (
-                                  <div className="mt-3 flex items-center gap-1 text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded border border-amber-100">
-                                    <AlertCircle size={12} />
-                                    <span>Atenção requerida</span>
+                                  <div className="mt-3 flex items-center gap-2 text-xs text-amber-700 bg-gradient-to-r from-amber-50 to-orange-50 px-3 py-2 rounded-lg border border-amber-200">
+                                    <AlertCircle size={14} strokeWidth={2.5} />
+                                    <span className="font-semibold">Atenção requerida</span>
                                   </div>
                                 )}
                               </div>
