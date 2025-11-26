@@ -57,26 +57,16 @@ export function VendasActionBar({
   return <div className="sticky top-0 z-30 bg-card border-b shadow-sm px-8 py-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          {onVoltar && (
-            <Button variant="ghost" size="icon" onClick={onVoltar}>
+          {onVoltar && <Button variant="ghost" size="icon" onClick={onVoltar}>
               <ArrowLeft className="h-5 w-5" />
-            </Button>
-          )}
-          {numeroVenda && (
-            <div className="flex items-center gap-3">
+            </Button>}
+          {numeroVenda && <div className="flex items-center gap-3">
               <h1 className="text-2xl font-bold">Proposta #{numeroVenda}</h1>
-              {etapaPipeline && (
-                <Badge variant="outline">{etapaPipeline}</Badge>
-              )}
-            </div>
-          )}
+              {etapaPipeline && <Badge variant="outline">{etapaPipeline}</Badge>}
+            </div>}
           <div className="h-6 w-px bg-border mx-2" />
-          <span className="text-sm font-medium text-muted-foreground">
-            Status:
-          </span>
-          <Badge variant="outline" className={statusInfo.className}>
-            {statusInfo.label}
-          </Badge>
+          
+          
         </div>
 
         <div className="flex items-center gap-2">
@@ -95,21 +85,15 @@ export function VendasActionBar({
             Cancelar
           </Button>
           
-          {onSalvar && (
-            <Button variant="outline" size="sm" onClick={onSalvar} disabled={isSaving} className="gap-2">
-              {isSaving ? (
-                <>
+          {onSalvar && <Button variant="outline" size="sm" onClick={onSalvar} disabled={isSaving} className="gap-2">
+              {isSaving ? <>
                   <Loader2 className="animate-spin" size={16} />
                   Salvando...
-                </>
-              ) : (
-                <>
+                </> : <>
                   <Save size={16} />
                   Salvar
-                </>
-              )}
-            </Button>
-          )}
+                </>}
+            </Button>}
           
           <Button variant="outline" size="sm" onClick={onDiretoria} className="gap-2">
             <ShieldCheck size={16} />
