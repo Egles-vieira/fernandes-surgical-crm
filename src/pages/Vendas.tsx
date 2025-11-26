@@ -1594,10 +1594,9 @@ export default function Vendas() {
     );
   }
 
-  // Pipeline / List Views
   return (
-    <div className="p-8">
-      {/* Filtros com toggle de view */}
+    <div className="h-[calc(100vh-64px)] flex flex-col overflow-hidden">
+      {/* Filtros - Fixo */}
       <VendasFilters
         view={view as "pipeline" | "list"}
         onViewChange={(v) => setView(v)}
@@ -1611,57 +1610,26 @@ export default function Vendas() {
         isCreatingTest={isCreatingTest}
       />
 
-      <div className="pt-6">
+      {/* Conteúdo principal - flex-1 */}
+      <div className="flex-1 overflow-hidden">
         {view === "pipeline" ? (
           <PipelineKanban
-            vendas={filteredVendas.map((v) => ({
-              id: v.id,
-              numero_venda: v.numero_venda,
-              cliente_nome: v.cliente_nome,
-              valor_estimado: (v as any).valor_estimado || 0,
-              valor_total: v.valor_total,
-              probabilidade: (v as any).probabilidade || 50,
-              etapa_pipeline: (v as any).etapa_pipeline || "prospeccao",
-              data_fechamento_prevista: (v as any).data_fechamento_prevista,
-              responsavel_id: (v as any).responsavel_id,
-            }))}
-            onMoverCard={handleMoverCard}
-            onEditarVenda={(venda) => {
+            vendas={filteredVendas as any}
+            onDragEnd={(result) => {
+              const { source, destination, draggableId } = result;
+              
+              if (!destination) return;
+              if (source.droppableId === destination.droppableId && source.index === destination.index) return;
+              
+              const novaEtapa = destination.droppableId as EtapaPipeline;
+              handleMoverCard(draggableId, novaEtapa);
+            }}
+            onViewDetails={(venda) => {
               navigate(`/vendas/${venda.id}`);
             }}
-            onNovaVenda={async () => {
-              try {
-                const numeroVenda = `V${Date.now().toString().slice(-8)}`;
-                
-                const novaVenda = await createVenda.mutateAsync({
-                  numero_venda: numeroVenda,
-                  cliente_nome: "Cliente não definido",
-                  cliente_cnpj: "",
-                  status: "rascunho",
-                  valor_total: 0,
-                  etapa_pipeline: "prospeccao",
-                  probabilidade: 50,
-                });
-
-                toast({
-                  title: "Proposta criada!",
-                  description: `Proposta ${numeroVenda} criada com sucesso.`,
-                  variant: "success",
-                });
-
-                navigate(`/vendas/${novaVenda.id}`);
-              } catch (error) {
-                toast({
-                  title: "Erro ao criar proposta",
-                  description: "Não foi possível criar a proposta. Tente novamente.",
-                  variant: "destructive",
-                });
-              }
-            }}
-            onDuplicarVenda={handleDuplicarVenda}
           />
         ) : (
-          <>
+          <div className="h-full overflow-auto px-8 py-6">
             {/* Search */}
             <div className="flex items-center gap-4 mb-6">
               <div className="relative flex-1">
@@ -1748,7 +1716,7 @@ export default function Vendas() {
                 </TableBody>
               </Table>
             </Card>
-          </>
+          </div>
         )}
       </div>
 
