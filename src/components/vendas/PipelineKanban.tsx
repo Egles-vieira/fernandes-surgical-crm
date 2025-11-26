@@ -2,7 +2,7 @@ import { useState } from "react";
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, TrendingUp, DollarSign, Briefcase, Users, LayoutGrid, GripVertical, Clock, UserCircle2, Sparkles, AlertCircle, Copy, MoreVertical } from "lucide-react";
+import { Plus, TrendingUp, DollarSign, Briefcase, LayoutGrid, Clock, Sparkles, AlertCircle, Copy, MoreVertical } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 export type EtapaPipeline = "prospeccao" | "qualificacao" | "proposta" | "negociacao" | "fechamento" | "ganho" | "perdido";
 
@@ -211,6 +211,7 @@ export function PipelineKanban({
                               <div 
                                 ref={provided.innerRef}
                                 {...provided.draggableProps}
+                                {...provided.dragHandleProps}
                                 className={`bg-white p-4 rounded-xl shadow-sm border border-slate-200 group/card relative transition-all duration-200 ${
                                   snapshot.isDragging 
                                     ? 'z-50 shadow-2xl rotate-2 scale-105 ring-2 ring-indigo-500/50 cursor-grabbing' 
@@ -248,15 +249,6 @@ export function PipelineKanban({
                                     </DropdownMenuItem>
                                   </DropdownMenuContent>
                                 </DropdownMenu>
-                                
-                                {/* Grip Handle */}
-                                <div 
-                                  {...provided.dragHandleProps}
-                                  className="absolute top-2 right-10 text-slate-300 hover:text-slate-500 cursor-grab p-1 opacity-0 group-hover/card:opacity-100 transition-opacity z-10"
-                                  title="Arraste para mover"
-                                >
-                                  <GripVertical size={14} />
-                                </div>
 
                                 {/* Header with Number and Probability */}
                                 <div className="flex justify-between items-start mb-3 pr-8">
