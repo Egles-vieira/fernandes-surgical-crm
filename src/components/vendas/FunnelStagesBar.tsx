@@ -96,14 +96,14 @@ export function FunnelStagesBar({
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
       <div className="sticky top-[60px] z-20 bg-background border-b shadow-sm">
-        <div className="px-8 py-2">
-          <div className="flex items-center gap-3 max-w-7xl mx-auto">
+        <div className="py-2">
+          <div className="flex items-center gap-3">
             {/* Botão Toggle */}
             <CollapsibleTrigger asChild>
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-9 w-9 shrink-0"
+                className="h-9 w-9 shrink-0 ml-2"
               >
                 {isOpen ? (
                   <ChevronUp className="h-4 w-4" />
@@ -182,7 +182,7 @@ export function FunnelStagesBar({
             {!isFinalizada && onAvancarEtapa && etapaAtualIndex < etapas.length - 1 && (
               <Button 
                 onClick={onAvancarEtapa}
-                className="ml-3 gap-2 shrink-0"
+                className="ml-3 mr-2 gap-2 shrink-0"
                 size="sm"
               >
                 Avançar Etapa
@@ -195,7 +195,7 @@ export function FunnelStagesBar({
         {/* Conteúdo Expandido */}
         <CollapsibleContent>
           <div className="bg-muted/30 border-t">
-            <div className="px-8 py-6 max-w-7xl mx-auto">
+            <div className="px-8 py-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* Coluna Esquerda - Campos Chave */}
                 <div>
