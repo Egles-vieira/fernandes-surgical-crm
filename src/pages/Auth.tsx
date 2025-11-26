@@ -156,7 +156,7 @@ export default function Auth() {
           {/* Animated Typewriter Title */}
           <div className="space-y-8 mb-16">
             <div>
-              <h1 className="text-6xl font-bold leading-[1.1] tracking-tight mb-5">
+              <h1 className="text-4xl font-bold leading-[1.1] tracking-tight mb-5">
                 <TypewriterText
                   texts={[
                     "Transforme atendimento em resultado",
