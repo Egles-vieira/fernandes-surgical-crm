@@ -8,6 +8,19 @@ import type { Tables } from "@/integrations/supabase/types";
 
 type Produto = Tables<"produtos">;
 
+const formatNumber = (value: number) => {
+  return new Intl.NumberFormat('pt-BR').format(value);
+};
+
+const formatCurrency = (value: number) => {
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value);
+};
+
 interface ItemCarrinho {
   produto: Produto;
   quantidade: number;
@@ -84,7 +97,7 @@ export function SortableItemRow({
       </TableCell>
       {visibleColumns.precoTabela && (
         <TableCell className={paddingClass}>
-          R$ {item.produto.preco_venda.toFixed(2)}
+          {formatCurrency(item.produto.preco_venda)}
         </TableCell>
       )}
       <TableCell className={paddingClass}>
@@ -115,37 +128,37 @@ export function SortableItemRow({
       )}
       {visibleColumns.precoUnit && (
         <TableCell className={paddingClass}>
-          R$ {(item.produto.preco_venda * (1 - item.desconto / 100)).toFixed(2)}
+          {formatCurrency(item.produto.preco_venda * (1 - item.desconto / 100))}
         </TableCell>
       )}
       {visibleColumns.total && (
         <TableCell className={`font-medium ${paddingClass}`}>
-          R$ {item.valor_total.toFixed(2)}
+          {formatCurrency(item.valor_total)}
         </TableCell>
       )}
       {visibleColumns.deposito && (
-        <TableCell className={paddingClass}>{item.datasul_dep_exp || "-"}</TableCell>
+        <TableCell className={paddingClass}>{item.datasul_dep_exp ? formatNumber(item.datasul_dep_exp) : "-"}</TableCell>
       )}
       {visibleColumns.custo && (
         <TableCell className={paddingClass}>
-          {item.datasul_custo ? `R$ ${item.datasul_custo.toFixed(2)}` : "-"}
+          {item.datasul_custo ? formatCurrency(item.datasul_custo) : "-"}
         </TableCell>
       )}
       {visibleColumns.divisao && (
-        <TableCell className={paddingClass}>{item.datasul_divisao || "-"}</TableCell>
+        <TableCell className={paddingClass}>{item.datasul_divisao ? formatNumber(item.datasul_divisao) : "-"}</TableCell>
       )}
       {visibleColumns.vlTotalDS && (
         <TableCell className={paddingClass}>
-          {item.datasul_vl_tot_item ? `R$ ${item.datasul_vl_tot_item.toFixed(2)}` : "-"}
+          {item.datasul_vl_tot_item ? formatCurrency(item.datasul_vl_tot_item) : "-"}
         </TableCell>
       )}
       {visibleColumns.vlMercLiq && (
         <TableCell className={paddingClass}>
-          {item.datasul_vl_merc_liq ? `R$ ${item.datasul_vl_merc_liq.toFixed(2)}` : "-"}
+          {item.datasul_vl_merc_liq ? formatCurrency(item.datasul_vl_merc_liq) : "-"}
         </TableCell>
       )}
       {visibleColumns.loteMult && (
-        <TableCell className={paddingClass}>{item.datasul_lote_mulven || "-"}</TableCell>
+        <TableCell className={paddingClass}>{item.datasul_lote_mulven ? formatNumber(item.datasul_lote_mulven) : "-"}</TableCell>
       )}
       <TableCell className={paddingClass}>
         <div className="flex gap-1">
