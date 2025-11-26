@@ -12,6 +12,8 @@ import { LogIn, AlertCircle, User, Lock, Mail } from "lucide-react";
 import { loginSchema, signupSchema, LoginInput, SignupInput } from "@/lib/validations/auth";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import logo from "@/assets/logo-convertiai.png";
+import heroImage from "@/assets/auth-hero-professional.jpg";
+import { TypewriterText } from "@/components/TypewriterText";
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -120,65 +122,73 @@ export default function Auth() {
   const handleSubmit = isLogin ? loginForm.handleSubmit(handleLogin) : signupForm.handleSubmit(handleSignup);
   return <div className="min-h-screen flex">
       {/* Left Side - Brand Section */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-[#1e3a5f] via-[#2d5f7f] to-[#3fb39d]">
-        {/* Animated gradient orbs */}
-        <div className="absolute top-20 right-20 w-72 h-72 bg-[#3fb39d]/20 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-20 left-20 w-96 h-96 bg-[#1e3a5f]/30 rounded-full blur-3xl animate-pulse" style={{
-        animationDelay: '1s'
-      }}></div>
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
+        {/* Background Image with Overlay */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: `url(${heroImage})` }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-br from-[#1e3a5f]/95 via-[#2d5f7f]/90 to-[#3fb39d]/85"></div>
+        </div>
         
         {/* Grid pattern overlay */}
-        <div className="absolute inset-0 opacity-10" style={{
-        backgroundImage: 'linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px)',
-        backgroundSize: '50px 50px'
-      }}></div>
+        <div className="absolute inset-0 opacity-5" style={{
+          backgroundImage: 'linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px)',
+          backgroundSize: '50px 50px'
+        }}></div>
         
-        {/* Floating geometric shapes */}
-        <div className="absolute top-40 left-40 w-4 h-4 border-2 border-white/30 rotate-45"></div>
-        <div className="absolute top-60 right-60 w-3 h-3 bg-[#3fb39d]/40 rounded-full"></div>
-        <div className="absolute bottom-40 right-40 w-6 h-6 border-2 border-white/20 rounded-full"></div>
-        
-        <div className="relative z-10 text-white max-w-lg px-16 flex flex-col justify-center">
+        <div className="relative z-10 text-white max-w-2xl px-16 flex flex-col justify-center">
           {/* Logo */}
           <div className="mb-16 animate-fade-in">
             <img src={logo} alt="ConvertiAI" className="h-16 object-contain opacity-95 drop-shadow-lg" />
           </div>
           
-          {/* Title with gradient text */}
+          {/* Animated Typewriter Title */}
           <div className="space-y-6 mb-12">
             <div className="inline-block">
-              <h1 className="text-6xl font-bold leading-tight tracking-tight mb-2 bg-gradient-to-r from-white to-white/80 bg-clip-text text-transparent">
-                Gestão Inteligente
+              <h1 className="text-5xl font-bold leading-tight tracking-tight mb-4">
+                <TypewriterText
+                  texts={[
+                    "Transforme atendimento em resultado",
+                    "Gestão inteligente de vendas",
+                    "Automatize seu fluxo comercial",
+                    "WhatsApp integrado ao CRM"
+                  ]}
+                  typingSpeed={80}
+                  deletingSpeed={40}
+                  pauseDuration={3000}
+                  className="bg-gradient-to-r from-white to-white/90 bg-clip-text text-transparent"
+                />
               </h1>
               <div className="h-1.5 w-32 bg-gradient-to-r from-[#3fb39d] to-transparent rounded-full"></div>
             </div>
-            <p className="text-xl text-white/70 leading-relaxed font-light">
-              Tecnologia e IA aplicadas à gestão comercial e operacional para impulsionar resultados.
+            <p className="text-xl text-white/80 leading-relaxed font-light max-w-xl">
+              Tecnologia e IA aplicadas à gestão comercial. Automatize atendimentos, organize cotações e impulsione resultados com visão total da operação.
             </p>
           </div>
           
           {/* Modern features grid */}
           <div className="grid grid-cols-2 gap-4">
-            <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10 hover:bg-white/10 transition-all">
-              <div className="w-8 h-8 rounded-lg bg-[#3fb39d]/20 flex items-center justify-center mb-3">
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 hover:bg-white/15 transition-all">
+              <div className="w-8 h-8 rounded-lg bg-[#3fb39d]/30 flex items-center justify-center mb-3">
                 <div className="w-4 h-4 rounded bg-[#3fb39d]"></div>
               </div>
               <p className="text-sm font-medium">CRM Avançado</p>
             </div>
-            <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10 hover:bg-white/10 transition-all">
-              <div className="w-8 h-8 rounded-lg bg-[#3fb39d]/20 flex items-center justify-center mb-3">
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 hover:bg-white/15 transition-all">
+              <div className="w-8 h-8 rounded-lg bg-[#3fb39d]/30 flex items-center justify-center mb-3">
                 <div className="w-4 h-4 rounded bg-[#3fb39d]"></div>
               </div>
               <p className="text-sm font-medium">IA & Automação</p>
             </div>
-            <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10 hover:bg-white/10 transition-all">
-              <div className="w-8 h-8 rounded-lg bg-[#3fb39d]/20 flex items-center justify-center mb-3">
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 hover:bg-white/15 transition-all">
+              <div className="w-8 h-8 rounded-lg bg-[#3fb39d]/30 flex items-center justify-center mb-3">
                 <div className="w-4 h-4 rounded bg-[#3fb39d]"></div>
               </div>
               <p className="text-sm font-medium">Cotações EDI</p>
             </div>
-            <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10 hover:bg-white/10 transition-all">
-              <div className="w-8 h-8 rounded-lg bg-[#3fb39d]/20 flex items-center justify-center mb-3">
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 hover:bg-white/15 transition-all">
+              <div className="w-8 h-8 rounded-lg bg-[#3fb39d]/30 flex items-center justify-center mb-3">
                 <div className="w-4 h-4 rounded bg-[#3fb39d]"></div>
               </div>
               <p className="text-sm font-medium">WhatsApp</p>
