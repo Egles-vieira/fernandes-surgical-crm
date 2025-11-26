@@ -1,0 +1,172 @@
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { GripVertical, Edit, Trash2 } from "lucide-react";
+import { TableRow, TableCell } from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import type { Tables } from "@/integrations/supabase/types";
+
+type Produto = Tables<"produtos">;
+
+interface ItemCarrinho {
+  produto: Produto;
+  quantidade: number;
+  desconto: number;
+  valor_total: number;
+  datasul_dep_exp?: number | null;
+  datasul_custo?: number | null;
+  datasul_divisao?: number | null;
+  datasul_vl_tot_item?: number | null;
+  datasul_vl_merc_liq?: number | null;
+  datasul_lote_mulven?: number | null;
+}
+
+interface SortableItemRowProps {
+  item: ItemCarrinho;
+  index: number;
+  density: "compact" | "normal" | "comfortable";
+  visibleColumns: Record<string, boolean>;
+  onUpdate: (produtoId: string, campo: string, valor: any) => void;
+  onEdit: (item: ItemCarrinho) => void;
+  onRemove: (produtoId: string) => void;
+}
+
+export function SortableItemRow({
+  item,
+  index,
+  density,
+  visibleColumns,
+  onUpdate,
+  onEdit,
+  onRemove,
+}: SortableItemRowProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: item.produto.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  const paddingClass =
+    density === "compact"
+      ? "py-1 px-2"
+      : density === "comfortable"
+      ? "py-4 px-4"
+      : "py-2 px-3";
+
+  return (
+    <TableRow ref={setNodeRef} style={style} className={isDragging ? "relative z-50" : ""}>
+      <TableCell className={paddingClass}>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="cursor-grab active:cursor-grabbing h-6 w-6"
+          {...attributes}
+          {...listeners}
+        >
+          <GripVertical className="h-4 w-4" />
+        </Button>
+      </TableCell>
+      <TableCell className={paddingClass}>{index + 1}</TableCell>
+      <TableCell className={paddingClass}>
+        <div>
+          <p className="font-medium">{item.produto.referencia_interna}</p>
+          <p className="text-sm text-muted-foreground">{item.produto.nome}</p>
+        </div>
+      </TableCell>
+      {visibleColumns.precoTabela && (
+        <TableCell className={paddingClass}>
+          R$ {item.produto.preco_venda.toFixed(2)}
+        </TableCell>
+      )}
+      <TableCell className={paddingClass}>
+        <Input
+          type="number"
+          value={item.quantidade}
+          onChange={(e) =>
+            onUpdate(item.produto.id, "quantidade", parseFloat(e.target.value) || 0)
+          }
+          className={`w-20 text-center ${
+            density === "compact" ? "h-7 text-xs" : density === "comfortable" ? "h-12" : ""
+          }`}
+        />
+      </TableCell>
+      {visibleColumns.desconto && (
+        <TableCell className={paddingClass}>
+          <Input
+            type="number"
+            value={item.desconto}
+            onChange={(e) =>
+              onUpdate(item.produto.id, "desconto", parseFloat(e.target.value) || 0)
+            }
+            className={`w-20 text-center ${
+              density === "compact" ? "h-7 text-xs" : density === "comfortable" ? "h-12" : ""
+            }`}
+          />
+        </TableCell>
+      )}
+      {visibleColumns.precoUnit && (
+        <TableCell className={paddingClass}>
+          R$ {(item.produto.preco_venda * (1 - item.desconto / 100)).toFixed(2)}
+        </TableCell>
+      )}
+      {visibleColumns.total && (
+        <TableCell className={`font-medium ${paddingClass}`}>
+          R$ {item.valor_total.toFixed(2)}
+        </TableCell>
+      )}
+      {visibleColumns.deposito && (
+        <TableCell className={paddingClass}>{item.datasul_dep_exp || "-"}</TableCell>
+      )}
+      {visibleColumns.custo && (
+        <TableCell className={paddingClass}>
+          {item.datasul_custo ? `R$ ${item.datasul_custo.toFixed(2)}` : "-"}
+        </TableCell>
+      )}
+      {visibleColumns.divisao && (
+        <TableCell className={paddingClass}>{item.datasul_divisao || "-"}</TableCell>
+      )}
+      {visibleColumns.vlTotalDS && (
+        <TableCell className={paddingClass}>
+          {item.datasul_vl_tot_item ? `R$ ${item.datasul_vl_tot_item.toFixed(2)}` : "-"}
+        </TableCell>
+      )}
+      {visibleColumns.vlMercLiq && (
+        <TableCell className={paddingClass}>
+          {item.datasul_vl_merc_liq ? `R$ ${item.datasul_vl_merc_liq.toFixed(2)}` : "-"}
+        </TableCell>
+      )}
+      {visibleColumns.loteMult && (
+        <TableCell className={paddingClass}>{item.datasul_lote_mulven || "-"}</TableCell>
+      )}
+      <TableCell className={paddingClass}>
+        <div className="flex gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            className={density === "compact" ? "h-7 w-7" : ""}
+            onClick={() => onEdit(item)}
+          >
+            <Edit className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className={density === "compact" ? "h-7 w-7" : ""}
+            onClick={() => onRemove(item.produto.id)}
+          >
+            <Trash2 className="h-4 w-4 text-destructive" />
+          </Button>
+        </div>
+      </TableCell>
+    </TableRow>
+  );
+}

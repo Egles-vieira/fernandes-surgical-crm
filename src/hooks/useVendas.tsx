@@ -192,6 +192,35 @@ export function useVendas() {
     },
   });
 
+  const updateItemsSequence = useMutation({
+    mutationFn: async (items: Array<{ id: string; sequencia_item: number }>) => {
+      const updates = items.map(item =>
+        supabase
+          .from("vendas_itens")
+          .update({ sequencia_item: item.sequencia_item })
+          .eq("id", item.id)
+      );
+
+      const results = await Promise.all(updates);
+      const error = results.find(r => r.error)?.error;
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["vendas"] });
+      toast({
+        title: "Sequência atualizada!",
+        description: "A ordem dos itens foi alterada com sucesso.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro ao reordenar itens",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   const aprovarVenda = useMutation({
     mutationFn: async (id: string) => {
       const { data, error } = await supabase
@@ -232,6 +261,7 @@ export function useVendas() {
     addItem,
     removeItem,
     updateItem,
+    updateItemsSequence,
     aprovarVenda,
   };
 }
