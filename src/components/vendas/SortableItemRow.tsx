@@ -100,6 +100,9 @@ export function SortableItemRow({
           {formatCurrency(item.produto.preco_venda)}
         </TableCell>
       )}
+      {visibleColumns.loteMult && (
+        <TableCell className={paddingClass}>{item.datasul_lote_mulven ? formatNumber(item.datasul_lote_mulven) : "-"}</TableCell>
+      )}
       <TableCell className={paddingClass}>
         <Input
           type="number"
@@ -156,9 +159,6 @@ export function SortableItemRow({
         <TableCell className={paddingClass}>
           {item.datasul_vl_merc_liq ? formatCurrency(item.datasul_vl_merc_liq) : "-"}
         </TableCell>
-      )}
-      {visibleColumns.loteMult && (
-        <TableCell className={paddingClass}>{item.datasul_lote_mulven ? formatNumber(item.datasul_lote_mulven) : "-"}</TableCell>
       )}
       <TableCell className={paddingClass}>
         <div className="flex gap-1">
