@@ -26,6 +26,7 @@ import { useVendedores } from "@/hooks/useVendedores";
 import { useDatasulCalculaPedido } from "@/hooks/useDatasulCalculaPedido";
 import { useColumnVisibility } from "@/hooks/useColumnVisibility";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useEmpresa } from "@/hooks/useEmpresa";
 import { ProdutoSearchDialog } from "@/components/ProdutoSearchDialog";
 import { ClienteSearchDialog } from "@/components/ClienteSearchDialog";
 import { VendasActionBar } from "@/components/VendasActionBar";
@@ -109,6 +110,7 @@ export default function VendaDetalhes() {
   const {
     toast
   } = useToast();
+  const { empresa } = useEmpresa();
   const {
     visibleColumns,
     toggleColumn
@@ -516,9 +518,23 @@ export default function VendaDetalhes() {
     }
   };
   if (isLoading || !venda) {
-    return <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>;
+    return (
+      <div className="flex items-center justify-center h-[calc(100vh-4rem)] bg-background">
+        <div className="text-center">
+          <div className="relative">
+            <div className="animate-spin rounded-full h-24 w-24 border-4 border-primary/20 border-t-primary mx-auto"></div>
+            {empresa?.url_logo && (
+              <img 
+                src={empresa.url_logo} 
+                alt="Logo" 
+                className="absolute inset-0 m-auto h-12 w-12 object-contain"
+              />
+            )}
+          </div>
+          <p className="mt-6 text-muted-foreground font-medium">Carregando proposta...</p>
+        </div>
+      </div>
+    );
   }
   return <div className="space-y-6">
       <VendasActionBar 
