@@ -1,7 +1,24 @@
 import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import type { Database } from "@/integrations/supabase/types";
-import { Search, Save, Trash2, Calculator, Loader2, ChevronLeft, ArrowLeft, ChevronRight } from "lucide-react";
+import { Search, Save, Trash2, Calculator, Loader2, ChevronLeft, ArrowLeft, ChevronRight, GripVertical, Edit } from "lucide-react";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -29,6 +46,8 @@ import { VendasActionBar } from "@/components/VendasActionBar";
 import { AprovarVendaDialog } from "@/components/vendas/AprovarVendaDialog";
 import { IntegracaoDatasulLog } from "@/components/IntegracaoDatasulLog";
 import { DatasulErrorDialog } from "@/components/vendas/DatasulErrorDialog";
+import { EditarItemVendaDialog } from "@/components/vendas/EditarItemVendaDialog";
+import { SortableItemRow } from "@/components/vendas/SortableItemRow";
 import { Tables } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -65,6 +84,7 @@ export default function VendaDetalhes() {
     updateVenda,
     updateItem,
     removeItem,
+    updateItemsSequence,
     aprovarVenda
   } = useVendas();
   const {
@@ -113,6 +133,8 @@ export default function VendaDetalhes() {
   const [showClienteSearch, setShowClienteSearch] = useState(false);
   const [showAprovarDialog, setShowAprovarDialog] = useState(false);
   const [showLogsDialog, setShowLogsDialog] = useState(false);
+  const [showEditarItem, setShowEditarItem] = useState(false);
+  const [itemEditando, setItemEditando] = useState<ItemCarrinho | null>(null);
   const [carrinho, setCarrinho] = useState<ItemCarrinho[]>([]);
   const [clienteSelecionado, setClienteSelecionado] = useState<Cliente | null>(null);
   const [numeroVenda, setNumeroVenda] = useState("");
@@ -133,6 +155,14 @@ export default function VendaDetalhes() {
   const [itemsPerPage, setItemsPerPage] = useState(20);
   const [searchItemTerm, setSearchItemTerm] = useState("");
   const [density, setDensity] = useState<"compact" | "normal" | "comfortable">("normal");
+
+  // Drag and drop sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   // Carregar venda
   useEffect(() => {
@@ -259,6 +289,101 @@ export default function VendaDetalhes() {
       return item;
     });
     setCarrinho(novoCarrinho);
+  };
+
+  const handleEditarItem = (item: ItemCarrinho) => {
+    setItemEditando(item);
+    setShowEditarItem(true);
+  };
+
+  const handleSalvarEdicaoItem = async (produtoId: string, updates: any) => {
+    const novoCarrinho = carrinho.map(item => {
+      if (item.produto.id === produtoId) {
+        const produto = updates.produto || item.produto;
+        const quantidade = updates.quantidade ?? item.quantidade;
+        const desconto = updates.desconto ?? item.desconto;
+        
+        const novoItem = {
+          ...item,
+          produto,
+          quantidade,
+          desconto,
+          valor_total: quantidade * produto.preco_venda * (1 - desconto / 100)
+        };
+
+        // Se mudou o produto, precisa remover o item antigo e adicionar o novo
+        if (venda && updates.produto) {
+          const itemVenda = venda.vendas_itens?.find(i => i.produto_id === produtoId);
+          if (itemVenda) {
+            // Remover item antigo
+            removeItem.mutateAsync(itemVenda.id).then(() => {
+              // Adicionar novo item
+              addItem.mutateAsync({
+                venda_id: venda.id,
+                produto_id: produto.id,
+                quantidade,
+                preco_unitario: produto.preco_venda,
+                preco_tabela: produto.preco_venda,
+                desconto,
+                valor_total: novoItem.valor_total,
+                sequencia_item: itemVenda.sequencia_item
+              });
+            });
+          }
+        } else if (venda) {
+          // Apenas atualizar quantidade/desconto
+          const itemVenda = venda.vendas_itens?.find(i => i.produto_id === produtoId);
+          if (itemVenda) {
+            updateItem.mutateAsync({
+              id: itemVenda.id,
+              quantidade,
+              desconto,
+              valor_total: novoItem.valor_total
+            });
+          }
+        }
+
+        return novoItem;
+      }
+      return item;
+    });
+
+    // Se mudou o produto, precisa remover o item antigo do carrinho
+    if (updates.produto) {
+      const novoCarrinhoSemDuplicata = novoCarrinho.filter(item => 
+        item.produto.id === updates.produto.id || item.produto.id !== produtoId
+      );
+      setCarrinho(novoCarrinhoSemDuplicata);
+    } else {
+      setCarrinho(novoCarrinho);
+    }
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id) {
+      return;
+    }
+
+    const oldIndex = carrinho.findIndex(item => item.produto.id === active.id);
+    const newIndex = carrinho.findIndex(item => item.produto.id === over.id);
+
+    const reorderedCarrinho = arrayMove(carrinho, oldIndex, newIndex);
+    setCarrinho(reorderedCarrinho);
+
+    // Atualizar sequência no banco
+    if (venda?.vendas_itens) {
+      const updates = reorderedCarrinho.map((item, index) => {
+        const itemVenda = venda.vendas_itens?.find(i => i.produto_id === item.produto.id);
+        return {
+          id: itemVenda?.id || '',
+          sequencia_item: index + 1
+        };
+      }).filter(u => u.id);
+
+      updateItemsSequence.mutate(updates);
+    }
   };
   const handleSelecionarCliente = (cliente: Cliente) => {
     setClienteSelecionado(cliente);
@@ -582,6 +707,11 @@ export default function VendaDetalhes() {
             </div>
 
             <div className="border rounded-md overflow-auto h-[600px] relative">
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
                 <Table 
                   disableWrapper={true}
                   className={cn(
@@ -592,6 +722,7 @@ export default function VendaDetalhes() {
                 >
                   <TableHeader className="sticky top-0 z-20 bg-background border-b shadow-sm">
                     <TableRow className="hover:bg-transparent border-b">
+                      <TableHead className={`w-12 ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}></TableHead>
                       <TableHead className={`w-12 ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}>#</TableHead>
                       <TableHead className={density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}>Produto</TableHead>
                       {visibleColumns.precoTabela && <TableHead className={density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}>Preço Tabela</TableHead>}
@@ -605,80 +736,53 @@ export default function VendaDetalhes() {
                       {visibleColumns.vlTotalDS && <TableHead className={density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}>Vlr Tot DS</TableHead>}
                       {visibleColumns.vlMercLiq && <TableHead className={density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}>Vlr Merc Liq</TableHead>}
                       {visibleColumns.loteMult && <TableHead className={density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}>Lote Mult</TableHead>}
-                      <TableHead className={`w-12 ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}></TableHead>
+                      <TableHead className={`w-24 ${density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}`}></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {carrinho
-                      .filter(item => {
-                        if (!searchItemTerm) return true;
-                        const searchLower = searchItemTerm.toLowerCase();
-                        return (
-                          item.produto.nome.toLowerCase().includes(searchLower) ||
-                          item.produto.referencia_interna.toLowerCase().includes(searchLower)
-                        );
-                      })
-                      .slice((currentItemsPage - 1) * itemsPerPage, currentItemsPage * itemsPerPage)
-                      .map((item, index) => {
-                        const realIndex = (currentItemsPage - 1) * itemsPerPage + index;
-                        const paddingClass = density === "compact" ? "py-1 px-2" : density === "comfortable" ? "py-4 px-4" : "py-2 px-3";
-                        return (<TableRow key={item.produto.id}>
-                          <TableCell className={paddingClass}>{realIndex + 1}</TableCell>
-                          <TableCell className={paddingClass}>
-                            <div>
-                              <p className="font-medium">{item.produto.referencia_interna}</p>
-                              <p className="text-sm text-muted-foreground">{item.produto.nome}</p>
-                            </div>
-                          </TableCell>
-                          {visibleColumns.precoTabela && <TableCell className={paddingClass}>R$ {item.produto.preco_venda.toFixed(2)}</TableCell>}
-                          <TableCell className={paddingClass}>
-                            <Input 
-                              type="number" 
-                              value={item.quantidade} 
-                              onChange={e => handleAtualizarItem(item.produto.id, 'quantidade', parseFloat(e.target.value) || 0)} 
-                              className={`w-20 text-center ${density === "compact" ? "h-7 text-xs" : density === "comfortable" ? "h-12" : ""}`}
+                    <SortableContext
+                      items={carrinho
+                        .filter(item => {
+                          if (!searchItemTerm) return true;
+                          const searchLower = searchItemTerm.toLowerCase();
+                          return (
+                            item.produto.nome.toLowerCase().includes(searchLower) ||
+                            item.produto.referencia_interna.toLowerCase().includes(searchLower)
+                          );
+                        })
+                        .slice((currentItemsPage - 1) * itemsPerPage, currentItemsPage * itemsPerPage)
+                        .map(item => item.produto.id)}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      {carrinho
+                        .filter(item => {
+                          if (!searchItemTerm) return true;
+                          const searchLower = searchItemTerm.toLowerCase();
+                          return (
+                            item.produto.nome.toLowerCase().includes(searchLower) ||
+                            item.produto.referencia_interna.toLowerCase().includes(searchLower)
+                          );
+                        })
+                        .slice((currentItemsPage - 1) * itemsPerPage, currentItemsPage * itemsPerPage)
+                        .map((item, index) => {
+                          const realIndex = (currentItemsPage - 1) * itemsPerPage + index;
+                          return (
+                            <SortableItemRow
+                              key={item.produto.id}
+                              item={item}
+                              index={realIndex}
+                              density={density}
+                              visibleColumns={visibleColumns}
+                              onUpdate={handleAtualizarItem}
+                              onEdit={handleEditarItem}
+                              onRemove={handleRemoverItem}
                             />
-                          </TableCell>
-                          {visibleColumns.desconto && <TableCell className={paddingClass}>
-                              <Input 
-                                type="number" 
-                                value={item.desconto} 
-                                onChange={e => handleAtualizarItem(item.produto.id, 'desconto', parseFloat(e.target.value) || 0)} 
-                                className={`w-20 text-center ${density === "compact" ? "h-7 text-xs" : density === "comfortable" ? "h-12" : ""}`}
-                              />
-                            </TableCell>}
-                          {visibleColumns.precoUnit && <TableCell className={paddingClass}>
-                              R$ {(item.produto.preco_venda * (1 - item.desconto / 100)).toFixed(2)}
-                            </TableCell>}
-                          {visibleColumns.total && <TableCell className={`font-medium ${paddingClass}`}>
-                              R$ {item.valor_total.toFixed(2)}
-                            </TableCell>}
-                          {visibleColumns.deposito && <TableCell className={paddingClass}>{item.datasul_dep_exp || "-"}</TableCell>}
-                          {visibleColumns.custo && <TableCell className={paddingClass}>
-                              {item.datasul_custo ? `R$ ${item.datasul_custo.toFixed(2)}` : "-"}
-                            </TableCell>}
-                          {visibleColumns.divisao && <TableCell className={paddingClass}>{item.datasul_divisao || "-"}</TableCell>}
-                          {visibleColumns.vlTotalDS && <TableCell className={paddingClass}>
-                              {item.datasul_vl_tot_item ? `R$ ${item.datasul_vl_tot_item.toFixed(2)}` : "-"}
-                            </TableCell>}
-                          {visibleColumns.vlMercLiq && <TableCell className={paddingClass}>
-                              {item.datasul_vl_merc_liq ? `R$ ${item.datasul_vl_merc_liq.toFixed(2)}` : "-"}
-                            </TableCell>}
-                          {visibleColumns.loteMult && <TableCell className={paddingClass}>{item.datasul_lote_mulven || "-"}</TableCell>}
-                          <TableCell className={paddingClass}>
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              onClick={() => handleRemoverItem(item.produto.id)}
-                              className={density === "compact" ? "h-7 w-7" : density === "comfortable" ? "h-12 w-12" : ""}
-                            >
-                              <Trash2 className={density === "compact" ? "h-3 w-3" : "h-4 w-4"} />
-                            </Button>
-                          </TableCell>
-                        </TableRow>);
-                      })}
+                          );
+                        })}
+                    </SortableContext>
                   </TableBody>
                 </Table>
+              </DndContext>
             </div>
 
             {/* Pagination for items */}
@@ -831,6 +935,13 @@ export default function VendaDetalhes() {
         onViewLog={() => {
           document.getElementById('integracao-log')?.scrollIntoView({ behavior: 'smooth' });
         }}
+      />
+
+      <EditarItemVendaDialog
+        open={showEditarItem}
+        onOpenChange={setShowEditarItem}
+        item={itemEditando}
+        onSave={handleSalvarEdicaoItem}
       />
     </div>;
 }
