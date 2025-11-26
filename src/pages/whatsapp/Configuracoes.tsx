@@ -7,6 +7,9 @@ import ContasWhatsAppList from "@/components/whatsapp/config/ContasWhatsAppList"
 import NovaContaDialog from "@/components/whatsapp/config/NovaContaDialog";
 import TemplatesWhatsApp from "@/components/whatsapp/config/TemplatesWhatsApp";
 import RespostasRapidas from "@/components/whatsapp/config/RespostasRapidas";
+import { GerenciarFilas } from "@/components/whatsapp/config/GerenciarFilas";
+import { StatusDisponibilidadeCard } from "@/components/whatsapp/StatusDisponibilidadeCard";
+import { VendedoresDisponiveisPanel } from "@/components/whatsapp/VendedoresDisponiveisPanel";
 
 const ConfiguracoesWhatsApp = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -41,11 +44,13 @@ const ConfiguracoesWhatsApp = () => {
         </div>
 
         <Tabs defaultValue="global" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 lg:w-[520px]">
+          <TabsList className="grid w-full grid-cols-6 lg:w-full">
             <TabsTrigger value="global">Config Global</TabsTrigger>
             <TabsTrigger value="contas">Contas</TabsTrigger>
             <TabsTrigger value="templates">Templates</TabsTrigger>
             <TabsTrigger value="respostas">Respostas</TabsTrigger>
+            <TabsTrigger value="filas">Filas</TabsTrigger>
+            <TabsTrigger value="equipe">Equipe</TabsTrigger>
           </TabsList>
 
           <TabsContent value="global">
@@ -75,6 +80,17 @@ const ConfiguracoesWhatsApp = () => {
 
           <TabsContent value="respostas">
             <RespostasRapidas />
+          </TabsContent>
+
+          <TabsContent value="filas">
+            <GerenciarFilas />
+          </TabsContent>
+
+          <TabsContent value="equipe">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <StatusDisponibilidadeCard />
+              <VendedoresDisponiveisPanel />
+            </div>
           </TabsContent>
         </Tabs>
 
