@@ -571,7 +571,19 @@ export default function VendaDetalhes() {
         etapaPipeline={venda.etapa_pipeline || undefined}
       />
 
-      <FunnelStagesBar etapaAtual={venda.etapa_pipeline as any || "proposta"} />
+      <FunnelStagesBar 
+        etapaAtual={venda.etapa_pipeline as any || "proposta"}
+        camposEtapa={[
+          { label: "Status", value: venda.status || null },
+          { label: "Data Prevista", value: venda.data_fechamento_prevista ? new Date(venda.data_fechamento_prevista).toLocaleDateString('pt-BR') : null },
+          { label: "Probabilidade", value: venda.probabilidade ? `${venda.probabilidade}%` : null },
+          { label: "Valor Estimado", value: venda.valor_estimado ? formatCurrency(venda.valor_estimado) : null },
+          { label: "Responsável", value: vendedores.find(v => v.id === venda.responsavel_id)?.nome || null },
+        ]}
+        onEditarCampos={() => {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+      />
 
       <Card className="p-6 mx-[10px]">
         <div className="space-y-6">
