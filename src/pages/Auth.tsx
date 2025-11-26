@@ -122,31 +122,41 @@ export default function Auth() {
   const handleSubmit = isLogin ? loginForm.handleSubmit(handleLogin) : signupForm.handleSubmit(handleSignup);
   return <div className="min-h-screen flex">
       {/* Left Side - Brand Section */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-[#0f1f35] via-[#1a3a52] to-[#2a5a6f]">
         {/* Background Image with Overlay */}
         <div 
-          className="absolute inset-0 bg-cover bg-center"
+          className="absolute inset-0 bg-cover bg-center opacity-20"
           style={{ backgroundImage: `url(${heroImage})` }}
-        >
-          <div className="absolute inset-0 bg-gradient-to-br from-[#1e3a5f]/95 via-[#2d5f7f]/90 to-[#3fb39d]/85"></div>
-        </div>
+        />
+        
+        {/* Animated gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-[#1e3a5f]/60 via-transparent to-[#3fb39d]/30 animate-pulse" style={{ animationDuration: '8s' }}></div>
         
         {/* Grid pattern overlay */}
-        <div className="absolute inset-0 opacity-5" style={{
-          backgroundImage: 'linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px)',
-          backgroundSize: '50px 50px'
+        <div className="absolute inset-0 opacity-[0.03]" style={{
+          backgroundImage: 'linear-gradient(rgba(255,255,255,.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.1) 1px, transparent 1px)',
+          backgroundSize: '60px 60px'
         }}></div>
+
+        {/* Floating shapes for depth */}
+        <div className="absolute top-20 right-20 w-72 h-72 bg-[#3fb39d]/10 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '6s' }}></div>
+        <div className="absolute bottom-32 left-20 w-96 h-96 bg-[#1e3a5f]/20 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '10s' }}></div>
         
-        <div className="relative z-10 text-white max-w-2xl px-16 flex flex-col justify-center">
-          {/* Logo */}
-          <div className="mb-16 animate-fade-in">
-            <img src={logo} alt="ConvertiAI" className="h-16 object-contain opacity-95 drop-shadow-lg" />
+        <div className="relative z-10 text-white w-full px-16 flex flex-col justify-center py-20">
+          {/* Logo with glow effect */}
+          <div className="mb-20 animate-fade-in">
+            <img 
+              src={logo} 
+              alt="ConvertiAI" 
+              className="h-14 object-contain drop-shadow-2xl" 
+              style={{ filter: 'drop-shadow(0 0 20px rgba(63, 179, 157, 0.3))' }}
+            />
           </div>
           
           {/* Animated Typewriter Title */}
-          <div className="space-y-6 mb-12">
-            <div className="inline-block">
-              <h1 className="text-5xl font-bold leading-tight tracking-tight mb-4">
+          <div className="space-y-8 mb-16">
+            <div>
+              <h1 className="text-6xl font-bold leading-[1.1] tracking-tight mb-5">
                 <TypewriterText
                   texts={[
                     "Transforme atendimento em resultado",
@@ -157,41 +167,46 @@ export default function Auth() {
                   typingSpeed={80}
                   deletingSpeed={40}
                   pauseDuration={3000}
-                  className="bg-gradient-to-r from-white to-white/90 bg-clip-text text-transparent"
+                  className="bg-gradient-to-r from-white via-white to-[#3fb39d] bg-clip-text text-transparent"
                 />
               </h1>
-              <div className="h-1.5 w-32 bg-gradient-to-r from-[#3fb39d] to-transparent rounded-full"></div>
+              <div className="h-1 w-24 bg-gradient-to-r from-[#3fb39d] via-[#3fb39d] to-transparent rounded-full shadow-lg shadow-[#3fb39d]/50"></div>
             </div>
-            <p className="text-xl text-white/80 leading-relaxed font-light max-w-xl">
-              Tecnologia e IA aplicadas à gestão comercial. Automatize atendimentos, organize cotações e impulsione resultados com visão total da operação.
+            <p className="text-lg text-white/70 leading-relaxed font-light max-w-xl">
+              Plataforma completa de gestão comercial com IA integrada. 
+              Automatize processos, organize cotações e potencialize vendas com inteligência artificial.
             </p>
           </div>
           
-          {/* Modern features grid */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 hover:bg-white/15 transition-all">
-              <div className="w-8 h-8 rounded-lg bg-[#3fb39d]/30 flex items-center justify-center mb-3">
-                <div className="w-4 h-4 rounded bg-[#3fb39d]"></div>
+          {/* Premium features grid */}
+          <div className="grid grid-cols-2 gap-5">
+            <div className="group bg-white/5 backdrop-blur-md rounded-2xl p-6 border border-white/10 hover:bg-white/10 hover:border-[#3fb39d]/30 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-[#3fb39d]/10">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#3fb39d]/20 to-[#3fb39d]/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-[#3fb39d] to-[#2a9d82] shadow-lg shadow-[#3fb39d]/50"></div>
               </div>
-              <p className="text-sm font-medium">CRM Avançado</p>
+              <p className="text-base font-semibold mb-1">CRM Avançado</p>
+              <p className="text-xs text-white/60">Gestão completa de clientes</p>
             </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 hover:bg-white/15 transition-all">
-              <div className="w-8 h-8 rounded-lg bg-[#3fb39d]/30 flex items-center justify-center mb-3">
-                <div className="w-4 h-4 rounded bg-[#3fb39d]"></div>
+            <div className="group bg-white/5 backdrop-blur-md rounded-2xl p-6 border border-white/10 hover:bg-white/10 hover:border-[#3fb39d]/30 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-[#3fb39d]/10">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#3fb39d]/20 to-[#3fb39d]/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-[#3fb39d] to-[#2a9d82] shadow-lg shadow-[#3fb39d]/50"></div>
               </div>
-              <p className="text-sm font-medium">IA & Automação</p>
+              <p className="text-base font-semibold mb-1">IA & Automação</p>
+              <p className="text-xs text-white/60">Inteligência artificial integrada</p>
             </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 hover:bg-white/15 transition-all">
-              <div className="w-8 h-8 rounded-lg bg-[#3fb39d]/30 flex items-center justify-center mb-3">
-                <div className="w-4 h-4 rounded bg-[#3fb39d]"></div>
+            <div className="group bg-white/5 backdrop-blur-md rounded-2xl p-6 border border-white/10 hover:bg-white/10 hover:border-[#3fb39d]/30 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-[#3fb39d]/10">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#3fb39d]/20 to-[#3fb39d]/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-[#3fb39d] to-[#2a9d82] shadow-lg shadow-[#3fb39d]/50"></div>
               </div>
-              <p className="text-sm font-medium">Cotações EDI</p>
+              <p className="text-base font-semibold mb-1">Cotações EDI</p>
+              <p className="text-xs text-white/60">Análise automática de cotações</p>
             </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 hover:bg-white/15 transition-all">
-              <div className="w-8 h-8 rounded-lg bg-[#3fb39d]/30 flex items-center justify-center mb-3">
-                <div className="w-4 h-4 rounded bg-[#3fb39d]"></div>
+            <div className="group bg-white/5 backdrop-blur-md rounded-2xl p-6 border border-white/10 hover:bg-white/10 hover:border-[#3fb39d]/30 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-[#3fb39d]/10">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#3fb39d]/20 to-[#3fb39d]/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-[#3fb39d] to-[#2a9d82] shadow-lg shadow-[#3fb39d]/50"></div>
               </div>
-              <p className="text-sm font-medium">WhatsApp</p>
+              <p className="text-base font-semibold mb-1">WhatsApp Business</p>
+              <p className="text-xs text-white/60">Vendas direto pelo WhatsApp</p>
             </div>
           </div>
         </div>
