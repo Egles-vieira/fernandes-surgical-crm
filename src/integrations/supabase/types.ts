@@ -7681,6 +7681,10 @@ export type Database = {
         }
         Returns: Json
       }
+      atualizar_sequencia_itens_venda: {
+        Args: { p_updates: Json }
+        Returns: undefined
+      }
       buscar_produtos_hibrido: {
         Args: { p_descricao: string; p_limite?: number; p_numeros?: string[] }
         Returns: {

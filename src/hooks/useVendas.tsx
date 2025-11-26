@@ -194,15 +194,9 @@ export function useVendas() {
 
   const updateItemsSequence = useMutation({
     mutationFn: async (items: Array<{ id: string; sequencia_item: number }>) => {
-      const updates = items.map(item =>
-        supabase
-          .from("vendas_itens")
-          .update({ sequencia_item: item.sequencia_item })
-          .eq("id", item.id)
-      );
-
-      const results = await Promise.all(updates);
-      const error = results.find(r => r.error)?.error;
+      const { error } = await supabase.rpc('atualizar_sequencia_itens_venda', {
+        p_updates: items
+      });
       if (error) throw error;
     },
     onSuccess: () => {
