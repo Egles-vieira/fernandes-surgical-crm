@@ -545,11 +545,6 @@ export default function VendaDetalhes() {
         </div>
       </div>
 
-      {/* Logs do Cálculo Datasul */}
-      {isAdmin && venda && <Card className="p-6" id="integracao-log">
-          <IntegracaoDatasulLog vendaId={venda.id} />
-        </Card>}
-
       <Card className="p-6 mx-[10px]">
         <div className="space-y-6">
           {/* Cliente */}
@@ -829,5 +824,10 @@ export default function VendaDetalhes() {
     }} />
 
       <EditarItemVendaDialog open={showEditarItem} onOpenChange={setShowEditarItem} item={itemEditando} onSave={handleSalvarEdicaoItem} />
+
+      {/* Logs do Cálculo Datasul */}
+      {isAdmin && venda && <Card className="p-6 mx-[10px] mt-6" id="integracao-log">
+          <IntegracaoDatasulLog vendaId={venda.id} />
+        </Card>}
     </div>;
 }
