@@ -432,7 +432,12 @@ export default function VendaDetalhes() {
       } as any);
 
       // Adicionar novos itens com sequencia_item
-      let sequenciaAtual = (venda.vendas_itens?.length || 0) + 1;
+      // Calcular a próxima sequência disponível baseado nos itens ATUAIS
+      const maxSequencia = Math.max(
+        0,
+        ...(venda.vendas_itens?.map(i => i.sequencia_item || 0) || [])
+      );
+      let sequenciaAtual = maxSequencia + 1;
       
       for (const item of carrinho) {
         const itemExistente = venda.vendas_itens?.find(i => i.produto_id === item.produto.id);
@@ -442,7 +447,7 @@ export default function VendaDetalhes() {
             produto_id: item.produto.id,
             quantidade: item.quantidade,
             preco_unitario: item.produto.preco_venda,
-            preco_tabela: item.produto.preco_venda, // Usar o mesmo preço como tabela
+            preco_tabela: item.produto.preco_venda,
             desconto: item.desconto,
             valor_total: item.valor_total,
             sequencia_item: sequenciaAtual++
@@ -505,7 +510,12 @@ export default function VendaDetalhes() {
       } as any);
 
       // Adicionar novos itens com sequencia_item
-      let sequenciaAtual = (venda.vendas_itens?.length || 0) + 1;
+      // Calcular a próxima sequência disponível baseado nos itens ATUAIS
+      const maxSequencia = Math.max(
+        0,
+        ...(venda.vendas_itens?.map(i => i.sequencia_item || 0) || [])
+      );
+      let sequenciaAtual = maxSequencia + 1;
       
       for (const item of carrinho) {
         const itemExistente = venda.vendas_itens?.find(i => i.produto_id === item.produto.id);
@@ -515,7 +525,7 @@ export default function VendaDetalhes() {
             produto_id: item.produto.id,
             quantidade: item.quantidade,
             preco_unitario: item.produto.preco_venda,
-            preco_tabela: item.produto.preco_venda, // Usar o mesmo preço como tabela
+            preco_tabela: item.produto.preco_venda,
             desconto: item.desconto,
             valor_total: item.valor_total,
             sequencia_item: sequenciaAtual++
