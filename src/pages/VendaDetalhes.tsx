@@ -30,6 +30,7 @@ import { useEmpresa } from "@/hooks/useEmpresa";
 import { ProdutoSearchDialog } from "@/components/ProdutoSearchDialog";
 import { ClienteSearchDialog } from "@/components/ClienteSearchDialog";
 import { VendasActionBar } from "@/components/VendasActionBar";
+import { FunnelStagesBar } from "@/components/vendas/FunnelStagesBar";
 import { AprovarVendaDialog } from "@/components/vendas/AprovarVendaDialog";
 import { IntegracaoDatasulLog } from "@/components/IntegracaoDatasulLog";
 import { DatasulErrorDialog } from "@/components/vendas/DatasulErrorDialog";
@@ -569,6 +570,8 @@ export default function VendaDetalhes() {
         numeroVenda={numeroVenda || "Nova"}
         etapaPipeline={venda.etapa_pipeline || undefined}
       />
+
+      <FunnelStagesBar etapaAtual={venda.etapa_pipeline as any || "proposta"} />
 
       <Card className="p-6 mx-[10px]">
         <div className="space-y-6">
