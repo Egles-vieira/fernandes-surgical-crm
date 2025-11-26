@@ -122,7 +122,7 @@ export default function Auth() {
   const handleSubmit = isLogin ? loginForm.handleSubmit(handleLogin) : signupForm.handleSubmit(handleSignup);
   return <div className="min-h-screen flex">
       {/* Left Side - Brand Section */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-[#0f1f35] via-[#1a3a52] to-[#2a5a6f]">
+      <div className="hidden lg:flex lg:w-[62%] relative overflow-hidden bg-gradient-to-br from-[#0f1f35] via-[#1a3a52] to-[#2a5a6f]">
         {/* Background Image with Overlay */}
         <div 
           className="absolute inset-0 bg-cover bg-center opacity-20"
