@@ -12,6 +12,8 @@ interface VendasActionBarProps {
   isCalculating?: boolean;
   editandoVendaId?: string | null;
   onVoltar?: () => void;
+  numeroVenda?: string;
+  etapaPipeline?: string;
 }
 export function VendasActionBar({
   status,
@@ -23,7 +25,9 @@ export function VendasActionBar({
   isSaving = false,
   isCalculating = false,
   editandoVendaId = null,
-  onVoltar
+  onVoltar,
+  numeroVenda,
+  etapaPipeline
 }: VendasActionBarProps) {
   const getStatusInfo = () => {
     switch (status) {
@@ -58,8 +62,17 @@ export function VendasActionBar({
               <ArrowLeft className="h-5 w-5" />
             </Button>
           )}
+          {numeroVenda && (
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl font-bold">Proposta #{numeroVenda}</h1>
+              {etapaPipeline && (
+                <Badge variant="outline">{etapaPipeline}</Badge>
+              )}
+            </div>
+          )}
+          <div className="h-6 w-px bg-border mx-2" />
           <span className="text-sm font-medium text-muted-foreground">
-            Status da Proposta:
+            Status:
           </span>
           <Badge variant="outline" className={statusInfo.className}>
             {statusInfo.label}
