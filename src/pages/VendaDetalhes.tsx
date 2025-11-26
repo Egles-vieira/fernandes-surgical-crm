@@ -538,7 +538,7 @@ export default function VendaDetalhes() {
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>
-          <h1 className="text-3xl font-bold">Proposta #{numeroVenda || "Nova"}</h1>
+          <h1 className="text-2xl font-bold">Proposta #{numeroVenda || "Nova"}</h1>
           <div className="text-muted-foreground">
             {venda.etapa_pipeline && <Badge variant="outline">{venda.etapa_pipeline}</Badge>}
           </div>
