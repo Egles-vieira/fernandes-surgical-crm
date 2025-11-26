@@ -1,65 +1,11 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { z } from 'https://esm.sh/zod@3.22.4';
 import { normalizarNumeroWhatsApp, buscarContatoCRM } from "../_shared/phone-utils.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
-
-// Input validation schema for webhook payload
-const GupshupWebhookSchema = z.object({
-  type: z.enum(['message', 'message-event'], { required_error: "Type is required" }),
-  payload: z.object({
-    source: z.string().min(1, "Source phone required").max(50),
-    payload: z.object({
-      text: z.string().max(5000, "Message too long").optional(),
-      type: z.string().max(50).optional(),
-    }).passthrough(),
-    sender: z.object({
-      phone: z.string().min(1).max(50),
-      name: z.string().max(200).optional(),
-    }).passthrough(),
-  }).passthrough(),
-  eventType: z.string().max(100).optional(),
-  gsId: z.string().max(200).optional(),
-}).passthrough();
-
-// Verify webhook signature (if Gupshup provides one in headers)
-async function verifyGupshupSignature(
-  payload: string, 
-  signature: string | null, 
-  secret: string
-): Promise<boolean> {
-  if (!signature) {
-    console.warn('No signature provided - webhook signature verification disabled');
-    return true; // Allow for backward compatibility
-  }
-  
-  try {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(payload);
-    const keyData = encoder.encode(secret);
-    
-    const cryptoKey = await crypto.subtle.importKey(
-      'raw',
-      keyData,
-      { name: 'HMAC', hash: 'SHA-256' },
-      false,
-      ['sign']
-    );
-    
-    const signatureBuffer = await crypto.subtle.sign('HMAC', cryptoKey, data);
-    const expectedSignature = Array.from(new Uint8Array(signatureBuffer))
-      .map(b => b.toString(16).padStart(2, '0'))
-      .join('');
-    
-    return signature === expectedSignature;
-  } catch (error) {
-    console.error('Signature verification error:', error);
-    return false;
-  }
-}
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -70,21 +16,6 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-    // Validar que o sistema está em modo Gupshup
-    const { data: config } = await supabase
-      .from('whatsapp_configuracao_global')
-      .select('modo_api, provedor_ativo')
-      .eq('esta_ativo', true)
-      .single();
-
-    if (config?.modo_api !== 'oficial' || config?.provedor_ativo !== 'gupshup') {
-      console.warn('⚠️ Sistema não está configurado para Gupshup');
-      return new Response(
-        JSON.stringify({ error: 'Sistema não está configurado para Gupshup' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
 
     const payload = await req.json();
     console.log('Webhook Gupshup recebido:', JSON.stringify(payload, null, 2));
@@ -125,11 +56,98 @@ Deno.serve(async (req) => {
   }
 });
 
+/**
+ * Obter vendedor disponível para atribuição automática
+ * Retorna null se nenhum vendedor estiver disponível (conversa vai para fila)
+ */
+async function obterVendedorDisponivel(supabase: any, contaId: string): Promise<string | null> {
+  try {
+    console.log('Buscando vendedor disponível...');
+    
+    // Buscar vendedores com role 'sales' que estão disponíveis
+    const { data: vendedores, error: errorVendedores } = await supabase
+      .from('user_roles')
+      .select(`
+        user_id,
+        perfis_usuario!inner(esta_disponivel, max_conversas_simultaneas)
+      `)
+      .eq('role', 'sales')
+      .eq('perfis_usuario.esta_disponivel', true);
+
+    if (errorVendedores) {
+      console.error('Erro ao buscar vendedores:', errorVendedores);
+      return null;
+    }
+
+    if (!vendedores || vendedores.length === 0) {
+      console.log('Nenhum vendedor disponível no momento');
+      return null;
+    }
+
+    console.log(`Encontrados ${vendedores.length} vendedores disponíveis`);
+
+    // Contar conversas abertas por vendedor
+    const { data: conversasAtivas, error: errorConversas } = await supabase
+      .from('whatsapp_conversas')
+      .select('atribuida_para_id')
+      .eq('whatsapp_conta_id', contaId)
+      .in('status', ['aberta', 'aguardando'])
+      .in('atribuida_para_id', vendedores.map((v: any) => v.user_id));
+
+    if (errorConversas) {
+      console.error('Erro ao contar conversas:', errorConversas);
+    }
+
+    // Calcular carga de trabalho de cada vendedor
+    const cargaVendedores = vendedores.map((vendedor: any) => {
+      const conversasAbertas = conversasAtivas?.filter(
+        (c: any) => c.atribuida_para_id === vendedor.user_id
+      ).length || 0;
+      
+      const maxConversas = vendedor.perfis_usuario?.max_conversas_simultaneas || 5;
+      const disponivel = conversasAbertas < maxConversas;
+
+      return {
+        userId: vendedor.user_id,
+        conversasAbertas,
+        maxConversas,
+        disponivel,
+        carga: conversasAbertas / maxConversas // Percentual de carga
+      };
+    });
+
+    // Filtrar apenas vendedores que ainda podem receber conversas
+    const vendedoresDisponiveis = cargaVendedores.filter((v: any) => v.disponivel);
+
+    if (vendedoresDisponiveis.length === 0) {
+      console.log('Todos os vendedores estão no limite de conversas');
+      return null;
+    }
+
+    // Ordenar por menor carga e retornar o primeiro (round-robin por carga)
+    vendedoresDisponiveis.sort((a: any, b: any) => a.carga - b.carga);
+    
+    const vendedorSelecionado = vendedoresDisponiveis[0];
+    console.log(`Vendedor selecionado: ${vendedorSelecionado.userId} (${vendedorSelecionado.conversasAbertas}/${vendedorSelecionado.maxConversas} conversas)`);
+    
+    return vendedorSelecionado.userId;
+
+  } catch (error) {
+    console.error('Erro ao obter vendedor disponível:', error);
+    return null;
+  }
+}
+
+/**
+ * Processar mensagem recebida do Gupshup
+ * Vincula automaticamente com contatos do CRM e gerencia fila
+ */
 async function processarMensagemRecebida(supabase: any, payload: any) {
   console.log('Processando mensagem recebida:', payload);
 
   const numeroRemetente = payload.sender?.phone || payload.from;
   const numeroDestinatario = payload.destination || payload.to;
+  const nomeRemetente = payload.sender?.name || '';
   const corpoMensagem = payload.payload?.text || payload.text || '';
   const tipoMensagem = payload.type || 'text';
 
@@ -138,125 +156,174 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
     return;
   }
 
-  // Buscar conta WhatsApp pelo número de destino
-  const { data: conta } = await supabase
-    .from('whatsapp_contas')
-    .select('id')
-    .eq('phone_number_id_gupshup', numeroDestinatario)
-    .eq('provedor', 'gupshup')
-    .eq('status', 'ativo')
-    .single();
+  // Formatar números para padrão brasileiro
+  const formatarNumero = (num: string) => {
+    const limpo = num.replace(/\D/g, '');
+    if (limpo.startsWith('55')) return `+${limpo}`;
+    if (limpo.startsWith('5511') || limpo.startsWith('5521')) return `+${limpo}`;
+    return `+55${limpo}`;
+  };
 
-  if (!conta) {
-    console.error('Conta WhatsApp não encontrada para número:', numeroDestinatario);
+  const numeroRemetenteFormatado = formatarNumero(numeroRemetente);
+  const numeroDestinatarioFormatado = formatarNumero(numeroDestinatario);
+
+  console.log('Números formatados:', { 
+    remetente: numeroRemetenteFormatado, 
+    destinatario: numeroDestinatarioFormatado 
+  });
+
+  // ETAPA 1: Buscar conta WhatsApp pelo número de destino
+  const { data: conta, error: errorConta } = await supabase
+    .from('whatsapp_contas')
+    .select('id, nome_conta')
+    .or(`phone_number_id.eq.${numeroDestinatarioFormatado},numero_whatsapp.eq.${numeroDestinatarioFormatado}`)
+    .eq('status', 'ativo')
+    .maybeSingle();
+
+  if (errorConta || !conta) {
+    console.error('Conta WhatsApp não encontrada para número:', numeroDestinatarioFormatado, errorConta);
     return;
   }
 
-  // Normalizar número e buscar contato no CRM
-  const numeroNormalizado = normalizarNumeroWhatsApp(numeroRemetente);
-  const contatoIdCRM = await buscarContatoCRM(supabase, numeroNormalizado);
+  console.log('Conta WhatsApp encontrada:', conta.nome_conta);
 
-  // Buscar ou criar contato WhatsApp considerando variações de número e possível vínculo CRM
-  const numeroApenasDigitos = numeroNormalizado;
-  const variacoesNumero = [numeroApenasDigitos, `+${numeroApenasDigitos}`];
+  // ETAPA 2: Buscar se já existe contato no CRM com este número
+  let contatoCRM = null;
+  const { data: contatosEncontrados, error: errorBuscaContato } = await supabase
+    .from('contatos')
+    .select('id, conta_id, primeiro_nome, sobrenome, nome_completo')
+    .or(`celular.eq.${numeroRemetenteFormatado},telefone.eq.${numeroRemetenteFormatado}`)
+    .eq('excluido_em', null)
+    .limit(1)
+    .maybeSingle();
 
-  const { data: contatosPorNumero } = await supabase
+  if (errorBuscaContato) {
+    console.error('Erro ao buscar contato no CRM:', errorBuscaContato);
+  }
+
+  if (contatosEncontrados) {
+    contatoCRM = contatosEncontrados;
+    console.log('✅ Contato existente encontrado no CRM:', contatoCRM.nome_completo || contatoCRM.primeiro_nome);
+  }
+
+  // ETAPA 3: Se não existe contato no CRM, criar um novo
+  if (!contatoCRM) {
+    console.log('Criando novo contato no CRM...');
+    
+    const { data: novoContatoCRM, error: erroCriarContato } = await supabase
+      .from('contatos')
+      .insert({
+        primeiro_nome: nomeRemetente || 'Cliente',
+        sobrenome: 'WhatsApp',
+        celular: numeroRemetenteFormatado,
+        origem: 'whatsapp',
+        status_lead: 'novo',
+        esta_ativo: true,
+        ciclo_vida: 'lead',
+      })
+      .select('id, conta_id, primeiro_nome')
+      .single();
+
+    if (erroCriarContato) {
+      console.error('Erro ao criar contato no CRM:', erroCriarContato);
+      return;
+    }
+
+    contatoCRM = novoContatoCRM;
+    console.log('✅ Novo contato criado no CRM:', contatoCRM.primeiro_nome);
+  }
+
+  // ETAPA 4: Buscar ou criar contato WhatsApp vinculado ao CRM
+  let { data: contatoWhatsApp, error: errorBuscaWhatsApp } = await supabase
     .from('whatsapp_contatos')
-    .select('id, numero_whatsapp, contato_id, criado_em')
+    .select('id')
+    .eq('contato_id', contatoCRM.id)
     .eq('whatsapp_conta_id', conta.id)
-    .in('numero_whatsapp', variacoesNumero);
+    .maybeSingle();
 
-  let contatosPorCRM: any[] = [];
-  if (contatoIdCRM) {
-    const { data } = await supabase
-      .from('whatsapp_contatos')
-      .select('id, numero_whatsapp, contato_id, criado_em')
-      .eq('whatsapp_conta_id', conta.id)
-      .eq('contato_id', contatoIdCRM);
-    contatosPorCRM = data || [];
+  if (errorBuscaWhatsApp && errorBuscaWhatsApp.code !== 'PGRST116') {
+    console.error('Erro ao buscar contato WhatsApp:', errorBuscaWhatsApp);
   }
 
-  const mapaContatos: Record<string, any> = {};
-  [...(contatosPorNumero || []), ...contatosPorCRM].forEach((c: any) => {
-    mapaContatos[c.id] = c;
-  });
-  const contatosCandidatos = Object.values(mapaContatos);
-
-  let contato = contatosCandidatos[0] as any | undefined;
-  if (contatosCandidatos.length > 1) {
-    const preferido = contatosCandidatos.find((c: any) => c.numero_whatsapp === numeroApenasDigitos);
-    if (preferido) contato = preferido;
-    console.warn('⚠️ Múltiplos whatsapp_contatos encontrados para o mesmo número:', contatosCandidatos);
-  }
-
-  if (!contato) {
-    console.log('➕ Criando novo contato WhatsApp com vínculo CRM');
-    const { data: novoContato } = await supabase
+  if (!contatoWhatsApp) {
+    console.log('Criando novo contato WhatsApp vinculado ao CRM...');
+    
+    const { data: novoContatoWhatsApp, error: erroCriarWhatsApp } = await supabase
       .from('whatsapp_contatos')
       .insert({
+        contato_id: contatoCRM.id, // ✅ VINCULADO COM CRM
         whatsapp_conta_id: conta.id,
-        numero_whatsapp: numeroApenasDigitos,
-        nome_whatsapp: payload.sender?.name || numeroRemetente,
-        contato_id: contatoIdCRM || null,
-        criado_em: new Date().toISOString(),
+        numero_whatsapp: numeroRemetenteFormatado,
+        nome_whatsapp: nomeRemetente || contatoCRM.primeiro_nome,
       })
-      .select()
+      .select('id')
       .single();
 
-    contato = novoContato;
-  } else if (contatoIdCRM && !contato.contato_id) {
-    // Se o contato WhatsApp já existe mas não tem vínculo CRM, atualiza
-    console.log('🔗 Vinculando contato WhatsApp existente ao CRM');
-    const { data: contatoAtualizado } = await supabase
-      .from('whatsapp_contatos')
-      .update({ contato_id: contatoIdCRM })
-      .eq('id', contato.id)
-      .select()
-      .single();
+    if (erroCriarWhatsApp) {
+      console.error('Erro ao criar contato WhatsApp:', erroCriarWhatsApp);
+      return;
+    }
 
-    contato = contatoAtualizado || contato;
+    contatoWhatsApp = novoContatoWhatsApp;
+    console.log('✅ Contato WhatsApp criado e vinculado');
+  } else {
+    console.log('✅ Contato WhatsApp já existe');
   }
 
-  if (!contato) {
-    console.error('Erro ao criar/buscar contato');
-    return;
-  }
-
-  // Buscar conversa ativa existente (priorizar janela ativa) para qualquer contato candidato
-  const contatoIdsParaBusca = (contatosCandidatos && contatosCandidatos.length > 0)
-    ? (contatosCandidatos as any[]).map((c: any) => c.id)
-    : [contato.id];
-
-  let { data: conversasAtivas } = await supabase
+  // ETAPA 5: Buscar conversa existente ou criar nova COM GESTÃO DE FILA
+  let { data: conversa, error: errorBuscaConversa } = await supabase
     .from('whatsapp_conversas')
-    .select('id, status, janela_24h_ativa, ultima_mensagem_em')
+    .select('id, status, atribuida_para_id')
+    .eq('whatsapp_contato_id', contatoWhatsApp.id)
     .eq('whatsapp_conta_id', conta.id)
-    .in('whatsapp_contato_id', contatoIdsParaBusca)
     .neq('status', 'fechada')
-    .order('janela_24h_ativa', { ascending: false })
-    .order('ultima_mensagem_em', { ascending: false });
+    .order('criado_em', { ascending: false })
+    .limit(1)
+    .maybeSingle();
 
-  let conversa = conversasAtivas && conversasAtivas.length > 0 ? conversasAtivas[0] : null;
+  if (errorBuscaConversa && errorBuscaConversa.code !== 'PGRST116') {
+    console.error('Erro ao buscar conversa:', errorBuscaConversa);
+  }
 
   if (!conversa) {
-    // Nenhuma conversa ativa encontrada: criar nova
-    const { data: novaConversa } = await supabase
+    console.log('Criando nova conversa com gestão de fila...');
+    
+    // ✅ OBTER VENDEDOR DISPONÍVEL OU NULL (FILA)
+    const vendedorId = await obterVendedorDisponivel(supabase, conta.id);
+    
+    const statusConversa = vendedorId ? 'aberta' : 'aguardando';
+    console.log(`Status da conversa: ${statusConversa}${vendedorId ? ` - Atribuída para ${vendedorId}` : ' - Em fila'}`);
+
+    const { data: novaConversa, error: erroCriarConversa } = await supabase
       .from('whatsapp_conversas')
       .insert({
         whatsapp_conta_id: conta.id,
-        whatsapp_contato_id: contato.id,
-        status: 'aberta',
+        whatsapp_contato_id: contatoWhatsApp.id,
+        contato_id: contatoCRM.id,
+        conta_id: contatoCRM.conta_id,
+        titulo: nomeRemetente || contatoCRM.primeiro_nome || numeroRemetenteFormatado,
+        status: statusConversa, // ✅ 'aberta' se tem vendedor, 'aguardando' se em fila
+        atribuida_para_id: vendedorId, // ✅ NULL se não há vendedor disponível
+        atribuicao_automatica: true,
         janela_24h_ativa: true,
         janela_aberta_em: new Date().toISOString(),
         janela_fecha_em: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
         ultima_mensagem_em: new Date().toISOString(),
       })
-      .select()
+      .select('id, status, atribuida_para_id')
       .single();
-    
+
+    if (erroCriarConversa) {
+      console.error('Erro ao criar conversa:', erroCriarConversa);
+      return;
+    }
+
     conversa = novaConversa;
+    console.log('✅ Nova conversa criada:', conversa);
   } else {
-    // Atualizar janela de 24h e última atividade
+    console.log('✅ Conversa existente encontrada');
+    
+    // Atualizar janela de 24h e última mensagem
     await supabase
       .from('whatsapp_conversas')
       .update({
@@ -268,107 +335,33 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
       .eq('id', conversa.id);
   }
 
-  // Salvar mensagem
-  const { data: novaMensagem } = await supabase
+  // ETAPA 6: Salvar mensagem
+  const { error: errorMensagem } = await supabase
     .from('whatsapp_mensagens')
     .insert({
       conversa_id: conversa.id,
       whatsapp_conta_id: conta.id,
-      whatsapp_contato_id: contato.id,
+      whatsapp_contato_id: contatoWhatsApp.id,
       corpo: corpoMensagem,
       direcao: 'recebida',
       tipo_mensagem: tipoMensagem,
       status: 'entregue',
       id_mensagem_externa: payload.id || payload.gsId,
       recebida_em: new Date().toISOString(),
-      criado_em: new Date().toISOString(),
-    })
-    .select()
-    .single();
+    });
 
-  console.log('Mensagem recebida processada com sucesso');
-
-  // 🤖 AGENTE DE VENDAS: Processar mensagem automaticamente se ativo
-  // Buscar configuração da conta para verificar se agente está ativo
-  const { data: contaCompleta } = await supabase
-    .from('whatsapp_contas')
-    .select('agente_vendas_ativo')
-    .eq('id', conta.id)
-    .single();
-
-  console.log('🔍 Verificando agente:', { 
-    agente_ativo: contaCompleta?.agente_vendas_ativo, 
-    tem_texto: !!corpoMensagem, 
-    tipo: tipoMensagem
-  });
-  
-  // Ativar agente para mensagens de texto (Gupshup não suporta áudio direto ainda)
-  if (contaCompleta?.agente_vendas_ativo && corpoMensagem && tipoMensagem === 'text') {
-    console.log('🤖 Agente de vendas ativo - processando mensagem');
-    
-    try {
-      // Chamar agente de vendas
-      const { data: agenteData, error: agenteError } = await supabase.functions.invoke('agente-vendas-whatsapp', {
-        body: {
-          mensagemTexto: corpoMensagem,
-          conversaId: conversa.id,
-          contatoId: contato.id,
-          tipoMensagem: 'texto'
-        }
-      });
-
-      if (agenteError) {
-        console.error('❌ Erro ao invocar agente:', agenteError);
-        return;
-      }
-
-      if (agenteData?.resposta) {
-        console.log('🤖 Resposta do agente:', agenteData.resposta);
-        
-        // Inserir resposta do agente no banco
-        const { data: respostaAgente } = await supabase
-          .from('whatsapp_mensagens')
-          .insert({
-            conversa_id: conversa.id,
-            whatsapp_conta_id: conta.id,
-            whatsapp_contato_id: contato.id,
-            corpo: agenteData.resposta,
-            direcao: 'enviada',
-            tipo_mensagem: 'text',
-            status: 'pendente',
-            criado_em: new Date().toISOString(),
-            enviada_por_bot: true,
-            metadata: { 
-              gerada_por_agente: true,
-              produtos_encontrados: agenteData.produtos_encontrados || []
-            }
-          })
-          .select()
-          .single();
-
-        // Enviar via Gupshup
-        if (respostaAgente) {
-          try {
-            const { data: envioData, error: envioError } = await supabase.functions.invoke('gupshup-enviar-mensagem', {
-              body: { mensagemId: respostaAgente.id }
-            });
-
-            if (envioError) {
-              console.error('❌ Erro ao enviar resposta do agente:', envioError);
-            } else {
-              console.log('✅ Resposta do agente enviada via Gupshup');
-            }
-          } catch (envioError) {
-            console.error('❌ Erro ao enviar via Gupshup:', envioError);
-          }
-        }
-      }
-    } catch (error) {
-      console.error('❌ Erro no agente de vendas:', error);
-    }
+  if (errorMensagem) {
+    console.error('Erro ao salvar mensagem:', errorMensagem);
+    return;
   }
+
+  console.log('✅ Mensagem recebida processada com sucesso');
+  console.log('---');
 }
 
+/**
+ * Processar atualização de status de mensagem
+ */
 async function processarStatusMensagem(supabase: any, payload: any) {
   console.log('Processando status de mensagem:', payload);
 
@@ -402,10 +395,15 @@ async function processarStatusMensagem(supabase: any, payload: any) {
     updateData.lida_em = new Date().toISOString();
   }
 
-  await supabase
+  const { error } = await supabase
     .from('whatsapp_mensagens')
     .update(updateData)
     .eq('id_mensagem_externa', messageId);
 
-  console.log('Status de mensagem atualizado:', messageId, '->', novoStatus);
+  if (error) {
+    console.error('Erro ao atualizar status:', error);
+    return;
+  }
+
+  console.log('✅ Status de mensagem atualizado:', messageId, '->', novoStatus);
 }
