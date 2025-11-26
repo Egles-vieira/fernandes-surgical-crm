@@ -521,24 +521,30 @@ export default function VendaDetalhes() {
       </div>;
   }
   return <div className="space-y-6">
-      <VendasActionBar status={venda.status as "rascunho" | "aprovada" | "cancelada"} onCalcular={handleCalcularDatasul} onCancelar={() => {
-      toast({
-        title: "Cancelar proposta",
-        description: "Funcionalidade em desenvolvimento"
-      });
-    }} onDiretoria={() => {
-      toast({
-        title: "Enviar para diretoria",
-        description: "Funcionalidade em desenvolvimento"
-      });
-    }} onEfetivar={() => setShowAprovarDialog(true)} onSalvar={handleSalvar} isSaving={false} isCalculating={isCalculating} editandoVendaId={venda.id} onVoltar={() => navigate("/vendas")} />
-
-      <div className="mx-[10px] mb-4">
-        <h1 className="text-2xl font-bold">Proposta #{numeroVenda || "Nova"}</h1>
-        <div className="text-muted-foreground">
-          {venda.etapa_pipeline && <Badge variant="outline">{venda.etapa_pipeline}</Badge>}
-        </div>
-      </div>
+      <VendasActionBar 
+        status={venda.status as "rascunho" | "aprovada" | "cancelada"} 
+        onCalcular={handleCalcularDatasul} 
+        onCancelar={() => {
+          toast({
+            title: "Cancelar proposta",
+            description: "Funcionalidade em desenvolvimento"
+          });
+        }} 
+        onDiretoria={() => {
+          toast({
+            title: "Enviar para diretoria",
+            description: "Funcionalidade em desenvolvimento"
+          });
+        }} 
+        onEfetivar={() => setShowAprovarDialog(true)} 
+        onSalvar={handleSalvar} 
+        isSaving={false} 
+        isCalculating={isCalculating} 
+        editandoVendaId={venda.id} 
+        onVoltar={() => navigate("/vendas")}
+        numeroVenda={numeroVenda || "Nova"}
+        etapaPipeline={venda.etapa_pipeline || undefined}
+      />
 
       <Card className="p-6 mx-[10px]">
         <div className="space-y-6">
