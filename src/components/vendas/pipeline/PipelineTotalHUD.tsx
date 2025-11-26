@@ -13,7 +13,7 @@ export function PipelineTotalHUD({ valorTotal }: PipelineTotalHUDProps) {
   };
 
   return (
-    <div className="sticky top-0 z-10 bg-background border-b border-border px-4 py-3 shadow-sm">
+    <div className="bg-background border-b border-border px-4 py-3 shadow-sm">
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2">
           <TrendingUp className="h-5 w-5 text-primary" />

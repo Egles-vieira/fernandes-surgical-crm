@@ -46,7 +46,7 @@ export function KanbanColumn({ etapa, config, vendas, valorTotal, onViewDetails 
     <div className="flex flex-col w-80 shrink-0 bg-muted/30 rounded-lg">
       {/* Header fixo da coluna */}
       <div
-        className={`sticky top-0 z-[5] px-4 py-3 rounded-t-lg ${config.bgColor} ${config.textColor}`}
+        className={`px-4 py-3 rounded-t-lg ${config.bgColor} ${config.textColor}`}
       >
         <div className="flex items-center justify-between mb-1">
           <h3 className="font-semibold text-sm uppercase tracking-wide">
@@ -69,7 +69,7 @@ export function KanbanColumn({ etapa, config, vendas, valorTotal, onViewDetails 
             {...provided.droppableProps}
             className="flex-1 overflow-hidden"
           >
-            <ScrollArea className="h-[calc(100vh-280px)]">
+            <ScrollArea className="h-[calc(100vh-240px)]">
               <div
                 className={`p-3 min-h-[200px] ${
                   snapshot.isDraggingOver ? "bg-primary/5" : ""
