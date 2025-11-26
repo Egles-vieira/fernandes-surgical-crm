@@ -135,6 +135,8 @@ export default function VendaDetalhes() {
   const [itemEditando, setItemEditando] = useState<ItemCarrinho | null>(null);
   const [carrinho, setCarrinho] = useState<ItemCarrinho[]>([]);
   const [clienteSelecionado, setClienteSelecionado] = useState<Cliente | null>(null);
+  const [isLoadingCliente, setIsLoadingCliente] = useState(false);
+  const [isLoadingComplete, setIsLoadingComplete] = useState(false);
   const [numeroVenda, setNumeroVenda] = useState("");
   const [tipoFreteId, setTipoFreteId] = useState<string>("");
   const [tipoPedidoId, setTipoPedidoId] = useState<string>("");
@@ -161,57 +163,63 @@ export default function VendaDetalhes() {
 
   // Carregar venda
   useEffect(() => {
-    if (id && vendas) {
-      const vendaEncontrada = vendas.find(v => v.id === id);
-      if (vendaEncontrada) {
-        setVenda(vendaEncontrada);
-        setNumeroVenda(vendaEncontrada.numero_venda || "");
-        setTipoFreteId(vendaEncontrada.tipo_frete_id || "");
-        setTipoPedidoId(vendaEncontrada.tipo_pedido_id || "");
-        setCondicaoPagamentoId(vendaEncontrada.condicao_pagamento_id || "");
-        setObservacoes(vendaEncontrada.observacoes || "");
-        setValorEstimado(vendaEncontrada.valor_estimado || 0);
-        setProbabilidade(vendaEncontrada.probabilidade || 50);
-        setOrigemLead(vendaEncontrada.origem_lead || "");
-        setResponsavelId(vendaEncontrada.responsavel_id || "");
-        setValidadeProposta(vendaEncontrada.validade_proposta || "");
-        setFaturamentoParcial(vendaEncontrada.faturamento_parcial === "YES");
-        setDataFaturamentoProgramado((vendaEncontrada as any).data_faturamento_programado || "");
+    const loadVenda = async () => {
+      if (id && vendas) {
+        setIsLoadingComplete(false);
+        const vendaEncontrada = vendas.find(v => v.id === id);
+        if (vendaEncontrada) {
+          setVenda(vendaEncontrada);
+          setNumeroVenda(vendaEncontrada.numero_venda || "");
+          setTipoFreteId(vendaEncontrada.tipo_frete_id || "");
+          setTipoPedidoId(vendaEncontrada.tipo_pedido_id || "");
+          setCondicaoPagamentoId(vendaEncontrada.condicao_pagamento_id || "");
+          setObservacoes(vendaEncontrada.observacoes || "");
+          setValorEstimado(vendaEncontrada.valor_estimado || 0);
+          setProbabilidade(vendaEncontrada.probabilidade || 50);
+          setOrigemLead(vendaEncontrada.origem_lead || "");
+          setResponsavelId(vendaEncontrada.responsavel_id || "");
+          setValidadeProposta(vendaEncontrada.validade_proposta || "");
+          setFaturamentoParcial(vendaEncontrada.faturamento_parcial === "YES");
+          setDataFaturamentoProgramado((vendaEncontrada as any).data_faturamento_programado || "");
 
-        // Carregar cliente
-        if (vendaEncontrada.cliente_id) {
-          supabase.from("clientes").select("*").eq("id", vendaEncontrada.cliente_id).single().then(({
-            data
-          }) => {
+          // Carregar cliente
+          if (vendaEncontrada.cliente_id) {
+            setIsLoadingCliente(true);
+            const { data } = await supabase.from("clientes").select("*").eq("id", vendaEncontrada.cliente_id).single();
             if (data) setClienteSelecionado(data);
-          });
-        }
+            setIsLoadingCliente(false);
+          }
 
-        // Carregar itens no carrinho - SEMPRE ordenados pela sequência
-        if (vendaEncontrada.vendas_itens) {
-          const itensOrdenados = [...vendaEncontrada.vendas_itens].sort((a, b) => (a.sequencia_item || 0) - (b.sequencia_item || 0));
-          const itens = itensOrdenados.map(item => ({
-            produto: item.produtos!,
-            quantidade: item.quantidade,
-            desconto: item.desconto,
-            valor_total: item.valor_total,
-            datasul_dep_exp: item.datasul_dep_exp,
-            datasul_custo: item.datasul_custo,
-            datasul_divisao: item.datasul_divisao,
-            datasul_vl_tot_item: item.datasul_vl_tot_item,
-            datasul_vl_merc_liq: item.datasul_vl_merc_liq,
-            datasul_lote_mulven: item.datasul_lote_mulven
-          }));
-          setCarrinho(itens);
+          // Carregar itens no carrinho - SEMPRE ordenados pela sequência
+          if (vendaEncontrada.vendas_itens) {
+            const itensOrdenados = [...vendaEncontrada.vendas_itens].sort((a, b) => (a.sequencia_item || 0) - (b.sequencia_item || 0));
+            const itens = itensOrdenados.map(item => ({
+              produto: item.produtos!,
+              quantidade: item.quantidade,
+              desconto: item.desconto,
+              valor_total: item.valor_total,
+              datasul_dep_exp: item.datasul_dep_exp,
+              datasul_custo: item.datasul_custo,
+              datasul_divisao: item.datasul_divisao,
+              datasul_vl_tot_item: item.datasul_vl_tot_item,
+              datasul_vl_merc_liq: item.datasul_vl_merc_liq,
+              datasul_lote_mulven: item.datasul_lote_mulven
+            }));
+            setCarrinho(itens);
+          }
+
+          setIsLoadingComplete(true);
+        } else {
+          toast({
+            title: "Venda não encontrada",
+            variant: "destructive"
+          });
+          navigate("/vendas");
         }
-      } else {
-        toast({
-          title: "Venda não encontrada",
-          variant: "destructive"
-        });
-        navigate("/vendas");
       }
-    }
+    };
+
+    loadVenda();
   }, [id, vendas, navigate, toast]);
   const valorTotal = useMemo(() => {
     return carrinho.reduce((sum, item) => sum + item.valor_total, 0);
@@ -517,7 +525,7 @@ export default function VendaDetalhes() {
       });
     }
   };
-  if (isLoading || !venda) {
+  if (isLoading || !venda || !isLoadingComplete || isLoadingCliente) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-4rem)] bg-background">
         <div className="text-center">
