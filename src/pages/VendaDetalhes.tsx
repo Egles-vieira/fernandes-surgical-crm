@@ -111,7 +111,9 @@ export default function VendaDetalhes() {
   const {
     toast
   } = useToast();
-  const { empresa } = useEmpresa();
+  const {
+    empresa
+  } = useEmpresa();
   const {
     visibleColumns,
     toggleColumn
@@ -186,7 +188,9 @@ export default function VendaDetalhes() {
           // Carregar cliente
           if (vendaEncontrada.cliente_id) {
             setIsLoadingCliente(true);
-            const { data } = await supabase.from("clientes").select("*").eq("id", vendaEncontrada.cliente_id).single();
+            const {
+              data
+            } = await supabase.from("clientes").select("*").eq("id", vendaEncontrada.cliente_id).single();
             if (data) setClienteSelecionado(data);
             setIsLoadingCliente(false);
           }
@@ -208,7 +212,6 @@ export default function VendaDetalhes() {
             }));
             setCarrinho(itens);
           }
-
           setIsLoadingComplete(true);
         } else {
           toast({
@@ -219,7 +222,6 @@ export default function VendaDetalhes() {
         }
       }
     };
-
     loadVenda();
   }, [id, vendas, navigate, toast]);
   const valorTotal = useMemo(() => {
@@ -529,74 +531,60 @@ export default function VendaDetalhes() {
     }
   };
   if (isLoading || !venda || !isLoadingComplete || isLoadingCliente) {
-    return (
-      <div className="flex items-center justify-center h-[calc(100vh-4rem)] bg-background">
+    return <div className="flex items-center justify-center h-[calc(100vh-4rem)] bg-background">
         <div className="text-center">
           <div className="relative">
             <div className="animate-spin rounded-full h-24 w-24 border-4 border-primary/20 border-t-primary mx-auto"></div>
-            {empresa?.url_logo && (
-              <img 
-                src={empresa.url_logo} 
-                alt="Logo" 
-                className="absolute inset-0 m-auto h-12 w-12 object-contain"
-              />
-            )}
+            {empresa?.url_logo && <img src={empresa.url_logo} alt="Logo" className="absolute inset-0 m-auto h-12 w-12 object-contain" />}
           </div>
           <p className="mt-6 text-muted-foreground font-medium">Carregando proposta...</p>
         </div>
-      </div>
-    );
+      </div>;
   }
   return <div className="space-y-6">
-      <VendasActionBar 
-        status={venda.status as "rascunho" | "aprovada" | "cancelada"} 
-        onCalcular={handleCalcularDatasul} 
-        onCancelar={() => {
-          toast({
-            title: "Cancelar proposta",
-            description: "Funcionalidade em desenvolvimento"
-          });
-        }} 
-        onDiretoria={() => {
-          toast({
-            title: "Enviar para diretoria",
-            description: "Funcionalidade em desenvolvimento"
-          });
-        }} 
-        onEfetivar={() => setShowAprovarDialog(true)} 
-        onSalvar={handleSalvar} 
-        isSaving={false} 
-        isCalculating={isCalculating} 
-        editandoVendaId={venda.id} 
-        onVoltar={() => navigate("/vendas")}
-        numeroVenda={numeroVenda || "Nova"}
-        etapaPipeline={venda.etapa_pipeline || undefined}
-      />
+      <VendasActionBar status={venda.status as "rascunho" | "aprovada" | "cancelada"} onCalcular={handleCalcularDatasul} onCancelar={() => {
+      toast({
+        title: "Cancelar proposta",
+        description: "Funcionalidade em desenvolvimento"
+      });
+    }} onDiretoria={() => {
+      toast({
+        title: "Enviar para diretoria",
+        description: "Funcionalidade em desenvolvimento"
+      });
+    }} onEfetivar={() => setShowAprovarDialog(true)} onSalvar={handleSalvar} isSaving={false} isCalculating={isCalculating} editandoVendaId={venda.id} onVoltar={() => navigate("/vendas")} numeroVenda={numeroVenda || "Nova"} etapaPipeline={venda.etapa_pipeline || undefined} className="py-px" />
 
-      <FunnelStagesBar 
-        etapaAtual={venda.etapa_pipeline as any || "proposta"}
-        onEtapaClick={async (novaEtapa) => {
-          try {
-            await updateVenda.mutateAsync({
-              id: venda.id,
-              etapa_pipeline: novaEtapa,
-            });
-            toast.success(`Etapa alterada para ${novaEtapa}`);
-          } catch (error) {
-            toast.error("Erro ao alterar etapa");
-          }
-        }}
-        camposEtapa={[
-          { label: "Status", value: venda.status || null },
-          { label: "Data Prevista", value: venda.data_fechamento_prevista ? new Date(venda.data_fechamento_prevista).toLocaleDateString('pt-BR') : null },
-          { label: "Probabilidade", value: venda.probabilidade ? `${venda.probabilidade}%` : null },
-          { label: "Valor Estimado", value: venda.valor_estimado ? formatCurrency(venda.valor_estimado) : null },
-          { label: "Responsável", value: vendedores.find(v => v.id === venda.responsavel_id)?.nome || null },
-        ]}
-        onEditarCampos={() => {
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }}
-      />
+      <FunnelStagesBar etapaAtual={venda.etapa_pipeline as any || "proposta"} onEtapaClick={async novaEtapa => {
+      try {
+        await updateVenda.mutateAsync({
+          id: venda.id,
+          etapa_pipeline: novaEtapa
+        });
+        toast.success(`Etapa alterada para ${novaEtapa}`);
+      } catch (error) {
+        toast.error("Erro ao alterar etapa");
+      }
+    }} camposEtapa={[{
+      label: "Status",
+      value: venda.status || null
+    }, {
+      label: "Data Prevista",
+      value: venda.data_fechamento_prevista ? new Date(venda.data_fechamento_prevista).toLocaleDateString('pt-BR') : null
+    }, {
+      label: "Probabilidade",
+      value: venda.probabilidade ? `${venda.probabilidade}%` : null
+    }, {
+      label: "Valor Estimado",
+      value: venda.valor_estimado ? formatCurrency(venda.valor_estimado) : null
+    }, {
+      label: "Responsável",
+      value: vendedores.find(v => v.id === venda.responsavel_id)?.nome || null
+    }]} onEditarCampos={() => {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    }} />
 
       <Card className="p-6 mx-[10px]">
         <div className="space-y-6">
