@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import Layout from "./components/Layout";
 import ProtectedRoute from "./components/ProtectedRoute";
-import Dashboard from "./pages/Dashboard";
+import Index from "./pages/Index";
 import Vendas from "./pages/Vendas";
 import VendaDetalhes from "./pages/VendaDetalhes";
 import Plataformas from "./pages/Plataformas";
@@ -56,7 +56,7 @@ const App = () => (
         <Route path="/auth" element={<Auth />} />
         <Route path="/" element={<ProtectedRoute>
             <Layout>
-              <Dashboard />
+              <Index />
             </Layout>
           </ProtectedRoute>} />
         <Route path="/vendas" element={<ProtectedRoute>
