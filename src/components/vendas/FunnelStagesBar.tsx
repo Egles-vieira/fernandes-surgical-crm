@@ -61,7 +61,7 @@ export function FunnelStagesBar({
   const orientacoes = orientacoesPorEtapa[etapaAtual] || [];
   return <Collapsible open={isOpen} onOpenChange={setIsOpen}>
       <div className="sticky top-[60px] z-20 bg-background border-b shadow-sm">
-        <div className="py-1">
+        <div className="py-px my-0">
           <div className="flex items-center gap-2">
             {/* Botão Toggle */}
             <CollapsibleTrigger asChild>
@@ -76,25 +76,15 @@ export function FunnelStagesBar({
               const isAtual = etapa.id === etapaAtual;
               const isConcluida = index < etapaAtualIndex || isFinalizada;
               const isClickable = !isFinalizada && onEtapaClick;
-              return <div 
-                key={etapa.id} 
-                onClick={() => isClickable && onEtapaClick(etapa.id)}
-                className={cn(
-                  "relative flex items-center justify-center h-7 flex-1 transition-all",
-                  "clip-path-chevron",
-                  // Cores baseadas no estado
-                  isConcluida && "bg-success/90 text-success-foreground", 
-                  isAtual && !isFinalizada && "bg-primary text-primary-foreground shadow-lg z-10 scale-105", 
-                  !isConcluida && !isAtual && "bg-muted text-muted-foreground",
-                  // Primeiro item tem padding diferente
-                  index === 0 && "pl-6 rounded-l-md",
-                  // Cursor pointer quando clicável
-                  isClickable && "cursor-pointer hover:opacity-90"
-                )} 
-                style={{
-                  clipPath: index === 0 ? "polygon(0 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 0 100%)" : "polygon(0 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 0 100%, 14px 50%)"
-                }}
-              >
+              return <div key={etapa.id} onClick={() => isClickable && onEtapaClick(etapa.id)} className={cn("relative flex items-center justify-center h-7 flex-1 transition-all", "clip-path-chevron",
+              // Cores baseadas no estado
+              isConcluida && "bg-success/90 text-success-foreground", isAtual && !isFinalizada && "bg-primary text-primary-foreground shadow-lg z-10 scale-105", !isConcluida && !isAtual && "bg-muted text-muted-foreground",
+              // Primeiro item tem padding diferente
+              index === 0 && "pl-6 rounded-l-md",
+              // Cursor pointer quando clicável
+              isClickable && "cursor-pointer hover:opacity-90")} style={{
+                clipPath: index === 0 ? "polygon(0 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 0 100%)" : "polygon(0 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 0 100%, 14px 50%)"
+              }}>
                 <div className="flex items-center gap-2 relative z-10">
                   {isConcluida && <Check className="h-4 w-4" strokeWidth={3} />}
                   <span className="text-sm font-semibold whitespace-nowrap">
