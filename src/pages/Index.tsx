@@ -13,7 +13,13 @@ const formatCurrency = (value: number) => {
     maximumFractionDigits: 0
   }).format(value);
 };
-const CHART_COLORS = ["#06b6d4", "#8b5cf6", "#10b981", "#f59e0b", "#ef4444"];
+const CHART_COLORS = [
+  "hsl(var(--primary))",
+  "hsl(var(--secondary))",
+  "hsl(var(--success))",
+  "hsl(var(--warning))",
+  "hsl(var(--destructive))"
+];
 
 // Dados mock para sparklines
 const generateSparklineData = (trend: "up" | "down" | "neutral") => {

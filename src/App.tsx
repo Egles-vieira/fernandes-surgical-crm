@@ -55,7 +55,7 @@ const App = () => <ThemeProvider>
         <Route path="/auth" element={<Auth />} />
         <Route path="/" element={<ProtectedRoute>
             <Layout>
-              <Index className="py-0" />
+              <Index />
             </Layout>
           </ProtectedRoute>} />
         <Route path="/vendas" element={<ProtectedRoute>
