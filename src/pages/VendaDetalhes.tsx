@@ -129,6 +129,7 @@ export default function VendaDetalhes() {
     deposito: true
   });
   const [venda, setVenda] = useState<VendaWithItems | null>(null);
+  const [isNovaVenda, setIsNovaVenda] = useState(!id);
   const [showProdutoSearch, setShowProdutoSearch] = useState(false);
   const [showClienteSearch, setShowClienteSearch] = useState(false);
   const [showAprovarDialog, setShowAprovarDialog] = useState(false);
@@ -166,11 +167,22 @@ export default function VendaDetalhes() {
   // Carregar venda
   useEffect(() => {
     const loadVenda = async () => {
-      if (id && vendas) {
+      // Se não tem ID, é uma nova venda
+      if (!id) {
+        setIsNovaVenda(true);
+        setIsLoadingComplete(true);
+        // Gerar número de venda
+        const nextNumber = `V${Date.now().toString().slice(-8)}`;
+        setNumeroVenda(nextNumber);
+        return;
+      }
+
+      if (vendas) {
         setIsLoadingComplete(false);
         const vendaEncontrada = vendas.find(v => v.id === id);
         if (vendaEncontrada) {
           setVenda(vendaEncontrada);
+          setIsNovaVenda(false);
           setNumeroVenda(vendaEncontrada.numero_venda || "");
           setTipoFreteId(vendaEncontrada.tipo_frete_id || "");
           setTipoPedidoId(vendaEncontrada.tipo_pedido_id || "");
