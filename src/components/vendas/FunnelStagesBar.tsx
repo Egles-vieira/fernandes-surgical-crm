@@ -7,6 +7,7 @@ type EtapaPipeline = "prospeccao" | "qualificacao" | "proposta" | "negociacao" |
 interface FunnelStagesBarProps {
   etapaAtual?: EtapaPipeline;
   onAvancarEtapa?: () => void;
+  onEtapaClick?: (etapa: EtapaPipeline) => void;
   camposEtapa?: {
     label: string;
     value: string | null;
@@ -45,6 +46,7 @@ const orientacoesPorEtapa: Record<string, string[]> = {
 export function FunnelStagesBar({
   etapaAtual = "proposta",
   onAvancarEtapa,
+  onEtapaClick,
   camposEtapa = [],
   onEditarCampos
 }: FunnelStagesBarProps) {
@@ -74,20 +76,34 @@ export function FunnelStagesBar({
               const isAtual = etapa.id === etapaAtual;
               const isConcluida = index < etapaAtualIndex || isFinalizada;
               const isProxima = index === etapaAtualIndex + 1;
-              return <div key={etapa.id} className={cn("relative flex items-center justify-center h-7 flex-1 transition-all", "clip-path-chevron",
-              // Cores baseadas no estado
-              isConcluida && "bg-success/90 text-success-foreground", isAtual && !isFinalizada && "bg-primary text-primary-foreground shadow-lg z-10 scale-105", isProxima && "bg-primary/80 text-primary-foreground", !isConcluida && !isAtual && !isProxima && "bg-muted text-muted-foreground",
-              // Primeiro item tem padding diferente
-              index === 0 && "pl-6 rounded-l-md")} style={{
-                clipPath: index === 0 ? "polygon(0 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 0 100%)" : "polygon(0 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 0 100%, 14px 50%)"
-              }}>
-                    <div className="flex items-center gap-2 relative z-10">
-                      {isConcluida && <Check className="h-4 w-4" strokeWidth={3} />}
-                      <span className="text-sm font-semibold whitespace-nowrap">
-                        {etapa.label}
-                      </span>
-                    </div>
-                  </div>;
+              const isClickable = !isFinalizada && onEtapaClick;
+              return <div 
+                key={etapa.id} 
+                onClick={() => isClickable && onEtapaClick(etapa.id)}
+                className={cn(
+                  "relative flex items-center justify-center h-7 flex-1 transition-all",
+                  "clip-path-chevron",
+                  // Cores baseadas no estado
+                  isConcluida && "bg-success/90 text-success-foreground", 
+                  isAtual && !isFinalizada && "bg-primary text-primary-foreground shadow-lg z-10 scale-105", 
+                  isProxima && "bg-primary/80 text-primary-foreground", 
+                  !isConcluida && !isAtual && !isProxima && "bg-muted text-muted-foreground",
+                  // Primeiro item tem padding diferente
+                  index === 0 && "pl-6 rounded-l-md",
+                  // Cursor pointer quando clicável
+                  isClickable && "cursor-pointer hover:opacity-90"
+                )} 
+                style={{
+                  clipPath: index === 0 ? "polygon(0 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 0 100%)" : "polygon(0 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 0 100%, 14px 50%)"
+                }}
+              >
+                <div className="flex items-center gap-2 relative z-10">
+                  {isConcluida && <Check className="h-4 w-4" strokeWidth={3} />}
+                  <span className="text-sm font-semibold whitespace-nowrap">
+                    {etapa.label}
+                  </span>
+                </div>
+              </div>;
             })}
 
               {/* Status final (Ganho/Perdido) - apenas se finalizado */}
