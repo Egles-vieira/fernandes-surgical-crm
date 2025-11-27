@@ -1021,16 +1021,6 @@ export default function Vendas() {
           editandoVendaId={editandoVendaId}
         />
 
-        {/* Logo da empresa - visível apenas para admins */}
-        {isAdmin && empresa?.url_logo_expandido && (
-          <div className="fixed top-20 left-8 z-10 bg-background/95 backdrop-blur-sm p-3 rounded-lg shadow-lg border border-border">
-            <img 
-              src={empresa.url_logo_expandido} 
-              alt="Logo da empresa" 
-              className="h-12 object-contain"
-            />
-          </div>
-        )}
 
         <div className="pt-20 p-8 space-y-6">
           {/* Header */}
