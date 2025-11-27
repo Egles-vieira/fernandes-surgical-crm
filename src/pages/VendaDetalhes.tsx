@@ -24,6 +24,7 @@ import { useTiposFrete } from "@/hooks/useTiposFrete";
 import { useTiposPedido } from "@/hooks/useTiposPedido";
 import { useVendedores } from "@/hooks/useVendedores";
 import { useDatasulCalculaPedido } from "@/hooks/useDatasulCalculaPedido";
+import { useContatosCliente } from "@/hooks/useContatosCliente";
 import { useColumnVisibility } from "@/hooks/useColumnVisibility";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useEmpresa } from "@/hooks/useEmpresa";
@@ -114,6 +115,11 @@ export default function VendaDetalhes() {
   const {
     empresa
   } = useEmpresa();
+  
+  // Estado para guardar o cliente_id para buscar contatos
+  const [contatoClienteId, setContatoClienteId] = useState<string | null>(null);
+  const { contatos: contatosCliente } = useContatosCliente(contatoClienteId);
+  
   const {
     visibleColumns,
     toggleColumn
@@ -188,6 +194,7 @@ export default function VendaDetalhes() {
           // Carregar cliente
           if (vendaEncontrada.cliente_id) {
             setIsLoadingCliente(true);
+            setContatoClienteId(vendaEncontrada.cliente_id);
             const {
               data
             } = await supabase.from("clientes").select("*").eq("id", vendaEncontrada.cliente_id).single();
@@ -384,6 +391,7 @@ export default function VendaDetalhes() {
   };
   const handleSelecionarCliente = (cliente: Cliente) => {
     setClienteSelecionado(cliente);
+    setContatoClienteId(cliente.id);
     setShowClienteSearch(false);
   };
   const handleSalvar = async () => {
@@ -578,8 +586,27 @@ export default function VendaDetalhes() {
       label: "Valor Estimado",
       value: venda.valor_estimado ? formatCurrency(venda.valor_estimado) : null
     }, {
-      label: "Responsável",
-      value: vendedores.find(v => v.id === venda.responsavel_id)?.nome || null
+      label: "Contato Responsável",
+      value: null,
+      type: "select" as const,
+      options: contatosCliente.map(c => ({
+        id: c.id,
+        nome_completo: c.nome_completo,
+        cargo: c.cargo
+      })),
+      selectedId: venda.responsavel_id || null,
+      onSelect: async (contatoId: string) => {
+        try {
+          await updateVenda.mutateAsync({
+            id: venda.id,
+            responsavel_id: contatoId
+          });
+          setResponsavelId(contatoId);
+          toast.success("Contato responsável atualizado");
+        } catch (error) {
+          toast.error("Erro ao atualizar contato responsável");
+        }
+      }
     }]} onEditarCampos={() => {
       window.scrollTo({
         top: 0,
