@@ -831,6 +831,56 @@ export default function Vendas() {
     }
   };
 
+  const handleNovaOportunidade = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: "Erro",
+          description: "Você precisa estar logado para criar uma oportunidade",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Gerar número da venda
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const random = Math.floor(Math.random() * 100000000);
+      const numeroVenda = `V${year}${month}${random}`;
+
+      // Criar venda em rascunho
+      const venda = await createVenda.mutateAsync({
+        numero_venda: numeroVenda,
+        cliente_id: null,
+        cliente_nome: "Cliente não selecionado",
+        cliente_cnpj: "",
+        valor_total: 0,
+        desconto: 0,
+        valor_final: 0,
+        status: "rascunho",
+        data_venda: new Date().toISOString(),
+        etapa_pipeline: "prospeccao",
+        valor_estimado: 0,
+        probabilidade: 10,
+        responsavel_id: user.id,
+        vendedor_id: user.id,
+      });
+
+      if (venda?.id) {
+        navigate(`/vendas/${venda.id}`);
+      }
+    } catch (error: any) {
+      console.error('Erro ao criar oportunidade:', error);
+      toast({
+        title: "Erro ao criar oportunidade",
+        description: error.message || "Não foi possível criar a oportunidade",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleDuplicarVenda = async (vendaOriginal: any) => {
     try {
       // Buscar venda completa com itens
@@ -1598,7 +1648,7 @@ export default function Vendas() {
         }
         onCriarVendaTeste={handleCriarVendaTeste}
         isCreatingTest={isCreatingTest}
-        onNovaOportunidade={() => setView("nova")}
+        onNovaOportunidade={handleNovaOportunidade}
       />
 
       {/* Conteúdo principal - flex-1 */}
