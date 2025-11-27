@@ -1608,6 +1608,7 @@ export default function Vendas() {
         }
         onCriarVendaTeste={handleCriarVendaTeste}
         isCreatingTest={isCreatingTest}
+        onNovaOportunidade={() => setView("nova")}
       />
 
       {/* Conteúdo principal - flex-1 */}

@@ -1,4 +1,4 @@
-import { Filter, Users, BarChart3, Calendar, SlidersHorizontal, Kanban, List, TestTube } from "lucide-react";
+import { Filter, Users, BarChart3, Calendar, SlidersHorizontal, Kanban, List, TestTube, Plus } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -16,6 +16,7 @@ interface VendasFiltersProps {
   onFilterChange?: (filters: FilterValues) => void;
   onCriarVendaTeste?: () => void;
   isCreatingTest?: boolean;
+  onNovaOportunidade?: () => void;
 }
 
 interface FilterValues {
@@ -26,7 +27,7 @@ interface FilterValues {
   ordenacao?: string;
 }
 
-export function VendasFilters({ view, onViewChange, onFilterChange, onCriarVendaTeste, isCreatingTest }: VendasFiltersProps) {
+export function VendasFilters({ view, onViewChange, onFilterChange, onCriarVendaTeste, isCreatingTest, onNovaOportunidade }: VendasFiltersProps) {
   const handleFilterChange = (key: keyof FilterValues, value: string) => {
     if (onFilterChange) {
       onFilterChange({ [key]: value });
@@ -150,6 +151,18 @@ export function VendasFilters({ view, onViewChange, onFilterChange, onCriarVenda
         >
           <TestTube className="h-4 w-4 mr-2" />
           {isCreatingTest ? "Criando..." : "Teste 120 itens"}
+        </Button>
+      )}
+
+      {/* Botão Nova Oportunidade */}
+      {onNovaOportunidade && (
+        <Button 
+          onClick={onNovaOportunidade} 
+          size="sm"
+          className="h-9"
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Nova Oportunidade
         </Button>
       )}
     </div>
