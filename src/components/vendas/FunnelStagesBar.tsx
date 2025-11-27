@@ -75,7 +75,6 @@ export function FunnelStagesBar({
               {etapas.map((etapa, index) => {
               const isAtual = etapa.id === etapaAtual;
               const isConcluida = index < etapaAtualIndex || isFinalizada;
-              const isProxima = index === etapaAtualIndex + 1;
               const isClickable = !isFinalizada && onEtapaClick;
               return <div 
                 key={etapa.id} 
@@ -86,8 +85,7 @@ export function FunnelStagesBar({
                   // Cores baseadas no estado
                   isConcluida && "bg-success/90 text-success-foreground", 
                   isAtual && !isFinalizada && "bg-primary text-primary-foreground shadow-lg z-10 scale-105", 
-                  isProxima && "bg-primary/80 text-primary-foreground", 
-                  !isConcluida && !isAtual && !isProxima && "bg-muted text-muted-foreground",
+                  !isConcluida && !isAtual && "bg-muted text-muted-foreground",
                   // Primeiro item tem padding diferente
                   index === 0 && "pl-6 rounded-l-md",
                   // Cursor pointer quando clicável
