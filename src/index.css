@@ -2,6 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Global zoom 75% for compact interface */
+#root {
+  transform: scale(0.75);
+  transform-origin: top left;
+  width: 133.33%;
+  height: 133.33%;
+  min-height: 133.33vh;
+}
+
+html {
+  overflow-x: hidden;
+}
+
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
 All colors MUST be HSL.
 */
