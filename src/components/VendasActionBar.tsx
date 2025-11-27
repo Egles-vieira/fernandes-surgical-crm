@@ -2,7 +2,6 @@ import { Calculator, X, ShieldCheck, CheckCircle, Save, Loader2, ArrowLeft } fro
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-
 interface VendasActionBarProps {
   status: "rascunho" | "aprovada" | "cancelada";
   onCalcular: () => void;
@@ -65,7 +64,7 @@ export function VendasActionBar({
               <ArrowLeft className="h-5 w-5" />
             </Button>}
           {numeroVenda && <div className="flex flex-col gap-0.5">
-              {etapaPipeline && <Badge variant="outline" className="w-fit text-[10px] font-medium uppercase tracking-wider text-muted-foreground border-muted-foreground/30">{etapaPipeline}</Badge>}
+              {etapaPipeline && <Badge variant="outline" className="w-fit text-[10px] font-medium uppercase tracking-wider text-muted-foreground border-muted-foreground/30 rounded">{etapaPipeline}</Badge>}
               <h1 className="font-semibold text-base text-foreground tracking-tight">Proposta <span className="text-primary font-bold">#{numeroVenda}</span></h1>
             </div>}
           <div className="h-6 w-px bg-border mx-2" />
