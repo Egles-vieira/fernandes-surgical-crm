@@ -8161,6 +8161,7 @@ export type Database = {
         | "fechamento"
         | "ganho"
         | "perdido"
+        | "followup_cliente"
       identificacao_tipo: "Cliente" | "Fornecedor" | "Ambos"
       metodo_vinculacao: "ia_automatico" | "ia_manual" | "manual" | "importado"
       natureza_tipo: "Juridica" | "Fisica"
@@ -8355,6 +8356,7 @@ export const Constants = {
         "fechamento",
         "ganho",
         "perdido",
+        "followup_cliente",
       ],
       identificacao_tipo: ["Cliente", "Fornecedor", "Ambos"],
       metodo_vinculacao: ["ia_automatico", "ia_manual", "manual", "importado"],
