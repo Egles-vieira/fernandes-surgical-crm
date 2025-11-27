@@ -254,7 +254,7 @@ export default function Layout({
                         <HoverCardTrigger asChild>
                            <div className={`group flex flex-col items-center justify-center py-3 px-1 transition-all duration-200 relative cursor-pointer
                           ${isAnyChildActive ? "bg-white/20" : "hover:bg-white/10"}`}>
-                            {isAnyChildActive && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-10 bg-primary rounded-r-full" />}
+                            {isAnyChildActive && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-10 rounded-r-full bg-secondary" />}
                             <item.icon size={24} className="mb-1.5 transition-transform duration-200 group-hover:scale-110 menu-icon" />
                             <span className="text-[10px] font-medium text-center leading-tight menu-text">{item.label}</span>
                           </div>
