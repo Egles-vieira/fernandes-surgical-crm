@@ -2,6 +2,7 @@ import { useDashboardHome } from "@/hooks/useDashboardHome";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
+import { DashboardFilters } from "@/components/dashboard/DashboardFilters";
 import {
   AreaChart,
   Area,
@@ -263,6 +264,15 @@ export default function Index() {
   const realizadoMes = vendasPorMes?.[vendasPorMes.length - 1]?.valor || 0;
   const progressoMeta = Math.min((realizadoMes / metaMensal) * 100, 100);
 
+  const handleDateRangeChange = (from: Date, to: Date) => {
+    console.log("Date range changed:", { from, to });
+    // TODO: Integrate with useDashboardHome hook to filter data by date range
+  };
+
+  const handleRefresh = () => {
+    window.location.reload();
+  };
+
   return (
     <div className="p-6 space-y-6 bg-background min-h-screen">
       {/* Header */}
@@ -272,6 +282,12 @@ export default function Index() {
           <p className="text-sm text-muted-foreground">Visão geral do seu negócio</p>
         </div>
       </div>
+
+      {/* Period Filters */}
+      <DashboardFilters 
+        onDateRangeChange={handleDateRangeChange}
+        onRefresh={handleRefresh}
+      />
 
       {/* Row 1 - 4 KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
