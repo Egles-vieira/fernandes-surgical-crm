@@ -128,7 +128,8 @@ const Index = () => {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-          <p className="text-muted-foreground mt-1">Visão geral do seu negócio</p>
+          <p className="text-muted-foreground mt-1">
+        </p>
         </div>
         <div className="flex items-center gap-4 px-4 py-2 bg-card rounded-xl border border-border shadow-sm">
           <div className="flex items-center gap-2 text-sm">
