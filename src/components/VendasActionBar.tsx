@@ -1,6 +1,8 @@
 import { Calculator, X, ShieldCheck, CheckCircle, Save, Loader2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+
 interface VendasActionBarProps {
   status: "rascunho" | "aprovada" | "cancelada";
   onCalcular: () => void;
@@ -14,6 +16,7 @@ interface VendasActionBarProps {
   onVoltar?: () => void;
   numeroVenda?: string;
   etapaPipeline?: string;
+  className?: string;
 }
 export function VendasActionBar({
   status,
@@ -27,7 +30,8 @@ export function VendasActionBar({
   editandoVendaId = null,
   onVoltar,
   numeroVenda,
-  etapaPipeline
+  etapaPipeline,
+  className
 }: VendasActionBarProps) {
   const getStatusInfo = () => {
     switch (status) {
@@ -54,15 +58,15 @@ export function VendasActionBar({
     }
   };
   const statusInfo = getStatusInfo();
-  return <div className="sticky top-0 z-30 bg-card border-b shadow-sm px-8 py-3">
+  return <div className={cn("sticky top-0 z-30 bg-card border-b shadow-sm px-8 py-3", className)}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           {onVoltar && <Button variant="ghost" size="icon" onClick={onVoltar}>
               <ArrowLeft className="h-5 w-5" />
             </Button>}
-          {numeroVenda && <div className="flex flex-col gap-1">
-              {etapaPipeline && <Badge variant="outline" className="w-fit text-xs">{etapaPipeline}</Badge>}
-              <h1 className="font-bold text-sm">Proposta #{numeroVenda}</h1>
+          {numeroVenda && <div className="flex flex-col gap-0.5">
+              {etapaPipeline && <Badge variant="outline" className="w-fit text-[10px] font-medium uppercase tracking-wider text-muted-foreground border-muted-foreground/30">{etapaPipeline}</Badge>}
+              <h1 className="font-semibold text-base text-foreground tracking-tight">Proposta <span className="text-primary font-bold">#{numeroVenda}</span></h1>
             </div>}
           <div className="h-6 w-px bg-border mx-2" />
           
