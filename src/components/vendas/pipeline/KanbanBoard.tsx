@@ -81,7 +81,9 @@ export function KanbanBoard({ vendas, onDragEnd, onViewDetails }: KanbanBoardPro
 
   const calcularValorTotal = (etapa: EtapaPipeline): number => {
     return getVendasPorEtapa(etapa).reduce((total, venda) => {
-      const valorPotencial = (venda.valor_estimado || 0) * ((venda.probabilidade || 0) / 100);
+      // Usar valor_total se valor_estimado for 0 (mesma lógica do KanbanCard)
+      const valorBase = (venda.valor_estimado || 0) > 0 ? venda.valor_estimado : (venda.valor_total || 0);
+      const valorPotencial = (valorBase || 0) * ((venda.probabilidade || 0) / 100);
       return total + valorPotencial;
     }, 0);
   };
