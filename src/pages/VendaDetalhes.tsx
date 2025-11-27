@@ -541,7 +541,8 @@ export default function VendaDetalhes() {
         </div>
       </div>;
   }
-  return <div className="space-y-6">
+  return <div>
+      {/* Barras sticky sem espaçamento entre elas */}
       <VendasActionBar status={venda.status as "rascunho" | "aprovada" | "cancelada"} onCalcular={handleCalcularDatasul} onCancelar={() => {
       toast({
         title: "Cancelar proposta",
@@ -586,7 +587,9 @@ export default function VendaDetalhes() {
       });
     }} />
 
-      <Card className="p-6 mx-[10px]">
+      {/* Conteúdo com espaçamento */}
+      <div className="space-y-6 mt-6">
+        <Card className="p-6 mx-[10px]">
         <div className="space-y-6">
           {/* Cliente */}
           <div>
@@ -870,5 +873,6 @@ export default function VendaDetalhes() {
       {isAdmin && venda && <Card className="p-6 mx-[10px] mt-6" id="integracao-log">
           <IntegracaoDatasulLog vendaId={venda.id} />
         </Card>}
+      </div>
     </div>;
 }
