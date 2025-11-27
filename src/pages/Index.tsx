@@ -175,30 +175,34 @@ const Index = () => {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
         {kpiCards.map((kpi, index) => (
           <Card
             key={index}
-            className="group relative overflow-hidden border border-border/50 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5"
+            className="group relative overflow-hidden border border-border/50 shadow-elegant hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
           >
-            <div className={`absolute top-0 left-0 right-0 h-0.5 ${kpi.gradient}`} />
-            <CardContent className="p-3">
-              <div className="flex items-center gap-2 mb-2">
-                <div className={`p-1.5 rounded-lg ${kpi.iconBg}`}>
-                  <kpi.icon className={`h-3.5 w-3.5 ${kpi.iconColor}`} />
+            <div className={`absolute top-0 left-0 right-0 h-1 ${kpi.gradient}`} />
+            <CardContent className="p-5">
+              <div className="flex items-start justify-between">
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-muted-foreground">{kpi.title}</p>
+                  <p className="text-3xl font-bold text-foreground tracking-tight">{kpi.value}</p>
+                  <p className="text-xs text-muted-foreground">{kpi.subtitle}</p>
                 </div>
-                <p className="text-xs font-medium text-muted-foreground truncate">{kpi.title}</p>
+                <div className={`p-3 rounded-xl ${kpi.iconBg} transition-transform group-hover:scale-110`}>
+                  <kpi.icon className={`h-5 w-5 ${kpi.iconColor}`} />
+                </div>
               </div>
-              <p className="text-xl font-bold text-foreground tracking-tight">{kpi.value}</p>
-              <div className="mt-1.5 flex items-center gap-1">
+              <div className="mt-4 flex items-center gap-1.5 pt-3 border-t border-border/50">
                 {kpi.trendUp ? (
-                  <ArrowUpRight className="h-3 w-3 text-success" />
+                  <ArrowUpRight className="h-4 w-4 text-success" />
                 ) : (
-                  <ArrowDownRight className="h-3 w-3 text-destructive" />
+                  <ArrowDownRight className="h-4 w-4 text-destructive" />
                 )}
-                <span className={`text-xs font-semibold ${kpi.trendUp ? "text-success" : "text-destructive"}`}>
+                <span className={`text-sm font-semibold ${kpi.trendUp ? "text-success" : "text-destructive"}`}>
                   {kpi.trend}%
                 </span>
+                <span className="text-xs text-muted-foreground ml-1">vs mês anterior</span>
               </div>
             </CardContent>
           </Card>
