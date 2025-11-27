@@ -17,15 +17,15 @@ export function ProdutosPanel({ isActive }: ProdutosPanelProps) {
     queryFn: async () => {
       const { data, count } = await supabase
         .from("produtos")
-        .select("id, quantidade_em_maos, preco_unitario, tem_embedding", { count: "exact" });
+        .select("id, quantidade_em_maos, preco_venda, embedding", { count: "exact" });
 
       const produtos = data || [];
       const totalProdutos = count || 0;
       const produtosAtivos = totalProdutos;
       const produtosComEstoque = produtos.filter(p => (p.quantidade_em_maos || 0) > 0).length;
       const produtosSemEstoque = produtos.filter(p => (p.quantidade_em_maos || 0) <= 0).length;
-      const produtosComEmbedding = produtos.filter(p => p.tem_embedding).length;
-      const valorEstoque = produtos.reduce((acc, p) => acc + ((p.quantidade_em_maos || 0) * (p.preco_unitario || 0)), 0);
+      const produtosComEmbedding = produtos.filter(p => p.embedding !== null).length;
+      const valorEstoque = produtos.reduce((acc, p) => acc + ((p.quantidade_em_maos || 0) * (p.preco_venda || 0)), 0);
 
       return {
         totalProdutos,

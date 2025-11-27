@@ -17,7 +17,7 @@ export function WhatsAppPanel({ isActive }: WhatsAppPanelProps) {
     queryFn: async () => {
       const [conversasRes, mensagensRes, propostasRes, contasRes] = await Promise.all([
         supabase.from("whatsapp_conversas").select("id, status", { count: "exact" }),
-        supabase.from("whatsapp_mensagens").select("id, tipo_remetente", { count: "exact" }),
+        supabase.from("whatsapp_mensagens").select("id, enviada_por_bot", { count: "exact" }),
         supabase.from("whatsapp_propostas_comerciais").select("id, status, valor_total", { count: "exact" }),
         supabase.from("whatsapp_contas").select("id, status", { count: "exact" })
       ]);
@@ -29,7 +29,7 @@ export function WhatsAppPanel({ isActive }: WhatsAppPanelProps) {
       const totalConversas = conversasRes.count || 0;
       const conversasAtivas = conversas.filter(c => c.status === "ativa").length;
       const totalMensagens = mensagensRes.count || 0;
-      const mensagensBot = mensagens.filter(m => m.tipo_remetente === "bot").length;
+      const mensagensBot = mensagens.filter(m => m.enviada_por_bot === true).length;
       const totalPropostas = propostasRes.count || 0;
       const propostasAceitas = propostas.filter(p => p.status === "aceita").length;
       const valorPropostas = propostas.reduce((acc, p) => acc + (p.valor_total || 0), 0);
