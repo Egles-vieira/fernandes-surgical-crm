@@ -80,6 +80,7 @@ export default function VendaDetalhes() {
     isLoading,
     addItem,
     updateVenda,
+    createVenda,
     updateItem,
     removeItem,
     updateItemsSequence,
