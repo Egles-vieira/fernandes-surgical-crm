@@ -60,7 +60,7 @@ export function FunnelStagesBar({
   const etapaAtualIndex = etapas.findIndex(e => e.id === etapaAtual);
   const orientacoes = orientacoesPorEtapa[etapaAtual] || [];
   return <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-      <div className="sticky top-[56px] z-20 bg-background border-b shadow-sm">
+      <div className="sticky top-[46px] z-20 bg-background border-b shadow-sm">
         <div className="py-px my-0">
           <div className="flex items-center gap-2">
             {/* Botão Toggle */}
