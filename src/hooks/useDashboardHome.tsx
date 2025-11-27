@@ -103,10 +103,11 @@ export function useDashboardHome() {
         .select("etapa_pipeline, valor_total, valor_estimado");
 
       const etapas: Record<string, PipelinePorEtapa> = {
-        lead: { etapa: "Leads", quantidade: 0, valor: 0 },
-        contato: { etapa: "Contato", quantidade: 0, valor: 0 },
+        prospeccao: { etapa: "Prospecção", quantidade: 0, valor: 0 },
+        qualificacao: { etapa: "Qualificação", quantidade: 0, valor: 0 },
         proposta: { etapa: "Proposta", quantidade: 0, valor: 0 },
         negociacao: { etapa: "Negociação", quantidade: 0, valor: 0 },
+        followup_cliente: { etapa: "Follow-up", quantidade: 0, valor: 0 },
         fechamento: { etapa: "Fechamento", quantidade: 0, valor: 0 },
       };
 
