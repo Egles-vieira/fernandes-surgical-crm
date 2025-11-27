@@ -100,19 +100,40 @@ export function useVendas() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["vendas"] });
-      toast({
-        title: "Venda atualizada!",
-        description: "As alterações foram salvas com sucesso.",
+    onMutate: async (newVenda) => {
+      // Cancelar queries em andamento para evitar overwrites
+      await queryClient.cancelQueries({ queryKey: ["vendas"] });
+      
+      // Snapshot do valor anterior
+      const previousVendas = queryClient.getQueryData<VendaWithItems[]>(["vendas"]);
+      
+      // Atualização otimista - atualiza o cache imediatamente
+      queryClient.setQueryData<VendaWithItems[]>(["vendas"], (old) => {
+        if (!old) return old;
+        return old.map((venda) => 
+          venda.id === newVenda.id 
+            ? { ...venda, ...newVenda }
+            : venda
+        );
       });
+      
+      // Retorna o contexto com o valor anterior para rollback
+      return { previousVendas };
     },
-    onError: (error: any) => {
+    onError: (error: any, _newVenda, context) => {
+      // Rollback em caso de erro
+      if (context?.previousVendas) {
+        queryClient.setQueryData(["vendas"], context.previousVendas);
+      }
       toast({
         title: "Erro ao atualizar venda",
         description: error.message,
         variant: "destructive",
       });
+    },
+    onSettled: () => {
+      // Revalidar para garantir sincronização com servidor
+      queryClient.invalidateQueries({ queryKey: ["vendas"] });
     },
   });
 
