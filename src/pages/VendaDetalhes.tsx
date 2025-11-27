@@ -405,6 +405,8 @@ export default function VendaDetalhes() {
       await updateVenda.mutateAsync({
         id: venda.id,
         cliente_id: clienteSelecionado.id,
+        cliente_nome: clienteSelecionado.nome_emit || clienteSelecionado.nome_abrev || "Cliente",
+        cliente_cnpj: clienteSelecionado.cgc || "",
         numero_venda: numeroVenda,
         tipo_frete_id: tipoFreteId || null,
         tipo_pedido_id: tipoPedidoId || null,
