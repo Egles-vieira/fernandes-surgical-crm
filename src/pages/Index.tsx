@@ -13,12 +13,14 @@ const formatCurrency = (value: number) => {
     maximumFractionDigits: 0
   }).format(value);
 };
+// Cores para gráficos - valores diretos para compatibilidade com SVG
 const CHART_COLORS = [
-  "hsl(var(--primary))",
-  "hsl(var(--secondary))",
-  "hsl(var(--success))",
-  "hsl(var(--warning))",
-  "hsl(var(--destructive))"
+  "#0ea5e9", // primary (sky-500)
+  "#8b5cf6", // secondary (violet-500)
+  "#22c55e", // success (green-500)
+  "#f59e0b", // warning (amber-500)
+  "#ef4444", // destructive (red-500)
+  "#06b6d4", // accent (cyan-500)
 ];
 
 // Dados mock para sparklines
