@@ -62,7 +62,7 @@ export function FunnelStagesBar({
   return <Collapsible open={isOpen} onOpenChange={setIsOpen}>
       <div className="sticky top-[43px] z-20 bg-background border-b shadow-sm">
         <div className="py-px my-0">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 py-[5px]">
             {/* Botão Toggle */}
             <CollapsibleTrigger asChild>
               <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0 ml-2">
