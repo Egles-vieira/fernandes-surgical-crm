@@ -1,367 +1,573 @@
-import { Users, DollarSign, TrendingUp, Ticket, Target, ArrowUpRight, ArrowDownRight, Package } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useDashboardHome } from "@/hooks/useDashboardHome";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Cell, PieChart, Pie } from "recharts";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Progress } from "@/components/ui/progress";
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  BarChart,
+  Bar,
+  LineChart,
+  Line,
+} from "recharts";
+import {
+  Info,
+  ArrowUp,
+  ArrowDown,
+} from "lucide-react";
+
 const formatCurrency = (value: number) => {
   return new Intl.NumberFormat("pt-BR", {
     style: "currency",
     currency: "BRL",
     minimumFractionDigits: 0,
-    maximumFractionDigits: 0
+    maximumFractionDigits: 0,
   }).format(value);
 };
-const CHART_COLORS = ["hsl(186, 80%, 50%)",
-// primary - cyan
-"hsl(280, 70%, 60%)",
-// secondary - purple
-"hsl(142, 76%, 36%)",
-// success - emerald
-"hsl(38, 92%, 50%)",
-// warning - amber
-"hsl(186, 90%, 38%)" // tertiary - deeper cyan
-];
-const Index = () => {
-  const {
-    kpis,
-    vendasPorMes,
-    pipelinePorEtapa,
-    topVendedores,
-    isLoading
-  } = useDashboardHome();
-  if (isLoading) {
-    return <div className="p-6 space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-36 rounded-xl" />)}
+
+const CHART_COLORS = ["#06b6d4", "#8b5cf6", "#10b981", "#f59e0b", "#ef4444"];
+
+// Dados mock para sparklines
+const generateSparklineData = (trend: "up" | "down" | "neutral") => {
+  const base = trend === "up" ? [30, 35, 32, 40, 38, 45, 50] : 
+               trend === "down" ? [50, 45, 48, 40, 42, 35, 30] :
+               [40, 42, 38, 45, 40, 43, 41];
+  return base.map((value) => ({ value }));
+};
+
+// Componente de Sparkline Mini
+const MiniSparkline = ({ data, color }: { data: { value: number }[]; color: string }) => (
+  <ResponsiveContainer width={80} height={32}>
+    <LineChart data={data}>
+      <Line
+        type="monotone"
+        dataKey="value"
+        stroke={color}
+        strokeWidth={2}
+        dot={false}
+      />
+    </LineChart>
+  </ResponsiveContainer>
+);
+
+// Componente Gauge Chart
+const GaugeChart = ({ value, maxValue = 100 }: { value: number; maxValue?: number }) => {
+  const percentage = Math.min((value / maxValue) * 100, 100);
+  
+  const getColor = (pct: number) => {
+    if (pct >= 80) return "#10b981";
+    if (pct >= 60) return "#06b6d4";
+    if (pct >= 40) return "#f59e0b";
+    return "#ef4444";
+  };
+
+  const getLabel = (pct: number) => {
+    if (pct >= 80) return "Excelente";
+    if (pct >= 60) return "Bom";
+    if (pct >= 40) return "Regular";
+    return "Precisa Melhorar";
+  };
+
+  // Calculate the arc path
+  const radius = 80;
+  const strokeWidth = 12;
+  const cx = 96;
+  const cy = 90;
+  const startAngle = 180;
+  const endAngle = 0;
+  const sweepAngle = percentage * 1.8; // 180 degrees total
+
+  const polarToCartesian = (centerX: number, centerY: number, r: number, angleInDegrees: number) => {
+    const angleInRadians = (angleInDegrees - 90) * Math.PI / 180.0;
+    return {
+      x: centerX + (r * Math.cos(angleInRadians)),
+      y: centerY + (r * Math.sin(angleInRadians))
+    };
+  };
+
+  const describeArc = (x: number, y: number, r: number, startAng: number, endAng: number) => {
+    const start = polarToCartesian(x, y, r, endAng);
+    const end = polarToCartesian(x, y, r, startAng);
+    const largeArcFlag = endAng - startAng <= 180 ? "0" : "1";
+    return [
+      "M", start.x, start.y,
+      "A", r, r, 0, largeArcFlag, 0, end.x, end.y
+    ].join(" ");
+  };
+
+  return (
+    <div className="flex flex-col items-center justify-center">
+      <svg width="192" height="110" viewBox="0 0 192 110">
+        {/* Background arc */}
+        <path
+          d={describeArc(cx, cy, radius, startAngle, endAngle)}
+          fill="none"
+          stroke="hsl(var(--muted))"
+          strokeWidth={strokeWidth}
+          strokeLinecap="round"
+        />
+        {/* Colored arc */}
+        <path
+          d={describeArc(cx, cy, radius, startAngle, startAngle - sweepAngle)}
+          fill="none"
+          stroke={getColor(percentage)}
+          strokeWidth={strokeWidth}
+          strokeLinecap="round"
+          className="transition-all duration-1000"
+        />
+        {/* Center score */}
+        <text x={cx} y={cy - 10} textAnchor="middle" className="fill-foreground text-4xl font-bold">
+          {value}
+        </text>
+        <text x={cx} y={cy + 10} textAnchor="middle" className="fill-muted-foreground text-xs">
+          de {maxValue}
+        </text>
+      </svg>
+      <div className="flex items-center gap-2 mt-2">
+        <div 
+          className="w-3 h-3 rounded-full"
+          style={{ backgroundColor: getColor(percentage) }}
+        />
+        <span className="text-sm text-muted-foreground">{getLabel(percentage)}</span>
+      </div>
+    </div>
+  );
+};
+
+// Componente KPI Card Moderno
+interface ModernKPICardProps {
+  title: string;
+  value: string | number;
+  trend?: number;
+  progress?: number;
+  progressGoal?: string;
+  subtitle?: string;
+  sparklineData?: { value: number }[];
+  sparklineColor?: string;
+}
+
+const ModernKPICard = ({
+  title,
+  value,
+  trend,
+  progress,
+  progressGoal,
+  subtitle,
+  sparklineData,
+  sparklineColor = "#06b6d4",
+}: ModernKPICardProps) => {
+  const isPositive = trend && trend > 0;
+  const isNegative = trend && trend < 0;
+
+  return (
+    <Card className="bg-card border-border/30 shadow-sm hover:shadow-md transition-all duration-200">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium text-muted-foreground">
+          {title}
+        </CardTitle>
+        <Info className="h-4 w-4 text-muted-foreground/50 cursor-help" />
+      </CardHeader>
+      <CardContent>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-3xl font-bold text-foreground">{value}</span>
+            {trend !== undefined && (
+              <div
+                className={`flex items-center gap-1 text-sm font-medium ${
+                  isPositive ? "text-emerald-500" : isNegative ? "text-red-500" : "text-muted-foreground"
+                }`}
+              >
+                {isPositive ? (
+                  <ArrowUp className="h-4 w-4" />
+                ) : isNegative ? (
+                  <ArrowDown className="h-4 w-4" />
+                ) : null}
+                <span>{Math.abs(trend)}%</span>
+              </div>
+            )}
+          </div>
+          {sparklineData && (
+            <MiniSparkline data={sparklineData} color={sparklineColor} />
+          )}
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <Skeleton className="h-80 lg:col-span-2 rounded-xl" />
-          <Skeleton className="h-80 rounded-xl" />
-        </div>
-      </div>;
+
+        {progress !== undefined && (
+          <div className="mt-4 space-y-2">
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>{progress.toFixed(0)}% Progress</span>
+              {progressGoal && <span>{progressGoal}</span>}
+            </div>
+            <Progress value={progress} className="h-2" />
+          </div>
+        )}
+
+        {subtitle && (
+          <p className="mt-3 text-xs text-muted-foreground">{subtitle}</p>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
+// Custom Tooltip para charts
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-popover border border-border rounded-lg shadow-lg p-3">
+        <p className="text-sm font-medium text-foreground">{label}</p>
+        {payload.map((entry: any, index: number) => (
+          <p key={index} className="text-sm text-muted-foreground">
+            {entry.name}: {typeof entry.value === 'number' && entry.value > 1000 
+              ? formatCurrency(entry.value) 
+              : entry.value}
+          </p>
+        ))}
+      </div>
+    );
   }
-  const ticketMedio = kpis?.totalVendas && kpis.totalVendas > 0 ? kpis.valorPipelineAtivo / kpis.totalVendas : 0;
-  const kpiCards = [{
-    title: "Total de Vendas",
-    value: kpis?.totalVendas || 0,
-    subtitle: "oportunidades no pipeline",
-    icon: DollarSign,
-    trend: 12,
-    trendUp: true,
-    gradient: "gradient-primary",
-    iconBg: "bg-primary/10",
-    iconColor: "text-primary"
-  }, {
-    title: "Pipeline Ativo",
-    value: formatCurrency(kpis?.valorPipelineAtivo || 0),
-    subtitle: "em negociação",
-    icon: TrendingUp,
-    trend: 8,
-    trendUp: true,
-    gradient: "gradient-secondary",
-    iconBg: "bg-secondary/10",
-    iconColor: "text-secondary"
-  }, {
-    title: "Taxa de Conversão",
-    value: `${kpis?.taxaConversao || 0}%`,
-    subtitle: "de fechamento",
-    icon: Target,
-    trend: 3,
-    trendUp: true,
-    gradient: "gradient-success",
-    iconBg: "bg-success/10",
-    iconColor: "text-success"
-  }, {
-    title: "Tickets Abertos",
-    value: kpis?.ticketsAbertos || 0,
-    subtitle: "pendentes de resolução",
-    icon: Ticket,
-    trend: 2,
-    trendUp: false,
-    gradient: "bg-warning",
-    iconBg: "bg-warning/10",
-    iconColor: "text-warning"
-  }, {
-    title: "Total de Clientes",
-    value: kpis?.totalClientes || 0,
-    subtitle: "cadastrados no sistema",
-    icon: Users,
-    trend: 5,
-    trendUp: true,
-    gradient: "gradient-tertiary",
-    iconBg: "bg-primary/10",
-    iconColor: "text-primary"
-  }, {
-    title: "Produtos Ativos",
-    value: kpis?.totalProdutos || 0,
-    subtitle: "disponíveis para venda",
-    icon: Package,
-    trend: 2,
-    trendUp: true,
-    gradient: "gradient-secondary",
-    iconBg: "bg-secondary/10",
-    iconColor: "text-secondary"
-  }, {
-    title: "Ticket Médio",
-    value: formatCurrency(ticketMedio),
-    subtitle: "por oportunidade",
-    icon: DollarSign,
-    trend: 15,
-    trendUp: true,
-    gradient: "gradient-success",
-    iconBg: "bg-success/10",
-    iconColor: "text-success"
-  }, {
-    title: "Meta do Mês",
-    value: topVendedores && topVendedores.length > 0 ? `${Math.round(topVendedores.reduce((acc, v) => acc + v.percentual, 0) / topVendedores.length)}%` : "0%",
-    subtitle: "média de atingimento",
-    icon: Target,
-    trend: 8,
-    trendUp: true,
-    gradient: "bg-warning",
-    iconBg: "bg-warning/10",
-    iconColor: "text-warning"
-  }];
-  return <div className="p-6 space-y-6 bg-background min-h-screen">
+  return null;
+};
+
+export default function Index() {
+  const { kpis, vendasPorMes, pipelinePorEtapa, topVendedores, isLoading } = useDashboardHome();
+
+  if (isLoading) {
+    return (
+      <div className="p-6 space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[...Array(4)].map((_, i) => (
+            <Skeleton key={i} className="h-40 rounded-lg" />
+          ))}
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <Skeleton className="h-80 rounded-lg lg:col-span-2" />
+          <Skeleton className="h-80 rounded-lg" />
+        </div>
+      </div>
+    );
+  }
+
+  const ticketMedio = kpis?.totalVendas && kpis.totalVendas > 0 
+    ? kpis.valorPipelineAtivo / kpis.totalVendas 
+    : 0;
+
+  const metaMensal = 500000;
+  const realizadoMes = vendasPorMes?.[vendasPorMes.length - 1]?.valor || 0;
+  const progressoMeta = Math.min((realizadoMes / metaMensal) * 100, 100);
+
+  return (
+    <div className="p-6 space-y-6 bg-background min-h-screen">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-          <p className="text-muted-foreground mt-1">
-        </p>
-        </div>
-        <div className="flex items-center gap-4 px-4 py-2 bg-card rounded-xl border border-border shadow-sm">
-          <div className="flex items-center gap-2 text-sm">
-            <Users className="h-4 w-4 text-primary" />
-            <span className="font-medium text-foreground">{kpis?.totalClientes || 0}</span>
-            <span className="text-muted-foreground">clientes</span>
-          </div>
-          <div className="h-4 w-px bg-border" />
-          <div className="flex items-center gap-2 text-sm">
-            <Package className="h-4 w-4 text-secondary" />
-            <span className="font-medium text-foreground">{kpis?.totalProdutos || 0}</span>
-            <span className="text-muted-foreground">produtos</span>
-          </div>
+          <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
+          <p className="text-sm text-muted-foreground">Visão geral do seu negócio</p>
         </div>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-        {kpiCards.map((kpi, index) => <Card key={index} className="group relative overflow-hidden border border-border/50 shadow-elegant hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-            <div className={`absolute top-0 left-0 right-0 h-1 ${kpi.gradient}`} />
-            <CardContent className="p-5 px-[21px] mx-[7px] py-0 my-[9px]">
-              <div className="flex items-start justify-between">
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-muted-foreground">{kpi.title}</p>
-                  <p className="text-3xl font-bold text-foreground tracking-tight">{kpi.value}</p>
-                  <p className="text-xs text-muted-foreground">{kpi.subtitle}</p>
-                </div>
-                <div className={`p-3 rounded-xl ${kpi.iconBg} transition-transform group-hover:scale-110`}>
-                  <kpi.icon className={`h-5 w-5 ${kpi.iconColor}`} />
-                </div>
-              </div>
-              <div className="mt-4 flex items-center gap-1.5 pt-3 border-t border-border/50">
-                {kpi.trendUp ? <ArrowUpRight className="h-4 w-4 text-success" /> : <ArrowDownRight className="h-4 w-4 text-destructive" />}
-                <span className={`text-sm font-semibold ${kpi.trendUp ? "text-success" : "text-destructive"}`}>
-                  {kpi.trend}%
-                </span>
-                <span className="text-xs text-muted-foreground ml-1">vs mês anterior</span>
-              </div>
-            </CardContent>
-          </Card>)}
+      {/* Row 1 - 4 KPI Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <ModernKPICard
+          title="Total de Vendas"
+          value={kpis?.totalVendas || 0}
+          trend={12.5}
+          progress={progressoMeta}
+          progressGoal={`Meta: ${formatCurrency(metaMensal)}`}
+          sparklineData={generateSparklineData("up")}
+          sparklineColor="#10b981"
+        />
+        <ModernKPICard
+          title="Pipeline Ativo"
+          value={formatCurrency(kpis?.valorPipelineAtivo || 0)}
+          trend={8.3}
+          subtitle="Oportunidades em andamento"
+          sparklineData={generateSparklineData("up")}
+          sparklineColor="#06b6d4"
+        />
+        <ModernKPICard
+          title="Taxa de Conversão"
+          value={`${kpis?.taxaConversao || 0}%`}
+          trend={-2.1}
+          progress={kpis?.taxaConversao || 0}
+          progressGoal="Meta: 35%"
+          sparklineData={generateSparklineData("down")}
+          sparklineColor="#ef4444"
+        />
+        <ModernKPICard
+          title="Tickets Abertos"
+          value={kpis?.ticketsAbertos || 0}
+          trend={-5.2}
+          subtitle="Aguardando atendimento"
+          sparklineData={generateSparklineData("down")}
+          sparklineColor="#f59e0b"
+        />
       </div>
 
-      {/* Charts Row 1 */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Area Chart - Vendas por Mês */}
-        <Card className="lg:col-span-2 border border-border/50 shadow-elegant">
+      {/* Row 2 - Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Area Chart - Customer Engagement Style */}
+        <Card className="lg:col-span-2 bg-card border-border/30 shadow-sm">
           <CardHeader className="pb-2">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-primary/10">
-                <TrendingUp className="h-5 w-5 text-primary" />
-              </div>
+            <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-lg font-semibold">Tendência de Vendas</CardTitle>
-                <p className="text-sm text-muted-foreground">Últimos 6 meses</p>
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Tendência de Vendas
+                </CardTitle>
+                <p className="text-2xl font-bold text-foreground mt-1">
+                  {formatCurrency(vendasPorMes?.reduce((acc, m) => acc + m.valor, 0) || 0)}
+                </p>
+              </div>
+              <div className="flex gap-6">
+                <div className="text-right">
+                  <p className="text-xs text-muted-foreground">Clientes Ativos</p>
+                  <p className="text-lg font-semibold text-foreground">{kpis?.totalClientes || 0}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-muted-foreground">Ticket Médio</p>
+                  <p className="text-lg font-semibold text-foreground">{formatCurrency(ticketMedio)}</p>
+                </div>
               </div>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="h-72">
+            <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={vendasPorMes || []} margin={{
-                top: 10,
-                right: 10,
-                left: 0,
-                bottom: 0
-              }}>
+                <AreaChart data={vendasPorMes || []}>
                   <defs>
                     <linearGradient id="colorValor" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="hsl(186, 80%, 50%)" stopOpacity={0.4} />
-                      <stop offset="95%" stopColor="hsl(186, 80%, 50%)" stopOpacity={0.05} />
+                      <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 13%, 91%)" vertical={false} />
-                  <XAxis dataKey="mes" tick={{
-                  fill: "hsl(220, 9%, 46%)",
-                  fontSize: 12
-                }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{
-                  fill: "hsl(220, 9%, 46%)",
-                  fontSize: 12
-                }} axisLine={false} tickLine={false} tickFormatter={value => `${(value / 1000).toFixed(0)}k`} />
-                  <Tooltip contentStyle={{
-                  backgroundColor: "hsl(0, 0%, 100%)",
-                  border: "1px solid hsl(220, 13%, 91%)",
-                  borderRadius: "12px",
-                  boxShadow: "0 4px 16px hsla(186, 80%, 50%, 0.12)"
-                }} formatter={(value: number) => [formatCurrency(value), "Valor"]} labelStyle={{
-                  color: "hsl(220, 13%, 18%)",
-                  fontWeight: 600
-                }} />
-                  <Area type="monotone" dataKey="valor" stroke="hsl(186, 80%, 50%)" strokeWidth={3} fillOpacity={1} fill="url(#colorValor)" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.5} />
+                  <XAxis 
+                    dataKey="mes" 
+                    stroke="hsl(var(--muted-foreground))" 
+                    fontSize={12}
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <YAxis 
+                    stroke="hsl(var(--muted-foreground))" 
+                    fontSize={12}
+                    tickLine={false}
+                    axisLine={false}
+                    tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
+                  />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Area
+                    type="monotone"
+                    dataKey="valor"
+                    name="Valor"
+                    stroke="hsl(var(--primary))"
+                    strokeWidth={2}
+                    fill="url(#colorValor)"
+                  />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
           </CardContent>
         </Card>
 
-        {/* Pie Chart - Distribuição Pipeline */}
-        <Card className="border border-border/50 shadow-elegant">
+        {/* Gauge Chart - Satisfaction Score Style */}
+        <Card className="bg-card border-border/30 shadow-sm">
           <CardHeader className="pb-2">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-secondary/10">
-                <Target className="h-5 w-5 text-secondary" />
-              </div>
-              <div>
-                <CardTitle className="text-lg font-semibold">Pipeline</CardTitle>
-                <p className="text-sm text-muted-foreground">Distribuição por etapa</p>
-              </div>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Performance Geral
+              </CardTitle>
+              <Info className="h-4 w-4 text-muted-foreground/50 cursor-help" />
             </div>
           </CardHeader>
-          <CardContent>
-            <div className="h-52 flex items-center justify-center">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie data={pipelinePorEtapa || []} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3} dataKey="quantidade" nameKey="etapa">
-                    {(pipelinePorEtapa || []).map((_, index) => <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />)}
-                  </Pie>
-                  <Tooltip contentStyle={{
-                  backgroundColor: "hsl(0, 0%, 100%)",
-                  border: "1px solid hsl(220, 13%, 91%)",
-                  borderRadius: "12px",
-                  boxShadow: "0 4px 16px hsla(186, 80%, 50%, 0.12)"
-                }} formatter={(value: number, name: string) => [value, name]} />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="grid grid-cols-2 gap-2 mt-2">
-              {(pipelinePorEtapa || []).map((item, index) => <div key={item.etapa} className="flex items-center gap-2 text-sm p-2 rounded-lg hover:bg-muted/50 transition-colors">
-                  <div className="w-3 h-3 rounded-full flex-shrink-0" style={{
-                backgroundColor: CHART_COLORS[index % CHART_COLORS.length]
-              }} />
-                  <span className="text-muted-foreground truncate text-xs">{item.etapa}</span>
-                  <span className="ml-auto font-medium text-foreground text-xs">{item.quantidade}</span>
-                </div>)}
-            </div>
+          <CardContent className="flex flex-col items-center justify-center pt-4">
+            <GaugeChart value={kpis?.taxaConversao || 0} />
+            <p className="mt-4 text-sm text-muted-foreground text-center">
+              Taxa de conversão do funil de vendas
+            </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Charts Row 2 */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Bar Chart - Funil de Vendas */}
-        <Card className="lg:col-span-2 border border-border/50 shadow-elegant">
+      {/* Row 3 - Pipeline and Top Sellers */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Pipeline Donut Chart with Side Legend */}
+        <Card className="bg-card border-border/30 shadow-sm">
           <CardHeader className="pb-2">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-success/10">
-                <DollarSign className="h-5 w-5 text-success" />
-              </div>
-              <div>
-                <CardTitle className="text-lg font-semibold">Funil de Vendas</CardTitle>
-                <p className="text-sm text-muted-foreground">Quantidade por etapa do pipeline</p>
-              </div>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Pipeline por Etapa
+              </CardTitle>
+              <Info className="h-4 w-4 text-muted-foreground/50 cursor-help" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="h-72">
+            <div className="flex items-center gap-6">
+              <div className="w-48 h-48">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={pipelinePorEtapa || []}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={50}
+                      outerRadius={80}
+                      paddingAngle={2}
+                      dataKey="quantidade"
+                      nameKey="etapa"
+                    >
+                      {(pipelinePorEtapa || []).map((_, index) => (
+                        <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip content={<CustomTooltip />} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="flex-1 space-y-3">
+                {(pipelinePorEtapa || []).map((item, index) => (
+                  <div key={item.etapa} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-3 h-3 rounded-full"
+                        style={{ backgroundColor: CHART_COLORS[index % CHART_COLORS.length] }}
+                      />
+                      <span className="text-sm text-muted-foreground">{item.etapa}</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-sm font-semibold text-foreground">{item.quantidade}</span>
+                      <span className="text-xs text-muted-foreground ml-2">
+                        ({formatCurrency(item.valor)})
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Sales Funnel Bar Chart */}
+        <Card className="bg-card border-border/30 shadow-sm">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Funil de Vendas
+              </CardTitle>
+              <Info className="h-4 w-4 text-muted-foreground/50 cursor-help" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="h-48">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={pipelinePorEtapa || []} margin={{
-                top: 10,
-                right: 10,
-                left: 0,
-                bottom: 0
-              }}>
-                  <defs>
-                    <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="hsl(186, 80%, 50%)" stopOpacity={1} />
-                      <stop offset="100%" stopColor="hsl(186, 90%, 38%)" stopOpacity={1} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 13%, 91%)" vertical={false} />
-                  <XAxis dataKey="etapa" tick={{
-                  fill: "hsl(220, 9%, 46%)",
-                  fontSize: 11
-                }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{
-                  fill: "hsl(220, 9%, 46%)",
-                  fontSize: 12
-                }} axisLine={false} tickLine={false} />
-                  <Tooltip contentStyle={{
-                  backgroundColor: "hsl(0, 0%, 100%)",
-                  border: "1px solid hsl(220, 13%, 91%)",
-                  borderRadius: "12px",
-                  boxShadow: "0 4px 16px hsla(186, 80%, 50%, 0.12)"
-                }} formatter={(value: number, name: string) => [name === "valor" ? formatCurrency(value) : value, name === "valor" ? "Valor" : "Quantidade"]} />
-                  <Bar dataKey="quantidade" fill="url(#barGradient)" radius={[6, 6, 0, 0]} />
+                <BarChart data={pipelinePorEtapa || []} layout="vertical">
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.5} horizontal={false} />
+                  <XAxis 
+                    type="number" 
+                    stroke="hsl(var(--muted-foreground))" 
+                    fontSize={12}
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <YAxis 
+                    type="category" 
+                    dataKey="etapa" 
+                    stroke="hsl(var(--muted-foreground))" 
+                    fontSize={12}
+                    tickLine={false}
+                    axisLine={false}
+                    width={80}
+                  />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Bar dataKey="quantidade" name="Quantidade" radius={[0, 4, 4, 0]}>
+                    {(pipelinePorEtapa || []).map((_, index) => (
+                      <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                    ))}
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </CardContent>
         </Card>
+      </div>
 
-        {/* Top Vendedores */}
-        <Card className="border border-border/50 shadow-elegant">
+      {/* Row 4 - Additional KPIs and Top Sellers */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Additional Stats */}
+        <div className="grid grid-cols-2 gap-4">
+          <ModernKPICard
+            title="Total Clientes"
+            value={kpis?.totalClientes || 0}
+            trend={5.8}
+            subtitle="Base ativa"
+          />
+          <ModernKPICard
+            title="Produtos"
+            value={kpis?.totalProdutos || 0}
+            trend={2.3}
+            subtitle="Catálogo ativo"
+          />
+        </div>
+
+        {/* Top Sellers */}
+        <Card className="lg:col-span-2 bg-card border-border/30 shadow-sm">
           <CardHeader className="pb-2">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-warning/10">
-                <Users className="h-5 w-5 text-warning" />
-              </div>
-              <div>
-                <CardTitle className="text-lg font-semibold">Top Vendedores</CardTitle>
-                <p className="text-sm text-muted-foreground">Atingimento de meta</p>
-              </div>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Top Vendedores
+              </CardTitle>
+              <Info className="h-4 w-4 text-muted-foreground/50 cursor-help" />
             </div>
           </CardHeader>
-          <CardContent className="space-y-3">
-            {(topVendedores || []).length > 0 ? topVendedores?.map((vendedor, index) => <div key={vendedor.id} className="p-3 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold ${index === 0 ? "gradient-primary" : index === 1 ? "bg-muted-foreground" : index === 2 ? "bg-warning" : "bg-muted-foreground/50"}`}>
-                        {index + 1}
-                      </div>
-                      <div>
-                        <p className="font-medium text-foreground text-sm">
-                          {vendedor.nome.length > 18 ? `${vendedor.nome.substring(0, 18)}...` : vendedor.nome}
-                        </p>
-                        <p className="text-xs text-muted-foreground">{formatCurrency(vendedor.realizado)}</p>
-                      </div>
-                    </div>
-                    <span className={`text-sm font-bold px-2 py-1 rounded-lg ${vendedor.percentual >= 100 ? "bg-success/10 text-success" : vendedor.percentual >= 70 ? "bg-warning/10 text-warning" : "bg-destructive/10 text-destructive"}`}>
-                      {vendedor.percentual}%
-                    </span>
+          <CardContent>
+            <div className="space-y-4">
+              {(topVendedores || []).map((vendedor, index) => (
+                <div key={vendedor.id} className="flex items-center gap-4">
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-semibold text-sm">
+                    {index + 1}
                   </div>
-                  <Progress value={Math.min(vendedor.percentual, 100)} className="h-1.5" />
-                </div>) : <div className="text-center py-10">
-                <div className="p-4 rounded-full bg-muted/50 w-fit mx-auto mb-3">
-                  <Target className="h-8 w-8 text-muted-foreground" />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-sm font-medium text-foreground truncate">
+                        {vendedor.nome}
+                      </span>
+                      <span className="text-sm text-muted-foreground">
+                        {formatCurrency(vendedor.realizado)} / {formatCurrency(vendedor.meta)}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Progress value={vendedor.percentual} className="h-2 flex-1" />
+                      <span
+                        className={`text-xs font-medium ${
+                          vendedor.percentual >= 100
+                            ? "text-emerald-500"
+                            : vendedor.percentual >= 70
+                            ? "text-amber-500"
+                            : "text-red-500"
+                        }`}
+                      >
+                        {vendedor.percentual}%
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <p className="text-sm text-muted-foreground">Nenhum vendedor com meta cadastrada</p>
-              </div>}
+              ))}
+              {(!topVendedores || topVendedores.length === 0) && (
+                <p className="text-sm text-muted-foreground text-center py-8">
+                  Nenhum vendedor encontrado
+                </p>
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>
-    </div>;
-};
-export default Index;
+    </div>
+  );
+}
