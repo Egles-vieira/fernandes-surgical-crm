@@ -43,7 +43,7 @@ export function KanbanColumn({ etapa, config, vendas, valorTotal, onViewDetails 
   };
 
   return (
-    <div className="flex flex-col w-80 shrink-0 bg-muted/30 rounded-lg">
+    <div className="flex flex-col w-80 shrink-0 bg-card border border-border/50 rounded-lg">
       {/* Header fixo da coluna */}
       <div className="px-4 py-3 border-b border-border bg-card">
         <div className="flex items-center justify-between mb-1">
