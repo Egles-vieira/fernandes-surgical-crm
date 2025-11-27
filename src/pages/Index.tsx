@@ -150,7 +150,7 @@ const Index = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
         {kpiCards.map((kpi, index) => <Card key={index} className="group relative overflow-hidden border border-border/50 shadow-elegant hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
             <div className={`absolute top-0 left-0 right-0 h-1 ${kpi.gradient}`} />
-            <CardContent className="p-5 py-0 px-[21px] my-[8px] mx-[7px]">
+            <CardContent className="p-5 px-[21px] mx-[7px] py-0 my-[9px]">
               <div className="flex items-start justify-between">
                 <div className="space-y-1">
                   <p className="text-sm font-medium text-muted-foreground">{kpi.title}</p>
