@@ -55,13 +55,15 @@ export const GaugeChart = ({
   value: number;
   maxValue?: number;
 }) => {
-  const percentage = Math.min(value / maxValue * 100, 100);
+  const percentage = Math.min((value / maxValue) * 100, 100);
+  
   const getColor = (pct: number) => {
     if (pct >= 80) return "#10b981";
     if (pct >= 60) return "#06b6d4";
     if (pct >= 40) return "#f59e0b";
     return "#ef4444";
   };
+  
   const getLabel = (pct: number) => {
     if (pct >= 80) return "Excelente";
     if (pct >= 60) return "Bom";
@@ -69,48 +71,91 @@ export const GaugeChart = ({
     return "Precisa Melhorar";
   };
 
-  // Calculate the arc path
-  const radius = 80;
+  // Calculate the arc path - semicircle from left to right
+  const radius = 70;
   const strokeWidth = 12;
-  const cx = 96;
-  const cy = 90;
-  const startAngle = 180;
-  const sweepAngle = percentage * 1.8; // 180 degrees total
+  const cx = 100;
+  const cy = 85;
 
+  // Convert angle (0-180) to SVG arc coordinates
   const polarToCartesian = (centerX: number, centerY: number, r: number, angleInDegrees: number) => {
-    const angleInRadians = (angleInDegrees - 90) * Math.PI / 180.0;
+    const angleInRadians = ((angleInDegrees - 180) * Math.PI) / 180;
     return {
       x: centerX + r * Math.cos(angleInRadians),
       y: centerY + r * Math.sin(angleInRadians)
     };
   };
-  
-  const describeArc = (x: number, y: number, r: number, startAng: number, endAng: number) => {
-    const start = polarToCartesian(x, y, r, endAng);
-    const end = polarToCartesian(x, y, r, startAng);
-    const largeArcFlag = endAng - startAng <= 180 ? "0" : "1";
-    return ["M", start.x, start.y, "A", r, r, 0, largeArcFlag, 0, end.x, end.y].join(" ");
+
+  // Create arc path from startAngle to endAngle (0 = left, 180 = right)
+  const createArcPath = (startAngle: number, endAngle: number) => {
+    if (endAngle <= startAngle) return "";
+    const start = polarToCartesian(cx, cy, radius, startAngle);
+    const end = polarToCartesian(cx, cy, radius, endAngle);
+    const largeArcFlag = endAngle - startAngle > 180 ? 1 : 0;
+    return `M ${start.x} ${start.y} A ${radius} ${radius} 0 ${largeArcFlag} 1 ${end.x} ${end.y}`;
   };
+
+  // Background arc: full semicircle (0 to 180)
+  const backgroundArc = createArcPath(0, 180);
+  
+  // Value arc: from 0 to percentage of 180
+  const valueAngle = (percentage / 100) * 180;
+  const valueArc = createArcPath(0, valueAngle);
 
   return (
     <div className="flex flex-col items-center justify-center">
-      <svg width="192" height="110" viewBox="0 0 192 110">
+      <svg width="200" height="120" viewBox="0 0 200 120">
         {/* Background arc */}
-        <path d={describeArc(cx, cy, radius, startAngle, 0)} fill="none" stroke="hsl(var(--muted))" strokeWidth={strokeWidth} strokeLinecap="round" />
-        {/* Colored arc */}
-        <path d={describeArc(cx, cy, radius, startAngle, startAngle - sweepAngle)} fill="none" stroke={getColor(percentage)} strokeWidth={strokeWidth} strokeLinecap="round" className="transition-all duration-1000" />
-        {/* Center score */}
-        <text x={cx} y={cy - 10} textAnchor="middle" className="fill-foreground text-4xl font-bold">
-          {value}
+        <path 
+          d={backgroundArc} 
+          fill="none" 
+          stroke="hsl(var(--muted))" 
+          strokeWidth={strokeWidth} 
+          strokeLinecap="round" 
+        />
+        {/* Value arc */}
+        {percentage > 0 && (
+          <path 
+            d={valueArc} 
+            fill="none" 
+            stroke={getColor(percentage)} 
+            strokeWidth={strokeWidth} 
+            strokeLinecap="round"
+            style={{ transition: "stroke-dashoffset 1s ease-out" }}
+          />
+        )}
+        {/* Center score - using inline styles for SVG text */}
+        <text 
+          x={cx} 
+          y={cy - 8} 
+          textAnchor="middle" 
+          dominantBaseline="middle"
+          style={{ 
+            fontSize: "32px", 
+            fontWeight: 700, 
+            fill: "hsl(var(--foreground))" 
+          }}
+        >
+          {Math.round(value)}
         </text>
-        <text x={cx} y={cy + 10} textAnchor="middle" className="fill-muted-foreground text-xs">
+        <text 
+          x={cx} 
+          y={cy + 14} 
+          textAnchor="middle" 
+          dominantBaseline="middle"
+          style={{ 
+            fontSize: "12px", 
+            fill: "hsl(var(--muted-foreground))" 
+          }}
+        >
           de {maxValue}
         </text>
       </svg>
-      <div className="flex items-center gap-2 mt-2">
-        <div className="w-3 h-3 rounded-full" style={{
-          backgroundColor: getColor(percentage)
-        }} />
+      <div className="flex items-center gap-2 mt-1">
+        <div 
+          className="w-3 h-3 rounded-full" 
+          style={{ backgroundColor: getColor(percentage) }} 
+        />
         <span className="text-sm text-muted-foreground">{getLabel(percentage)}</span>
       </div>
     </div>
