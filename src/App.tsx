@@ -48,15 +48,14 @@ import Configuracoes from "./pages/Configuracoes";
 import PerfilVendedor from "./pages/PerfilVendedor";
 
 // App principal
-const App = () => (
-  <ThemeProvider>
+const App = () => <ThemeProvider>
     <Toaster />
     <BrowserRouter>
       <Routes>
         <Route path="/auth" element={<Auth />} />
         <Route path="/" element={<ProtectedRoute>
             <Layout>
-              <Index />
+              <Index className="py-0" />
             </Layout>
           </ProtectedRoute>} />
         <Route path="/vendas" element={<ProtectedRoute>
@@ -263,6 +262,5 @@ const App = () => (
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
-  </ThemeProvider>
-);
+  </ThemeProvider>;
 export default App;

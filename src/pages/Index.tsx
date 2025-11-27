@@ -130,14 +130,14 @@ const ModernKPICard = ({
 }: ModernKPICardProps) => {
   const isPositive = trend && trend > 0;
   const isNegative = trend && trend < 0;
-  return <Card className="bg-card border-border/30 shadow-sm hover:shadow-md transition-all duration-200">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+  return <Card className="bg-card border-border/30 shadow-sm hover:shadow-md transition-all duration-200 py-0 my-0">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 py-[10px]">
         <CardTitle className="text-sm font-medium text-muted-foreground">
           {title}
         </CardTitle>
         <Info className="h-4 w-4 text-muted-foreground/50 cursor-help" />
       </CardHeader>
-      <CardContent>
+      <CardContent className="py-[14px]">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span className="text-3xl font-bold text-foreground">{value}</span>
