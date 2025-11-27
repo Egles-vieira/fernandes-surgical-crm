@@ -110,8 +110,10 @@ export function KanbanCard({ venda, index, onViewDetails }: KanbanCardProps) {
                   <Building2 className="h-3.5 w-3.5 text-primary" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-foreground truncate leading-tight">
-                    {venda.cliente_nome}
+                  <p className="text-sm font-semibold text-foreground leading-tight" title={venda.cliente_nome}>
+                    {venda.cliente_nome && venda.cliente_nome.length > 20 
+                      ? `${venda.cliente_nome.substring(0, 20)}...` 
+                      : venda.cliente_nome}
                   </p>
                   {venda.cliente_cnpj && (
                     <p className="text-[10px] text-muted-foreground/70 truncate mt-0.5 font-mono">
