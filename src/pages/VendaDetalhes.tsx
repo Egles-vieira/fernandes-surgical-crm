@@ -575,6 +575,17 @@ export default function VendaDetalhes() {
 
       <FunnelStagesBar 
         etapaAtual={venda.etapa_pipeline as any || "proposta"}
+        onEtapaClick={async (novaEtapa) => {
+          try {
+            await updateVenda.mutateAsync({
+              id: venda.id,
+              etapa_pipeline: novaEtapa,
+            });
+            toast.success(`Etapa alterada para ${novaEtapa}`);
+          } catch (error) {
+            toast.error("Erro ao alterar etapa");
+          }
+        }}
         camposEtapa={[
           { label: "Status", value: venda.status || null },
           { label: "Data Prevista", value: venda.data_fechamento_prevista ? new Date(venda.data_fechamento_prevista).toLocaleDateString('pt-BR') : null },
