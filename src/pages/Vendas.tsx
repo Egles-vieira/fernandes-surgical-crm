@@ -999,6 +999,7 @@ export default function Vendas() {
         "qualificacao",
         "proposta",
         "negociacao",
+        "followup_cliente",
         "fechamento",
         "ganho",
         "perdido",
