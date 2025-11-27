@@ -56,7 +56,9 @@ export function KanbanCard({ venda, index, onViewDetails }: KanbanCardProps) {
     };
   };
 
-  const valorPotencial = (venda.valor_estimado || 0) * ((venda.probabilidade || 0) / 100);
+  // Usar valor_total se valor_estimado for 0
+  const valorBase = (venda.valor_estimado || 0) > 0 ? venda.valor_estimado : (venda.valor_total || 0);
+  const valorPotencial = valorBase * ((venda.probabilidade || 0) / 100);
   const probConfig = getProbabilidadeConfig(venda.probabilidade || 0);
 
   return (
@@ -134,10 +136,10 @@ export function KanbanCard({ venda, index, onViewDetails }: KanbanCardProps) {
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] text-muted-foreground flex items-center gap-1.5">
                     <TrendingUp className="h-3 w-3" />
-                    Estimado
+                    Valor
                   </span>
                   <span className="text-xs font-medium text-foreground">
-                    {formatCurrency(venda.valor_estimado || 0)}
+                    {formatCurrency(valorBase)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
