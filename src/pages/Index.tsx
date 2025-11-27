@@ -54,6 +54,10 @@ const Index = () => {
     );
   }
 
+  const ticketMedio = kpis?.totalVendas && kpis.totalVendas > 0 
+    ? kpis.valorPipelineAtivo / kpis.totalVendas 
+    : 0;
+
   const kpiCards = [
     {
       title: "Total de Vendas",
@@ -95,6 +99,52 @@ const Index = () => {
       icon: Ticket,
       trend: 2,
       trendUp: false,
+      gradient: "bg-warning",
+      iconBg: "bg-warning/10",
+      iconColor: "text-warning",
+    },
+    {
+      title: "Total de Clientes",
+      value: kpis?.totalClientes || 0,
+      subtitle: "cadastrados no sistema",
+      icon: Users,
+      trend: 5,
+      trendUp: true,
+      gradient: "gradient-tertiary",
+      iconBg: "bg-primary/10",
+      iconColor: "text-primary",
+    },
+    {
+      title: "Produtos Ativos",
+      value: kpis?.totalProdutos || 0,
+      subtitle: "disponíveis para venda",
+      icon: Package,
+      trend: 2,
+      trendUp: true,
+      gradient: "gradient-secondary",
+      iconBg: "bg-secondary/10",
+      iconColor: "text-secondary",
+    },
+    {
+      title: "Ticket Médio",
+      value: formatCurrency(ticketMedio),
+      subtitle: "por oportunidade",
+      icon: DollarSign,
+      trend: 15,
+      trendUp: true,
+      gradient: "gradient-success",
+      iconBg: "bg-success/10",
+      iconColor: "text-success",
+    },
+    {
+      title: "Meta do Mês",
+      value: topVendedores && topVendedores.length > 0 
+        ? `${Math.round(topVendedores.reduce((acc, v) => acc + v.percentual, 0) / topVendedores.length)}%`
+        : "0%",
+      subtitle: "média de atingimento",
+      icon: Target,
+      trend: 8,
+      trendUp: true,
       gradient: "bg-warning",
       iconBg: "bg-warning/10",
       iconColor: "text-warning",
