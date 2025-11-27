@@ -61,7 +61,7 @@ export function VendasActionBar({
               <ArrowLeft className="h-5 w-5" />
             </Button>}
           {numeroVenda && <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold">Proposta #{numeroVenda}</h1>
+              <h1 className="font-bold text-base">Proposta #{numeroVenda}</h1>
               {etapaPipeline && <Badge variant="outline">{etapaPipeline}</Badge>}
             </div>}
           <div className="h-6 w-px bg-border mx-2" />
@@ -85,21 +85,15 @@ export function VendasActionBar({
             Cancelar
           </Button>
           
-          {onSalvar && (
-            <Button variant="outline" size="sm" onClick={onSalvar} disabled={isSaving} className="gap-2">
-              {isSaving ? (
-                <>
+          {onSalvar && <Button variant="outline" size="sm" onClick={onSalvar} disabled={isSaving} className="gap-2">
+              {isSaving ? <>
                   <Loader2 className="animate-spin" size={16} />
                   Salvando...
-                </>
-              ) : (
-                <>
+                </> : <>
                   <Save size={16} />
                   Salvar
-                </>
-              )}
-            </Button>
-          )}
+                </>}
+            </Button>}
           
           <Button variant="outline" size="sm" onClick={onDiretoria} className="gap-2">
             <ShieldCheck size={16} />
