@@ -13,6 +13,10 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ['var(--font-family)', 'Lexend', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        lexend: ['Lexend', 'sans-serif'],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
