@@ -16,6 +16,7 @@ export type EtapaPipeline =
   | "proposta"
   | "negociacao"
   | "fechamento"
+  | "followup_cliente"
   | "ganho"
   | "perdido";
 

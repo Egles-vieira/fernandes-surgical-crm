@@ -52,6 +52,12 @@ const ETAPAS_CONFIG: Record<EtapaPipeline, {
     bgColor: "bg-purple-100 dark:bg-purple-900/30",
     textColor: "text-purple-700 dark:text-purple-300",
   },
+  followup_cliente: {
+    label: "Follow-up Cliente",
+    color: "hsl(var(--primary))",
+    bgColor: "bg-teal-100 dark:bg-teal-900/30",
+    textColor: "text-teal-700 dark:text-teal-300",
+  },
   ganho: {
     label: "Ganho",
     color: "hsl(var(--success))",
@@ -72,6 +78,7 @@ const ETAPAS_ATIVAS: EtapaPipeline[] = [
   "proposta",
   "negociacao",
   "fechamento",
+  "followup_cliente",
 ];
 
 export function KanbanBoard({ vendas, onDragEnd, onViewDetails }: KanbanBoardProps) {

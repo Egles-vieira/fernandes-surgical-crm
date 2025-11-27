@@ -145,6 +145,7 @@ export default function Vendas() {
     proposta: "Proposta",
     negociacao: "Negociação",
     fechamento: "Fechamento",
+    followup_cliente: "Follow-up Cliente",
     ganho: "Ganho",
     perdido: "Perdido",
   };
