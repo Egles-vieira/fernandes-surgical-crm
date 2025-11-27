@@ -62,7 +62,7 @@ export function VendasActionBar({
             </Button>}
           {numeroVenda && <div className="flex flex-col gap-1">
               {etapaPipeline && <Badge variant="outline" className="w-fit text-xs">{etapaPipeline}</Badge>}
-              <h1 className="font-bold text-base">Proposta #{numeroVenda}</h1>
+              <h1 className="font-bold text-sm">Proposta #{numeroVenda}</h1>
             </div>}
           <div className="h-6 w-px bg-border mx-2" />
           

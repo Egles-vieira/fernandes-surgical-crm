@@ -552,7 +552,7 @@ export default function VendaDetalhes() {
         title: "Enviar para diretoria",
         description: "Funcionalidade em desenvolvimento"
       });
-    }} onEfetivar={() => setShowAprovarDialog(true)} onSalvar={handleSalvar} isSaving={false} isCalculating={isCalculating} editandoVendaId={venda.id} onVoltar={() => navigate("/vendas")} numeroVenda={numeroVenda || "Nova"} etapaPipeline={venda.etapa_pipeline || undefined} className="py-px" />
+    }} onEfetivar={() => setShowAprovarDialog(true)} onSalvar={handleSalvar} isSaving={false} isCalculating={isCalculating} editandoVendaId={venda.id} onVoltar={() => navigate("/vendas")} numeroVenda={numeroVenda || "Nova"} etapaPipeline={venda.etapa_pipeline || undefined} className="py-[5px]" />
 
       <FunnelStagesBar etapaAtual={venda.etapa_pipeline as any || "proposta"} onEtapaClick={async novaEtapa => {
       try {
