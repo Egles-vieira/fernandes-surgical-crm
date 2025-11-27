@@ -3,7 +3,7 @@ import { Check, ChevronRight, ChevronDown, ChevronUp, Edit2 } from "lucide-react
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-type EtapaPipeline = "prospeccao" | "qualificacao" | "proposta" | "negociacao" | "fechamento" | "ganho" | "perdido";
+type EtapaPipeline = "prospeccao" | "qualificacao" | "proposta" | "negociacao" | "followup_cliente" | "fechamento" | "ganho" | "perdido";
 interface FunnelStagesBarProps {
   etapaAtual?: EtapaPipeline;
   onAvancarEtapa?: () => void;
@@ -26,6 +26,9 @@ const etapas = [{
   id: "negociacao",
   label: "Negociação"
 }, {
+  id: "followup_cliente",
+  label: "Follow-up"
+}, {
   id: "fechamento",
   label: "Fechamento"
 }] as const;
@@ -34,6 +37,7 @@ const orientacoesPorEtapa: Record<string, string[]> = {
   qualificacao: ["Confirme o orçamento disponível", "Identifique a urgência e timeline", "Valide se o produto atende às necessidades", "Mapeie todos os stakeholders envolvidos"],
   proposta: ["Revise a proposta com o time comercial", "Certifique-se que todos os itens estão corretos", "Prepare argumentos para possíveis objeções", "Valide condições de pagamento e prazos"],
   negociacao: ["Defina seu limite de desconto", "Prepare alternativas de condições de pagamento", "Mantenha contato frequente com o cliente", "Identifique pontos de flexibilização"],
+  followup_cliente: ["Confirme se o cliente recebeu a proposta", "Esclareça dúvidas pendentes", "Identifique objeções ou preocupações", "Reforce os diferenciais e benefícios"],
   fechamento: ["Confirme todos os dados para faturamento", "Verifique estoque e prazo de entrega", "Prepare a documentação necessária", "Alinhe expectativas de pós-venda"],
   ganho: ["Confirme a data de entrega com o cliente", "Inicie o processo de faturamento", "Acompanhe a satisfação do cliente", "Identifique oportunidades de upsell"],
   perdido: ["Registre o motivo da perda", "Mantenha o relacionamento com o cliente", "Identifique aprendizados para o futuro", "Planeje um follow-up adequado"]
