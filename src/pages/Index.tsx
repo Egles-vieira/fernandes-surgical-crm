@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
 import { DashboardFilters } from "@/components/dashboard/DashboardFilters";
+import { DashboardChartTabs } from "@/components/dashboard/DashboardChartTabs";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, LineChart, Line } from "recharts";
 import { Info, ArrowUp, ArrowDown } from "lucide-react";
 const formatCurrency = (value: number) => {
@@ -425,5 +426,8 @@ export default function Index() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Row 5 - Chart Tabs by Area */}
+      <DashboardChartTabs />
     </div>;
 }
