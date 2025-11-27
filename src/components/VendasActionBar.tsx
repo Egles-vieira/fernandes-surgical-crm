@@ -60,9 +60,9 @@ export function VendasActionBar({
           {onVoltar && <Button variant="ghost" size="icon" onClick={onVoltar}>
               <ArrowLeft className="h-5 w-5" />
             </Button>}
-          {numeroVenda && <div className="flex items-center gap-3">
+          {numeroVenda && <div className="flex flex-col gap-1">
+              {etapaPipeline && <Badge variant="outline" className="w-fit text-xs">{etapaPipeline}</Badge>}
               <h1 className="font-bold text-base">Proposta #{numeroVenda}</h1>
-              {etapaPipeline && <Badge variant="outline">{etapaPipeline}</Badge>}
             </div>}
           <div className="h-6 w-px bg-border mx-2" />
           
