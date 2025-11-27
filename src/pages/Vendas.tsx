@@ -1598,7 +1598,7 @@ export default function Vendas() {
         }
         onCriarVendaTeste={handleCriarVendaTeste}
         isCreatingTest={isCreatingTest}
-        onNovaOportunidade={() => setView("nova")}
+        onNovaOportunidade={() => navigate("/vendas/nova")}
       />
 
       {/* Conteúdo principal - flex-1 */}
