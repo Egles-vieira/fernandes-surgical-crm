@@ -45,18 +45,16 @@ export function KanbanColumn({ etapa, config, vendas, valorTotal, onViewDetails 
   return (
     <div className="flex flex-col w-80 shrink-0 bg-muted/30 rounded-lg">
       {/* Header fixo da coluna */}
-      <div
-        className={`px-4 py-3 rounded-t-lg ${config.bgColor} ${config.textColor}`}
-      >
+      <div className="px-4 py-3 border-b border-border bg-card">
         <div className="flex items-center justify-between mb-1">
-          <h3 className="font-semibold text-sm uppercase tracking-wide">
+          <h3 className="font-medium text-sm text-foreground">
             {config.label}
           </h3>
-          <span className="text-xs font-medium bg-background/20 px-2 py-0.5 rounded-full">
+          <span className="text-xs font-medium bg-muted text-muted-foreground px-2 py-0.5 rounded-full">
             {vendas.length}
           </span>
         </div>
-        <p className="text-xs font-medium opacity-90">
+        <p className="text-xs text-muted-foreground">
           {formatCurrency(valorTotal)}
         </p>
       </div>
