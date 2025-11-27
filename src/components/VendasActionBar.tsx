@@ -58,7 +58,7 @@ export function VendasActionBar({
   };
   const statusInfo = getStatusInfo();
   return <div className={cn("sticky top-0 z-30 bg-card border-b shadow-sm px-8 py-3", className)}>
-      <div className="flex items-center justify-between">
+      <div className="px-0 mx-0 flex items-center justify-between gap-0">
         <div className="flex items-center gap-3">
           {onVoltar && <Button variant="ghost" size="icon" onClick={onVoltar}>
               <ArrowLeft className="h-5 w-5" />
