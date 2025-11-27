@@ -88,9 +88,9 @@ export function KanbanBoard({ vendas, onDragEnd, onViewDetails }: KanbanBoardPro
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>
-      <div className="h-full overflow-hidden">
+      <div className="h-full overflow-hidden bg-muted/20">
         <ScrollArea className="h-full w-full">
-          <div className="flex gap-4 p-4 min-w-max">
+          <div className="flex gap-3 p-4 min-w-max">
             {ETAPAS_ATIVAS.map((etapa) => (
               <KanbanColumn
                 key={etapa}
