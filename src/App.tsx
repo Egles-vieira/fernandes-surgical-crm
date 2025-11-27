@@ -64,6 +64,11 @@ const App = () => (
               <Vendas />
             </Layout>
           </ProtectedRoute>} />
+        <Route path="/vendas/nova" element={<ProtectedRoute>
+            <Layout>
+              <VendaDetalhes />
+            </Layout>
+          </ProtectedRoute>} />
         <Route path="/vendas/:id" element={<ProtectedRoute>
             <Layout>
               <VendaDetalhes />
