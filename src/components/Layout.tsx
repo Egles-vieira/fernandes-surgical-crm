@@ -306,7 +306,7 @@ export default function Layout({
                       {({
                     isActive
                   }) => <>
-                          {isActive && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-10 bg-white rounded-r-full" />}
+                          {isActive && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-10 rounded-r-full bg-secondary" />}
                           <item.icon size={24} className="mb-1.5 transition-transform duration-200 group-hover:scale-110 menu-icon" />
                           <span className="text-[10px] font-medium text-center leading-tight px-1 menu-text">{item.label}</span>
                         </>}
