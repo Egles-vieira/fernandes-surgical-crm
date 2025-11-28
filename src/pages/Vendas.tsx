@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import type { Database } from "@/integrations/supabase/types";
 import { Search, Plus, Eye, Trash2, ShoppingCart, Save, Users, Edit, CheckCircle, Settings, Loader2, Calculator, ChevronLeft, ChevronRight, TestTube } from "lucide-react";
@@ -15,7 +15,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
-import { useVendas } from "@/hooks/useVendas";
+import { useVendasPipeline } from "@/hooks/useVendasPipeline";
+import { useVendasPaginado } from "@/hooks/useVendasPaginado";
+import { useVendaDetalhes } from "@/hooks/useVendaDetalhes";
 import { useCondicoesPagamento } from "@/hooks/useCondicoesPagamento";
 import { useTiposFrete } from "@/hooks/useTiposFrete";
 import { useTiposPedido } from "@/hooks/useTiposPedido";
@@ -59,17 +61,65 @@ interface ItemCarrinho {
 }
 export default function Vendas() {
   const navigate = useNavigate();
-  const { vendas, isLoading, createVenda, addItem, updateVenda, updateItem, removeItem, aprovarVenda } = useVendas();
+  const { toast } = useToast();
+  const { user } = useAuth();
+  const { isAdmin } = useRoles();
+  const { empresa } = useEmpresa();
+  const { ehGestor, subordinados, nivelHierarquico, podeAcessarCliente } = useHierarquia();
+  const { calcularPedido, isCalculating } = useDatasulCalculaPedido();
+
+  // Estado de visualização
+  const [view, setView] = useState<"pipeline" | "list" | "nova">("pipeline");
+
+  // Hook OTIMIZADO para Pipeline (Kanban) - carrega apenas dados resumidos
+  const { 
+    vendas: vendasPipeline, 
+    totalPipeline,
+    isLoading: isLoadingPipeline,
+    moverEtapa,
+  } = useVendasPipeline({ 
+    diasAtras: 90, 
+    enabled: view === "pipeline" 
+  });
+
+  // Hook OTIMIZADO para Lista paginada - server-side filtering
+  const {
+    vendas: vendasLista,
+    total: totalVendasLista,
+    totalPages,
+    currentPage,
+    isLoading: isLoadingLista,
+    searchTerm,
+    setSearchTerm,
+    filtros: filtrosLista,
+    updateFiltros,
+    nextPage,
+    prevPage,
+    goToPage,
+  } = useVendasPaginado({ 
+    pageSize: 20, 
+    enabled: view === "list" 
+  });
+
+  // Hook para detalhes (usado apenas quando edita)
+  const [editandoVendaId, setEditandoVendaId] = useState<string | null>(null);
+  const { 
+    createVenda, 
+    updateVenda, 
+    addItem, 
+    removeItem, 
+    updateItem,
+    aprovarVenda,
+  } = useVendaDetalhes({ 
+    vendaId: editandoVendaId, 
+    enabled: view === "nova" && !!editandoVendaId 
+  });
+
+  // Outros hooks
   const { condicoes, isLoading: isLoadingCondicoes } = useCondicoesPagamento();
   const { tipos: tiposFrete, isLoading: isLoadingTiposFrete } = useTiposFrete();
   const { tipos: tiposPedido, isLoading: isLoadingTiposPedido } = useTiposPedido();
   const { vendedores, isLoading: isLoadingVendedores } = useVendedores();
-  const { ehGestor, subordinados, nivelHierarquico, podeAcessarCliente } = useHierarquia();
-  const { calcularPedido, isCalculating } = useDatasulCalculaPedido();
-  const { user } = useAuth();
-  const { isAdmin } = useRoles();
-  const { empresa } = useEmpresa();
-  const { toast } = useToast();
   const [isCreatingTest, setIsCreatingTest] = useState(false);
   const { visibleColumns, toggleColumn, resetColumns } = useColumnVisibility("vendas_itens_columns", {
     precoTabela: true,
@@ -84,11 +134,8 @@ export default function Vendas() {
     deposito: true,
   });
   
-  const [searchTerm, setSearchTerm] = useState("");
-  const [view, setView] = useState<"pipeline" | "list" | "nova">("pipeline");
   const [showProdutoSearch, setShowProdutoSearch] = useState(false);
   const [showClienteSearch, setShowClienteSearch] = useState(false);
-  const [editandoVendaId, setEditandoVendaId] = useState<string | null>(null);
   const [vendaParaAprovar, setVendaParaAprovar] = useState<{ id: string; numero: string; valor: number } | null>(null);
   
   // Pagination states for items table
@@ -96,15 +143,6 @@ export default function Vendas() {
   const [itemsPerPage, setItemsPerPage] = useState(20);
   const [searchItemTerm, setSearchItemTerm] = useState("");
   const [density, setDensity] = useState<"compact" | "normal" | "comfortable">("normal");
-
-  // Filtros state
-  const [filtros, setFiltros] = useState({
-    pipeline: "todos",
-    responsavel: "todos",
-    status: "todos",
-    periodo: "mes",
-    ordenacao: "recente",
-  });
 
   // Nova venda state
   const [numeroVenda, setNumeroVenda] = useState("");
@@ -154,89 +192,8 @@ export default function Vendas() {
       const nextNumber = `V${Date.now().toString().slice(-8)}`;
       setNumeroVenda(nextNumber);
     }
-  }, [view]);
-  // Lógica de filtragem otimizada com useMemo
-  const filteredVendas = useMemo(() => {
-    let resultado = [...vendas];
+  }, [view, numeroVenda]);
 
-    // Filtro de busca textual
-    if (searchTerm) {
-      resultado = resultado.filter(
-        (v) =>
-          v.numero_venda.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          v.cliente_nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          (v.cliente_cnpj && v.cliente_cnpj.includes(searchTerm)) ||
-          v.status.toLowerCase().includes(searchTerm.toLowerCase()),
-      );
-    }
-
-    // Filtro de status
-    if (filtros.status !== "todos") {
-      resultado = resultado.filter((v) => v.status === filtros.status);
-    }
-
-    // Filtro de responsável (assumindo que há um campo responsavel_id)
-    if (filtros.responsavel === "eu") {
-      // Aqui você deve usar o ID do usuário logado
-      resultado = resultado.filter((v) => v.responsavel_id);
-    } else if (filtros.responsavel === "sem") {
-      resultado = resultado.filter((v) => !v.responsavel_id);
-    }
-
-    // Filtro de período
-    if (filtros.periodo !== "todos") {
-      const hoje = new Date();
-      const dataInicio = new Date();
-      switch (filtros.periodo) {
-        case "hoje":
-          dataInicio.setHours(0, 0, 0, 0);
-          break;
-        case "semana":
-          dataInicio.setDate(hoje.getDate() - 7);
-          break;
-        case "mes":
-          dataInicio.setMonth(hoje.getMonth() - 1);
-          break;
-        case "trimestre":
-          dataInicio.setMonth(hoje.getMonth() - 3);
-          break;
-        case "ano":
-          dataInicio.setFullYear(hoje.getFullYear() - 1);
-          break;
-      }
-      resultado = resultado.filter((v) => {
-        const dataVenda = new Date(v.data_venda || v.created_at);
-        return dataVenda >= dataInicio;
-      });
-    }
-
-    // Ordenação
-    switch (filtros.ordenacao) {
-      case "recente":
-        resultado.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-        break;
-      case "antiga":
-        resultado.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
-        break;
-      case "valor-maior":
-        resultado.sort((a, b) => (b.valor_total || 0) - (a.valor_total || 0));
-        break;
-      case "valor-menor":
-        resultado.sort((a, b) => (a.valor_total || 0) - (b.valor_total || 0));
-        break;
-      case "vencimento":
-        resultado.sort((a, b) => {
-          const dataA = a.data_fechamento_prevista ? new Date(a.data_fechamento_prevista).getTime() : 0;
-          const dataB = b.data_fechamento_prevista ? new Date(b.data_fechamento_prevista).getTime() : 0;
-          return dataA - dataB;
-        });
-        break;
-      case "probabilidade":
-        resultado.sort((a, b) => (b.probabilidade || 0) - (a.probabilidade || 0));
-        break;
-    }
-    return resultado;
-  }, [vendas, searchTerm, filtros]);
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {
       style: "currency",
@@ -612,9 +569,14 @@ export default function Vendas() {
         });
 
         // Remover itens antigos e adicionar novos
-        const vendaAtual = vendas.find((v) => v.id === editandoVendaId);
-        if (vendaAtual?.vendas_itens) {
-          for (const item of vendaAtual.vendas_itens) {
+        // Buscar itens da venda atual diretamente do banco
+        const { data: itensAtuais } = await supabase
+          .from("vendas_itens")
+          .select("id")
+          .eq("venda_id", editandoVendaId);
+        
+        if (itensAtuais) {
+          for (const item of itensAtuais) {
             await removeItem.mutateAsync(item.id);
           }
         }
@@ -1048,7 +1010,11 @@ export default function Vendas() {
       console.error("Erro ao aprovar venda:", error);
     }
   };
-  if (isLoading) {
+  
+  // Loading state baseado na view atual
+  const isLoading = view === "pipeline" ? isLoadingPipeline : isLoadingLista;
+
+  if (isLoading && view !== "nova") {
     return (
       <div className="p-8 flex items-center justify-center min-h-[400px]">
         <div className="text-center">
@@ -1642,12 +1608,15 @@ export default function Vendas() {
       <VendasFilters
         view={view as "pipeline" | "list"}
         onViewChange={(v) => setView(v)}
-        onFilterChange={(newFilters) =>
-          setFiltros((prev) => ({
-            ...prev,
-            ...newFilters,
-          }))
-        }
+        onFilterChange={(newFilters) => {
+          // Usar updateFiltros do hook paginado para filtrar server-side
+          updateFiltros({
+            status: newFilters.status,
+            etapa: newFilters.pipeline,
+            responsavel: newFilters.responsavel,
+            periodo: newFilters.periodo,
+          });
+        }}
         onCriarVendaTeste={handleCriarVendaTeste}
         isCreatingTest={isCreatingTest}
         onNovaOportunidade={handleNovaOportunidade}
@@ -1657,7 +1626,7 @@ export default function Vendas() {
       <div className="flex-1 overflow-hidden">
         {view === "pipeline" ? (
           <PipelineKanban
-            vendas={filteredVendas as any}
+            vendas={vendasPipeline as any}
             onDragEnd={(result) => {
               const { source, destination, draggableId } = result;
               
@@ -1665,7 +1634,8 @@ export default function Vendas() {
               if (source.droppableId === destination.droppableId && source.index === destination.index) return;
               
               const novaEtapa = destination.droppableId as EtapaPipeline;
-              handleMoverCard(draggableId, novaEtapa);
+              // Usar mutation otimista do hook
+              moverEtapa.mutate({ id: draggableId, etapa_pipeline: novaEtapa });
             }}
             onViewDetails={(venda) => {
               navigate(`/vendas/${venda.id}`);
@@ -1685,7 +1655,7 @@ export default function Vendas() {
                 />
               </div>
               <span className="text-sm text-muted-foreground">
-                {filteredVendas.length} {filteredVendas.length === 1 ? "venda" : "vendas"}
+                {totalVendasLista} {totalVendasLista === 1 ? "venda" : "vendas"}
               </span>
             </div>
 
@@ -1700,19 +1670,24 @@ export default function Vendas() {
                     <TableHead>Data</TableHead>
                     <TableHead className="text-right">Valor Total</TableHead>
                     <TableHead className="text-center">Status</TableHead>
-                    <TableHead className="text-center">Itens</TableHead>
                     <TableHead className="text-center">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredVendas.length === 0 ? (
+                  {isLoadingLista ? (
                     <TableRow>
-                      <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={7} className="text-center py-8">
+                        <Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground" />
+                      </TableCell>
+                    </TableRow>
+                  ) : vendasLista.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                         Nenhuma venda encontrada
                       </TableCell>
                     </TableRow>
                   ) : (
-                    filteredVendas.map((venda) => (
+                    vendasLista.map((venda) => (
                       <TableRow key={venda.id} className="hover:bg-muted/30">
                         <TableCell className="font-mono text-success font-semibold">{venda.numero_venda}</TableCell>
                         <TableCell>{venda.cliente_nome}</TableCell>
@@ -1723,10 +1698,15 @@ export default function Vendas() {
                           <Badge className={getStatusColor(venda.status)}>{venda.status}</Badge>
                         </TableCell>
                         <TableCell className="text-center">
-                          <Badge variant="outline">{venda.vendas_itens?.length || 0}</Badge>
-                        </TableCell>
-                        <TableCell className="text-center">
                           <div className="flex items-center justify-center gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => navigate(`/vendas/${venda.id}`)}
+                              title="Ver detalhes"
+                            >
+                              <Eye size={16} />
+                            </Button>
                             <Button
                               variant="ghost"
                               size="sm"
@@ -1735,20 +1715,9 @@ export default function Vendas() {
                             >
                               <Edit size={16} />
                             </Button>
-                            {venda.status === "rascunho" && !venda.aprovado_em && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="text-success hover:text-success hover:bg-success/10"
-                                onClick={() => handleAprovarVenda(venda)}
-                                title="Aprovar venda"
-                              >
-                                <CheckCircle size={16} />
-                              </Button>
-                            )}
-                            {venda.aprovado_em && (
+                            {venda.status === "aprovada" && (
                               <Badge variant="outline" className="text-success border-success">
-                                ✓ Aprovada
+                                ✓
                               </Badge>
                             )}
                           </div>
@@ -1758,6 +1727,35 @@ export default function Vendas() {
                   )}
                 </TableBody>
               </Table>
+
+              {/* Paginação server-side */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between px-4 py-3 border-t">
+                  <span className="text-sm text-muted-foreground">
+                    Página {currentPage} de {totalPages}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={prevPage}
+                      disabled={currentPage === 1}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                      Anterior
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={nextPage}
+                      disabled={currentPage === totalPages}
+                    >
+                      Próxima
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
             </Card>
           </div>
         )}
