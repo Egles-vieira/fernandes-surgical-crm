@@ -18,7 +18,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
-import { useVendas } from "@/hooks/useVendas";
+import { useVendaDetalhes } from "@/hooks/useVendaDetalhes";
 import { useCondicoesPagamento } from "@/hooks/useCondicoesPagamento";
 import { useTiposFrete } from "@/hooks/useTiposFrete";
 import { useTiposPedido } from "@/hooks/useTiposPedido";
@@ -77,7 +77,7 @@ export default function VendaDetalhes() {
   }>();
   const navigate = useNavigate();
   const {
-    vendas,
+    venda: vendaCarregada,
     isLoading,
     addItem,
     updateVenda,
@@ -85,7 +85,7 @@ export default function VendaDetalhes() {
     removeItem,
     updateItemsSequence,
     aprovarVenda
-  } = useVendas();
+  } = useVendaDetalhes({ vendaId: id || null });
   const {
     condicoes
   } = useCondicoesPagamento();
@@ -170,67 +170,64 @@ export default function VendaDetalhes() {
     coordinateGetter: sortableKeyboardCoordinates
   }));
 
-  // Carregar venda
+  // Carregar venda quando os dados chegarem do hook
   useEffect(() => {
-    const loadVenda = async () => {
-      if (id && vendas) {
+    const loadVendaData = async () => {
+      if (vendaCarregada) {
         setIsLoadingComplete(false);
-        const vendaEncontrada = vendas.find(v => v.id === id);
-        if (vendaEncontrada) {
-          setVenda(vendaEncontrada);
-          setNumeroVenda(vendaEncontrada.numero_venda || "");
-          setTipoFreteId(vendaEncontrada.tipo_frete_id || "");
-          setTipoPedidoId(vendaEncontrada.tipo_pedido_id || "");
-          setCondicaoPagamentoId(vendaEncontrada.condicao_pagamento_id || "");
-          setObservacoes(vendaEncontrada.observacoes || "");
-          setValorEstimado(vendaEncontrada.valor_estimado || 0);
-          setProbabilidade(vendaEncontrada.probabilidade || 50);
-          setOrigemLead(vendaEncontrada.origem_lead || "");
-          setResponsavelId(vendaEncontrada.responsavel_id || "");
-          setValidadeProposta(vendaEncontrada.validade_proposta || "");
-          setFaturamentoParcial(vendaEncontrada.faturamento_parcial === "YES");
-          setDataFaturamentoProgramado((vendaEncontrada as any).data_faturamento_programado || "");
+        setVenda(vendaCarregada as VendaWithItems);
+        setNumeroVenda(vendaCarregada.numero_venda || "");
+        setTipoFreteId(vendaCarregada.tipo_frete_id || "");
+        setTipoPedidoId(vendaCarregada.tipo_pedido_id || "");
+        setCondicaoPagamentoId(vendaCarregada.condicao_pagamento_id || "");
+        setObservacoes(vendaCarregada.observacoes || "");
+        setValorEstimado(vendaCarregada.valor_estimado || 0);
+        setProbabilidade(vendaCarregada.probabilidade || 50);
+        setOrigemLead(vendaCarregada.origem_lead || "");
+        setResponsavelId(vendaCarregada.responsavel_id || "");
+        setValidadeProposta(vendaCarregada.validade_proposta || "");
+        setFaturamentoParcial(vendaCarregada.faturamento_parcial === "YES");
+        setDataFaturamentoProgramado((vendaCarregada as any).data_faturamento_programado || "");
 
-          // Carregar cliente
-          if (vendaEncontrada.cliente_id) {
-            setIsLoadingCliente(true);
-            setContatoClienteId(vendaEncontrada.cliente_id);
-            const {
-              data
-            } = await supabase.from("clientes").select("*").eq("id", vendaEncontrada.cliente_id).single();
-            if (data) setClienteSelecionado(data);
-            setIsLoadingCliente(false);
-          }
-
-          // Carregar itens no carrinho - SEMPRE ordenados pela sequência
-          if (vendaEncontrada.vendas_itens) {
-            const itensOrdenados = [...vendaEncontrada.vendas_itens].sort((a, b) => (a.sequencia_item || 0) - (b.sequencia_item || 0));
-            const itens = itensOrdenados.map(item => ({
-              produto: item.produtos!,
-              quantidade: item.quantidade,
-              desconto: item.desconto,
-              valor_total: item.valor_total,
-              datasul_dep_exp: item.datasul_dep_exp,
-              datasul_custo: item.datasul_custo,
-              datasul_divisao: item.datasul_divisao,
-              datasul_vl_tot_item: item.datasul_vl_tot_item,
-              datasul_vl_merc_liq: item.datasul_vl_merc_liq,
-              datasul_lote_mulven: item.datasul_lote_mulven
-            }));
-            setCarrinho(itens);
-          }
-          setIsLoadingComplete(true);
-        } else {
-          toast({
-            title: "Venda não encontrada",
-            variant: "destructive"
-          });
-          navigate("/vendas");
+        // Carregar cliente
+        if (vendaCarregada.cliente_id) {
+          setIsLoadingCliente(true);
+          setContatoClienteId(vendaCarregada.cliente_id);
+          const {
+            data
+          } = await supabase.from("clientes").select("*").eq("id", vendaCarregada.cliente_id).single();
+          if (data) setClienteSelecionado(data);
+          setIsLoadingCliente(false);
         }
+
+        // Carregar itens no carrinho - SEMPRE ordenados pela sequência
+        if (vendaCarregada.vendas_itens) {
+          const itensOrdenados = [...vendaCarregada.vendas_itens].sort((a, b) => (a.sequencia_item || 0) - (b.sequencia_item || 0));
+          const itens = itensOrdenados.map(item => ({
+            produto: item.produtos!,
+            quantidade: item.quantidade,
+            desconto: item.desconto,
+            valor_total: item.valor_total,
+            datasul_dep_exp: item.datasul_dep_exp,
+            datasul_custo: item.datasul_custo,
+            datasul_divisao: item.datasul_divisao,
+            datasul_vl_tot_item: item.datasul_vl_tot_item,
+            datasul_vl_merc_liq: item.datasul_vl_merc_liq,
+            datasul_lote_mulven: item.datasul_lote_mulven
+          }));
+          setCarrinho(itens);
+        }
+        setIsLoadingComplete(true);
+      } else if (!isLoading && id && !vendaCarregada) {
+        toast({
+          title: "Venda não encontrada",
+          variant: "destructive"
+        });
+        navigate("/vendas");
       }
     };
-    loadVenda();
-  }, [id, vendas, navigate, toast]);
+    loadVendaData();
+  }, [vendaCarregada, isLoading, id, navigate, toast]);
   const valorTotal = useMemo(() => {
     return carrinho.reduce((sum, item) => sum + item.valor_total, 0);
   }, [carrinho]);
