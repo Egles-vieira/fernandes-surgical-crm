@@ -85,18 +85,8 @@ export function DashboardPaginator() {
         </Select>
       </div>
 
-      {/* Tabs de navegação rápida */}
+      {/* Conteúdo dos painéis */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="w-full justify-start gap-1 h-auto p-1 bg-muted/30 rounded-lg flex-wrap border border-border/30">
-          {panels.map(panel => {
-          const Icon = panel.icon;
-          return <TabsTrigger key={panel.id} value={panel.id} className="flex items-center gap-2 px-3 py-2 data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:border-border/50 rounded-md transition-all text-sm">
-                <Icon className="h-4 w-4" />
-                <span className="hidden md:inline">{panel.label}</span>
-              </TabsTrigger>;
-        })}
-        </TabsList>
-
         <TabsContent value="resultado-geral" className="mt-6">
           <ResultadoGeralPanel />
         </TabsContent>
