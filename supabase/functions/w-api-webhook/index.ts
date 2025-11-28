@@ -11,12 +11,14 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  try {
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    );
+  const supabase = createClient(
+    Deno.env.get('SUPABASE_URL')!,
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+  );
 
+  let webhookLogId: string | null = null;
+
+  try {
     const payload = await req.json();
     console.log('📥 Webhook W-API recebido:', JSON.stringify(payload, null, 2));
 
@@ -35,38 +37,136 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Registrar webhook no log
-    await supabase.from('whatsapp_webhooks_log').insert({
+    // Registrar webhook no log e capturar ID
+    const { data: logEntry, error: logError } = await supabase.from('whatsapp_webhooks_log').insert({
       provedor: 'w_api',
       tipo_evento: payload.event || payload.status || 'unknown',
       payload: payload,
       recebido_em: new Date().toISOString(),
-    });
+      processado: false,
+    }).select('id').single();
 
-    console.log('🔍 Evento detectado:', payload.event || payload.status || 'unknown');
-    console.log('🔍 Payload completo:', JSON.stringify(payload, null, 2));
+    if (logError) {
+      console.error('❌ Erro ao criar log de webhook:', logError);
+    } else {
+      webhookLogId = logEntry?.id;
+      console.log('📝 Webhook logado com ID:', webhookLogId);
+    }
+
+    const eventoTipo = payload.event || payload.status || 'unknown';
+    console.log('🔍 Evento detectado:', eventoTipo);
 
     // Processar baseado no evento
     if (payload.event === 'message.received' || payload.event === 'webhookReceived') {
       console.log('✅ Iniciando processamento de mensagem recebida...');
-      await processarMensagemRecebida(supabase, payload);
+      
+      try {
+        await processarMensagemRecebida(supabase, payload);
+        
+        // Marcar como processado com sucesso
+        if (webhookLogId) {
+          await supabase.from('whatsapp_webhooks_log')
+            .update({ 
+              processado: true,
+              processado_em: new Date().toISOString()
+            })
+            .eq('id', webhookLogId);
+          console.log('✅ Webhook marcado como processado');
+        }
+      } catch (processError) {
+        const errorMessage = processError instanceof Error ? processError.message : 'Erro desconhecido no processamento';
+        const errorStack = processError instanceof Error ? processError.stack : '';
+        console.error('❌ Erro ao processar mensagem:', errorMessage);
+        console.error('Stack:', errorStack);
+        
+        // Registrar erro no log
+        if (webhookLogId) {
+          await supabase.from('whatsapp_webhooks_log')
+            .update({ 
+              processado: false,
+              erro_processamento: `${errorMessage}\n${errorStack}`,
+              processado_em: new Date().toISOString()
+            })
+            .eq('id', webhookLogId);
+        }
+      }
     } else if (payload.event === 'message.status.update') {
       console.log('✅ Iniciando atualização de status...');
-      await atualizarStatusMensagem(supabase, payload);
+      
+      try {
+        await atualizarStatusMensagem(supabase, payload);
+        
+        if (webhookLogId) {
+          await supabase.from('whatsapp_webhooks_log')
+            .update({ 
+              processado: true,
+              processado_em: new Date().toISOString()
+            })
+            .eq('id', webhookLogId);
+        }
+      } catch (statusError) {
+        const errorMessage = statusError instanceof Error ? statusError.message : 'Erro ao atualizar status';
+        console.error('❌ Erro ao atualizar status:', errorMessage);
+        
+        if (webhookLogId) {
+          await supabase.from('whatsapp_webhooks_log')
+            .update({ 
+              processado: false,
+              erro_processamento: errorMessage,
+              processado_em: new Date().toISOString()
+            })
+            .eq('id', webhookLogId);
+        }
+      }
     } else if (payload.event === 'connection.update' || payload.status) {
       console.log('📡 Atualização de conexão/status:', payload.data || payload);
+      
+      if (webhookLogId) {
+        await supabase.from('whatsapp_webhooks_log')
+          .update({ 
+            processado: true,
+            processado_em: new Date().toISOString()
+          })
+          .eq('id', webhookLogId);
+      }
     } else {
-      console.log('⚠️ Evento não reconhecido - ignorando');
+      console.log('⚠️ Evento não reconhecido - ignorando:', eventoTipo);
+      
+      if (webhookLogId) {
+        await supabase.from('whatsapp_webhooks_log')
+          .update({ 
+            processado: true,
+            erro_processamento: `Evento não reconhecido: ${eventoTipo}`,
+            processado_em: new Date().toISOString()
+          })
+          .eq('id', webhookLogId);
+      }
     }
 
     return new Response(
-      JSON.stringify({ success: true }),
+      JSON.stringify({ success: true, webhookLogId }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
-    console.error('❌ Erro no webhook W-API:', error);
+    console.error('❌ Erro crítico no webhook W-API:', error);
     const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+    
+    // Tentar registrar erro no log se temos o ID
+    if (webhookLogId) {
+      try {
+        await supabase.from('whatsapp_webhooks_log')
+          .update({ 
+            processado: false,
+            erro_processamento: `Erro crítico: ${errorMessage}`,
+            processado_em: new Date().toISOString()
+          })
+          .eq('id', webhookLogId);
+      } catch (logErr) {
+        console.error('❌ Não foi possível atualizar log de erro:', logErr);
+      }
+    }
+    
     return new Response(
       JSON.stringify({ error: errorMessage }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -75,7 +175,7 @@ Deno.serve(async (req) => {
 });
 
 async function processarMensagemRecebida(supabase: any, payload: any) {
-  console.log('📨 Processando mensagem W-API:', payload);
+  console.log('📨 [STEP 1] Iniciando processamento de mensagem W-API');
 
   // Mapear tipo de mensagem do provedor para os valores aceitos no banco
   const mapTipoMensagem = (src: any): string => {
@@ -87,7 +187,6 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
       if (m.documentMessage) return 'documento';
       if (m.locationMessage) return 'localizacao';
       if (m.contactMessage) return 'contato';
-      // Texto como padrão
       return 'texto';
     } catch {
       return 'texto';
@@ -97,6 +196,12 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
   const instanceId = payload.instanceId || payload.data?.instanceId;
   const isNewSchema = payload.event === 'webhookReceived';
   
+  console.log('📨 [STEP 2] Instance ID:', instanceId, '| Schema novo:', isNewSchema);
+  
+  if (!instanceId) {
+    throw new Error('instanceId não encontrado no payload');
+  }
+
   // Extrair dados de forma resiliente (suporta esquema antigo e novo)
   let numeroRemetente = '';
   let messageId = '';
@@ -107,12 +212,12 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
 
   if (!isNewSchema && payload.data) {
     const messageData = payload.data;
-    numeroRemetente = (messageData.key.remoteJid || '').replace('@s.whatsapp.net', '').replace('@c.us', '');
-    messageId = messageData.key.id;
+    numeroRemetente = (messageData.key?.remoteJid || '').replace('@s.whatsapp.net', '').replace('@c.us', '');
+    messageId = messageData.key?.id || crypto.randomUUID();
     pushName = messageData.pushName || numeroRemetente;
     messageText = messageData.message?.conversation || messageData.message?.extendedTextMessage?.text || '';
     messageType = mapTipoMensagem(messageData);
-    timestamp = new Date(messageData.messageTimestamp * 1000).toISOString();
+    timestamp = messageData.messageTimestamp ? new Date(messageData.messageTimestamp * 1000).toISOString() : new Date().toISOString();
   } else {
     numeroRemetente = (payload.sender?.id || payload.chat?.id || '').replace(/\D/g, '');
     messageId = payload.messageId || crypto.randomUUID();
@@ -120,6 +225,18 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
     messageText = payload.msgContent?.conversation || '';
     messageType = mapTipoMensagem(payload);
     timestamp = payload.moment ? new Date(payload.moment * 1000).toISOString() : new Date().toISOString();
+  }
+
+  console.log('📨 [STEP 3] Dados extraídos:', { 
+    numeroRemetente, 
+    messageId, 
+    pushName, 
+    messageType, 
+    temTexto: !!messageText 
+  });
+
+  if (!numeroRemetente) {
+    throw new Error('Número do remetente não encontrado no payload');
   }
   
   // Extrair informações de mídia (URL, mime, arquivo) de forma resiliente
@@ -167,14 +284,10 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
           console.log('🔑 Metadados de descriptografia capturados');
         }
         
-        // Logs detalhados para debug de áudio
         console.log('🎤 Áudio detectado:', {
           url: mediaUrl,
           mime: mediaMime,
-          fileName: mediaFileName,
           hasMediaKey: !!aud.mediaKey,
-          metadata: audioMetadata,
-          fullAudioObject: JSON.stringify(aud, null, 2)
         });
     } else if (doc) {
       mediaUrl = doc.url || doc.mediaUrl || doc.directPath || null;
@@ -183,7 +296,7 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
       mediaKind = 'document';
     }
   } catch (e) {
-    console.warn('Falha ao extrair mídia do payload:', e);
+    console.warn('⚠️ Falha ao extrair mídia do payload:', e);
   }
 
   // Ignorar mensagens enviadas por nós mesmos ou de grupos
@@ -192,8 +305,10 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
     return;
   }
 
-  // 1. Buscar conta WhatsApp pelo instance_id
-  const { data: conta } = await supabase
+  // STEP 4: Buscar conta WhatsApp pelo instance_id
+  console.log('📨 [STEP 4] Buscando conta W-API para instanceId:', instanceId);
+  
+  const { data: conta, error: contaError } = await supabase
     .from('whatsapp_contas')
     .select('*')
     .eq('instance_id_wapi', instanceId)
@@ -201,27 +316,38 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
     .eq('status', 'ativo')
     .single();
 
-  if (!conta) {
-    console.error('❌ Conta W-API não encontrada para instanceId:', instanceId);
-    return;
+  if (contaError) {
+    console.error('❌ Erro ao buscar conta:', contaError);
+    throw new Error(`Erro ao buscar conta W-API: ${contaError.message}`);
   }
 
-  // 2. Normalizar número e buscar contato no CRM
-  const numeroNormalizado = normalizarNumeroWhatsApp(numeroRemetente);
-  const contatoIdCRM = await buscarContatoCRM(supabase, numeroNormalizado);
+  if (!conta) {
+    throw new Error(`Conta W-API não encontrada para instanceId: ${instanceId}`);
+  }
 
-  // 3. Buscar ou criar contato WhatsApp considerando variações de número e possível vínculo CRM
-  const numeroApenasDigitos = numeroNormalizado; // já vem normalizado com dígitos
+  console.log('📨 [STEP 5] Conta encontrada:', conta.id, conta.nome);
+
+  // STEP 5: Normalizar número e buscar contato no CRM
+  const numeroNormalizado = normalizarNumeroWhatsApp(numeroRemetente);
+  console.log('📨 [STEP 6] Número normalizado:', numeroNormalizado);
+  
+  const contatoIdCRM = await buscarContatoCRM(supabase, numeroNormalizado);
+  console.log('📨 [STEP 7] Contato CRM encontrado:', contatoIdCRM);
+
+  // STEP 6: Buscar ou criar contato WhatsApp
+  const numeroApenasDigitos = numeroNormalizado;
   const variacoesNumero = [numeroApenasDigitos, `+${numeroApenasDigitos}`];
 
-  // Buscar por número com e sem "+"
-  const { data: contatosPorNumero } = await supabase
+  const { data: contatosPorNumero, error: contatosError } = await supabase
     .from('whatsapp_contatos')
     .select('id, numero_whatsapp, contato_id, criado_em')
     .eq('whatsapp_conta_id', conta.id)
     .in('numero_whatsapp', variacoesNumero);
 
-  // Opcionalmente buscar por vínculo CRM (se existir)
+  if (contatosError) {
+    console.error('❌ Erro ao buscar contatos:', contatosError);
+  }
+
   let contatosPorCRM: any[] = [];
   if (contatoIdCRM) {
     const { data } = await supabase
@@ -240,30 +366,31 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
   const contatosCandidatos = Object.values(mapaContatos);
 
   let contato = contatosCandidatos[0] as any | undefined;
-  // Preferir o que já está no formato dígitos (sem "+")
   if (contatosCandidatos.length > 1) {
     const preferido = contatosCandidatos.find((c: any) => c.numero_whatsapp === numeroApenasDigitos);
     if (preferido) contato = preferido;
-    console.warn('⚠️ Múltiplos whatsapp_contatos encontrados para o mesmo número:', contatosCandidatos);
+    console.warn('⚠️ Múltiplos whatsapp_contatos encontrados:', contatosCandidatos.length);
   }
 
   if (!contato) {
-    console.log('➕ Criando novo contato WhatsApp com vínculo CRM');
-    const { data: novoContato } = await supabase
+    console.log('📨 [STEP 8] Criando novo contato WhatsApp');
+    const { data: novoContato, error: novoContatoError } = await supabase
       .from('whatsapp_contatos')
       .insert({
         whatsapp_conta_id: conta.id,
-        numero_whatsapp: numeroApenasDigitos, // padronizar somente dígitos
+        numero_whatsapp: numeroApenasDigitos,
         nome_whatsapp: pushName,
-        contato_id: contatoIdCRM || null, // Vincula ao CRM se encontrado
+        contato_id: contatoIdCRM || null,
         criado_em: new Date().toISOString(),
       })
       .select()
       .single();
 
+    if (novoContatoError) {
+      throw new Error(`Erro ao criar contato WhatsApp: ${novoContatoError.message}`);
+    }
     contato = novoContato;
   } else if (contatoIdCRM && !contato.contato_id) {
-    // Se o contato WhatsApp já existe mas não tem vínculo CRM, atualiza
     console.log('🔗 Vinculando contato WhatsApp existente ao CRM');
     const { data: contatoAtualizado } = await supabase
       .from('whatsapp_contatos')
@@ -271,21 +398,21 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
       .eq('id', contato.id)
       .select()
       .single();
-
     contato = contatoAtualizado || contato;
   }
 
   if (!contato) {
-    console.error('❌ Erro ao criar/buscar contato');
-    return;
+    throw new Error('Erro ao criar/buscar contato WhatsApp');
   }
 
-  // 4. Buscar conversa ativa existente (priorizar janela ativa) para qualquer contato candidato
+  console.log('📨 [STEP 9] Contato WhatsApp:', contato.id);
+
+  // STEP 7: Buscar conversa ativa existente
   const contatoIdsParaBusca = (contatosCandidatos && contatosCandidatos.length > 0)
     ? (contatosCandidatos as any[]).map((c: any) => c.id)
     : [contato.id];
 
-  let { data: conversasAtivas } = await supabase
+  let { data: conversasAtivas, error: conversasError } = await supabase
     .from('whatsapp_conversas')
     .select('*')
     .eq('whatsapp_conta_id', conta.id)
@@ -294,11 +421,15 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
     .order('janela_24h_ativa', { ascending: false })
     .order('ultima_mensagem_em', { ascending: false });
 
+  if (conversasError) {
+    console.error('❌ Erro ao buscar conversas:', conversasError);
+  }
+
   let conversa = conversasAtivas && conversasAtivas.length > 0 ? conversasAtivas[0] : null;
 
   if (!conversa) {
-    // Nenhuma conversa ativa encontrada: criar nova
-    const { data: novaConversa } = await supabase
+    console.log('📨 [STEP 10] Criando nova conversa');
+    const { data: novaConversa, error: novaConversaError } = await supabase
       .from('whatsapp_conversas')
       .insert({
         whatsapp_conta_id: conta.id,
@@ -311,9 +442,13 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
       })
       .select()
       .single();
+    
+    if (novaConversaError) {
+      throw new Error(`Erro ao criar conversa: ${novaConversaError.message}`);
+    }
     conversa = novaConversa;
   } else {
-    // Atualizar janela de 24h e última atividade
+    console.log('📨 [STEP 10] Atualizando conversa existente:', conversa.id);
     await supabase
       .from('whatsapp_conversas')
       .update({
@@ -325,8 +460,13 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
       .eq('id', conversa.id);
   }
 
-  // 5. Inserir mensagem (idempotente)
-  // Evitar duplicidade caso o provedor reenvie eventos
+  if (!conversa) {
+    throw new Error('Erro ao criar/buscar conversa');
+  }
+
+  console.log('📨 [STEP 11] Conversa:', conversa.id);
+
+  // STEP 8: Verificar duplicidade
   const { data: msgExistente } = await supabase
     .from('whatsapp_mensagens')
     .select('id, conversa_id')
@@ -338,6 +478,8 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
     return;
   }
 
+  // STEP 9: Inserir mensagem
+  console.log('📨 [STEP 12] Inserindo mensagem no banco');
   const { data: novaMensagem, error: msgError } = await supabase.from('whatsapp_mensagens').insert({
     conversa_id: conversa.id,
     whatsapp_conta_id: conta.id,
@@ -349,39 +491,27 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
     mensagem_externa_id: messageId,
     recebida_em: timestamp,
     criado_em: new Date().toISOString(),
-    // Dados de mídia (quando houver)
     tem_midia: !!mediaUrl,
     tipo_midia: mediaKind,
     url_midia: mediaUrl,
     mime_type: mediaMime,
     nome_arquivo: mediaFileName,
-    // Metadados de descriptografia
     metadata: mediaKind === 'audio' && audioMetadata ? audioMetadata : null,
   }).select().single();
 
   if (msgError) {
-    console.error('❌ Erro ao inserir mensagem:', msgError);
-    return;
+    throw new Error(`Erro ao inserir mensagem: ${msgError.message}`);
   }
 
-  console.log('✅ Mensagem W-API processada com sucesso');
+  console.log('✅ [STEP 13] Mensagem processada com sucesso:', novaMensagem?.id);
 
   // 🤖 AGENTE DE VENDAS: Processar mensagem automaticamente se ativo
-      console.log('🔍 Verificando agente:', { 
-        agente_ativo: conta.agente_vendas_ativo, 
-        tem_texto: !!messageText, 
-        tipo: messageType,
-        tem_midia: !!mediaUrl 
-      });
-      
-      console.log('📋 Dados para o agente:', {
-        conversaId: conversa.id,
-        contatoId: contato.id,
-        tipoMensagem: messageType,
-        urlMidia: mediaUrl || null,
-        temTexto: !!messageText,
-        textoLength: messageText?.length || 0
-      });
+  console.log('🔍 Verificando agente:', { 
+    agente_ativo: conta.agente_vendas_ativo, 
+    tem_texto: !!messageText, 
+    tipo: messageType,
+    tem_midia: !!mediaUrl 
+  });
   
   // Ativar agente para mensagens de texto OU áudio (que será transcrito)
   if (conta.agente_vendas_ativo && (messageType === 'texto' || messageType === 'audio')) {
@@ -401,13 +531,13 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
         console.log('👤 Cliente ID encontrado:', clienteId);
       }
 
-      // Chamar agente de vendas com suporte a áudio
+      // Chamar agente de vendas
       const { data: agenteData, error: agenteError } = await supabase.functions.invoke('agente-vendas-whatsapp', {
         body: {
-          mensagemTexto: messageText || '', // Pode estar vazio se for áudio
+          mensagemTexto: messageText || '',
           conversaId: conversa.id,
           contatoId: contato.id,
-          clienteId: clienteId, // Passar cliente ID
+          clienteId: clienteId,
           tipoMensagem: messageType,
           urlMidia: mediaUrl || null
         }
@@ -419,7 +549,7 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
       }
 
       if (agenteData?.resposta) {
-        console.log('🤖 Resposta do agente:', agenteData.resposta);
+        console.log('🤖 Resposta do agente recebida');
         
         // Inserir resposta do agente no banco
         const { data: respostaAgente, error: respostaError } = await supabase
@@ -436,7 +566,7 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
             enviada_por_bot: true,
             metadata: { 
               gerada_por_agente: true,
-              tipo_origem: messageType, // texto ou audio
+              tipo_origem: messageType,
               produtos_encontrados: agenteData.produtos_encontrados || []
             }
           })
@@ -451,7 +581,6 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
         // Enviar via W-API
         if (respostaAgente) {
           try {
-            // Obter número do contato
             const { data: contatoData } = await supabase
               .from('whatsapp_contatos')
               .select('numero_whatsapp')
@@ -460,12 +589,9 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
 
             const numeroDestinatario = contatoData?.numero_whatsapp;
             
-            // Validações antes do envio
             if (!numeroDestinatario) {
               console.error('❌ Número do destinatário não encontrado');
-              console.error('Contato ID:', contato.id);
-              await supabase
-                .from('whatsapp_mensagens')
+              await supabase.from('whatsapp_mensagens')
                 .update({
                   status: 'erro',
                   erro_mensagem: 'Número do destinatário não encontrado',
@@ -477,10 +603,7 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
 
             if (!conta.token_wapi || !conta.instance_id_wapi) {
               console.error('❌ Credenciais W-API não configuradas');
-              console.error('Token presente:', !!conta.token_wapi);
-              console.error('Instância presente:', !!conta.instance_id_wapi);
-              await supabase
-                .from('whatsapp_mensagens')
+              await supabase.from('whatsapp_mensagens')
                 .update({
                   status: 'erro',
                   erro_mensagem: 'Credenciais W-API não configuradas',
@@ -490,13 +613,9 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
               return;
             }
 
-            // Construir URL do W-API com instanceId como query parameter
             const sendUrl = `https://api.w-api.app/v1/message/send-text?instanceId=${conta.instance_id_wapi}`;
             
-            console.log('📤 Enviando mensagem via W-API');
-            console.log('Número destinatário:', numeroDestinatario);
-            console.log('URL:', sendUrl);
-            console.log('Instância:', conta.instance_id_wapi);
+            console.log('📤 Enviando resposta via W-API para:', numeroDestinatario);
             
             const sendResponse = await fetch(sendUrl, {
               method: 'POST',
@@ -511,16 +630,11 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
               }),
             });
 
-            console.log('📊 Status da resposta W-API:', sendResponse.status);
-
             if (sendResponse.ok) {
               const sendResult = await sendResponse.json();
-              console.log('✅ Resposta do agente enviada via W-API');
-              console.log('Message ID:', sendResult.messageId);
+              console.log('✅ Resposta do agente enviada, messageId:', sendResult.messageId);
               
-              // Atualizar status da mensagem
-              await supabase
-                .from('whatsapp_mensagens')
+              await supabase.from('whatsapp_mensagens')
                 .update({
                   status: 'enviada',
                   mensagem_externa_id: sendResult.messageId,
@@ -529,19 +643,9 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
                 .eq('id', respostaAgente.id);
             } else {
               const errorBody = await sendResponse.text();
-              console.error('❌ Erro ao enviar resposta via W-API');
-              console.error('Status HTTP:', sendResponse.status);
-              console.error('Response Body:', errorBody);
-              console.error('Dados enviados:', {
-                phone: numeroDestinatario,
-                message: agenteData.resposta,
-                delayMessage: 3,
-                instancia: conta.instance_id_wapi
-              });
+              console.error('❌ Erro W-API:', sendResponse.status, errorBody);
               
-              // Marcar como erro
-              await supabase
-                .from('whatsapp_mensagens')
+              await supabase.from('whatsapp_mensagens')
                 .update({
                   status: 'erro',
                   erro_mensagem: `W-API error ${sendResponse.status}: ${errorBody}`,
@@ -551,12 +655,9 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
             }
           } catch (sendError) {
             const error = sendError as Error;
-            console.error('❌ Erro de rede ao enviar via W-API:', error);
-            console.error('Stack trace:', error.stack);
+            console.error('❌ Erro de rede ao enviar via W-API:', error.message);
             
-            // Marcar como erro
-            await supabase
-              .from('whatsapp_mensagens')
+            await supabase.from('whatsapp_mensagens')
               .update({
                 status: 'erro',
                 erro_mensagem: `Network error: ${error.message}`,
@@ -568,7 +669,6 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
       }
     } catch (agenteError) {
       console.error('❌ Erro ao processar agente de vendas:', agenteError);
-      // Não falhar o webhook se o agente falhar
     }
   }
 }
@@ -576,10 +676,13 @@ async function processarMensagemRecebida(supabase: any, payload: any) {
 async function atualizarStatusMensagem(supabase: any, payload: any) {
   console.log('📊 Atualizando status W-API:', payload);
 
-  const messageId = payload.data.key.id;
-  const status = payload.data.status;
+  const messageId = payload.data?.key?.id;
+  const status = payload.data?.status;
 
-  // Mapear status do W-API para nosso sistema
+  if (!messageId) {
+    throw new Error('messageId não encontrado no payload de status');
+  }
+
   const statusMap: { [key: string]: string } = {
     'PENDING': 'pendente',
     'SERVER_ACK': 'enviada',
