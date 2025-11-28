@@ -77,10 +77,11 @@ export default function Cotacoes() {
     };
     switch (abaAtiva) {
       case "novas":
+        // Cotações não resgatadas com análise pendente
         return {
           ...filtrosBase,
-          step: "nova",
-          resgatada: false
+          resgatada: false,
+          status_analise_ia: "pendente" as const
         };
       case "analise_ia":
         return {
@@ -93,6 +94,7 @@ export default function Cotacoes() {
           analise_concluida: true
         };
       case "aguardando":
+        // Resgatadas mas ainda não respondidas e sem análise ativa
         return {
           ...filtrosBase,
           resgatada: true,
@@ -135,12 +137,13 @@ export default function Cotacoes() {
       cotacao.uf_cliente?.toLowerCase().includes(searchLower)
     );
   });
+  
   // Estatísticas calculadas de todas as cotações
   const estatisticas = {
-    novas: todasCotacoes?.filter(c => c.step_atual === "nova" && !c.resgatada).length || 0,
+    novas: todasCotacoes?.filter(c => !c.resgatada && c.status_analise_ia === "pendente").length || 0,
     analiseIA: todasCotacoes?.filter(c => c.status_analise_ia === "em_analise").length || 0,
     analisadas: todasCotacoes?.filter(c => c.status_analise_ia === "concluida" && !c.respondido_em).length || 0,
-    aguardando: todasCotacoes?.filter(c => c.resgatada && !c.respondido_em && c.status_analise_ia !== "em_analise" && c.status_analise_ia !== "concluida").length || 0,
+    aguardando: todasCotacoes?.filter(c => c.resgatada && !c.respondido_em && c.status_analise_ia !== "em_analise" && c.status_analise_ia !== "concluida" && c.status_analise_ia !== "pendente").length || 0,
     respondidas: todasCotacoes?.filter(c => c.step_atual === "respondida").length || 0,
     confirmadas: todasCotacoes?.filter(c => c.step_atual === "confirmada").length || 0
   };
