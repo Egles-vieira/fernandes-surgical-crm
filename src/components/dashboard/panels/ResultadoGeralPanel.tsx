@@ -13,20 +13,19 @@ import {
   GaugeChart,
   CustomTooltip
 } from "../shared/ChartComponents";
+import promoBannerBg from "@/assets/promo-banner-bg.jpg";
 
 function PromoBanner() {
   return (
-    <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-primary via-primary/90 to-primary/80 p-6">
-      {/* Background decorative elements */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute -left-10 -top-10 h-40 w-40 rounded-full bg-white/20 blur-2xl" />
-        <div className="absolute -right-10 -bottom-10 h-40 w-40 rounded-full bg-white/20 blur-2xl" />
-        <svg className="absolute right-0 top-0 h-full w-1/3 opacity-20" viewBox="0 0 200 200">
-          <circle cx="100" cy="100" r="80" stroke="currentColor" strokeWidth="0.5" fill="none" className="text-white" />
-          <circle cx="100" cy="100" r="60" stroke="currentColor" strokeWidth="0.5" fill="none" className="text-white" />
-          <circle cx="100" cy="100" r="40" stroke="currentColor" strokeWidth="0.5" fill="none" className="text-white" />
-        </svg>
-      </div>
+    <div className="relative overflow-hidden rounded-xl p-6">
+      {/* Background image */}
+      <img 
+        src={promoBannerBg} 
+        alt="" 
+        className="absolute inset-0 w-full h-full object-cover"
+      />
+      {/* Primary color overlay */}
+      <div className="absolute inset-0 bg-primary/85" />
 
       {/* Decorative icons on left */}
       <div className="absolute left-4 top-1/2 -translate-y-1/2 flex flex-col gap-2 opacity-30">
