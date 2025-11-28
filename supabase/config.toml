@@ -51,6 +51,39 @@ verify_jwt = false
 [functions.w-api-baixar-midia]
 verify_jwt = false
 
+[functions.w-api-enviar-mensagem]
+verify_jwt = false
+
+[functions.w-api-enviar-imagem]
+verify_jwt = false
+
+[functions.w-api-enviar-video]
+verify_jwt = false
+
+[functions.w-api-enviar-audio]
+verify_jwt = false
+
+[functions.w-api-enviar-documento]
+verify_jwt = false
+
+[functions.w-api-enviar-botoes]
+verify_jwt = false
+
+[functions.w-api-verificar-status]
+verify_jwt = false
+
+[functions.w-api-gerar-qrcode]
+verify_jwt = false
+
+[functions.w-api-reagir-mensagem]
+verify_jwt = false
+
+[functions.w-api-editar-mensagem]
+verify_jwt = false
+
+[functions.w-api-deletar-mensagem]
+verify_jwt = false
+
 [functions.transcrever-audio-whatsapp]
 verify_jwt = false
 
@@ -93,8 +126,11 @@ verify_jwt = false
 [functions.coletar-metricas-diarias]
 verify_jwt = false
 
-[functions.criar-oportunidade-venda]
+[functions.enviar-proposta-whatsapp]
 verify_jwt = false
 
-[functions.enviar-proposta-whatsapp]
+[functions.converter-proposta-venda]
+verify_jwt = false
+
+[functions.sincronizar-contatos-whatsapp]
 verify_jwt = false
