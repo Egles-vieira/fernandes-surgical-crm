@@ -2,8 +2,9 @@ import { useDashboardHome } from "@/hooks/useDashboardHome";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from "recharts";
-import { Info } from "lucide-react";
+import { Info, Sparkles, TrendingUp, Zap } from "lucide-react";
 import {
   formatCurrency,
   CHART_COLORS,
@@ -12,6 +13,59 @@ import {
   GaugeChart,
   CustomTooltip
 } from "../shared/ChartComponents";
+
+function PromoBanner() {
+  return (
+    <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-primary via-primary/90 to-primary/80 p-6">
+      {/* Background decorative elements */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute -left-10 -top-10 h-40 w-40 rounded-full bg-white/20 blur-2xl" />
+        <div className="absolute -right-10 -bottom-10 h-40 w-40 rounded-full bg-white/20 blur-2xl" />
+        <svg className="absolute right-0 top-0 h-full w-1/3 opacity-20" viewBox="0 0 200 200">
+          <circle cx="100" cy="100" r="80" stroke="currentColor" strokeWidth="0.5" fill="none" className="text-white" />
+          <circle cx="100" cy="100" r="60" stroke="currentColor" strokeWidth="0.5" fill="none" className="text-white" />
+          <circle cx="100" cy="100" r="40" stroke="currentColor" strokeWidth="0.5" fill="none" className="text-white" />
+        </svg>
+      </div>
+
+      {/* Decorative icons on left */}
+      <div className="absolute left-4 top-1/2 -translate-y-1/2 flex flex-col gap-2 opacity-30">
+        <div className="h-12 w-12 rounded-lg bg-white/20 flex items-center justify-center">
+          <TrendingUp className="h-6 w-6 text-white" />
+        </div>
+        <div className="h-10 w-10 rounded-lg bg-white/20 flex items-center justify-center ml-4">
+          <Zap className="h-5 w-5 text-white" />
+        </div>
+      </div>
+
+      <div className="relative flex items-center justify-between gap-6">
+        {/* Text content */}
+        <div className="flex-1 pl-20">
+          <div className="flex items-center gap-2 mb-1">
+            <Sparkles className="h-5 w-5 text-primary-foreground/80" />
+            <span className="text-xs font-medium text-primary-foreground/80 uppercase tracking-wider">
+              Inteligência Artificial
+            </span>
+          </div>
+          <h3 className="text-xl font-bold text-primary-foreground mb-1">
+            Automatize suas cotações com IA
+          </h3>
+          <p className="text-sm text-primary-foreground/80 max-w-lg">
+            Deixe a IA analisar e sugerir produtos automaticamente. Reduza tempo de resposta em até 80% e aumente suas conversões.
+          </p>
+        </div>
+
+        {/* CTA Button */}
+        <Button 
+          className="bg-amber-500 hover:bg-amber-600 text-white font-semibold px-6 py-5 text-base shadow-lg hover:shadow-xl transition-all"
+          onClick={() => window.location.href = '/plataformas/dashboard-ia'}
+        >
+          Quero conhecer!
+        </Button>
+      </div>
+    </div>
+  );
+}
 
 export function ResultadoGeralPanel() {
   const {
@@ -43,6 +97,9 @@ export function ResultadoGeralPanel() {
 
   return (
     <div className="space-y-6">
+      {/* Promo Banner */}
+      <PromoBanner />
+
       {/* Row 1 - 4 KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <ModernKPICard title="Total de Vendas" value={kpis?.totalVendas || 0} trend={12.5} progress={progressoMeta} progressGoal={`Meta: ${formatCurrency(metaMensal)}`} sparklineData={generateSparklineData("up")} sparklineColor="#10b981" />
