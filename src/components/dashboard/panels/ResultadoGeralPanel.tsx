@@ -24,8 +24,8 @@ function PromoBanner() {
         alt="" 
         className="absolute inset-0 w-full h-full object-cover"
       />
-      {/* Primary color overlay */}
-      <div className="absolute inset-0 bg-primary/85" />
+      {/* Primary color overlay - leve */}
+      <div className="absolute inset-0 bg-primary/40" />
 
       {/* Decorative icons on left */}
       <div className="absolute left-4 top-1/2 -translate-y-1/2 flex flex-col gap-2 opacity-30">
