@@ -44,7 +44,7 @@ const formatCurrency = (value: number) => {
 
 // Formatar prazo de entrega
 const formatPrazo = (dias: number) => {
-  if (dias === 0) return "Entrega imediata";
+  if (dias === 0) return "Sem prazo";
   if (dias === 1) return "1 dia útil";
   return `${dias} dias úteis`;
 };
