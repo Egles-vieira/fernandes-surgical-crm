@@ -56,6 +56,13 @@ export type Database = {
             foreignKeyName: "alertas_metas_lido_por_fkey"
             columns: ["lido_por"]
             isOneToOne: false
+            referencedRelation: "mv_top_vendedores"
+            referencedColumns: ["vendedor_id"]
+          },
+          {
+            foreignKeyName: "alertas_metas_lido_por_fkey"
+            columns: ["lido_por"]
+            isOneToOne: false
             referencedRelation: "perfis_usuario"
             referencedColumns: ["id"]
           },
@@ -1314,6 +1321,13 @@ export type Database = {
             foreignKeyName: "edi_condicoes_pagamento_criado_por_fkey"
             columns: ["criado_por"]
             isOneToOne: false
+            referencedRelation: "mv_top_vendedores"
+            referencedColumns: ["vendedor_id"]
+          },
+          {
+            foreignKeyName: "edi_condicoes_pagamento_criado_por_fkey"
+            columns: ["criado_por"]
+            isOneToOne: false
             referencedRelation: "perfis_usuario"
             referencedColumns: ["id"]
           },
@@ -1525,6 +1539,13 @@ export type Database = {
             foreignKeyName: "edi_cotacoes_resgatada_por_fkey"
             columns: ["resgatada_por"]
             isOneToOne: false
+            referencedRelation: "mv_top_vendedores"
+            referencedColumns: ["vendedor_id"]
+          },
+          {
+            foreignKeyName: "edi_cotacoes_resgatada_por_fkey"
+            columns: ["resgatada_por"]
+            isOneToOne: false
             referencedRelation: "perfis_usuario"
             referencedColumns: ["id"]
           },
@@ -1541,6 +1562,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "vw_vendedores_disponiveis"
             referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "edi_cotacoes_respondido_por_fkey"
+            columns: ["respondido_por"]
+            isOneToOne: false
+            referencedRelation: "mv_top_vendedores"
+            referencedColumns: ["vendedor_id"]
           },
           {
             foreignKeyName: "edi_cotacoes_respondido_por_fkey"
@@ -1885,6 +1913,13 @@ export type Database = {
           tipo?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "edi_logs_integracao_executado_por_fkey"
+            columns: ["executado_por"]
+            isOneToOne: false
+            referencedRelation: "mv_top_vendedores"
+            referencedColumns: ["vendedor_id"]
+          },
           {
             foreignKeyName: "edi_logs_integracao_executado_por_fkey"
             columns: ["executado_por"]
@@ -2245,6 +2280,13 @@ export type Database = {
             foreignKeyName: "edi_produtos_vinculo_aprovado_por_fkey"
             columns: ["aprovado_por"]
             isOneToOne: false
+            referencedRelation: "mv_top_vendedores"
+            referencedColumns: ["vendedor_id"]
+          },
+          {
+            foreignKeyName: "edi_produtos_vinculo_aprovado_por_fkey"
+            columns: ["aprovado_por"]
+            isOneToOne: false
             referencedRelation: "perfis_usuario"
             referencedColumns: ["id"]
           },
@@ -2261,6 +2303,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "vw_vendedores_disponiveis"
             referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "edi_produtos_vinculo_criado_por_fkey"
+            columns: ["criado_por"]
+            isOneToOne: false
+            referencedRelation: "mv_top_vendedores"
+            referencedColumns: ["vendedor_id"]
           },
           {
             foreignKeyName: "edi_produtos_vinculo_criado_por_fkey"
@@ -2344,6 +2393,13 @@ export type Database = {
           unidade_medida_interna?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "edi_unidades_medida_criado_por_fkey"
+            columns: ["criado_por"]
+            isOneToOne: false
+            referencedRelation: "mv_top_vendedores"
+            referencedColumns: ["vendedor_id"]
+          },
           {
             foreignKeyName: "edi_unidades_medida_criado_por_fkey"
             columns: ["criado_por"]
@@ -3259,6 +3315,13 @@ export type Database = {
             foreignKeyName: "historico_status_atendimento_usuario_id_fkey"
             columns: ["usuario_id"]
             isOneToOne: false
+            referencedRelation: "mv_top_vendedores"
+            referencedColumns: ["vendedor_id"]
+          },
+          {
+            foreignKeyName: "historico_status_atendimento_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
             referencedRelation: "perfis_usuario"
             referencedColumns: ["id"]
           },
@@ -3883,6 +3946,13 @@ export type Database = {
           valor_objetivo?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "metas_equipe_criado_por_fkey"
+            columns: ["criado_por"]
+            isOneToOne: false
+            referencedRelation: "mv_top_vendedores"
+            referencedColumns: ["vendedor_id"]
+          },
           {
             foreignKeyName: "metas_equipe_criado_por_fkey"
             columns: ["criado_por"]
@@ -4547,6 +4617,13 @@ export type Database = {
             foreignKeyName: "plataformas_edi_criado_por_fkey"
             columns: ["criado_por"]
             isOneToOne: false
+            referencedRelation: "mv_top_vendedores"
+            referencedColumns: ["vendedor_id"]
+          },
+          {
+            foreignKeyName: "plataformas_edi_criado_por_fkey"
+            columns: ["criado_por"]
+            isOneToOne: false
             referencedRelation: "perfis_usuario"
             referencedColumns: ["id"]
           },
@@ -4845,6 +4922,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "vw_metas_com_progresso"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "progresso_metas_registrado_por_fkey"
+            columns: ["registrado_por"]
+            isOneToOne: false
+            referencedRelation: "mv_top_vendedores"
+            referencedColumns: ["vendedor_id"]
           },
           {
             foreignKeyName: "progresso_metas_registrado_por_fkey"
@@ -6092,6 +6176,13 @@ export type Database = {
             foreignKeyName: "whatsapp_aprovacoes_diretoria_aprovado_por_id_fkey"
             columns: ["aprovado_por_id"]
             isOneToOne: false
+            referencedRelation: "mv_top_vendedores"
+            referencedColumns: ["vendedor_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_aprovacoes_diretoria_aprovado_por_id_fkey"
+            columns: ["aprovado_por_id"]
+            isOneToOne: false
             referencedRelation: "perfis_usuario"
             referencedColumns: ["id"]
           },
@@ -6115,6 +6206,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "whatsapp_propostas_comerciais"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_aprovacoes_diretoria_solicitado_por_id_fkey"
+            columns: ["solicitado_por_id"]
+            isOneToOne: false
+            referencedRelation: "mv_top_vendedores"
+            referencedColumns: ["vendedor_id"]
           },
           {
             foreignKeyName: "whatsapp_aprovacoes_diretoria_solicitado_por_id_fkey"
@@ -6816,6 +6914,13 @@ export type Database = {
             foreignKeyName: "whatsapp_interacoes_executado_por_id_fkey"
             columns: ["executado_por_id"]
             isOneToOne: false
+            referencedRelation: "mv_top_vendedores"
+            referencedColumns: ["vendedor_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_interacoes_executado_por_id_fkey"
+            columns: ["executado_por_id"]
+            isOneToOne: false
             referencedRelation: "perfis_usuario"
             referencedColumns: ["id"]
           },
@@ -7277,6 +7382,13 @@ export type Database = {
             foreignKeyName: "whatsapp_propostas_comerciais_aprovada_por_id_fkey"
             columns: ["aprovada_por_id"]
             isOneToOne: false
+            referencedRelation: "mv_top_vendedores"
+            referencedColumns: ["vendedor_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_propostas_comerciais_aprovada_por_id_fkey"
+            columns: ["aprovada_por_id"]
+            isOneToOne: false
             referencedRelation: "perfis_usuario"
             referencedColumns: ["id"]
           },
@@ -7662,6 +7774,49 @@ export type Database = {
       }
     }
     Views: {
+      mv_dashboard_kpis: {
+        Row: {
+          atualizado_em: string | null
+          taxa_conversao: number | null
+          tickets_abertos: number | null
+          total_clientes: number | null
+          total_produtos: number | null
+          total_vendas: number | null
+          valor_pipeline_ativo: number | null
+        }
+        Relationships: []
+      }
+      mv_pipeline_por_etapa: {
+        Row: {
+          atualizado_em: string | null
+          etapa: string | null
+          etapa_label: string | null
+          quantidade: number | null
+          valor_total: number | null
+        }
+        Relationships: []
+      }
+      mv_top_vendedores: {
+        Row: {
+          atualizado_em: string | null
+          meta: number | null
+          nome: string | null
+          percentual: number | null
+          realizado: number | null
+          vendedor_id: string | null
+        }
+        Relationships: []
+      }
+      mv_vendas_por_mes: {
+        Row: {
+          atualizado_em: string | null
+          mes: string | null
+          mes_abrev: string | null
+          quantidade: number | null
+          valor_total: number | null
+        }
+        Relationships: []
+      }
       vw_analise_ia_dashboard: {
         Row: {
           analises_com_erro: number | null
@@ -7766,6 +7921,13 @@ export type Database = {
           valor_objetivo: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "metas_equipe_criado_por_fkey"
+            columns: ["criado_por"]
+            isOneToOne: false
+            referencedRelation: "mv_top_vendedores"
+            referencedColumns: ["vendedor_id"]
+          },
           {
             foreignKeyName: "metas_equipe_criado_por_fkey"
             columns: ["criado_por"]
@@ -8191,6 +8353,7 @@ export type Database = {
           tipo_interacao: string
         }[]
       }
+      refresh_dashboard_views: { Args: never; Returns: undefined }
       registrar_feedback_ia: {
         Args: {
           p_feedback_tipo: string
