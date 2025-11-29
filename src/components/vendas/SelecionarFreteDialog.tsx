@@ -19,6 +19,7 @@ import { cn } from "@/lib/utils";
 export interface TransportadoraOption {
   cod_transp: number;
   nome_transp: string;
+  cnpj_transp: string;
   vl_tot_frete: number;
   prazo_entrega: number;
   vl_tde: number;
@@ -120,6 +121,7 @@ export function SelecionarFreteDialog({
     return sortedTransportadoras.filter(t =>
       t.cod_transp.toString().includes(term) ||
       t.nome_transp.toLowerCase().includes(term) ||
+      (t.cnpj_transp && t.cnpj_transp.includes(term)) ||
       (t.bloqueio && t.bloqueio.toLowerCase().includes(term))
     );
   }, [sortedTransportadoras, searchTerm]);
@@ -231,9 +233,10 @@ export function SelecionarFreteDialog({
             className="space-y-0"
           >
             {/* Header */}
-            <div className="grid grid-cols-[70px_1fr_100px_110px_90px_140px] gap-3 px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-200 bg-gray-100/80 sticky top-0 z-10">
+            <div className="grid grid-cols-[70px_1fr_130px_100px_110px_90px_140px] gap-3 px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-200 bg-gray-100/80 sticky top-0 z-10">
               <span>Código</span>
               <span>Transportadora</span>
+              <span>CNPJ</span>
               <span className="text-center">Prazo</span>
               <span className="text-right">Valor Frete</span>
               <span className="text-right">Valor TDE</span>
@@ -259,7 +262,7 @@ export function SelecionarFreteDialog({
                   <div
                     key={transportadora.cod_transp}
                     className={cn(
-                      "grid grid-cols-[70px_1fr_100px_110px_90px_140px] gap-3 items-center px-4 py-3.5 transition-all cursor-pointer border-b border-gray-100 bg-white",
+                      "grid grid-cols-[70px_1fr_130px_100px_110px_90px_140px] gap-3 items-center px-4 py-3.5 transition-all cursor-pointer border-b border-gray-100 bg-white",
                       isSelected
                         ? "bg-primary/5 ring-1 ring-primary/20"
                         : "hover:bg-gray-50",
@@ -287,6 +290,11 @@ export function SelecionarFreteDialog({
                     >
                       {transportadora.nome_transp}
                     </Label>
+
+                    {/* CNPJ */}
+                    <span className="text-xs text-gray-500 font-mono">
+                      {transportadora.cnpj_transp || "-"}
+                    </span>
 
                     {/* Prazo */}
                     <div className="text-center text-sm text-gray-500">
