@@ -5304,18 +5304,21 @@ export type Database = {
       }
       tipos_frete: {
         Row: {
+          api_tipo_frete: string | null
           cod_canal_venda: number | null
           created_at: string
           id: string
           nome: string
         }
         Insert: {
+          api_tipo_frete?: string | null
           cod_canal_venda?: number | null
           created_at?: string
           id?: string
           nome: string
         }
         Update: {
+          api_tipo_frete?: string | null
           cod_canal_venda?: number | null
           created_at?: string
           id?: string
