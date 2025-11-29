@@ -732,7 +732,11 @@ export default function VendaDetalhes() {
               <Label>Endereço de Entrega</Label>
               <Select 
                 value={enderecoEntregaId} 
-                onValueChange={setEnderecoEntregaId}
+                onValueChange={(value) => {
+                  setEnderecoEntregaId(value);
+                  setFreteCalculado(false);
+                  setValorFrete(0);
+                }}
                 disabled={isLoadingEnderecos}
               >
                 <SelectTrigger className="mt-2">
@@ -772,7 +776,11 @@ export default function VendaDetalhes() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label>Tipo de Frete</Label>
-              <Select value={tipoFreteId} onValueChange={setTipoFreteId}>
+              <Select value={tipoFreteId} onValueChange={(value) => {
+                setTipoFreteId(value);
+                setFreteCalculado(false);
+                setValorFrete(0);
+              }}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione..." />
                 </SelectTrigger>
