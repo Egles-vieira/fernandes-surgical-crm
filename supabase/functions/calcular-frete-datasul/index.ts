@@ -128,7 +128,6 @@ Deno.serve(async (req) => {
         cliente_nome,
         condicao_pagamento_id,
         vendedor_id,
-        empresa_id,
         tipo_pedido_id
       `)
       .eq("id", venda_id)
@@ -272,11 +271,12 @@ Deno.serve(async (req) => {
       // =========== API FOB ===========
       console.log(`[FRETE] Usando API FOB: ${DATASUL_FOB_URL}`);
       
-      // Buscar dados adicionais necessários para FOB
+      // Buscar dados adicionais necessários para FOB (empresa ativa)
       const { data: empresa } = await supabase
         .from("empresas")
         .select("codigo_estabelecimento, natureza_operacao, tabela_preco")
-        .eq("id", venda.empresa_id)
+        .eq("esta_ativa", true)
+        .limit(1)
         .single();
 
       const { data: condicaoPag } = await supabase
