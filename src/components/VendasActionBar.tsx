@@ -169,28 +169,6 @@ export function VendasActionBar({
             Cancelar
           </Button>
           
-          {onSalvar && (
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={onSalvar} 
-              disabled={isSaving} 
-              className="gap-2"
-            >
-              {isSaving ? (
-                <>
-                  <Loader2 className="animate-spin" size={16} />
-                  Salvando...
-                </>
-              ) : (
-                <>
-                  <Save size={16} />
-                  Salvar
-                </>
-              )}
-            </Button>
-          )}
-          
           <Button variant="outline" size="sm" onClick={onDiretoria} className="gap-2">
             <ShieldCheck size={16} />
             Diretoria
