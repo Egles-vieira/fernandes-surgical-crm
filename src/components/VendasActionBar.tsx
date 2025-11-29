@@ -103,7 +103,13 @@ export function VendasActionBar({
           )}
           <div className="h-6 w-px bg-border mx-2" />
           
-          <Save size={16} className="text-muted-foreground" />
+          {onSalvar && (
+            <Save 
+              size={16} 
+              className="text-muted-foreground hover:text-primary cursor-pointer transition-colors" 
+              onClick={onSalvar}
+            />
+          )}
           
           {/* Badge de Frete Calculado */}
           {freteCalculado && (
