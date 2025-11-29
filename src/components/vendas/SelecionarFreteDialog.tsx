@@ -100,7 +100,7 @@ export function SelecionarFreteDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[650px] max-h-[90vh] bg-white border-0 shadow-2xl">
+      <DialogContent className="sm:max-w-[900px] max-h-[90vh] bg-white border-0 shadow-2xl">
         <DialogHeader className="pb-4 border-b border-gray-100">
           <DialogTitle className="flex items-center gap-2 text-gray-900">
             <Truck className="h-5 w-5 text-primary" />
@@ -129,11 +129,14 @@ export function SelecionarFreteDialog({
             className="space-y-0"
           >
             {/* Header */}
-            <div className="grid grid-cols-[1fr_120px_140px_100px] gap-4 px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-200 bg-gray-100/80">
+            <div className="grid grid-cols-[70px_1fr_100px_110px_90px_100px_1fr] gap-3 px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-200 bg-gray-100/80">
+              <span>Código</span>
               <span>Transportadora</span>
               <span className="text-center">Prazo</span>
               <span className="text-right">Valor Frete</span>
+              <span className="text-right">Valor TDE</span>
               <span className="text-center">Status</span>
+              <span>Bloqueio</span>
             </div>
 
             {sortedTransportadoras.map((transportadora, index) => {
@@ -147,36 +150,41 @@ export function SelecionarFreteDialog({
                 <div
                   key={transportadora.cod_transp}
                   className={cn(
-                    "grid grid-cols-[1fr_120px_140px_100px] gap-4 items-center px-4 py-3.5 transition-all cursor-pointer border-b border-gray-100 bg-white",
+                    "grid grid-cols-[70px_1fr_100px_110px_90px_100px_1fr] gap-3 items-center px-4 py-3.5 transition-all cursor-pointer border-b border-gray-100 bg-white",
                     isSelected
                       ? "bg-primary/5 ring-1 ring-primary/20"
                       : "hover:bg-gray-50",
-                    hasBloqueio && "opacity-50 cursor-not-allowed bg-gray-50"
+                    hasBloqueio && "cursor-not-allowed bg-red-50/50"
                   )}
                   onClick={() => !hasBloqueio && setSelectedId(transportadora.cod_transp.toString())}
                 >
-                  {/* Transportadora */}
-                  <div className="flex items-center gap-3">
+                  {/* Código */}
+                  <div className="flex items-center gap-2">
                     <RadioGroupItem
                       value={transportadora.cod_transp.toString()}
                       id={`transp-${transportadora.cod_transp}`}
                       disabled={hasBloqueio}
                       className="border-gray-300 text-primary"
                     />
-                    <Label
-                      htmlFor={`transp-${transportadora.cod_transp}`}
-                      className="font-medium text-sm cursor-pointer text-gray-800"
-                    >
-                      {index + 1}º {transportadora.nome_transp}
-                    </Label>
+                    <span className="text-xs text-gray-500 font-mono">
+                      {transportadora.cod_transp}
+                    </span>
                   </div>
+
+                  {/* Transportadora */}
+                  <Label
+                    htmlFor={`transp-${transportadora.cod_transp}`}
+                    className="font-medium text-sm cursor-pointer text-gray-800"
+                  >
+                    {index + 1}º {transportadora.nome_transp}
+                  </Label>
 
                   {/* Prazo */}
                   <div className="text-center text-sm text-gray-500">
                     {formatPrazo(transportadora.prazo_entrega)}
                   </div>
 
-                  {/* Valor */}
+                  {/* Valor Frete */}
                   <div className="text-right">
                     <span className={cn(
                       "font-bold text-sm",
@@ -186,14 +194,21 @@ export function SelecionarFreteDialog({
                     </span>
                   </div>
 
+                  {/* Valor TDE */}
+                  <div className="text-right">
+                    <span className="text-sm text-gray-600">
+                      {formatCurrency(transportadora.vl_tde)}
+                    </span>
+                  </div>
+
                   {/* Status/Badges */}
                   <div className="flex justify-center">
-                    {isMaisBarato && (
+                    {isMaisBarato && !hasBloqueio && (
                       <Badge className="bg-emerald-100 text-emerald-700 border-0 text-xs font-medium">
                         Menor
                       </Badge>
                     )}
-                    {isMaisRapido && !isMaisBarato && (
+                    {isMaisRapido && !isMaisBarato && !hasBloqueio && (
                       <Badge className="bg-blue-100 text-blue-700 border-0 text-xs font-medium">
                         Rápido
                       </Badge>
@@ -202,6 +217,17 @@ export function SelecionarFreteDialog({
                       <Badge variant="destructive" className="text-xs">
                         Bloqueado
                       </Badge>
+                    )}
+                  </div>
+
+                  {/* Bloqueio */}
+                  <div className="text-sm">
+                    {hasBloqueio ? (
+                      <span className="text-red-600 font-medium">
+                        {transportadora.bloqueio}
+                      </span>
+                    ) : (
+                      <span className="text-gray-400">-</span>
                     )}
                   </div>
                 </div>
