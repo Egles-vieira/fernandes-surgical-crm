@@ -605,6 +605,9 @@ export default function VendaDetalhes() {
     if (resultado?.success) {
       setFreteCalculado(true);
       setValorFrete(resultado.valor_frete || 0);
+      
+      // Salvar proposta automaticamente após confirmar frete
+      await handleSalvar();
     }
   };
 
