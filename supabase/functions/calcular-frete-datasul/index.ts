@@ -44,6 +44,17 @@ interface VendaItem {
   };
 }
 
+// Interface para as opções de transportadora retornadas pela API
+interface TransportadoraOption {
+  cod_transp: number;
+  nome_transp: string;
+  vl_tot_frete: number;
+  prazo_entrega: number;
+  vl_tde: number;
+  bloqueio: string;
+  orig: boolean;
+}
+
 Deno.serve(async (req) => {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
@@ -250,33 +261,20 @@ Deno.serve(async (req) => {
       tempoApi = performance.now() - apiStartTime;
       
       console.log(`[FRETE] API respondeu em ${tempoApi.toFixed(0)}ms | Status: ${apiResponse.status}`);
-      console.log(`[FRETE] Resposta: ${apiResponseText.substring(0, 500)}`);
+      console.log(`[FRETE] Resposta: ${apiResponseText.substring(0, 1000)}`);
     } catch (fetchError: any) {
       tempoApi = performance.now() - apiStartTime;
       throw new Error(`Falha na comunicação com Datasul: ${fetchError.message}`);
     }
 
     // =============================================================
-    // 8. PROCESSAR RESPOSTA DA API
+    // 8. PROCESSAR RESPOSTA DA API - EXTRAIR TRANSPORTADORAS
     // =============================================================
     let responseData;
     try {
       responseData = JSON.parse(apiResponseText);
     } catch {
       throw new Error(`Resposta inválida do Datasul (não é JSON): ${apiResponseText.substring(0, 200)}`);
-    }
-
-    // Extrair valor do frete da resposta
-    // A estrutura esperada pode variar - ajustar conforme documentação real
-    let valorFrete = 0;
-    
-    if (responseData["tt-retorno"] && responseData["tt-retorno"].length > 0) {
-      const retorno = responseData["tt-retorno"][0];
-      valorFrete = retorno["vl-frete"] || retorno["valor-frete"] || retorno["vlFrete"] || 0;
-    } else if (responseData["vl-frete"]) {
-      valorFrete = responseData["vl-frete"];
-    } else if (responseData["valor_frete"]) {
-      valorFrete = responseData["valor_frete"];
     }
 
     // Verificar erros na resposta
@@ -291,26 +289,31 @@ Deno.serve(async (req) => {
       throw new Error(`Datasul retornou erro: ${errorMsg}`);
     }
 
-    console.log(`[FRETE] Valor do frete calculado: R$ ${valorFrete}`);
+    // Extrair array de transportadoras da resposta
+    const transportadoras: TransportadoraOption[] = [];
 
-    // =============================================================
-    // 9. ATUALIZAR VENDA COM VALOR DO FRETE
-    // =============================================================
-    const { error: updateError } = await supabase
-      .from("vendas")
-      .update({
-        frete_calculado: true,
-        frete_calculado_em: new Date().toISOString(),
-        frete_valor: valorFrete
-      })
-      .eq("id", venda_id);
-
-    if (updateError) {
-      console.error(`[FRETE] Erro ao atualizar venda: ${updateError.message}`);
+    if (responseData["tt-frete"] && Array.isArray(responseData["tt-frete"])) {
+      for (const frete of responseData["tt-frete"]) {
+        transportadoras.push({
+          cod_transp: frete["cod-transp"] || 0,
+          nome_transp: frete["nome-transp"] || "Sem nome",
+          vl_tot_frete: frete["vl-tot-frete"] || 0,
+          prazo_entrega: frete["prazo-entrega"] || 0,
+          vl_tde: frete["vl-tde"] || 0,
+          bloqueio: frete["bloqueio"] || "",
+          orig: frete["orig"] || false
+        });
+      }
     }
 
+    if (transportadoras.length === 0) {
+      throw new Error("Nenhuma transportadora retornada pelo Datasul. Verifique o endereço de entrega e tipo de frete.");
+    }
+
+    console.log(`[FRETE] ${transportadoras.length} transportadora(s) encontrada(s)`);
+
     // =============================================================
-    // 10. SALVAR LOG DA INTEGRAÇÃO
+    // 9. SALVAR LOG DA INTEGRAÇÃO (sem atualizar a venda ainda)
     // =============================================================
     const tempoTotal = performance.now() - startTime;
 
@@ -329,11 +332,13 @@ Deno.serve(async (req) => {
 
     console.log(`[FRETE] Cálculo concluído com sucesso em ${tempoTotal.toFixed(0)}ms`);
 
+    // Retornar TODAS as opções de transportadora para o frontend selecionar
     return new Response(
       JSON.stringify({
         success: true,
-        valor_frete: valorFrete,
-        mensagem: `Frete calculado com sucesso: R$ ${valorFrete.toFixed(2)}`,
+        transportadoras,
+        quantidade_opcoes: transportadoras.length,
+        mensagem: `${transportadoras.length} opção(ões) de frete encontrada(s)`,
         tempo_total_ms: Math.round(tempoTotal)
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
