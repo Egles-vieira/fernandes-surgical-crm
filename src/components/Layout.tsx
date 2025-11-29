@@ -53,7 +53,7 @@ const menuItems: MenuItem[] = [{
   }, {
     path: "/vendas/contratos",
     icon: FileText,
-    label: "Relatórios"
+    label: "Gestão de Contratos"
   }]
 }, {
   icon: FileText,
