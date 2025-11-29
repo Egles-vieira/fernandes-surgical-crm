@@ -5711,6 +5711,7 @@ export type Database = {
           datasul_limite_disponivel: number | null
           datasul_msg_credito: string | null
           desconto: number
+          endereco_entrega_id: string | null
           equipe_id: string | null
           etapa_pipeline: Database["public"]["Enums"]["etapa_pipeline"] | null
           faturamento_parcial: Database["public"]["Enums"]["yes_no"] | null
@@ -5755,6 +5756,7 @@ export type Database = {
           datasul_limite_disponivel?: number | null
           datasul_msg_credito?: string | null
           desconto?: number
+          endereco_entrega_id?: string | null
           equipe_id?: string | null
           etapa_pipeline?: Database["public"]["Enums"]["etapa_pipeline"] | null
           faturamento_parcial?: Database["public"]["Enums"]["yes_no"] | null
@@ -5799,6 +5801,7 @@ export type Database = {
           datasul_limite_disponivel?: number | null
           datasul_msg_credito?: string | null
           desconto?: number
+          endereco_entrega_id?: string | null
           equipe_id?: string | null
           etapa_pipeline?: Database["public"]["Enums"]["etapa_pipeline"] | null
           faturamento_parcial?: Database["public"]["Enums"]["yes_no"] | null
@@ -5845,6 +5848,13 @@ export type Database = {
             columns: ["condicao_pagamento_id"]
             isOneToOne: false
             referencedRelation: "condicoes_pagamento"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendas_endereco_entrega_id_fkey"
+            columns: ["endereco_entrega_id"]
+            isOneToOne: false
+            referencedRelation: "enderecos_clientes"
             referencedColumns: ["id"]
           },
           {

@@ -25,6 +25,7 @@ import { useTiposPedido } from "@/hooks/useTiposPedido";
 import { useVendedores } from "@/hooks/useVendedores";
 import { useDatasulCalculaPedido } from "@/hooks/useDatasulCalculaPedido";
 import { useContatosCliente } from "@/hooks/useContatosCliente";
+import { useEnderecosCliente } from "@/hooks/useEnderecosCliente";
 import { useColumnVisibility } from "@/hooks/useColumnVisibility";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useEmpresa } from "@/hooks/useEmpresa";
@@ -116,9 +117,10 @@ export default function VendaDetalhes() {
     empresa
   } = useEmpresa();
   
-  // Estado para guardar o cliente_id para buscar contatos
+  // Estado para guardar o cliente_id para buscar contatos e endereços
   const [contatoClienteId, setContatoClienteId] = useState<string | null>(null);
   const { contatos: contatosCliente } = useContatosCliente(contatoClienteId);
+  const { enderecos: enderecosCliente, isLoading: isLoadingEnderecos } = useEnderecosCliente(contatoClienteId);
   
   const {
     visibleColumns,
@@ -158,6 +160,7 @@ export default function VendaDetalhes() {
   const [validadeProposta, setValidadeProposta] = useState<string>("");
   const [faturamentoParcial, setFaturamentoParcial] = useState(false);
   const [dataFaturamentoProgramado, setDataFaturamentoProgramado] = useState<string>("");
+  const [enderecoEntregaId, setEnderecoEntregaId] = useState<string>("");
 
   // Pagination states for items table
   const [currentItemsPage, setCurrentItemsPage] = useState(1);
@@ -188,6 +191,7 @@ export default function VendaDetalhes() {
         setValidadeProposta(vendaCarregada.validade_proposta || "");
         setFaturamentoParcial(vendaCarregada.faturamento_parcial === "YES");
         setDataFaturamentoProgramado((vendaCarregada as any).data_faturamento_programado || "");
+        setEnderecoEntregaId((vendaCarregada as any).endereco_entrega_id || "");
 
         // Carregar cliente
         if (vendaCarregada.cliente_id) {
@@ -389,6 +393,7 @@ export default function VendaDetalhes() {
   const handleSelecionarCliente = (cliente: Cliente) => {
     setClienteSelecionado(cliente);
     setContatoClienteId(cliente.id);
+    setEnderecoEntregaId(""); // Reset ao trocar cliente
     setShowClienteSearch(false);
   };
   const handleSalvar = async () => {
@@ -426,7 +431,8 @@ export default function VendaDetalhes() {
         responsavel_id: responsavelId || null,
         validade_proposta: validadeProposta || null,
         faturamento_parcial: faturamentoParcial ? "YES" : "NO",
-        data_faturamento_programado: dataFaturamentoProgramado || null
+        data_faturamento_programado: dataFaturamentoProgramado || null,
+        endereco_entrega_id: enderecoEntregaId || null
       } as any);
 
       // Adicionar novos itens com sequencia_item
@@ -631,6 +637,46 @@ export default function VendaDetalhes() {
                 Buscar Cliente
               </Button>}
           </div>
+
+          {/* Endereço de Entrega */}
+          {clienteSelecionado && (
+            <div>
+              <Label>Endereço de Entrega</Label>
+              <Select 
+                value={enderecoEntregaId} 
+                onValueChange={setEnderecoEntregaId}
+                disabled={isLoadingEnderecos}
+              >
+                <SelectTrigger className="mt-2">
+                  <SelectValue placeholder={
+                    isLoadingEnderecos 
+                      ? "Carregando endereços..." 
+                      : enderecosCliente.length === 0 
+                        ? "Nenhum endereço cadastrado" 
+                        : "Selecione o endereço..."
+                  } />
+                </SelectTrigger>
+                <SelectContent>
+                  {enderecosCliente.map(endereco => (
+                    <SelectItem key={endereco.id} value={endereco.id}>
+                      <div className="flex flex-col">
+                        <span className="font-medium">
+                          {endereco.is_principal && "⭐ "}
+                          {endereco.endereco}
+                          {endereco.tipo === "entrega" && " (Entrega)"}
+                          {endereco.tipo === "cobranca" && " (Cobrança)"}
+                          {endereco.tipo === "principal" && " (Principal)"}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          {endereco.bairro}, {endereco.cidade}/{endereco.estado} - CEP: {endereco.cep}
+                        </span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <Separator />
 
