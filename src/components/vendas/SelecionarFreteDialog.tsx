@@ -139,20 +139,18 @@ export function SelecionarFreteDialog({
             className="space-y-0"
           >
             {/* Header */}
-            <div className="grid grid-cols-[70px_1fr_100px_110px_90px_100px_1fr] gap-3 px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-200 bg-gray-100/80">
+            <div className="grid grid-cols-[70px_1fr_100px_110px_90px_1fr] gap-3 px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-200 bg-gray-100/80">
               <span>Código</span>
               <span>Transportadora</span>
               <span className="text-center">Prazo</span>
               <span className="text-right">Valor Frete</span>
               <span className="text-right">Valor TDE</span>
-              <span className="text-center">Status</span>
               <span>Bloqueio</span>
             </div>
 
             {sortedTransportadoras.map((transportadora, index) => {
               const isMelhorOpcao = melhorOpcao?.cod_transp === transportadora.cod_transp && transportadora.prazo_entrega > 0;
               const isMaisBarato = maisBarato?.cod_transp === transportadora.cod_transp && !isMelhorOpcao;
-              const isMaisRapido = maisRapidoComPrazo?.cod_transp === transportadora.cod_transp && !isMelhorOpcao && transportadora.prazo_entrega > 0;
               const hasBloqueio = transportadora.bloqueio && transportadora.bloqueio.trim() !== "";
               const isSelected = selectedId === transportadora.cod_transp.toString();
 
@@ -160,7 +158,7 @@ export function SelecionarFreteDialog({
                 <div
                   key={transportadora.cod_transp}
                   className={cn(
-                    "grid grid-cols-[70px_1fr_100px_110px_90px_100px_1fr] gap-3 items-center px-4 py-3.5 transition-all cursor-pointer border-b border-gray-100 bg-white",
+                    "grid grid-cols-[70px_1fr_100px_110px_90px_1fr] gap-3 items-center px-4 py-3.5 transition-all cursor-pointer border-b border-gray-100 bg-white",
                     isSelected
                       ? "bg-primary/5 ring-1 ring-primary/20"
                       : "hover:bg-gray-50",
@@ -209,30 +207,6 @@ export function SelecionarFreteDialog({
                     <span className="text-sm text-gray-600">
                       {formatCurrency(transportadora.vl_tde)}
                     </span>
-                  </div>
-
-                  {/* Status/Badges */}
-                  <div className="flex justify-center">
-                    {isMelhorOpcao && !hasBloqueio && (
-                      <Badge className="bg-amber-100 text-amber-700 border-0 text-xs font-medium">
-                        Melhor opção
-                      </Badge>
-                    )}
-                    {isMaisBarato && !hasBloqueio && (
-                      <Badge className="bg-emerald-100 text-emerald-700 border-0 text-xs font-medium">
-                        Menor
-                      </Badge>
-                    )}
-                    {isMaisRapido && !hasBloqueio && (
-                      <Badge className="bg-blue-100 text-blue-700 border-0 text-xs font-medium">
-                        Rápido
-                      </Badge>
-                    )}
-                    {hasBloqueio && (
-                      <Badge variant="destructive" className="text-xs">
-                        Bloqueado
-                      </Badge>
-                    )}
                   </div>
 
                   {/* Bloqueio */}
