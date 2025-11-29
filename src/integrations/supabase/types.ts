@@ -3441,6 +3441,56 @@ export type Database = {
           },
         ]
       }
+      integracoes_totvs_calcula_frete: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          id: string
+          numero_venda: string
+          request_payload: string
+          response_payload: string | null
+          status: string
+          tempo_api_ms: number | null
+          tempo_preparacao_dados_ms: number | null
+          tempo_resposta_ms: number | null
+          venda_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          numero_venda: string
+          request_payload: string
+          response_payload?: string | null
+          status?: string
+          tempo_api_ms?: number | null
+          tempo_preparacao_dados_ms?: number | null
+          tempo_resposta_ms?: number | null
+          venda_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          numero_venda?: string
+          request_payload?: string
+          response_payload?: string | null
+          status?: string
+          tempo_api_ms?: number | null
+          tempo_preparacao_dados_ms?: number | null
+          tempo_resposta_ms?: number | null
+          venda_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integracoes_totvs_calcula_frete_venda_id_fkey"
+            columns: ["venda_id"]
+            isOneToOne: false
+            referencedRelation: "vendas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       integracoes_totvs_calcula_pedido: {
         Row: {
           created_at: string | null
@@ -5715,6 +5765,9 @@ export type Database = {
           equipe_id: string | null
           etapa_pipeline: Database["public"]["Enums"]["etapa_pipeline"] | null
           faturamento_parcial: Database["public"]["Enums"]["yes_no"] | null
+          frete_calculado: boolean | null
+          frete_calculado_em: string | null
+          frete_valor: number | null
           id: string
           motivo_perda: string | null
           numero_venda: string
@@ -5760,6 +5813,9 @@ export type Database = {
           equipe_id?: string | null
           etapa_pipeline?: Database["public"]["Enums"]["etapa_pipeline"] | null
           faturamento_parcial?: Database["public"]["Enums"]["yes_no"] | null
+          frete_calculado?: boolean | null
+          frete_calculado_em?: string | null
+          frete_valor?: number | null
           id?: string
           motivo_perda?: string | null
           numero_venda: string
@@ -5805,6 +5861,9 @@ export type Database = {
           equipe_id?: string | null
           etapa_pipeline?: Database["public"]["Enums"]["etapa_pipeline"] | null
           faturamento_parcial?: Database["public"]["Enums"]["yes_no"] | null
+          frete_calculado?: boolean | null
+          frete_calculado_em?: string | null
+          frete_valor?: number | null
           id?: string
           motivo_perda?: string | null
           numero_venda?: string

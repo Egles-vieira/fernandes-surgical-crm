@@ -90,6 +90,9 @@ verify_jwt = false
 [functions.calcular-pedido-datasul]
 verify_jwt = true
 
+[functions.calcular-frete-datasul]
+verify_jwt = true
+
 [functions.agente-vendas-whatsapp]
 verify_jwt = false
 
