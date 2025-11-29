@@ -6,7 +6,7 @@ const corsHeaders = {
 };
 
 // Configurações da API Datasul
-const DATASUL_API_URL = "http://172.19.245.25:8080/api/rest-api/v1/CalculaFrete";
+const DATASUL_API_URL = "https://limnetic-ara-unveridically.ngrok-free.dev/datasul/calcula-frete";
 const DATASUL_AUTH = "Basic aW50ZWdyYWNhbzpjZjA3MDM4OA==";
 const DATASUL_SERVER_ALIAS = "crm";
 const DATASUL_COMPANY_ID = "1";
