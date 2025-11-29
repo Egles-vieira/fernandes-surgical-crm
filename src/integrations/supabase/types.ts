@@ -5254,16 +5254,19 @@ export type Database = {
       }
       tipos_frete: {
         Row: {
+          cod_canal_venda: number | null
           created_at: string
           id: string
           nome: string
         }
         Insert: {
+          cod_canal_venda?: number | null
           created_at?: string
           id?: string
           nome: string
         }
         Update: {
+          cod_canal_venda?: number | null
           created_at?: string
           id?: string
           nome?: string
