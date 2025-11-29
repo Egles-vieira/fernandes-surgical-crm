@@ -39,6 +39,7 @@ import { IntegracaoDatasulLog } from "@/components/IntegracaoDatasulLog";
 import { DatasulErrorDialog } from "@/components/vendas/DatasulErrorDialog";
 import { EditarItemVendaDialog } from "@/components/vendas/EditarItemVendaDialog";
 import { SortableItemRow } from "@/components/vendas/SortableItemRow";
+import { SelecionarFreteDialog, TransportadoraOption } from "@/components/vendas/SelecionarFreteDialog";
 import { Tables } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -109,10 +110,15 @@ export default function VendaDetalhes() {
   } = useDatasulCalculaPedido();
   const {
     calcularFrete,
+    confirmarFrete,
     isCalculatingFrete,
+    isConfirmingFrete,
     freteErrorData,
     showFreteErrorDialog,
-    closeFreteErrorDialog
+    closeFreteErrorDialog,
+    transportadoras,
+    showSelectionDialog,
+    setShowSelectionDialog
   } = useDatasulCalculaFrete();
   const {
     data: userRoleData
@@ -579,19 +585,26 @@ export default function VendaDetalhes() {
       // Salvar antes de calcular frete
       await handleSalvar();
       
-      // Calcular frete
-      const resultado = await calcularFrete(venda.id);
-      
-      if (resultado?.success) {
-        setFreteCalculado(true);
-        setValorFrete(resultado.valor_frete || 0);
-      }
+      // Calcular frete - abre o modal de seleção de transportadora
+      await calcularFrete(venda.id);
     } catch (error: any) {
       toast({
         title: "Erro ao calcular frete",
         description: error.message || "Ocorreu um erro ao calcular o frete",
         variant: "destructive"
       });
+    }
+  };
+
+  // Confirmar seleção de transportadora
+  const handleConfirmarFrete = async (transportadora: TransportadoraOption) => {
+    if (!venda) return;
+    
+    const resultado = await confirmarFrete(venda.id, transportadora);
+    
+    if (resultado?.success) {
+      setFreteCalculado(true);
+      setValorFrete(resultado.valor_frete || 0);
     }
   };
 
@@ -1010,6 +1023,15 @@ export default function VendaDetalhes() {
     }} />
 
       <EditarItemVendaDialog open={showEditarItem} onOpenChange={setShowEditarItem} item={itemEditando} onSave={handleSalvarEdicaoItem} />
+
+      {/* Modal de Seleção de Transportadora */}
+      <SelecionarFreteDialog
+        open={showSelectionDialog}
+        onOpenChange={setShowSelectionDialog}
+        transportadoras={transportadoras}
+        onSelect={handleConfirmarFrete}
+        isConfirming={isConfirmingFrete}
+      />
 
       {/* Logs do Cálculo Datasul */}
       {isAdmin && venda && <Card className="p-6 mx-[10px] mt-6" id="integracao-log">

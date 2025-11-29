@@ -93,6 +93,9 @@ verify_jwt = true
 [functions.calcular-frete-datasul]
 verify_jwt = true
 
+[functions.confirmar-frete-datasul]
+verify_jwt = true
+
 [functions.agente-vendas-whatsapp]
 verify_jwt = false
 

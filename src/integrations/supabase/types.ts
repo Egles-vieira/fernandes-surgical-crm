@@ -5773,12 +5773,15 @@ export type Database = {
           numero_venda: string
           observacoes: string | null
           origem_lead: string | null
+          prazo_entrega_dias: number | null
           probabilidade: number | null
           requer_aprovacao: boolean | null
           responsavel_id: string | null
           status: string
           tipo_frete_id: string | null
           tipo_pedido_id: string | null
+          transportadora_cod: number | null
+          transportadora_nome: string | null
           ultima_integracao_datasul_em: string | null
           ultima_integracao_datasul_requisicao: string | null
           ultima_integracao_datasul_resposta: string | null
@@ -5821,12 +5824,15 @@ export type Database = {
           numero_venda: string
           observacoes?: string | null
           origem_lead?: string | null
+          prazo_entrega_dias?: number | null
           probabilidade?: number | null
           requer_aprovacao?: boolean | null
           responsavel_id?: string | null
           status?: string
           tipo_frete_id?: string | null
           tipo_pedido_id?: string | null
+          transportadora_cod?: number | null
+          transportadora_nome?: string | null
           ultima_integracao_datasul_em?: string | null
           ultima_integracao_datasul_requisicao?: string | null
           ultima_integracao_datasul_resposta?: string | null
@@ -5869,12 +5875,15 @@ export type Database = {
           numero_venda?: string
           observacoes?: string | null
           origem_lead?: string | null
+          prazo_entrega_dias?: number | null
           probabilidade?: number | null
           requer_aprovacao?: boolean | null
           responsavel_id?: string | null
           status?: string
           tipo_frete_id?: string | null
           tipo_pedido_id?: string | null
+          transportadora_cod?: number | null
+          transportadora_nome?: string | null
           ultima_integracao_datasul_em?: string | null
           ultima_integracao_datasul_requisicao?: string | null
           ultima_integracao_datasul_resposta?: string | null
