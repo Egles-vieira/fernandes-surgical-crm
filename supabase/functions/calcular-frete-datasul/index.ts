@@ -348,7 +348,7 @@ Deno.serve(async (req) => {
         transportadoras = responseData["tt-frete"].map((frete: any) => ({
           cod_transp: frete["cod-transp"] || 0,
           nome_transp: frete["nome-transp"] || "Sem nome",
-          cnpj_transp: frete["cgc-transp"] || frete["cnpj-transp"] || "",
+          cnpj_transp: frete["cnpj"] || frete["cgc-transp"] || "",
           vl_tot_frete: frete["vl-tot-frete"] || 0,
           prazo_entrega: frete["prazo-entrega"] || 0,
           vl_tde: frete["vl-tde"] || 0,
@@ -408,7 +408,7 @@ Deno.serve(async (req) => {
         transportadoras = responseData["tt-frete"].map((frete: any) => ({
           cod_transp: frete["cod-transp"] || 0,
           nome_transp: frete["nome-transp"] || "Sem nome",
-          cnpj_transp: frete["cgc-transp"] || frete["cnpj-transp"] || "",
+          cnpj_transp: frete["cnpj"] || frete["cgc-transp"] || "",
           vl_tot_frete: frete["vl-tot-frete"] || 0,
           prazo_entrega: frete["prazo-entrega"] || 0,
           vl_tde: frete["vl-tde"] || 0,
