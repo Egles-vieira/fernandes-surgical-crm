@@ -59,19 +59,29 @@ export function SelecionarFreteDialog({
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<"preco" | "prazo">("preco");
 
-  // Identificar mais barato e mais rápido
-  const { maisBarato, maisRapido, sortedTransportadoras } = useMemo(() => {
+  // Identificar mais barato e mais rápido (excluindo prazo 0)
+  const { maisBarato, maisRapidoComPrazo, melhorOpcao, sortedTransportadoras } = useMemo(() => {
     if (transportadoras.length === 0) {
-      return { maisBarato: null, maisRapido: null, sortedTransportadoras: [] };
+      return { maisBarato: null, maisRapidoComPrazo: null, melhorOpcao: null, sortedTransportadoras: [] };
     }
 
+    // Mais barato (menor vl_tot_frete)
     const maisBarato = transportadoras.reduce((min, t) =>
       t.vl_tot_frete < min.vl_tot_frete ? t : min
     );
 
-    const maisRapido = transportadoras.reduce((min, t) =>
-      t.prazo_entrega < min.prazo_entrega ? t : min
-    );
+    // Mais rápido excluindo prazo 0
+    const transportadorasComPrazo = transportadoras.filter(t => t.prazo_entrega > 0);
+    const maisRapidoComPrazo = transportadorasComPrazo.length > 0
+      ? transportadorasComPrazo.reduce((min, t) =>
+          t.prazo_entrega < min.prazo_entrega ? t : min
+        )
+      : null;
+
+    // Melhor opção: menor preço E menor prazo (excluindo 0)
+    const melhorOpcao = maisRapidoComPrazo && maisBarato.cod_transp === maisRapidoComPrazo.cod_transp
+      ? maisBarato
+      : null;
 
     const sorted = [...transportadoras].sort((a, b) => {
       if (sortBy === "preco") {
@@ -80,7 +90,7 @@ export function SelecionarFreteDialog({
       return a.prazo_entrega - b.prazo_entrega;
     });
 
-    return { maisBarato, maisRapido, sortedTransportadoras: sorted };
+    return { maisBarato, maisRapidoComPrazo, melhorOpcao, sortedTransportadoras: sorted };
   }, [transportadoras, sortBy]);
 
   const selectedTransportadora = useMemo(() => {
@@ -140,9 +150,9 @@ export function SelecionarFreteDialog({
             </div>
 
             {sortedTransportadoras.map((transportadora, index) => {
-              const isMaisBarato = maisBarato?.cod_transp === transportadora.cod_transp;
-              const isMaisRapido = maisRapido?.cod_transp === transportadora.cod_transp && 
-                                   transportadora.prazo_entrega === 0;
+              const isMelhorOpcao = melhorOpcao?.cod_transp === transportadora.cod_transp;
+              const isMaisBarato = maisBarato?.cod_transp === transportadora.cod_transp && !isMelhorOpcao;
+              const isMaisRapido = maisRapidoComPrazo?.cod_transp === transportadora.cod_transp && !isMelhorOpcao;
               const hasBloqueio = transportadora.bloqueio && transportadora.bloqueio.trim() !== "";
               const isSelected = selectedId === transportadora.cod_transp.toString();
 
@@ -188,7 +198,7 @@ export function SelecionarFreteDialog({
                   <div className="text-right">
                     <span className={cn(
                       "font-bold text-sm",
-                      isMaisBarato ? "text-emerald-600" : "text-gray-900"
+                      (isMaisBarato || isMelhorOpcao) ? "text-emerald-600" : "text-gray-900"
                     )}>
                       {formatCurrency(transportadora.vl_tot_frete)}
                     </span>
@@ -203,12 +213,17 @@ export function SelecionarFreteDialog({
 
                   {/* Status/Badges */}
                   <div className="flex justify-center">
+                    {isMelhorOpcao && !hasBloqueio && (
+                      <Badge className="bg-amber-100 text-amber-700 border-0 text-xs font-medium">
+                        Melhor opção
+                      </Badge>
+                    )}
                     {isMaisBarato && !hasBloqueio && (
                       <Badge className="bg-emerald-100 text-emerald-700 border-0 text-xs font-medium">
                         Menor
                       </Badge>
                     )}
-                    {isMaisRapido && !isMaisBarato && !hasBloqueio && (
+                    {isMaisRapido && !hasBloqueio && (
                       <Badge className="bg-blue-100 text-blue-700 border-0 text-xs font-medium">
                         Rápido
                       </Badge>
