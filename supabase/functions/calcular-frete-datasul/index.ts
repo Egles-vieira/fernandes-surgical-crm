@@ -142,12 +142,11 @@ Deno.serve(async (req) => {
       throw new Error(`Tipo de frete não encontrado: ${tipoFreteError?.message}`);
     }
 
-    // REGRA DE NEGÓCIO: A consulta de transportadoras SEMPRE usa cod_canal_venda = 20 (CIF)
-    // independente do tipo de frete selecionado pelo usuário (FOB, CIF, etc.)
-    // O tipo de frete selecionado é apenas para documentação/registro na proposta
-    const COD_CANAL_VENDA_CIF = 20;
+    if (!tipoFrete.cod_canal_venda) {
+      throw new Error(`Tipo de frete "${tipoFrete.nome}" não possui código de canal de venda (cod_canal_venda) configurado`);
+    }
 
-    console.log(`[FRETE] Tipo Frete: ${tipoFrete.nome} - Cliente | cod_canal_venda: ${COD_CANAL_VENDA_CIF} (fixo CIF para consulta)`);
+    console.log(`[FRETE] Tipo Frete: ${tipoFrete.nome} | cod_canal_venda: ${tipoFrete.cod_canal_venda}`);
 
     // =============================================================
     // 4. VALIDAR ENDEREÇO DE ENTREGA E cod_entrega
@@ -229,7 +228,7 @@ Deno.serve(async (req) => {
       "tt-pai": [{
         "cod-emitente": cliente.cod_emitente,
         "cod-entrega": codEntrega,
-        "tt-ped": [{ "cod-canal-venda": COD_CANAL_VENDA_CIF }], // Sempre CIF para consulta de transportadoras
+        "tt-ped": [{ "cod-canal-venda": tipoFrete.cod_canal_venda }],
         "tt-filho": ttFilho
       }]
     };
