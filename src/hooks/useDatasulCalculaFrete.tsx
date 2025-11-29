@@ -6,6 +6,7 @@ import { toast } from "sonner";
 export interface TransportadoraOption {
   cod_transp: number;
   nome_transp: string;
+  cnpj_transp: string;
   vl_tot_frete: number;
   prazo_entrega: number;
   vl_tde: number;
