@@ -150,9 +150,9 @@ export function SelecionarFreteDialog({
             </div>
 
             {sortedTransportadoras.map((transportadora, index) => {
-              const isMelhorOpcao = melhorOpcao?.cod_transp === transportadora.cod_transp;
+              const isMelhorOpcao = melhorOpcao?.cod_transp === transportadora.cod_transp && transportadora.prazo_entrega > 0;
               const isMaisBarato = maisBarato?.cod_transp === transportadora.cod_transp && !isMelhorOpcao;
-              const isMaisRapido = maisRapidoComPrazo?.cod_transp === transportadora.cod_transp && !isMelhorOpcao;
+              const isMaisRapido = maisRapidoComPrazo?.cod_transp === transportadora.cod_transp && !isMelhorOpcao && transportadora.prazo_entrega > 0;
               const hasBloqueio = transportadora.bloqueio && transportadora.bloqueio.trim() !== "";
               const isSelected = selectedId === transportadora.cod_transp.toString();
 
