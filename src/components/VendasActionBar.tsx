@@ -96,7 +96,8 @@ export function VendasActionBar({
                   {etapaPipeline}
                 </Badge>
               )}
-              <h1 className="font-semibold text-base text-foreground tracking-tight">
+              <h1 className="font-semibold text-base text-foreground tracking-tight flex items-center gap-2">
+                <Save size={16} className="text-muted-foreground" />
                 Proposta <span className="text-primary font-bold">#{numeroVenda}</span>
               </h1>
             </div>
