@@ -96,13 +96,14 @@ export function VendasActionBar({
                   {etapaPipeline}
                 </Badge>
               )}
-              <h1 className="font-semibold text-base text-foreground tracking-tight flex items-center gap-2">
+              <h1 className="font-semibold text-base text-foreground tracking-tight">
                 Proposta <span className="text-primary font-bold">#{numeroVenda}</span>
-                <Save size={16} className="text-muted-foreground" />
               </h1>
             </div>
           )}
           <div className="h-6 w-px bg-border mx-2" />
+          
+          <Save size={16} className="text-muted-foreground" />
           
           {/* Badge de Frete Calculado */}
           {freteCalculado && (
