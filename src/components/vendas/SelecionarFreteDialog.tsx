@@ -122,11 +122,11 @@ export function SelecionarFreteDialog({
           </Button>
         </div>
 
-        <ScrollArea className="max-h-[400px] pr-4">
+        <ScrollArea className="max-h-[450px] pr-4">
           <RadioGroup
             value={selectedId || ""}
             onValueChange={setSelectedId}
-            className="space-y-3"
+            className="grid grid-cols-2 gap-3"
           >
             {sortedTransportadoras.map((transportadora) => {
               const isMaisBarato = maisBarato?.cod_transp === transportadora.cod_transp;
@@ -141,7 +141,7 @@ export function SelecionarFreteDialog({
                 <div
                   key={transportadora.cod_transp}
                   className={cn(
-                    "relative flex items-start gap-3 p-4 border rounded-lg transition-all cursor-pointer",
+                    "relative flex flex-col p-4 border rounded-lg transition-all cursor-pointer min-h-[140px]",
                     isSelected
                       ? "border-primary bg-primary/5 ring-1 ring-primary"
                       : "border-border hover:border-primary/50 hover:bg-muted/50",
@@ -149,66 +149,65 @@ export function SelecionarFreteDialog({
                   )}
                   onClick={() => !hasBloqueio && setSelectedId(transportadora.cod_transp.toString())}
                 >
-                  <RadioGroupItem
-                    value={transportadora.cod_transp.toString()}
-                    id={`transp-${transportadora.cod_transp}`}
-                    disabled={hasBloqueio}
-                    className="mt-1"
-                  />
-                  
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <Label
-                        htmlFor={`transp-${transportadora.cod_transp}`}
-                        className="font-semibold text-base cursor-pointer"
-                      >
-                        {transportadora.nome_transp}
-                      </Label>
-                      
-                      {isMaisBarato && (
-                        <Badge variant="secondary" className="bg-success/10 text-success border-success/20 text-xs">
-                          <BadgeCheck className="h-3 w-3 mr-1" />
-                          Mais barato
-                        </Badge>
-                      )}
-                      
-                      {isMaisRapido && !isMaisBarato && (
-                        <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 text-xs">
-                          <Clock className="h-3 w-3 mr-1" />
-                          Mais rápido
-                        </Badge>
-                      )}
-                      
-                      {isCorreios && (
-                        <Badge variant="outline" className="text-xs">
-                          Correios
-                        </Badge>
-                      )}
-                    </div>
+                  <div className="flex items-start gap-2 mb-2">
+                    <RadioGroupItem
+                      value={transportadora.cod_transp.toString()}
+                      id={`transp-${transportadora.cod_transp}`}
+                      disabled={hasBloqueio}
+                      className="mt-0.5"
+                    />
+                    <Label
+                      htmlFor={`transp-${transportadora.cod_transp}`}
+                      className="font-semibold text-sm cursor-pointer line-clamp-2 flex-1"
+                    >
+                      {transportadora.nome_transp}
+                    </Label>
+                  </div>
 
-                    <div className="flex items-center gap-4 mt-2 text-sm">
-                      <span className="font-bold text-lg text-foreground">
-                        {formatCurrency(transportadora.vl_tot_frete)}
-                      </span>
-                      <span className="text-muted-foreground flex items-center gap-1">
-                        <Clock className="h-3.5 w-3.5" />
-                        {formatPrazo(transportadora.prazo_entrega)}
-                      </span>
-                    </div>
-
-                    {hasBloqueio && (
-                      <div className="flex items-center gap-1 mt-2 text-destructive text-sm">
-                        <AlertTriangle className="h-4 w-4" />
-                        <span>Bloqueado: {transportadora.bloqueio}</span>
-                      </div>
+                  <div className="flex flex-wrap gap-1 mb-3">
+                    {isMaisBarato && (
+                      <Badge variant="secondary" className="bg-success/10 text-success border-success/20 text-xs">
+                        <BadgeCheck className="h-3 w-3 mr-1" />
+                        Mais barato
+                      </Badge>
                     )}
-
-                    {transportadora.vl_tde > 0 && (
-                      <div className="text-xs text-muted-foreground mt-1">
-                        Taxa de entrega especial: {formatCurrency(transportadora.vl_tde)}
-                      </div>
+                    
+                    {isMaisRapido && !isMaisBarato && (
+                      <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 text-xs">
+                        <Clock className="h-3 w-3 mr-1" />
+                        Mais rápido
+                      </Badge>
+                    )}
+                    
+                    {isCorreios && (
+                      <Badge variant="outline" className="text-xs">
+                        Correios
+                      </Badge>
                     )}
                   </div>
+
+                  <div className="mt-auto space-y-1">
+                    <span className="font-bold text-lg text-foreground block">
+                      {formatCurrency(transportadora.vl_tot_frete)}
+                    </span>
+                    <span className="text-muted-foreground text-xs flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      {formatPrazo(transportadora.prazo_entrega)}
+                    </span>
+                  </div>
+
+                  {hasBloqueio && (
+                    <div className="flex items-center gap-1 mt-2 text-destructive text-xs">
+                      <AlertTriangle className="h-3 w-3" />
+                      <span className="truncate">{transportadora.bloqueio}</span>
+                    </div>
+                  )}
+
+                  {transportadora.vl_tde > 0 && (
+                    <div className="text-xs text-muted-foreground mt-1">
+                      TDE: {formatCurrency(transportadora.vl_tde)}
+                    </div>
+                  )}
                 </div>
               );
             })}
