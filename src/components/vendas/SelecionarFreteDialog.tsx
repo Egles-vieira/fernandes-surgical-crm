@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Truck, Clock, BadgeCheck, AlertTriangle, Loader2, ArrowUpDown } from "lucide-react";
+import { Truck, Clock, Loader2, ArrowUpDown } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -122,18 +122,24 @@ export function SelecionarFreteDialog({
           </Button>
         </div>
 
-        <ScrollArea className="max-h-[450px] pr-4">
+        <ScrollArea className="max-h-[400px]">
           <RadioGroup
             value={selectedId || ""}
             onValueChange={setSelectedId}
-            className="grid grid-cols-2 gap-3"
+            className="space-y-0"
           >
-            {sortedTransportadoras.map((transportadora) => {
+            {/* Header */}
+            <div className="grid grid-cols-[1fr_120px_140px_100px] gap-4 px-4 py-2 text-xs font-medium text-muted-foreground border-b bg-muted/30">
+              <span>Transportadora</span>
+              <span className="text-center">Prazo</span>
+              <span className="text-right">Valor Frete</span>
+              <span className="text-center">Status</span>
+            </div>
+
+            {sortedTransportadoras.map((transportadora, index) => {
               const isMaisBarato = maisBarato?.cod_transp === transportadora.cod_transp;
               const isMaisRapido = maisRapido?.cod_transp === transportadora.cod_transp && 
                                    transportadora.prazo_entrega === 0;
-              const isCorreios = transportadora.nome_transp.toUpperCase().includes("SEDEX") ||
-                                 transportadora.nome_transp.toUpperCase().includes("PAC");
               const hasBloqueio = transportadora.bloqueio && transportadora.bloqueio.trim() !== "";
               const isSelected = selectedId === transportadora.cod_transp.toString();
 
@@ -141,73 +147,62 @@ export function SelecionarFreteDialog({
                 <div
                   key={transportadora.cod_transp}
                   className={cn(
-                    "relative flex flex-col p-4 border rounded-lg transition-all cursor-pointer min-h-[140px]",
+                    "grid grid-cols-[1fr_120px_140px_100px] gap-4 items-center px-4 py-3 transition-all cursor-pointer border-b border-border/50",
                     isSelected
-                      ? "border-primary bg-primary/5 ring-1 ring-primary"
-                      : "border-border hover:border-primary/50 hover:bg-muted/50",
-                    hasBloqueio && "opacity-60"
+                      ? "bg-primary/5"
+                      : "hover:bg-muted/50",
+                    hasBloqueio && "opacity-50 cursor-not-allowed"
                   )}
                   onClick={() => !hasBloqueio && setSelectedId(transportadora.cod_transp.toString())}
                 >
-                  <div className="flex items-start gap-2 mb-2">
+                  {/* Transportadora */}
+                  <div className="flex items-center gap-3">
                     <RadioGroupItem
                       value={transportadora.cod_transp.toString()}
                       id={`transp-${transportadora.cod_transp}`}
                       disabled={hasBloqueio}
-                      className="mt-0.5"
                     />
                     <Label
                       htmlFor={`transp-${transportadora.cod_transp}`}
-                      className="font-semibold text-sm cursor-pointer line-clamp-2 flex-1"
+                      className="font-medium text-sm cursor-pointer"
                     >
-                      {transportadora.nome_transp}
+                      {index + 1}º {transportadora.nome_transp}
                     </Label>
                   </div>
 
-                  <div className="flex flex-wrap gap-1 mb-3">
-                    {isMaisBarato && (
-                      <Badge variant="secondary" className="bg-success/10 text-success border-success/20 text-xs">
-                        <BadgeCheck className="h-3 w-3 mr-1" />
-                        Mais barato
-                      </Badge>
-                    )}
-                    
-                    {isMaisRapido && !isMaisBarato && (
-                      <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 text-xs">
-                        <Clock className="h-3 w-3 mr-1" />
-                        Mais rápido
-                      </Badge>
-                    )}
-                    
-                    {isCorreios && (
-                      <Badge variant="outline" className="text-xs">
-                        Correios
-                      </Badge>
-                    )}
+                  {/* Prazo */}
+                  <div className="text-center text-sm text-muted-foreground">
+                    {formatPrazo(transportadora.prazo_entrega)}
                   </div>
 
-                  <div className="mt-auto space-y-1">
-                    <span className="font-bold text-lg text-foreground block">
+                  {/* Valor */}
+                  <div className="text-right">
+                    <span className={cn(
+                      "font-bold text-sm",
+                      isMaisBarato ? "text-primary" : "text-foreground"
+                    )}>
                       {formatCurrency(transportadora.vl_tot_frete)}
                     </span>
-                    <span className="text-muted-foreground text-xs flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      {formatPrazo(transportadora.prazo_entrega)}
-                    </span>
                   </div>
 
-                  {hasBloqueio && (
-                    <div className="flex items-center gap-1 mt-2 text-destructive text-xs">
-                      <AlertTriangle className="h-3 w-3" />
-                      <span className="truncate">{transportadora.bloqueio}</span>
-                    </div>
-                  )}
-
-                  {transportadora.vl_tde > 0 && (
-                    <div className="text-xs text-muted-foreground mt-1">
-                      TDE: {formatCurrency(transportadora.vl_tde)}
-                    </div>
-                  )}
+                  {/* Status/Badges */}
+                  <div className="flex justify-center">
+                    {isMaisBarato && (
+                      <Badge variant="secondary" className="bg-success/10 text-success border-success/20 text-xs">
+                        Menor
+                      </Badge>
+                    )}
+                    {isMaisRapido && !isMaisBarato && (
+                      <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 text-xs">
+                        Rápido
+                      </Badge>
+                    )}
+                    {hasBloqueio && (
+                      <Badge variant="destructive" className="text-xs">
+                        Bloqueado
+                      </Badge>
+                    )}
+                  </div>
                 </div>
               );
             })}
