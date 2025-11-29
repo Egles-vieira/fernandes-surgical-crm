@@ -24,6 +24,7 @@ import { useTiposFrete } from "@/hooks/useTiposFrete";
 import { useTiposPedido } from "@/hooks/useTiposPedido";
 import { useVendedores } from "@/hooks/useVendedores";
 import { useDatasulCalculaPedido } from "@/hooks/useDatasulCalculaPedido";
+import { useDatasulCalculaFrete } from "@/hooks/useDatasulCalculaFrete";
 import { useContatosCliente } from "@/hooks/useContatosCliente";
 import { useEnderecosCliente } from "@/hooks/useEnderecosCliente";
 import { useColumnVisibility } from "@/hooks/useColumnVisibility";
@@ -107,6 +108,13 @@ export default function VendaDetalhes() {
     closeErrorDialog
   } = useDatasulCalculaPedido();
   const {
+    calcularFrete,
+    isCalculatingFrete,
+    freteErrorData,
+    showFreteErrorDialog,
+    closeFreteErrorDialog
+  } = useDatasulCalculaFrete();
+  const {
     data: userRoleData
   } = useUserRole();
   const isAdmin = userRoleData?.isAdmin || false;
@@ -161,6 +169,8 @@ export default function VendaDetalhes() {
   const [faturamentoParcial, setFaturamentoParcial] = useState(false);
   const [dataFaturamentoProgramado, setDataFaturamentoProgramado] = useState<string>("");
   const [enderecoEntregaId, setEnderecoEntregaId] = useState<string>("");
+  const [freteCalculado, setFreteCalculado] = useState(false);
+  const [valorFrete, setValorFrete] = useState<number>(0);
 
   // Pagination states for items table
   const [currentItemsPage, setCurrentItemsPage] = useState(1);
@@ -192,6 +202,8 @@ export default function VendaDetalhes() {
         setFaturamentoParcial(vendaCarregada.faturamento_parcial === "YES");
         setDataFaturamentoProgramado((vendaCarregada as any).data_faturamento_programado || "");
         setEnderecoEntregaId((vendaCarregada as any).endereco_entrega_id || "");
+        setFreteCalculado((vendaCarregada as any).frete_calculado || false);
+        setValorFrete((vendaCarregada as any).frete_valor || 0);
 
         // Carregar cliente
         if (vendaCarregada.cliente_id) {
@@ -394,6 +406,8 @@ export default function VendaDetalhes() {
     setClienteSelecionado(cliente);
     setContatoClienteId(cliente.id);
     setEnderecoEntregaId(""); // Reset ao trocar cliente
+    setFreteCalculado(false); // Reset frete ao trocar cliente
+    setValorFrete(0);
     setShowClienteSearch(false);
   };
   const handleSalvar = async () => {
@@ -541,6 +555,46 @@ export default function VendaDetalhes() {
       });
     }
   };
+
+  const handleCalcularFrete = async () => {
+    if (!venda) return;
+    
+    // Validar campos obrigatórios para cálculo de frete
+    const camposObrigatorios = [];
+    if (!clienteSelecionado) camposObrigatorios.push("Cliente");
+    if (!tipoFreteId) camposObrigatorios.push("Tipo de Frete");
+    if (!enderecoEntregaId) camposObrigatorios.push("Endereço de Entrega");
+    if (carrinho.length === 0) camposObrigatorios.push("Itens");
+    
+    if (camposObrigatorios.length > 0) {
+      toast({
+        title: "Campos obrigatórios para cálculo de frete",
+        description: `Por favor, preencha: ${camposObrigatorios.join(", ")}`,
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    try {
+      // Salvar antes de calcular frete
+      await handleSalvar();
+      
+      // Calcular frete
+      const resultado = await calcularFrete(venda.id);
+      
+      if (resultado?.success) {
+        setFreteCalculado(true);
+        setValorFrete(resultado.valor_frete || 0);
+      }
+    } catch (error: any) {
+      toast({
+        title: "Erro ao calcular frete",
+        description: error.message || "Ocorreu um erro ao calcular o frete",
+        variant: "destructive"
+      });
+    }
+  };
+
   if (isLoading || !venda || !isLoadingComplete || isLoadingCliente) {
     return <div className="flex items-center justify-center h-[calc(100vh-4rem)] bg-background">
         <div className="text-center">
@@ -554,17 +608,35 @@ export default function VendaDetalhes() {
   }
   return <div>
       {/* Barras sticky sem espaçamento entre elas */}
-      <VendasActionBar status={venda.status as "rascunho" | "aprovada" | "cancelada"} onCalcular={handleCalcularDatasul} onCancelar={() => {
-      toast({
-        title: "Cancelar proposta",
-        description: "Funcionalidade em desenvolvimento"
-      });
-    }} onDiretoria={() => {
-      toast({
-        title: "Enviar para diretoria",
-        description: "Funcionalidade em desenvolvimento"
-      });
-    }} onEfetivar={() => setShowAprovarDialog(true)} onSalvar={handleSalvar} isSaving={false} isCalculating={isCalculating} editandoVendaId={venda.id} onVoltar={() => navigate("/vendas")} numeroVenda={numeroVenda || "Nova"} etapaPipeline={venda.etapa_pipeline || undefined} className="py-[5px]" />
+      <VendasActionBar 
+        status={venda.status as "rascunho" | "aprovada" | "cancelada"} 
+        onCalcular={handleCalcularDatasul} 
+        onCancelar={() => {
+          toast({
+            title: "Cancelar proposta",
+            description: "Funcionalidade em desenvolvimento"
+          });
+        }} 
+        onDiretoria={() => {
+          toast({
+            title: "Enviar para diretoria",
+            description: "Funcionalidade em desenvolvimento"
+          });
+        }} 
+        onEfetivar={() => setShowAprovarDialog(true)} 
+        onSalvar={handleSalvar} 
+        isSaving={false} 
+        isCalculating={isCalculating} 
+        editandoVendaId={venda.id} 
+        onVoltar={() => navigate("/vendas")} 
+        numeroVenda={numeroVenda || "Nova"} 
+        etapaPipeline={venda.etapa_pipeline || undefined} 
+        className="py-[5px]"
+        freteCalculado={freteCalculado}
+        onCalcularFrete={handleCalcularFrete}
+        isCalculatingFrete={isCalculatingFrete}
+        valorFrete={valorFrete}
+      />
 
       <FunnelStagesBar etapaAtual={venda.etapa_pipeline as any || "proposta"} onEtapaClick={async novaEtapa => {
       try {
