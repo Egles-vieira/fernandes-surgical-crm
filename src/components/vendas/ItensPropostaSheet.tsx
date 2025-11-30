@@ -432,14 +432,16 @@ export function ItensPropostaSheet({
                             <div className="flex items-center gap-2">
                               <span className="truncate">{produto.nome}</span>
                               {produto.narrativa && (
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <Info className="h-4 w-4 text-muted-foreground hover:text-foreground cursor-help flex-shrink-0" />
-                                  </TooltipTrigger>
-                                  <TooltipContent side="right" className="max-w-xs">
-                                    <p className="text-sm">{produto.narrativa}</p>
-                                  </TooltipContent>
-                                </Tooltip>
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Info className="h-4 w-4 text-muted-foreground hover:text-foreground cursor-help flex-shrink-0" />
+                                    </TooltipTrigger>
+                                    <TooltipContent side="right" className="max-w-xs">
+                                      <p className="text-sm">{produto.narrativa}</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
                               )}
                               {produto.ja_vendido && (
                                 <Badge variant="secondary" className="text-[10px] px-1">
