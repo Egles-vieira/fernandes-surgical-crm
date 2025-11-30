@@ -7812,6 +7812,7 @@ export type Database = {
           atualizado_em: string | null
           mes: string | null
           mes_abrev: string | null
+          ordem_mes: number | null
           quantidade: number | null
           valor_total: number | null
         }
