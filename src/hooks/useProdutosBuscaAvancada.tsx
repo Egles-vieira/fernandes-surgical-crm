@@ -10,6 +10,9 @@ interface ProdutoBuscaAvancada extends Produto {
   valor_ultima_proposta: number | null;
 }
 
+export type SortField = "referencia_interna" | "nome" | "quantidade_em_maos" | "preco_venda";
+export type SortDirection = "asc" | "desc";
+
 interface UseProdutosBuscaAvancadaParams {
   page: number;
   pageSize: number;
@@ -18,6 +21,8 @@ interface UseProdutosBuscaAvancadaParams {
   jaVendi: boolean;
   clienteId: string | null;
   idsExcluir: string[];
+  sortField?: SortField;
+  sortDirection?: SortDirection;
   enabled?: boolean;
 }
 
@@ -29,6 +34,8 @@ export function useProdutosBuscaAvancada({
   jaVendi,
   clienteId,
   idsExcluir,
+  sortField = "nome",
+  sortDirection = "asc",
   enabled = true,
 }: UseProdutosBuscaAvancadaParams) {
   const { data, isLoading, isFetching } = useQuery({
@@ -41,6 +48,8 @@ export function useProdutosBuscaAvancada({
       jaVendi,
       clienteId,
       idsExcluir,
+      sortField,
+      sortDirection,
     ],
     queryFn: async () => {
       const from = (page - 1) * pageSize;
@@ -50,7 +59,7 @@ export function useProdutosBuscaAvancada({
       let query = supabase
         .from("produtos")
         .select("*", { count: "exact" })
-        .order("nome");
+        .order(sortField, { ascending: sortDirection === "asc" });
 
       // Filtro de busca por texto
       if (searchTerm) {

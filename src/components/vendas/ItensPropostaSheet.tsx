@@ -8,9 +8,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Search, ChevronLeft, ChevronRight, Loader2, Plus, Trash2, HelpCircle, Package } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, Loader2, Plus, Trash2, HelpCircle, Package, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useProdutosBuscaAvancada } from "@/hooks/useProdutosBuscaAvancada";
+import { useProdutosBuscaAvancada, SortField, SortDirection } from "@/hooks/useProdutosBuscaAvancada";
 import { Tables } from "@/integrations/supabase/types";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -57,6 +57,8 @@ export function ItensPropostaSheet({
   const [page, setPage] = useState(1);
   const [apenasComEstoque, setApenasComEstoque] = useState(false);
   const [jaVendi, setJaVendi] = useState(false);
+  const [sortField, setSortField] = useState<SortField>("nome");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
 
   // Estado de itens selecionados (Map para acesso rápido)
   const [itensSelecionados, setItensSelecionados] = useState<Map<string, ItemSelecionado>>(new Map());
@@ -88,8 +90,42 @@ export function ItensPropostaSheet({
     jaVendi,
     clienteId,
     idsExcluir,
+    sortField,
+    sortDirection,
     enabled: open,
   });
+
+  // Handler de ordenação
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setSortField(field);
+      setSortDirection("asc");
+    }
+    setPage(1);
+  };
+
+  // Componente de cabeçalho ordenável
+  const SortableHeader = ({ field, children, className }: { field: SortField; children: React.ReactNode; className?: string }) => (
+    <TableHead
+      className={cn("cursor-pointer hover:bg-muted/80 select-none", className)}
+      onClick={() => handleSort(field)}
+    >
+      <div className="flex items-center gap-1">
+        {children}
+        {sortField === field ? (
+          sortDirection === "asc" ? (
+            <ArrowUp className="h-3 w-3" />
+          ) : (
+            <ArrowDown className="h-3 w-3" />
+          )
+        ) : (
+          <ArrowUpDown className="h-3 w-3 opacity-30" />
+        )}
+      </div>
+    </TableHead>
+  );
 
   // Quantidades e descontos temporários no grid de busca
   const [quantidadesTemp, setQuantidadesTemp] = useState<Map<string, number>>(new Map());
@@ -103,6 +139,8 @@ export function ItensPropostaSheet({
       setPage(1);
       setApenasComEstoque(false);
       setJaVendi(false);
+      setSortField("nome");
+      setSortDirection("asc");
       setItensSelecionados(new Map());
       setQuantidadesTemp(new Map());
       setDescontosTemp(new Map());
@@ -370,11 +408,11 @@ export function ItensPropostaSheet({
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-muted/50">
-                      <TableHead className="w-24">Código</TableHead>
-                      <TableHead>Descrição</TableHead>
+                      <SortableHeader field="referencia_interna" className="w-24">Código</SortableHeader>
+                      <SortableHeader field="nome">Descrição</SortableHeader>
                       <TableHead className="w-16 text-center">UN</TableHead>
-                      <TableHead className="w-20 text-right">Estoque</TableHead>
-                      <TableHead className="w-24 text-right">Preço</TableHead>
+                      <SortableHeader field="quantidade_em_maos" className="w-20 text-right">Estoque</SortableHeader>
+                      <SortableHeader field="preco_venda" className="w-24 text-right">Preço</SortableHeader>
                       <TableHead className="w-20 text-center">Qtd</TableHead>
                       <TableHead className="w-20 text-center">% Desc</TableHead>
                       <TableHead className="w-16"></TableHead>
