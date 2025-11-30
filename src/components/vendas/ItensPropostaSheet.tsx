@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Search, ChevronLeft, ChevronRight, Loader2, Plus, Trash2, HelpCircle, Package, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, Loader2, Plus, Trash2, HelpCircle, Package, ArrowUpDown, ArrowUp, ArrowDown, Info } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useProdutosBuscaAvancada, SortField, SortDirection } from "@/hooks/useProdutosBuscaAvancada";
 import { Tables } from "@/integrations/supabase/types";
@@ -431,6 +431,16 @@ export function ItensPropostaSheet({
                           <TableCell className="max-w-[200px] truncate text-sm">
                             <div className="flex items-center gap-2">
                               <span className="truncate">{produto.nome}</span>
+                              {produto.narrativa && (
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Info className="h-4 w-4 text-muted-foreground hover:text-foreground cursor-help flex-shrink-0" />
+                                  </TooltipTrigger>
+                                  <TooltipContent side="right" className="max-w-xs">
+                                    <p className="text-sm">{produto.narrativa}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              )}
                               {produto.ja_vendido && (
                                 <Badge variant="secondary" className="text-[10px] px-1">
                                   Já vendido
