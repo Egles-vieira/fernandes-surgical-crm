@@ -1093,9 +1093,9 @@ export default function VendaDetalhes() {
                   <p className="text-sm text-muted-foreground">Valor Mercadorias</p>
                   <p className="text-2xl font-bold">{formatCurrency(valorTotal)}</p>
                 </div>
-                {ehCifInclusoNaNF && freteCalculado && valorFrete > 0 && (
+                {freteCalculado && valorFrete > 0 && (
                   <div className="text-right">
-                    <p className="text-sm text-muted-foreground">Frete CIF</p>
+                    <p className="text-sm text-muted-foreground">Frete</p>
                     <p className="text-2xl font-bold">{formatCurrency(valorFrete)}</p>
                   </div>
                 )}
