@@ -32,6 +32,7 @@ interface ItemCarrinho {
   datasul_vl_tot_item?: number | null;
   datasul_vl_merc_liq?: number | null;
   datasul_lote_mulven?: number | null;
+  frete_rateado?: number;
 }
 
 interface SortableItemRowProps {
@@ -136,7 +137,14 @@ export function SortableItemRow({
       )}
       {visibleColumns.total && (
         <TableCell className={`font-medium ${paddingClass}`}>
-          {formatCurrency(item.valor_total)}
+          {formatCurrency(item.valor_total + (item.frete_rateado || 0))}
+        </TableCell>
+      )}
+      {visibleColumns.freteRateado && (
+        <TableCell className={paddingClass}>
+          {item.frete_rateado && item.frete_rateado > 0 
+            ? formatCurrency(item.frete_rateado) 
+            : "-"}
         </TableCell>
       )}
       {visibleColumns.deposito && (

@@ -50,6 +50,9 @@ interface VendaWithItems extends Tables<"vendas"> {
     produtos?: Produto;
   })[];
 }
+// ID do tipo de frete "CIF - INCLUSÃO NA NF"
+const TIPO_FRETE_CIF_INCLUSO_NF = "d691ff67-c6d5-47eb-a714-8af30e191b57";
+
 interface ItemCarrinho {
   produto: Produto;
   quantidade: number;
@@ -61,7 +64,50 @@ interface ItemCarrinho {
   datasul_vl_tot_item?: number | null;
   datasul_vl_merc_liq?: number | null;
   datasul_lote_mulven?: number | null;
+  frete_rateado?: number;
 }
+
+// Função para calcular rateio de frete proporcional ao valor de cada item
+const calcularRateioFrete = (itens: ItemCarrinho[], freteTotal: number): ItemCarrinho[] => {
+  if (freteTotal <= 0 || itens.length === 0) {
+    return itens.map(item => ({ ...item, frete_rateado: 0 }));
+  }
+
+  // Calcular valor total das mercadorias (sem frete)
+  const valorTotalMercadorias = itens.reduce((sum, item) => sum + item.valor_total, 0);
+
+  if (valorTotalMercadorias <= 0) {
+    return itens.map(item => ({ ...item, frete_rateado: 0 }));
+  }
+
+  // Calcular frete proporcional para cada item
+  let somaFreteRateado = 0;
+  const itensComFrete = itens.map((item) => {
+    const freteItem = Math.round((freteTotal * (item.valor_total / valorTotalMercadorias)) * 100) / 100;
+    somaFreteRateado += freteItem;
+    return {
+      ...item,
+      frete_rateado: freteItem
+    };
+  });
+
+  // Ajustar diferença de centavos no item de maior valor
+  const diferencaCentavos = Math.round((freteTotal - somaFreteRateado) * 100) / 100;
+
+  if (diferencaCentavos !== 0) {
+    // Encontrar índice do item de maior valor
+    const indexMaiorValor = itensComFrete.reduce(
+      (maxIndex, item, index, arr) =>
+        item.valor_total > arr[maxIndex].valor_total ? index : maxIndex,
+      0
+    );
+
+    itensComFrete[indexMaiorValor].frete_rateado = 
+      (itensComFrete[indexMaiorValor].frete_rateado || 0) + diferencaCentavos;
+  }
+
+  return itensComFrete;
+};
 
 // Função auxiliar para formatar valores monetários no padrão brasileiro
 const formatCurrency = (value: number) => {
@@ -144,6 +190,7 @@ export default function VendaDetalhes() {
     precoUnit: true,
     desconto: true,
     total: true,
+    freteRateado: true,
     custo: true,
     divisao: true,
     vlTotalDS: true,
@@ -235,7 +282,8 @@ export default function VendaDetalhes() {
             datasul_divisao: item.datasul_divisao,
             datasul_vl_tot_item: item.datasul_vl_tot_item,
             datasul_vl_merc_liq: item.datasul_vl_merc_liq,
-            datasul_lote_mulven: item.datasul_lote_mulven
+            datasul_lote_mulven: item.datasul_lote_mulven,
+            frete_rateado: (item as any).frete_rateado || 0
           }));
           setCarrinho(itens);
         }
@@ -256,6 +304,24 @@ export default function VendaDetalhes() {
   const valorTotalLiquido = useMemo(() => {
     return carrinho.reduce((sum, item) => sum + (item.datasul_vl_merc_liq || 0), 0);
   }, [carrinho]);
+
+  // Verificar se é CIF Incluso na NF e calcular rateio de frete
+  const ehCifInclusoNaNF = tipoFreteId === TIPO_FRETE_CIF_INCLUSO_NF;
+  
+  const carrinhoComFrete = useMemo(() => {
+    if (!ehCifInclusoNaNF || !freteCalculado || valorFrete <= 0) {
+      return carrinho.map(item => ({ ...item, frete_rateado: 0 }));
+    }
+    return calcularRateioFrete(carrinho, valorFrete);
+  }, [carrinho, ehCifInclusoNaNF, freteCalculado, valorFrete]);
+
+  // Valor total com frete (para CIF Incluso)
+  const valorTotalComFrete = useMemo(() => {
+    if (ehCifInclusoNaNF && freteCalculado) {
+      return valorTotal + valorFrete;
+    }
+    return valorTotal;
+  }, [valorTotal, valorFrete, ehCifInclusoNaNF, freteCalculado]);
   const handleAdicionarProduto = (produto: Produto) => {
     // Validar se produto tem preço
     if (!produto.preco_venda || produto.preco_venda <= 0) {
@@ -474,6 +540,21 @@ export default function VendaDetalhes() {
           });
         }
       }
+
+      // Se é CIF Incluso na NF e tem frete calculado, persistir o frete rateado
+      if (ehCifInclusoNaNF && freteCalculado && valorFrete > 0) {
+        const itensComFreteRateado = calcularRateioFrete(carrinho, valorFrete);
+        for (const item of itensComFreteRateado) {
+          const itemVenda = venda.vendas_itens?.find(i => i.produto_id === item.produto.id);
+          if (itemVenda && item.frete_rateado !== undefined) {
+            await updateItem.mutateAsync({
+              id: itemVenda.id,
+              frete_rateado: item.frete_rateado
+            });
+          }
+        }
+      }
+
       toast({
         title: "Venda atualizada com sucesso!"
       });
@@ -899,6 +980,7 @@ export default function VendaDetalhes() {
                       {visibleColumns.desconto && <TableHead className={density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}>Desc %</TableHead>}
                       {visibleColumns.precoUnit && <TableHead className={density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}>Preço Unit</TableHead>}
                       {visibleColumns.total && <TableHead className={density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}>Total</TableHead>}
+                      {visibleColumns.freteRateado && <TableHead className={density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}>Frete</TableHead>}
                       {visibleColumns.deposito && <TableHead className={density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}>Estoque</TableHead>}
                       {visibleColumns.custo && <TableHead className={density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}>Custo DS</TableHead>}
                       {visibleColumns.divisao && <TableHead className={density === "compact" ? "py-1" : density === "comfortable" ? "py-4" : "py-2"}>Divisão DS</TableHead>}
@@ -908,12 +990,12 @@ export default function VendaDetalhes() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    <SortableContext items={carrinho.filter(item => {
+                    <SortableContext items={carrinhoComFrete.filter(item => {
                     if (!searchItemTerm) return true;
                     const searchLower = searchItemTerm.toLowerCase();
                     return item.produto.nome.toLowerCase().includes(searchLower) || item.produto.referencia_interna.toLowerCase().includes(searchLower);
                   }).slice((currentItemsPage - 1) * itemsPerPage, currentItemsPage * itemsPerPage).map(item => item.produto.id)} strategy={verticalListSortingStrategy}>
-                      {carrinho.filter(item => {
+                      {carrinhoComFrete.filter(item => {
                       if (!searchItemTerm) return true;
                       const searchLower = searchItemTerm.toLowerCase();
                       return item.produto.nome.toLowerCase().includes(searchLower) || item.produto.referencia_interna.toLowerCase().includes(searchLower);
@@ -997,13 +1079,26 @@ export default function VendaDetalhes() {
 
             <div className="flex justify-end mt-4 gap-8">
               <div className="text-right">
-                <p className="text-sm text-muted-foreground">Valor Total</p>
+                <p className="text-sm text-muted-foreground">Valor Mercadorias</p>
                 <p className="text-2xl font-bold">{formatCurrency(valorTotal)}</p>
               </div>
-              <div className="text-right">
-                <p className="text-sm text-muted-foreground">Valor Total Líquido</p>
-                <p className="text-2xl font-bold text-primary">{formatCurrency(valorTotalLiquido)}</p>
-              </div>
+              {ehCifInclusoNaNF && freteCalculado && valorFrete > 0 && (
+                <div className="text-right">
+                  <p className="text-sm text-muted-foreground">Frete CIF</p>
+                  <p className="text-2xl font-bold text-success">{formatCurrency(valorFrete)}</p>
+                </div>
+              )}
+              {ehCifInclusoNaNF && freteCalculado && valorFrete > 0 ? (
+                <div className="text-right">
+                  <p className="text-sm text-muted-foreground">Total c/ Frete</p>
+                  <p className="text-2xl font-bold text-primary">{formatCurrency(valorTotalComFrete)}</p>
+                </div>
+              ) : (
+                <div className="text-right">
+                  <p className="text-sm text-muted-foreground">Valor Total Líquido</p>
+                  <p className="text-2xl font-bold text-primary">{formatCurrency(valorTotalLiquido)}</p>
+                </div>
+              )}
             </div>
           </div>
 
