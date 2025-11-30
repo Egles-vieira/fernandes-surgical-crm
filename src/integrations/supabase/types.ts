@@ -7774,6 +7774,54 @@ export type Database = {
       }
     }
     Views: {
+      mv_clientes_por_estado: {
+        Row: {
+          estado: string | null
+          quantidade: number | null
+        }
+        Relationships: []
+      }
+      mv_clientes_por_mes: {
+        Row: {
+          mes: string | null
+          ordem_mes: number | null
+          quantidade: number | null
+        }
+        Relationships: []
+      }
+      mv_clientes_por_natureza: {
+        Row: {
+          natureza: string | null
+          quantidade: number | null
+        }
+        Relationships: []
+      }
+      mv_clientes_resumo: {
+        Row: {
+          atualizado_em: string | null
+          clientes_pf: number | null
+          clientes_pj: number | null
+          limite_total: number | null
+          novos_mes: number | null
+          total_clientes: number | null
+          total_contatos: number | null
+        }
+        Relationships: []
+      }
+      mv_conversas_por_status: {
+        Row: {
+          quantidade: number | null
+          status: string | null
+        }
+        Relationships: []
+      }
+      mv_cotacoes_por_status: {
+        Row: {
+          quantidade: number | null
+          status: string | null
+        }
+        Relationships: []
+      }
       mv_dashboard_kpis: {
         Row: {
           atualizado_em: string | null
@@ -7796,6 +7844,72 @@ export type Database = {
         }
         Relationships: []
       }
+      mv_plataformas_resumo: {
+        Row: {
+          atualizado_em: string | null
+          cotacoes_pendentes: number | null
+          cotacoes_respondidas: number | null
+          taxa_resposta: number | null
+          total_cotacoes: number | null
+          total_itens: number | null
+          total_plataformas: number | null
+          valor_total: number | null
+        }
+        Relationships: []
+      }
+      mv_produtos_por_estoque: {
+        Row: {
+          quantidade: number | null
+          status: string | null
+        }
+        Relationships: []
+      }
+      mv_produtos_resumo: {
+        Row: {
+          atualizado_em: string | null
+          com_embedding: number | null
+          com_estoque: number | null
+          produtos_ativos: number | null
+          sem_estoque: number | null
+          taxa_embedding: number | null
+          total_produtos: number | null
+          valor_estoque: number | null
+        }
+        Relationships: []
+      }
+      mv_propostas_por_status: {
+        Row: {
+          quantidade: number | null
+          status: string | null
+        }
+        Relationships: []
+      }
+      mv_tickets_por_prioridade: {
+        Row: {
+          prioridade: string | null
+          quantidade: number | null
+        }
+        Relationships: []
+      }
+      mv_tickets_por_status: {
+        Row: {
+          quantidade: number | null
+          status: string | null
+        }
+        Relationships: []
+      }
+      mv_tickets_resumo: {
+        Row: {
+          atualizado_em: string | null
+          taxa_resolucao: number | null
+          tickets_abertos: number | null
+          tickets_em_andamento: number | null
+          tickets_resolvidos: number | null
+          tickets_urgentes: number | null
+          total_tickets: number | null
+        }
+        Relationships: []
+      }
       mv_top_vendedores: {
         Row: {
           atualizado_em: string | null
@@ -7807,6 +7921,14 @@ export type Database = {
         }
         Relationships: []
       }
+      mv_vendas_por_etapa: {
+        Row: {
+          etapa: string | null
+          quantidade: number | null
+          valor: number | null
+        }
+        Relationships: []
+      }
       mv_vendas_por_mes: {
         Row: {
           atualizado_em: string | null
@@ -7815,6 +7937,33 @@ export type Database = {
           ordem_mes: number | null
           quantidade: number | null
           valor_total: number | null
+        }
+        Relationships: []
+      }
+      mv_vendas_resumo: {
+        Row: {
+          atualizado_em: string | null
+          taxa_conversao: number | null
+          ticket_medio: number | null
+          total_vendas: number | null
+          valor_mes: number | null
+          valor_total: number | null
+          vendas_ganhas: number | null
+        }
+        Relationships: []
+      }
+      mv_whatsapp_resumo: {
+        Row: {
+          atualizado_em: string | null
+          contas_ativas: number | null
+          conversas_ativas: number | null
+          mensagens_bot: number | null
+          propostas_aceitas: number | null
+          taxa_conversao: number | null
+          total_conversas: number | null
+          total_mensagens: number | null
+          total_propostas: number | null
+          valor_propostas: number | null
         }
         Relationships: []
       }
@@ -8354,6 +8503,7 @@ export type Database = {
           tipo_interacao: string
         }[]
       }
+      refresh_all_dashboard_mvs: { Args: never; Returns: undefined }
       refresh_dashboard_views: { Args: never; Returns: undefined }
       registrar_feedback_ia: {
         Args: {
