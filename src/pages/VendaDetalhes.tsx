@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import type { Database } from "@/integrations/supabase/types";
 import { Search, Save, Trash2, Calculator, Loader2, ChevronLeft, ChevronRight, GripVertical, Edit } from "lucide-react";
@@ -233,6 +233,10 @@ export default function VendaDetalhes() {
   const [searchItemTerm, setSearchItemTerm] = useState("");
   const [density, setDensity] = useState<"compact" | "normal" | "comfortable">("normal");
 
+  // Debounce para atualizações de itens
+  const pendingUpdatesRef = useRef<Map<string, { quantidade: number; desconto: number; valor_total: number }>>(new Map());
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+
   // Drag and drop sensors
   const sensors = useSensors(useSensor(PointerSensor), useSensor(KeyboardSensor, {
     coordinateGetter: sortableKeyboardCoordinates
@@ -370,35 +374,68 @@ export default function VendaDetalhes() {
     }
     setCarrinho(carrinho.filter(item => item.produto.id !== produtoId));
   };
-  const handleAtualizarItem = async (produtoId: string, campo: string, valor: any) => {
-    const novoCarrinho = carrinho.map(item => {
-      if (item.produto.id === produtoId) {
-        const novoItem = {
-          ...item,
-          [campo]: valor
-        };
-        if (campo === 'quantidade' || campo === 'desconto') {
-          novoItem.valor_total = novoItem.quantidade * item.produto.preco_venda * (1 - novoItem.desconto / 100);
-        }
 
-        // Atualizar no banco se a venda já existe
-        if (venda) {
-          const itemVenda = venda.vendas_itens?.find(i => i.produto_id === produtoId);
-          if (itemVenda) {
-            updateItem.mutateAsync({
-              id: itemVenda.id,
+  // Função para processar atualizações pendentes
+  const flushPendingUpdates = useCallback(async () => {
+    if (!venda?.vendas_itens || pendingUpdatesRef.current.size === 0) return;
+    
+    const updates = Array.from(pendingUpdatesRef.current.entries());
+    pendingUpdatesRef.current.clear();
+    
+    // Processar atualizações em sequência para evitar sobrecarga
+    for (const [produtoId, data] of updates) {
+      const itemVenda = venda.vendas_itens?.find(i => i.produto_id === produtoId);
+      if (itemVenda) {
+        try {
+          await updateItem.mutateAsync({
+            id: itemVenda.id,
+            quantidade: data.quantidade,
+            desconto: data.desconto,
+            valor_total: data.valor_total
+          });
+        } catch (error) {
+          console.error('Erro ao atualizar item:', error);
+        }
+      }
+    }
+  }, [venda, updateItem]);
+
+  const handleAtualizarItem = useCallback((produtoId: string, campo: string, valor: any) => {
+    setCarrinho(prevCarrinho => {
+      const novoCarrinho = prevCarrinho.map(item => {
+        if (item.produto.id === produtoId) {
+          const novoItem = {
+            ...item,
+            [campo]: valor
+          };
+          if (campo === 'quantidade' || campo === 'desconto') {
+            novoItem.valor_total = novoItem.quantidade * item.produto.preco_venda * (1 - novoItem.desconto / 100);
+          }
+
+          // Acumular atualização pendente
+          if (venda) {
+            pendingUpdatesRef.current.set(produtoId, {
               quantidade: novoItem.quantidade,
               desconto: novoItem.desconto,
               valor_total: novoItem.valor_total
             });
           }
+          
+          return novoItem;
         }
-        return novoItem;
-      }
-      return item;
+        return item;
+      });
+      return novoCarrinho;
     });
-    setCarrinho(novoCarrinho);
-  };
+    
+    // Debounce: aguardar 500ms antes de enviar ao banco
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    debounceTimerRef.current = setTimeout(() => {
+      flushPendingUpdates();
+    }, 500);
+  }, [venda, flushPendingUpdates]);
   const handleEditarItem = (item: ItemCarrinho) => {
     setItemEditando(item);
     setShowEditarItem(true);
