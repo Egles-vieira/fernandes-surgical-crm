@@ -237,7 +237,11 @@ export default function VendaDetalhes() {
   const [density, setDensity] = useState<"compact" | "normal" | "comfortable">("normal");
 
   // Debounce para atualizações de itens
-  const pendingUpdatesRef = useRef<Map<string, { quantidade: number; desconto: number; valor_total: number }>>(new Map());
+  const pendingUpdatesRef = useRef<Map<string, {
+    quantidade: number;
+    desconto: number;
+    valor_total: number;
+  }>>(new Map());
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Drag and drop sensors
@@ -381,10 +385,9 @@ export default function VendaDetalhes() {
   // Função para processar atualizações pendentes
   const flushPendingUpdates = useCallback(async () => {
     if (!venda?.vendas_itens || pendingUpdatesRef.current.size === 0) return;
-    
     const updates = Array.from(pendingUpdatesRef.current.entries());
     pendingUpdatesRef.current.clear();
-    
+
     // Processar atualizações em sequência para evitar sobrecarga
     for (const [produtoId, data] of updates) {
       const itemVenda = venda.vendas_itens?.find(i => i.produto_id === produtoId);
@@ -402,7 +405,6 @@ export default function VendaDetalhes() {
       }
     }
   }, [venda, updateItem]);
-
   const handleAtualizarItem = useCallback((produtoId: string, campo: string, valor: any) => {
     setCarrinho(prevCarrinho => {
       const novoCarrinho = prevCarrinho.map(item => {
@@ -423,14 +425,13 @@ export default function VendaDetalhes() {
               valor_total: novoItem.valor_total
             });
           }
-          
           return novoItem;
         }
         return item;
       });
       return novoCarrinho;
     });
-    
+
     // Debounce: aguardar 500ms antes de enviar ao banco
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
@@ -974,7 +975,7 @@ export default function VendaDetalhes() {
                 </Popover>
                 <Button variant="default" size="sm" onClick={() => setShowItensSheet(true)}>
                   <Package className="h-4 w-4 mr-2" />
-                  Múltiplos Itens
+                  Adicionar Produtos 
                 </Button>
               </div>
             </div>
@@ -1143,18 +1144,9 @@ export default function VendaDetalhes() {
       <SelecionarFreteDialog open={showSelectionDialog} onOpenChange={setShowSelectionDialog} transportadoras={transportadoras} onSelect={handleConfirmarFrete} isConfirming={isConfirmingFrete} />
 
       {/* Sheet de inclusão múltipla de itens */}
-      {venda && (
-        <ItensPropostaSheet
-          open={showItensSheet}
-          onOpenChange={setShowItensSheet}
-          vendaId={venda.id}
-          clienteId={clienteSelecionado?.id || null}
-          itensExistentes={carrinho.map((i) => i.produto.id)}
-          onItensAdicionados={() => {
-            refetch();
-          }}
-        />
-      )}
+      {venda && <ItensPropostaSheet open={showItensSheet} onOpenChange={setShowItensSheet} vendaId={venda.id} clienteId={clienteSelecionado?.id || null} itensExistentes={carrinho.map(i => i.produto.id)} onItensAdicionados={() => {
+        refetch();
+      }} />}
 
       {/* Logs do Cálculo Datasul */}
       {isAdmin && venda && <Card className="p-6 mx-[10px] mt-6" id="integracao-log">
