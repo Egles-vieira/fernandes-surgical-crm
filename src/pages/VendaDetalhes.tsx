@@ -972,10 +972,6 @@ export default function VendaDetalhes() {
                     </div>
                   </PopoverContent>
                 </Popover>
-                <Button variant="outline" size="sm" onClick={() => setShowProdutoSearch(true)}>
-                  <Search className="h-4 w-4 mr-2" />
-                  Adicionar Produto
-                </Button>
                 <Button variant="default" size="sm" onClick={() => setShowItensSheet(true)}>
                   <Package className="h-4 w-4 mr-2" />
                   Múltiplos Itens
