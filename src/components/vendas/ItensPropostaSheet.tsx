@@ -432,13 +432,15 @@ export function ItensPropostaSheet({
                             <div className="flex items-center gap-2">
                               <span className="truncate">{produto.nome}</span>
                               {produto.narrativa && (
-                                <TooltipProvider>
+                                <TooltipProvider delayDuration={100}>
                                   <Tooltip>
                                     <TooltipTrigger asChild>
-                                      <Info className="h-4 w-4 text-muted-foreground hover:text-foreground cursor-help flex-shrink-0" />
+                                      <button type="button" className="inline-flex">
+                                        <Info className="h-4 w-4 text-primary hover:text-primary/80 cursor-help flex-shrink-0" />
+                                      </button>
                                     </TooltipTrigger>
-                                    <TooltipContent side="right" className="max-w-xs">
-                                      <p className="text-sm">{produto.narrativa}</p>
+                                    <TooltipContent side="right" className="max-w-sm z-[9999]">
+                                      <p className="text-sm whitespace-pre-wrap">{produto.narrativa}</p>
                                     </TooltipContent>
                                   </Tooltip>
                                 </TooltipProvider>
