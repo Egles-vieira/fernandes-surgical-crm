@@ -11,33 +11,25 @@ interface PlataformasPanelProps {
 }
 
 export function PlataformasPanel({ isActive }: PlataformasPanelProps) {
-  // KPIs de Plataformas EDI
+  // KPIs de Plataformas EDI - usando Materialized View
   const { data: plataformasKpis, isLoading: isLoadingKpis } = useQuery({
-    queryKey: ["plataformas-panel-kpis"],
+    queryKey: ["plataformas-panel-kpis-mv"],
     queryFn: async () => {
-      const [cotacoesRes, itensRes, plataformasRes] = await Promise.all([
-        supabase.from("edi_cotacoes").select("id, step_atual, status_analise_ia, valor_total_respondido", { count: "exact" }),
-        supabase.from("edi_cotacoes_itens").select("id, status", { count: "exact" }),
-        supabase.from("plataformas_edi").select("id", { count: "exact", head: true })
-      ]);
+      const { data, error } = await supabase
+        .from("mv_plataformas_resumo")
+        .select("*")
+        .single();
 
-      const cotacoes = cotacoesRes.data || [];
-      const totalCotacoes = cotacoesRes.count || 0;
-      const totalItens = itensRes.count || 0;
-      const totalPlataformas = plataformasRes.count || 0;
+      if (error) throw error;
       
-      const cotacoesPendentes = cotacoes.filter(c => c.step_atual !== "respondida" && c.step_atual !== "finalizada").length;
-      const cotacoesRespondidas = cotacoes.filter(c => c.step_atual === "respondida" || c.step_atual === "finalizada").length;
-      const valorTotal = cotacoes.reduce((acc, c) => acc + (c.valor_total_respondido || 0), 0);
-
       return {
-        totalCotacoes,
-        totalItens,
-        totalPlataformas,
-        cotacoesPendentes,
-        cotacoesRespondidas,
-        valorTotal,
-        taxaResposta: totalCotacoes > 0 ? Math.round((cotacoesRespondidas / totalCotacoes) * 100) : 0
+        totalCotacoes: data?.total_cotacoes || 0,
+        totalItens: data?.total_itens || 0,
+        totalPlataformas: data?.total_plataformas || 0,
+        cotacoesPendentes: data?.cotacoes_pendentes || 0,
+        cotacoesRespondidas: data?.cotacoes_respondidas || 0,
+        valorTotal: data?.valor_total || 0,
+        taxaResposta: data?.taxa_resposta || 0
       };
     },
     enabled: isActive,
@@ -45,30 +37,16 @@ export function PlataformasPanel({ isActive }: PlataformasPanelProps) {
     refetchOnWindowFocus: false
   });
 
-  // Cotações por status
+  // Cotações por status - usando Materialized View
   const { data: cotacoesPorStatus, isLoading: isLoadingStatus } = useQuery({
-    queryKey: ["plataformas-panel-status"],
+    queryKey: ["plataformas-panel-status-mv"],
     queryFn: async () => {
-      const { data } = await supabase.from("edi_cotacoes").select("step_atual");
-      
-      const statusMap: Record<string, { status: string; quantidade: number }> = {
-        nova: { status: "Nova", quantidade: 0 },
-        em_analise: { status: "Em Análise", quantidade: 0 },
-        analisada: { status: "Analisada", quantidade: 0 },
-        respondida: { status: "Respondida", quantidade: 0 },
-        finalizada: { status: "Finalizada", quantidade: 0 },
-      };
+      const { data, error } = await supabase
+        .from("mv_cotacoes_por_status")
+        .select("*");
 
-      (data || []).forEach((cotacao) => {
-        const step = cotacao.step_atual || "nova";
-        if (statusMap[step]) {
-          statusMap[step].quantidade++;
-        } else {
-          statusMap["nova"].quantidade++;
-        }
-      });
-
-      return Object.values(statusMap);
+      if (error) throw error;
+      return data || [];
     },
     enabled: isActive,
     staleTime: 5 * 60 * 1000,
@@ -149,7 +127,7 @@ export function PlataformasPanel({ isActive }: PlataformasPanelProps) {
                 </ResponsiveContainer>
               </div>
               <div className="flex-1 space-y-2">
-                {(cotacoesPorStatus || []).map((item, index) => (
+                {(cotacoesPorStatus || []).map((item: any, index: number) => (
                   <div key={item.status} className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-2">
                       <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: CHART_COLORS[index % CHART_COLORS.length] }} />

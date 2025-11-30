@@ -2,43 +2,32 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Progress } from "@/components/ui/progress";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from "recharts";
-import { Info, TrendingUp, Target, DollarSign, Calendar } from "lucide-react";
+import { Info, TrendingUp, Target } from "lucide-react";
 import { formatCurrency, CHART_COLORS, ModernKPICard, CustomTooltip, generateSparklineData } from "../shared/ChartComponents";
-import { startOfMonth, subMonths, format } from "date-fns";
 
 interface VendasPanelProps {
   isActive: boolean;
 }
 
 export function VendasPanel({ isActive }: VendasPanelProps) {
-  // KPIs de Vendas com lazy loading
+  // KPIs de Vendas - usando Materialized View
   const { data: vendasKpis, isLoading: isLoadingKpis } = useQuery({
-    queryKey: ["vendas-panel-kpis"],
+    queryKey: ["vendas-panel-kpis-mv"],
     queryFn: async () => {
-      const [vendasRes, vendasMesRes] = await Promise.all([
-        supabase.from("vendas").select("id, valor_total, valor_estimado, etapa_pipeline, created_at"),
-        supabase.from("vendas").select("valor_total, valor_estimado, created_at")
-          .gte("created_at", startOfMonth(new Date()).toISOString())
-      ]);
+      const { data, error } = await supabase
+        .from("mv_vendas_resumo")
+        .select("*")
+        .single();
 
-      const vendas = vendasRes.data || [];
-      const vendasMes = vendasMesRes.data || [];
+      if (error) throw error;
       
-      const totalVendas = vendas.length;
-      const valorTotal = vendas.reduce((acc, v) => acc + (v.valor_total || v.valor_estimado || 0), 0);
-      const valorMes = vendasMes.reduce((acc, v) => acc + (v.valor_total || v.valor_estimado || 0), 0);
-      const ticketMedio = totalVendas > 0 ? valorTotal / totalVendas : 0;
-      const vendasGanhas = vendas.filter(v => v.etapa_pipeline === "fechamento").length;
-      const taxaConversao = totalVendas > 0 ? (vendasGanhas / totalVendas) * 100 : 0;
-
       return {
-        totalVendas,
-        valorTotal,
-        valorMes,
-        ticketMedio,
-        taxaConversao: Math.round(taxaConversao)
+        totalVendas: data?.total_vendas || 0,
+        valorTotal: data?.valor_total || 0,
+        valorMes: data?.valor_mes || 0,
+        ticketMedio: data?.ticket_medio || 0,
+        taxaConversao: data?.taxa_conversao || 0
       };
     },
     enabled: isActive,
@@ -46,64 +35,33 @@ export function VendasPanel({ isActive }: VendasPanelProps) {
     refetchOnWindowFocus: false
   });
 
-  // Vendas por etapa
+  // Vendas por etapa - usando Materialized View
   const { data: vendasPorEtapa, isLoading: isLoadingEtapa } = useQuery({
-    queryKey: ["vendas-panel-etapa"],
+    queryKey: ["vendas-panel-etapa-mv"],
     queryFn: async () => {
-      const { data } = await supabase.from("vendas").select("etapa_pipeline, valor_total, valor_estimado");
-      
-      const etapas: Record<string, { etapa: string; quantidade: number; valor: number }> = {
-        prospeccao: { etapa: "Prospecção", quantidade: 0, valor: 0 },
-        qualificacao: { etapa: "Qualificação", quantidade: 0, valor: 0 },
-        proposta: { etapa: "Proposta", quantidade: 0, valor: 0 },
-        negociacao: { etapa: "Negociação", quantidade: 0, valor: 0 },
-        followup_cliente: { etapa: "Follow-up", quantidade: 0, valor: 0 },
-        fechamento: { etapa: "Fechamento", quantidade: 0, valor: 0 },
-      };
+      const { data, error } = await supabase
+        .from("mv_vendas_por_etapa")
+        .select("*");
 
-      (data || []).forEach((venda) => {
-        const etapa = venda.etapa_pipeline || "prospeccao";
-        if (etapas[etapa]) {
-          etapas[etapa].quantidade++;
-          etapas[etapa].valor += venda.valor_total || venda.valor_estimado || 0;
-        }
-      });
-
-      return Object.values(etapas);
+      if (error) throw error;
+      return data || [];
     },
     enabled: isActive,
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false
   });
 
-  // Vendas por mês (últimos 6 meses)
+  // Vendas por mês - usando Materialized View existente
   const { data: vendasPorMes, isLoading: isLoadingMes } = useQuery({
-    queryKey: ["vendas-panel-mes"],
+    queryKey: ["vendas-panel-mes-mv"],
     queryFn: async () => {
-      const meses: { mes: string; valor: number; quantidade: number }[] = [];
-      const hoje = new Date();
+      const { data, error } = await supabase
+        .from("mv_vendas_por_mes")
+        .select("*")
+        .order("ordem_mes", { ascending: true });
 
-      for (let i = 5; i >= 0; i--) {
-        const inicioMes = startOfMonth(subMonths(hoje, i));
-        const fimMes = startOfMonth(subMonths(hoje, i - 1));
-
-        const { data } = await supabase
-          .from("vendas")
-          .select("valor_total, valor_estimado")
-          .gte("created_at", inicioMes.toISOString())
-          .lt("created_at", fimMes.toISOString());
-
-        const vendas = data || [];
-        const valorTotal = vendas.reduce((acc, v) => acc + (v.valor_total || v.valor_estimado || 0), 0);
-
-        meses.push({
-          mes: format(inicioMes, "MMM"),
-          valor: valorTotal,
-          quantidade: vendas.length,
-        });
-      }
-
-      return meses;
+      if (error) throw error;
+      return data || [];
     },
     enabled: isActive,
     staleTime: 5 * 60 * 1000,
@@ -217,7 +175,7 @@ export function VendasPanel({ isActive }: VendasPanelProps) {
                 </ResponsiveContainer>
               </div>
               <div className="flex-1 space-y-2">
-                {(vendasPorEtapa || []).map((item, index) => (
+                {(vendasPorEtapa || []).map((item: any, index: number) => (
                   <div key={item.etapa} className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-2">
                       <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: CHART_COLORS[index % CHART_COLORS.length] }} />

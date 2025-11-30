@@ -5,41 +5,30 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area } from "recharts";
 import { Users, Building2, UserCheck, TrendingUp, MapPin } from "lucide-react";
 import { formatCurrency, CHART_COLORS, ModernKPICard, CustomTooltip, generateSparklineData } from "../shared/ChartComponents";
-import { startOfMonth, subMonths, format } from "date-fns";
 
 interface ClientePanelProps {
   isActive: boolean;
 }
 
 export function ClientePanel({ isActive }: ClientePanelProps) {
-  // KPIs de Clientes
+  // KPIs de Clientes - usando Materialized View
   const { data: clientesKpis, isLoading: isLoadingKpis } = useQuery({
-    queryKey: ["clientes-panel-kpis"],
+    queryKey: ["clientes-panel-kpis-mv"],
     queryFn: async () => {
-      const [clientesRes, contatosRes] = await Promise.all([
-        supabase.from("clientes").select("id, natureza, lim_credito, created_at", { count: "exact" }),
-        supabase.from("contatos").select("id", { count: "exact", head: true })
-      ]);
+      const { data, error } = await supabase
+        .from("mv_clientes_resumo")
+        .select("*")
+        .single();
 
-      const clientes = clientesRes.data || [];
-      const totalClientes = clientesRes.count || 0;
-      const totalContatos = contatosRes.count || 0;
+      if (error) throw error;
       
-      const clientesPJ = clientes.filter(c => c.natureza === "Juridica").length;
-      const clientesPF = clientes.filter(c => c.natureza === "Fisica").length;
-      const limiteTotal = clientes.reduce((acc, c) => acc + (c.lim_credito || 0), 0);
-      
-      // Clientes novos este mês
-      const inicioMes = startOfMonth(new Date()).toISOString();
-      const clientesNovosMes = clientes.filter(c => c.created_at >= inicioMes).length;
-
       return {
-        totalClientes,
-        totalContatos,
-        clientesPJ,
-        clientesPF,
-        limiteTotal,
-        clientesNovosMes
+        totalClientes: data?.total_clientes || 0,
+        totalContatos: data?.total_contatos || 0,
+        clientesPJ: data?.clientes_pj || 0,
+        clientesPF: data?.clientes_pf || 0,
+        limiteTotal: data?.limite_total || 0,
+        clientesNovosMes: data?.novos_mes || 0
       };
     },
     enabled: isActive,
@@ -47,78 +36,49 @@ export function ClientePanel({ isActive }: ClientePanelProps) {
     refetchOnWindowFocus: false
   });
 
-  // Clientes por natureza
+  // Clientes por natureza - usando Materialized View
   const { data: clientesPorNatureza, isLoading: isLoadingNatureza } = useQuery({
-    queryKey: ["clientes-panel-natureza"],
+    queryKey: ["clientes-panel-natureza-mv"],
     queryFn: async () => {
-      const { data } = await supabase.from("clientes").select("natureza");
-      
-      const naturezaMap: Record<string, { natureza: string; quantidade: number }> = {
-        juridica: { natureza: "Pessoa Jurídica", quantidade: 0 },
-        fisica: { natureza: "Pessoa Física", quantidade: 0 },
-      };
+      const { data, error } = await supabase
+        .from("mv_clientes_por_natureza")
+        .select("*");
 
-      (data || []).forEach((cliente) => {
-        const natureza = cliente.natureza || "juridica";
-        if (naturezaMap[natureza]) {
-          naturezaMap[natureza].quantidade++;
-        }
-      });
-
-      return Object.values(naturezaMap);
+      if (error) throw error;
+      return data || [];
     },
     enabled: isActive,
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false
   });
 
-  // Clientes por mês (últimos 6 meses)
+  // Clientes por mês - usando Materialized View
   const { data: clientesPorMes, isLoading: isLoadingMes } = useQuery({
-    queryKey: ["clientes-panel-mes"],
+    queryKey: ["clientes-panel-mes-mv"],
     queryFn: async () => {
-      const meses: { mes: string; quantidade: number }[] = [];
-      const hoje = new Date();
+      const { data, error } = await supabase
+        .from("mv_clientes_por_mes")
+        .select("*")
+        .order("ordem_mes", { ascending: true });
 
-      for (let i = 5; i >= 0; i--) {
-        const inicioMes = startOfMonth(subMonths(hoje, i));
-        const fimMes = startOfMonth(subMonths(hoje, i - 1));
-
-        const { count } = await supabase
-          .from("clientes")
-          .select("id", { count: "exact", head: true })
-          .gte("created_at", inicioMes.toISOString())
-          .lt("created_at", fimMes.toISOString());
-
-        meses.push({
-          mes: format(inicioMes, "MMM"),
-          quantidade: count || 0,
-        });
-      }
-
-      return meses;
+      if (error) throw error;
+      return data || [];
     },
     enabled: isActive,
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false
   });
 
-  // Top estados
+  // Top estados - usando Materialized View
   const { data: clientesPorEstado, isLoading: isLoadingEstado } = useQuery({
-    queryKey: ["clientes-panel-estado"],
+    queryKey: ["clientes-panel-estado-mv"],
     queryFn: async () => {
-      const { data } = await supabase.from("cliente_enderecos").select("estado");
-      
-      const estadoMap: Record<string, number> = {};
-      
-      (data || []).forEach((endereco) => {
-        const estado = endereco.estado || "Não informado";
-        estadoMap[estado] = (estadoMap[estado] || 0) + 1;
-      });
+      const { data, error } = await supabase
+        .from("mv_clientes_por_estado")
+        .select("*");
 
-      return Object.entries(estadoMap)
-        .map(([estado, quantidade]) => ({ estado, quantidade }))
-        .sort((a, b) => b.quantidade - a.quantidade)
-        .slice(0, 5);
+      if (error) throw error;
+      return data || [];
     },
     enabled: isActive,
     staleTime: 5 * 60 * 1000,
@@ -199,7 +159,7 @@ export function ClientePanel({ isActive }: ClientePanelProps) {
                 </ResponsiveContainer>
               </div>
               <div className="flex-1 space-y-3">
-                {(clientesPorNatureza || []).map((item, index) => (
+                {(clientesPorNatureza || []).map((item: any, index: number) => (
                   <div key={item.natureza} className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-2">
                       <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: CHART_COLORS[index % CHART_COLORS.length] }} />
