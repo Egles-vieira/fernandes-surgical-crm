@@ -58,7 +58,14 @@ export function SortableItemRow({
     if (e.key === "Enter") {
       e.preventDefault();
       const currentRow = (e.target as HTMLElement).closest("tr");
-      const nextRow = currentRow?.nextElementSibling as HTMLElement | null;
+      const tbody = currentRow?.closest("tbody");
+      let nextRow = currentRow?.nextElementSibling as HTMLElement | null;
+      
+      // Se não houver próxima linha, volta para a primeira
+      if (!nextRow && tbody) {
+        nextRow = tbody.querySelector("tr") as HTMLElement | null;
+      }
+      
       if (nextRow) {
         const nextInput = nextRow.querySelector(`input[data-column="${columnName}"]`) as HTMLInputElement | null;
         if (nextInput) {
