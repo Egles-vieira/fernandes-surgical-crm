@@ -404,6 +404,22 @@ export function ItensPropostaSheet({
                               onChange={(e) =>
                                 handleQuantidadeChange(produto.id, parseInt(e.target.value) || 0)
                               }
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  e.preventDefault();
+                                  const inputs = document.querySelectorAll<HTMLInputElement>(
+                                    '[data-qty-input="search"]'
+                                  );
+                                  const currentIndex = Array.from(inputs).findIndex(
+                                    (input) => input === e.currentTarget
+                                  );
+                                  if (currentIndex < inputs.length - 1) {
+                                    inputs[currentIndex + 1]?.focus();
+                                    inputs[currentIndex + 1]?.select();
+                                  }
+                                }
+                              }}
+                              data-qty-input="search"
                               className="h-7 w-16 text-center text-sm"
                               placeholder="0"
                             />
