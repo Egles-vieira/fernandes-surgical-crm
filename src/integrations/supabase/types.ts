@@ -8418,6 +8418,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      inserir_itens_venda_bulk: {
+        Args: { p_itens: Json; p_venda_id: string }
+        Returns: undefined
+      }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
       is_team_leader: {
         Args: { _equipe_id: string; _user_id: string }
