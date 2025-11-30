@@ -265,7 +265,7 @@ export function ItensPropostaSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-full sm:max-w-5xl flex flex-col p-0">
+      <SheetContent side="right" className="w-full sm:max-w-7xl flex flex-col p-0">
         {/* Header */}
         <SheetHeader className="p-4 pb-2 border-b">
           <SheetTitle className="flex items-center gap-2">
