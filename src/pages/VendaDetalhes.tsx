@@ -234,7 +234,17 @@ export default function VendaDetalhes() {
   const [currentItemsPage, setCurrentItemsPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
   const [searchItemTerm, setSearchItemTerm] = useState("");
+  const [debouncedSearchItem, setDebouncedSearchItem] = useState("");
   const [density, setDensity] = useState<"compact" | "normal" | "comfortable">("normal");
+
+  // Debounce de busca de itens (400ms como no modal)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchItem(searchItemTerm);
+      setCurrentItemsPage(1);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchItemTerm]);
 
   // Debounce para atualizações de itens
   const pendingUpdatesRef = useRef<Map<string, {
@@ -345,6 +355,16 @@ export default function VendaDetalhes() {
     }
     return valorTotal;
   }, [valorTotal, valorFrete, ehCifInclusoNaNF, freteCalculado]);
+
+  // Itens filtrados com debounce (evita repetir filtro em múltiplos locais)
+  const filteredCarrinho = useMemo(() => {
+    if (!debouncedSearchItem) return carrinhoComFrete;
+    const searchLower = debouncedSearchItem.toLowerCase();
+    return carrinhoComFrete.filter(item => 
+      item.produto.nome.toLowerCase().includes(searchLower) || 
+      item.produto.referencia_interna.toLowerCase().includes(searchLower)
+    );
+  }, [carrinhoComFrete, debouncedSearchItem]);
   const handleAdicionarProduto = (produto: Produto) => {
     // Validar se produto tem preço
     if (!produto.preco_venda || produto.preco_venda <= 0) {
@@ -1008,16 +1028,8 @@ export default function VendaDetalhes() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    <SortableContext items={carrinhoComFrete.filter(item => {
-                      if (!searchItemTerm) return true;
-                      const searchLower = searchItemTerm.toLowerCase();
-                      return item.produto.nome.toLowerCase().includes(searchLower) || item.produto.referencia_interna.toLowerCase().includes(searchLower);
-                    }).slice((currentItemsPage - 1) * itemsPerPage, currentItemsPage * itemsPerPage).map(item => item.produto.id)} strategy={verticalListSortingStrategy}>
-                      {carrinhoComFrete.filter(item => {
-                        if (!searchItemTerm) return true;
-                        const searchLower = searchItemTerm.toLowerCase();
-                        return item.produto.nome.toLowerCase().includes(searchLower) || item.produto.referencia_interna.toLowerCase().includes(searchLower);
-                      }).slice((currentItemsPage - 1) * itemsPerPage, currentItemsPage * itemsPerPage).map((item, index) => {
+                    <SortableContext items={filteredCarrinho.slice((currentItemsPage - 1) * itemsPerPage, currentItemsPage * itemsPerPage).map(item => item.produto.id)} strategy={verticalListSortingStrategy}>
+                      {filteredCarrinho.slice((currentItemsPage - 1) * itemsPerPage, currentItemsPage * itemsPerPage).map((item, index) => {
                         const realIndex = (currentItemsPage - 1) * itemsPerPage + index;
                         return <SortableItemRow key={item.produto.id} item={item} index={realIndex} density={density} visibleColumns={visibleColumns} onUpdate={handleAtualizarItem} onEdit={handleEditarItem} onRemove={handleRemoverItem} />;
                       })}
@@ -1028,17 +1040,9 @@ export default function VendaDetalhes() {
             </div>
 
             {/* Pagination for items */}
-            {carrinho.filter(item => {
-              if (!searchItemTerm) return true;
-              const searchLower = searchItemTerm.toLowerCase();
-              return item.produto.nome.toLowerCase().includes(searchLower) || item.produto.referencia_interna.toLowerCase().includes(searchLower);
-            }).length > itemsPerPage && <div className="flex items-center justify-between mt-4 gap-4">
+            {filteredCarrinho.length > itemsPerPage && <div className="flex items-center justify-between mt-4 gap-4">
                 <div className="text-sm text-muted-foreground">
-                  {carrinho.filter(item => {
-                  if (!searchItemTerm) return true;
-                  const searchLower = searchItemTerm.toLowerCase();
-                  return item.produto.nome.toLowerCase().includes(searchLower) || item.produto.referencia_interna.toLowerCase().includes(searchLower);
-                }).length} itens no total
+                  {filteredCarrinho.length} itens no total
                 </div>
                 
                 <div className="flex items-center gap-2">
@@ -1066,28 +1070,12 @@ export default function VendaDetalhes() {
                       <ChevronLeft className="h-4 w-4" />
                     </Button>
                     <span className="text-sm px-3">
-                      Página {currentItemsPage} de {Math.ceil(carrinho.filter(item => {
-                      if (!searchItemTerm) return true;
-                      const searchLower = searchItemTerm.toLowerCase();
-                      return item.produto.nome.toLowerCase().includes(searchLower) || item.produto.referencia_interna.toLowerCase().includes(searchLower);
-                    }).length / itemsPerPage) || 1}
+                      Página {currentItemsPage} de {Math.ceil(filteredCarrinho.length / itemsPerPage) || 1}
                     </span>
-                    <Button variant="outline" size="icon" onClick={() => setCurrentItemsPage(currentItemsPage + 1)} disabled={currentItemsPage === Math.ceil(carrinho.filter(item => {
-                    if (!searchItemTerm) return true;
-                    const searchLower = searchItemTerm.toLowerCase();
-                    return item.produto.nome.toLowerCase().includes(searchLower) || item.produto.referencia_interna.toLowerCase().includes(searchLower);
-                  }).length / itemsPerPage)}>
+                    <Button variant="outline" size="icon" onClick={() => setCurrentItemsPage(currentItemsPage + 1)} disabled={currentItemsPage === Math.ceil(filteredCarrinho.length / itemsPerPage)}>
                       <ChevronRight className="h-4 w-4" />
                     </Button>
-                    <Button variant="outline" size="icon" onClick={() => setCurrentItemsPage(Math.ceil(carrinho.filter(item => {
-                    if (!searchItemTerm) return true;
-                    const searchLower = searchItemTerm.toLowerCase();
-                    return item.produto.nome.toLowerCase().includes(searchLower) || item.produto.referencia_interna.toLowerCase().includes(searchLower);
-                  }).length / itemsPerPage))} disabled={currentItemsPage === Math.ceil(carrinho.filter(item => {
-                    if (!searchItemTerm) return true;
-                    const searchLower = searchItemTerm.toLowerCase();
-                    return item.produto.nome.toLowerCase().includes(searchLower) || item.produto.referencia_interna.toLowerCase().includes(searchLower);
-                  }).length / itemsPerPage)}>
+                    <Button variant="outline" size="icon" onClick={() => setCurrentItemsPage(Math.ceil(filteredCarrinho.length / itemsPerPage))} disabled={currentItemsPage === Math.ceil(filteredCarrinho.length / itemsPerPage)}>
                       <ChevronRight className="h-4 w-4" />
                       <ChevronRight className="h-4 w-4 -ml-3" />
                     </Button>
