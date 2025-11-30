@@ -1091,7 +1091,7 @@ export default function VendaDetalhes() {
               <div className="flex justify-end gap-8">
                 <div className="text-right">
                   <p className="text-sm text-muted-foreground">Valor Mercadorias</p>
-                  <p className="text-2xl font-bold">{formatCurrency(valorTotal)}</p>
+                  <p className="text-2xl font-bold text-green-500">{formatCurrency(valorTotal)}</p>
                 </div>
                 {freteCalculado && valorFrete > 0 && (
                   <div className="text-right">
