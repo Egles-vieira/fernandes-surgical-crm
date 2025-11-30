@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Search, ChevronLeft, ChevronRight, Loader2, Plus, Trash2, HelpCircle, Package, ArrowUpDown, ArrowUp, ArrowDown, Info } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, Loader2, Plus, Trash2, HelpCircle, Package, ArrowUpDown, ArrowUp, ArrowDown, Info, Copy } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useProdutosBuscaAvancada, SortField, SortDirection } from "@/hooks/useProdutosBuscaAvancada";
 import { Tables } from "@/integrations/supabase/types";
@@ -440,7 +440,22 @@ export function ItensPropostaSheet({
                                       </button>
                                     </TooltipTrigger>
                                     <TooltipContent side="right" className="max-w-sm z-[9999]">
-                                      <p className="text-sm whitespace-pre-wrap">{produto.narrativa}</p>
+                                      <div className="flex flex-col gap-2">
+                                        <p className="text-sm whitespace-pre-wrap">{produto.narrativa}</p>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          className="h-7 w-full text-xs"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            navigator.clipboard.writeText(produto.narrativa || '');
+                                            toast.success("Descrição copiada!");
+                                          }}
+                                        >
+                                          <Copy className="h-3 w-3 mr-1" />
+                                          Copiar descrição
+                                        </Button>
+                                      </div>
                                     </TooltipContent>
                                   </Tooltip>
                                 </TooltipProvider>
