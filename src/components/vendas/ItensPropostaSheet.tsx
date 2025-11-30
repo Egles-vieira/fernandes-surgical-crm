@@ -441,7 +441,6 @@ export function ItensPropostaSheet({
                                     </TooltipTrigger>
                                     <TooltipContent side="right" className="max-w-sm z-[9999]">
                                       <div className="flex flex-col gap-2">
-                                        <p className="text-sm whitespace-pre-wrap">{produto.narrativa}</p>
                                         <Button
                                           variant="ghost"
                                           size="sm"
@@ -455,6 +454,7 @@ export function ItensPropostaSheet({
                                           <Copy className="h-3 w-3 mr-1" />
                                           Copiar descrição
                                         </Button>
+                                        <p className="text-sm whitespace-pre-wrap">{produto.narrativa}</p>
                                       </div>
                                     </TooltipContent>
                                   </Tooltip>
