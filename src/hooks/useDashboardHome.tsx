@@ -66,7 +66,7 @@ export function useDashboardHome() {
       const { data, error } = await supabase
         .from("mv_vendas_por_mes")
         .select("*")
-        .order("mes", { ascending: true });
+        .order("ordem_mes", { ascending: true });
 
       if (error) {
         console.error("Erro ao buscar vendas por mês da MV:", error);
