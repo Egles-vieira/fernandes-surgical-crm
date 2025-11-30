@@ -52,7 +52,6 @@ interface VendaWithItems extends Tables<"vendas"> {
 }
 // ID do tipo de frete "CIF - INCLUSÃO NA NF"
 const TIPO_FRETE_CIF_INCLUSO_NF = "d691ff67-c6d5-47eb-a714-8af30e191b57";
-
 interface ItemCarrinho {
   produto: Produto;
   quantidade: number;
@@ -70,20 +69,25 @@ interface ItemCarrinho {
 // Função para calcular rateio de frete proporcional ao valor de cada item
 const calcularRateioFrete = (itens: ItemCarrinho[], freteTotal: number): ItemCarrinho[] => {
   if (freteTotal <= 0 || itens.length === 0) {
-    return itens.map(item => ({ ...item, frete_rateado: 0 }));
+    return itens.map(item => ({
+      ...item,
+      frete_rateado: 0
+    }));
   }
 
   // Calcular valor total das mercadorias (sem frete)
   const valorTotalMercadorias = itens.reduce((sum, item) => sum + item.valor_total, 0);
-
   if (valorTotalMercadorias <= 0) {
-    return itens.map(item => ({ ...item, frete_rateado: 0 }));
+    return itens.map(item => ({
+      ...item,
+      frete_rateado: 0
+    }));
   }
 
   // Calcular frete proporcional para cada item
   let somaFreteRateado = 0;
-  const itensComFrete = itens.map((item) => {
-    const freteItem = Math.round((freteTotal * (item.valor_total / valorTotalMercadorias)) * 100) / 100;
+  const itensComFrete = itens.map(item => {
+    const freteItem = Math.round(freteTotal * (item.valor_total / valorTotalMercadorias) * 100) / 100;
     somaFreteRateado += freteItem;
     return {
       ...item,
@@ -93,19 +97,11 @@ const calcularRateioFrete = (itens: ItemCarrinho[], freteTotal: number): ItemCar
 
   // Ajustar diferença de centavos no item de maior valor
   const diferencaCentavos = Math.round((freteTotal - somaFreteRateado) * 100) / 100;
-
   if (diferencaCentavos !== 0) {
     // Encontrar índice do item de maior valor
-    const indexMaiorValor = itensComFrete.reduce(
-      (maxIndex, item, index, arr) =>
-        item.valor_total > arr[maxIndex].valor_total ? index : maxIndex,
-      0
-    );
-
-    itensComFrete[indexMaiorValor].frete_rateado = 
-      (itensComFrete[indexMaiorValor].frete_rateado || 0) + diferencaCentavos;
+    const indexMaiorValor = itensComFrete.reduce((maxIndex, item, index, arr) => item.valor_total > arr[maxIndex].valor_total ? index : maxIndex, 0);
+    itensComFrete[indexMaiorValor].frete_rateado = (itensComFrete[indexMaiorValor].frete_rateado || 0) + diferencaCentavos;
   }
-
   return itensComFrete;
 };
 
@@ -134,7 +130,9 @@ export default function VendaDetalhes() {
     removeItem,
     updateItemsSequence,
     aprovarVenda
-  } = useVendaDetalhes({ vendaId: id || null });
+  } = useVendaDetalhes({
+    vendaId: id || null
+  });
   const {
     condicoes
   } = useCondicoesPagamento();
@@ -176,12 +174,16 @@ export default function VendaDetalhes() {
   const {
     empresa
   } = useEmpresa();
-  
+
   // Estado para guardar o cliente_id para buscar contatos e endereços
   const [contatoClienteId, setContatoClienteId] = useState<string | null>(null);
-  const { contatos: contatosCliente } = useContatosCliente(contatoClienteId);
-  const { enderecos: enderecosCliente, isLoading: isLoadingEnderecos } = useEnderecosCliente(contatoClienteId);
-  
+  const {
+    contatos: contatosCliente
+  } = useContatosCliente(contatoClienteId);
+  const {
+    enderecos: enderecosCliente,
+    isLoading: isLoadingEnderecos
+  } = useEnderecosCliente(contatoClienteId);
   const {
     visibleColumns,
     toggleColumn
@@ -245,7 +247,6 @@ export default function VendaDetalhes() {
         if (isInitialLoad) {
           setIsLoadingComplete(false);
         }
-        
         setVenda(vendaCarregada as VendaWithItems);
         setNumeroVenda(vendaCarregada.numero_venda || "");
         setTipoFreteId(vendaCarregada.tipo_frete_id || "");
@@ -294,7 +295,6 @@ export default function VendaDetalhes() {
           }));
           setCarrinho(itens);
         }
-        
         if (!isLoadingComplete) {
           setIsLoadingComplete(true);
         }
@@ -317,10 +317,12 @@ export default function VendaDetalhes() {
 
   // Verificar se é CIF Incluso na NF e calcular rateio de frete
   const ehCifInclusoNaNF = tipoFreteId === TIPO_FRETE_CIF_INCLUSO_NF;
-  
   const carrinhoComFrete = useMemo(() => {
     if (!ehCifInclusoNaNF || !freteCalculado || valorFrete <= 0) {
-      return carrinho.map(item => ({ ...item, frete_rateado: 0 }));
+      return carrinho.map(item => ({
+        ...item,
+        frete_rateado: 0
+      }));
     }
     return calcularRateioFrete(carrinho, valorFrete);
   }, [carrinho, ehCifInclusoNaNF, freteCalculado, valorFrete]);
@@ -564,7 +566,6 @@ export default function VendaDetalhes() {
           }
         }
       }
-
       toast({
         title: "Venda atualizada com sucesso!"
       });
@@ -652,17 +653,15 @@ export default function VendaDetalhes() {
       });
     }
   };
-
   const handleCalcularFrete = async () => {
     if (!venda) return;
-    
+
     // Validar campos obrigatórios para cálculo de frete
     const camposObrigatorios = [];
     if (!clienteSelecionado) camposObrigatorios.push("Cliente");
     if (!tipoFreteId) camposObrigatorios.push("Tipo de Frete");
     if (!enderecoEntregaId) camposObrigatorios.push("Endereço de Entrega");
     if (carrinho.length === 0) camposObrigatorios.push("Itens");
-    
     if (camposObrigatorios.length > 0) {
       toast({
         title: "Campos obrigatórios para cálculo de frete",
@@ -671,11 +670,10 @@ export default function VendaDetalhes() {
       });
       return;
     }
-    
     try {
       // Salvar antes de calcular frete
       await handleSalvar();
-      
+
       // Calcular frete - abre o modal de seleção de transportadora
       await calcularFrete(venda.id);
     } catch (error: any) {
@@ -690,18 +688,15 @@ export default function VendaDetalhes() {
   // Confirmar seleção de transportadora
   const handleConfirmarFrete = async (transportadora: TransportadoraOption) => {
     if (!venda) return;
-    
     const resultado = await confirmarFrete(venda.id, transportadora);
-    
     if (resultado?.success) {
       setFreteCalculado(true);
       setValorFrete(resultado.valor_frete || 0);
-      
+
       // Salvar proposta automaticamente após confirmar frete
       await handleSalvar();
     }
   };
-
   if (isLoading || !venda || !isLoadingComplete || isLoadingCliente) {
     return <div className="flex items-center justify-center h-[calc(100vh-4rem)] bg-background">
         <div className="text-center">
@@ -715,35 +710,17 @@ export default function VendaDetalhes() {
   }
   return <div>
       {/* Barras sticky sem espaçamento entre elas */}
-      <VendasActionBar 
-        status={venda.status as "rascunho" | "aprovada" | "cancelada"} 
-        onCalcular={handleCalcularDatasul} 
-        onCancelar={() => {
-          toast({
-            title: "Cancelar proposta",
-            description: "Funcionalidade em desenvolvimento"
-          });
-        }} 
-        onDiretoria={() => {
-          toast({
-            title: "Enviar para diretoria",
-            description: "Funcionalidade em desenvolvimento"
-          });
-        }} 
-        onEfetivar={() => setShowAprovarDialog(true)} 
-        onSalvar={handleSalvar} 
-        isSaving={false} 
-        isCalculating={isCalculating} 
-        editandoVendaId={venda.id} 
-        onVoltar={() => navigate("/vendas")} 
-        numeroVenda={numeroVenda || "Nova"} 
-        etapaPipeline={venda.etapa_pipeline || undefined} 
-        className="py-[5px]"
-        freteCalculado={freteCalculado}
-        onCalcularFrete={handleCalcularFrete}
-        isCalculatingFrete={isCalculatingFrete}
-        valorFrete={valorFrete}
-      />
+      <VendasActionBar status={venda.status as "rascunho" | "aprovada" | "cancelada"} onCalcular={handleCalcularDatasul} onCancelar={() => {
+      toast({
+        title: "Cancelar proposta",
+        description: "Funcionalidade em desenvolvimento"
+      });
+    }} onDiretoria={() => {
+      toast({
+        title: "Enviar para diretoria",
+        description: "Funcionalidade em desenvolvimento"
+      });
+    }} onEfetivar={() => setShowAprovarDialog(true)} onSalvar={handleSalvar} isSaving={false} isCalculating={isCalculating} editandoVendaId={venda.id} onVoltar={() => navigate("/vendas")} numeroVenda={numeroVenda || "Nova"} etapaPipeline={venda.etapa_pipeline || undefined} className="py-[5px]" freteCalculado={freteCalculado} onCalcularFrete={handleCalcularFrete} isCalculatingFrete={isCalculatingFrete} valorFrete={valorFrete} />
 
       <FunnelStagesBar etapaAtual={venda.etapa_pipeline as any || "proposta"} onEtapaClick={async novaEtapa => {
       try {
@@ -818,30 +795,18 @@ export default function VendaDetalhes() {
           </div>
 
           {/* Endereço de Entrega */}
-          {clienteSelecionado && (
-            <div>
+          {clienteSelecionado && <div>
               <Label>Endereço de Entrega</Label>
-              <Select 
-                value={enderecoEntregaId} 
-                onValueChange={(value) => {
-                  setEnderecoEntregaId(value);
-                  setFreteCalculado(false);
-                  setValorFrete(0);
-                }}
-                disabled={isLoadingEnderecos}
-              >
+              <Select value={enderecoEntregaId} onValueChange={value => {
+              setEnderecoEntregaId(value);
+              setFreteCalculado(false);
+              setValorFrete(0);
+            }} disabled={isLoadingEnderecos}>
                 <SelectTrigger className="mt-2">
-                  <SelectValue placeholder={
-                    isLoadingEnderecos 
-                      ? "Carregando endereços..." 
-                      : enderecosCliente.length === 0 
-                        ? "Nenhum endereço cadastrado" 
-                        : "Selecione o endereço..."
-                  } />
+                  <SelectValue placeholder={isLoadingEnderecos ? "Carregando endereços..." : enderecosCliente.length === 0 ? "Nenhum endereço cadastrado" : "Selecione o endereço..."} />
                 </SelectTrigger>
                 <SelectContent>
-                  {enderecosCliente.map(endereco => (
-                    <SelectItem key={endereco.id} value={endereco.id}>
+                  {enderecosCliente.map(endereco => <SelectItem key={endereco.id} value={endereco.id}>
                       <div className="flex flex-col">
                         <span className="font-medium">
                           {endereco.is_principal && "⭐ "}
@@ -854,12 +819,10 @@ export default function VendaDetalhes() {
                           {endereco.bairro}, {endereco.cidade}/{endereco.estado} - CEP: {endereco.cep}
                         </span>
                       </div>
-                    </SelectItem>
-                  ))}
+                    </SelectItem>)}
                 </SelectContent>
               </Select>
-            </div>
-          )}
+            </div>}
 
           <Separator />
 
@@ -867,7 +830,7 @@ export default function VendaDetalhes() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label>Tipo de Frete</Label>
-              <Select value={tipoFreteId} onValueChange={(value) => {
+              <Select value={tipoFreteId} onValueChange={value => {
                 setTipoFreteId(value);
                 setFreteCalculado(false);
                 setValorFrete(0);
@@ -1001,18 +964,18 @@ export default function VendaDetalhes() {
                   </TableHeader>
                   <TableBody>
                     <SortableContext items={carrinhoComFrete.filter(item => {
-                    if (!searchItemTerm) return true;
-                    const searchLower = searchItemTerm.toLowerCase();
-                    return item.produto.nome.toLowerCase().includes(searchLower) || item.produto.referencia_interna.toLowerCase().includes(searchLower);
-                  }).slice((currentItemsPage - 1) * itemsPerPage, currentItemsPage * itemsPerPage).map(item => item.produto.id)} strategy={verticalListSortingStrategy}>
-                      {carrinhoComFrete.filter(item => {
                       if (!searchItemTerm) return true;
                       const searchLower = searchItemTerm.toLowerCase();
                       return item.produto.nome.toLowerCase().includes(searchLower) || item.produto.referencia_interna.toLowerCase().includes(searchLower);
-                    }).slice((currentItemsPage - 1) * itemsPerPage, currentItemsPage * itemsPerPage).map((item, index) => {
-                      const realIndex = (currentItemsPage - 1) * itemsPerPage + index;
-                      return <SortableItemRow key={item.produto.id} item={item} index={realIndex} density={density} visibleColumns={visibleColumns} onUpdate={handleAtualizarItem} onEdit={handleEditarItem} onRemove={handleRemoverItem} />;
-                    })}
+                    }).slice((currentItemsPage - 1) * itemsPerPage, currentItemsPage * itemsPerPage).map(item => item.produto.id)} strategy={verticalListSortingStrategy}>
+                      {carrinhoComFrete.filter(item => {
+                        if (!searchItemTerm) return true;
+                        const searchLower = searchItemTerm.toLowerCase();
+                        return item.produto.nome.toLowerCase().includes(searchLower) || item.produto.referencia_interna.toLowerCase().includes(searchLower);
+                      }).slice((currentItemsPage - 1) * itemsPerPage, currentItemsPage * itemsPerPage).map((item, index) => {
+                        const realIndex = (currentItemsPage - 1) * itemsPerPage + index;
+                        return <SortableItemRow key={item.produto.id} item={item} index={realIndex} density={density} visibleColumns={visibleColumns} onUpdate={handleAtualizarItem} onEdit={handleEditarItem} onRemove={handleRemoverItem} />;
+                      })}
                     </SortableContext>
                   </TableBody>
                 </Table>
@@ -1021,23 +984,23 @@ export default function VendaDetalhes() {
 
             {/* Pagination for items */}
             {carrinho.filter(item => {
-            if (!searchItemTerm) return true;
-            const searchLower = searchItemTerm.toLowerCase();
-            return item.produto.nome.toLowerCase().includes(searchLower) || item.produto.referencia_interna.toLowerCase().includes(searchLower);
-          }).length > itemsPerPage && <div className="flex items-center justify-between mt-4 gap-4">
+              if (!searchItemTerm) return true;
+              const searchLower = searchItemTerm.toLowerCase();
+              return item.produto.nome.toLowerCase().includes(searchLower) || item.produto.referencia_interna.toLowerCase().includes(searchLower);
+            }).length > itemsPerPage && <div className="flex items-center justify-between mt-4 gap-4">
                 <div className="text-sm text-muted-foreground">
                   {carrinho.filter(item => {
-                if (!searchItemTerm) return true;
-                const searchLower = searchItemTerm.toLowerCase();
-                return item.produto.nome.toLowerCase().includes(searchLower) || item.produto.referencia_interna.toLowerCase().includes(searchLower);
-              }).length} itens no total
+                  if (!searchItemTerm) return true;
+                  const searchLower = searchItemTerm.toLowerCase();
+                  return item.produto.nome.toLowerCase().includes(searchLower) || item.produto.referencia_interna.toLowerCase().includes(searchLower);
+                }).length} itens no total
                 </div>
                 
                 <div className="flex items-center gap-2">
                   <Select value={String(itemsPerPage)} onValueChange={value => {
-                setItemsPerPage(Number(value));
-                setCurrentItemsPage(1);
-              }}>
+                  setItemsPerPage(Number(value));
+                  setCurrentItemsPage(1);
+                }}>
                     <SelectTrigger className="w-[130px]">
                       <SelectValue />
                     </SelectTrigger>
@@ -1059,27 +1022,27 @@ export default function VendaDetalhes() {
                     </Button>
                     <span className="text-sm px-3">
                       Página {currentItemsPage} de {Math.ceil(carrinho.filter(item => {
+                      if (!searchItemTerm) return true;
+                      const searchLower = searchItemTerm.toLowerCase();
+                      return item.produto.nome.toLowerCase().includes(searchLower) || item.produto.referencia_interna.toLowerCase().includes(searchLower);
+                    }).length / itemsPerPage) || 1}
+                    </span>
+                    <Button variant="outline" size="icon" onClick={() => setCurrentItemsPage(currentItemsPage + 1)} disabled={currentItemsPage === Math.ceil(carrinho.filter(item => {
                     if (!searchItemTerm) return true;
                     const searchLower = searchItemTerm.toLowerCase();
                     return item.produto.nome.toLowerCase().includes(searchLower) || item.produto.referencia_interna.toLowerCase().includes(searchLower);
-                  }).length / itemsPerPage) || 1}
-                    </span>
-                    <Button variant="outline" size="icon" onClick={() => setCurrentItemsPage(currentItemsPage + 1)} disabled={currentItemsPage === Math.ceil(carrinho.filter(item => {
-                  if (!searchItemTerm) return true;
-                  const searchLower = searchItemTerm.toLowerCase();
-                  return item.produto.nome.toLowerCase().includes(searchLower) || item.produto.referencia_interna.toLowerCase().includes(searchLower);
-                }).length / itemsPerPage)}>
+                  }).length / itemsPerPage)}>
                       <ChevronRight className="h-4 w-4" />
                     </Button>
                     <Button variant="outline" size="icon" onClick={() => setCurrentItemsPage(Math.ceil(carrinho.filter(item => {
-                  if (!searchItemTerm) return true;
-                  const searchLower = searchItemTerm.toLowerCase();
-                  return item.produto.nome.toLowerCase().includes(searchLower) || item.produto.referencia_interna.toLowerCase().includes(searchLower);
-                }).length / itemsPerPage))} disabled={currentItemsPage === Math.ceil(carrinho.filter(item => {
-                  if (!searchItemTerm) return true;
-                  const searchLower = searchItemTerm.toLowerCase();
-                  return item.produto.nome.toLowerCase().includes(searchLower) || item.produto.referencia_interna.toLowerCase().includes(searchLower);
-                }).length / itemsPerPage)}>
+                    if (!searchItemTerm) return true;
+                    const searchLower = searchItemTerm.toLowerCase();
+                    return item.produto.nome.toLowerCase().includes(searchLower) || item.produto.referencia_interna.toLowerCase().includes(searchLower);
+                  }).length / itemsPerPage))} disabled={currentItemsPage === Math.ceil(carrinho.filter(item => {
+                    if (!searchItemTerm) return true;
+                    const searchLower = searchItemTerm.toLowerCase();
+                    return item.produto.nome.toLowerCase().includes(searchLower) || item.produto.referencia_interna.toLowerCase().includes(searchLower);
+                  }).length / itemsPerPage)}>
                       <ChevronRight className="h-4 w-4" />
                       <ChevronRight className="h-4 w-4 -ml-3" />
                     </Button>
@@ -1093,23 +1056,17 @@ export default function VendaDetalhes() {
                   <p className="text-sm text-muted-foreground">Valor Mercadorias</p>
                   <p className="text-2xl font-bold text-green-500">{formatCurrency(valorTotal)}</p>
                 </div>
-                {freteCalculado && valorFrete > 0 && (
-                  <div className="text-right">
+                {freteCalculado && valorFrete > 0 && <div className="text-right">
                     <p className="text-sm text-muted-foreground">Frete</p>
                     <p className="text-2xl font-bold">{formatCurrency(valorFrete)}</p>
-                  </div>
-                )}
-                {ehCifInclusoNaNF && freteCalculado && valorFrete > 0 ? (
-                  <div className="text-right">
+                  </div>}
+                {ehCifInclusoNaNF && freteCalculado && valorFrete > 0 ? <div className="text-right">
                     <p className="text-sm text-muted-foreground">Total c/ Frete</p>
                     <p className="text-2xl font-bold text-green-500">{formatCurrency(valorTotalComFrete)}</p>
-                  </div>
-                ) : (
-                  <div className="text-right">
+                  </div> : <div className="text-right">
                     <p className="text-sm text-muted-foreground">Valor Total Líquido</p>
-                    <p className="text-2xl font-bold text-green-500">{formatCurrency(valorTotalLiquido)}</p>
-                  </div>
-                )}
+                    <p className="text-2xl font-bold text-primary">{formatCurrency(valorTotalLiquido)}</p>
+                  </div>}
               </div>
             </div>
           </div>
@@ -1130,26 +1087,20 @@ export default function VendaDetalhes() {
       <ClienteSearchDialog open={showClienteSearch} onOpenChange={setShowClienteSearch} onSelectCliente={handleSelecionarCliente} />
 
       {showAprovarDialog && venda && <AprovarVendaDialog open={showAprovarDialog} onOpenChange={setShowAprovarDialog} onConfirm={async () => {
-      await aprovarVenda.mutateAsync(venda.id);
-      setShowAprovarDialog(false);
-    }} vendaNumero={numeroVenda} vendaValor={valorTotal} />}
+        await aprovarVenda.mutateAsync(venda.id);
+        setShowAprovarDialog(false);
+      }} vendaNumero={numeroVenda} vendaValor={valorTotal} />}
 
       <DatasulErrorDialog open={showErrorDialog} onOpenChange={closeErrorDialog} error={errorData} onViewLog={() => {
-      document.getElementById('integracao-log')?.scrollIntoView({
-        behavior: 'smooth'
-      });
-    }} />
+        document.getElementById('integracao-log')?.scrollIntoView({
+          behavior: 'smooth'
+        });
+      }} />
 
       <EditarItemVendaDialog open={showEditarItem} onOpenChange={setShowEditarItem} item={itemEditando} onSave={handleSalvarEdicaoItem} />
 
       {/* Modal de Seleção de Transportadora */}
-      <SelecionarFreteDialog
-        open={showSelectionDialog}
-        onOpenChange={setShowSelectionDialog}
-        transportadoras={transportadoras}
-        onSelect={handleConfirmarFrete}
-        isConfirming={isConfirmingFrete}
-      />
+      <SelecionarFreteDialog open={showSelectionDialog} onOpenChange={setShowSelectionDialog} transportadoras={transportadoras} onSelect={handleConfirmarFrete} isConfirming={isConfirmingFrete} />
 
       {/* Logs do Cálculo Datasul */}
       {isAdmin && venda && <Card className="p-6 mx-[10px] mt-6" id="integracao-log">
