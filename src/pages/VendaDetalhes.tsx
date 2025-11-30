@@ -61,7 +61,6 @@ interface ItemCarrinho {
   datasul_vl_tot_item?: number | null;
   datasul_vl_merc_liq?: number | null;
   datasul_lote_mulven?: number | null;
-  frete_rateado?: number | null;
 }
 
 // Função auxiliar para formatar valores monetários no padrão brasileiro
@@ -88,8 +87,7 @@ export default function VendaDetalhes() {
     updateItem,
     removeItem,
     updateItemsSequence,
-    aprovarVenda,
-    refetch
+    aprovarVenda
   } = useVendaDetalhes({ vendaId: id || null });
   const {
     condicoes
@@ -237,8 +235,7 @@ export default function VendaDetalhes() {
             datasul_divisao: item.datasul_divisao,
             datasul_vl_tot_item: item.datasul_vl_tot_item,
             datasul_vl_merc_liq: item.datasul_vl_merc_liq,
-            datasul_lote_mulven: item.datasul_lote_mulven,
-            frete_rateado: (item as any).frete_rateado
+            datasul_lote_mulven: item.datasul_lote_mulven
           }));
           setCarrinho(itens);
         }
@@ -609,15 +606,8 @@ export default function VendaDetalhes() {
       setFreteCalculado(true);
       setValorFrete(resultado.valor_frete || 0);
       
-      // Recarregar dados da venda para atualizar os itens com frete_rateado
-      await refetch();
-      
-      toast({
-        title: "Frete confirmado",
-        description: resultado.frete_rateado 
-          ? "Frete rateado nos itens (CIF Incluso NF)" 
-          : "Transportadora selecionada com sucesso"
-      });
+      // Salvar proposta automaticamente após confirmar frete
+      await handleSalvar();
     }
   };
 

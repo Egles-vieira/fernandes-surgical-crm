@@ -6059,7 +6059,6 @@ export type Database = {
           datasul_vl_merc_liq: number | null
           datasul_vl_tot_item: number | null
           desconto: number
-          frete_rateado: number | null
           id: string
           preco_tabela: number | null
           preco_unitario: number
@@ -6078,7 +6077,6 @@ export type Database = {
           datasul_vl_merc_liq?: number | null
           datasul_vl_tot_item?: number | null
           desconto?: number
-          frete_rateado?: number | null
           id?: string
           preco_tabela?: number | null
           preco_unitario: number
@@ -6097,7 +6095,6 @@ export type Database = {
           datasul_vl_merc_liq?: number | null
           datasul_vl_tot_item?: number | null
           desconto?: number
-          frete_rateado?: number | null
           id?: string
           preco_tabela?: number | null
           preco_unitario?: number
