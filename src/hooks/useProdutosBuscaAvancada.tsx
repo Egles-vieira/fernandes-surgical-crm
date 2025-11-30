@@ -61,16 +61,29 @@ export function useProdutosBuscaAvancada({
         .select("*", { count: "exact" })
         .order(sortField, { ascending: sortDirection === "asc" });
 
-      // Filtro de busca por texto
+      // Filtro de busca por texto - suporta múltiplas palavras
       if (searchTerm) {
         const normalizedSearch = searchTerm
           .replace(/,/g, ".")
           .toLowerCase()
           .normalize("NFD")
           .replace(/[\u0300-\u036f]/g, "");
-        query = query.or(
-          `nome.ilike.%${normalizedSearch}%,referencia_interna.ilike.%${normalizedSearch}%`
-        );
+        
+        const words = normalizedSearch.split(/\s+/).filter(w => w.length > 1);
+        
+        if (words.length === 0) {
+          // Termo muito curto, ignora
+        } else if (words.length === 1) {
+          // Busca simples em nome ou referencia
+          query = query.or(
+            `nome.ilike.%${words[0]}%,referencia_interna.ilike.%${words[0]}%`
+          );
+        } else {
+          // Múltiplas palavras: todas devem existir no nome
+          words.forEach(word => {
+            query = query.ilike("nome", `%${word}%`);
+          });
+        }
       }
 
       // Filtro apenas com estoque
