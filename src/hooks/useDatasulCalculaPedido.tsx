@@ -117,6 +117,7 @@ export function useDatasulCalculaPedido() {
       // Invalida a query para atualizar o log automaticamente
       queryClient.invalidateQueries({ queryKey: ["integracao-datasul-log"] });
       queryClient.invalidateQueries({ queryKey: ["vendas"] });
+      queryClient.invalidateQueries({ queryKey: ["venda-detalhes"] });
 
       return { ...data, itensAtualizados };
     } catch (error) {
