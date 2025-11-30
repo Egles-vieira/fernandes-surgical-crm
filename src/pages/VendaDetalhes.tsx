@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import type { Database } from "@/integrations/supabase/types";
-import { Search, Save, Trash2, Calculator, Loader2, ChevronLeft, ChevronRight, GripVertical, Edit } from "lucide-react";
+import { Search, Save, Trash2, Calculator, Loader2, ChevronLeft, ChevronRight, GripVertical, Edit, Package } from "lucide-react";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -40,6 +40,7 @@ import { DatasulErrorDialog } from "@/components/vendas/DatasulErrorDialog";
 import { EditarItemVendaDialog } from "@/components/vendas/EditarItemVendaDialog";
 import { SortableItemRow } from "@/components/vendas/SortableItemRow";
 import { SelecionarFreteDialog, TransportadoraOption } from "@/components/vendas/SelecionarFreteDialog";
+import { ItensPropostaSheet } from "@/components/vendas/ItensPropostaSheet";
 import { Tables } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -124,6 +125,7 @@ export default function VendaDetalhes() {
   const {
     venda: vendaCarregada,
     isLoading,
+    refetch,
     addItem,
     updateVenda,
     updateItem,
@@ -207,6 +209,7 @@ export default function VendaDetalhes() {
   const [showLogsDialog, setShowLogsDialog] = useState(false);
   const [showEditarItem, setShowEditarItem] = useState(false);
   const [itemEditando, setItemEditando] = useState<ItemCarrinho | null>(null);
+  const [showItensSheet, setShowItensSheet] = useState(false);
   const [carrinho, setCarrinho] = useState<ItemCarrinho[]>([]);
   const [clienteSelecionado, setClienteSelecionado] = useState<Cliente | null>(null);
   const [isLoadingCliente, setIsLoadingCliente] = useState(false);
@@ -973,6 +976,10 @@ export default function VendaDetalhes() {
                   <Search className="h-4 w-4 mr-2" />
                   Adicionar Produto
                 </Button>
+                <Button variant="default" size="sm" onClick={() => setShowItensSheet(true)}>
+                  <Package className="h-4 w-4 mr-2" />
+                  Múltiplos Itens
+                </Button>
               </div>
             </div>
 
@@ -1138,6 +1145,20 @@ export default function VendaDetalhes() {
 
       {/* Modal de Seleção de Transportadora */}
       <SelecionarFreteDialog open={showSelectionDialog} onOpenChange={setShowSelectionDialog} transportadoras={transportadoras} onSelect={handleConfirmarFrete} isConfirming={isConfirmingFrete} />
+
+      {/* Sheet de inclusão múltipla de itens */}
+      {venda && (
+        <ItensPropostaSheet
+          open={showItensSheet}
+          onOpenChange={setShowItensSheet}
+          vendaId={venda.id}
+          clienteId={clienteSelecionado?.id || null}
+          itensExistentes={carrinho.map((i) => i.produto.id)}
+          onItensAdicionados={() => {
+            refetch();
+          }}
+        />
+      )}
 
       {/* Logs do Cálculo Datasul */}
       {isAdmin && venda && <Card className="p-6 mx-[10px] mt-6" id="integracao-log">
