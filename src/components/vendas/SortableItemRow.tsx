@@ -54,6 +54,20 @@ export function SortableItemRow({
   onEdit,
   onRemove,
 }: SortableItemRowProps) {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, columnName: string) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      const currentRow = (e.target as HTMLElement).closest("tr");
+      const nextRow = currentRow?.nextElementSibling as HTMLElement | null;
+      if (nextRow) {
+        const nextInput = nextRow.querySelector(`input[data-column="${columnName}"]`) as HTMLInputElement | null;
+        if (nextInput) {
+          nextInput.focus();
+          nextInput.select();
+        }
+      }
+    }
+  };
   const {
     attributes,
     listeners,
@@ -108,9 +122,11 @@ export function SortableItemRow({
         <Input
           type="number"
           value={item.quantidade}
+          data-column="quantidade"
           onChange={(e) =>
             onUpdate(item.produto.id, "quantidade", parseFloat(e.target.value) || 0)
           }
+          onKeyDown={(e) => handleKeyDown(e, "quantidade")}
           className={`w-20 text-center ${
             density === "compact" ? "h-7 text-xs" : density === "comfortable" ? "h-12" : ""
           }`}
@@ -121,9 +137,11 @@ export function SortableItemRow({
           <Input
             type="number"
             value={item.desconto}
+            data-column="desconto"
             onChange={(e) =>
               onUpdate(item.produto.id, "desconto", parseFloat(e.target.value) || 0)
             }
+            onKeyDown={(e) => handleKeyDown(e, "desconto")}
             className={`w-20 text-center ${
               density === "compact" ? "h-7 text-xs" : density === "comfortable" ? "h-12" : ""
             }`}
