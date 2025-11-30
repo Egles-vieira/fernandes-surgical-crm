@@ -240,7 +240,12 @@ export default function VendaDetalhes() {
   useEffect(() => {
     const loadVendaData = async () => {
       if (vendaCarregada) {
-        setIsLoadingComplete(false);
+        // Só mostrar loading na carga inicial, não em refreshes
+        const isInitialLoad = !isLoadingComplete && !venda;
+        if (isInitialLoad) {
+          setIsLoadingComplete(false);
+        }
+        
         setVenda(vendaCarregada as VendaWithItems);
         setNumeroVenda(vendaCarregada.numero_venda || "");
         setTipoFreteId(vendaCarregada.tipo_frete_id || "");
@@ -258,8 +263,8 @@ export default function VendaDetalhes() {
         setFreteCalculado((vendaCarregada as any).frete_calculado || false);
         setValorFrete((vendaCarregada as any).frete_valor || 0);
 
-        // Carregar cliente
-        if (vendaCarregada.cliente_id) {
+        // Carregar cliente apenas na carga inicial
+        if (vendaCarregada.cliente_id && isInitialLoad) {
           setIsLoadingCliente(true);
           setContatoClienteId(vendaCarregada.cliente_id);
           const {
@@ -267,6 +272,8 @@ export default function VendaDetalhes() {
           } = await supabase.from("clientes").select("*").eq("id", vendaCarregada.cliente_id).single();
           if (data) setClienteSelecionado(data);
           setIsLoadingCliente(false);
+        } else if (vendaCarregada.cliente_id && !contatoClienteId) {
+          setContatoClienteId(vendaCarregada.cliente_id);
         }
 
         // Carregar itens no carrinho - SEMPRE ordenados pela sequência
@@ -287,7 +294,10 @@ export default function VendaDetalhes() {
           }));
           setCarrinho(itens);
         }
-        setIsLoadingComplete(true);
+        
+        if (!isLoadingComplete) {
+          setIsLoadingComplete(true);
+        }
       } else if (!isLoading && id && !vendaCarregada) {
         toast({
           title: "Venda não encontrada",
