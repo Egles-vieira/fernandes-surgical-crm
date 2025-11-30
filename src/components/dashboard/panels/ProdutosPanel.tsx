@@ -11,30 +11,25 @@ interface ProdutosPanelProps {
 }
 
 export function ProdutosPanel({ isActive }: ProdutosPanelProps) {
-  // KPIs de Produtos
+  // KPIs de Produtos - usando Materialized View
   const { data: produtosKpis, isLoading: isLoadingKpis } = useQuery({
-    queryKey: ["produtos-panel-kpis"],
+    queryKey: ["produtos-panel-kpis-mv"],
     queryFn: async () => {
-      const { data, count } = await supabase
-        .from("produtos")
-        .select("id, quantidade_em_maos, preco_venda, embedding", { count: "exact" });
+      const { data, error } = await supabase
+        .from("mv_produtos_resumo")
+        .select("*")
+        .single();
 
-      const produtos = data || [];
-      const totalProdutos = count || 0;
-      const produtosAtivos = totalProdutos;
-      const produtosComEstoque = produtos.filter(p => (p.quantidade_em_maos || 0) > 0).length;
-      const produtosSemEstoque = produtos.filter(p => (p.quantidade_em_maos || 0) <= 0).length;
-      const produtosComEmbedding = produtos.filter(p => p.embedding !== null).length;
-      const valorEstoque = produtos.reduce((acc, p) => acc + ((p.quantidade_em_maos || 0) * (p.preco_venda || 0)), 0);
-
+      if (error) throw error;
+      
       return {
-        totalProdutos,
-        produtosAtivos,
-        produtosComEstoque,
-        produtosSemEstoque,
-        produtosComEmbedding,
-        valorEstoque,
-        taxaEmbedding: totalProdutos > 0 ? Math.round((produtosComEmbedding / totalProdutos) * 100) : 0
+        totalProdutos: data?.total_produtos || 0,
+        produtosAtivos: data?.produtos_ativos || 0,
+        produtosComEstoque: data?.com_estoque || 0,
+        produtosSemEstoque: data?.sem_estoque || 0,
+        produtosComEmbedding: data?.com_embedding || 0,
+        valorEstoque: data?.valor_estoque || 0,
+        taxaEmbedding: data?.taxa_embedding || 0
       };
     },
     enabled: isActive,
@@ -42,31 +37,16 @@ export function ProdutosPanel({ isActive }: ProdutosPanelProps) {
     refetchOnWindowFocus: false
   });
 
-  // Status de estoque
+  // Status de estoque - usando Materialized View
   const { data: statusEstoque, isLoading: isLoadingEstoque } = useQuery({
-    queryKey: ["produtos-panel-estoque"],
+    queryKey: ["produtos-panel-estoque-mv"],
     queryFn: async () => {
-      const { data } = await supabase.from("produtos").select("quantidade_em_maos");
-      
-      let semEstoque = 0;
-      let estoqueBaixo = 0;
-      let estoqueNormal = 0;
-      let estoqueAlto = 0;
+      const { data, error } = await supabase
+        .from("mv_produtos_por_estoque")
+        .select("*");
 
-      (data || []).forEach((produto) => {
-        const qtd = produto.quantidade_em_maos || 0;
-        if (qtd <= 0) semEstoque++;
-        else if (qtd < 10) estoqueBaixo++;
-        else if (qtd < 100) estoqueNormal++;
-        else estoqueAlto++;
-      });
-
-      return [
-        { status: "Sem Estoque", quantidade: semEstoque },
-        { status: "Baixo (<10)", quantidade: estoqueBaixo },
-        { status: "Normal (10-100)", quantidade: estoqueNormal },
-        { status: "Alto (>100)", quantidade: estoqueAlto },
-      ];
+      if (error) throw error;
+      return data || [];
     },
     enabled: isActive,
     staleTime: 5 * 60 * 1000,
@@ -146,7 +126,7 @@ export function ProdutosPanel({ isActive }: ProdutosPanelProps) {
                 </ResponsiveContainer>
               </div>
               <div className="flex-1 space-y-2">
-                {(statusEstoque || []).map((item, index) => (
+                {(statusEstoque || []).map((item: any, index: number) => (
                   <div key={item.status} className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-2">
                       <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: CHART_COLORS[index % CHART_COLORS.length] }} />

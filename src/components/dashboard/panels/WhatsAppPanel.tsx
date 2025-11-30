@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { MessageCircle, Send, Bot, Users, CheckCircle } from "lucide-react";
 import { formatCurrency, CHART_COLORS, ModernKPICard, CustomTooltip, generateSparklineData } from "../shared/ChartComponents";
 
@@ -11,40 +11,27 @@ interface WhatsAppPanelProps {
 }
 
 export function WhatsAppPanel({ isActive }: WhatsAppPanelProps) {
-  // KPIs de WhatsApp
+  // KPIs de WhatsApp - usando Materialized View
   const { data: whatsappKpis, isLoading: isLoadingKpis } = useQuery({
-    queryKey: ["whatsapp-panel-kpis"],
+    queryKey: ["whatsapp-panel-kpis-mv"],
     queryFn: async () => {
-      const [conversasRes, mensagensRes, propostasRes, contasRes] = await Promise.all([
-        supabase.from("whatsapp_conversas").select("id, status", { count: "exact" }),
-        supabase.from("whatsapp_mensagens").select("id, enviada_por_bot", { count: "exact" }),
-        supabase.from("whatsapp_propostas_comerciais").select("id, status, valor_total", { count: "exact" }),
-        supabase.from("whatsapp_contas").select("id, status", { count: "exact" })
-      ]);
+      const { data, error } = await supabase
+        .from("mv_whatsapp_resumo")
+        .select("*")
+        .single();
 
-      const conversas = conversasRes.data || [];
-      const mensagens = mensagensRes.data || [];
-      const propostas = propostasRes.data || [];
+      if (error) throw error;
       
-      const totalConversas = conversasRes.count || 0;
-      const conversasAtivas = conversas.filter(c => c.status === "ativa").length;
-      const totalMensagens = mensagensRes.count || 0;
-      const mensagensBot = mensagens.filter(m => m.enviada_por_bot === true).length;
-      const totalPropostas = propostasRes.count || 0;
-      const propostasAceitas = propostas.filter(p => p.status === "aceita").length;
-      const valorPropostas = propostas.reduce((acc, p) => acc + (p.valor_total || 0), 0);
-      const contasAtivas = (contasRes.data || []).filter(c => c.status === "conectado").length;
-
       return {
-        totalConversas,
-        conversasAtivas,
-        totalMensagens,
-        mensagensBot,
-        totalPropostas,
-        propostasAceitas,
-        valorPropostas,
-        contasAtivas,
-        taxaConversao: totalPropostas > 0 ? Math.round((propostasAceitas / totalPropostas) * 100) : 0
+        totalConversas: data?.total_conversas || 0,
+        conversasAtivas: data?.conversas_ativas || 0,
+        totalMensagens: data?.total_mensagens || 0,
+        mensagensBot: data?.mensagens_bot || 0,
+        totalPropostas: data?.total_propostas || 0,
+        propostasAceitas: data?.propostas_aceitas || 0,
+        valorPropostas: data?.valor_propostas || 0,
+        contasAtivas: data?.contas_ativas || 0,
+        taxaConversao: data?.taxa_conversao || 0
       };
     },
     enabled: isActive,
@@ -52,54 +39,32 @@ export function WhatsAppPanel({ isActive }: WhatsAppPanelProps) {
     refetchOnWindowFocus: false
   });
 
-  // Conversas por status
+  // Conversas por status - usando Materialized View
   const { data: conversasPorStatus, isLoading: isLoadingStatus } = useQuery({
-    queryKey: ["whatsapp-panel-status"],
+    queryKey: ["whatsapp-panel-status-mv"],
     queryFn: async () => {
-      const { data } = await supabase.from("whatsapp_conversas").select("status");
-      
-      const statusMap: Record<string, { status: string; quantidade: number }> = {
-        ativa: { status: "Ativa", quantidade: 0 },
-        aguardando: { status: "Aguardando", quantidade: 0 },
-        finalizada: { status: "Finalizada", quantidade: 0 },
-      };
+      const { data, error } = await supabase
+        .from("mv_conversas_por_status")
+        .select("*");
 
-      (data || []).forEach((conversa) => {
-        const status = conversa.status || "ativa";
-        if (statusMap[status]) {
-          statusMap[status].quantidade++;
-        }
-      });
-
-      return Object.values(statusMap);
+      if (error) throw error;
+      return data || [];
     },
     enabled: isActive,
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false
   });
 
-  // Propostas por status
+  // Propostas por status - usando Materialized View
   const { data: propostasPorStatus, isLoading: isLoadingPropostas } = useQuery({
-    queryKey: ["whatsapp-panel-propostas"],
+    queryKey: ["whatsapp-panel-propostas-mv"],
     queryFn: async () => {
-      const { data } = await supabase.from("whatsapp_propostas_comerciais").select("status");
-      
-      const statusMap: Record<string, { status: string; quantidade: number }> = {
-        rascunho: { status: "Rascunho", quantidade: 0 },
-        enviada: { status: "Enviada", quantidade: 0 },
-        aceita: { status: "Aceita", quantidade: 0 },
-        rejeitada: { status: "Rejeitada", quantidade: 0 },
-        negociacao: { status: "Negociação", quantidade: 0 },
-      };
+      const { data, error } = await supabase
+        .from("mv_propostas_por_status")
+        .select("*");
 
-      (data || []).forEach((proposta) => {
-        const status = proposta.status || "rascunho";
-        if (statusMap[status]) {
-          statusMap[status].quantidade++;
-        }
-      });
-
-      return Object.values(statusMap);
+      if (error) throw error;
+      return data || [];
     },
     enabled: isActive,
     staleTime: 5 * 60 * 1000,
@@ -180,7 +145,7 @@ export function WhatsAppPanel({ isActive }: WhatsAppPanelProps) {
                 </ResponsiveContainer>
               </div>
               <div className="flex-1 space-y-2">
-                {(conversasPorStatus || []).map((item, index) => (
+                {(conversasPorStatus || []).map((item: any, index: number) => (
                   <div key={item.status} className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-2">
                       <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: CHART_COLORS[index % CHART_COLORS.length] }} />
