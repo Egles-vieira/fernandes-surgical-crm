@@ -682,6 +682,10 @@ export default function VendaDetalhes() {
 
       // Agora calcular no Datasul
       await calcularPedido(venda.id);
+      
+      // Recarregar dados atualizados do TOTVS
+      await refetch();
+      
       toast({
         title: "Cálculo iniciado",
         description: "Proposta salva e cálculo no Datasul iniciado com sucesso!"
