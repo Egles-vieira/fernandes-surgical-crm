@@ -151,7 +151,7 @@ export function SortableItemRow({
             onKeyDown={(e) => handleKeyDown(e, "desconto")}
             className={`w-20 text-center ${
               density === "compact" ? "h-7 text-xs" : density === "comfortable" ? "h-12" : ""
-            }`}
+            } ${item.desconto > 59.9999 ? "border-destructive bg-destructive/10 text-destructive" : ""}`}
           />
         </TableCell>
       )}
