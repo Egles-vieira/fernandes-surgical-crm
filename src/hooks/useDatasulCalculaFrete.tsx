@@ -30,6 +30,7 @@ interface ConfirmarFreteResponse {
   transportadora_nome?: string;
   transportadora_cod?: number;
   prazo_entrega_dias?: number;
+  frete_rateado?: boolean;
   mensagem?: string;
   error?: string;
   error_code?: string;
