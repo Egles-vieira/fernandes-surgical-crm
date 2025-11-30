@@ -1087,28 +1087,30 @@ export default function VendaDetalhes() {
                 </div>
               </div>}
 
-            <div className="flex justify-end mt-4 gap-8">
-              <div className="text-right">
-                <p className="text-sm text-muted-foreground">Valor Mercadorias</p>
-                <p className="text-2xl font-bold">{formatCurrency(valorTotal)}</p>
+            <div className="sticky bottom-0 bg-card border-t border-border pt-4 pb-2 -mx-6 px-6 mt-4">
+              <div className="flex justify-end gap-8">
+                <div className="text-right">
+                  <p className="text-sm text-muted-foreground">Valor Mercadorias</p>
+                  <p className="text-2xl font-bold">{formatCurrency(valorTotal)}</p>
+                </div>
+                {ehCifInclusoNaNF && freteCalculado && valorFrete > 0 && (
+                  <div className="text-right">
+                    <p className="text-sm text-muted-foreground">Frete CIF</p>
+                    <p className="text-2xl font-bold">{formatCurrency(valorFrete)}</p>
+                  </div>
+                )}
+                {ehCifInclusoNaNF && freteCalculado && valorFrete > 0 ? (
+                  <div className="text-right">
+                    <p className="text-sm text-muted-foreground">Total c/ Frete</p>
+                    <p className="text-2xl font-bold text-green-500">{formatCurrency(valorTotalComFrete)}</p>
+                  </div>
+                ) : (
+                  <div className="text-right">
+                    <p className="text-sm text-muted-foreground">Valor Total Líquido</p>
+                    <p className="text-2xl font-bold text-green-500">{formatCurrency(valorTotalLiquido)}</p>
+                  </div>
+                )}
               </div>
-              {ehCifInclusoNaNF && freteCalculado && valorFrete > 0 && (
-                <div className="text-right">
-                  <p className="text-sm text-muted-foreground">Frete CIF</p>
-                  <p className="text-2xl font-bold text-success">{formatCurrency(valorFrete)}</p>
-                </div>
-              )}
-              {ehCifInclusoNaNF && freteCalculado && valorFrete > 0 ? (
-                <div className="text-right">
-                  <p className="text-sm text-muted-foreground">Total c/ Frete</p>
-                  <p className="text-2xl font-bold text-primary">{formatCurrency(valorTotalComFrete)}</p>
-                </div>
-              ) : (
-                <div className="text-right">
-                  <p className="text-sm text-muted-foreground">Valor Total Líquido</p>
-                  <p className="text-2xl font-bold text-primary">{formatCurrency(valorTotalLiquido)}</p>
-                </div>
-              )}
             </div>
           </div>
 
