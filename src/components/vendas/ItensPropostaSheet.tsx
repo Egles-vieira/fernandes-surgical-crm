@@ -91,8 +91,9 @@ export function ItensPropostaSheet({
     enabled: open,
   });
 
-  // Quantidades temporárias no grid de busca
+  // Quantidades e descontos temporários no grid de busca
   const [quantidadesTemp, setQuantidadesTemp] = useState<Map<string, number>>(new Map());
+  const [descontosTemp, setDescontosTemp] = useState<Map<string, number>>(new Map());
 
   // Limpar estados ao fechar
   useEffect(() => {
@@ -104,6 +105,7 @@ export function ItensPropostaSheet({
       setJaVendi(false);
       setItensSelecionados(new Map());
       setQuantidadesTemp(new Map());
+      setDescontosTemp(new Map());
     }
   }, [open]);
 
@@ -120,10 +122,20 @@ export function ItensPropostaSheet({
     });
   };
 
+  // Atualizar desconto temporário
+  const handleDescontoTempChange = (produtoId: string, desconto: number) => {
+    setDescontosTemp((prev) => {
+      const newMap = new Map(prev);
+      newMap.set(produtoId, Math.min(100, Math.max(0, desconto)));
+      return newMap;
+    });
+  };
+
   // Adicionar item à prévia
   const handleAdicionarItem = useCallback(
     (produto: Produto & { ja_vendido: boolean; ultima_venda: string | null; valor_ultima_proposta: number | null }) => {
       const quantidade = quantidadesTemp.get(produto.id) || 1;
+      const desconto = descontosTemp.get(produto.id) || 0;
       if (quantidade <= 0) return;
 
       setItensSelecionados((prev) => {
@@ -131,19 +143,24 @@ export function ItensPropostaSheet({
         newMap.set(produto.id, {
           produto,
           quantidade,
-          desconto: 0,
+          desconto,
         });
         return newMap;
       });
 
-      // Limpar quantidade temporária
+      // Limpar quantidade e desconto temporários
       setQuantidadesTemp((prev) => {
         const newMap = new Map(prev);
         newMap.delete(produto.id);
         return newMap;
       });
+      setDescontosTemp((prev) => {
+        const newMap = new Map(prev);
+        newMap.delete(produto.id);
+        return newMap;
+      });
     },
-    [quantidadesTemp]
+    [quantidadesTemp, descontosTemp]
   );
 
   // Adicionar todos os itens com quantidade > 0
@@ -162,20 +179,22 @@ export function ItensPropostaSheet({
       const newMap = new Map(prev);
       produtosParaAdicionar.forEach((produto) => {
         const quantidade = quantidadesTemp.get(produto.id) || 1;
+        const desconto = descontosTemp.get(produto.id) || 0;
         newMap.set(produto.id, {
           produto,
           quantidade,
-          desconto: 0,
+          desconto,
         });
       });
       return newMap;
     });
 
-    // Limpar quantidades temporárias
+    // Limpar quantidades e descontos temporários
     setQuantidadesTemp(new Map());
+    setDescontosTemp(new Map());
 
     toast.success(`${produtosParaAdicionar.length} item(ns) adicionado(s) à prévia`);
-  }, [produtos, quantidadesTemp]);
+  }, [produtos, quantidadesTemp, descontosTemp]);
 
   // Remover item da prévia
   const handleRemoverItem = (produtoId: string) => {
@@ -357,12 +376,14 @@ export function ItensPropostaSheet({
                       <TableHead className="w-20 text-right">Estoque</TableHead>
                       <TableHead className="w-24 text-right">Preço</TableHead>
                       <TableHead className="w-20 text-center">Qtd</TableHead>
+                      <TableHead className="w-20 text-center">% Desc</TableHead>
                       <TableHead className="w-16"></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {produtos.map((produto) => {
                       const qtdTemp = quantidadesTemp.get(produto.id) || 0;
+                      const descTemp = descontosTemp.get(produto.id) || 0;
                       const temEstoque = (produto.quantidade_em_maos || 0) > 0;
                       return (
                         <TableRow key={produto.id} className="group">
@@ -420,6 +441,19 @@ export function ItensPropostaSheet({
                                 }
                               }}
                               data-qty-input="search"
+                              className="h-7 w-16 text-center text-sm"
+                              placeholder="0"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Input
+                              type="number"
+                              min={0}
+                              max={100}
+                              value={descTemp || ""}
+                              onChange={(e) =>
+                                handleDescontoTempChange(produto.id, parseFloat(e.target.value) || 0)
+                              }
                               className="h-7 w-16 text-center text-sm"
                               placeholder="0"
                             />
