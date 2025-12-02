@@ -241,7 +241,7 @@ export default function Layout({
         </div>
 
         {/* Menu Items - Vertical */}
-        <nav className="flex-1 py-4 overflow-y-auto">
+        <nav className="flex-1 py-4 overflow-y-auto scrollbar-hidden">
           <div className="space-y-1">
             {menuItems.filter(item => !item.adminOnly || isAdmin || isManager).map((item, index) => {
               // Itens com children (sub-menus)

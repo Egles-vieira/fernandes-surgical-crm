@@ -349,3 +349,12 @@ All colors MUST be HSL.
     background: hsl(220 13% 75%);
   }
 }
+
+/* Scrollbar invisível - mantém scroll funcional */
+.scrollbar-hidden {
+  -ms-overflow-style: none;  /* IE e Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;             /* Chrome, Safari, Opera */
+}
