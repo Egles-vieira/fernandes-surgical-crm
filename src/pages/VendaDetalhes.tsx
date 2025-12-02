@@ -858,15 +858,15 @@ export default function VendaDetalhes() {
       });
     }} />
 
-      {/* Quick Actions Bar */}
-      <PropostaQuickActionsBar 
-        vendaId={venda.id}
-      />
-
       {/* Conteúdo com espaçamento */}
       <div className="space-y-6 mt-6">
-        <Card className="p-6 mx-[10px]">
-        <div className="space-y-6">
+        <Card className="mx-[10px] overflow-hidden">
+          {/* Quick Actions Bar */}
+          <PropostaQuickActionsBar 
+            vendaId={venda.id}
+          />
+          
+          <div className="p-6 space-y-6">
           {/* Cliente */}
           <div>
             <Label>Cliente *</Label>
