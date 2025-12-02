@@ -1108,25 +1108,6 @@ export default function VendaDetalhes() {
                 </div>
               </div>}
 
-            <div className="sticky bottom-0 bg-card border-t border-border pt-4 pb-2 -mx-6 px-6 mt-4">
-              <div className="flex justify-end gap-8">
-                <div className="text-right">
-                  <p className="text-sm text-muted-foreground">Valor Mercadorias</p>
-                  <p className="text-2xl font-bold text-green-500">{formatCurrency(valorTotal)}</p>
-                </div>
-                {freteCalculado && valorFrete > 0 && <div className="text-right">
-                    <p className="text-sm text-muted-foreground">Frete</p>
-                    <p className="text-2xl font-bold">{formatCurrency(valorFrete)}</p>
-                  </div>}
-                {ehCifInclusoNaNF && freteCalculado && valorFrete > 0 ? <div className="text-right">
-                    <p className="text-sm text-muted-foreground">Total c/ Frete</p>
-                    <p className="text-2xl font-bold text-green-500">{formatCurrency(valorTotalComFrete)}</p>
-                  </div> : <div className="text-right">
-                    <p className="text-sm text-muted-foreground">Valor Total Líquido</p>
-                    <p className="text-2xl font-bold text-primary">{formatCurrency(valorTotalLiquido)}</p>
-                  </div>}
-              </div>
-            </div>
           </div>
 
           <Separator />
@@ -1135,6 +1116,27 @@ export default function VendaDetalhes() {
           <div>
             <Label>Observações</Label>
             <Input value={observacoes} onChange={e => setObservacoes(e.target.value)} placeholder="Observações adicionais..." />
+          </div>
+        </div>
+        
+        {/* Totais - sticky no bottom do Card */}
+        <div className="sticky bottom-0 bg-card border-t border-border pt-4 pb-4 px-6 mt-auto">
+          <div className="flex justify-end gap-8">
+            <div className="text-right">
+              <p className="text-sm text-muted-foreground">Valor Mercadorias</p>
+              <p className="text-2xl font-bold text-green-500">{formatCurrency(valorTotal)}</p>
+            </div>
+            {freteCalculado && valorFrete > 0 && <div className="text-right">
+                <p className="text-sm text-muted-foreground">Frete</p>
+                <p className="text-2xl font-bold">{formatCurrency(valorFrete)}</p>
+              </div>}
+            {ehCifInclusoNaNF && freteCalculado && valorFrete > 0 ? <div className="text-right">
+                <p className="text-sm text-muted-foreground">Total c/ Frete</p>
+                <p className="text-2xl font-bold text-green-500">{formatCurrency(valorTotalComFrete)}</p>
+              </div> : <div className="text-right">
+                <p className="text-sm text-muted-foreground">Valor Total Líquido</p>
+                <p className="text-2xl font-bold text-primary">{formatCurrency(valorTotalLiquido)}</p>
+              </div>}
           </div>
         </div>
       </Card>
