@@ -330,7 +330,6 @@ export default function VendaDetalhes() {
     };
     loadVendaData();
   }, [vendaCarregada, isLoading, id, navigate, toast]);
-
   const valorTotal = useMemo(() => {
     return carrinho.reduce((sum, item) => sum + item.valor_total, 0);
   }, [carrinho]);
@@ -362,10 +361,7 @@ export default function VendaDetalhes() {
   const filteredCarrinho = useMemo(() => {
     if (!debouncedSearchItem) return carrinhoComFrete;
     const searchLower = debouncedSearchItem.toLowerCase();
-    return carrinhoComFrete.filter(item => 
-      item.produto.nome.toLowerCase().includes(searchLower) || 
-      item.produto.referencia_interna.toLowerCase().includes(searchLower)
-    );
+    return carrinhoComFrete.filter(item => item.produto.nome.toLowerCase().includes(searchLower) || item.produto.referencia_interna.toLowerCase().includes(searchLower));
   }, [carrinhoComFrete, debouncedSearchItem]);
   const handleAdicionarProduto = (produto: Produto) => {
     // Validar se produto tem preço
@@ -704,10 +700,9 @@ export default function VendaDetalhes() {
 
       // Agora calcular no Datasul
       await calcularPedido(venda.id);
-      
+
       // Recarregar dados atualizados do TOTVS
       await refetch();
-      
       toast({
         title: "Cálculo iniciado",
         description: "Proposta salva e cálculo no Datasul iniciado com sucesso!"
@@ -777,35 +772,17 @@ export default function VendaDetalhes() {
   }
   return <div>
       {/* Barras sticky sem espaçamento entre elas */}
-      <VendasActionBar 
-        status={venda.status as "rascunho" | "aprovada" | "cancelada"} 
-        onCalcular={handleCalcularDatasul} 
-        onCancelar={() => {
-          toast({
-            title: "Cancelar proposta",
-            description: "Funcionalidade em desenvolvimento"
-          });
-        }} 
-        onDiretoria={() => {
-          toast({
-            title: "Enviar para diretoria",
-            description: "Funcionalidade em desenvolvimento"
-          });
-        }} 
-        onEfetivar={() => setShowAprovarDialog(true)} 
-        onSalvar={handleSalvar} 
-        isSaving={false} 
-        isCalculating={isCalculating} 
-        editandoVendaId={venda.id} 
-        onVoltar={() => navigate("/vendas")} 
-        numeroVenda={numeroVenda || "Nova"} 
-        etapaPipeline={venda.etapa_pipeline || undefined} 
-        className="py-[5px]" 
-        freteCalculado={freteCalculado} 
-        onCalcularFrete={handleCalcularFrete} 
-        isCalculatingFrete={isCalculatingFrete} 
-        valorFrete={valorFrete}
-      />
+      <VendasActionBar status={venda.status as "rascunho" | "aprovada" | "cancelada"} onCalcular={handleCalcularDatasul} onCancelar={() => {
+      toast({
+        title: "Cancelar proposta",
+        description: "Funcionalidade em desenvolvimento"
+      });
+    }} onDiretoria={() => {
+      toast({
+        title: "Enviar para diretoria",
+        description: "Funcionalidade em desenvolvimento"
+      });
+    }} onEfetivar={() => setShowAprovarDialog(true)} onSalvar={handleSalvar} isSaving={false} isCalculating={isCalculating} editandoVendaId={venda.id} onVoltar={() => navigate("/vendas")} numeroVenda={numeroVenda || "Nova"} etapaPipeline={venda.etapa_pipeline || undefined} freteCalculado={freteCalculado} onCalcularFrete={handleCalcularFrete} isCalculatingFrete={isCalculatingFrete} valorFrete={valorFrete} className="py-[5px] border-none shadow-none" />
 
       <FunnelStagesBar etapaAtual={venda.etapa_pipeline as any || "proposta"} onEtapaClick={async novaEtapa => {
       try {
@@ -862,9 +839,7 @@ export default function VendaDetalhes() {
       <div className="space-y-6 mt-6">
         <Card className="mx-[10px] overflow-hidden">
           {/* Quick Actions Bar */}
-          <PropostaQuickActionsBar 
-            vendaId={venda.id}
-          />
+          <PropostaQuickActionsBar vendaId={venda.id} />
           
           <div className="p-6 space-y-6">
           {/* Cliente */}
