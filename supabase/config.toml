@@ -149,3 +149,6 @@ verify_jwt = false
 
 [functions.proposta-responder]
 verify_jwt = false
+
+[functions.buscar-proposta-publica]
+verify_jwt = false

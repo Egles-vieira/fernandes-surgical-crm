@@ -24,41 +24,21 @@ export default function PropostaPublica() {
     queryFn: async () => {
       if (!token) throw new Error('Token não fornecido');
 
-      const { data: tokenData, error: tokenError } = await supabase
-        .from('propostas_publicas_tokens')
-        .select('*')
-        .eq('public_token', token)
-        .eq('ativo', true)
-        .single();
+      // Chamar Edge Function pública (bypassa RLS)
+      const { data, error } = await supabase.functions.invoke('buscar-proposta-publica', {
+        body: { token }
+      });
 
-      if (tokenError) throw tokenError;
-      if (!tokenData) throw new Error('Proposta não encontrada');
-
-      if (tokenData.expira_em && new Date(tokenData.expira_em) < new Date()) {
-        throw new Error('Esta proposta expirou');
+      if (error) {
+        console.error('Erro na Edge Function:', error);
+        throw new Error(error.message || 'Erro ao carregar proposta');
       }
 
-      // Buscar venda separadamente
-      const { data: venda } = await supabase
-        .from('vendas')
-        .select('*, clientes:cliente_id(nome_abrev, nome_emit, cgc)')
-        .eq('id', tokenData.venda_id)
-        .single();
+      if (data?.error) {
+        throw new Error(data.error);
+      }
 
-      // Buscar itens
-      const { data: itens } = await supabase
-        .from('vendas_itens')
-        .select('*, produtos:produto_id(nome, referencia_interna, unidade_medida)')
-        .eq('venda_id', tokenData.venda_id);
-
-      // Buscar vendedor
-      const { data: vendedor } = venda?.vendedor_id ? await supabase
-        .from('perfis_usuario')
-        .select('primeiro_nome, sobrenome, telefone, celular')
-        .eq('id', venda.vendedor_id)
-        .single() : { data: null };
-
-      return { ...tokenData, venda, itens: itens || [], vendedor };
+      return data;
     },
     enabled: !!token,
     staleTime: 30000,
