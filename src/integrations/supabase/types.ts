@@ -6378,6 +6378,65 @@ export type Database = {
           },
         ]
       }
+      vendas_entregas: {
+        Row: {
+          codigo_rastreio: string | null
+          created_at: string
+          data_entrega: string | null
+          data_previsao: string | null
+          id: string
+          observacoes: string | null
+          peso_kg: number | null
+          status_entrega: Database["public"]["Enums"]["status_entrega"]
+          transportadora_cnpj: string | null
+          transportadora_nome: string | null
+          updated_at: string
+          url_rastreio: string | null
+          venda_id: string
+          volumes: number | null
+        }
+        Insert: {
+          codigo_rastreio?: string | null
+          created_at?: string
+          data_entrega?: string | null
+          data_previsao?: string | null
+          id?: string
+          observacoes?: string | null
+          peso_kg?: number | null
+          status_entrega?: Database["public"]["Enums"]["status_entrega"]
+          transportadora_cnpj?: string | null
+          transportadora_nome?: string | null
+          updated_at?: string
+          url_rastreio?: string | null
+          venda_id: string
+          volumes?: number | null
+        }
+        Update: {
+          codigo_rastreio?: string | null
+          created_at?: string
+          data_entrega?: string | null
+          data_previsao?: string | null
+          id?: string
+          observacoes?: string | null
+          peso_kg?: number | null
+          status_entrega?: Database["public"]["Enums"]["status_entrega"]
+          transportadora_cnpj?: string | null
+          transportadora_nome?: string | null
+          updated_at?: string
+          url_rastreio?: string | null
+          venda_id?: string
+          volumes?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendas_entregas_venda_id_fkey"
+            columns: ["venda_id"]
+            isOneToOne: false
+            referencedRelation: "vendas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vendas_itens: {
         Row: {
           created_at: string
@@ -6453,6 +6512,65 @@ export type Database = {
           },
           {
             foreignKeyName: "vendas_itens_venda_id_fkey"
+            columns: ["venda_id"]
+            isOneToOne: false
+            referencedRelation: "vendas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vendas_notas_fiscais: {
+        Row: {
+          chave_acesso: string | null
+          created_at: string
+          data_emissao: string
+          id: string
+          natureza_operacao: string | null
+          numero_nf: string
+          observacoes: string | null
+          serie_nf: string | null
+          status: Database["public"]["Enums"]["status_nota_fiscal"]
+          updated_at: string
+          url_danfe: string | null
+          url_xml: string | null
+          valor_total: number
+          venda_id: string
+        }
+        Insert: {
+          chave_acesso?: string | null
+          created_at?: string
+          data_emissao: string
+          id?: string
+          natureza_operacao?: string | null
+          numero_nf: string
+          observacoes?: string | null
+          serie_nf?: string | null
+          status?: Database["public"]["Enums"]["status_nota_fiscal"]
+          updated_at?: string
+          url_danfe?: string | null
+          url_xml?: string | null
+          valor_total: number
+          venda_id: string
+        }
+        Update: {
+          chave_acesso?: string | null
+          created_at?: string
+          data_emissao?: string
+          id?: string
+          natureza_operacao?: string | null
+          numero_nf?: string
+          observacoes?: string | null
+          serie_nf?: string | null
+          status?: Database["public"]["Enums"]["status_nota_fiscal"]
+          updated_at?: string
+          url_danfe?: string | null
+          url_xml?: string | null
+          valor_total?: number
+          venda_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendas_notas_fiscais_venda_id_fkey"
             columns: ["venda_id"]
             isOneToOne: false
             referencedRelation: "vendas"
@@ -8908,6 +9026,13 @@ export type Database = {
         | "erro"
         | "cancelada"
       status_aprovacao: "pendente" | "aprovada" | "rejeitada" | "expirada"
+      status_entrega:
+        | "pendente"
+        | "em_transito"
+        | "entregue"
+        | "devolvido"
+        | "cancelado"
+      status_nota_fiscal: "emitida" | "cancelada" | "denegada" | "inutilizada"
       status_proposta:
         | "rascunho"
         | "enviada"
@@ -9105,6 +9230,14 @@ export const Constants = {
         "cancelada",
       ],
       status_aprovacao: ["pendente", "aprovada", "rejeitada", "expirada"],
+      status_entrega: [
+        "pendente",
+        "em_transito",
+        "entregue",
+        "devolvido",
+        "cancelado",
+      ],
+      status_nota_fiscal: ["emitida", "cancelada", "denegada", "inutilizada"],
       status_proposta: [
         "rascunho",
         "enviada",
