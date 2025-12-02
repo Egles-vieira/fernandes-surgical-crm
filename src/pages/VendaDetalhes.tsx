@@ -1083,8 +1083,8 @@ export default function VendaDetalhes() {
                 </div>
               </div>}
 
-            <div className="fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-md border-t border-border shadow-[0_-4px_20px_rgba(0,0,0,0.15)] py-4 px-6">
-              <div className="max-w-7xl mx-auto flex justify-end gap-8">
+            <div className="sticky bottom-0 bg-card border-t border-border pt-4 pb-2 -mx-6 px-6 mt-4">
+              <div className="flex justify-end gap-8">
                 <div className="text-right">
                   <p className="text-sm text-muted-foreground">Valor Mercadorias</p>
                   <p className="text-2xl font-bold text-green-500">{formatCurrency(valorTotal)}</p>
@@ -1102,8 +1102,6 @@ export default function VendaDetalhes() {
                   </div>}
               </div>
             </div>
-            {/* Spacer para compensar a barra fixa */}
-            <div className="h-20"></div>
           </div>
 
           <Separator />
