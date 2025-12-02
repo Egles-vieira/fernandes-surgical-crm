@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
@@ -26,8 +26,15 @@ export function PropostaQuickActionsBar({
   const { data: entregasCount = 0, isLoading: loadingEntregas } = useVendasEntregasCount(vendaId);
   const { data: notasCount = 0, isLoading: loadingNotas } = useVendasNotasFiscaisCount(vendaId);
   
-  const { gerarLink, isGenerating, publicUrl, copiarLink } = useGerarLinkProposta(vendaId);
-  const { data: activityData } = usePropostaActivity(vendaId);
+  const { gerarLink, isGenerating, publicUrl, copiarLink, setPublicUrl } = useGerarLinkProposta(vendaId);
+  const { publicUrl: existingUrl, data: activityData } = usePropostaActivity(vendaId);
+  
+  // Sincronizar URL existente com o estado do hook
+  useEffect(() => {
+    if (existingUrl && !publicUrl) {
+      setPublicUrl(existingUrl);
+    }
+  }, [existingUrl, publicUrl, setPublicUrl]);
   
   const totalViews = activityData?.analytics?.length || 0;
 
