@@ -1,6 +1,5 @@
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { Loader2, AlertCircle } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { PropostaHeader } from "@/components/proposta-publica/PropostaHeader";
@@ -24,15 +23,28 @@ export default function PropostaPublica() {
     queryFn: async () => {
       if (!token) throw new Error('Token não fornecido');
 
-      // Chamar Edge Function pública (bypassa RLS)
-      const { data, error } = await supabase.functions.invoke('buscar-proposta-publica', {
-        body: { token }
-      });
+      // Usar fetch direto para garantir funcionamento sem autenticação
+      const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+      const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
-      if (error) {
-        console.error('Erro na Edge Function:', error);
-        throw new Error(error.message || 'Erro ao carregar proposta');
+      const response = await fetch(
+        `${SUPABASE_URL}/functions/v1/buscar-proposta-publica`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': SUPABASE_ANON_KEY,
+          },
+          body: JSON.stringify({ token }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Erro ao carregar proposta');
       }
+
+      const data = await response.json();
 
       if (data?.error) {
         throw new Error(data.error);
