@@ -47,223 +47,243 @@ import SolicitacoesCadastro from "./pages/SolicitacoesCadastro";
 import Configuracoes from "./pages/Configuracoes";
 import PerfilVendedor from "./pages/PerfilVendedor";
 import PropostaPublica from "./pages/PropostaPublica";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-// App principal
-const App = () => <ThemeProvider>
-    <Toaster />
+// QueryClient para rotas públicas (sem ThemeProvider)
+const publicQueryClient = new QueryClient();
+
+// Rotas públicas que não precisam de autenticação nem ThemeProvider
+const PublicRoutes = () => (
+  <QueryClientProvider client={publicQueryClient}>
     <BrowserRouter>
       <Routes>
-        <Route path="/auth" element={<Auth />} />
-        <Route path="/" element={<ProtectedRoute>
-            <Layout>
-              <Index />
-            </Layout>
-          </ProtectedRoute>} />
-        <Route path="/vendas" element={<ProtectedRoute>
-            <Layout>
-              <Vendas />
-            </Layout>
-          </ProtectedRoute>} />
-        <Route path="/vendas/:id" element={<ProtectedRoute>
-            <Layout>
-              <VendaDetalhes />
-            </Layout>
-          </ProtectedRoute>} />
-        <Route path="/plataformas" element={<ProtectedRoute>
-            <Layout>
-              <Plataformas />
-            </Layout>
-          </ProtectedRoute>} />
-        <Route path="/licitacoes" element={<ProtectedRoute>
-            <Layout>
-              <Licitacoes />
-            </Layout>
-          </ProtectedRoute>} />
-        <Route path="/clientes" element={<ProtectedRoute>
-            <Layout>
-              <Clientes />
-            </Layout>
-          </ProtectedRoute>} />
-        <Route path="/clientes/:id" element={<ProtectedRoute>
-            <Layout>
-              <ClienteDetalhes />
-            </Layout>
-          </ProtectedRoute>} />
-        <Route path="/clientes/cadastro-cnpj" element={<ProtectedRoute>
-            <Layout>
-              <CadastroCNPJ />
-            </Layout>
-          </ProtectedRoute>} />
-        <Route path="/clientes/solicitacoes" element={<ProtectedRoute>
-            <Layout>
-              <SolicitacoesCadastro />
-            </Layout>
-          </ProtectedRoute>} />
-        <Route path="/produtos" element={<ProtectedRoute>
-            <Layout>
-              <Produtos />
-            </Layout>
-          </ProtectedRoute>} />
-        <Route path="/importar-produtos" element={<ProtectedRoute>
-            <Layout>
-              <ImportarProdutos />
-            </Layout>
-          </ProtectedRoute>} />
-        <Route path="/importar-clientes" element={<ProtectedRoute>
-            <Layout>
-              <ImportarClientes />
-            </Layout>
-          </ProtectedRoute>} />
-        <Route path="/vendas/pedidos" element={<ProtectedRoute>
-            <Layout>
-              <PedidosVendas />
-            </Layout>
-          </ProtectedRoute>} />
-        <Route path="/vendas/contratos" element={<ProtectedRoute>
-            <Layout>
-              <ContratosVendas />
-            </Layout>
-          </ProtectedRoute>} />
-        <Route path="/vendas/carteira" element={<ProtectedRoute>
-            <Layout>
-              <MinhaCarteira />
-            </Layout>
-          </ProtectedRoute>} />
-        <Route path="/plataformas/cotacoes" element={<ProtectedRoute>
-            <Layout>
-              <CotacoesPlataforma />
-            </Layout>
-          </ProtectedRoute>} />
-        <Route path="/plataformas/cotacoes/:id" element={<ProtectedRoute>
-            <Layout>
-              <CotacaoDetalhes />
-            </Layout>
-          </ProtectedRoute>} />
-        <Route path="/plataformas/pedidos" element={<ProtectedRoute>
-            <Layout>
-              <PedidosPlataforma />
-            </Layout>
-          </ProtectedRoute>} />
-        <Route path="/plataformas/relatorios" element={<ProtectedRoute>
-            <Layout>
-              <RelatoriosPlataforma />
-            </Layout>
-          </ProtectedRoute>} />
-        <Route path="/plataformas/produtos-vinculo" element={<ProtectedRoute>
-            <Layout>
-              <ProdutosVinculo />
-            </Layout>
-          </ProtectedRoute>} />
-        <Route path="/plataformas/parametros" element={<ProtectedRoute>
-            <Layout>
-              <Parametros />
-            </Layout>
-          </ProtectedRoute>} />
-        <Route path="/plataformas/dashboard-ia" element={<ProtectedRoute>
-            <Layout>
-              <DashboardAnaliseIA />
-            </Layout>
-          </ProtectedRoute>} />
-        <Route path="/plataformas/ml-dashboard" element={<ProtectedRoute>
-            <Layout>
-              <MLDashboard />
-            </Layout>
-          </ProtectedRoute>} />
-        <Route path="/plataformas/historico-importacoes" element={<ProtectedRoute>
-            <Layout>
-              <HistoricoImportacoes />
-            </Layout>
-          </ProtectedRoute>} />
-        <Route path="/licitacoes/solicitacao" element={<ProtectedRoute>
-            <Layout>
-              <SolicitacaoParticipacao />
-            </Layout>
-          </ProtectedRoute>} />
-        <Route path="/licitacoes/contratos-governo" element={<ProtectedRoute>
-            <Layout>
-              <ContratosGoverno />
-            </Layout>
-          </ProtectedRoute>} />
-        <Route path="/whatsapp" element={<ProtectedRoute>
-            <Layout>
-              <WhatsApp />
-            </Layout>
-          </ProtectedRoute>} />
-        <Route path="/whatsapp/configuracoes" element={<ProtectedRoute>
-            <Layout>
-              <ConfiguracoesWhatsApp />
-            </Layout>
-          </ProtectedRoute>} />
-        <Route path="/whatsapp/configuracao-global" element={<ProtectedRoute>
-            <Layout>
-              <ConfiguracaoGlobal />
-            </Layout>
-          </ProtectedRoute>} />
-        <Route path="/uras" element={<ProtectedRoute>
-            <Layout>
-              <URAs />
-            </Layout>
-          </ProtectedRoute>} />
-        <Route path="/uras/:id/editor" element={<ProtectedRoute>
-            <Layout>
-              <URAEditor />
-            </Layout>
-          </ProtectedRoute>} />
-        <Route path="/usuarios" element={<ProtectedRoute>
-            <Layout>
-              <Usuarios />
-            </Layout>
-          </ProtectedRoute>} />
-        <Route path="/equipes" element={<ProtectedRoute>
-            <Layout>
-              <Equipes />
-            </Layout>
-          </ProtectedRoute>} />
-        <Route path="/tickets" element={<ProtectedRoute>
-            <Layout>
-              <Tickets />
-            </Layout>
-          </ProtectedRoute>} />
-        <Route path="/tickets/novo" element={<ProtectedRoute>
-            <Layout>
-              <NovoTicket />
-            </Layout>
-          </ProtectedRoute>} />
-        <Route path="/tickets/:id" element={<ProtectedRoute>
-            <Layout>
-              <TicketDetalhes />
-            </Layout>
-          </ProtectedRoute>} />
-        <Route path="/tickets/dashboard" element={<ProtectedRoute>
-            <Layout>
-              <TicketsDashboard />
-            </Layout>
-          </ProtectedRoute>} />
-        <Route path="/base-conhecimento" element={<ProtectedRoute>
-            <Layout>
-              <BaseConhecimento />
-            </Layout>
-          </ProtectedRoute>} />
-        <Route path="/perfil" element={<ProtectedRoute>
-            <Layout>
-              <MeuPerfil />
-            </Layout>
-          </ProtectedRoute>} />
-        <Route path="/configuracoes" element={<ProtectedRoute>
-            <Layout>
-              <Configuracoes />
-            </Layout>
-          </ProtectedRoute>} />
-        <Route path="/perfil-vendedor" element={<ProtectedRoute>
-            <Layout>
-              <PerfilVendedor />
-            </Layout>
-          </ProtectedRoute>} />
-        {/* Rota pública para proposta comercial */}
+        {/* Rota pública para proposta comercial - completamente isolada */}
         <Route path="/proposal/:token" element={<PropostaPublica />} />
-        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-        <Route path="*" element={<NotFound />} />
+        
+        {/* Todas as outras rotas vão para o app principal com ThemeProvider */}
+        <Route path="/*" element={<MainApp />} />
       </Routes>
     </BrowserRouter>
-  </ThemeProvider>;
+  </QueryClientProvider>
+);
+
+// App principal com ThemeProvider
+const MainApp = () => (
+  <ThemeProvider>
+    <Toaster />
+    <Routes>
+      <Route path="/auth" element={<Auth />} />
+      <Route path="/" element={<ProtectedRoute>
+          <Layout>
+            <Index />
+          </Layout>
+        </ProtectedRoute>} />
+      <Route path="/vendas" element={<ProtectedRoute>
+          <Layout>
+            <Vendas />
+          </Layout>
+        </ProtectedRoute>} />
+      <Route path="/vendas/:id" element={<ProtectedRoute>
+          <Layout>
+            <VendaDetalhes />
+          </Layout>
+        </ProtectedRoute>} />
+      <Route path="/plataformas" element={<ProtectedRoute>
+          <Layout>
+            <Plataformas />
+          </Layout>
+        </ProtectedRoute>} />
+      <Route path="/licitacoes" element={<ProtectedRoute>
+          <Layout>
+            <Licitacoes />
+          </Layout>
+        </ProtectedRoute>} />
+      <Route path="/clientes" element={<ProtectedRoute>
+          <Layout>
+            <Clientes />
+          </Layout>
+        </ProtectedRoute>} />
+      <Route path="/clientes/:id" element={<ProtectedRoute>
+          <Layout>
+            <ClienteDetalhes />
+          </Layout>
+        </ProtectedRoute>} />
+      <Route path="/clientes/cadastro-cnpj" element={<ProtectedRoute>
+          <Layout>
+            <CadastroCNPJ />
+          </Layout>
+        </ProtectedRoute>} />
+      <Route path="/clientes/solicitacoes" element={<ProtectedRoute>
+          <Layout>
+            <SolicitacoesCadastro />
+          </Layout>
+        </ProtectedRoute>} />
+      <Route path="/produtos" element={<ProtectedRoute>
+          <Layout>
+            <Produtos />
+          </Layout>
+        </ProtectedRoute>} />
+      <Route path="/importar-produtos" element={<ProtectedRoute>
+          <Layout>
+            <ImportarProdutos />
+          </Layout>
+        </ProtectedRoute>} />
+      <Route path="/importar-clientes" element={<ProtectedRoute>
+          <Layout>
+            <ImportarClientes />
+          </Layout>
+        </ProtectedRoute>} />
+      <Route path="/vendas/pedidos" element={<ProtectedRoute>
+          <Layout>
+            <PedidosVendas />
+          </Layout>
+        </ProtectedRoute>} />
+      <Route path="/vendas/contratos" element={<ProtectedRoute>
+          <Layout>
+            <ContratosVendas />
+          </Layout>
+        </ProtectedRoute>} />
+      <Route path="/vendas/carteira" element={<ProtectedRoute>
+          <Layout>
+            <MinhaCarteira />
+          </Layout>
+        </ProtectedRoute>} />
+      <Route path="/plataformas/cotacoes" element={<ProtectedRoute>
+          <Layout>
+            <CotacoesPlataforma />
+          </Layout>
+        </ProtectedRoute>} />
+      <Route path="/plataformas/cotacoes/:id" element={<ProtectedRoute>
+          <Layout>
+            <CotacaoDetalhes />
+          </Layout>
+        </ProtectedRoute>} />
+      <Route path="/plataformas/pedidos" element={<ProtectedRoute>
+          <Layout>
+            <PedidosPlataforma />
+          </Layout>
+        </ProtectedRoute>} />
+      <Route path="/plataformas/relatorios" element={<ProtectedRoute>
+          <Layout>
+            <RelatoriosPlataforma />
+          </Layout>
+        </ProtectedRoute>} />
+      <Route path="/plataformas/produtos-vinculo" element={<ProtectedRoute>
+          <Layout>
+            <ProdutosVinculo />
+          </Layout>
+        </ProtectedRoute>} />
+      <Route path="/plataformas/parametros" element={<ProtectedRoute>
+          <Layout>
+            <Parametros />
+          </Layout>
+        </ProtectedRoute>} />
+      <Route path="/plataformas/dashboard-ia" element={<ProtectedRoute>
+          <Layout>
+            <DashboardAnaliseIA />
+          </Layout>
+        </ProtectedRoute>} />
+      <Route path="/plataformas/ml-dashboard" element={<ProtectedRoute>
+          <Layout>
+            <MLDashboard />
+          </Layout>
+        </ProtectedRoute>} />
+      <Route path="/plataformas/historico-importacoes" element={<ProtectedRoute>
+          <Layout>
+            <HistoricoImportacoes />
+          </Layout>
+        </ProtectedRoute>} />
+      <Route path="/licitacoes/solicitacao" element={<ProtectedRoute>
+          <Layout>
+            <SolicitacaoParticipacao />
+          </Layout>
+        </ProtectedRoute>} />
+      <Route path="/licitacoes/contratos-governo" element={<ProtectedRoute>
+          <Layout>
+            <ContratosGoverno />
+          </Layout>
+        </ProtectedRoute>} />
+      <Route path="/whatsapp" element={<ProtectedRoute>
+          <Layout>
+            <WhatsApp />
+          </Layout>
+        </ProtectedRoute>} />
+      <Route path="/whatsapp/configuracoes" element={<ProtectedRoute>
+          <Layout>
+            <ConfiguracoesWhatsApp />
+          </Layout>
+        </ProtectedRoute>} />
+      <Route path="/whatsapp/configuracao-global" element={<ProtectedRoute>
+          <Layout>
+            <ConfiguracaoGlobal />
+          </Layout>
+        </ProtectedRoute>} />
+      <Route path="/uras" element={<ProtectedRoute>
+          <Layout>
+            <URAs />
+          </Layout>
+        </ProtectedRoute>} />
+      <Route path="/uras/:id/editor" element={<ProtectedRoute>
+          <Layout>
+            <URAEditor />
+          </Layout>
+        </ProtectedRoute>} />
+      <Route path="/usuarios" element={<ProtectedRoute>
+          <Layout>
+            <Usuarios />
+          </Layout>
+        </ProtectedRoute>} />
+      <Route path="/equipes" element={<ProtectedRoute>
+          <Layout>
+            <Equipes />
+          </Layout>
+        </ProtectedRoute>} />
+      <Route path="/tickets" element={<ProtectedRoute>
+          <Layout>
+            <Tickets />
+          </Layout>
+        </ProtectedRoute>} />
+      <Route path="/tickets/novo" element={<ProtectedRoute>
+          <Layout>
+            <NovoTicket />
+          </Layout>
+        </ProtectedRoute>} />
+      <Route path="/tickets/:id" element={<ProtectedRoute>
+          <Layout>
+            <TicketDetalhes />
+          </Layout>
+        </ProtectedRoute>} />
+      <Route path="/tickets/dashboard" element={<ProtectedRoute>
+          <Layout>
+            <TicketsDashboard />
+          </Layout>
+        </ProtectedRoute>} />
+      <Route path="/base-conhecimento" element={<ProtectedRoute>
+          <Layout>
+            <BaseConhecimento />
+          </Layout>
+        </ProtectedRoute>} />
+      <Route path="/perfil" element={<ProtectedRoute>
+          <Layout>
+            <MeuPerfil />
+          </Layout>
+        </ProtectedRoute>} />
+      <Route path="/configuracoes" element={<ProtectedRoute>
+          <Layout>
+            <Configuracoes />
+          </Layout>
+        </ProtectedRoute>} />
+      <Route path="/perfil-vendedor" element={<ProtectedRoute>
+          <Layout>
+            <PerfilVendedor />
+          </Layout>
+        </ProtectedRoute>} />
+      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  </ThemeProvider>
+);
+
+const App = () => <PublicRoutes />;
+
 export default App;

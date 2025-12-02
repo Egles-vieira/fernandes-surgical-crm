@@ -1,5 +1,7 @@
 import { useEffect, useRef, useCallback } from "react";
-import { supabase } from "@/integrations/supabase/client";
+
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
 // Gera ID único para sessão
 function generateSessionId(): string {
@@ -80,6 +82,37 @@ const SECTION_NAMES: Record<string, string> = {
   'termos': 'Termos e Condições'
 };
 
+// Helper para fazer INSERT via REST API (funciona sem autenticação)
+async function insertAnalytics(table: string, data: Record<string, unknown>): Promise<{ id?: string; error?: string }> {
+  try {
+    const response = await fetch(
+      `${SUPABASE_URL}/rest/v1/${table}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'Prefer': 'return=representation'
+        },
+        body: JSON.stringify(data)
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`Erro ao inserir em ${table}:`, errorText);
+      return { error: errorText };
+    }
+
+    const result = await response.json();
+    return { id: result?.[0]?.id };
+  } catch (err) {
+    console.error(`Erro ao inserir em ${table}:`, err);
+    return { error: String(err) };
+  }
+}
+
 export function usePropostaTracking(tokenId: string, vendaId: string) {
   const sessionId = useRef(generateSessionId());
   const analyticsId = useRef<string | null>(null);
@@ -95,23 +128,19 @@ export function usePropostaTracking(tokenId: string, vendaId: string) {
       try {
         const deviceInfo = getDeviceInfo();
         
-        const { data, error } = await supabase
-          .from('propostas_analytics')
-          .insert({
-            proposta_token_id: tokenId,
-            venda_id: vendaId,
-            session_id: sessionId.current,
-            ...deviceInfo
-          })
-          .select('id')
-          .single();
+        const result = await insertAnalytics('propostas_analytics', {
+          proposta_token_id: tokenId,
+          venda_id: vendaId,
+          session_id: sessionId.current,
+          ...deviceInfo
+        });
 
-        if (error) {
-          console.error('Erro ao registrar visualização:', error);
+        if (result.error) {
+          console.error('Erro ao registrar visualização:', result.error);
           return;
         }
 
-        analyticsId.current = data?.id || null;
+        analyticsId.current = result.id || null;
         console.log('📊 Analytics iniciado:', analyticsId.current);
       } catch (err) {
         console.error('Erro no tracking:', err);
@@ -193,8 +222,6 @@ export function usePropostaTracking(tokenId: string, vendaId: string) {
         .reduce((sum, t) => sum + t, 0);
 
       // Usar sendBeacon para garantir envio
-      const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-      
       if (secoesData.length > 0) {
         navigator.sendBeacon(
           `${SUPABASE_URL}/functions/v1/proposta-analytics-beacon`,
@@ -233,7 +260,7 @@ export function usePropostaTracking(tokenId: string, vendaId: string) {
     if (!analyticsId.current) return;
 
     try {
-      await supabase.from('propostas_analytics_cliques').insert({
+      await insertAnalytics('propostas_analytics_cliques', {
         analytics_id: analyticsId.current,
         tipo_acao: tipo,
         elemento_id: elemento,
