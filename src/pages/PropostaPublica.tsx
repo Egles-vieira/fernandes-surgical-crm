@@ -54,7 +54,7 @@ export default function PropostaPublica() {
       // Buscar vendedor
       const { data: vendedor } = venda?.vendedor_id ? await supabase
         .from('perfis_usuario')
-        .select('primeiro_nome, sobrenome, email, telefone')
+        .select('primeiro_nome, sobrenome, telefone, celular')
         .eq('id', venda.vendedor_id)
         .single() : { data: null };
 
@@ -73,9 +73,10 @@ export default function PropostaPublica() {
   const handleRecusar = () => { trackClick('recusar_click', 'btn-recusar'); setRecusarOpen(true); };
   const handleWhatsApp = () => {
     trackClick('whatsapp_click', 'btn-whatsapp');
-    if (propostaData?.vendedor?.telefone) {
-      const phone = propostaData.vendedor.telefone.replace(/\D/g, '');
-      window.open(`https://wa.me/55${phone}`, '_blank');
+    const phone = propostaData?.vendedor?.telefone || propostaData?.vendedor?.celular;
+    if (phone) {
+      const cleanPhone = phone.replace(/\D/g, '');
+      window.open(`https://wa.me/55${cleanPhone}`, '_blank');
     }
   };
   const handleDownloadPDF = () => { trackClick('download_pdf', 'btn-download'); };
@@ -107,7 +108,7 @@ export default function PropostaPublica() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b shadow-sm">
-        <PropostaHeader numeroProposta={venda?.numero_proposta || venda?.id?.slice(0, 8)} vendedor={vendedor} />
+        <PropostaHeader numeroProposta={venda?.id?.slice(0, 8).toUpperCase()} vendedor={vendedor} />
       </header>
 
       <main className="max-w-4xl mx-auto px-4 py-8 space-y-8 pb-32">
