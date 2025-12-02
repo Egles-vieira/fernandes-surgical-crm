@@ -140,3 +140,12 @@ verify_jwt = false
 
 [functions.sincronizar-contatos-whatsapp]
 verify_jwt = false
+
+[functions.gerar-link-proposta]
+verify_jwt = true
+
+[functions.proposta-analytics-beacon]
+verify_jwt = false
+
+[functions.proposta-responder]
+verify_jwt = false
