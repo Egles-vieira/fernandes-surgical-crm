@@ -79,7 +79,12 @@ export function VendasActionBar({
   };
 
   return (
-    <div className={cn("sticky top-0 z-30 bg-card border-b shadow-sm px-8 py-3", className)}>
+    <div className={cn(
+      "sticky top-0 z-40 px-8 py-3 border-b",
+      "bg-card/95 backdrop-blur-md shadow-lg",
+      "transition-all duration-300",
+      className
+    )}>
       <div className="px-0 mx-0 flex items-center justify-between gap-0">
         <div className="flex items-center gap-3">
           {onVoltar && (
