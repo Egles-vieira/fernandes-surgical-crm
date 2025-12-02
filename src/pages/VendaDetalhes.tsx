@@ -782,7 +782,7 @@ export default function VendaDetalhes() {
         title: "Enviar para diretoria",
         description: "Funcionalidade em desenvolvimento"
       });
-    }} onEfetivar={() => setShowAprovarDialog(true)} onSalvar={handleSalvar} isSaving={false} isCalculating={isCalculating} editandoVendaId={venda.id} onVoltar={() => navigate("/vendas")} numeroVenda={numeroVenda || "Nova"} etapaPipeline={venda.etapa_pipeline || undefined} freteCalculado={freteCalculado} onCalcularFrete={handleCalcularFrete} isCalculatingFrete={isCalculatingFrete} valorFrete={valorFrete} className="py-[5px] border-none shadow-none" />
+    }} onEfetivar={() => setShowAprovarDialog(true)} onSalvar={handleSalvar} isSaving={false} isCalculating={isCalculating} editandoVendaId={venda.id} onVoltar={() => navigate("/vendas")} numeroVenda={numeroVenda || "Nova"} etapaPipeline={venda.etapa_pipeline || undefined} freteCalculado={freteCalculado} onCalcularFrete={handleCalcularFrete} isCalculatingFrete={isCalculatingFrete} valorFrete={valorFrete} className="py-[5px] border-none shadow-sm" />
 
       <FunnelStagesBar etapaAtual={venda.etapa_pipeline as any || "proposta"} onEtapaClick={async novaEtapa => {
       try {
