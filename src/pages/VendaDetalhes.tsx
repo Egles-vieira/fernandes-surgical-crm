@@ -775,17 +775,36 @@ export default function VendaDetalhes() {
   }
   return <div>
       {/* Barras sticky sem espaçamento entre elas */}
-      <VendasActionBar status={venda.status as "rascunho" | "aprovada" | "cancelada"} onCalcular={handleCalcularDatasul} onCancelar={() => {
-      toast({
-        title: "Cancelar proposta",
-        description: "Funcionalidade em desenvolvimento"
-      });
-    }} onDiretoria={() => {
-      toast({
-        title: "Enviar para diretoria",
-        description: "Funcionalidade em desenvolvimento"
-      });
-    }} onEfetivar={() => setShowAprovarDialog(true)} onSalvar={handleSalvar} isSaving={false} isCalculating={isCalculating} editandoVendaId={venda.id} onVoltar={() => navigate("/vendas")} numeroVenda={numeroVenda || "Nova"} etapaPipeline={venda.etapa_pipeline || undefined} className="py-[5px]" freteCalculado={freteCalculado} onCalcularFrete={handleCalcularFrete} isCalculatingFrete={isCalculatingFrete} valorFrete={valorFrete} />
+      <VendasActionBar 
+        status={venda.status as "rascunho" | "aprovada" | "cancelada"} 
+        onCalcular={handleCalcularDatasul} 
+        onCancelar={() => {
+          toast({
+            title: "Cancelar proposta",
+            description: "Funcionalidade em desenvolvimento"
+          });
+        }} 
+        onDiretoria={() => {
+          toast({
+            title: "Enviar para diretoria",
+            description: "Funcionalidade em desenvolvimento"
+          });
+        }} 
+        onEfetivar={() => setShowAprovarDialog(true)} 
+        onSalvar={handleSalvar} 
+        isSaving={false} 
+        isCalculating={isCalculating} 
+        editandoVendaId={venda.id} 
+        onVoltar={() => navigate("/vendas")} 
+        numeroVenda={numeroVenda || "Nova"} 
+        etapaPipeline={venda.etapa_pipeline || undefined} 
+        className="py-[5px]" 
+        freteCalculado={freteCalculado} 
+        onCalcularFrete={handleCalcularFrete} 
+        isCalculatingFrete={isCalculatingFrete} 
+        valorFrete={valorFrete}
+        vendaId={venda.id}
+      />
 
       <FunnelStagesBar etapaAtual={venda.etapa_pipeline as any || "proposta"} onEtapaClick={async novaEtapa => {
       try {
