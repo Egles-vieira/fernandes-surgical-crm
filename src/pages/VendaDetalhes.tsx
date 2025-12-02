@@ -34,6 +34,7 @@ import { ProdutoSearchDialog } from "@/components/ProdutoSearchDialog";
 import { ClienteSearchDialog } from "@/components/ClienteSearchDialog";
 import { VendasActionBar } from "@/components/VendasActionBar";
 import { FunnelStagesBar } from "@/components/vendas/FunnelStagesBar";
+import { PropostaQuickActionsBar } from "@/components/vendas/PropostaQuickActionsBar";
 import { AprovarVendaDialog } from "@/components/vendas/AprovarVendaDialog";
 import { IntegracaoDatasulLog } from "@/components/IntegracaoDatasulLog";
 import { DatasulErrorDialog } from "@/components/vendas/DatasulErrorDialog";
@@ -229,6 +230,7 @@ export default function VendaDetalhes() {
   const [enderecoEntregaId, setEnderecoEntregaId] = useState<string>("");
   const [freteCalculado, setFreteCalculado] = useState(false);
   const [valorFrete, setValorFrete] = useState<number>(0);
+  const [publicUrl, setPublicUrl] = useState<string | null>(null);
 
   // Pagination states for items table
   const [currentItemsPage, setCurrentItemsPage] = useState(1);
@@ -329,6 +331,28 @@ export default function VendaDetalhes() {
     };
     loadVendaData();
   }, [vendaCarregada, isLoading, id, navigate, toast]);
+
+  // Buscar URL pública da proposta se existir
+  useEffect(() => {
+    const fetchPublicUrl = async () => {
+      if (!venda?.id) return;
+      
+      const { data } = await supabase
+        .from('propostas_publicas_tokens')
+        .select('public_token')
+        .eq('venda_id', venda.id)
+        .eq('ativo', true)
+        .order('criado_em', { ascending: false })
+        .limit(1)
+        .single();
+      
+      if (data?.public_token) {
+        setPublicUrl(`${window.location.origin}/proposal/${data.public_token}`);
+      }
+    };
+    fetchPublicUrl();
+  }, [venda?.id]);
+
   const valorTotal = useMemo(() => {
     return carrinho.reduce((sum, item) => sum + item.valor_total, 0);
   }, [carrinho]);
@@ -856,6 +880,12 @@ export default function VendaDetalhes() {
         behavior: 'smooth'
       });
     }} />
+
+      {/* Quick Actions Bar */}
+      <PropostaQuickActionsBar 
+        vendaId={venda.id}
+        publicUrl={publicUrl}
+      />
 
       {/* Conteúdo com espaçamento */}
       <div className="space-y-6 mt-6">
