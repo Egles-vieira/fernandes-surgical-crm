@@ -5003,6 +5003,335 @@ export type Database = {
           },
         ]
       }
+      propostas_analytics: {
+        Row: {
+          browser_name: string | null
+          browser_version: string | null
+          cidade: string | null
+          device_type: string | null
+          estado: string | null
+          finalizado_em: string | null
+          id: string
+          iniciado_em: string | null
+          ip_hash: string | null
+          os_name: string | null
+          os_version: string | null
+          pais: string | null
+          proposta_token_id: string
+          screen_height: number | null
+          screen_width: number | null
+          scroll_max_percent: number | null
+          session_id: string
+          tempo_total_segundos: number | null
+          ultima_atividade_em: string | null
+          venda_id: string
+        }
+        Insert: {
+          browser_name?: string | null
+          browser_version?: string | null
+          cidade?: string | null
+          device_type?: string | null
+          estado?: string | null
+          finalizado_em?: string | null
+          id?: string
+          iniciado_em?: string | null
+          ip_hash?: string | null
+          os_name?: string | null
+          os_version?: string | null
+          pais?: string | null
+          proposta_token_id: string
+          screen_height?: number | null
+          screen_width?: number | null
+          scroll_max_percent?: number | null
+          session_id: string
+          tempo_total_segundos?: number | null
+          ultima_atividade_em?: string | null
+          venda_id: string
+        }
+        Update: {
+          browser_name?: string | null
+          browser_version?: string | null
+          cidade?: string | null
+          device_type?: string | null
+          estado?: string | null
+          finalizado_em?: string | null
+          id?: string
+          iniciado_em?: string | null
+          ip_hash?: string | null
+          os_name?: string | null
+          os_version?: string | null
+          pais?: string | null
+          proposta_token_id?: string
+          screen_height?: number | null
+          screen_width?: number | null
+          scroll_max_percent?: number | null
+          session_id?: string
+          tempo_total_segundos?: number | null
+          ultima_atividade_em?: string | null
+          venda_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "propostas_analytics_proposta_token_id_fkey"
+            columns: ["proposta_token_id"]
+            isOneToOne: false
+            referencedRelation: "propostas_publicas_tokens"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "propostas_analytics_venda_id_fkey"
+            columns: ["venda_id"]
+            isOneToOne: false
+            referencedRelation: "vendas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      propostas_analytics_cliques: {
+        Row: {
+          analytics_id: string
+          clicado_em: string | null
+          elemento_id: string | null
+          elemento_texto: string | null
+          id: string
+          scroll_position: number | null
+          secao_atual: string | null
+          tipo_acao: string
+        }
+        Insert: {
+          analytics_id: string
+          clicado_em?: string | null
+          elemento_id?: string | null
+          elemento_texto?: string | null
+          id?: string
+          scroll_position?: number | null
+          secao_atual?: string | null
+          tipo_acao: string
+        }
+        Update: {
+          analytics_id?: string
+          clicado_em?: string | null
+          elemento_id?: string | null
+          elemento_texto?: string | null
+          id?: string
+          scroll_position?: number | null
+          secao_atual?: string | null
+          tipo_acao?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "propostas_analytics_cliques_analytics_id_fkey"
+            columns: ["analytics_id"]
+            isOneToOne: false
+            referencedRelation: "propostas_analytics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      propostas_analytics_secoes: {
+        Row: {
+          analytics_id: string
+          id: string
+          primeira_visualizacao_em: string | null
+          secao_id: string
+          secao_nome: string | null
+          tempo_visivel_segundos: number | null
+          ultima_visualizacao_em: string | null
+          vezes_visualizada: number | null
+        }
+        Insert: {
+          analytics_id: string
+          id?: string
+          primeira_visualizacao_em?: string | null
+          secao_id: string
+          secao_nome?: string | null
+          tempo_visivel_segundos?: number | null
+          ultima_visualizacao_em?: string | null
+          vezes_visualizada?: number | null
+        }
+        Update: {
+          analytics_id?: string
+          id?: string
+          primeira_visualizacao_em?: string | null
+          secao_id?: string
+          secao_nome?: string | null
+          tempo_visivel_segundos?: number | null
+          ultima_visualizacao_em?: string | null
+          vezes_visualizada?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "propostas_analytics_secoes_analytics_id_fkey"
+            columns: ["analytics_id"]
+            isOneToOne: false
+            referencedRelation: "propostas_analytics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      propostas_publicas_tokens: {
+        Row: {
+          ativo: boolean | null
+          atualizado_em: string | null
+          criado_em: string | null
+          criado_por: string | null
+          expira_em: string | null
+          id: string
+          mensagem_personalizada: string | null
+          mostrar_descontos: boolean | null
+          mostrar_precos: boolean | null
+          permitir_aceitar: boolean | null
+          permitir_download_pdf: boolean | null
+          permitir_recusar: boolean | null
+          public_token: string
+          senha_hash: string | null
+          venda_id: string
+        }
+        Insert: {
+          ativo?: boolean | null
+          atualizado_em?: string | null
+          criado_em?: string | null
+          criado_por?: string | null
+          expira_em?: string | null
+          id?: string
+          mensagem_personalizada?: string | null
+          mostrar_descontos?: boolean | null
+          mostrar_precos?: boolean | null
+          permitir_aceitar?: boolean | null
+          permitir_download_pdf?: boolean | null
+          permitir_recusar?: boolean | null
+          public_token: string
+          senha_hash?: string | null
+          venda_id: string
+        }
+        Update: {
+          ativo?: boolean | null
+          atualizado_em?: string | null
+          criado_em?: string | null
+          criado_por?: string | null
+          expira_em?: string | null
+          id?: string
+          mensagem_personalizada?: string | null
+          mostrar_descontos?: boolean | null
+          mostrar_precos?: boolean | null
+          permitir_aceitar?: boolean | null
+          permitir_download_pdf?: boolean | null
+          permitir_recusar?: boolean | null
+          public_token?: string
+          senha_hash?: string | null
+          venda_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "propostas_publicas_tokens_criado_por_fkey"
+            columns: ["criado_por"]
+            isOneToOne: false
+            referencedRelation: "mv_top_vendedores"
+            referencedColumns: ["vendedor_id"]
+          },
+          {
+            foreignKeyName: "propostas_publicas_tokens_criado_por_fkey"
+            columns: ["criado_por"]
+            isOneToOne: false
+            referencedRelation: "perfis_usuario"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "propostas_publicas_tokens_criado_por_fkey"
+            columns: ["criado_por"]
+            isOneToOne: false
+            referencedRelation: "vw_performance_vendedor"
+            referencedColumns: ["vendedor_id"]
+          },
+          {
+            foreignKeyName: "propostas_publicas_tokens_criado_por_fkey"
+            columns: ["criado_por"]
+            isOneToOne: false
+            referencedRelation: "vw_vendedores_disponiveis"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "propostas_publicas_tokens_venda_id_fkey"
+            columns: ["venda_id"]
+            isOneToOne: false
+            referencedRelation: "vendas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      propostas_respostas: {
+        Row: {
+          analytics_id: string | null
+          cargo_respondente: string | null
+          comentario: string | null
+          email_respondente: string | null
+          id: string
+          ip_assinatura: string | null
+          motivo_recusa: string | null
+          nome_respondente: string | null
+          proposta_token_id: string
+          respondido_em: string | null
+          telefone_respondente: string | null
+          tipo_resposta: string
+          user_agent_assinatura: string | null
+          venda_id: string
+        }
+        Insert: {
+          analytics_id?: string | null
+          cargo_respondente?: string | null
+          comentario?: string | null
+          email_respondente?: string | null
+          id?: string
+          ip_assinatura?: string | null
+          motivo_recusa?: string | null
+          nome_respondente?: string | null
+          proposta_token_id: string
+          respondido_em?: string | null
+          telefone_respondente?: string | null
+          tipo_resposta: string
+          user_agent_assinatura?: string | null
+          venda_id: string
+        }
+        Update: {
+          analytics_id?: string | null
+          cargo_respondente?: string | null
+          comentario?: string | null
+          email_respondente?: string | null
+          id?: string
+          ip_assinatura?: string | null
+          motivo_recusa?: string | null
+          nome_respondente?: string | null
+          proposta_token_id?: string
+          respondido_em?: string | null
+          telefone_respondente?: string | null
+          tipo_resposta?: string
+          user_agent_assinatura?: string | null
+          venda_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "propostas_respostas_analytics_id_fkey"
+            columns: ["analytics_id"]
+            isOneToOne: false
+            referencedRelation: "propostas_analytics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "propostas_respostas_proposta_token_id_fkey"
+            columns: ["proposta_token_id"]
+            isOneToOne: false
+            referencedRelation: "propostas_publicas_tokens"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "propostas_respostas_venda_id_fkey"
+            columns: ["venda_id"]
+            isOneToOne: false
+            referencedRelation: "vendas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       role_hierarquia: {
         Row: {
           criado_em: string | null
@@ -8317,6 +8646,7 @@ export type Database = {
       }
       can_access_menu_tecnico: { Args: { _user_id: string }; Returns: boolean }
       gerar_numero_ticket: { Args: never; Returns: string }
+      gerar_token_proposta: { Args: never; Returns: string }
       get_clientes_acessiveis: {
         Args: { _user_id: string }
         Returns: {
