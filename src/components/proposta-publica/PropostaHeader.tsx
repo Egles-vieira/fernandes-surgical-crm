@@ -4,10 +4,10 @@ import { Badge } from "@/components/ui/badge";
 interface PropostaHeaderProps {
   numeroProposta?: string;
   vendedor?: {
-    primeiro_nome?: string;
-    sobrenome?: string;
-    email?: string;
-    telefone?: string;
+    primeiro_nome?: string | null;
+    sobrenome?: string | null;
+    telefone?: string | null;
+    celular?: string | null;
   } | null;
 }
 
@@ -32,7 +32,9 @@ export function PropostaHeader({ numeroProposta, vendedor }: PropostaHeaderProps
           <p className="font-medium text-foreground">
             {vendedor.primeiro_nome} {vendedor.sobrenome}
           </p>
-          <p className="text-muted-foreground text-xs">{vendedor.email}</p>
+          {(vendedor.telefone || vendedor.celular) && (
+            <p className="text-muted-foreground text-xs">{vendedor.telefone || vendedor.celular}</p>
+          )}
         </div>
       )}
     </div>

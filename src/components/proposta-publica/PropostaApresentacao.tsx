@@ -11,9 +11,10 @@ interface PropostaApresentacaoProps {
     cgc?: string | null;
   } | null;
   vendedor?: {
-    primeiro_nome?: string;
-    sobrenome?: string;
-    telefone?: string;
+    primeiro_nome?: string | null;
+    sobrenome?: string | null;
+    telefone?: string | null;
+    celular?: string | null;
   } | null;
   mensagemPersonalizada?: string | null;
   dataCriacao?: string;
@@ -101,9 +102,9 @@ export function PropostaApresentacao({
               <div>
                 <p className="font-medium text-sm">Consultor</p>
                 <p className="text-sm text-muted-foreground">{nomeVendedor}</p>
-                {vendedor.telefone && (
+                {(vendedor.telefone || vendedor.celular) && (
                   <p className="text-xs text-muted-foreground mt-1">
-                    Tel: {vendedor.telefone}
+                    Tel: {vendedor.telefone || vendedor.celular}
                   </p>
                 )}
               </div>

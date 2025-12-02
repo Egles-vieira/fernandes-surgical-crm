@@ -46,6 +46,7 @@ import CadastroCNPJ from "./pages/CadastroCNPJ";
 import SolicitacoesCadastro from "./pages/SolicitacoesCadastro";
 import Configuracoes from "./pages/Configuracoes";
 import PerfilVendedor from "./pages/PerfilVendedor";
+import PropostaPublica from "./pages/PropostaPublica";
 
 // App principal
 const App = () => <ThemeProvider>
@@ -258,6 +259,8 @@ const App = () => <ThemeProvider>
               <PerfilVendedor />
             </Layout>
           </ProtectedRoute>} />
+        {/* Rota pública para proposta comercial */}
+        <Route path="/proposal/:token" element={<PropostaPublica />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
