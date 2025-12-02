@@ -24,9 +24,9 @@ export function useGerarLinkProposta(vendaId: string | null) {
       });
 
       if (error) throw error;
-      if (!data?.public_token) throw new Error("Token não gerado");
+      if (!data?.token) throw new Error("Token não gerado");
 
-      return data.public_token;
+      return data.token;
     },
     onSuccess: (token) => {
       const url = `${window.location.origin}/proposal/${token}`;
