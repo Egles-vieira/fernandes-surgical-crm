@@ -64,18 +64,15 @@ export function useVendasPipeline(options: UseVendasPipelineOptions = {}) {
     return inicial;
   });
 
-  // Calcular limite máximo para a query (o maior entre todas as etapas)
-  const limiteMaximo = Math.max(...Object.values(limitesPorEtapa));
-
   const { data: vendas = [], isLoading, error, refetch } = useQuery({
-    queryKey: ["vendas-pipeline", limiteMaximo, diasAtras],
+    queryKey: ["vendas-pipeline", limitesPorEtapa, diasAtras],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Usuário não autenticado");
 
-      // Usar RPC otimizada que retorna TOP N por etapa
+      // Usar RPC otimizada que retorna TOP N por etapa com limites individuais
       const { data, error } = await supabase.rpc("get_vendas_pipeline_paginado", {
-        p_limite_por_etapa: limiteMaximo,
+        p_limites_por_etapa: limitesPorEtapa,
         p_dias_atras: diasAtras,
       });
 
@@ -113,10 +110,10 @@ export function useVendasPipeline(options: UseVendasPipelineOptions = {}) {
       await queryClient.cancelQueries({ queryKey: ["vendas-pipeline"] });
 
       // Snapshot do valor anterior
-      const previousVendas = queryClient.getQueryData<VendaPipelineCard[]>(["vendas-pipeline", limiteMaximo, diasAtras]);
+      const previousVendas = queryClient.getQueryData<VendaPipelineCard[]>(["vendas-pipeline", limitesPorEtapa, diasAtras]);
 
       // Atualização otimista
-      queryClient.setQueryData<VendaPipelineCard[]>(["vendas-pipeline", limiteMaximo, diasAtras], (old) => {
+      queryClient.setQueryData<VendaPipelineCard[]>(["vendas-pipeline", limitesPorEtapa, diasAtras], (old) => {
         if (!old) return old;
         return old.map((venda) =>
           venda.id === id ? { ...venda, etapa_pipeline } : venda
@@ -128,7 +125,7 @@ export function useVendasPipeline(options: UseVendasPipelineOptions = {}) {
     onError: (error: any, _variables, context) => {
       // Rollback em caso de erro
       if (context?.previousVendas) {
-        queryClient.setQueryData(["vendas-pipeline", limiteMaximo, diasAtras], context.previousVendas);
+        queryClient.setQueryData(["vendas-pipeline", limitesPorEtapa, diasAtras], context.previousVendas);
       }
       toast({
         title: "Erro ao mover proposta",
@@ -142,16 +139,11 @@ export function useVendasPipeline(options: UseVendasPipelineOptions = {}) {
     },
   });
 
-  // Agrupar vendas por etapa para o Kanban (respeitando limite individual)
+  // Agrupar vendas por etapa para o Kanban (RPC já retorna com limite correto por etapa)
   const vendasPorEtapa = vendas.reduce((acc, venda) => {
     const etapa = venda.etapa_pipeline || "prospeccao";
     if (!acc[etapa]) acc[etapa] = [];
-    
-    // Respeitar o limite individual da etapa
-    const limiteEtapa = limitesPorEtapa[etapa] || limitePorEtapaInicial;
-    if (acc[etapa].length < limiteEtapa) {
-      acc[etapa].push(venda);
-    }
+    acc[etapa].push(venda);
     return acc;
   }, {} as Record<string, VendaPipelineCard[]>);
 
