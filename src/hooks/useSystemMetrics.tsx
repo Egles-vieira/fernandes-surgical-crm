@@ -37,8 +37,13 @@ export function useSystemMetrics(enabled: boolean = true, refetchInterval: numbe
         .rpc('get_table_statistics' as any);
 
       if (tableError) {
-        console.warn("Erro ao buscar estatísticas de tabelas:", tableError);
+        console.error("Erro ao buscar estatísticas de tabelas:", tableError);
       }
+
+      console.log('[SystemMetrics] Dados recebidos:', { 
+        tableCount: tableStats?.length, 
+        firstTable: tableStats?.[0]
+      });
 
       // Buscar conexões ativas via pg_stat_activity
       const { data: connectionStats, error: connError } = await supabase
@@ -84,6 +89,7 @@ export function useSystemMetrics(enabled: boolean = true, refetchInterval: numbe
     },
     enabled,
     refetchInterval,
-    staleTime: 30000,
+    staleTime: 0, // Sempre buscar dados frescos
+    gcTime: 0, // Não manter cache
   });
 }
