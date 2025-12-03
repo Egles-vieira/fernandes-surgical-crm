@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { LayoutDashboard, DollarSign, FileSpreadsheet, Gavel, MessageCircle, Package, Headphones, Users, ChevronRight } from "lucide-react";
+import { LayoutDashboard, DollarSign, FileSpreadsheet, Gavel, MessageCircle, Package, Headphones, Users, Activity } from "lucide-react";
 import { ResultadoGeralPanel } from "./panels/ResultadoGeralPanel";
 import { VendasPanel } from "./panels/VendasPanel";
 import { PlataformasPanel } from "./panels/PlataformasPanel";
@@ -10,6 +10,8 @@ import { WhatsAppPanel } from "./panels/WhatsAppPanel";
 import { ProdutosPanel } from "./panels/ProdutosPanel";
 import { ServicesPanel } from "./panels/ServicesPanel";
 import { ClientePanel } from "./panels/ClientePanel";
+import { PerformanceMonitorPanel } from "./panels/PerformanceMonitorPanel";
+
 const panels = [{
   id: "resultado-geral",
   label: "Resultado Geral",
@@ -50,19 +52,24 @@ const panels = [{
   label: "Cliente",
   icon: Users,
   description: "Base de clientes e análise de carteira"
+}, {
+  id: "performance",
+  label: "Performance",
+  icon: Activity,
+  description: "Monitoramento de performance do sistema"
 }];
+
 export function DashboardPaginator() {
   const [activeTab, setActiveTab] = useState("resultado-geral");
   const activePanel = panels.find(p => p.id === activeTab);
   const ActiveIcon = activePanel?.icon || LayoutDashboard;
-  return <div className="space-y-6">
+  
+  return (
+    <div className="space-y-6">
       {/* Header com seletor de dashboard */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-3">
-          
           <div>
-            
-            
           </div>
         </div>
         
@@ -73,14 +80,16 @@ export function DashboardPaginator() {
           </SelectTrigger>
           <SelectContent>
             {panels.map(panel => {
-            const Icon = panel.icon;
-            return <SelectItem key={panel.id} value={panel.id}>
+              const Icon = panel.icon;
+              return (
+                <SelectItem key={panel.id} value={panel.id}>
                   <div className="flex items-center gap-2">
                     <Icon className="h-4 w-4 text-muted-foreground" />
                     <span>{panel.label}</span>
                   </div>
-                </SelectItem>;
-          })}
+                </SelectItem>
+              );
+            })}
           </SelectContent>
         </Select>
       </div>
@@ -118,6 +127,11 @@ export function DashboardPaginator() {
         <TabsContent value="cliente" className="mt-6">
           <ClientePanel isActive={activeTab === "cliente"} />
         </TabsContent>
+
+        <TabsContent value="performance" className="mt-6">
+          <PerformanceMonitorPanel isActive={activeTab === "performance"} />
+        </TabsContent>
       </Tabs>
-    </div>;
+    </div>
+  );
 }

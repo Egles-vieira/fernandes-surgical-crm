@@ -26,12 +26,14 @@ export function useDatabaseHealth(enabled: boolean = true, refetchInterval: numb
 
       // 1. Verificar uso de índices
       const { data: indexStats } = await supabase
-        .rpc('get_table_statistics');
+        .rpc('get_table_statistics' as any);
 
+      const rawIndexStats = (indexStats || []) as any[];
+      
       let indexScore = 100;
-      if (indexStats && indexStats.length > 0) {
-        const totalSeqScans = indexStats.reduce((sum: number, t: any) => sum + Number(t.seq_scan || 0), 0);
-        const totalIdxScans = indexStats.reduce((sum: number, t: any) => sum + Number(t.idx_scan || 0), 0);
+      if (rawIndexStats.length > 0) {
+        const totalSeqScans = rawIndexStats.reduce((sum: number, t: any) => sum + Number(t.seq_scan || 0), 0);
+        const totalIdxScans = rawIndexStats.reduce((sum: number, t: any) => sum + Number(t.idx_scan || 0), 0);
         const totalScans = totalSeqScans + totalIdxScans;
         
         if (totalScans > 0) {
@@ -44,7 +46,7 @@ export function useDatabaseHealth(enabled: boolean = true, refetchInterval: numb
         }
 
         // Verificar tabelas com muitos dead tuples
-        const tablesWithDeadTuples = indexStats.filter((t: any) => {
+        const tablesWithDeadTuples = rawIndexStats.filter((t: any) => {
           const deadRatio = t.n_live_tup > 0 ? (t.n_dead_tup / t.n_live_tup) * 100 : 0;
           return deadRatio > 10;
         });
@@ -63,10 +65,12 @@ export function useDatabaseHealth(enabled: boolean = true, refetchInterval: numb
 
       // 2. Verificar conexões
       const { data: connStats } = await supabase
-        .rpc('get_connection_statistics');
+        .rpc('get_connection_statistics' as any);
+
+      const rawConnStats = (connStats || []) as any[];
 
       let connectionScore = 100;
-      const totalConnections = connStats?.reduce((sum: number, c: any) => sum + Number(c.count), 0) || 0;
+      const totalConnections = rawConnStats.reduce((sum: number, c: any) => sum + Number(c.count), 0);
       
       // Assumindo limite de 300 conexões
       const connectionUsage = (totalConnections / 300) * 100;
