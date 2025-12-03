@@ -33,18 +33,24 @@ const FUNCTION_NAMES: Record<string, string> = {
   'edi-importar-xml': 'Importar XML EDI',
 };
 
-export function useEdgeFunctionMetrics(enabled: boolean = true, refetchInterval: number = 60000) {
+export function useEdgeFunctionMetrics(enabled: boolean = true, refetchInterval: number = 60000, periodDays: number = 7) {
   return useQuery({
-    queryKey: ["edge-function-metrics"],
+    queryKey: ["edge-function-metrics", periodDays],
     queryFn: async (): Promise<EdgeFunctionMetrics> => {
       const functions: EdgeFunctionMetric[] = [];
+      
+      // Calcular data de início do período
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - periodDays);
+      const startDateISO = startDate.toISOString();
 
       // Buscar métricas de calcular-frete-datasul
       const { data: freteData } = await supabase
         .from('integracoes_totvs_calcula_frete')
         .select('tempo_resposta_ms, status, created_at')
+        .gte('created_at', startDateISO)
         .order('created_at', { ascending: false })
-        .limit(100);
+        .limit(500);
 
       if (freteData && freteData.length > 0) {
         const stats = calculateStats(freteData);
@@ -59,8 +65,9 @@ export function useEdgeFunctionMetrics(enabled: boolean = true, refetchInterval:
       const { data: pedidoData } = await supabase
         .from('integracoes_totvs_calcula_pedido')
         .select('tempo_resposta_ms, status, created_at')
+        .gte('created_at', startDateISO)
         .order('created_at', { ascending: false })
-        .limit(100);
+        .limit(500);
 
       if (pedidoData && pedidoData.length > 0) {
         const stats = calculateStats(pedidoData);
@@ -75,8 +82,9 @@ export function useEdgeFunctionMetrics(enabled: boolean = true, refetchInterval:
       const { data: webhookData } = await supabase
         .from('whatsapp_webhooks_log')
         .select('recebido_em, processado')
+        .gte('recebido_em', startDateISO)
         .order('recebido_em', { ascending: false })
-        .limit(100);
+        .limit(500);
 
       if (webhookData && webhookData.length > 0) {
         const totalCalls = webhookData.length;
@@ -101,8 +109,9 @@ export function useEdgeFunctionMetrics(enabled: boolean = true, refetchInterval:
         .from('chat_assistente_mensagens')
         .select('created_at, role')
         .eq('role', 'assistant')
+        .gte('created_at', startDateISO)
         .order('created_at', { ascending: false })
-        .limit(100);
+        .limit(500);
 
       if (ragData && ragData.length > 0) {
         functions.push({
