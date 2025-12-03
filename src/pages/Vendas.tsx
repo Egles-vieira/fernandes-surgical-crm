@@ -1643,6 +1643,11 @@ export default function Vendas() {
             onViewDetails={(venda) => {
               navigate(`/vendas/${venda.id}`);
             }}
+            onVerTodos={(etapa) => {
+              // Mudar para view de lista filtrada por etapa
+              updateFiltros({ etapa: etapa });
+              setView("list");
+            }}
           />
         ) : (
           <div className="h-full overflow-auto px-8 py-6">
