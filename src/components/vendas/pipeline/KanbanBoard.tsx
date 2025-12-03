@@ -8,10 +8,20 @@ type Venda = Tables["vendas"]["Row"];
 
 interface VendaPipeline extends Venda {
   vendas_itens?: any[];
+  total_na_etapa?: number;
+}
+
+// Tipo para totais por etapa
+interface TotaisEtapa {
+  quantidade: number;
+  quantidadeReal: number;
+  valorTotal: number;
+  valorPotencial: number;
 }
 
 interface KanbanBoardProps {
   vendas: VendaPipeline[];
+  totaisPorEtapa?: Record<string, TotaisEtapa>;
   onDragEnd: (result: DropResult) => void;
   onViewDetails: (venda: VendaPipeline) => void;
 }
@@ -81,18 +91,21 @@ const ETAPAS_ATIVAS: EtapaPipeline[] = [
   "fechamento",
 ];
 
-export function KanbanBoard({ vendas, onDragEnd, onViewDetails }: KanbanBoardProps) {
+export function KanbanBoard({ vendas, totaisPorEtapa, onDragEnd, onViewDetails }: KanbanBoardProps) {
   const getVendasPorEtapa = (etapa: EtapaPipeline): VendaPipeline[] => {
     return vendas.filter((v) => v.etapa_pipeline === etapa);
   };
 
   const calcularValorTotal = (etapa: EtapaPipeline): number => {
     return getVendasPorEtapa(etapa).reduce((total, venda) => {
-      // Usar valor_total se valor_estimado for 0 (mesma lógica do KanbanCard)
       const valorBase = (venda.valor_estimado || 0) > 0 ? venda.valor_estimado : (venda.valor_total || 0);
       const valorPotencial = (valorBase || 0) * ((venda.probabilidade || 0) / 100);
       return total + valorPotencial;
     }, 0);
+  };
+
+  const getTotalReal = (etapa: EtapaPipeline): number | undefined => {
+    return totaisPorEtapa?.[etapa]?.quantidadeReal;
   };
 
   return (
@@ -107,6 +120,7 @@ export function KanbanBoard({ vendas, onDragEnd, onViewDetails }: KanbanBoardPro
                 config={ETAPAS_CONFIG[etapa]}
                 vendas={getVendasPorEtapa(etapa)}
                 valorTotal={calcularValorTotal(etapa)}
+                totalReal={getTotalReal(etapa)}
                 onViewDetails={onViewDetails}
               />
             ))}

@@ -8898,6 +8898,26 @@ export type Database = {
           venda_id: string
         }[]
       }
+      get_vendas_pipeline_paginado: {
+        Args: { p_dias_atras?: number; p_limite_por_etapa?: number }
+        Returns: {
+          cliente_cnpj: string
+          cliente_nome: string
+          created_at: string
+          data_fechamento_prevista: string
+          etapa_pipeline: Database["public"]["Enums"]["etapa_pipeline"]
+          id: string
+          numero_venda: string
+          probabilidade: number
+          responsavel_id: string
+          row_num: number
+          status: string
+          total_na_etapa: number
+          valor_estimado: number
+          valor_total: number
+          vendedor_id: string
+        }[]
+      }
       has_any_role: {
         Args: {
           _roles: Database["public"]["Enums"]["app_role"][]

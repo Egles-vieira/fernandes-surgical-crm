@@ -20,52 +20,43 @@ export interface VendaPipelineCard {
   created_at: string;
   responsavel_id: string | null;
   vendedor_id: string | null;
+  row_num?: number;
+  total_na_etapa?: number;
 }
 
 interface UseVendasPipelineOptions {
+  limitePorEtapa?: number; // Máximo de cards por etapa (default: 20)
   diasAtras?: number; // Filtro por período (default: 90 dias)
   enabled?: boolean;
 }
 
+// Tipo para totais por etapa incluindo contagem real
+interface TotaisEtapa {
+  quantidade: number;
+  quantidadeReal: number; // Total real no banco (não apenas carregados)
+  valorTotal: number;
+  valorPotencial: number;
+}
+
 export function useVendasPipeline(options: UseVendasPipelineOptions = {}) {
-  const { diasAtras = 90, enabled = true } = options;
+  const { limitePorEtapa = 20, diasAtras = 90, enabled = true } = options;
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Calcula data limite para filtro
-  const dataLimite = new Date();
-  dataLimite.setDate(dataLimite.getDate() - diasAtras);
-
   const { data: vendas = [], isLoading, error, refetch } = useQuery({
-    queryKey: ["vendas-pipeline", diasAtras],
+    queryKey: ["vendas-pipeline", limitePorEtapa, diasAtras],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Usuário não autenticado");
 
-      // Query leve: apenas campos necessários para o Kanban
-      const { data, error } = await supabase
-        .from("vendas")
-        .select(`
-          id,
-          numero_venda,
-          cliente_nome,
-          cliente_cnpj,
-          etapa_pipeline,
-          valor_estimado,
-          valor_total,
-          probabilidade,
-          data_fechamento_prevista,
-          status,
-          created_at,
-          responsavel_id,
-          vendedor_id
-        `)
-        .gte("created_at", dataLimite.toISOString())
-        .not("etapa_pipeline", "is", null)
-        .order("created_at", { ascending: false });
+      // Usar RPC otimizada que retorna TOP N por etapa
+      const { data, error } = await supabase.rpc("get_vendas_pipeline_paginado", {
+        p_limite_por_etapa: limitePorEtapa,
+        p_dias_atras: diasAtras,
+      });
 
       if (error) throw error;
-      return data as VendaPipelineCard[];
+      return (data || []) as VendaPipelineCard[];
     },
     enabled,
     staleTime: 1000 * 60 * 2, // 2 minutos de cache
@@ -90,10 +81,10 @@ export function useVendasPipeline(options: UseVendasPipelineOptions = {}) {
       await queryClient.cancelQueries({ queryKey: ["vendas-pipeline"] });
 
       // Snapshot do valor anterior
-      const previousVendas = queryClient.getQueryData<VendaPipelineCard[]>(["vendas-pipeline", diasAtras]);
+      const previousVendas = queryClient.getQueryData<VendaPipelineCard[]>(["vendas-pipeline", limitePorEtapa, diasAtras]);
 
       // Atualização otimista
-      queryClient.setQueryData<VendaPipelineCard[]>(["vendas-pipeline", diasAtras], (old) => {
+      queryClient.setQueryData<VendaPipelineCard[]>(["vendas-pipeline", limitePorEtapa, diasAtras], (old) => {
         if (!old) return old;
         return old.map((venda) =>
           venda.id === id ? { ...venda, etapa_pipeline } : venda
@@ -105,7 +96,7 @@ export function useVendasPipeline(options: UseVendasPipelineOptions = {}) {
     onError: (error: any, _variables, context) => {
       // Rollback em caso de erro
       if (context?.previousVendas) {
-        queryClient.setQueryData(["vendas-pipeline", diasAtras], context.previousVendas);
+        queryClient.setQueryData(["vendas-pipeline", limitePorEtapa, diasAtras], context.previousVendas);
       }
       toast({
         title: "Erro ao mover proposta",
@@ -127,10 +118,14 @@ export function useVendasPipeline(options: UseVendasPipelineOptions = {}) {
     return acc;
   }, {} as Record<string, VendaPipelineCard[]>);
 
-  // Totais por etapa
+  // Totais por etapa (usando total_na_etapa do RPC para contagem real)
   const totaisPorEtapa = Object.entries(vendasPorEtapa).reduce((acc, [etapa, vendasEtapa]) => {
+    // Pegar o total real da primeira venda da etapa (todas têm o mesmo total_na_etapa)
+    const totalReal = vendasEtapa[0]?.total_na_etapa || vendasEtapa.length;
+    
     acc[etapa] = {
       quantidade: vendasEtapa.length,
+      quantidadeReal: Number(totalReal),
       valorTotal: vendasEtapa.reduce((sum, v) => sum + (v.valor_estimado || v.valor_total || 0), 0),
       valorPotencial: vendasEtapa.reduce((sum, v) => {
         const valor = v.valor_estimado || v.valor_total || 0;
@@ -139,9 +134,9 @@ export function useVendasPipeline(options: UseVendasPipelineOptions = {}) {
       }, 0),
     };
     return acc;
-  }, {} as Record<string, { quantidade: number; valorTotal: number; valorPotencial: number }>);
+  }, {} as Record<string, TotaisEtapa>);
 
-  // Total geral do pipeline
+  // Total geral do pipeline (apenas do que está carregado)
   const totalPipeline = vendas.reduce((sum, v) => {
     const valor = v.valor_estimado || v.valor_total || 0;
     const prob = v.probabilidade || 0;
@@ -157,5 +152,6 @@ export function useVendasPipeline(options: UseVendasPipelineOptions = {}) {
     error,
     refetch,
     moverEtapa,
+    limitePorEtapa,
   };
 }
