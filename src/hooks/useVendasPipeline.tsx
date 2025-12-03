@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Tables } from "@/integrations/supabase/types";
@@ -85,6 +85,7 @@ export function useVendasPipeline(options: UseVendasPipelineOptions = {}) {
     enabled,
     staleTime: 1000 * 60 * 2, // 2 minutos de cache
     gcTime: 1000 * 60 * 5, // 5 minutos no garbage collector
+    placeholderData: keepPreviousData, // Mantém dados anteriores durante fetch
   });
 
   // Função para carregar mais itens de uma etapa específica
