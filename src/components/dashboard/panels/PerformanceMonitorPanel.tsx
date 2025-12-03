@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RefreshCw, Clock, Download } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useSystemMetrics } from "@/hooks/useSystemMetrics";
 import { useEdgeFunctionMetrics } from "@/hooks/useEdgeFunctionMetrics";
 import { useDatabaseHealth } from "@/hooks/useDatabaseHealth";
@@ -14,6 +14,7 @@ import {
   AlertsPanel,
   KPICards
 } from "../performance";
+import { toast } from "sonner";
 
 interface PerformanceMonitorPanelProps {
   isActive?: boolean;
@@ -22,6 +23,8 @@ interface PerformanceMonitorPanelProps {
 export function PerformanceMonitorPanel({ isActive = true }: PerformanceMonitorPanelProps) {
   const [refreshInterval, setRefreshInterval] = useState<number>(30000);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const queryClient = useQueryClient();
 
   const { data: systemMetrics, isLoading: loadingSystem, refetch: refetchSystem } = useSystemMetrics(isActive, refreshInterval);
   const { data: edgeMetrics, isLoading: loadingEdge, refetch: refetchEdge } = useEdgeFunctionMetrics(isActive, refreshInterval);
@@ -29,11 +32,28 @@ export function PerformanceMonitorPanel({ isActive = true }: PerformanceMonitorP
 
   const isLoading = loadingSystem || loadingEdge || loadingHealth;
 
-  const handleRefresh = () => {
-    refetchSystem();
-    refetchEdge();
-    refetchHealth();
-    setLastRefresh(new Date());
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      // Invalidar todas as queries de performance para forçar refetch
+      await queryClient.invalidateQueries({ queryKey: ["system-metrics"] });
+      await queryClient.invalidateQueries({ queryKey: ["edge-function-metrics"] });
+      await queryClient.invalidateQueries({ queryKey: ["database-health"] });
+      
+      // Também refetch direto para garantir
+      await Promise.all([
+        refetchSystem(),
+        refetchEdge(),
+        refetchHealth()
+      ]);
+      
+      setLastRefresh(new Date());
+      toast.success("Dados atualizados com sucesso");
+    } catch (error) {
+      toast.error("Erro ao atualizar dados");
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   const handleExport = () => {
@@ -91,9 +111,9 @@ export function PerformanceMonitorPanel({ isActive = true }: PerformanceMonitorP
             <Download className="h-4 w-4 mr-1" />
             Exportar
           </Button>
-          <Button variant="default" size="sm" onClick={handleRefresh} disabled={isLoading}>
-            <RefreshCw className={`h-4 w-4 mr-1 ${isLoading ? 'animate-spin' : ''}`} />
-            Atualizar
+          <Button variant="default" size="sm" onClick={handleRefresh} disabled={isLoading || isRefreshing}>
+            <RefreshCw className={`h-4 w-4 mr-1 ${isRefreshing ? 'animate-spin' : ''}`} />
+            {isRefreshing ? 'Atualizando...' : 'Atualizar'}
           </Button>
         </div>
       </div>
