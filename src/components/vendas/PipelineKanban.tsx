@@ -1,5 +1,4 @@
 import { DropResult } from "@hello-pangea/dnd";
-import { PipelineTotalHUD } from "./pipeline/PipelineTotalHUD";
 import { KanbanBoard } from "./pipeline/KanbanBoard";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -26,13 +25,15 @@ interface PipelineKanbanProps {
   totaisPorEtapa?: Record<string, TotaisEtapa>;
   onDragEnd: (result: DropResult) => void;
   onViewDetails: (venda: VendaPipeline) => void;
+  onVerTodos?: (etapa: EtapaPipeline) => void;
 }
 
 export function PipelineKanban({
   vendas,
   totaisPorEtapa,
   onDragEnd,
-  onViewDetails
+  onViewDetails,
+  onVerTodos
 }: PipelineKanbanProps) {
   return (
     <div className="flex flex-col h-full">
@@ -40,7 +41,8 @@ export function PipelineKanban({
         vendas={vendas} 
         totaisPorEtapa={totaisPorEtapa}
         onDragEnd={onDragEnd} 
-        onViewDetails={onViewDetails} 
+        onViewDetails={onViewDetails}
+        onVerTodos={onVerTodos}
       />
     </div>
   );

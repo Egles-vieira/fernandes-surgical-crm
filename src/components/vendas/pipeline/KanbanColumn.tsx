@@ -1,5 +1,7 @@
 import { Droppable } from "@hello-pangea/dnd";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
+import { List } from "lucide-react";
 import { KanbanCard } from "./KanbanCard";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -33,8 +35,9 @@ interface KanbanColumnProps {
   config: EtapaConfig;
   vendas: VendaPipeline[];
   valorTotal: number;
-  totalReal?: number; // Total real no banco (não apenas carregados)
+  totalReal?: number;
   onViewDetails: (venda: VendaPipeline) => void;
+  onVerTodos?: (etapa: EtapaPipeline) => void;
 }
 
 export function KanbanColumn({ 
@@ -43,7 +46,8 @@ export function KanbanColumn({
   vendas, 
   valorTotal, 
   totalReal,
-  onViewDetails
+  onViewDetails,
+  onVerTodos
 }: KanbanColumnProps) {
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {
@@ -97,11 +101,17 @@ export function KanbanColumn({
                 ))}
                 {provided.placeholder}
                 
-                {/* Indicador de mais itens */}
+                {/* Botão para ver todos na lista */}
                 {temMais && (
-                  <div className="w-full mt-2 py-2 text-center text-xs text-muted-foreground bg-muted/30 rounded-md">
-                    +{quantidadeTotal - quantidadeCarregada} itens não exibidos
-                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full mt-2 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                    onClick={() => onVerTodos?.(etapa)}
+                  >
+                    <List className="h-3 w-3 mr-1" />
+                    Ver todos ({quantidadeTotal})
+                  </Button>
                 )}
               </div>
             </ScrollArea>
