@@ -51,13 +51,14 @@ export function usePropostaActivityRealtime(vendaId: string) {
           });
         }
       )
-      // Escutar novos cliques
+      // Escutar novos cliques (FILTRADO por venda_id para escala)
       .on(
         'postgres_changes',
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'propostas_analytics_cliques'
+          table: 'propostas_analytics_cliques',
+          filter: `venda_id=eq.${vendaId}` // FILTRO CRÍTICO: escuta apenas cliques desta venda
         },
         (payload) => {
           const tipoAcao = (payload.new as any).tipo_acao;
