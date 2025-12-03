@@ -22,12 +22,13 @@ interface PerformanceMonitorPanelProps {
 
 export function PerformanceMonitorPanel({ isActive = true }: PerformanceMonitorPanelProps) {
   const [refreshInterval, setRefreshInterval] = useState<number>(30000);
+  const [periodDays, setPeriodDays] = useState<number>(7);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
   const [isRefreshing, setIsRefreshing] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: systemMetrics, isLoading: loadingSystem, refetch: refetchSystem } = useSystemMetrics(isActive, refreshInterval);
-  const { data: edgeMetrics, isLoading: loadingEdge, refetch: refetchEdge } = useEdgeFunctionMetrics(isActive, refreshInterval);
+  const { data: edgeMetrics, isLoading: loadingEdge, refetch: refetchEdge } = useEdgeFunctionMetrics(isActive, refreshInterval, periodDays);
   const { data: healthData, isLoading: loadingHealth, refetch: refetchHealth } = useDatabaseHealth(isActive, refreshInterval);
 
   const isLoading = loadingSystem || loadingEdge || loadingHealth;
@@ -93,6 +94,20 @@ export function PerformanceMonitorPanel({ isActive = true }: PerformanceMonitorP
             <Clock className="h-3 w-3" />
             <span>Atualizado: {lastRefresh.toLocaleTimeString('pt-BR')}</span>
           </div>
+          <Select
+            value={periodDays.toString()}
+            onValueChange={(v) => setPeriodDays(Number(v))}
+          >
+            <SelectTrigger className="w-32 h-8 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="1">Últimas 24h</SelectItem>
+              <SelectItem value="7">Últimos 7 dias</SelectItem>
+              <SelectItem value="30">Últimos 30 dias</SelectItem>
+              <SelectItem value="90">Últimos 90 dias</SelectItem>
+            </SelectContent>
+          </Select>
           <Select
             value={refreshInterval.toString()}
             onValueChange={(v) => setRefreshInterval(Number(v))}
