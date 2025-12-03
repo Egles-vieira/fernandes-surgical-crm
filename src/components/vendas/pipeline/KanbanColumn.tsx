@@ -1,5 +1,7 @@
 import { Droppable } from "@hello-pangea/dnd";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
+import { ChevronDown } from "lucide-react";
 import { KanbanCard } from "./KanbanCard";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -8,6 +10,7 @@ type Venda = Tables["vendas"]["Row"];
 
 interface VendaPipeline extends Venda {
   vendas_itens?: any[];
+  total_na_etapa?: number;
 }
 
 export type EtapaPipeline =
@@ -32,16 +35,30 @@ interface KanbanColumnProps {
   config: EtapaConfig;
   vendas: VendaPipeline[];
   valorTotal: number;
+  totalReal?: number; // Total real no banco (não apenas carregados)
   onViewDetails: (venda: VendaPipeline) => void;
+  onLoadMore?: () => void;
 }
 
-export function KanbanColumn({ etapa, config, vendas, valorTotal, onViewDetails }: KanbanColumnProps) {
+export function KanbanColumn({ 
+  etapa, 
+  config, 
+  vendas, 
+  valorTotal, 
+  totalReal,
+  onViewDetails,
+  onLoadMore 
+}: KanbanColumnProps) {
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {
       style: "currency",
       currency: "BRL",
     }).format(value);
   };
+
+  const quantidadeCarregada = vendas.length;
+  const quantidadeTotal = totalReal || quantidadeCarregada;
+  const temMais = quantidadeTotal > quantidadeCarregada;
 
   return (
     <div className="flex flex-col w-80 shrink-0 bg-card border border-border/50 rounded-lg">
@@ -52,7 +69,7 @@ export function KanbanColumn({ etapa, config, vendas, valorTotal, onViewDetails 
             {config.label}
           </h3>
           <span className="text-xs font-medium bg-muted text-muted-foreground px-2 py-0.5 rounded-full">
-            {vendas.length}
+            {quantidadeCarregada}{temMais ? `/${quantidadeTotal}` : ''}
           </span>
         </div>
         <p className="text-xs text-muted-foreground">
@@ -83,6 +100,19 @@ export function KanbanColumn({ etapa, config, vendas, valorTotal, onViewDetails 
                   />
                 ))}
                 {provided.placeholder}
+                
+                {/* Botão Ver Mais */}
+                {temMais && onLoadMore && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full mt-2 text-xs text-muted-foreground hover:text-foreground"
+                    onClick={onLoadMore}
+                  >
+                    <ChevronDown className="h-3 w-3 mr-1" />
+                    Ver mais {quantidadeTotal - quantidadeCarregada} itens
+                  </Button>
+                )}
               </div>
             </ScrollArea>
           </div>

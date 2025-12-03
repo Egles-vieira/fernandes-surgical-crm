@@ -71,13 +71,15 @@ export default function Vendas() {
   // Estado de visualização
   const [view, setView] = useState<"pipeline" | "list" | "nova">("pipeline");
 
-  // Hook OTIMIZADO para Pipeline (Kanban) - carrega apenas dados resumidos
+  // Hook OTIMIZADO para Pipeline (Kanban) - carrega TOP 20 por etapa via RPC
   const { 
     vendas: vendasPipeline, 
+    totaisPorEtapa,
     totalPipeline,
     isLoading: isLoadingPipeline,
     moverEtapa,
   } = useVendasPipeline({ 
+    limitePorEtapa: 20,
     diasAtras: 90, 
     enabled: view === "pipeline" 
   });
@@ -1627,6 +1629,7 @@ export default function Vendas() {
         {view === "pipeline" ? (
           <PipelineKanban
             vendas={vendasPipeline as any}
+            totaisPorEtapa={totaisPorEtapa}
             onDragEnd={(result) => {
               const { source, destination, draggableId } = result;
               
