@@ -37,7 +37,7 @@ interface KanbanColumnProps {
   valorTotal: number;
   totalReal?: number;
   onViewDetails: (venda: VendaPipeline) => void;
-  onVerTodos?: (etapa: EtapaPipeline) => void;
+  onCarregarMais?: (etapa: EtapaPipeline) => void;
 }
 
 export function KanbanColumn({ 
@@ -47,7 +47,7 @@ export function KanbanColumn({
   valorTotal, 
   totalReal,
   onViewDetails,
-  onVerTodos
+  onCarregarMais
 }: KanbanColumnProps) {
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {
@@ -101,16 +101,16 @@ export function KanbanColumn({
                 ))}
                 {provided.placeholder}
                 
-                {/* Botão para ver todos na lista */}
+                {/* Botão para carregar mais */}
                 {temMais && (
                   <Button
                     variant="ghost"
                     size="sm"
                     className="w-full mt-2 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                    onClick={() => onVerTodos?.(etapa)}
+                    onClick={() => onCarregarMais?.(etapa)}
                   >
                     <List className="h-3 w-3 mr-1" />
-                    Ver todos ({quantidadeTotal})
+                    Carregar mais (+{Math.min(20, quantidadeTotal - quantidadeCarregada)})
                   </Button>
                 )}
               </div>

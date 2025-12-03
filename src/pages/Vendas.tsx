@@ -78,8 +78,9 @@ export default function Vendas() {
     totalPipeline,
     isLoading: isLoadingPipeline,
     moverEtapa,
+    carregarMais,
   } = useVendasPipeline({ 
-    limitePorEtapa: 20,
+    limitePorEtapaInicial: 20,
     diasAtras: 90, 
     enabled: view === "pipeline" 
   });
@@ -1643,10 +1644,8 @@ export default function Vendas() {
             onViewDetails={(venda) => {
               navigate(`/vendas/${venda.id}`);
             }}
-            onVerTodos={(etapa) => {
-              // Mudar para view de lista filtrada por etapa
-              updateFiltros({ etapa: etapa });
-              setView("list");
+            onCarregarMais={(etapa) => {
+              carregarMais(etapa);
             }}
           />
         ) : (
