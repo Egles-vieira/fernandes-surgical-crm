@@ -25,7 +25,7 @@ interface PipelineKanbanProps {
   totaisPorEtapa?: Record<string, TotaisEtapa>;
   onDragEnd: (result: DropResult) => void;
   onViewDetails: (venda: VendaPipeline) => void;
-  onVerTodos?: (etapa: EtapaPipeline) => void;
+  onCarregarMais?: (etapa: EtapaPipeline) => void;
 }
 
 export function PipelineKanban({
@@ -33,7 +33,7 @@ export function PipelineKanban({
   totaisPorEtapa,
   onDragEnd,
   onViewDetails,
-  onVerTodos
+  onCarregarMais
 }: PipelineKanbanProps) {
   return (
     <div className="flex flex-col h-full">
@@ -42,7 +42,7 @@ export function PipelineKanban({
         totaisPorEtapa={totaisPorEtapa}
         onDragEnd={onDragEnd} 
         onViewDetails={onViewDetails}
-        onVerTodos={onVerTodos}
+        onCarregarMais={onCarregarMais}
       />
     </div>
   );
