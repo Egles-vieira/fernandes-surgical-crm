@@ -8728,6 +8728,12 @@ export type Database = {
         Args: { p_updates: Json }
         Returns: undefined
       }
+      auth_check_any_role: { Args: { _roles: string[] }; Returns: boolean }
+      auth_check_high_hierarchy: { Args: never; Returns: boolean }
+      auth_check_vendas_access: {
+        Args: { _cliente_id: string; _user_id: string; _vendedor_id: string }
+        Returns: boolean
+      }
       auth_has_role: { Args: { _role: string }; Returns: boolean }
       auth_is_admin: { Args: never; Returns: boolean }
       auth_is_manager: { Args: never; Returns: boolean }
