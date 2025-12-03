@@ -5097,6 +5097,7 @@ export type Database = {
           scroll_position: number | null
           secao_atual: string | null
           tipo_acao: string
+          venda_id: string | null
         }
         Insert: {
           analytics_id: string
@@ -5107,6 +5108,7 @@ export type Database = {
           scroll_position?: number | null
           secao_atual?: string | null
           tipo_acao: string
+          venda_id?: string | null
         }
         Update: {
           analytics_id?: string
@@ -5117,6 +5119,7 @@ export type Database = {
           scroll_position?: number | null
           secao_atual?: string | null
           tipo_acao?: string
+          venda_id?: string | null
         }
         Relationships: [
           {
@@ -5124,6 +5127,13 @@ export type Database = {
             columns: ["analytics_id"]
             isOneToOne: false
             referencedRelation: "propostas_analytics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "propostas_analytics_cliques_venda_id_fkey"
+            columns: ["venda_id"]
+            isOneToOne: false
+            referencedRelation: "vendas"
             referencedColumns: ["id"]
           },
         ]

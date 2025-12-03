@@ -108,25 +108,38 @@ export const useWhatsAppStatus = () => {
     updateStatusMutation.mutate(novoStatus);
   };
 
-  // Realtime: escutar mudanças no status
+  // Realtime: escutar mudanças no status (FILTRADO por usuário para escala)
   useEffect(() => {
-    const channel = supabase
-      .channel('status-atendimento-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'perfis_usuario',
-        },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ['whatsapp-status'] });
-        }
-      )
-      .subscribe();
+    const setupRealtimeChannel = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const channel = supabase
+        .channel(`status-atendimento-${user.id}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'perfis_usuario',
+            filter: `id=eq.${user.id}` // FILTRO CRÍTICO: escuta apenas mudanças do próprio usuário
+          },
+          () => {
+            queryClient.invalidateQueries({ queryKey: ['whatsapp-status'] });
+          }
+        )
+        .subscribe();
+
+      return channel;
+    };
+
+    let channel: ReturnType<typeof supabase.channel> | undefined;
+    setupRealtimeChannel().then(ch => { channel = ch; });
 
     return () => {
-      supabase.removeChannel(channel);
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
     };
   }, [queryClient]);
 
