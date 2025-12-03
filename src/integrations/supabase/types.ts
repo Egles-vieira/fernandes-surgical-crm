@@ -8899,13 +8899,13 @@ export type Database = {
         }[]
       }
       get_vendas_pipeline_paginado: {
-        Args: { p_dias_atras?: number; p_limite_por_etapa?: number }
+        Args: { p_dias_atras?: number; p_limites_por_etapa?: Json }
         Returns: {
           cliente_cnpj: string
           cliente_nome: string
           created_at: string
           data_fechamento_prevista: string
-          etapa_pipeline: Database["public"]["Enums"]["etapa_pipeline"]
+          etapa_pipeline: string
           id: string
           numero_venda: string
           probabilidade: number
