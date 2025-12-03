@@ -34,7 +34,7 @@ export function useSystemMetrics(enabled: boolean = true, refetchInterval: numbe
     queryFn: async (): Promise<SystemMetrics> => {
       // Buscar métricas de tabelas via pg_stat_user_tables
       const { data: tableStats, error: tableError } = await supabase
-        .rpc('get_table_statistics');
+        .rpc('get_table_statistics' as any);
 
       if (tableError) {
         console.warn("Erro ao buscar estatísticas de tabelas:", tableError);
@@ -42,13 +42,14 @@ export function useSystemMetrics(enabled: boolean = true, refetchInterval: numbe
 
       // Buscar conexões ativas via pg_stat_activity
       const { data: connectionStats, error: connError } = await supabase
-        .rpc('get_connection_statistics');
+        .rpc('get_connection_statistics' as any);
 
       if (connError) {
         console.warn("Erro ao buscar estatísticas de conexões:", connError);
       }
 
-      const tables: TableMetric[] = (tableStats || []).map((t: any) => ({
+      const rawTables = (tableStats || []) as any[];
+      const tables: TableMetric[] = rawTables.map((t: any) => ({
         table_name: t.table_name,
         row_count: Number(t.row_count) || 0,
         seq_scan: Number(t.seq_scan) || 0,
@@ -62,7 +63,7 @@ export function useSystemMetrics(enabled: boolean = true, refetchInterval: numbe
           : 100
       }));
 
-      const connections: ConnectionMetric[] = connectionStats || [];
+      const connections: ConnectionMetric[] = (connectionStats || []) as ConnectionMetric[];
       
       const totalConnections = connections.reduce((sum, c) => sum + Number(c.count), 0);
       const activeConnections = connections

@@ -8789,6 +8789,14 @@ export type Database = {
           cliente_id: string
         }[]
       }
+      get_connection_statistics: {
+        Args: never
+        Returns: {
+          application_name: string
+          count: number
+          state: string
+        }[]
+      }
       get_equipes_gerenciadas: {
         Args: { _user_id: string }
         Returns: {
@@ -8841,6 +8849,19 @@ export type Database = {
           plataforma_id: string
           quantidade_solicitada: number
           unidade_medida: string
+        }[]
+      }
+      get_table_statistics: {
+        Args: never
+        Returns: {
+          idx_scan: number
+          last_analyze: string
+          last_vacuum: string
+          n_dead_tup: number
+          n_live_tup: number
+          row_count: number
+          seq_scan: number
+          table_name: string
         }[]
       }
       get_user_claims: { Args: { _user_id: string }; Returns: Json }
