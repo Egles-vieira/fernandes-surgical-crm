@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
 import { Users, TrendingUp, TrendingDown } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { InfoTooltip } from "./InfoTooltip";
 
 interface ConnectionsChartProps {
   totalConnections: number;
@@ -79,6 +80,7 @@ export function ConnectionsChart({
           <span className="flex items-center gap-2">
             <Users className="h-4 w-4" />
             Conexões em Tempo Real
+            <InfoTooltip content="Monitoramento do pool de conexões PostgreSQL. Mostra histórico das últimas 20 leituras. Linha tracejada amarela indica 80% da capacidade (threshold de alerta)." />
           </span>
           <div className="flex items-center gap-2">
             {trend > 0 ? (
@@ -99,15 +101,24 @@ export function ConnectionsChart({
         <div className="grid grid-cols-3 gap-4 mb-4">
           <div className="text-center">
             <div className="text-2xl font-bold">{totalConnections}</div>
-            <div className="text-xs text-muted-foreground">Total</div>
+            <div className="text-xs text-muted-foreground flex items-center justify-center gap-1">
+              Total
+              <InfoTooltip content="Soma de todas as conexões ao banco de dados (ativas + idle). Máximo permitido: 300." />
+            </div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-success">{activeConnections}</div>
-            <div className="text-xs text-muted-foreground">Ativas</div>
+            <div className="text-xs text-muted-foreground flex items-center justify-center gap-1">
+              Ativas
+              <InfoTooltip content="Conexões executando queries no momento. Alto número pode indicar queries lentas ou picos de uso." />
+            </div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-muted-foreground">{idleConnections}</div>
-            <div className="text-xs text-muted-foreground">Idle</div>
+            <div className="text-xs text-muted-foreground flex items-center justify-center gap-1">
+              Idle
+              <InfoTooltip content="Conexões abertas mas ociosas no pool. Mantidas para reutilização e evitar overhead de reconexão." />
+            </div>
           </div>
         </div>
 

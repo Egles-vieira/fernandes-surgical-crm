@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Activity, CheckCircle, AlertTriangle, XCircle } from "lucide-react";
+import { InfoTooltip } from "./InfoTooltip";
 
 interface HealthCategory {
   name: string;
@@ -15,6 +16,15 @@ interface HealthScoreGaugeProps {
   categories: HealthCategory[];
   isLoading?: boolean;
 }
+
+const categoryTooltips: Record<string, string> = {
+  "Uso de Índices": "Eficiência do uso de índices nas consultas. Fórmula: idx_scan / (idx_scan + seq_scan) × 100. Seq scans excessivos indicam índices faltando.",
+  "Conexões": "Utilização do pool de conexões em relação ao limite máximo de 300. Alto uso pode causar timeouts e erros de conexão.",
+  "Materialized Views": "Status das views materializadas usadas para dashboards. Devem estar atualizadas (refresh via pg_cron a cada 5 min).",
+  "RLS Policies": "Políticas de Row Level Security ativas. Garantem que usuários só acessem dados permitidos.",
+  "Banco de Dados": "Saúde geral das tabelas: considera uso de índices e quantidade de dead tuples aguardando vacuum.",
+  "APIs": "Performance das Edge Functions: tempo de resposta médio e taxa de sucesso nas últimas 24h."
+};
 
 export function HealthScoreGauge({ score, status, categories, isLoading }: HealthScoreGaugeProps) {
   const getStatusColor = (status: 'healthy' | 'warning' | 'critical') => {
@@ -46,7 +56,6 @@ export function HealthScoreGauge({ score, status, categories, isLoading }: Healt
   const strokeWidth = 12;
   const circumference = Math.PI * radius;
   const progress = (score / 100) * circumference;
-  const rotation = -180;
 
   if (isLoading) {
     return (
@@ -71,6 +80,7 @@ export function HealthScoreGauge({ score, status, categories, isLoading }: Healt
           <span className="flex items-center gap-2">
             <Activity className="h-4 w-4" />
             Saúde do Sistema
+            <InfoTooltip content="Indicador agregado da saúde do sistema. Combina métricas de banco de dados, conexões, APIs e configurações de segurança. Atualizado automaticamente a cada minuto." />
           </span>
           {getStatusBadge(status)}
         </CardTitle>
@@ -127,6 +137,7 @@ export function HealthScoreGauge({ score, status, categories, isLoading }: Healt
                 <div className="flex items-center gap-2">
                   {getStatusIcon(category.status)}
                   <span className="text-muted-foreground">{category.name}</span>
+                  <InfoTooltip content={categoryTooltips[category.name] || category.details} />
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="font-medium">{category.score}%</span>

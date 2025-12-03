@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { Zap, CheckCircle, AlertTriangle, XCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { InfoTooltip } from "./InfoTooltip";
 
 interface EdgeFunctionMetric {
   function_id: string;
@@ -77,6 +78,7 @@ export function EdgeFunctionsPerformance({
           <span className="flex items-center gap-2">
             <Zap className="h-4 w-4" />
             Edge Functions (24h)
+            <InfoTooltip content="Performance das Edge Functions Deno nas últimas 24 horas. Monitora chamadas, tempo de execução e erros. Funções lentas (>2s) ou com alta taxa de erro são destacadas." />
           </span>
           <Badge variant="outline">{functions.length} funções</Badge>
         </CardTitle>
@@ -85,7 +87,10 @@ export function EdgeFunctionsPerformance({
         <div className="grid grid-cols-3 gap-4 mb-4">
           <div className="text-center">
             <div className="text-2xl font-bold">{totalCalls.toLocaleString()}</div>
-            <div className="text-xs text-muted-foreground">Total Calls</div>
+            <div className="text-xs text-muted-foreground flex items-center justify-center gap-1">
+              Total Calls
+              <InfoTooltip content="Total de chamadas a todas as Edge Functions nas últimas 24 horas. Inclui chamadas bem-sucedidas e com erro." />
+            </div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold">
@@ -93,7 +98,10 @@ export function EdgeFunctionsPerformance({
                 {avgExecutionTime}ms
               </span>
             </div>
-            <div className="text-xs text-muted-foreground">Tempo Médio</div>
+            <div className="text-xs text-muted-foreground flex items-center justify-center gap-1">
+              Tempo Médio
+              <InfoTooltip content="Média de tempo de execução de todas as funções. Inclui processamento e queries ao banco. Ideal: <500ms (verde), Aceitável: <2000ms (amarelo)." />
+            </div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold">
@@ -101,7 +109,10 @@ export function EdgeFunctionsPerformance({
                 {errorRate}%
               </span>
             </div>
-            <div className="text-xs text-muted-foreground">Taxa de Erro</div>
+            <div className="text-xs text-muted-foreground flex items-center justify-center gap-1">
+              Taxa de Erro
+              <InfoTooltip content="Porcentagem de chamadas que retornaram erro (status HTTP >= 400). Ideal: <1% (verde), Atenção: 1-5% (amarelo), Crítico: >5% (vermelho)." />
+            </div>
           </div>
         </div>
 

@@ -5,6 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Database, ArrowUpDown, AlertTriangle, CheckCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { InfoTooltip } from "./InfoTooltip";
 
 interface TableMetric {
   table_name: string;
@@ -90,6 +91,7 @@ export function TableMetricsTable({ tables, isLoading }: TableMetricsTableProps)
           <span className="flex items-center gap-2">
             <Database className="h-4 w-4" />
             Métricas de Tabelas
+            <InfoTooltip content="Estatísticas de acesso às tabelas do PostgreSQL (pg_stat_user_tables). Identifica tabelas com problemas de índices ou necessitando vacuum." />
           </span>
           <Badge variant="outline">{tables.length} tabelas</Badge>
         </CardTitle>
@@ -105,26 +107,43 @@ export function TableMetricsTable({ tables, isLoading }: TableMetricsTableProps)
                   </Button>
                 </TableHead>
                 <TableHead className="text-right">
-                  <Button variant="ghost" size="sm" onClick={() => handleSort('row_count')}>
-                    Rows <ArrowUpDown className="ml-1 h-3 w-3" />
-                  </Button>
+                  <div className="flex items-center justify-end gap-1">
+                    <Button variant="ghost" size="sm" onClick={() => handleSort('row_count')}>
+                      Rows <ArrowUpDown className="ml-1 h-3 w-3" />
+                    </Button>
+                    <InfoTooltip content="Número aproximado de linhas na tabela (estimativa do PostgreSQL via ANALYZE)." />
+                  </div>
                 </TableHead>
                 <TableHead className="text-right">
-                  <Button variant="ghost" size="sm" onClick={() => handleSort('seq_scan')}>
-                    Seq Scans <ArrowUpDown className="ml-1 h-3 w-3" />
-                  </Button>
+                  <div className="flex items-center justify-end gap-1">
+                    <Button variant="ghost" size="sm" onClick={() => handleSort('seq_scan')}>
+                      Seq Scans <ArrowUpDown className="ml-1 h-3 w-3" />
+                    </Button>
+                    <InfoTooltip content="Varreduras sequenciais: lê toda a tabela linha por linha. Alto número indica índice faltando ou queries não otimizadas." />
+                  </div>
                 </TableHead>
                 <TableHead className="text-right">
-                  <Button variant="ghost" size="sm" onClick={() => handleSort('idx_scan')}>
-                    Idx Scans <ArrowUpDown className="ml-1 h-3 w-3" />
-                  </Button>
+                  <div className="flex items-center justify-end gap-1">
+                    <Button variant="ghost" size="sm" onClick={() => handleSort('idx_scan')}>
+                      Idx Scans <ArrowUpDown className="ml-1 h-3 w-3" />
+                    </Button>
+                    <InfoTooltip content="Varreduras por índice: muito mais eficientes que seq scans. Idealmente deve ser maior que seq scans." />
+                  </div>
                 </TableHead>
                 <TableHead className="text-right">
-                  <Button variant="ghost" size="sm" onClick={() => handleSort('index_ratio')}>
-                    Idx Ratio <ArrowUpDown className="ml-1 h-3 w-3" />
-                  </Button>
+                  <div className="flex items-center justify-end gap-1">
+                    <Button variant="ghost" size="sm" onClick={() => handleSort('index_ratio')}>
+                      Idx Ratio <ArrowUpDown className="ml-1 h-3 w-3" />
+                    </Button>
+                    <InfoTooltip content="Porcentagem de consultas usando índice. Fórmula: idx_scan / (idx_scan + seq_scan) × 100. Ideal: >90%." />
+                  </div>
                 </TableHead>
-                <TableHead className="text-center">Status</TableHead>
+                <TableHead className="text-center">
+                  <div className="flex items-center justify-center gap-1">
+                    Status
+                    <InfoTooltip content="✓ Verde: saudável (>90% idx ratio, <5% dead tuples). ⚠ Amarelo: atenção (70-90% idx ou 5-10% dead). ❌ Vermelho: crítico (<70% idx ou >10% dead)." />
+                  </div>
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
