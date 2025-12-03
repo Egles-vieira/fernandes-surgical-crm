@@ -77,6 +77,7 @@ export default function Vendas() {
     totaisPorEtapa,
     totalPipeline,
     isLoading: isLoadingPipeline,
+    etapaCarregando,
     moverEtapa,
     carregarMais,
   } = useVendasPipeline({ 
@@ -1631,6 +1632,7 @@ export default function Vendas() {
           <PipelineKanban
             vendas={vendasPipeline as any}
             totaisPorEtapa={totaisPorEtapa}
+            etapaCarregando={etapaCarregando}
             onDragEnd={(result) => {
               const { source, destination, draggableId } = result;
               

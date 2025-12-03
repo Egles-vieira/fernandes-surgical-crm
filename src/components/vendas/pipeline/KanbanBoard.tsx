@@ -22,6 +22,7 @@ interface TotaisEtapa {
 interface KanbanBoardProps {
   vendas: VendaPipeline[];
   totaisPorEtapa?: Record<string, TotaisEtapa>;
+  etapaCarregando?: string | null;
   onDragEnd: (result: DropResult) => void;
   onViewDetails: (venda: VendaPipeline) => void;
   onCarregarMais?: (etapa: EtapaPipeline) => void;
@@ -92,7 +93,7 @@ const ETAPAS_ATIVAS: EtapaPipeline[] = [
   "fechamento",
 ];
 
-export function KanbanBoard({ vendas, totaisPorEtapa, onDragEnd, onViewDetails, onCarregarMais }: KanbanBoardProps) {
+export function KanbanBoard({ vendas, totaisPorEtapa, etapaCarregando, onDragEnd, onViewDetails, onCarregarMais }: KanbanBoardProps) {
   const getVendasPorEtapa = (etapa: EtapaPipeline): VendaPipeline[] => {
     return vendas.filter((v) => v.etapa_pipeline === etapa);
   };
@@ -122,6 +123,7 @@ export function KanbanBoard({ vendas, totaisPorEtapa, onDragEnd, onViewDetails, 
                 vendas={getVendasPorEtapa(etapa)}
                 valorTotal={calcularValorTotal(etapa)}
                 totalReal={getTotalReal(etapa)}
+                isLoadingMore={etapaCarregando === etapa}
                 onViewDetails={onViewDetails}
                 onCarregarMais={onCarregarMais}
               />

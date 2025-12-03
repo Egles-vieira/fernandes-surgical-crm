@@ -6,23 +6,19 @@ import { useState, useCallback } from "react";
 
 type EtapaPipeline = Tables<"vendas">["etapa_pipeline"];
 
-// Tipo leve para o Kanban (sem itens, sem dados pesados)
+// Tipo leve para o Kanban (retorno da RPC get_vendas_pipeline_paginado)
 export interface VendaPipelineCard {
   id: string;
   numero_venda: string;
   cliente_nome: string;
-  cliente_cnpj: string | null;
-  etapa_pipeline: EtapaPipeline;
-  valor_estimado: number | null;
-  valor_total: number;
-  probabilidade: number | null;
-  data_fechamento_prevista: string | null;
+  etapa_pipeline: string;
+  valor_estimado: number;
+  probabilidade: number;
   status: string;
   created_at: string;
-  responsavel_id: string | null;
+  updated_at: string;
   vendedor_id: string | null;
-  row_num?: number;
-  total_na_etapa?: number;
+  total_na_etapa: number;
 }
 
 interface UseVendasPipelineOptions {
@@ -64,7 +60,10 @@ export function useVendasPipeline(options: UseVendasPipelineOptions = {}) {
     return inicial;
   });
 
-  const { data: vendas = [], isLoading, error, refetch } = useQuery({
+  // Estado para rastrear qual etapa está carregando
+  const [etapaCarregando, setEtapaCarregando] = useState<string | null>(null);
+
+  const { data: vendas = [], isLoading, isFetching, error, refetch } = useQuery({
     queryKey: ["vendas-pipeline", limitesPorEtapa, diasAtras],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -77,6 +76,10 @@ export function useVendasPipeline(options: UseVendasPipelineOptions = {}) {
       });
 
       if (error) throw error;
+      
+      // Limpar estado de loading da etapa após carregar
+      setEtapaCarregando(null);
+      
       return (data || []) as VendaPipelineCard[];
     },
     enabled,
@@ -86,6 +89,7 @@ export function useVendasPipeline(options: UseVendasPipelineOptions = {}) {
 
   // Função para carregar mais itens de uma etapa específica
   const carregarMais = useCallback((etapa: string) => {
+    setEtapaCarregando(etapa);
     setLimitesPorEtapa(prev => ({
       ...prev,
       [etapa]: (prev[etapa] || limitePorEtapaInicial) + 20
@@ -155,9 +159,9 @@ export function useVendasPipeline(options: UseVendasPipelineOptions = {}) {
     acc[etapa] = {
       quantidade: vendasEtapa.length,
       quantidadeReal: Number(totalReal),
-      valorTotal: vendasEtapa.reduce((sum, v) => sum + (v.valor_estimado || v.valor_total || 0), 0),
+      valorTotal: vendasEtapa.reduce((sum, v) => sum + (v.valor_estimado || 0), 0),
       valorPotencial: vendasEtapa.reduce((sum, v) => {
-        const valor = v.valor_estimado || v.valor_total || 0;
+        const valor = v.valor_estimado || 0;
         const prob = v.probabilidade || 0;
         return sum + (valor * prob / 100);
       }, 0),
@@ -167,7 +171,7 @@ export function useVendasPipeline(options: UseVendasPipelineOptions = {}) {
 
   // Total geral do pipeline (apenas do que está carregado)
   const totalPipeline = vendas.reduce((sum, v) => {
-    const valor = v.valor_estimado || v.valor_total || 0;
+    const valor = v.valor_estimado || 0;
     const prob = v.probabilidade || 0;
     return sum + (valor * prob / 100);
   }, 0);
@@ -178,6 +182,8 @@ export function useVendasPipeline(options: UseVendasPipelineOptions = {}) {
     totaisPorEtapa,
     totalPipeline,
     isLoading,
+    isFetching,
+    etapaCarregando,
     error,
     refetch,
     moverEtapa,

@@ -23,6 +23,7 @@ export type EtapaPipeline = "prospeccao" | "qualificacao" | "proposta" | "negoci
 interface PipelineKanbanProps {
   vendas: VendaPipeline[];
   totaisPorEtapa?: Record<string, TotaisEtapa>;
+  etapaCarregando?: string | null;
   onDragEnd: (result: DropResult) => void;
   onViewDetails: (venda: VendaPipeline) => void;
   onCarregarMais?: (etapa: EtapaPipeline) => void;
@@ -31,6 +32,7 @@ interface PipelineKanbanProps {
 export function PipelineKanban({
   vendas,
   totaisPorEtapa,
+  etapaCarregando,
   onDragEnd,
   onViewDetails,
   onCarregarMais
@@ -40,6 +42,7 @@ export function PipelineKanban({
       <KanbanBoard 
         vendas={vendas} 
         totaisPorEtapa={totaisPorEtapa}
+        etapaCarregando={etapaCarregando}
         onDragEnd={onDragEnd} 
         onViewDetails={onViewDetails}
         onCarregarMais={onCarregarMais}

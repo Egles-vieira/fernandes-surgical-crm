@@ -1,7 +1,7 @@
 import { Droppable } from "@hello-pangea/dnd";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { List } from "lucide-react";
+import { List, Loader2 } from "lucide-react";
 import { KanbanCard } from "./KanbanCard";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -36,6 +36,7 @@ interface KanbanColumnProps {
   vendas: VendaPipeline[];
   valorTotal: number;
   totalReal?: number;
+  isLoadingMore?: boolean;
   onViewDetails: (venda: VendaPipeline) => void;
   onCarregarMais?: (etapa: EtapaPipeline) => void;
 }
@@ -46,6 +47,7 @@ export function KanbanColumn({
   vendas, 
   valorTotal, 
   totalReal,
+  isLoadingMore,
   onViewDetails,
   onCarregarMais
 }: KanbanColumnProps) {
@@ -108,9 +110,19 @@ export function KanbanColumn({
                     size="sm"
                     className="w-full mt-2 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/50"
                     onClick={() => onCarregarMais?.(etapa)}
+                    disabled={isLoadingMore}
                   >
-                    <List className="h-3 w-3 mr-1" />
-                    Carregar mais (+{Math.min(20, quantidadeTotal - quantidadeCarregada)})
+                    {isLoadingMore ? (
+                      <>
+                        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                        Carregando...
+                      </>
+                    ) : (
+                      <>
+                        <List className="h-3 w-3 mr-1" />
+                        Carregar mais (+{Math.min(20, quantidadeTotal - quantidadeCarregada)})
+                      </>
+                    )}
                   </Button>
                 )}
               </div>
