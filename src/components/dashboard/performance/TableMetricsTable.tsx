@@ -1,11 +1,12 @@
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState, useRef, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Database, ArrowUpDown, AlertTriangle, CheckCircle } from "lucide-react";
+import { Database, ArrowUpDown, AlertTriangle, CheckCircle, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { InfoTooltip } from "./InfoTooltip";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface TableMetric {
   table_name: string;
@@ -28,6 +29,30 @@ type SortOrder = 'asc' | 'desc';
 export function TableMetricsTable({ tables, isLoading }: TableMetricsTableProps) {
   const [sortKey, setSortKey] = useState<SortKey>('seq_scan');
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
+  const previousTablesRef = useRef<Map<string, TableMetric>>(new Map());
+  const [deltas, setDeltas] = useState<Map<string, { seqDelta: number; idxDelta: number }>>(new Map());
+
+  // Atualizar deltas quando tables mudar
+  useEffect(() => {
+    if (tables.length > 0) {
+      const newDeltas = new Map<string, { seqDelta: number; idxDelta: number }>();
+      tables.forEach(t => {
+        const prev = previousTablesRef.current.get(t.table_name);
+        if (prev) {
+          newDeltas.set(t.table_name, {
+            seqDelta: t.seq_scan - prev.seq_scan,
+            idxDelta: t.idx_scan - prev.idx_scan
+          });
+        }
+      });
+      setDeltas(newDeltas);
+      
+      // Atualizar referência
+      const newPrevMap = new Map<string, TableMetric>();
+      tables.forEach(t => newPrevMap.set(t.table_name, { ...t }));
+      previousTablesRef.current = newPrevMap;
+    }
+  }, [tables]);
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -84,17 +109,25 @@ export function TableMetricsTable({ tables, isLoading }: TableMetricsTableProps)
     );
   }
 
+  const formatDelta = (delta: number) => {
+    if (delta === 0) return null;
+    return delta > 0 ? `+${delta.toLocaleString()}` : delta.toLocaleString();
+  };
+
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="pb-2">
         <CardTitle className="text-sm font-medium flex items-center justify-between">
           <span className="flex items-center gap-2">
             <Database className="h-4 w-4" />
             Métricas de Tabelas
-            <InfoTooltip content="Estatísticas de acesso às tabelas do PostgreSQL (pg_stat_user_tables). Identifica tabelas com problemas de índices ou necessitando vacuum." />
+            <InfoTooltip content="Estatísticas CUMULATIVAS de acesso às tabelas (pg_stat_user_tables). Os contadores acumulam desde sempre - novos índices melhoram consultas futuras e o ratio aumenta gradualmente." />
           </span>
           <Badge variant="outline">{tables.length} tabelas</Badge>
         </CardTitle>
+        <CardDescription className="text-xs text-muted-foreground">
+          Valores cumulativos • Δ mostra variação desde último refresh
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="max-h-[400px] overflow-auto">
@@ -163,12 +196,36 @@ export function TableMetricsTable({ tables, isLoading }: TableMetricsTableProps)
                       {table.row_count.toLocaleString()}
                     </TableCell>
                     <TableCell className="text-right tabular-nums">
-                      <span className={table.seq_scan > 1000 ? "text-warning" : ""}>
-                        {table.seq_scan.toLocaleString()}
-                      </span>
+                      <div className="flex flex-col items-end">
+                        <span className={table.seq_scan > 1000 ? "text-warning" : ""}>
+                          {table.seq_scan.toLocaleString()}
+                        </span>
+                        {deltas.get(table.table_name)?.seqDelta !== undefined && deltas.get(table.table_name)!.seqDelta !== 0 && (
+                          <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
+                            {deltas.get(table.table_name)!.seqDelta > 0 ? (
+                              <TrendingUp className="h-2.5 w-2.5 text-destructive" />
+                            ) : (
+                              <TrendingDown className="h-2.5 w-2.5 text-success" />
+                            )}
+                            {formatDelta(deltas.get(table.table_name)!.seqDelta)}
+                          </span>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell className="text-right tabular-nums">
-                      {table.idx_scan.toLocaleString()}
+                      <div className="flex flex-col items-end">
+                        {table.idx_scan.toLocaleString()}
+                        {deltas.get(table.table_name)?.idxDelta !== undefined && deltas.get(table.table_name)!.idxDelta !== 0 && (
+                          <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
+                            {deltas.get(table.table_name)!.idxDelta > 0 ? (
+                              <TrendingUp className="h-2.5 w-2.5 text-success" />
+                            ) : (
+                              <TrendingDown className="h-2.5 w-2.5 text-destructive" />
+                            )}
+                            {formatDelta(deltas.get(table.table_name)!.idxDelta)}
+                          </span>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell className="text-right">
                       <span className={
