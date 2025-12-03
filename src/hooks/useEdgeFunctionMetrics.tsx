@@ -42,7 +42,7 @@ export function useEdgeFunctionMetrics(enabled: boolean = true, refetchInterval:
       // Buscar métricas de calcular-frete-datasul
       const { data: freteData } = await supabase
         .from('integracoes_totvs_calcula_frete')
-        .select('tempo_resposta_ms, sucesso, created_at')
+        .select('tempo_resposta_ms, status, created_at')
         .order('created_at', { ascending: false })
         .limit(100);
 
@@ -58,7 +58,7 @@ export function useEdgeFunctionMetrics(enabled: boolean = true, refetchInterval:
       // Buscar métricas de calcular-pedido-datasul
       const { data: pedidoData } = await supabase
         .from('integracoes_totvs_calcula_pedido')
-        .select('tempo_resposta_ms, sucesso, created_at')
+        .select('tempo_resposta_ms, status, created_at')
         .order('created_at', { ascending: false })
         .limit(100);
 
@@ -146,7 +146,7 @@ export function useEdgeFunctionMetrics(enabled: boolean = true, refetchInterval:
 function calculateStats(data: any[]): Omit<EdgeFunctionMetric, 'function_id' | 'function_name'> {
   const totalCalls = data.length;
   const times = data.map(d => d.tempo_resposta_ms || 0).filter(t => t > 0);
-  const successCount = data.filter(d => d.sucesso === true).length;
+  const successCount = data.filter(d => d.status === 'sucesso').length;
   const errorCount = totalCalls - successCount;
   
   const avgTime = times.length > 0 ? times.reduce((a, b) => a + b, 0) / times.length : 0;
