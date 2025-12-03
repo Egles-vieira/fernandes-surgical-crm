@@ -8718,6 +8718,14 @@ export type Database = {
         Args: { p_updates: Json }
         Returns: undefined
       }
+      auth_has_role: { Args: { _role: string }; Returns: boolean }
+      auth_is_admin: { Args: never; Returns: boolean }
+      auth_is_manager: { Args: never; Returns: boolean }
+      batch_insert_vendas_itens: { Args: { p_items: Json }; Returns: number }
+      batch_update_vendas_itens: {
+        Args: { p_items: Json; p_venda_id: string }
+        Returns: number
+      }
       buscar_produtos_hibrido: {
         Args: { p_descricao: string; p_limite?: number; p_numeros?: string[] }
         Returns: {
@@ -8825,6 +8833,7 @@ export type Database = {
           unidade_medida: string
         }[]
       }
+      get_user_claims: { Args: { _user_id: string }; Returns: Json }
       get_user_roles: {
         Args: { _user_id: string }
         Returns: {

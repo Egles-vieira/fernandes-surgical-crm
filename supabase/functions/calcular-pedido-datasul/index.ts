@@ -302,21 +302,50 @@ Deno.serve(async (req) => {
         // ============ INÍCIO: TRATAMENTO DOS DADOS ============
         const inicioTratamento = Date.now();
         
-        // Atualizar itens
-        if (Array.isArray(retornoArray)) {
-          console.log(`Atualizando ${retornoArray.length} itens no banco de dados`);
-          for (const itemDS of retornoArray) {
-            const seq = itemDS["nr-sequencia"];
-            if (seq) {
-              await supabase.from("vendas_itens").update({
-                datasul_dep_exp: Number(itemDS["dep-exp"]) || null,
-                datasul_custo: Number(itemDS["custo"]) || null,
-                datasul_divisao: Number(itemDS["divisao"]) || null,
-                datasul_vl_tot_item: Number(itemDS["vl-tot-item"]) || null,
-                datasul_vl_merc_liq: Number(itemDS["vl-merc-liq"]) || null,
-                datasul_lote_mulven: Number(itemDS["lote-mulven"]) || null,
-              }).eq("venda_id", venda_id).eq("sequencia_item", seq);
+        // PRIORIDADE 3: Usar batch update RPC ao invés de N queries sequenciais
+        if (Array.isArray(retornoArray) && retornoArray.length > 0) {
+          console.log(`Atualizando ${retornoArray.length} itens via batch RPC`);
+          
+          // Mapear dados para formato do RPC
+          const itemsParaAtualizar = retornoArray
+            .filter((itemDS: any) => itemDS["nr-sequencia"])
+            .map((itemDS: any) => ({
+              sequencia_item: itemDS["nr-sequencia"],
+              datasul_dep_exp: Number(itemDS["dep-exp"]) || 0,
+              datasul_custo: Number(itemDS["custo"]) || 0,
+              datasul_divisao: Number(itemDS["divisao"]) || 0,
+              datasul_vl_tot_item: Number(itemDS["vl-tot-item"]) || 0,
+              datasul_vl_merc_liq: Number(itemDS["vl-merc-liq"]) || 0,
+              datasul_lote_mulven: Number(itemDS["lote-mulven"]) || 0,
+            }));
+          
+          // Executar batch update em única chamada
+          const { data: updatedCount, error: batchError } = await supabase.rpc(
+            "batch_update_vendas_itens",
+            {
+              p_venda_id: venda_id,
+              p_items: itemsParaAtualizar,
             }
+          );
+          
+          if (batchError) {
+            console.error("Erro no batch update:", batchError);
+            // Fallback para update individual se RPC falhar
+            for (const itemDS of retornoArray) {
+              const seq = itemDS["nr-sequencia"];
+              if (seq) {
+                await supabase.from("vendas_itens").update({
+                  datasul_dep_exp: Number(itemDS["dep-exp"]) || null,
+                  datasul_custo: Number(itemDS["custo"]) || null,
+                  datasul_divisao: Number(itemDS["divisao"]) || null,
+                  datasul_vl_tot_item: Number(itemDS["vl-tot-item"]) || null,
+                  datasul_vl_merc_liq: Number(itemDS["vl-merc-liq"]) || null,
+                  datasul_lote_mulven: Number(itemDS["lote-mulven"]) || null,
+                }).eq("venda_id", venda_id).eq("sequencia_item", seq);
+              }
+            }
+          } else {
+            console.log(`✅ Batch update concluído: ${updatedCount} itens atualizados`);
           }
         }
         
