@@ -1,45 +1,53 @@
 import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "./useAuth";
 
+/**
+ * Hook de Realtime otimizado para cotações EDI
+ * PRIORIDADE 2: Filtro por usuário para evitar broadcast global
+ */
 export const useRealtimeCotacoes = (enabled: boolean = true) => {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled || !user?.id) return;
     
-    console.log("🔌 Iniciando canal realtime para cotações");
+    console.log("🔌 Iniciando canal realtime filtrado para cotações (user:", user.id, ")");
     
+    // Canal filtrado por usuário - evita broadcast global
     const channel = supabase
-      .channel("edi_cotacoes_changes")
+      .channel(`edi_cotacoes_user_${user.id}`)
+      // Escutar apenas cotações resgatadas pelo usuário atual
       .on(
         "postgres_changes",
         {
           event: "*",
           schema: "public",
           table: "edi_cotacoes",
+          filter: `resgatada_por=eq.${user.id}`,
         },
         (payload) => {
-          console.log("📡 Atualização em tempo real em edi_cotacoes:", payload);
-          
-          // Invalida todas as queries de cotações para recarregar os dados
+          console.log("📡 Atualização em cotação do usuário:", payload);
           queryClient.invalidateQueries({ queryKey: ["edi-cotacoes"] });
         }
       )
+      // Também escutar cotações respondidas pelo usuário
       .on(
         "postgres_changes",
         {
           event: "*",
           schema: "public",
-          table: "edi_cotacoes_itens",
+          table: "edi_cotacoes",
+          filter: `respondido_por=eq.${user.id}`,
         },
         (payload) => {
-          console.log("📦 Atualização em tempo real em edi_cotacoes_itens:", payload);
-          
-          // Invalida queries de cotações quando itens mudarem
+          console.log("📡 Atualização em cotação respondida:", payload);
           queryClient.invalidateQueries({ queryKey: ["edi-cotacoes"] });
         }
       )
+      // Broadcast events continuam sem filtro (já são direcionados)
       .on(
         "broadcast",
         { event: "analise-progresso" },
@@ -48,10 +56,8 @@ export const useRealtimeCotacoes = (enabled: boolean = true) => {
           console.log("🧠 Progresso de análise IA recebido:", payload);
           const { cotacao_id, percentual, itens_analisados, total_itens } = payload || {};
 
-          // Atualiza cache imediatamente (sem esperar refetch)
           queryClient.setQueriesData({ queryKey: ["edi-cotacoes"] }, (oldData: any) => {
             if (!oldData) return oldData;
-            // Suporta múltiplos formatos (array simples ou objeto do react-query)
             const apply = (arr: any[]) =>
               arr?.map((c) =>
                 c?.id === cotacao_id
@@ -74,8 +80,6 @@ export const useRealtimeCotacoes = (enabled: boolean = true) => {
             }
             return oldData;
           });
-
-          // NÃO invalida aqui - o cache já foi atualizado
         }
       )
       .on(
@@ -84,8 +88,6 @@ export const useRealtimeCotacoes = (enabled: boolean = true) => {
         (raw) => {
           const payload: any = (raw as any)?.payload ?? raw;
           console.log("✅ Item analisado:", payload);
-          
-          // NÃO invalida aqui - evita refetch excessivo
         }
       )
       .on(
@@ -111,8 +113,6 @@ export const useRealtimeCotacoes = (enabled: boolean = true) => {
             }
             return oldData;
           });
-
-          // NÃO invalida aqui - o cache já foi atualizado
         }
       )
       .on(
@@ -137,7 +137,6 @@ export const useRealtimeCotacoes = (enabled: boolean = true) => {
             return oldData;
           });
 
-          // Invalida apenas quando concluir para garantir dados finais corretos
           setTimeout(() => {
             queryClient.invalidateQueries({ queryKey: ["edi-cotacoes"] });
           }, 2000);
@@ -150,25 +149,24 @@ export const useRealtimeCotacoes = (enabled: boolean = true) => {
           const payload: any = (raw as any)?.payload ?? raw;
           console.log("❌ Erro na análise:", payload);
           
-          // Invalida em caso de erro para recarregar estado correto
           setTimeout(() => {
             queryClient.invalidateQueries({ queryKey: ["edi-cotacoes"] });
           }, 1000);
         }
       )
       .subscribe((status) => {
-        console.log("📡 Status do canal realtime:", status);
+        console.log("📡 Status do canal realtime filtrado:", status);
       });
 
-    // Polling muito reduzido - apenas como fallback de segurança
+    // Polling reduzido - apenas fallback de segurança
     const interval = setInterval(() => {
       queryClient.invalidateQueries({ queryKey: ["edi-cotacoes"] });
-    }, 60000); // Aumentado para 60s - realtime já cuida das atualizações
+    }, 60000);
 
     return () => {
-      console.log("🔌 Desconectando canal realtime");
+      console.log("🔌 Desconectando canal realtime filtrado");
       clearInterval(interval);
       supabase.removeChannel(channel);
     };
-  }, [queryClient, enabled]);
+  }, [queryClient, enabled, user?.id]);
 };
