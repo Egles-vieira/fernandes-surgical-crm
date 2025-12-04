@@ -2923,6 +2923,292 @@ export type Database = {
         }
         Relationships: []
       }
+      ged_alertas: {
+        Row: {
+          dias_antes: number
+          documento_id: string | null
+          enviado: boolean | null
+          enviado_em: string | null
+          id: string
+          usuarios_notificados: string[] | null
+        }
+        Insert: {
+          dias_antes: number
+          documento_id?: string | null
+          enviado?: boolean | null
+          enviado_em?: string | null
+          id?: string
+          usuarios_notificados?: string[] | null
+        }
+        Update: {
+          dias_antes?: number
+          documento_id?: string | null
+          enviado?: boolean | null
+          enviado_em?: string | null
+          id?: string
+          usuarios_notificados?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ged_alertas_documento_id_fkey"
+            columns: ["documento_id"]
+            isOneToOne: false
+            referencedRelation: "ged_documentos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ged_documentos: {
+        Row: {
+          arquivo_nome: string
+          arquivo_url: string
+          atualizado_em: string | null
+          atualizado_por: string | null
+          criado_em: string | null
+          criado_por: string
+          data_emissao: string | null
+          data_validade: string | null
+          descricao: string | null
+          documento_pai_id: string | null
+          eh_versao_atual: boolean | null
+          id: string
+          metadados: Json | null
+          numero_documento: string | null
+          status_validade: string | null
+          tags: string[] | null
+          tamanho_bytes: number | null
+          tipo_id: string
+          tipo_mime: string | null
+          titulo: string
+          versao: number | null
+          versao_label: string | null
+        }
+        Insert: {
+          arquivo_nome: string
+          arquivo_url: string
+          atualizado_em?: string | null
+          atualizado_por?: string | null
+          criado_em?: string | null
+          criado_por: string
+          data_emissao?: string | null
+          data_validade?: string | null
+          descricao?: string | null
+          documento_pai_id?: string | null
+          eh_versao_atual?: boolean | null
+          id?: string
+          metadados?: Json | null
+          numero_documento?: string | null
+          status_validade?: string | null
+          tags?: string[] | null
+          tamanho_bytes?: number | null
+          tipo_id: string
+          tipo_mime?: string | null
+          titulo: string
+          versao?: number | null
+          versao_label?: string | null
+        }
+        Update: {
+          arquivo_nome?: string
+          arquivo_url?: string
+          atualizado_em?: string | null
+          atualizado_por?: string | null
+          criado_em?: string | null
+          criado_por?: string
+          data_emissao?: string | null
+          data_validade?: string | null
+          descricao?: string | null
+          documento_pai_id?: string | null
+          eh_versao_atual?: boolean | null
+          id?: string
+          metadados?: Json | null
+          numero_documento?: string | null
+          status_validade?: string | null
+          tags?: string[] | null
+          tamanho_bytes?: number | null
+          tipo_id?: string
+          tipo_mime?: string | null
+          titulo?: string
+          versao?: number | null
+          versao_label?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ged_documentos_documento_pai_id_fkey"
+            columns: ["documento_pai_id"]
+            isOneToOne: false
+            referencedRelation: "ged_documentos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ged_documentos_tipo_id_fkey"
+            columns: ["tipo_id"]
+            isOneToOne: false
+            referencedRelation: "ged_tipos_documento"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ged_documentos_tipo_id_fkey"
+            columns: ["tipo_id"]
+            isOneToOne: false
+            referencedRelation: "mv_ged_por_tipo"
+            referencedColumns: ["tipo_id"]
+          },
+        ]
+      }
+      ged_permissoes: {
+        Row: {
+          criado_em: string | null
+          criado_por: string | null
+          documento_id: string | null
+          equipe_id: string | null
+          id: string
+          nivel: string | null
+          role_nome: string | null
+          tipo: string
+          usuario_id: string | null
+        }
+        Insert: {
+          criado_em?: string | null
+          criado_por?: string | null
+          documento_id?: string | null
+          equipe_id?: string | null
+          id?: string
+          nivel?: string | null
+          role_nome?: string | null
+          tipo: string
+          usuario_id?: string | null
+        }
+        Update: {
+          criado_em?: string | null
+          criado_por?: string | null
+          documento_id?: string | null
+          equipe_id?: string | null
+          id?: string
+          nivel?: string | null
+          role_nome?: string | null
+          tipo?: string
+          usuario_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ged_permissoes_documento_id_fkey"
+            columns: ["documento_id"]
+            isOneToOne: false
+            referencedRelation: "ged_documentos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ged_permissoes_equipe_id_fkey"
+            columns: ["equipe_id"]
+            isOneToOne: false
+            referencedRelation: "equipes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ged_permissoes_equipe_id_fkey"
+            columns: ["equipe_id"]
+            isOneToOne: false
+            referencedRelation: "vw_estatisticas_metas_equipe"
+            referencedColumns: ["equipe_id"]
+          },
+          {
+            foreignKeyName: "ged_permissoes_equipe_id_fkey"
+            columns: ["equipe_id"]
+            isOneToOne: false
+            referencedRelation: "vw_turnover_equipes"
+            referencedColumns: ["equipe_id"]
+          },
+        ]
+      }
+      ged_tipos_documento: {
+        Row: {
+          ativo: boolean | null
+          cor: string | null
+          criado_em: string | null
+          criado_por: string | null
+          descricao: string | null
+          dias_alerta_vencimento: number | null
+          exige_validade: boolean | null
+          extensoes_permitidas: string[] | null
+          icone: string | null
+          id: string
+          nome: string
+          permite_versoes: boolean | null
+        }
+        Insert: {
+          ativo?: boolean | null
+          cor?: string | null
+          criado_em?: string | null
+          criado_por?: string | null
+          descricao?: string | null
+          dias_alerta_vencimento?: number | null
+          exige_validade?: boolean | null
+          extensoes_permitidas?: string[] | null
+          icone?: string | null
+          id?: string
+          nome: string
+          permite_versoes?: boolean | null
+        }
+        Update: {
+          ativo?: boolean | null
+          cor?: string | null
+          criado_em?: string | null
+          criado_por?: string | null
+          descricao?: string | null
+          dias_alerta_vencimento?: number | null
+          exige_validade?: boolean | null
+          extensoes_permitidas?: string[] | null
+          icone?: string | null
+          id?: string
+          nome?: string
+          permite_versoes?: boolean | null
+        }
+        Relationships: []
+      }
+      ged_visualizacoes: {
+        Row: {
+          acao: string
+          criado_em: string | null
+          dispositivo: string | null
+          documento_id: string | null
+          id: string
+          ip_origem: unknown
+          navegador: string | null
+          tempo_visualizacao_segundos: number | null
+          usuario_id: string
+        }
+        Insert: {
+          acao: string
+          criado_em?: string | null
+          dispositivo?: string | null
+          documento_id?: string | null
+          id?: string
+          ip_origem?: unknown
+          navegador?: string | null
+          tempo_visualizacao_segundos?: number | null
+          usuario_id: string
+        }
+        Update: {
+          acao?: string
+          criado_em?: string | null
+          dispositivo?: string | null
+          documento_id?: string | null
+          id?: string
+          ip_origem?: unknown
+          navegador?: string | null
+          tempo_visualizacao_segundos?: number | null
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ged_visualizacoes_documento_id_fkey"
+            columns: ["documento_id"]
+            isOneToOne: false
+            referencedRelation: "ged_documentos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       historico_atividades_equipe: {
         Row: {
           dados_anteriores: Json | null
@@ -8294,6 +8580,30 @@ export type Database = {
         }
         Relationships: []
       }
+      mv_ged_por_tipo: {
+        Row: {
+          cor: string | null
+          icone: string | null
+          tipo_id: string | null
+          tipo_nome: string | null
+          total: number | null
+          vencendo: number | null
+          vencidos: number | null
+        }
+        Relationships: []
+      }
+      mv_ged_resumo: {
+        Row: {
+          docs_sem_validade: number | null
+          docs_validos: number | null
+          docs_vencendo: number | null
+          docs_vencidos: number | null
+          total_bytes: number | null
+          total_documentos: number | null
+          total_tipos: number | null
+        }
+        Relationships: []
+      }
       mv_pipeline_por_etapa: {
         Row: {
           atualizado_em: string | null
@@ -9022,6 +9332,7 @@ export type Database = {
       }
       refresh_all_dashboard_mvs: { Args: never; Returns: undefined }
       refresh_dashboard_views: { Args: never; Returns: undefined }
+      refresh_ged_mvs: { Args: never; Returns: undefined }
       registrar_feedback_ia: {
         Args: {
           p_feedback_tipo: string
