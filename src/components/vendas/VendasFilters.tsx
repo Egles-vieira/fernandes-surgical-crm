@@ -137,10 +137,10 @@ export function VendasFilters({
 
       {/* Toggle de visualização Pipeline/Lista */}
       <ToggleGroup type="single" value={view} onValueChange={value => value && onViewChange(value as "pipeline" | "list")} className="h-8 bg-muted/50 rounded-md p-0.5 gap-0.5">
-        <ToggleGroupItem value="pipeline" aria-label="Visualização Pipeline" className="h-7 w-7 px-0 data-[state=on]:bg-background data-[state=on]:shadow-sm rounded">
+        <ToggleGroupItem value="pipeline" aria-label="Visualização Pipeline" className="h-7 w-7 px-0 text-muted-foreground data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:shadow-sm rounded">
           <Kanban className="h-3.5 w-3.5" />
         </ToggleGroupItem>
-        <ToggleGroupItem value="list" aria-label="Visualização Lista" className="h-7 w-7 px-0 data-[state=on]:bg-background data-[state=on]:shadow-sm rounded">
+        <ToggleGroupItem value="list" aria-label="Visualização Lista" className="h-7 w-7 px-0 text-muted-foreground data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:shadow-sm rounded">
           <List className="h-3.5 w-3.5" />
         </ToggleGroupItem>
       </ToggleGroup>
