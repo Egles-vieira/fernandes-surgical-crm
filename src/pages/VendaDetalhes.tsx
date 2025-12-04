@@ -802,7 +802,22 @@ export default function VendaDetalhes() {
       value: venda.data_fechamento_prevista ? new Date(venda.data_fechamento_prevista).toLocaleDateString('pt-BR') : null
     }, {
       label: "Probabilidade",
-      value: venda.probabilidade ? `${venda.probabilidade}%` : null
+      value: venda.probabilidade ? `${venda.probabilidade}%` : null,
+      type: "probability-select" as const,
+      selectedId: venda.probabilidade?.toString() || "50",
+      onSelect: async (probValue: string) => {
+        try {
+          const prob = parseInt(probValue);
+          await updateVenda.mutateAsync({
+            id: venda.id,
+            probabilidade: prob
+          });
+          setProbabilidade(prob);
+          toast.success("Probabilidade atualizada");
+        } catch (error) {
+          toast.error("Erro ao atualizar probabilidade");
+        }
+      }
     }, {
       label: "Valor Estimado",
       value: venda.valor_estimado ? formatCurrency(venda.valor_estimado) : null
