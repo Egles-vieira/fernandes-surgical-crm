@@ -42,17 +42,6 @@ export function VendasFilters({
 
       <div className="h-6 w-px bg-border" />
 
-      {/* Toggle de visualização Pipeline/Lista */}
-      <ToggleGroup type="single" value={view} onValueChange={value => value && onViewChange(value as "pipeline" | "list")} className="border rounded-md">
-        <ToggleGroupItem value="pipeline" aria-label="Visualização Pipeline" className="px-3">
-          <Kanban className="h-4 w-4" />
-        </ToggleGroupItem>
-        <ToggleGroupItem value="list" aria-label="Visualização Lista" className="px-3">
-          <List className="h-4 w-4" />
-        </ToggleGroupItem>
-      </ToggleGroup>
-
-      <div className="h-6 w-px bg-border" />
       {/* Funil de Vendas */}
       <Select defaultValue="todos" onValueChange={value => handleFilterChange("pipeline", value)}>
         <SelectTrigger className="w-[200px] h-9 bg-background">
@@ -145,6 +134,16 @@ export function VendasFilters({
           0
         </Badge>
       </Button>
+
+      {/* Toggle de visualização Pipeline/Lista */}
+      <ToggleGroup type="single" value={view} onValueChange={value => value && onViewChange(value as "pipeline" | "list")} className="border rounded-md">
+        <ToggleGroupItem value="pipeline" aria-label="Visualização Pipeline" className="px-3">
+          <Kanban className="h-4 w-4" />
+        </ToggleGroupItem>
+        <ToggleGroupItem value="list" aria-label="Visualização Lista" className="px-3">
+          <List className="h-4 w-4" />
+        </ToggleGroupItem>
+      </ToggleGroup>
 
     </div>;
 }
