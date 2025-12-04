@@ -54,6 +54,10 @@ const menuItems: MenuItem[] = [{
     path: "/vendas/contratos",
     icon: FileText,
     label: "Gestão de Contratos"
+  }, {
+    path: "/perfil-vendedor",
+    icon: Target,
+    label: "Minhas Metas"
   }]
 }, {
   icon: FileText,
@@ -137,14 +141,6 @@ const menuItems: MenuItem[] = [{
     path: "/clientes/solicitacoes",
     icon: FileText,
     label: "Solicitações"
-  }]
-}, {
-  icon: Target,
-  label: "Metas",
-  children: [{
-    path: "/perfil-vendedor",
-    icon: Target,
-    label: "Minhas Metas"
   }]
 }, {
   icon: Package,
