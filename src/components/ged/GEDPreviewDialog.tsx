@@ -33,6 +33,7 @@ const isPreviewable = (mimeType: string) => {
 
 export function GEDPreviewDialog({ documento, open, onOpenChange }: GEDPreviewDialogProps) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [publicUrl, setPublicUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [zoom, setZoom] = useState(100);
   const [rotation, setRotation] = useState(0);
@@ -43,7 +44,7 @@ export function GEDPreviewDialog({ documento, open, onOpenChange }: GEDPreviewDi
       registrarVisualizacao();
     }
     return () => {
-      if (previewUrl) {
+      if (previewUrl && previewUrl.startsWith('blob:')) {
         URL.revokeObjectURL(previewUrl);
       }
     };
@@ -54,6 +55,19 @@ export function GEDPreviewDialog({ documento, open, onOpenChange }: GEDPreviewDi
     setLoading(true);
     
     try {
+      // Primeiro tenta obter URL pública (mais rápido e sem bloqueio)
+      const { data: publicData } = supabase.storage
+        .from('ged-documentos')
+        .getPublicUrl(documento.arquivo_url);
+      
+      if (publicData?.publicUrl) {
+        setPublicUrl(publicData.publicUrl);
+        setPreviewUrl(publicData.publicUrl);
+        setLoading(false);
+        return;
+      }
+
+      // Fallback: baixar e criar blob URL
       const { data, error } = await supabase.storage
         .from('ged-documentos')
         .download(documento.arquivo_url);
@@ -108,8 +122,13 @@ export function GEDPreviewDialog({ documento, open, onOpenChange }: GEDPreviewDi
   };
 
   const handleOpenExternal = () => {
-    if (previewUrl) {
+    // Usa URL pública se disponível (evita bloqueio do Chrome para blob URLs)
+    if (publicUrl) {
+      window.open(publicUrl, '_blank');
+    } else if (previewUrl && !previewUrl.startsWith('blob:')) {
       window.open(previewUrl, '_blank');
+    } else {
+      toast.info("Use o botão Download para baixar o arquivo");
     }
   };
 
