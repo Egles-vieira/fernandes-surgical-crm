@@ -47,6 +47,7 @@ import SolicitacoesCadastro from "./pages/SolicitacoesCadastro";
 import Configuracoes from "./pages/Configuracoes";
 import PerfilVendedor from "./pages/PerfilVendedor";
 import PropostaPublica from "./pages/PropostaPublica";
+import Documentos from "./pages/Documentos";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 // QueryClient para rotas públicas (sem ThemeProvider)
@@ -276,6 +277,11 @@ const MainApp = () => (
       <Route path="/perfil-vendedor" element={<ProtectedRoute>
           <Layout>
             <PerfilVendedor />
+          </Layout>
+        </ProtectedRoute>} />
+      <Route path="/documentos" element={<ProtectedRoute>
+          <Layout>
+            <Documentos />
           </Layout>
         </ProtectedRoute>} />
       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
