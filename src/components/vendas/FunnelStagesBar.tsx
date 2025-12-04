@@ -16,7 +16,7 @@ export interface ContatoOption {
 interface CampoEtapa {
   label: string;
   value: string | null;
-  type?: "text" | "select";
+  type?: "text" | "select" | "probability-select";
   options?: ContatoOption[];
   selectedId?: string | null;
   onSelect?: (id: string) => void;
@@ -200,6 +200,22 @@ export function FunnelStagesBar({
                                       <span className="text-xs text-muted-foreground">{option.cargo}</span>
                                     )}
                                   </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        ) : campo.type === "probability-select" && campo.onSelect ? (
+                          <Select 
+                            value={campo.selectedId || ""} 
+                            onValueChange={campo.onSelect}
+                          >
+                            <SelectTrigger className="w-[100px] h-8 text-sm">
+                              <SelectValue placeholder="Selecionar..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {[10, 20, 30, 40, 50, 60, 70, 80, 90, 100].map((prob) => (
+                                <SelectItem key={prob} value={prob.toString()}>
+                                  {prob}%
                                 </SelectItem>
                               ))}
                             </SelectContent>
