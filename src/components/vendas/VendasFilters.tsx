@@ -34,6 +34,14 @@ export function VendasFilters({
     }
   };
   return <div className="shrink-0 z-30 flex items-center gap-3 py-3 px-4 border-b bg-card shadow-sm">
+      {/* Botão Nova Oportunidade */}
+      {onNovaOportunidade && <Button onClick={onNovaOportunidade} size="sm" className="h-9">
+          <Plus className="h-4 w-4 mr-2" />
+          Nova Oportunidade
+        </Button>}
+
+      <div className="h-6 w-px bg-border" />
+
       {/* Toggle de visualização Pipeline/Lista */}
       <ToggleGroup type="single" value={view} onValueChange={value => value && onViewChange(value as "pipeline" | "list")} className="border rounded-md">
         <ToggleGroupItem value="pipeline" aria-label="Visualização Pipeline" className="px-3">
@@ -138,13 +146,5 @@ export function VendasFilters({
         </Badge>
       </Button>
 
-      {/* Botão Criar Venda de Teste */}
-      {onCriarVendaTeste}
-
-      {/* Botão Nova Oportunidade */}
-      {onNovaOportunidade && <Button onClick={onNovaOportunidade} size="sm" className="h-9">
-          <Plus className="h-4 w-4 mr-2" />
-          Nova Oportunidade
-        </Button>}
     </div>;
 }
