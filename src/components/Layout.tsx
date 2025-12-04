@@ -1,6 +1,6 @@
 import { useState, useEffect, createContext, useContext } from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutDashboard, ShoppingCart, Package, Users, FileText, Gavel, Shield, ChevronDown, ChevronRight, Menu, MessageSquare, MessageCircle, Phone, TicketCheck, BarChart3, BookOpen, Settings, Brain, Target, FolderArchive } from "lucide-react";
+import { LayoutDashboard, ShoppingCart, Package, Users, FileText, Gavel, Shield, ChevronDown, ChevronRight, Menu, MessageSquare, MessageCircle, Phone, TicketCheck, BarChart3, BookOpen, Settings, Brain, Target, FolderArchive, ClipboardList } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import favicon from "@/assets/favicon-cfernandes.png";
@@ -34,11 +34,17 @@ interface MenuItem {
   label: string;
   children?: MenuItem[];
   adminOnly?: boolean;
+  badge?: number;
 }
 const menuItems: MenuItem[] = [{
   path: "/",
   icon: LayoutDashboard,
   label: "Dashboard"
+}, {
+  path: "/central-aprovacoes",
+  icon: ClipboardList,
+  label: "Central de Aprovações",
+  badge: 3
 }, {
   icon: ShoppingCart,
   label: "Vendas",
@@ -311,7 +317,14 @@ export default function Layout({
                     isActive
                   }) => <>
                           {isActive && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-10 rounded-r-full bg-secondary" />}
-                          <item.icon size={24} className="mb-1.5 transition-transform duration-200 group-hover:scale-110 menu-icon" />
+                          <div className="relative">
+                            <item.icon size={24} className="mb-1.5 transition-transform duration-200 group-hover:scale-110 menu-icon" />
+                            {item.badge && item.badge > 0 && (
+                              <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-[9px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center px-1">
+                                {item.badge}
+                              </span>
+                            )}
+                          </div>
                           <span className="text-[10px] font-medium text-center leading-tight px-1 menu-text">{item.label}</span>
                         </>}
                     </NavLink>;
@@ -324,7 +337,14 @@ export default function Layout({
                   isActive
                 }) => <>
                         {isActive && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-white rounded-r-full" />}
-                        <item.icon size={20} className="flex-shrink-0 transition-transform duration-200 group-hover:scale-110 menu-icon" />
+                        <div className="relative">
+                          <item.icon size={20} className="flex-shrink-0 transition-transform duration-200 group-hover:scale-110 menu-icon" />
+                          {item.badge && item.badge > 0 && (
+                            <span className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground text-[9px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center px-1">
+                              {item.badge}
+                            </span>
+                          )}
+                        </div>
                         <span className="font-medium text-sm menu-text">{item.label}</span>
                       </>}
                   </NavLink>;
