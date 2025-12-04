@@ -4,6 +4,7 @@ import { useGEDTipos } from "@/hooks/useGEDTipos";
 import { GEDStatusBadge } from "./GEDStatusBadge";
 import { GEDUploadDialog } from "./GEDUploadDialog";
 import { GEDPermissoesDialog } from "./GEDPermissoesDialog";
+import { GEDPreviewDialog } from "./GEDPreviewDialog";
 import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -38,6 +39,7 @@ export function GEDDocumentosList() {
   const [uploadOpen, setUploadOpen] = useState(false);
   const [permissoesDocId, setPermissoesDocId] = useState<string | null>(null);
   const [deleteDocId, setDeleteDocId] = useState<string | null>(null);
+  const [previewDoc, setPreviewDoc] = useState<GEDDocumento | null>(null);
 
   const { tiposAtivos } = useGEDTipos();
   const { documentos, total, totalPages, isLoading, deleteDocumento } = useGEDDocumentos({
@@ -73,23 +75,8 @@ export function GEDDocumentosList() {
     }
   };
 
-  const handleView = async (doc: GEDDocumento) => {
-    try {
-      const { data } = supabase.storage
-        .from('ged-documentos')
-        .getPublicUrl(doc.arquivo_url);
-
-      window.open(data.publicUrl, '_blank');
-
-      // Registrar visualização
-      await supabase.from('ged_visualizacoes').insert({
-        documento_id: doc.id,
-        usuario_id: (await supabase.auth.getUser()).data.user?.id,
-        acao: 'visualizou'
-      });
-    } catch (error: any) {
-      toast.error("Erro ao visualizar arquivo: " + error.message);
-    }
+  const handleView = (doc: GEDDocumento) => {
+    setPreviewDoc(doc);
   };
 
   const handleDelete = async () => {
@@ -294,6 +281,12 @@ export function GEDDocumentosList() {
           onOpenChange={(open) => !open && setPermissoesDocId(null)}
         />
       )}
+
+      <GEDPreviewDialog
+        documento={previewDoc}
+        open={!!previewDoc}
+        onOpenChange={(open) => !open && setPreviewDoc(null)}
+      />
 
       <AlertDialog open={!!deleteDocId} onOpenChange={(open) => !open && setDeleteDocId(null)}>
         <AlertDialogContent>
