@@ -54,10 +54,10 @@ export function GEDPermissoesDialog({ documentoId, open, onOpenChange }: GEDPerm
 
   const getPermissaoIcon = (tipo: string) => {
     switch (tipo) {
-      case 'todos': return <Globe className="h-4 w-4" />;
-      case 'role': return <Shield className="h-4 w-4" />;
-      case 'equipe': return <Users className="h-4 w-4" />;
-      case 'usuario': return <User className="h-4 w-4" />;
+      case 'todos': return <Globe className="h-4 w-4 text-muted-foreground" />;
+      case 'role': return <Shield className="h-4 w-4 text-primary" />;
+      case 'equipe': return <Users className="h-4 w-4 text-success" />;
+      case 'usuario': return <User className="h-4 w-4 text-warning" />;
       default: return null;
     }
   };
@@ -81,12 +81,12 @@ export function GEDPermissoesDialog({ documentoId, open, onOpenChange }: GEDPerm
 
         <div className="space-y-4 py-4">
           {/* Adicionar nova permissão */}
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <Select value={novoTipo} onValueChange={(v) => { setNovoTipo(v); setNovoValor(""); }}>
               <SelectTrigger className="w-[130px]">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-popover">
                 <SelectItem value="todos">Todos</SelectItem>
                 <SelectItem value="role">Perfil</SelectItem>
                 <SelectItem value="equipe">Equipe</SelectItem>
@@ -96,10 +96,10 @@ export function GEDPermissoesDialog({ documentoId, open, onOpenChange }: GEDPerm
 
             {novoTipo === 'role' && (
               <Select value={novoValor} onValueChange={setNovoValor}>
-                <SelectTrigger className="flex-1">
+                <SelectTrigger className="flex-1 min-w-[150px]">
                   <SelectValue placeholder="Selecione o perfil" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-popover">
                   {ROLES_DISPONIVEIS.map(r => (
                     <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
                   ))}
@@ -109,10 +109,10 @@ export function GEDPermissoesDialog({ documentoId, open, onOpenChange }: GEDPerm
 
             {novoTipo === 'equipe' && (
               <Select value={novoValor} onValueChange={setNovoValor}>
-                <SelectTrigger className="flex-1">
+                <SelectTrigger className="flex-1 min-w-[150px]">
                   <SelectValue placeholder="Selecione a equipe" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-popover">
                   {equipes?.map((e: any) => (
                     <SelectItem key={e.id} value={e.id}>{e.nome}</SelectItem>
                   ))}
@@ -122,10 +122,10 @@ export function GEDPermissoesDialog({ documentoId, open, onOpenChange }: GEDPerm
 
             {novoTipo === 'usuario' && (
               <Select value={novoValor} onValueChange={setNovoValor}>
-                <SelectTrigger className="flex-1">
+                <SelectTrigger className="flex-1 min-w-[150px]">
                   <SelectValue placeholder="Selecione o usuário" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-popover">
                   {vendedores?.map((v: any) => (
                     <SelectItem key={v.id} value={v.id}>
                       {v.primeiro_nome} {v.sobrenome}
@@ -139,7 +139,7 @@ export function GEDPermissoesDialog({ documentoId, open, onOpenChange }: GEDPerm
               <SelectTrigger className="w-[120px]">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-popover">
                 {NIVEIS_ACESSO.map(n => (
                   <SelectItem key={n.value} value={n.value}>{n.label}</SelectItem>
                 ))}
@@ -160,20 +160,22 @@ export function GEDPermissoesDialog({ documentoId, open, onOpenChange }: GEDPerm
           </div>
 
           {/* Lista de permissões */}
-          <div className="border rounded-lg divide-y">
+          <div className="border border-border/50 rounded-lg divide-y divide-border/50">
             {isLoading ? (
               <div className="p-4 text-center text-muted-foreground">Carregando...</div>
             ) : permissoes.length === 0 ? (
-              <div className="p-4 text-center text-muted-foreground">
-                Nenhuma permissão configurada
+              <div className="p-8 text-center text-muted-foreground">
+                <Shield className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                <p>Nenhuma permissão configurada</p>
+                <p className="text-xs mt-1">Adicione permissões para controlar quem pode acessar este documento</p>
               </div>
             ) : (
               permissoes.map(p => (
-                <div key={p.id} className="flex items-center justify-between p-3">
+                <div key={p.id} className="flex items-center justify-between p-3 hover:bg-muted/50 transition-colors">
                   <div className="flex items-center gap-3">
                     {getPermissaoIcon(p.tipo)}
                     <span className="font-medium">{getPermissaoLabel(p)}</span>
-                    <Badge variant="secondary">{p.nivel}</Badge>
+                    <Badge variant="outline" className="text-xs">{p.nivel}</Badge>
                   </div>
                   <Button
                     variant="ghost"

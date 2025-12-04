@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { useGEDDocumentos, GEDDocumento } from "@/hooks/useGEDDocumentos";
 import { useGEDTipos } from "@/hooks/useGEDTipos";
-import { useGEDVisualizacoes } from "@/hooks/useGEDVisualizacoes";
 import { GEDStatusBadge } from "./GEDStatusBadge";
 import { GEDUploadDialog } from "./GEDUploadDialog";
 import { GEDPermissoesDialog } from "./GEDPermissoesDialog";
+import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,7 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   Search, Plus, MoreHorizontal, Download, Eye, Trash2, 
-  Shield, History, ChevronLeft, ChevronRight, FileIcon
+  Shield, ChevronLeft, ChevronRight, FileIcon
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -141,16 +141,16 @@ export function GEDDocumentosList() {
       </div>
 
       {/* Tabela */}
-      <div className="border rounded-lg">
+      <Card className="shadow-elegant">
         <Table>
           <TableHeader>
-            <TableRow>
+            <TableRow className="border-b border-border/50">
               <TableHead>Documento</TableHead>
               <TableHead>Tipo</TableHead>
               <TableHead>Número</TableHead>
               <TableHead>Validade</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Criado por</TableHead>
+              <TableHead>Criado em</TableHead>
               <TableHead className="w-[80px]"></TableHead>
             </TableRow>
           </TableHeader>
@@ -163,19 +163,24 @@ export function GEDDocumentosList() {
                   <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                   <TableCell><Skeleton className="h-8 w-8" /></TableCell>
                 </TableRow>
               ))
             ) : documentos.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                  Nenhum documento encontrado
+                <TableCell colSpan={7} className="text-center py-12">
+                  <FileIcon className="h-12 w-12 mx-auto mb-2 text-muted-foreground/50" />
+                  <p className="text-muted-foreground">Nenhum documento encontrado</p>
+                  <Button variant="outline" className="mt-4" onClick={() => setUploadOpen(true)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Cadastrar primeiro documento
+                  </Button>
                 </TableCell>
               </TableRow>
             ) : (
               documentos.map(doc => (
-                <TableRow key={doc.id}>
+                <TableRow key={doc.id} className="hover:bg-muted/50 border-b border-border/30">
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <FileIcon className="h-5 w-5 text-muted-foreground" />
@@ -208,7 +213,10 @@ export function GEDDocumentosList() {
                     <GEDStatusBadge status={doc.status_validade} />
                   </TableCell>
                   <TableCell className="text-muted-foreground text-sm">
-                    -
+                    {doc.criado_em 
+                      ? format(new Date(doc.criado_em), "dd/MM/yyyy", { locale: ptBR })
+                      : "-"
+                    }
                   </TableCell>
                   <TableCell>
                     <DropdownMenu>
@@ -217,7 +225,7 @@ export function GEDDocumentosList() {
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
+                      <DropdownMenuContent align="end" className="bg-popover">
                         <DropdownMenuItem onClick={() => handleView(doc)}>
                           <Eye className="h-4 w-4 mr-2" />
                           Visualizar
@@ -245,7 +253,7 @@ export function GEDDocumentosList() {
             )}
           </TableBody>
         </Table>
-      </div>
+      </Card>
 
       {/* Paginação */}
       {totalPages > 1 && (
@@ -260,7 +268,8 @@ export function GEDDocumentosList() {
               onClick={() => setPage(p => p - 1)}
               disabled={page === 1}
             >
-              <ChevronLeft className="h-4 w-4" />
+              <ChevronLeft className="h-4 w-4 mr-1" />
+              Anterior
             </Button>
             <Button
               variant="outline"
@@ -268,7 +277,8 @@ export function GEDDocumentosList() {
               onClick={() => setPage(p => p + 1)}
               disabled={page >= totalPages}
             >
-              <ChevronRight className="h-4 w-4" />
+              Próximo
+              <ChevronRight className="h-4 w-4 ml-1" />
             </Button>
           </div>
         </div>
@@ -295,7 +305,7 @@ export function GEDDocumentosList() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               Excluir
             </AlertDialogAction>
           </AlertDialogFooter>

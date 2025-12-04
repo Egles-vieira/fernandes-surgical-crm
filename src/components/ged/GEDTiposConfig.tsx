@@ -4,11 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, FileText } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -88,17 +89,20 @@ export function GEDTiposConfig() {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h2 className="text-lg font-semibold">Tipos de Documento</h2>
+        <div>
+          <h2 className="text-lg font-semibold">Tipos de Documento</h2>
+          <p className="text-sm text-muted-foreground">Configure os tipos de documentos aceitos no sistema</p>
+        </div>
         <Button onClick={openCreate}>
           <Plus className="h-4 w-4 mr-2" />
           Novo Tipo
         </Button>
       </div>
 
-      <div className="border rounded-lg">
+      <Card className="shadow-elegant">
         <Table>
           <TableHeader>
-            <TableRow>
+            <TableRow className="border-b border-border/50">
               <TableHead>Tipo</TableHead>
               <TableHead>Exige Validade</TableHead>
               <TableHead>Dias Alerta</TableHead>
@@ -119,9 +123,20 @@ export function GEDTiposConfig() {
                   <TableCell><Skeleton className="h-8 w-16" /></TableCell>
                 </TableRow>
               ))
+            ) : tipos.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center py-12">
+                  <FileText className="h-12 w-12 mx-auto mb-2 text-muted-foreground/50" />
+                  <p className="text-muted-foreground">Nenhum tipo cadastrado</p>
+                  <Button variant="outline" className="mt-4" onClick={openCreate}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Cadastrar primeiro tipo
+                  </Button>
+                </TableCell>
+              </TableRow>
             ) : (
               tipos.map(tipo => (
-                <TableRow key={tipo.id}>
+                <TableRow key={tipo.id} className="hover:bg-muted/50 border-b border-border/30">
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <div 
@@ -131,19 +146,23 @@ export function GEDTiposConfig() {
                       <span className="font-medium">{tipo.nome}</span>
                     </div>
                   </TableCell>
-                  <TableCell>{tipo.exige_validade ? "Sim" : "Não"}</TableCell>
-                  <TableCell>{tipo.dias_alerta_vencimento}</TableCell>
+                  <TableCell>
+                    <Badge variant={tipo.exige_validade ? "default" : "secondary"}>
+                      {tipo.exige_validade ? "Sim" : "Não"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">{tipo.dias_alerta_vencimento}</TableCell>
                   <TableCell>
                     <div className="flex gap-1 flex-wrap">
                       {tipo.extensoes_permitidas.map(ext => (
-                        <Badge key={ext} variant="secondary" className="text-xs">
+                        <Badge key={ext} variant="outline" className="text-xs">
                           .{ext}
                         </Badge>
                       ))}
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={tipo.ativo ? "default" : "secondary"}>
+                    <Badge variant={tipo.ativo ? "default" : "secondary"} className={tipo.ativo ? "bg-success/10 text-success border-success/20" : ""}>
                       {tipo.ativo ? "Ativo" : "Inativo"}
                     </Badge>
                   </TableCell>
@@ -166,11 +185,11 @@ export function GEDTiposConfig() {
             )}
           </TableBody>
         </Table>
-      </div>
+      </Card>
 
       {/* Dialog de criação/edição */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle>{editingTipo ? "Editar Tipo" : "Novo Tipo de Documento"}</DialogTitle>
           </DialogHeader>
@@ -187,11 +206,20 @@ export function GEDTiposConfig() {
               </div>
               <div className="space-y-2">
                 <Label>Cor</Label>
-                <Input
-                  type="color"
-                  value={form.cor}
-                  onChange={(e) => setForm({ ...form, cor: e.target.value })}
-                />
+                <div className="flex gap-2">
+                  <Input
+                    type="color"
+                    value={form.cor}
+                    onChange={(e) => setForm({ ...form, cor: e.target.value })}
+                    className="w-12 h-10 p-1 cursor-pointer"
+                  />
+                  <Input
+                    value={form.cor}
+                    onChange={(e) => setForm({ ...form, cor: e.target.value })}
+                    placeholder="#6366f1"
+                    className="flex-1"
+                  />
+                </div>
               </div>
             </div>
 
@@ -210,14 +238,17 @@ export function GEDTiposConfig() {
                 value={form.extensoes_permitidas?.join(", ")}
                 onChange={(e) => setForm({ 
                   ...form, 
-                  extensoes_permitidas: e.target.value.split(",").map(s => s.trim().toLowerCase())
+                  extensoes_permitidas: e.target.value.split(",").map(s => s.trim().toLowerCase()).filter(Boolean)
                 })}
                 placeholder="pdf, doc, docx"
               />
             </div>
 
-            <div className="flex items-center justify-between">
-              <Label>Exige Data de Validade</Label>
+            <div className="flex items-center justify-between p-3 rounded-lg border border-border/50">
+              <div>
+                <Label>Exige Data de Validade</Label>
+                <p className="text-xs text-muted-foreground">Documentos deste tipo possuem data de vencimento</p>
+              </div>
               <Switch
                 checked={form.exige_validade}
                 onCheckedChange={(checked) => setForm({ ...form, exige_validade: checked })}
@@ -230,21 +261,27 @@ export function GEDTiposConfig() {
                 <Input
                   type="number"
                   value={form.dias_alerta_vencimento}
-                  onChange={(e) => setForm({ ...form, dias_alerta_vencimento: parseInt(e.target.value) })}
+                  onChange={(e) => setForm({ ...form, dias_alerta_vencimento: parseInt(e.target.value) || 30 })}
                 />
               </div>
             )}
 
-            <div className="flex items-center justify-between">
-              <Label>Permite Versionamento</Label>
+            <div className="flex items-center justify-between p-3 rounded-lg border border-border/50">
+              <div>
+                <Label>Permite Versionamento</Label>
+                <p className="text-xs text-muted-foreground">Manter histórico de versões anteriores</p>
+              </div>
               <Switch
                 checked={form.permite_versoes}
                 onCheckedChange={(checked) => setForm({ ...form, permite_versoes: checked })}
               />
             </div>
 
-            <div className="flex items-center justify-between">
-              <Label>Ativo</Label>
+            <div className="flex items-center justify-between p-3 rounded-lg border border-border/50">
+              <div>
+                <Label>Ativo</Label>
+                <p className="text-xs text-muted-foreground">Tipo disponível para seleção</p>
+              </div>
               <Switch
                 checked={form.ativo}
                 onCheckedChange={(checked) => setForm({ ...form, ativo: checked })}
@@ -280,7 +317,7 @@ export function GEDTiposConfig() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               Excluir
             </AlertDialogAction>
           </AlertDialogFooter>

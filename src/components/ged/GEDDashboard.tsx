@@ -1,7 +1,6 @@
 import { useGEDResumo, useGEDPorTipo, useGEDDocumentos } from "@/hooks/useGEDDocumentos";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { GEDStatusBadge } from "./GEDStatusBadge";
 import { 
   FileText, CheckCircle, AlertTriangle, XCircle, 
   HardDrive, Clock, FileIcon
@@ -33,10 +32,12 @@ export function GEDDashboard() {
     <div className="space-y-6">
       {/* KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
+        <Card className="shadow-elegant hover:shadow-lg transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total de Documentos</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total de Documentos</CardTitle>
+            <div className="p-2 rounded-lg bg-primary/10">
+              <FileText className="h-4 w-4 text-primary" />
+            </div>
           </CardHeader>
           <CardContent>
             {loadingResumo ? (
@@ -47,10 +48,12 @@ export function GEDDashboard() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="shadow-elegant hover:shadow-lg transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Válidos</CardTitle>
-            <CheckCircle className="h-4 w-4 text-success" />
+            <CardTitle className="text-sm font-medium text-muted-foreground">Válidos</CardTitle>
+            <div className="p-2 rounded-lg bg-success/10">
+              <CheckCircle className="h-4 w-4 text-success" />
+            </div>
           </CardHeader>
           <CardContent>
             {loadingResumo ? (
@@ -61,10 +64,12 @@ export function GEDDashboard() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="shadow-elegant hover:shadow-lg transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Vencendo</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-warning" />
+            <CardTitle className="text-sm font-medium text-muted-foreground">Vencendo</CardTitle>
+            <div className="p-2 rounded-lg bg-warning/10">
+              <AlertTriangle className="h-4 w-4 text-warning" />
+            </div>
           </CardHeader>
           <CardContent>
             {loadingResumo ? (
@@ -75,10 +80,12 @@ export function GEDDashboard() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="shadow-elegant hover:shadow-lg transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Vencidos</CardTitle>
-            <XCircle className="h-4 w-4 text-destructive" />
+            <CardTitle className="text-sm font-medium text-muted-foreground">Vencidos</CardTitle>
+            <div className="p-2 rounded-lg bg-destructive/10">
+              <XCircle className="h-4 w-4 text-destructive" />
+            </div>
           </CardHeader>
           <CardContent>
             {loadingResumo ? (
@@ -91,10 +98,12 @@ export function GEDDashboard() {
       </div>
 
       {/* Armazenamento */}
-      <Card>
+      <Card className="shadow-elegant">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-sm font-medium">Armazenamento Utilizado</CardTitle>
-          <HardDrive className="h-4 w-4 text-muted-foreground" />
+          <CardTitle className="text-sm font-medium text-muted-foreground">Armazenamento Utilizado</CardTitle>
+          <div className="p-2 rounded-lg bg-muted">
+            <HardDrive className="h-4 w-4 text-muted-foreground" />
+          </div>
         </CardHeader>
         <CardContent>
           {loadingResumo ? (
@@ -107,7 +116,7 @@ export function GEDDashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Documentos por Tipo */}
-        <Card>
+        <Card className="shadow-elegant">
           <CardHeader>
             <CardTitle className="text-lg">Documentos por Tipo</CardTitle>
           </CardHeader>
@@ -118,10 +127,10 @@ export function GEDDashboard() {
                   <Skeleton key={i} className="h-10 w-full" />
                 ))}
               </div>
-            ) : (
+            ) : porTipo && porTipo.length > 0 ? (
               <div className="space-y-3">
-                {porTipo?.map(tipo => (
-                  <div key={tipo.tipo_id} className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50">
+                {porTipo.map(tipo => (
+                  <div key={tipo.tipo_id} className="flex items-center justify-between p-3 rounded-lg border border-border/50 hover:bg-muted/50 transition-colors">
                     <div className="flex items-center gap-3">
                       <div 
                         className="w-3 h-3 rounded-full" 
@@ -130,23 +139,28 @@ export function GEDDashboard() {
                       <span className="font-medium">{tipo.tipo_nome}</span>
                     </div>
                     <div className="flex items-center gap-4 text-sm">
-                      <span>{tipo.total} docs</span>
+                      <span className="text-muted-foreground">{tipo.total} docs</span>
                       {tipo.vencendo > 0 && (
-                        <span className="text-warning">{tipo.vencendo} vencendo</span>
+                        <span className="text-warning font-medium">{tipo.vencendo} vencendo</span>
                       )}
                       {tipo.vencidos > 0 && (
-                        <span className="text-destructive">{tipo.vencidos} vencidos</span>
+                        <span className="text-destructive font-medium">{tipo.vencidos} vencidos</span>
                       )}
                     </div>
                   </div>
                 ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <FileText className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                <p>Nenhum documento cadastrado</p>
               </div>
             )}
           </CardContent>
         </Card>
 
         {/* Alertas */}
-        <Card>
+        <Card className="shadow-elegant">
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-warning" />
@@ -163,7 +177,7 @@ export function GEDDashboard() {
                   <h4 className="text-sm font-medium text-warning mb-2">Vencendo em breve</h4>
                   <div className="space-y-2">
                     {docsVencendo.map(doc => (
-                      <div key={doc.id} className="flex items-center justify-between p-2 rounded border border-warning/30 bg-warning/5">
+                      <div key={doc.id} className="flex items-center justify-between p-3 rounded-lg border border-warning/30 bg-warning/5">
                         <div className="flex items-center gap-2">
                           <FileIcon className="h-4 w-4 text-muted-foreground" />
                           <span className="text-sm font-medium">{doc.titulo}</span>
@@ -188,7 +202,7 @@ export function GEDDashboard() {
                   <h4 className="text-sm font-medium text-destructive mb-2">Vencidos</h4>
                   <div className="space-y-2">
                     {docsVencidos.map(doc => (
-                      <div key={doc.id} className="flex items-center justify-between p-2 rounded border border-destructive/30 bg-destructive/5">
+                      <div key={doc.id} className="flex items-center justify-between p-3 rounded-lg border border-destructive/30 bg-destructive/5">
                         <div className="flex items-center gap-2">
                           <FileIcon className="h-4 w-4 text-muted-foreground" />
                           <span className="text-sm font-medium">{doc.titulo}</span>

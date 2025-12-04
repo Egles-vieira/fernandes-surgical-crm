@@ -11,26 +11,22 @@ export function GEDStatusBadge({ status, className }: GEDStatusBadgeProps) {
   const config = {
     valido: {
       label: "Válido",
-      variant: "default" as const,
-      className: "bg-success text-success-foreground",
+      className: "bg-success/10 text-success border-success/20",
       icon: CheckCircle
     },
     vencendo: {
       label: "Vencendo",
-      variant: "default" as const,
-      className: "bg-warning text-warning-foreground",
+      className: "bg-warning/10 text-warning border-warning/20",
       icon: AlertTriangle
     },
     vencido: {
       label: "Vencido",
-      variant: "destructive" as const,
-      className: "",
+      className: "bg-destructive/10 text-destructive border-destructive/20",
       icon: XCircle
     },
     sem_validade: {
       label: "Sem Validade",
-      variant: "secondary" as const,
-      className: "",
+      className: "bg-muted text-muted-foreground",
       icon: Clock
     }
   };
@@ -39,7 +35,7 @@ export function GEDStatusBadge({ status, className }: GEDStatusBadgeProps) {
   const Icon = cfg.icon;
 
   return (
-    <Badge variant={cfg.variant} className={cn(cfg.className, className)}>
+    <Badge variant="outline" className={cn(cfg.className, className)}>
       <Icon className="h-3 w-3 mr-1" />
       {cfg.label}
     </Badge>

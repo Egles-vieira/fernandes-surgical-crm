@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useGEDTipos, GEDTipoDocumento } from "@/hooks/useGEDTipos";
+import { useGEDTipos } from "@/hooks/useGEDTipos";
 import { useGEDDocumentos, GEDDocumentoInput } from "@/hooks/useGEDDocumentos";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Upload, FileIcon, X } from "lucide-react";
@@ -75,10 +75,6 @@ export function GEDUploadDialog({ open, onOpenChange, tipoPreSelecionado }: GEDU
 
       if (uploadError) throw uploadError;
 
-      const { data: urlData } = supabase.storage
-        .from('ged-documentos')
-        .getPublicUrl(filePath);
-
       // Criar documento
       const input: GEDDocumentoInput = {
         tipo_id: tipoId,
@@ -131,10 +127,16 @@ export function GEDUploadDialog({ open, onOpenChange, tipoPreSelecionado }: GEDU
               <SelectTrigger>
                 <SelectValue placeholder="Selecione o tipo" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-popover">
                 {tiposAtivos.map(tipo => (
                   <SelectItem key={tipo.id} value={tipo.id}>
-                    {tipo.nome}
+                    <div className="flex items-center gap-2">
+                      <div 
+                        className="w-2 h-2 rounded-full" 
+                        style={{ backgroundColor: tipo.cor }}
+                      />
+                      {tipo.nome}
+                    </div>
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -152,8 +154,10 @@ export function GEDUploadDialog({ open, onOpenChange, tipoPreSelecionado }: GEDU
               className="hidden"
             />
             {arquivo ? (
-              <div className="flex items-center gap-2 p-3 border rounded-lg bg-muted/50">
-                <FileIcon className="h-8 w-8 text-muted-foreground" />
+              <div className="flex items-center gap-3 p-3 border border-border/50 rounded-lg bg-muted/30">
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <FileIcon className="h-6 w-6 text-primary" />
+                </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">{arquivo.name}</p>
                   <p className="text-xs text-muted-foreground">
@@ -174,12 +178,12 @@ export function GEDUploadDialog({ open, onOpenChange, tipoPreSelecionado }: GEDU
             ) : (
               <Button
                 variant="outline"
-                className="w-full h-24 border-dashed"
+                className="w-full h-24 border-dashed border-2 hover:border-primary/50 hover:bg-primary/5 transition-colors"
                 onClick={() => fileInputRef.current?.click()}
               >
                 <div className="flex flex-col items-center gap-2">
-                  <Upload className="h-6 w-6" />
-                  <span>Clique para selecionar arquivo</span>
+                  <Upload className="h-6 w-6 text-muted-foreground" />
+                  <span className="text-muted-foreground">Clique para selecionar arquivo</span>
                   {tipoSelecionado && (
                     <span className="text-xs text-muted-foreground">
                       Formatos: {tipoSelecionado.extensoes_permitidas.join(', ')}
@@ -223,7 +227,7 @@ export function GEDUploadDialog({ open, onOpenChange, tipoPreSelecionado }: GEDU
             <div className="space-y-2">
               <Label>
                 Data de Validade
-                {tipoSelecionado?.exige_validade && " *"}
+                {tipoSelecionado?.exige_validade && <span className="text-destructive"> *</span>}
               </Label>
               <Input
                 type="date"
