@@ -111,18 +111,15 @@ export default function Auth() {
   return (
     <div className="min-h-screen flex">
       {/* Left Side - Brand Section */}
-      <div className="hidden lg:flex lg:w-[62%] relative overflow-hidden bg-gradient-to-br from-[#0f1f35] via-[#1a3a52] to-[#2a5a6f]">
-        {/* Background Image with Overlay */}
+      <div className="hidden lg:flex lg:w-[62%] relative overflow-hidden">
+        {/* Background Image */}
         <div
-          className="absolute inset-0 bg-cover bg-center opacity-20"
+          className="absolute inset-0 bg-cover bg-center"
           style={{ backgroundImage: `url(${heroImage})` }}
         />
 
-        {/* Animated gradient overlay */}
-        <div
-          className="absolute inset-0 bg-gradient-to-br from-[#1e3a5f]/60 via-transparent to-[#3fb39d]/30 animate-pulse"
-          style={{ animationDuration: "8s" }}
-        ></div>
+        {/* Subtle dark gradient for text readability */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent"></div>
 
         {/* Grid pattern overlay */}
         <div
@@ -136,12 +133,10 @@ export default function Auth() {
 
         {/* Floating shapes for depth */}
         <div
-          className="absolute top-20 right-20 w-72 h-72 bg-[#3fb39d]/10 rounded-full blur-3xl animate-pulse"
-          style={{ animationDuration: "6s" }}
+          className="absolute top-20 right-20 w-72 h-72 bg-white/5 rounded-full blur-3xl"
         ></div>
         <div
-          className="absolute bottom-32 left-20 w-96 h-96 bg-[#1e3a5f]/20 rounded-full blur-3xl animate-pulse"
-          style={{ animationDuration: "10s" }}
+          className="absolute bottom-32 left-20 w-96 h-96 bg-black/10 rounded-full blur-3xl"
         ></div>
 
         <div className="relative z-10 text-white w-full px-16 flex flex-col justify-center py-20">
