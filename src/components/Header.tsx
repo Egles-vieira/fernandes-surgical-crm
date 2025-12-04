@@ -180,6 +180,12 @@ export default function Header({ collapsed, onToggle }: HeaderProps) {
           description: "Gerencie as solicitações de cadastro de clientes",
           breadcrumb: "Cirúrgica Fernandes / Clientes / Solicitações",
         };
+      case "/documentos":
+        return {
+          title: "GED",
+          description: "Gestão Eletrônica de Documentos",
+          breadcrumb: "Cirúrgica Fernandes / GED / Documentos",
+        };
       default:
         if (location.pathname.startsWith("/tickets/")) {
           return {
