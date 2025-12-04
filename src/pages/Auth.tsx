@@ -18,31 +18,25 @@ export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const {
-    toast
-  } = useToast();
+  const { toast } = useToast();
   const loginForm = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       email: "",
-      password: ""
-    }
+      password: "",
+    },
   });
   const signupForm = useForm<SignupInput>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
       email: "",
       password: "",
-      confirmPassword: ""
-    }
+      confirmPassword: "",
+    },
   });
   useEffect(() => {
     // Check if user is already logged in
-    supabase.auth.getSession().then(({
-      data: {
-        session
-      }
-    }) => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         navigate("/");
       }
@@ -50,12 +44,10 @@ export default function Auth() {
 
     // Listen for auth changes
     const {
-      data: {
-        subscription
-      }
+      data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session && event === 'SIGNED_IN') {
-        sessionStorage.setItem('just_logged_in', 'true');
+      if (session && event === "SIGNED_IN") {
+        sessionStorage.setItem("just_logged_in", "true");
         navigate("/");
       }
     });
@@ -64,25 +56,23 @@ export default function Auth() {
   const handleLogin = async (data: LoginInput) => {
     setLoading(true);
     try {
-      const {
-        error
-      } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email: data.email,
-        password: data.password
+        password: data.password,
       });
       if (error) throw error;
-      
-      sessionStorage.setItem('just_logged_in', 'true');
-      
+
+      sessionStorage.setItem("just_logged_in", "true");
+
       toast({
         title: "Login realizado com sucesso!",
-        description: "Bem-vindo de volta."
+        description: "Bem-vindo de volta.",
       });
     } catch (error: any) {
       toast({
         title: "Erro ao fazer login",
         description: error.message || "Verifique suas credenciais e tente novamente.",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -91,19 +81,17 @@ export default function Auth() {
   const handleSignup = async (data: SignupInput) => {
     setLoading(true);
     try {
-      const {
-        error
-      } = await supabase.auth.signUp({
+      const { error } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
         options: {
-          emailRedirectTo: `${window.location.origin}/`
-        }
+          emailRedirectTo: `${window.location.origin}/`,
+        },
       });
       if (error) throw error;
       toast({
         title: "Cadastro realizado com sucesso!",
-        description: "Você já pode fazer login."
+        description: "Você já pode fazer login.",
       });
 
       // Limpar formulário e alternar para login
@@ -113,46 +101,55 @@ export default function Auth() {
       toast({
         title: "Erro ao cadastrar",
         description: error.message || "Não foi possível criar sua conta. Tente novamente.",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
   };
   const handleSubmit = isLogin ? loginForm.handleSubmit(handleLogin) : signupForm.handleSubmit(handleSignup);
-  return <div className="min-h-screen flex">
+  return (
+    <div className="min-h-screen flex">
       {/* Left Side - Brand Section */}
       <div className="hidden lg:flex lg:w-[62%] relative overflow-hidden bg-gradient-to-br from-[#0f1f35] via-[#1a3a52] to-[#2a5a6f]">
         {/* Background Image with Overlay */}
-        <div 
+        <div
           className="absolute inset-0 bg-cover bg-center opacity-20"
           style={{ backgroundImage: `url(${heroImage})` }}
         />
-        
+
         {/* Animated gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[#1e3a5f]/60 via-transparent to-[#3fb39d]/30 animate-pulse" style={{ animationDuration: '8s' }}></div>
-        
+        <div
+          className="absolute inset-0 bg-gradient-to-br from-[#1e3a5f]/60 via-transparent to-[#3fb39d]/30 animate-pulse"
+          style={{ animationDuration: "8s" }}
+        ></div>
+
         {/* Grid pattern overlay */}
-        <div className="absolute inset-0 opacity-[0.03]" style={{
-          backgroundImage: 'linear-gradient(rgba(255,255,255,.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.1) 1px, transparent 1px)',
-          backgroundSize: '60px 60px'
-        }}></div>
+        <div
+          className="absolute inset-0 opacity-[0.03]"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(255,255,255,.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.1) 1px, transparent 1px)",
+            backgroundSize: "60px 60px",
+          }}
+        ></div>
 
         {/* Floating shapes for depth */}
-        <div className="absolute top-20 right-20 w-72 h-72 bg-[#3fb39d]/10 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '6s' }}></div>
-        <div className="absolute bottom-32 left-20 w-96 h-96 bg-[#1e3a5f]/20 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '10s' }}></div>
-        
+        <div
+          className="absolute top-20 right-20 w-72 h-72 bg-[#3fb39d]/10 rounded-full blur-3xl animate-pulse"
+          style={{ animationDuration: "6s" }}
+        ></div>
+        <div
+          className="absolute bottom-32 left-20 w-96 h-96 bg-[#1e3a5f]/20 rounded-full blur-3xl animate-pulse"
+          style={{ animationDuration: "10s" }}
+        ></div>
+
         <div className="relative z-10 text-white w-full px-16 flex flex-col justify-center py-20">
           {/* Logo with glow effect */}
           <div className="mb-20 animate-fade-in">
-            <img 
-              src={logo} 
-              alt="ConvertiAI" 
-              className="h-14 object-contain drop-shadow-2xl" 
-              style={{ filter: 'drop-shadow(0 0 20px rgba(63, 179, 157, 0.3))' }}
-            />
+            <img src={logo} alt="ConvertiAI" className="h-14 object-contain drop-shadow-2xl" />
           </div>
-          
+
           {/* Animated Typewriter Title */}
           <div className="space-y-8 mb-16">
             <div>
@@ -162,7 +159,7 @@ export default function Auth() {
                     "Transforme atendimento em resultado",
                     "Gestão inteligente de vendas",
                     "Automatize seu fluxo comercial",
-                    "WhatsApp integrado ao CRM"
+                    "WhatsApp integrado ao CRM",
                   ]}
                   typingSpeed={80}
                   deletingSpeed={40}
@@ -173,11 +170,11 @@ export default function Auth() {
               <div className="h-1 w-24 bg-gradient-to-r from-[#3fb39d] via-[#3fb39d] to-transparent rounded-full shadow-lg shadow-[#3fb39d]/50"></div>
             </div>
             <p className="text-lg text-white/70 leading-relaxed font-light max-w-xl">
-              Plataforma completa de gestão comercial com IA integrada. 
-              Automatize processos, organize cotações e potencialize vendas com inteligência artificial.
+              Plataforma completa de gestão comercial com IA integrada. Automatize processos, organize cotações e
+              potencialize vendas com inteligência artificial.
             </p>
           </div>
-          
+
           {/* Premium features grid */}
           <div className="grid grid-cols-2 gap-5">
             <div className="group bg-white/5 backdrop-blur-md rounded-2xl p-6 border border-white/10 hover:bg-white/10 hover:border-[#3fb39d]/30 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-[#3fb39d]/10">
@@ -221,11 +218,10 @@ export default function Auth() {
             <div className="flex justify-center mb-8">
               <img src={logo} alt="ConvertiAI" className="h-12 object-contain" />
             </div>
-            
+
             {/* Header */}
             <div className="mb-8">
               <div className="flex items-center gap-2 mb-4">
-                
                 <h2 className="text-2xl font-bold tracking-tight text-foreground">
                   {isLogin ? "Bem-vindo" : "Criar conta"}
                 </h2>
@@ -237,42 +233,80 @@ export default function Auth() {
 
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-medium text-foreground">E-mail</Label>
+                <Label htmlFor="email" className="text-sm font-medium text-foreground">
+                  E-mail
+                </Label>
                 <div className="relative group">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transition-colors group-focus-within:text-[#3fb39d]" />
-                  <Input id="email" type="email" placeholder="seu.email@empresa.com" className="pl-10 h-11 bg-background/50 border-input focus:border-[#3fb39d] focus:ring-1 focus:ring-[#3fb39d] transition-all" {...isLogin ? loginForm.register("email") : signupForm.register("email")} />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="seu.email@empresa.com"
+                    className="pl-10 h-11 bg-background/50 border-input focus:border-[#3fb39d] focus:ring-1 focus:ring-[#3fb39d] transition-all"
+                    {...(isLogin ? loginForm.register("email") : signupForm.register("email"))}
+                  />
                 </div>
-                {(isLogin ? loginForm.formState.errors.email : signupForm.formState.errors.email) && <p className="text-xs text-destructive flex items-center gap-1">
+                {(isLogin ? loginForm.formState.errors.email : signupForm.formState.errors.email) && (
+                  <p className="text-xs text-destructive flex items-center gap-1">
                     <AlertCircle className="h-3 w-3" />
                     {isLogin ? loginForm.formState.errors.email?.message : signupForm.formState.errors.email?.message}
-                  </p>}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-sm font-medium text-foreground">Senha</Label>
+                <Label htmlFor="password" className="text-sm font-medium text-foreground">
+                  Senha
+                </Label>
                 <div className="relative group">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transition-colors group-focus-within:text-[#3fb39d]" />
-                  <Input id="password" type="password" placeholder="••••••••" className="pl-10 h-11 bg-background/50 border-input focus:border-[#3fb39d] focus:ring-1 focus:ring-[#3fb39d] transition-all" {...isLogin ? loginForm.register("password") : signupForm.register("password")} />
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="••••••••"
+                    className="pl-10 h-11 bg-background/50 border-input focus:border-[#3fb39d] focus:ring-1 focus:ring-[#3fb39d] transition-all"
+                    {...(isLogin ? loginForm.register("password") : signupForm.register("password"))}
+                  />
                 </div>
-                {(isLogin ? loginForm.formState.errors.password : signupForm.formState.errors.password) && <p className="text-xs text-destructive flex items-center gap-1">
+                {(isLogin ? loginForm.formState.errors.password : signupForm.formState.errors.password) && (
+                  <p className="text-xs text-destructive flex items-center gap-1">
                     <AlertCircle className="h-3 w-3" />
-                    {isLogin ? loginForm.formState.errors.password?.message : signupForm.formState.errors.password?.message}
-                  </p>}
+                    {isLogin
+                      ? loginForm.formState.errors.password?.message
+                      : signupForm.formState.errors.password?.message}
+                  </p>
+                )}
               </div>
 
-              {!isLogin && <div className="space-y-2">
-                  <Label htmlFor="confirmPassword" className="text-sm font-medium text-foreground">Confirmar senha</Label>
+              {!isLogin && (
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword" className="text-sm font-medium text-foreground">
+                    Confirmar senha
+                  </Label>
                   <div className="relative group">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transition-colors group-focus-within:text-[#3fb39d]" />
-                    <Input id="confirmPassword" type="password" placeholder="••••••••" className="pl-10 h-11 bg-background/50 border-input focus:border-[#3fb39d] focus:ring-1 focus:ring-[#3fb39d] transition-all" {...signupForm.register("confirmPassword")} />
+                    <Input
+                      id="confirmPassword"
+                      type="password"
+                      placeholder="••••••••"
+                      className="pl-10 h-11 bg-background/50 border-input focus:border-[#3fb39d] focus:ring-1 focus:ring-[#3fb39d] transition-all"
+                      {...signupForm.register("confirmPassword")}
+                    />
                   </div>
-                  {signupForm.formState.errors.confirmPassword && <p className="text-xs text-destructive flex items-center gap-1">
+                  {signupForm.formState.errors.confirmPassword && (
+                    <p className="text-xs text-destructive flex items-center gap-1">
                       <AlertCircle className="h-3 w-3" />
                       {signupForm.formState.errors.confirmPassword.message}
-                    </p>}
-                </div>}
+                    </p>
+                  )}
+                </div>
+              )}
 
-              <Button type="submit" className="w-full h-11 bg-gradient-to-r from-[#1e3a5f] to-[#3fb39d] hover:from-[#1a3251] hover:to-[#38a68f] text-white font-medium shadow-lg transition-all hover:shadow-xl" disabled={loading}>
+              <Button
+                type="submit"
+                className="w-full h-11 bg-gradient-to-r from-[#1e3a5f] to-[#3fb39d] hover:from-[#1a3251] hover:to-[#38a68f] text-white font-medium shadow-lg transition-all hover:shadow-xl"
+                disabled={loading}
+              >
                 {loading ? "Processando..." : isLogin ? "Entrar" : "Criar conta"}
               </Button>
             </form>
@@ -290,16 +324,21 @@ export default function Auth() {
             </div>
 
             {/* Toggle Button */}
-            <button type="button" onClick={() => setIsLogin(!isLogin)} className="w-full text-center text-sm font-medium transition-colors py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
+            <button
+              type="button"
+              onClick={() => setIsLogin(!isLogin)}
+              className="w-full text-center text-sm font-medium transition-colors py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+            >
               <span className="text-muted-foreground">{isLogin ? "Criar nova conta" : "Fazer login"}</span>
             </button>
           </div>
-          
+
           {/* Footer text */}
           <p className="text-center text-xs text-muted-foreground mt-6">
             Ao continuar, você concorda com nossos Termos de Serviço
           </p>
         </div>
       </div>
-    </div>;
+    </div>
+  );
 }
