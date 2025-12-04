@@ -1,15 +1,8 @@
 import { Filter, Users, BarChart3, Calendar, SlidersHorizontal, Kanban, List, TestTube, Plus } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-
 interface VendasFiltersProps {
   view: "pipeline" | "list";
   onViewChange: (view: "pipeline" | "list") => void;
@@ -18,7 +11,6 @@ interface VendasFiltersProps {
   isCreatingTest?: boolean;
   onNovaOportunidade?: () => void;
 }
-
 interface FilterValues {
   pipeline?: string;
   responsavel?: string;
@@ -26,18 +18,24 @@ interface FilterValues {
   periodo?: string;
   ordenacao?: string;
 }
-
-export function VendasFilters({ view, onViewChange, onFilterChange, onCriarVendaTeste, isCreatingTest, onNovaOportunidade }: VendasFiltersProps) {
+export function VendasFilters({
+  view,
+  onViewChange,
+  onFilterChange,
+  onCriarVendaTeste,
+  isCreatingTest,
+  onNovaOportunidade
+}: VendasFiltersProps) {
   const handleFilterChange = (key: keyof FilterValues, value: string) => {
     if (onFilterChange) {
-      onFilterChange({ [key]: value });
+      onFilterChange({
+        [key]: value
+      });
     }
   };
-
-  return (
-    <div className="shrink-0 z-30 flex items-center gap-3 py-3 px-4 border-b bg-card shadow-sm">
+  return <div className="shrink-0 z-30 flex items-center gap-3 py-3 px-4 border-b bg-card shadow-sm">
       {/* Toggle de visualização Pipeline/Lista */}
-      <ToggleGroup type="single" value={view} onValueChange={(value) => value && onViewChange(value as "pipeline" | "list")} className="border rounded-md">
+      <ToggleGroup type="single" value={view} onValueChange={value => value && onViewChange(value as "pipeline" | "list")} className="border rounded-md">
         <ToggleGroupItem value="pipeline" aria-label="Visualização Pipeline" className="px-3">
           <Kanban className="h-4 w-4" />
         </ToggleGroupItem>
@@ -48,7 +46,7 @@ export function VendasFilters({ view, onViewChange, onFilterChange, onCriarVenda
 
       <div className="h-6 w-px bg-border" />
       {/* Funil de Vendas */}
-      <Select defaultValue="todos" onValueChange={(value) => handleFilterChange("pipeline", value)}>
+      <Select defaultValue="todos" onValueChange={value => handleFilterChange("pipeline", value)}>
         <SelectTrigger className="w-[200px] h-9 bg-background">
           <div className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4 text-muted-foreground" />
@@ -65,7 +63,7 @@ export function VendasFilters({ view, onViewChange, onFilterChange, onCriarVenda
       </Select>
 
       {/* Responsável */}
-      <Select defaultValue="todos" onValueChange={(value) => handleFilterChange("responsavel", value)}>
+      <Select defaultValue="todos" onValueChange={value => handleFilterChange("responsavel", value)}>
         <SelectTrigger className="w-[200px] h-9 bg-background">
           <div className="flex items-center gap-2">
             <Users className="h-4 w-4 text-muted-foreground" />
@@ -81,7 +79,7 @@ export function VendasFilters({ view, onViewChange, onFilterChange, onCriarVenda
       </Select>
 
       {/* Status */}
-      <Select defaultValue="todos" onValueChange={(value) => handleFilterChange("status", value)}>
+      <Select defaultValue="todos" onValueChange={value => handleFilterChange("status", value)}>
         <SelectTrigger className="w-[180px] h-9 bg-background">
           <div className="flex items-center gap-2">
             <Filter className="h-4 w-4 text-muted-foreground" />
@@ -99,7 +97,7 @@ export function VendasFilters({ view, onViewChange, onFilterChange, onCriarVenda
       </Select>
 
       {/* Período */}
-      <Select defaultValue="mes" onValueChange={(value) => handleFilterChange("periodo", value)}>
+      <Select defaultValue="mes" onValueChange={value => handleFilterChange("periodo", value)}>
         <SelectTrigger className="w-[180px] h-9 bg-background">
           <div className="flex items-center gap-2">
             <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -117,7 +115,7 @@ export function VendasFilters({ view, onViewChange, onFilterChange, onCriarVenda
       </Select>
 
       {/* Ordenação */}
-      <Select defaultValue="recente" onValueChange={(value) => handleFilterChange("ordenacao", value)}>
+      <Select defaultValue="recente" onValueChange={value => handleFilterChange("ordenacao", value)}>
         <SelectTrigger className="w-[180px] h-9 bg-background">
           <SelectValue placeholder="Ordenar por" />
         </SelectTrigger>
@@ -141,30 +139,12 @@ export function VendasFilters({ view, onViewChange, onFilterChange, onCriarVenda
       </Button>
 
       {/* Botão Criar Venda de Teste */}
-      {onCriarVendaTeste && (
-        <Button 
-          onClick={onCriarVendaTeste} 
-          variant="outline"
-          size="sm"
-          className="h-9"
-          disabled={isCreatingTest}
-        >
-          <TestTube className="h-4 w-4 mr-2" />
-          {isCreatingTest ? "Criando..." : "Teste 120 itens"}
-        </Button>
-      )}
+      {onCriarVendaTeste}
 
       {/* Botão Nova Oportunidade */}
-      {onNovaOportunidade && (
-        <Button 
-          onClick={onNovaOportunidade} 
-          size="sm"
-          className="h-9"
-        >
+      {onNovaOportunidade && <Button onClick={onNovaOportunidade} size="sm" className="h-9">
           <Plus className="h-4 w-4 mr-2" />
           Nova Oportunidade
-        </Button>
-      )}
-    </div>
-  );
+        </Button>}
+    </div>;
 }
