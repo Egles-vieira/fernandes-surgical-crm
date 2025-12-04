@@ -1,6 +1,6 @@
 import { useState, useEffect, createContext, useContext } from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutDashboard, ShoppingCart, Package, Users, FileText, Gavel, Shield, ChevronDown, ChevronRight, Menu, MessageSquare, MessageCircle, Phone, TicketCheck, BarChart3, BookOpen, Settings, Brain, Target } from "lucide-react";
+import { LayoutDashboard, ShoppingCart, Package, Users, FileText, Gavel, Shield, ChevronDown, ChevronRight, Menu, MessageSquare, MessageCircle, Phone, TicketCheck, BarChart3, BookOpen, Settings, Brain, Target, FolderArchive } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import favicon from "@/assets/favicon-cfernandes.png";
@@ -153,6 +153,14 @@ const menuItems: MenuItem[] = [{
     path: "/produtos",
     icon: Package,
     label: "Produtos"
+  }]
+}, {
+  icon: FolderArchive,
+  label: "GED",
+  children: [{
+    path: "/documentos",
+    icon: FolderArchive,
+    label: "Documentos"
   }]
 }, {
   icon: Shield,
