@@ -109,7 +109,7 @@ export default function Auth() {
   };
   const handleSubmit = isLogin ? loginForm.handleSubmit(handleLogin) : signupForm.handleSubmit(handleSignup);
   return (
-    <div className="min-h-screen flex" style={{ transform: 'scale(0.9)', transformOrigin: 'center center', width: '111.11%', height: '111.11%', marginLeft: '-5.55%', marginTop: '-5.55%' }}>
+    <div className="min-h-screen flex">
       {/* Left Side - Brand Section */}
       <div className="hidden lg:flex lg:w-[62%] relative overflow-hidden">
         {/* Background Image */}
