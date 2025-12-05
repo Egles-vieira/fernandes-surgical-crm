@@ -358,3 +358,27 @@ All colors MUST be HSL.
 .scrollbar-hidden::-webkit-scrollbar {
   display: none;             /* Chrome, Safari, Opera */
 }
+
+/* Scrollbar elegante para painéis contextuais */
+.scrollbar-context {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--primary) / 0.3) transparent;
+}
+.scrollbar-context::-webkit-scrollbar {
+  width: 6px;
+}
+.scrollbar-context::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 3px;
+}
+.scrollbar-context::-webkit-scrollbar-thumb {
+  background: hsl(var(--primary) / 0.25);
+  border-radius: 3px;
+  transition: background 0.2s ease;
+}
+.scrollbar-context::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--primary) / 0.5);
+}
+.scrollbar-context::-webkit-scrollbar-thumb:active {
+  background: hsl(var(--primary) / 0.7);
+}
