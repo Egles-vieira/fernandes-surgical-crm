@@ -48,6 +48,8 @@ import Configuracoes from "./pages/Configuracoes";
 import PerfilVendedor from "./pages/PerfilVendedor";
 import PropostaPublica from "./pages/PropostaPublica";
 import Documentos from "./pages/Documentos";
+import Atividades from "./pages/Atividades";
+import FocusZone from "./pages/FocusZone";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 // QueryClient para rotas públicas (sem ThemeProvider)
@@ -282,6 +284,16 @@ const MainApp = () => (
       <Route path="/documentos" element={<ProtectedRoute>
           <Layout>
             <Documentos />
+          </Layout>
+        </ProtectedRoute>} />
+      <Route path="/atividades" element={<ProtectedRoute>
+          <Layout>
+            <Atividades />
+          </Layout>
+        </ProtectedRoute>} />
+      <Route path="/atividades/focus" element={<ProtectedRoute>
+          <Layout>
+            <FocusZone />
           </Layout>
         </ProtectedRoute>} />
       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

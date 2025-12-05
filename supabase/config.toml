@@ -152,3 +152,12 @@ verify_jwt = false
 
 [functions.buscar-proposta-publica]
 verify_jwt = false
+
+[functions.calcular-prioridade-atividades]
+verify_jwt = true
+
+[functions.gerar-sugestao-nba]
+verify_jwt = true
+
+[functions.concluir-atividade]
+verify_jwt = true
