@@ -163,7 +163,7 @@ export function PropostaContextSheet({
                   </TabsTrigger>
                 </TabsList>
 
-                <ScrollArea className="h-[calc(100%-2.5rem)]">
+                <ScrollArea className="h-[calc(100%-2.5rem)] [&_[data-radix-scroll-area-viewport]]:scrollbar-context">
                   {/* Timeline Tab */}
                   <TabsContent value="timeline" className="m-0 p-4">
                     <TimelineUnificada vendaId={vendaId} limite={30} />
