@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import type { Database } from "@/integrations/supabase/types";
-import { Search, Save, Trash2, Calculator, Loader2, ChevronLeft, ChevronRight, GripVertical, Edit, Package } from "lucide-react";
+import { Search, Save, Trash2, Calculator, Loader2, ChevronLeft, ChevronRight, GripVertical, Edit, Package, CheckSquare } from "lucide-react";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -42,6 +42,8 @@ import { EditarItemVendaDialog } from "@/components/vendas/EditarItemVendaDialog
 import { SortableItemRow } from "@/components/vendas/SortableItemRow";
 import { SelecionarFreteDialog, TransportadoraOption } from "@/components/vendas/SelecionarFreteDialog";
 import { ItensPropostaSheet } from "@/components/vendas/ItensPropostaSheet";
+import { TimelineUnificada } from "@/components/atividades/TimelineUnificada";
+import { NovaAtividadeDialog } from "@/components/atividades/NovaAtividadeDialog";
 import { Tables } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -230,6 +232,7 @@ export default function VendaDetalhes() {
   const [enderecoEntregaId, setEnderecoEntregaId] = useState<string>("");
   const [freteCalculado, setFreteCalculado] = useState(false);
   const [valorFrete, setValorFrete] = useState<number>(0);
+  const [showNovaAtividade, setShowNovaAtividade] = useState(false);
 
   // Pagination states for items table
   const [currentItemsPage, setCurrentItemsPage] = useState(1);
@@ -1154,6 +1157,21 @@ export default function VendaDetalhes() {
       {venda && <ItensPropostaSheet open={showItensSheet} onOpenChange={setShowItensSheet} vendaId={venda.id} clienteId={clienteSelecionado?.id || null} itensExistentes={carrinho.map(i => i.produto.id)} onItensAdicionados={() => {
         refetch();
       }} />}
+
+      {/* Dialog de Nova Atividade */}
+      <NovaAtividadeDialog open={showNovaAtividade} onOpenChange={setShowNovaAtividade} vendaId={venda?.id} clienteId={clienteSelecionado?.id} />
+
+      {/* Timeline de Atividades */}
+      {venda && <Card className="p-6 mx-[10px] mt-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold">Atividades & Timeline</h3>
+            <Button variant="outline" size="sm" onClick={() => setShowNovaAtividade(true)}>
+              <CheckSquare className="h-4 w-4 mr-2" />
+              Nova Atividade
+            </Button>
+          </div>
+          <TimelineUnificada vendaId={venda.id} limite={20} />
+        </Card>}
 
       {/* Logs do Cálculo Datasul */}
       {isAdmin && venda && <Card className="p-6 mx-[10px] mt-6" id="integracao-log">
