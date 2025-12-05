@@ -109,7 +109,7 @@ export default function Auth() {
   };
   const handleSubmit = isLogin ? loginForm.handleSubmit(handleLogin) : signupForm.handleSubmit(handleSignup);
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex font-sans" style={{ fontFamily: 'var(--font, Lexend, sans-serif)' }}>
       {/* Left Side - Brand Section */}
       <div className="hidden lg:flex lg:w-[62%] relative overflow-hidden">
         {/* Background Image */}
