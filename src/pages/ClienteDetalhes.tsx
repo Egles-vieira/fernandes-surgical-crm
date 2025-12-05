@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Building2, Mail, Phone, MapPin, Edit, UserPlus, FileText, DollarSign, Users, Calendar, Briefcase, TrendingUp, CheckCircle2, Clock, MessageSquare, Target, Package, Search, Pencil, Trash2 } from "lucide-react";
+import { ArrowLeft, Building2, Mail, Phone, MapPin, Edit, UserPlus, FileText, DollarSign, Users, Calendar, Briefcase, TrendingUp, CheckCircle2, Clock, MessageSquare, Target, Package, Search, Pencil, Trash2, CheckSquare } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import NovoContatoDialog from "@/components/cliente/NovoContatoDialog";
@@ -20,6 +20,8 @@ import WhatsAppChat from "@/components/cliente/WhatsAppChat";
 import HistoricoProdutos from "@/components/cliente/HistoricoProdutos";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useContatos } from "@/hooks/useContatos";
+import { TimelineUnificada } from "@/components/atividades/TimelineUnificada";
+import { NovaAtividadeDialog } from "@/components/atividades/NovaAtividadeDialog";
 export default function ClienteDetalhes() {
   const {
     id
@@ -39,6 +41,8 @@ export default function ClienteDetalhes() {
   const [historicoProdutosOpen, setHistoricoProdutosOpen] = useState(false);
   const [filtroContatos, setFiltroContatos] = useState("");
   const [iniciandoLigacao, setIniciandoLigacao] = useState(false);
+  const [novaAtividadeOpen, setNovaAtividadeOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("detalhes");
   
   const { deleteContato } = useContatos(id);
   const {
@@ -296,6 +300,11 @@ export default function ClienteDetalhes() {
             Produtos Comprados
           </Button>
           
+          <Button variant="outline" size="sm" onClick={() => setNovaAtividadeOpen(true)}>
+            <CheckSquare className="h-4 w-4 mr-2" />
+            Nova Atividade
+          </Button>
+          
           <Button variant="outline" size="sm" onClick={() => setNovaOportunidadeOpen(true)}>
             <FileText className="h-4 w-4 mr-2" />
             Nova Oportunidade
@@ -386,6 +395,14 @@ export default function ClienteDetalhes() {
         </Card>
       </div>
 
+      {/* Tabs para organizar conteúdo */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList>
+          <TabsTrigger value="detalhes">Detalhes</TabsTrigger>
+          <TabsTrigger value="timeline">Timeline</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="detalhes" className="mt-4">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column - Sobre & Informações de Contato */}
         <Card>
@@ -702,6 +719,12 @@ export default function ClienteDetalhes() {
           </CardContent>
         </Card>
       </div>
+        </TabsContent>
+
+        <TabsContent value="timeline" className="mt-4">
+          <TimelineUnificada clienteId={id} limite={50} />
+        </TabsContent>
+      </Tabs>
 
       {/* Dialogs */}
       <NovoContatoDialog open={novoContatoOpen} onOpenChange={setNovoContatoOpen} clienteId={id!} contaId={cliente.conta_id} />
@@ -745,5 +768,7 @@ export default function ClienteDetalhes() {
       {selectedContact && <WhatsAppChat open={whatsappChatOpen} onOpenChange={setWhatsappChatOpen} contactName={selectedContact.nome_completo} contactInitials={`${selectedContact.primeiro_nome?.charAt(0) || ''}${selectedContact.sobrenome?.charAt(0) || ''}`} phoneNumber={selectedContact.whatsapp_numero || selectedContact.celular} contactId={selectedContact.id} />}
 
       <HistoricoProdutos open={historicoProdutosOpen} onOpenChange={setHistoricoProdutosOpen} clienteCnpj={cliente.cgc} clienteNome={cliente.nome_abrev || cliente.nome_emit} />
+
+      <NovaAtividadeDialog open={novaAtividadeOpen} onOpenChange={setNovaAtividadeOpen} clienteId={id} />
     </div>;
 }
