@@ -61,8 +61,7 @@ export function NovaAtividadeDialog({ open, onOpenChange, clienteId, vendaId }: 
       cliente_id: formData.cliente_id || null,
       venda_id: vendaId || null,
       responsavel_id: formData.responsavel_id || null,
-      data_vencimento: formData.data_vencimento?.toISOString() || null,
-      duracao_estimada_minutos: formData.duracao_estimada_minutos ? parseInt(formData.duracao_estimada_minutos) : null
+      data_vencimento: formData.data_vencimento?.toISOString() || null
     });
 
     // Reset form
@@ -73,8 +72,7 @@ export function NovaAtividadeDialog({ open, onOpenChange, clienteId, vendaId }: 
       prioridade: 'media',
       cliente_id: clienteId || '',
       responsavel_id: user?.id || '',
-      data_vencimento: undefined,
-      duracao_estimada_minutos: ''
+      data_vencimento: undefined
     });
     onOpenChange(false);
   };
