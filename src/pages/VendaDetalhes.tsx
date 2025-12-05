@@ -42,8 +42,8 @@ import { EditarItemVendaDialog } from "@/components/vendas/EditarItemVendaDialog
 import { SortableItemRow } from "@/components/vendas/SortableItemRow";
 import { SelecionarFreteDialog, TransportadoraOption } from "@/components/vendas/SelecionarFreteDialog";
 import { ItensPropostaSheet } from "@/components/vendas/ItensPropostaSheet";
-import { TimelineUnificada } from "@/components/atividades/TimelineUnificada";
 import { NovaAtividadeDialog } from "@/components/atividades/NovaAtividadeDialog";
+import { PropostaContextSheet } from "@/components/vendas/PropostaContextSheet";
 import { Tables } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -773,19 +773,25 @@ export default function VendaDetalhes() {
         </div>
       </div>;
   }
-  return <div>
-      {/* Barras sticky sem espaçamento entre elas */}
-      <VendasActionBar status={venda.status as "rascunho" | "aprovada" | "cancelada"} onCalcular={handleCalcularDatasul} onCancelar={() => {
-      toast({
-        title: "Cancelar proposta",
-        description: "Funcionalidade em desenvolvimento"
-      });
-    }} onDiretoria={() => {
-      toast({
-        title: "Enviar para diretoria",
-        description: "Funcionalidade em desenvolvimento"
-      });
-    }} onEfetivar={() => setShowAprovarDialog(true)} onSalvar={handleSalvar} isSaving={false} isCalculating={isCalculating} editandoVendaId={venda.id} onVoltar={() => navigate("/vendas")} numeroVenda={numeroVenda || "Nova"} etapaPipeline={venda.etapa_pipeline || undefined} freteCalculado={freteCalculado} onCalcularFrete={handleCalcularFrete} isCalculatingFrete={isCalculatingFrete} valorFrete={valorFrete} className="py-[5px] border-none shadow-sm" />
+  return (
+    <PropostaContextSheet
+      vendaId={venda.id}
+      clienteId={clienteSelecionado?.id}
+      cliente={clienteSelecionado}
+    >
+      <div className="flex flex-col">
+        {/* Barras sticky sem espaçamento entre elas */}
+        <VendasActionBar status={venda.status as "rascunho" | "aprovada" | "cancelada"} onCalcular={handleCalcularDatasul} onCancelar={() => {
+          toast({
+            title: "Cancelar proposta",
+            description: "Funcionalidade em desenvolvimento"
+          });
+        }} onDiretoria={() => {
+          toast({
+            title: "Enviar para diretoria",
+            description: "Funcionalidade em desenvolvimento"
+          });
+        }} onEfetivar={() => setShowAprovarDialog(true)} onSalvar={handleSalvar} isSaving={false} isCalculating={isCalculating} editandoVendaId={venda.id} onVoltar={() => navigate("/vendas")} numeroVenda={numeroVenda || "Nova"} etapaPipeline={venda.etapa_pipeline || undefined} freteCalculado={freteCalculado} onCalcularFrete={handleCalcularFrete} isCalculatingFrete={isCalculatingFrete} valorFrete={valorFrete} className="py-[5px] border-none shadow-sm" />
 
       <FunnelStagesBar etapaAtual={venda.etapa_pipeline as any || "proposta"} onEtapaClick={async novaEtapa => {
       try {
@@ -1131,6 +1137,7 @@ export default function VendaDetalhes() {
           </div>
         </div>
       </Card>
+      </div>
 
       {/* Dialogs */}
       <ProdutoSearchDialog open={showProdutoSearch} onOpenChange={setShowProdutoSearch} onSelectProduto={handleAdicionarProduto} />
@@ -1161,22 +1168,13 @@ export default function VendaDetalhes() {
       {/* Dialog de Nova Atividade */}
       <NovaAtividadeDialog open={showNovaAtividade} onOpenChange={setShowNovaAtividade} vendaId={venda?.id} clienteId={clienteSelecionado?.id} />
 
-      {/* Timeline de Atividades */}
-      {venda && <Card className="p-6 mx-[10px] mt-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold">Atividades & Timeline</h3>
-            <Button variant="outline" size="sm" onClick={() => setShowNovaAtividade(true)}>
-              <CheckSquare className="h-4 w-4 mr-2" />
-              Nova Atividade
-            </Button>
-          </div>
-          <TimelineUnificada vendaId={venda.id} limite={20} />
-        </Card>}
+      {/* Timeline e Atividades movidos para PropostaContextSheet */}
 
       {/* Logs do Cálculo Datasul */}
       {isAdmin && venda && <Card className="p-6 mx-[10px] mt-6" id="integracao-log">
           <IntegracaoDatasulLog vendaId={venda.id} />
         </Card>}
       </div>
-    </div>;
+    </PropostaContextSheet>
+  );
 }
