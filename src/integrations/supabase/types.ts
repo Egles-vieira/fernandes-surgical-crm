@@ -96,6 +96,582 @@ export type Database = {
           },
         ]
       }
+      atividades: {
+        Row: {
+          atividade_pai_id: string | null
+          atualizado_em: string | null
+          campos_customizados: Json | null
+          chamada_id: string | null
+          cliente_id: string | null
+          codigo_disposicao_id: string | null
+          contato_id: string | null
+          criado_em: string | null
+          criado_por: string | null
+          data_conclusao: string | null
+          data_inicio: string | null
+          data_vencimento: string | null
+          descricao: string | null
+          duracao_estimada_minutos: number | null
+          duracao_real_minutos: number | null
+          eh_recorrente: boolean | null
+          email_message_id: string | null
+          equipe_id: string | null
+          excluido_em: string | null
+          id: string
+          lembrete_em: string | null
+          lembrete_enviado: boolean | null
+          nba_aceita: boolean | null
+          nba_confianca: number | null
+          nba_motivo_rejeicao: string | null
+          nba_sugestao_descricao: string | null
+          nba_sugestao_tipo: string | null
+          numero_atividade: string | null
+          oportunidade_id: string | null
+          prioridade: Database["public"]["Enums"]["prioridade_atividade"]
+          proxima_atividade_id: string | null
+          proximo_passo: string | null
+          proximo_passo_obrigatorio: boolean | null
+          regra_recorrencia: Json | null
+          responsavel_id: string | null
+          resultado_descricao: string | null
+          reuniao_externa_id: string | null
+          score_calculado_em: string | null
+          score_decaimento_temporal: number | null
+          score_engajamento: number | null
+          score_lead_fit: number | null
+          score_prioridade: number | null
+          score_urgencia: number | null
+          score_valor_potencial: number | null
+          sentimento_analise_em: string | null
+          sentimento_score: number | null
+          sentimento_tipo: Database["public"]["Enums"]["sentimento_tipo"] | null
+          status: Database["public"]["Enums"]["status_atividade"]
+          tags: string[] | null
+          ticket_id: string | null
+          tipo: Database["public"]["Enums"]["tipo_atividade"]
+          titulo: string
+          venda_id: string | null
+          what_id: string | null
+          what_tipo: Database["public"]["Enums"]["what_tipo"] | null
+          whatsapp_mensagem_id: string | null
+          who_id: string | null
+          who_tipo: Database["public"]["Enums"]["who_tipo"] | null
+        }
+        Insert: {
+          atividade_pai_id?: string | null
+          atualizado_em?: string | null
+          campos_customizados?: Json | null
+          chamada_id?: string | null
+          cliente_id?: string | null
+          codigo_disposicao_id?: string | null
+          contato_id?: string | null
+          criado_em?: string | null
+          criado_por?: string | null
+          data_conclusao?: string | null
+          data_inicio?: string | null
+          data_vencimento?: string | null
+          descricao?: string | null
+          duracao_estimada_minutos?: number | null
+          duracao_real_minutos?: number | null
+          eh_recorrente?: boolean | null
+          email_message_id?: string | null
+          equipe_id?: string | null
+          excluido_em?: string | null
+          id?: string
+          lembrete_em?: string | null
+          lembrete_enviado?: boolean | null
+          nba_aceita?: boolean | null
+          nba_confianca?: number | null
+          nba_motivo_rejeicao?: string | null
+          nba_sugestao_descricao?: string | null
+          nba_sugestao_tipo?: string | null
+          numero_atividade?: string | null
+          oportunidade_id?: string | null
+          prioridade?: Database["public"]["Enums"]["prioridade_atividade"]
+          proxima_atividade_id?: string | null
+          proximo_passo?: string | null
+          proximo_passo_obrigatorio?: boolean | null
+          regra_recorrencia?: Json | null
+          responsavel_id?: string | null
+          resultado_descricao?: string | null
+          reuniao_externa_id?: string | null
+          score_calculado_em?: string | null
+          score_decaimento_temporal?: number | null
+          score_engajamento?: number | null
+          score_lead_fit?: number | null
+          score_prioridade?: number | null
+          score_urgencia?: number | null
+          score_valor_potencial?: number | null
+          sentimento_analise_em?: string | null
+          sentimento_score?: number | null
+          sentimento_tipo?:
+            | Database["public"]["Enums"]["sentimento_tipo"]
+            | null
+          status?: Database["public"]["Enums"]["status_atividade"]
+          tags?: string[] | null
+          ticket_id?: string | null
+          tipo?: Database["public"]["Enums"]["tipo_atividade"]
+          titulo: string
+          venda_id?: string | null
+          what_id?: string | null
+          what_tipo?: Database["public"]["Enums"]["what_tipo"] | null
+          whatsapp_mensagem_id?: string | null
+          who_id?: string | null
+          who_tipo?: Database["public"]["Enums"]["who_tipo"] | null
+        }
+        Update: {
+          atividade_pai_id?: string | null
+          atualizado_em?: string | null
+          campos_customizados?: Json | null
+          chamada_id?: string | null
+          cliente_id?: string | null
+          codigo_disposicao_id?: string | null
+          contato_id?: string | null
+          criado_em?: string | null
+          criado_por?: string | null
+          data_conclusao?: string | null
+          data_inicio?: string | null
+          data_vencimento?: string | null
+          descricao?: string | null
+          duracao_estimada_minutos?: number | null
+          duracao_real_minutos?: number | null
+          eh_recorrente?: boolean | null
+          email_message_id?: string | null
+          equipe_id?: string | null
+          excluido_em?: string | null
+          id?: string
+          lembrete_em?: string | null
+          lembrete_enviado?: boolean | null
+          nba_aceita?: boolean | null
+          nba_confianca?: number | null
+          nba_motivo_rejeicao?: string | null
+          nba_sugestao_descricao?: string | null
+          nba_sugestao_tipo?: string | null
+          numero_atividade?: string | null
+          oportunidade_id?: string | null
+          prioridade?: Database["public"]["Enums"]["prioridade_atividade"]
+          proxima_atividade_id?: string | null
+          proximo_passo?: string | null
+          proximo_passo_obrigatorio?: boolean | null
+          regra_recorrencia?: Json | null
+          responsavel_id?: string | null
+          resultado_descricao?: string | null
+          reuniao_externa_id?: string | null
+          score_calculado_em?: string | null
+          score_decaimento_temporal?: number | null
+          score_engajamento?: number | null
+          score_lead_fit?: number | null
+          score_prioridade?: number | null
+          score_urgencia?: number | null
+          score_valor_potencial?: number | null
+          sentimento_analise_em?: string | null
+          sentimento_score?: number | null
+          sentimento_tipo?:
+            | Database["public"]["Enums"]["sentimento_tipo"]
+            | null
+          status?: Database["public"]["Enums"]["status_atividade"]
+          tags?: string[] | null
+          ticket_id?: string | null
+          tipo?: Database["public"]["Enums"]["tipo_atividade"]
+          titulo?: string
+          venda_id?: string | null
+          what_id?: string | null
+          what_tipo?: Database["public"]["Enums"]["what_tipo"] | null
+          whatsapp_mensagem_id?: string | null
+          who_id?: string | null
+          who_tipo?: Database["public"]["Enums"]["who_tipo"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "atividades_atividade_pai_id_fkey"
+            columns: ["atividade_pai_id"]
+            isOneToOne: false
+            referencedRelation: "atividades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "atividades_atividade_pai_id_fkey"
+            columns: ["atividade_pai_id"]
+            isOneToOne: false
+            referencedRelation: "mv_atividades_prioridade"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "atividades_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "atividades_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "vw_clientes_completo"
+            referencedColumns: ["cliente_id"]
+          },
+          {
+            foreignKeyName: "atividades_codigo_disposicao_id_fkey"
+            columns: ["codigo_disposicao_id"]
+            isOneToOne: false
+            referencedRelation: "codigos_disposicao"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "atividades_contato_id_fkey"
+            columns: ["contato_id"]
+            isOneToOne: false
+            referencedRelation: "contatos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "atividades_criado_por_fkey"
+            columns: ["criado_por"]
+            isOneToOne: false
+            referencedRelation: "mv_top_vendedores"
+            referencedColumns: ["vendedor_id"]
+          },
+          {
+            foreignKeyName: "atividades_criado_por_fkey"
+            columns: ["criado_por"]
+            isOneToOne: false
+            referencedRelation: "perfis_usuario"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "atividades_criado_por_fkey"
+            columns: ["criado_por"]
+            isOneToOne: false
+            referencedRelation: "vw_performance_vendedor"
+            referencedColumns: ["vendedor_id"]
+          },
+          {
+            foreignKeyName: "atividades_criado_por_fkey"
+            columns: ["criado_por"]
+            isOneToOne: false
+            referencedRelation: "vw_vendedores_disponiveis"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "atividades_equipe_id_fkey"
+            columns: ["equipe_id"]
+            isOneToOne: false
+            referencedRelation: "equipes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "atividades_equipe_id_fkey"
+            columns: ["equipe_id"]
+            isOneToOne: false
+            referencedRelation: "vw_estatisticas_metas_equipe"
+            referencedColumns: ["equipe_id"]
+          },
+          {
+            foreignKeyName: "atividades_equipe_id_fkey"
+            columns: ["equipe_id"]
+            isOneToOne: false
+            referencedRelation: "vw_turnover_equipes"
+            referencedColumns: ["equipe_id"]
+          },
+          {
+            foreignKeyName: "atividades_oportunidade_id_fkey"
+            columns: ["oportunidade_id"]
+            isOneToOne: false
+            referencedRelation: "oportunidades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "atividades_proxima_atividade_id_fkey"
+            columns: ["proxima_atividade_id"]
+            isOneToOne: false
+            referencedRelation: "atividades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "atividades_proxima_atividade_id_fkey"
+            columns: ["proxima_atividade_id"]
+            isOneToOne: false
+            referencedRelation: "mv_atividades_prioridade"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "atividades_responsavel_id_fkey"
+            columns: ["responsavel_id"]
+            isOneToOne: false
+            referencedRelation: "mv_top_vendedores"
+            referencedColumns: ["vendedor_id"]
+          },
+          {
+            foreignKeyName: "atividades_responsavel_id_fkey"
+            columns: ["responsavel_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_usuario"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "atividades_responsavel_id_fkey"
+            columns: ["responsavel_id"]
+            isOneToOne: false
+            referencedRelation: "vw_performance_vendedor"
+            referencedColumns: ["vendedor_id"]
+          },
+          {
+            foreignKeyName: "atividades_responsavel_id_fkey"
+            columns: ["responsavel_id"]
+            isOneToOne: false
+            referencedRelation: "vw_vendedores_disponiveis"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "atividades_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "atividades_venda_id_fkey"
+            columns: ["venda_id"]
+            isOneToOne: false
+            referencedRelation: "vendas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      atividades_comentarios: {
+        Row: {
+          anexos: Json | null
+          atividade_id: string
+          autor_id: string
+          conteudo: string
+          criado_em: string | null
+          editado: boolean | null
+          editado_em: string | null
+          excluido_em: string | null
+          id: string
+          mencoes: string[] | null
+        }
+        Insert: {
+          anexos?: Json | null
+          atividade_id: string
+          autor_id: string
+          conteudo: string
+          criado_em?: string | null
+          editado?: boolean | null
+          editado_em?: string | null
+          excluido_em?: string | null
+          id?: string
+          mencoes?: string[] | null
+        }
+        Update: {
+          anexos?: Json | null
+          atividade_id?: string
+          autor_id?: string
+          conteudo?: string
+          criado_em?: string | null
+          editado?: boolean | null
+          editado_em?: string | null
+          excluido_em?: string | null
+          id?: string
+          mencoes?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "atividades_comentarios_atividade_id_fkey"
+            columns: ["atividade_id"]
+            isOneToOne: false
+            referencedRelation: "atividades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "atividades_comentarios_atividade_id_fkey"
+            columns: ["atividade_id"]
+            isOneToOne: false
+            referencedRelation: "mv_atividades_prioridade"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "atividades_comentarios_autor_id_fkey"
+            columns: ["autor_id"]
+            isOneToOne: false
+            referencedRelation: "mv_top_vendedores"
+            referencedColumns: ["vendedor_id"]
+          },
+          {
+            foreignKeyName: "atividades_comentarios_autor_id_fkey"
+            columns: ["autor_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_usuario"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "atividades_comentarios_autor_id_fkey"
+            columns: ["autor_id"]
+            isOneToOne: false
+            referencedRelation: "vw_performance_vendedor"
+            referencedColumns: ["vendedor_id"]
+          },
+          {
+            foreignKeyName: "atividades_comentarios_autor_id_fkey"
+            columns: ["autor_id"]
+            isOneToOne: false
+            referencedRelation: "vw_vendedores_disponiveis"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      atividades_historico: {
+        Row: {
+          alterado_em: string | null
+          alterado_por: string | null
+          atividade_id: string
+          campo_alterado: string
+          id: string
+          ip_address: unknown
+          user_agent: string | null
+          valor_anterior: string | null
+          valor_novo: string | null
+        }
+        Insert: {
+          alterado_em?: string | null
+          alterado_por?: string | null
+          atividade_id: string
+          campo_alterado: string
+          id?: string
+          ip_address?: unknown
+          user_agent?: string | null
+          valor_anterior?: string | null
+          valor_novo?: string | null
+        }
+        Update: {
+          alterado_em?: string | null
+          alterado_por?: string | null
+          atividade_id?: string
+          campo_alterado?: string
+          id?: string
+          ip_address?: unknown
+          user_agent?: string | null
+          valor_anterior?: string | null
+          valor_novo?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "atividades_historico_alterado_por_fkey"
+            columns: ["alterado_por"]
+            isOneToOne: false
+            referencedRelation: "mv_top_vendedores"
+            referencedColumns: ["vendedor_id"]
+          },
+          {
+            foreignKeyName: "atividades_historico_alterado_por_fkey"
+            columns: ["alterado_por"]
+            isOneToOne: false
+            referencedRelation: "perfis_usuario"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "atividades_historico_alterado_por_fkey"
+            columns: ["alterado_por"]
+            isOneToOne: false
+            referencedRelation: "vw_performance_vendedor"
+            referencedColumns: ["vendedor_id"]
+          },
+          {
+            foreignKeyName: "atividades_historico_alterado_por_fkey"
+            columns: ["alterado_por"]
+            isOneToOne: false
+            referencedRelation: "vw_vendedores_disponiveis"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "atividades_historico_atividade_id_fkey"
+            columns: ["atividade_id"]
+            isOneToOne: false
+            referencedRelation: "atividades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "atividades_historico_atividade_id_fkey"
+            columns: ["atividade_id"]
+            isOneToOne: false
+            referencedRelation: "mv_atividades_prioridade"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      atividades_participantes: {
+        Row: {
+          atividade_id: string
+          confirmado: boolean | null
+          confirmado_em: string | null
+          criado_em: string | null
+          id: string
+          papel: string | null
+          usuario_id: string
+        }
+        Insert: {
+          atividade_id: string
+          confirmado?: boolean | null
+          confirmado_em?: string | null
+          criado_em?: string | null
+          id?: string
+          papel?: string | null
+          usuario_id: string
+        }
+        Update: {
+          atividade_id?: string
+          confirmado?: boolean | null
+          confirmado_em?: string | null
+          criado_em?: string | null
+          id?: string
+          papel?: string | null
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "atividades_participantes_atividade_id_fkey"
+            columns: ["atividade_id"]
+            isOneToOne: false
+            referencedRelation: "atividades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "atividades_participantes_atividade_id_fkey"
+            columns: ["atividade_id"]
+            isOneToOne: false
+            referencedRelation: "mv_atividades_prioridade"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "atividades_participantes_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "mv_top_vendedores"
+            referencedColumns: ["vendedor_id"]
+          },
+          {
+            foreignKeyName: "atividades_participantes_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_usuario"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "atividades_participantes_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "vw_performance_vendedor"
+            referencedColumns: ["vendedor_id"]
+          },
+          {
+            foreignKeyName: "atividades_participantes_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "vw_vendedores_disponiveis"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       chat_assistente_mensagens: {
         Row: {
           content: string
@@ -707,6 +1283,63 @@ export type Database = {
           trabalha_com_icms?: boolean | null
           updated_at?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      codigos_disposicao: {
+        Row: {
+          ativo: boolean | null
+          atualizado_em: string | null
+          codigo: string
+          cor: string | null
+          criado_em: string | null
+          descricao: string | null
+          dias_follow_up_padrao: number | null
+          icone: string | null
+          id: string
+          marca_como_concluido: boolean | null
+          nome: string
+          ordem: number | null
+          requer_agendamento: boolean | null
+          requer_proximo_passo: boolean | null
+          sugestao_nba_padrao: string | null
+          tipo_atividade: Database["public"]["Enums"]["tipo_atividade"] | null
+        }
+        Insert: {
+          ativo?: boolean | null
+          atualizado_em?: string | null
+          codigo: string
+          cor?: string | null
+          criado_em?: string | null
+          descricao?: string | null
+          dias_follow_up_padrao?: number | null
+          icone?: string | null
+          id?: string
+          marca_como_concluido?: boolean | null
+          nome: string
+          ordem?: number | null
+          requer_agendamento?: boolean | null
+          requer_proximo_passo?: boolean | null
+          sugestao_nba_padrao?: string | null
+          tipo_atividade?: Database["public"]["Enums"]["tipo_atividade"] | null
+        }
+        Update: {
+          ativo?: boolean | null
+          atualizado_em?: string | null
+          codigo?: string
+          cor?: string | null
+          criado_em?: string | null
+          descricao?: string | null
+          dias_follow_up_padrao?: number | null
+          icone?: string | null
+          id?: string
+          marca_como_concluido?: boolean | null
+          nome?: string
+          ordem?: number | null
+          requer_agendamento?: boolean | null
+          requer_proximo_passo?: boolean | null
+          sugestao_nba_padrao?: string | null
+          tipo_atividade?: Database["public"]["Enums"]["tipo_atividade"] | null
         }
         Relationships: []
       }
@@ -4364,6 +4997,214 @@ export type Database = {
             referencedColumns: ["equipe_id"]
           },
         ]
+      }
+      nba_historico: {
+        Row: {
+          aceita: boolean | null
+          atividade_origem_id: string | null
+          atividade_sugerida_id: string | null
+          confianca: number | null
+          criado_em: string | null
+          id: string
+          motivo_rejeicao: string | null
+          regra_id: string | null
+          respondido_em: string | null
+          sugestao_descricao: string | null
+          sugestao_tipo: Database["public"]["Enums"]["tipo_atividade"]
+          sugestao_titulo: string | null
+          usuario_id: string | null
+        }
+        Insert: {
+          aceita?: boolean | null
+          atividade_origem_id?: string | null
+          atividade_sugerida_id?: string | null
+          confianca?: number | null
+          criado_em?: string | null
+          id?: string
+          motivo_rejeicao?: string | null
+          regra_id?: string | null
+          respondido_em?: string | null
+          sugestao_descricao?: string | null
+          sugestao_tipo: Database["public"]["Enums"]["tipo_atividade"]
+          sugestao_titulo?: string | null
+          usuario_id?: string | null
+        }
+        Update: {
+          aceita?: boolean | null
+          atividade_origem_id?: string | null
+          atividade_sugerida_id?: string | null
+          confianca?: number | null
+          criado_em?: string | null
+          id?: string
+          motivo_rejeicao?: string | null
+          regra_id?: string | null
+          respondido_em?: string | null
+          sugestao_descricao?: string | null
+          sugestao_tipo?: Database["public"]["Enums"]["tipo_atividade"]
+          sugestao_titulo?: string | null
+          usuario_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nba_historico_atividade_origem_id_fkey"
+            columns: ["atividade_origem_id"]
+            isOneToOne: false
+            referencedRelation: "atividades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nba_historico_atividade_origem_id_fkey"
+            columns: ["atividade_origem_id"]
+            isOneToOne: false
+            referencedRelation: "mv_atividades_prioridade"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nba_historico_atividade_sugerida_id_fkey"
+            columns: ["atividade_sugerida_id"]
+            isOneToOne: false
+            referencedRelation: "atividades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nba_historico_atividade_sugerida_id_fkey"
+            columns: ["atividade_sugerida_id"]
+            isOneToOne: false
+            referencedRelation: "mv_atividades_prioridade"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nba_historico_regra_id_fkey"
+            columns: ["regra_id"]
+            isOneToOne: false
+            referencedRelation: "nba_regras"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nba_historico_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "mv_top_vendedores"
+            referencedColumns: ["vendedor_id"]
+          },
+          {
+            foreignKeyName: "nba_historico_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_usuario"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nba_historico_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "vw_performance_vendedor"
+            referencedColumns: ["vendedor_id"]
+          },
+          {
+            foreignKeyName: "nba_historico_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "vw_vendedores_disponiveis"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      nba_regras: {
+        Row: {
+          acao_descricao_template: string | null
+          acao_prazo_dias: number | null
+          acao_prioridade:
+            | Database["public"]["Enums"]["prioridade_atividade"]
+            | null
+          acao_tipo: Database["public"]["Enums"]["tipo_atividade"]
+          acao_titulo_template: string | null
+          ativo: boolean | null
+          atualizado_em: string | null
+          condicao_codigo_disposicao: string | null
+          condicao_dias_sem_contato: number | null
+          condicao_etapa_pipeline: string | null
+          condicao_sentimento:
+            | Database["public"]["Enums"]["sentimento_tipo"]
+            | null
+          condicao_tipo_atividade:
+            | Database["public"]["Enums"]["tipo_atividade"]
+            | null
+          condicao_valor_minimo: number | null
+          condicoes_extras: Json | null
+          confianca: number | null
+          criado_em: string | null
+          descricao: string | null
+          id: string
+          nome: string
+          ordem: number | null
+          suporte: number | null
+          vezes_aceita: number | null
+          vezes_sugerida: number | null
+        }
+        Insert: {
+          acao_descricao_template?: string | null
+          acao_prazo_dias?: number | null
+          acao_prioridade?:
+            | Database["public"]["Enums"]["prioridade_atividade"]
+            | null
+          acao_tipo: Database["public"]["Enums"]["tipo_atividade"]
+          acao_titulo_template?: string | null
+          ativo?: boolean | null
+          atualizado_em?: string | null
+          condicao_codigo_disposicao?: string | null
+          condicao_dias_sem_contato?: number | null
+          condicao_etapa_pipeline?: string | null
+          condicao_sentimento?:
+            | Database["public"]["Enums"]["sentimento_tipo"]
+            | null
+          condicao_tipo_atividade?:
+            | Database["public"]["Enums"]["tipo_atividade"]
+            | null
+          condicao_valor_minimo?: number | null
+          condicoes_extras?: Json | null
+          confianca?: number | null
+          criado_em?: string | null
+          descricao?: string | null
+          id?: string
+          nome: string
+          ordem?: number | null
+          suporte?: number | null
+          vezes_aceita?: number | null
+          vezes_sugerida?: number | null
+        }
+        Update: {
+          acao_descricao_template?: string | null
+          acao_prazo_dias?: number | null
+          acao_prioridade?:
+            | Database["public"]["Enums"]["prioridade_atividade"]
+            | null
+          acao_tipo?: Database["public"]["Enums"]["tipo_atividade"]
+          acao_titulo_template?: string | null
+          ativo?: boolean | null
+          atualizado_em?: string | null
+          condicao_codigo_disposicao?: string | null
+          condicao_dias_sem_contato?: number | null
+          condicao_etapa_pipeline?: string | null
+          condicao_sentimento?:
+            | Database["public"]["Enums"]["sentimento_tipo"]
+            | null
+          condicao_tipo_atividade?:
+            | Database["public"]["Enums"]["tipo_atividade"]
+            | null
+          condicao_valor_minimo?: number | null
+          condicoes_extras?: Json | null
+          confianca?: number | null
+          criado_em?: string | null
+          descricao?: string | null
+          id?: string
+          nome?: string
+          ordem?: number | null
+          suporte?: number | null
+          vezes_aceita?: number | null
+          vezes_sugerida?: number | null
+        }
+        Relationships: []
       }
       notificacoes: {
         Row: {
@@ -8520,6 +9361,101 @@ export type Database = {
       }
     }
     Views: {
+      mv_atividades_prioridade: {
+        Row: {
+          calculado_em: string | null
+          cliente_id: string | null
+          cliente_nome: string | null
+          data_vencimento: string | null
+          equipe_id: string | null
+          id: string | null
+          numero_atividade: string | null
+          prioridade: Database["public"]["Enums"]["prioridade_atividade"] | null
+          responsavel_id: string | null
+          responsavel_nome: string | null
+          score_calculado: number | null
+          score_decaimento_calculado: number | null
+          score_engajamento: number | null
+          score_lead_fit: number | null
+          score_urgencia_calculado: number | null
+          status: Database["public"]["Enums"]["status_atividade"] | null
+          tipo: Database["public"]["Enums"]["tipo_atividade"] | null
+          titulo: string | null
+          venda_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "atividades_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "atividades_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "vw_clientes_completo"
+            referencedColumns: ["cliente_id"]
+          },
+          {
+            foreignKeyName: "atividades_equipe_id_fkey"
+            columns: ["equipe_id"]
+            isOneToOne: false
+            referencedRelation: "equipes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "atividades_equipe_id_fkey"
+            columns: ["equipe_id"]
+            isOneToOne: false
+            referencedRelation: "vw_estatisticas_metas_equipe"
+            referencedColumns: ["equipe_id"]
+          },
+          {
+            foreignKeyName: "atividades_equipe_id_fkey"
+            columns: ["equipe_id"]
+            isOneToOne: false
+            referencedRelation: "vw_turnover_equipes"
+            referencedColumns: ["equipe_id"]
+          },
+          {
+            foreignKeyName: "atividades_responsavel_id_fkey"
+            columns: ["responsavel_id"]
+            isOneToOne: false
+            referencedRelation: "mv_top_vendedores"
+            referencedColumns: ["vendedor_id"]
+          },
+          {
+            foreignKeyName: "atividades_responsavel_id_fkey"
+            columns: ["responsavel_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_usuario"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "atividades_responsavel_id_fkey"
+            columns: ["responsavel_id"]
+            isOneToOne: false
+            referencedRelation: "vw_performance_vendedor"
+            referencedColumns: ["vendedor_id"]
+          },
+          {
+            foreignKeyName: "atividades_responsavel_id_fkey"
+            columns: ["responsavel_id"]
+            isOneToOne: false
+            referencedRelation: "vw_vendedores_disponiveis"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "atividades_venda_id_fkey"
+            columns: ["venda_id"]
+            isOneToOne: false
+            referencedRelation: "vendas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mv_clientes_por_estado: {
         Row: {
           estado: string | null
@@ -9084,6 +10020,10 @@ export type Database = {
           unidade_medida: string
         }[]
       }
+      calcular_score_prioridade: {
+        Args: { p_atividade_id: string }
+        Returns: number
+      }
       calcular_tempo_efetivo_ticket: {
         Args: { ticket_id: string }
         Returns: Json
@@ -9333,6 +10273,7 @@ export type Database = {
       refresh_all_dashboard_mvs: { Args: never; Returns: undefined }
       refresh_dashboard_views: { Args: never; Returns: undefined }
       refresh_ged_mvs: { Args: never; Returns: undefined }
+      refresh_mv_atividades_prioridade: { Args: never; Returns: undefined }
       registrar_feedback_ia: {
         Args: {
           p_feedback_tipo: string
@@ -9391,7 +10332,14 @@ export type Database = {
       identificacao_tipo: "Cliente" | "Fornecedor" | "Ambos"
       metodo_vinculacao: "ia_automatico" | "ia_manual" | "manual" | "importado"
       natureza_tipo: "Juridica" | "Fisica"
+      prioridade_atividade: "critica" | "alta" | "media" | "baixa"
       prioridade_ticket: "baixa" | "normal" | "alta" | "urgente"
+      sentimento_tipo:
+        | "muito_positivo"
+        | "positivo"
+        | "neutro"
+        | "negativo"
+        | "muito_negativo"
       status_analise_ia:
         | "pendente"
         | "em_analise"
@@ -9399,6 +10347,13 @@ export type Database = {
         | "erro"
         | "cancelada"
       status_aprovacao: "pendente" | "aprovada" | "rejeitada" | "expirada"
+      status_atividade:
+        | "pendente"
+        | "em_andamento"
+        | "concluida"
+        | "cancelada"
+        | "reagendada"
+        | "aguardando_resposta"
       status_entrega:
         | "pendente"
         | "em_transito"
@@ -9427,6 +10382,17 @@ export type Database = {
         | "resolvido"
         | "fechado"
         | "cancelado"
+      tipo_atividade:
+        | "tarefa"
+        | "chamada"
+        | "reuniao"
+        | "email"
+        | "whatsapp"
+        | "visita"
+        | "follow_up"
+        | "proposta"
+        | "negociacao"
+        | "outro"
       tipo_endereco: "principal" | "entrega" | "cobranca"
       tipo_feedback: "positivo" | "negativo" | "neutro"
       tipo_ticket:
@@ -9437,6 +10403,8 @@ export type Database = {
         | "garantia"
         | "troca"
         | "devolucao"
+      what_tipo: "venda" | "oportunidade" | "conta" | "ticket" | "proposta"
+      who_tipo: "lead" | "contato" | "cliente"
       yes_no: "YES" | "NO"
     }
     CompositeTypes: {
@@ -9594,7 +10562,15 @@ export const Constants = {
       identificacao_tipo: ["Cliente", "Fornecedor", "Ambos"],
       metodo_vinculacao: ["ia_automatico", "ia_manual", "manual", "importado"],
       natureza_tipo: ["Juridica", "Fisica"],
+      prioridade_atividade: ["critica", "alta", "media", "baixa"],
       prioridade_ticket: ["baixa", "normal", "alta", "urgente"],
+      sentimento_tipo: [
+        "muito_positivo",
+        "positivo",
+        "neutro",
+        "negativo",
+        "muito_negativo",
+      ],
       status_analise_ia: [
         "pendente",
         "em_analise",
@@ -9603,6 +10579,14 @@ export const Constants = {
         "cancelada",
       ],
       status_aprovacao: ["pendente", "aprovada", "rejeitada", "expirada"],
+      status_atividade: [
+        "pendente",
+        "em_andamento",
+        "concluida",
+        "cancelada",
+        "reagendada",
+        "aguardando_resposta",
+      ],
       status_entrega: [
         "pendente",
         "em_transito",
@@ -9635,6 +10619,18 @@ export const Constants = {
         "fechado",
         "cancelado",
       ],
+      tipo_atividade: [
+        "tarefa",
+        "chamada",
+        "reuniao",
+        "email",
+        "whatsapp",
+        "visita",
+        "follow_up",
+        "proposta",
+        "negociacao",
+        "outro",
+      ],
       tipo_endereco: ["principal", "entrega", "cobranca"],
       tipo_feedback: ["positivo", "negativo", "neutro"],
       tipo_ticket: [
@@ -9646,6 +10642,8 @@ export const Constants = {
         "troca",
         "devolucao",
       ],
+      what_tipo: ["venda", "oportunidade", "conta", "ticket", "proposta"],
+      who_tipo: ["lead", "contato", "cliente"],
       yes_no: ["YES", "NO"],
     },
   },
