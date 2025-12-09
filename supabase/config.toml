@@ -161,3 +161,6 @@ verify_jwt = true
 
 [functions.concluir-atividade]
 verify_jwt = true
+
+[functions.registrar-visualizacao-proposta]
+verify_jwt = false
