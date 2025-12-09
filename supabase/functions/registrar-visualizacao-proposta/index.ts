@@ -63,13 +63,15 @@ Deno.serve(async (req) => {
     // Buscar dados da venda para criar notificação
     const { data: venda, error: vendaError } = await supabase
       .from('vendas')
-      .select('numero_proposta, vendedor_id')
+      .select('numero_venda, vendedor_id')
       .eq('id', vendaId)
       .single();
 
-    if (!vendaError && venda?.vendedor_id) {
+    if (vendaError) {
+      console.error('❌ Erro ao buscar venda para notificação:', vendaError);
+    } else if (venda?.vendedor_id) {
       // Criar notificação para o vendedor
-      const numeroProposta = venda.numero_proposta || 'S/N';
+      const numeroProposta = venda.numero_venda || 'S/N';
       const linkProposta = `/vendas/${vendaId}`;
       
       await supabase
