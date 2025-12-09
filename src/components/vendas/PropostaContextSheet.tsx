@@ -18,7 +18,8 @@ import {
   Monitor,
   Smartphone,
   ThumbsUp,
-  ThumbsDown
+  ThumbsDown,
+  ChevronDown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -28,6 +29,12 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { TimelineUnificada } from "@/components/atividades/TimelineUnificada";
 import { NovaAtividadeDialog } from "@/components/atividades/NovaAtividadeDialog";
 import { useAtividades } from "@/hooks/useAtividades";
@@ -201,190 +208,211 @@ export function PropostaContextSheet({
                 </TabsList>
 
                 <ScrollArea className="h-[calc(100%-2.5rem)] [&_[data-radix-scroll-area-viewport]]:scrollbar-context">
-                  {/* Timeline Tab - Inclui tracking da proposta */}
-                  <TabsContent value="timeline" className="m-0 p-4 space-y-6">
-                    {/* Seção de Tracking da Proposta */}
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2">
-                        <Eye className="h-4 w-4 text-primary" />
-                        <h4 className="text-sm font-semibold">Engajamento do Cliente</h4>
-                      </div>
-
-                      {isLoadingTracking ? (
-                        <div className="space-y-2">
-                          <Skeleton className="h-16 w-full" />
-                          <Skeleton className="h-16 w-full" />
-                        </div>
-                      ) : propostaActivity?.analytics && propostaActivity.analytics.length > 0 ? (
-                        <div className="space-y-2">
-                          {propostaActivity.analytics.map((view) => (
-                            <Card key={view.id} className="overflow-hidden border-l-4 border-l-primary/50">
-                              <CardContent className="p-3">
-                                <div className="flex items-start justify-between gap-2">
-                                  <div className="flex items-center gap-2">
-                                    {getDeviceIcon(view.device_type)}
-                                    <div>
-                                      <p className="text-sm font-medium">
-                                        Visualização
-                                      </p>
-                                      <p className="text-xs text-muted-foreground">
-                                        {formatRelativeTime(view.iniciado_em)}
-                                      </p>
+                  <TabsContent value="timeline" className="m-0 p-4">
+                    <Accordion type="multiple" defaultValue={["engajamento", "historico"]} className="space-y-2">
+                      {/* Seção de Tracking da Proposta */}
+                      <AccordionItem value="engajamento" className="border rounded-lg px-3">
+                        <AccordionTrigger className="hover:no-underline py-3">
+                          <div className="flex items-center gap-2">
+                            <Eye className="h-4 w-4 text-primary" />
+                            <span className="text-sm font-semibold">Engajamento do Cliente</span>
+                            {propostaActivity?.analytics && propostaActivity.analytics.length > 0 && (
+                              <Badge variant="secondary" className="ml-2 text-xs">
+                                {propostaActivity.analytics.length}
+                              </Badge>
+                            )}
+                          </div>
+                        </AccordionTrigger>
+                        <AccordionContent className="pb-3">
+                          {isLoadingTracking ? (
+                            <div className="space-y-2">
+                              <Skeleton className="h-16 w-full" />
+                              <Skeleton className="h-16 w-full" />
+                            </div>
+                          ) : propostaActivity?.analytics && propostaActivity.analytics.length > 0 ? (
+                            <div className="space-y-2">
+                              {propostaActivity.analytics.map((view) => (
+                                <Card key={view.id} className="overflow-hidden border-l-4 border-l-primary/50">
+                                  <CardContent className="p-3">
+                                    <div className="flex items-start justify-between gap-2">
+                                      <div className="flex items-center gap-2">
+                                        {getDeviceIcon(view.device_type)}
+                                        <div>
+                                          <p className="text-sm font-medium">
+                                            Visualização
+                                          </p>
+                                          <p className="text-xs text-muted-foreground">
+                                            {formatRelativeTime(view.iniciado_em)}
+                                          </p>
+                                        </div>
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        <Badge variant="outline" className="text-xs">
+                                          <Timer className="h-3 w-3 mr-1" />
+                                          {formatDuration(view.tempo_total_segundos)}
+                                        </Badge>
+                                      </div>
                                     </div>
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                    <Badge variant="outline" className="text-xs">
-                                      <Timer className="h-3 w-3 mr-1" />
-                                      {formatDuration(view.tempo_total_segundos)}
-                                    </Badge>
-                                  </div>
-                                </div>
 
-                                {/* Detalhes do dispositivo */}
-                                <div className="mt-2 text-xs text-muted-foreground">
-                                  <span>{view.browser_name || 'Navegador'}</span>
-                                  {view.os_name && (
-                                    <span className="ml-2">• {view.os_name}</span>
-                                  )}
-                                </div>
-
-                                {/* Seções visitadas */}
-                                {propostaActivity.secoes && propostaActivity.secoes.filter(s => s.analytics_id === view.id).length > 0 && (
-                                  <div className="mt-3 pt-2 border-t">
-                                    <p className="text-xs font-medium mb-2">Seções visitadas:</p>
-                                    <div className="flex flex-wrap gap-1">
-                                      {propostaActivity.secoes
-                                        .filter(s => s.analytics_id === view.id)
-                                        .map(secao => (
-                                          <Badge key={secao.id} variant="secondary" className="text-xs">
-                                            {secao.secao_nome} ({formatDuration(secao.tempo_visivel_segundos)})
-                                          </Badge>
-                                        ))
-                                      }
+                                    {/* Detalhes do dispositivo */}
+                                    <div className="mt-2 text-xs text-muted-foreground">
+                                      <span>{view.browser_name || 'Navegador'}</span>
+                                      {view.os_name && (
+                                        <span className="ml-2">• {view.os_name}</span>
+                                      )}
                                     </div>
-                                  </div>
-                                )}
+
+                                    {/* Seções visitadas */}
+                                    {propostaActivity.secoes && propostaActivity.secoes.filter(s => s.analytics_id === view.id).length > 0 && (
+                                      <div className="mt-3 pt-2 border-t">
+                                        <p className="text-xs font-medium mb-2">Seções visitadas:</p>
+                                        <div className="flex flex-wrap gap-1">
+                                          {propostaActivity.secoes
+                                            .filter(s => s.analytics_id === view.id)
+                                            .map(secao => (
+                                              <Badge key={secao.id} variant="secondary" className="text-xs">
+                                                {secao.secao_nome} ({formatDuration(secao.tempo_visivel_segundos)})
+                                              </Badge>
+                                            ))
+                                          }
+                                        </div>
+                                      </div>
+                                    )}
+                                  </CardContent>
+                                </Card>
+                              ))}
+                            </div>
+                          ) : (
+                            <Card className="bg-muted/30">
+                              <CardContent className="p-4 text-center">
+                                <Eye className="h-8 w-8 text-muted-foreground/50 mx-auto mb-2" />
+                                <p className="text-sm text-muted-foreground">
+                                  Nenhuma visualização registrada
+                                </p>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  Compartilhe o link da proposta para rastrear o engajamento
+                                </p>
                               </CardContent>
                             </Card>
-                          ))}
+                          )}
+                        </AccordionContent>
+                      </AccordionItem>
 
-                          {/* Cliques registrados */}
-                          {propostaActivity.cliques && propostaActivity.cliques.length > 0 && (
-                            <div className="space-y-2 mt-4">
-                              <div className="flex items-center gap-2">
-                                <MousePointer className="h-4 w-4 text-muted-foreground" />
-                                <h5 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                                  Ações do Cliente
-                                </h5>
-                              </div>
-                              {propostaActivity.cliques.map(clique => (
-                                <Card key={clique.id} className={cn(
-                                  "overflow-hidden border-l-4",
-                                  clique.tipo_acao === 'aceitar' && "border-l-success",
-                                  clique.tipo_acao === 'recusar' && "border-l-destructive",
-                                  !['aceitar', 'recusar'].includes(clique.tipo_acao || '') && "border-l-muted"
-                                )}>
-                                  <CardContent className="p-3">
-                                    <div className="flex items-center justify-between">
-                                      <div className="flex items-center gap-2">
-                                        {clique.tipo_acao === 'aceitar' ? (
-                                          <ThumbsUp className="h-4 w-4 text-success" />
-                                        ) : clique.tipo_acao === 'recusar' ? (
-                                          <ThumbsDown className="h-4 w-4 text-destructive" />
-                                        ) : (
-                                          <MousePointer className="h-4 w-4 text-muted-foreground" />
-                                        )}
-                                        <span className="text-sm font-medium capitalize">
-                                          {clique.tipo_acao || 'Clique'}
-                                        </span>
-                                      </div>
-                                      <span className="text-xs text-muted-foreground">
-                                        {formatRelativeTime(clique.clicado_em)}
+                      {/* Ações do Cliente */}
+                      {propostaActivity?.cliques && propostaActivity.cliques.length > 0 && (
+                        <AccordionItem value="acoes" className="border rounded-lg px-3">
+                          <AccordionTrigger className="hover:no-underline py-3">
+                            <div className="flex items-center gap-2">
+                              <MousePointer className="h-4 w-4 text-primary" />
+                              <span className="text-sm font-semibold">Ações do Cliente</span>
+                              <Badge variant="secondary" className="ml-2 text-xs">
+                                {propostaActivity.cliques.length}
+                              </Badge>
+                            </div>
+                          </AccordionTrigger>
+                          <AccordionContent className="pb-3 space-y-2">
+                            {propostaActivity.cliques.map(clique => (
+                              <Card key={clique.id} className={cn(
+                                "overflow-hidden border-l-4",
+                                clique.tipo_acao === 'aceitar' && "border-l-success",
+                                clique.tipo_acao === 'recusar' && "border-l-destructive",
+                                !['aceitar', 'recusar'].includes(clique.tipo_acao || '') && "border-l-muted"
+                              )}>
+                                <CardContent className="p-3">
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                      {clique.tipo_acao === 'aceitar' ? (
+                                        <ThumbsUp className="h-4 w-4 text-success" />
+                                      ) : clique.tipo_acao === 'recusar' ? (
+                                        <ThumbsDown className="h-4 w-4 text-destructive" />
+                                      ) : (
+                                        <MousePointer className="h-4 w-4 text-muted-foreground" />
+                                      )}
+                                      <span className="text-sm font-medium capitalize">
+                                        {clique.tipo_acao || 'Clique'}
                                       </span>
                                     </div>
-                                    {clique.elemento_texto && (
-                                      <p className="text-xs text-muted-foreground mt-1">
-                                        {clique.elemento_texto}
-                                      </p>
-                                    )}
-                                  </CardContent>
-                                </Card>
-                              ))}
-                            </div>
-                          )}
-
-                          {/* Respostas */}
-                          {propostaActivity.respostas && propostaActivity.respostas.length > 0 && (
-                            <div className="space-y-2 mt-4">
-                              <div className="flex items-center gap-2">
-                                <CheckSquare className="h-4 w-4 text-muted-foreground" />
-                                <h5 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                                  Respostas
-                                </h5>
-                              </div>
-                              {propostaActivity.respostas.map(resposta => (
-                                <Card key={resposta.id} className={cn(
-                                  "overflow-hidden border-l-4",
-                                  resposta.tipo_resposta === 'aceite' && "border-l-success",
-                                  resposta.tipo_resposta === 'recusa' && "border-l-destructive"
-                                )}>
-                                  <CardContent className="p-3">
-                                    <div className="flex items-center justify-between">
-                                      <div className="flex items-center gap-2">
-                                        {resposta.tipo_resposta === 'aceite' ? (
-                                          <ThumbsUp className="h-4 w-4 text-success" />
-                                        ) : (
-                                          <ThumbsDown className="h-4 w-4 text-destructive" />
-                                        )}
-                                        <span className="text-sm font-medium">
-                                          Proposta {resposta.tipo_resposta === 'aceite' ? 'Aceita' : 'Recusada'}
-                                        </span>
-                                      </div>
-                                      <span className="text-xs text-muted-foreground">
-                                        {formatRelativeTime(resposta.respondido_em)}
-                                      </span>
-                                    </div>
-                                    {resposta.nome_respondente && (
-                                      <p className="text-xs text-muted-foreground mt-1">
-                                        Por: {resposta.nome_respondente}
-                                      </p>
-                                    )}
-                                    {resposta.comentario && (
-                                      <p className="text-xs text-muted-foreground mt-1 italic">
-                                        "{resposta.comentario}"
-                                      </p>
-                                    )}
-                                  </CardContent>
-                                </Card>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      ) : (
-                        <Card className="bg-muted/30">
-                          <CardContent className="p-4 text-center">
-                            <Eye className="h-8 w-8 text-muted-foreground/50 mx-auto mb-2" />
-                            <p className="text-sm text-muted-foreground">
-                              Nenhuma visualização registrada
-                            </p>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              Compartilhe o link da proposta para rastrear o engajamento
-                            </p>
-                          </CardContent>
-                        </Card>
+                                    <span className="text-xs text-muted-foreground">
+                                      {formatRelativeTime(clique.clicado_em)}
+                                    </span>
+                                  </div>
+                                  {clique.elemento_texto && (
+                                    <p className="text-xs text-muted-foreground mt-1">
+                                      {clique.elemento_texto}
+                                    </p>
+                                  )}
+                                </CardContent>
+                              </Card>
+                            ))}
+                          </AccordionContent>
+                        </AccordionItem>
                       )}
-                    </div>
 
-                    <Separator />
+                      {/* Respostas */}
+                      {propostaActivity?.respostas && propostaActivity.respostas.length > 0 && (
+                        <AccordionItem value="respostas" className="border rounded-lg px-3">
+                          <AccordionTrigger className="hover:no-underline py-3">
+                            <div className="flex items-center gap-2">
+                              <CheckSquare className="h-4 w-4 text-primary" />
+                              <span className="text-sm font-semibold">Respostas</span>
+                              <Badge variant="secondary" className="ml-2 text-xs">
+                                {propostaActivity.respostas.length}
+                              </Badge>
+                            </div>
+                          </AccordionTrigger>
+                          <AccordionContent className="pb-3 space-y-2">
+                            {propostaActivity.respostas.map(resposta => (
+                              <Card key={resposta.id} className={cn(
+                                "overflow-hidden border-l-4",
+                                resposta.tipo_resposta === 'aceite' && "border-l-success",
+                                resposta.tipo_resposta === 'recusa' && "border-l-destructive"
+                              )}>
+                                <CardContent className="p-3">
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                      {resposta.tipo_resposta === 'aceite' ? (
+                                        <ThumbsUp className="h-4 w-4 text-success" />
+                                      ) : (
+                                        <ThumbsDown className="h-4 w-4 text-destructive" />
+                                      )}
+                                      <span className="text-sm font-medium">
+                                        Proposta {resposta.tipo_resposta === 'aceite' ? 'Aceita' : 'Recusada'}
+                                      </span>
+                                    </div>
+                                    <span className="text-xs text-muted-foreground">
+                                      {formatRelativeTime(resposta.respondido_em)}
+                                    </span>
+                                  </div>
+                                  {resposta.nome_respondente && (
+                                    <p className="text-xs text-muted-foreground mt-1">
+                                      Por: {resposta.nome_respondente}
+                                    </p>
+                                  )}
+                                  {resposta.comentario && (
+                                    <p className="text-xs text-muted-foreground mt-1 italic">
+                                      "{resposta.comentario}"
+                                    </p>
+                                  )}
+                                </CardContent>
+                              </Card>
+                            ))}
+                          </AccordionContent>
+                        </AccordionItem>
+                      )}
 
-                    {/* Timeline de Atividades */}
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-primary" />
-                        <h4 className="text-sm font-semibold">Histórico de Atividades</h4>
-                      </div>
-                      <TimelineUnificada vendaId={vendaId} limite={30} />
-                    </div>
+                      {/* Timeline de Atividades */}
+                      <AccordionItem value="historico" className="border rounded-lg px-3">
+                        <AccordionTrigger className="hover:no-underline py-3">
+                          <div className="flex items-center gap-2">
+                            <Clock className="h-4 w-4 text-primary" />
+                            <span className="text-sm font-semibold">Histórico de Atividades</span>
+                          </div>
+                        </AccordionTrigger>
+                        <AccordionContent className="pb-3">
+                          <TimelineUnificada vendaId={vendaId} limite={30} />
+                        </AccordionContent>
+                      </AccordionItem>
+                    </Accordion>
                   </TabsContent>
 
                   {/* Atividades Tab */}
