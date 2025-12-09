@@ -60,6 +60,38 @@ Deno.serve(async (req) => {
 
     console.log('✅ Analytics registrado com sucesso:', data.id);
 
+    // Buscar dados da venda para criar notificação
+    const { data: venda, error: vendaError } = await supabase
+      .from('vendas')
+      .select('numero_proposta, vendedor_id')
+      .eq('id', vendaId)
+      .single();
+
+    if (!vendaError && venda?.vendedor_id) {
+      // Criar notificação para o vendedor
+      const numeroProposta = venda.numero_proposta || 'S/N';
+      const linkProposta = `/vendas/${vendaId}`;
+      
+      await supabase
+        .from('notificacoes')
+        .insert({
+          usuario_id: venda.vendedor_id,
+          titulo: '👁️ Cliente visualizando proposta',
+          descricao: `Um cliente está visualizando a proposta #${numeroProposta}`,
+          tipo: 'proposta_visualizacao',
+          entidade_id: vendaId,
+          entidade_tipo: 'venda',
+          metadata: {
+            numero_proposta: numeroProposta,
+            link: linkProposta,
+            device_type: deviceInfo?.device_type || 'unknown',
+            browser_name: deviceInfo?.browser_name || 'Unknown'
+          }
+        });
+
+      console.log('📢 Notificação criada para vendedor:', venda.vendedor_id);
+    }
+
     return new Response(
       JSON.stringify({ id: data.id, success: true }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

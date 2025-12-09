@@ -1,4 +1,4 @@
-import { Bell, MoreVertical } from "lucide-react";
+import { Bell, MoreVertical, ExternalLink } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useState, useMemo } from "react";
-import { useNotificacoes } from "@/hooks/useNotificacoes";
+import { useNotificacoes, Notificacao } from "@/hooks/useNotificacoes";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -35,9 +35,15 @@ export function NotificationsSheet() {
     marcarTodasComoLidas.mutate();
   };
 
-  const handleNotificationClick = (notificacaoId: string, lida: boolean) => {
-    if (!lida) {
-      marcarComoLida.mutate(notificacaoId);
+  const handleNotificationClick = (notification: Notificacao) => {
+    if (!notification.lida) {
+      marcarComoLida.mutate(notification.id);
+    }
+    
+    // Se tem link no metadata, abrir em nova aba
+    const link = notification.metadata?.link;
+    if (link) {
+      window.open(link, '_blank');
     }
   };
 
@@ -50,6 +56,36 @@ export function NotificationsSheet() {
     } catch {
       return timestamp;
     }
+  };
+
+  // Renderiza descrição com link clicável para propostas
+  const renderDescricao = (notification: Notificacao) => {
+    const numeroProposta = notification.metadata?.numero_proposta;
+    const link = notification.metadata?.link;
+    
+    if (numeroProposta && link && notification.tipo === 'proposta_visualizacao') {
+      return (
+        <p className="text-sm text-muted-foreground mb-2">
+          Um cliente está visualizando a proposta{' '}
+          <a
+            href={link}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="text-primary font-medium hover:underline inline-flex items-center gap-1"
+          >
+            #{numeroProposta}
+            <ExternalLink className="h-3 w-3" />
+          </a>
+        </p>
+      );
+    }
+    
+    return (
+      <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
+        {notification.descricao}
+      </p>
+    );
   };
 
   return (
@@ -109,7 +145,7 @@ export function NotificationsSheet() {
               {filteredNotifications.map((notification) => (
                 <div
                   key={notification.id}
-                  onClick={() => handleNotificationClick(notification.id, notification.lida)}
+                  onClick={() => handleNotificationClick(notification)}
                   className={`px-6 py-4 flex gap-3 hover:bg-muted/50 transition-colors cursor-pointer ${
                     !notification.lida ? "bg-primary/5" : ""
                   }`}
@@ -127,9 +163,7 @@ export function NotificationsSheet() {
                     <h4 className={`text-sm mb-1 ${!notification.lida ? 'font-semibold' : 'font-medium'}`}>
                       {notification.titulo}
                     </h4>
-                    <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
-                      {notification.descricao}
-                    </p>
+                    {renderDescricao(notification)}
                     <span className="text-xs text-muted-foreground">
                       {formatTimestamp(notification.criada_em)}
                     </span>
@@ -141,7 +175,6 @@ export function NotificationsSheet() {
                     className="flex-shrink-0 h-8 w-8"
                     onClick={(e) => {
                       e.stopPropagation();
-                      // Aqui pode adicionar menu de opções no futuro
                     }}
                   >
                     <MoreVertical className="h-4 w-4" />
