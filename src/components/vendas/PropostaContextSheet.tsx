@@ -37,6 +37,7 @@ import {
 } from "@/components/ui/accordion";
 import { TimelineUnificada } from "@/components/atividades/TimelineUnificada";
 import { NovaAtividadeDialog } from "@/components/atividades/NovaAtividadeDialog";
+import { AtividadeDetalhesSheet } from "@/components/atividades/AtividadeDetalhesSheet";
 import { useAtividades } from "@/hooks/useAtividades";
 import { useGEDDocumentos } from "@/hooks/useGEDDocumentos";
 import { usePropostaActivity } from "@/hooks/usePropostaActivity";
@@ -63,6 +64,7 @@ export function PropostaContextSheet({
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("timeline");
   const [showNovaAtividade, setShowNovaAtividade] = useState(false);
+  const [atividadeSelecionadaId, setAtividadeSelecionadaId] = useState<string | null>(null);
 
   // Buscar atividades vinculadas apenas a esta proposta/venda
   const { atividades, isLoading: isLoadingAtividades } = useAtividades({
@@ -439,7 +441,11 @@ export function PropostaContextSheet({
                     ) : atividades && atividades.length > 0 ? (
                       <div className="space-y-3">
                         {atividades.map(atividade => (
-                          <Card key={atividade.id} className="overflow-hidden">
+                          <Card 
+                            key={atividade.id} 
+                            className="overflow-hidden cursor-pointer hover:bg-muted/50 transition-colors"
+                            onClick={() => setAtividadeSelecionadaId(atividade.id)}
+                          >
                             <CardContent className="p-3">
                               <div className="flex items-start justify-between gap-2">
                                 <div className="flex-1 min-w-0">
@@ -450,15 +456,25 @@ export function PropostaContextSheet({
                                     </p>
                                   )}
                                 </div>
-                                <Badge 
-                                  variant={
-                                    atividade.status === 'concluida' ? 'default' :
-                                    atividade.status === 'em_andamento' ? 'secondary' : 'outline'
-                                  }
-                                  className="shrink-0 text-xs"
-                                >
-                                  {atividade.status}
-                                </Badge>
+                                <div className="flex flex-col items-end gap-1 shrink-0">
+                                  <Badge 
+                                    variant={
+                                      atividade.status === 'concluida' ? 'default' :
+                                      atividade.status === 'em_andamento' ? 'secondary' : 'outline'
+                                    }
+                                    className="text-xs"
+                                  >
+                                    {atividade.status}
+                                  </Badge>
+                                  {atividade.status === 'concluida' && atividade.concluida_no_prazo !== null && (
+                                    <Badge 
+                                      variant={atividade.concluida_no_prazo ? 'default' : 'destructive'}
+                                      className="text-xs"
+                                    >
+                                      {atividade.concluida_no_prazo ? 'No prazo' : 'Atrasada'}
+                                    </Badge>
+                                  )}
+                                </div>
                               </div>
                               <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
                                 <Calendar className="h-3 w-3" />
@@ -643,6 +659,13 @@ export function PropostaContextSheet({
         onOpenChange={setShowNovaAtividade}
         vendaId={vendaId}
         clienteId={clienteId || undefined}
+      />
+
+      {/* Atividade Detalhes Sheet */}
+      <AtividadeDetalhesSheet
+        atividadeId={atividadeSelecionadaId}
+        open={!!atividadeSelecionadaId}
+        onOpenChange={(open) => !open && setAtividadeSelecionadaId(null)}
       />
     </ResizablePanelGroup>
   );

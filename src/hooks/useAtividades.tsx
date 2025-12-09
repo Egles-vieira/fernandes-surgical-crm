@@ -26,6 +26,7 @@ export interface Atividade {
   nba_confianca: number | null;
   tags: string[];
   criado_em: string;
+  concluida_no_prazo: boolean | null;
   clientes?: any;
   perfis_usuario?: any;
   codigos_disposicao?: any;
@@ -70,6 +71,9 @@ export function useAtividades(options: { filtros?: FiltrosAtividades; ordenarPor
       }
       if (filtros.cliente_id) {
         query = query.eq('cliente_id', filtros.cliente_id);
+      }
+      if (filtros.venda_id) {
+        query = query.eq('venda_id', filtros.venda_id);
       }
       if (filtros.search) {
         query = query.ilike('titulo', `%${filtros.search}%`);
