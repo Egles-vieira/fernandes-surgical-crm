@@ -64,11 +64,10 @@ export function PropostaContextSheet({
   const [activeTab, setActiveTab] = useState("timeline");
   const [showNovaAtividade, setShowNovaAtividade] = useState(false);
 
-  // Buscar atividades do cliente/venda
+  // Buscar atividades vinculadas apenas a esta proposta/venda
   const { atividades, isLoading: isLoadingAtividades } = useAtividades({
     filtros: { 
-      venda_id: vendaId,
-      cliente_id: clienteId || undefined 
+      venda_id: vendaId
     },
     limite: 20
   });
