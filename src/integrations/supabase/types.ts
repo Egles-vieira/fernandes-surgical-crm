@@ -104,6 +104,7 @@ export type Database = {
           chamada_id: string | null
           cliente_id: string | null
           codigo_disposicao_id: string | null
+          concluida_no_prazo: boolean | null
           contato_id: string | null
           criado_em: string | null
           criado_por: string | null
@@ -164,6 +165,7 @@ export type Database = {
           chamada_id?: string | null
           cliente_id?: string | null
           codigo_disposicao_id?: string | null
+          concluida_no_prazo?: boolean | null
           contato_id?: string | null
           criado_em?: string | null
           criado_por?: string | null
@@ -226,6 +228,7 @@ export type Database = {
           chamada_id?: string | null
           cliente_id?: string | null
           codigo_disposicao_id?: string | null
+          concluida_no_prazo?: boolean | null
           contato_id?: string | null
           criado_em?: string | null
           criado_por?: string | null

@@ -65,6 +65,15 @@ serve(async (req) => {
     // Determinar novo status
     const novoStatus = disposicao.marca_como_concluido ? 'concluida' : 'aguardando_resposta';
 
+    // Calcular se foi concluída no prazo
+    let concluidaNoPrazo: boolean | null = null;
+    if (novoStatus === 'concluida' && atividade.data_vencimento) {
+      const dataConclusao = new Date();
+      const dataVencimento = new Date(atividade.data_vencimento);
+      concluidaNoPrazo = dataConclusao <= dataVencimento;
+      console.log(`[CONCLUIR] Data vencimento: ${dataVencimento.toISOString()}, Conclusão: ${dataConclusao.toISOString()}, No prazo: ${concluidaNoPrazo}`);
+    }
+
     // Atualizar atividade
     const { error: updateError } = await supabase
       .from('atividades')
@@ -74,7 +83,8 @@ serve(async (req) => {
         resultado_descricao,
         proximo_passo,
         duracao_real_minutos,
-        data_conclusao: novoStatus === 'concluida' ? new Date().toISOString() : null
+        data_conclusao: novoStatus === 'concluida' ? new Date().toISOString() : null,
+        concluida_no_prazo: concluidaNoPrazo
       })
       .eq('id', atividade_id);
 
