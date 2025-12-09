@@ -18,6 +18,8 @@ export default function PropostaPublica() {
   const [aceitarOpen, setAceitarOpen] = useState(false);
   const [recusarOpen, setRecusarOpen] = useState(false);
 
+  console.log('🔍 [PropostaPublica] Renderizando com token:', token);
+
   const { data: propostaData, isLoading, error } = useQuery({
     queryKey: ['proposta-publica', token],
     queryFn: async () => {
@@ -56,9 +58,20 @@ export default function PropostaPublica() {
     staleTime: 30000,
   });
 
+  // Só inicializar tracking APÓS dados carregarem
+  const trackingTokenId = propostaData?.id || '';
+  const trackingVendaId = propostaData?.venda_id || '';
+  
+  console.log('🔍 [PropostaPublica] Dados para tracking:', { 
+    tokenId: trackingTokenId, 
+    vendaId: trackingVendaId,
+    isLoading,
+    hasData: !!propostaData 
+  });
+
   const { trackClick } = usePropostaTracking(
-    propostaData?.id || '',
-    propostaData?.venda_id || ''
+    trackingTokenId,
+    trackingVendaId
   );
 
   const handleAceitar = () => { trackClick('aceitar_click', 'btn-aceitar'); setAceitarOpen(true); };
