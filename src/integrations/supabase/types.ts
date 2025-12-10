@@ -10177,17 +10177,17 @@ export type Database = {
         | {
             Args: { p_dias_atras?: number; p_limites_por_etapa?: Json }
             Returns: {
-              cliente_cnpj: string
               cliente_id: string
               cliente_nome: string
               created_at: string
-              data_fechamento_prevista: string
+              data_previsao_fechamento: string
               etapa_pipeline: string
               id: string
               numero_venda: string
+              observacoes: string
               probabilidade: number
+              updated_at: string
               valor_estimado: number
-              valor_total: number
               vendedor_id: string
               vendedor_nome: string
             }[]
