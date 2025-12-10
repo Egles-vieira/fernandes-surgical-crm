@@ -10153,26 +10153,6 @@ export type Database = {
       }
       get_vendas_pipeline_paginado:
         | {
-            Args: {
-              p_data_fim?: string
-              p_data_inicio?: string
-              p_limites_por_etapa?: Json
-            }
-            Returns: {
-              cliente_cgc: string
-              cliente_id: string
-              cliente_nome: string
-              created_at: string
-              data_previsao_fechamento: string
-              etapa_pipeline: Database["public"]["Enums"]["etapa_pipeline"]
-              id: string
-              numero_venda: string
-              probabilidade: number
-              total_por_etapa: number
-              valor_estimado: number
-            }[]
-          }
-        | {
             Args: { p_dias_historico?: number; p_limites_por_etapa?: Json }
             Returns: {
               cliente_id: string
@@ -10191,6 +10171,26 @@ export type Database = {
               valor_potencial: number
               vendedor_id: string
               vendedor_nome: string
+            }[]
+          }
+        | {
+            Args: {
+              p_data_fim?: string
+              p_data_inicio?: string
+              p_limites_por_etapa?: Json
+            }
+            Returns: {
+              cliente_cgc: string
+              cliente_id: string
+              cliente_nome: string
+              created_at: string
+              data_previsao_fechamento: string
+              etapa_pipeline: Database["public"]["Enums"]["etapa_pipeline"]
+              id: string
+              numero_venda: string
+              probabilidade: number
+              total_por_etapa: number
+              valor_estimado: number
             }[]
           }
       has_any_role: {
