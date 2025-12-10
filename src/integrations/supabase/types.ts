@@ -7307,7 +7307,6 @@ export type Database = {
           cliente_nome: string
           cod_emitente: number | null
           condicao_pagamento_id: string | null
-          contato_responsavel_id: string | null
           created_at: string
           data_faturamento_programado: string | null
           data_fechamento_prevista: string | null
@@ -7359,7 +7358,6 @@ export type Database = {
           cliente_nome: string
           cod_emitente?: number | null
           condicao_pagamento_id?: string | null
-          contato_responsavel_id?: string | null
           created_at?: string
           data_faturamento_programado?: string | null
           data_fechamento_prevista?: string | null
@@ -7411,7 +7409,6 @@ export type Database = {
           cliente_nome?: string
           cod_emitente?: number | null
           condicao_pagamento_id?: string | null
-          contato_responsavel_id?: string | null
           created_at?: string
           data_faturamento_programado?: string | null
           data_fechamento_prevista?: string | null
@@ -7475,13 +7472,6 @@ export type Database = {
             columns: ["condicao_pagamento_id"]
             isOneToOne: false
             referencedRelation: "condicoes_pagamento"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "vendas_contato_responsavel_id_fkey"
-            columns: ["contato_responsavel_id"]
-            isOneToOne: false
-            referencedRelation: "contatos"
             referencedColumns: ["id"]
           },
           {
