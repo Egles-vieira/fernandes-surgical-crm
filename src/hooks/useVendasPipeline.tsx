@@ -10,15 +10,20 @@ type EtapaPipeline = Tables<"vendas">["etapa_pipeline"];
 export interface VendaPipelineCard {
   id: string;
   numero_venda: string;
+  cliente_id: string;
   cliente_nome: string;
   etapa_pipeline: string;
   valor_estimado: number;
+  valor_potencial: number;
   probabilidade: number;
   status: string;
   created_at: string;
   updated_at: string;
-  vendedor_id: string | null;
-  total_na_etapa: number;
+  data_previsao_fechamento: string;
+  vendedor_id: string;
+  vendedor_nome: string;
+  total_etapa: number;
+  has_more: boolean;
 }
 
 interface UseVendasPipelineOptions {
@@ -72,7 +77,7 @@ export function useVendasPipeline(options: UseVendasPipelineOptions = {}) {
       // Usar RPC otimizada que retorna TOP N por etapa com limites individuais
       const { data, error } = await supabase.rpc("get_vendas_pipeline_paginado", {
         p_limites_por_etapa: limitesPorEtapa,
-        p_dias_atras: diasAtras,
+        p_dias_historico: diasAtras,
       });
 
       if (error) throw error;
@@ -152,10 +157,10 @@ export function useVendasPipeline(options: UseVendasPipelineOptions = {}) {
     return acc;
   }, {} as Record<string, VendaPipelineCard[]>);
 
-  // Totais por etapa (usando total_na_etapa do RPC para contagem real)
+  // Totais por etapa (usando total_etapa do RPC para contagem real)
   const totaisPorEtapa = Object.entries(vendasPorEtapa).reduce((acc, [etapa, vendasEtapa]) => {
-    // Pegar o total real da primeira venda da etapa (todas têm o mesmo total_na_etapa)
-    const totalReal = vendasEtapa[0]?.total_na_etapa || vendasEtapa.length;
+    // Pegar o total real da primeira venda da etapa (todas têm o mesmo total_etapa)
+    const totalReal = vendasEtapa[0]?.total_etapa || vendasEtapa.length;
     
     acc[etapa] = {
       quantidade: vendasEtapa.length,
