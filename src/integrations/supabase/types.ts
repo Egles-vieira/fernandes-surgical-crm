@@ -10155,8 +10155,10 @@ export type Database = {
         | {
             Args: { p_dias_atras?: number; p_limites_por_etapa?: Json }
             Returns: {
+              cliente_cgc: string
               cliente_nome: string
               created_at: string
+              data_fechamento_prevista: string
               etapa_pipeline: string
               id: string
               numero_venda: string
@@ -10165,6 +10167,7 @@ export type Database = {
               total_na_etapa: number
               updated_at: string
               valor_estimado: number
+              valor_total: number
               vendedor_id: string
             }[]
           }
