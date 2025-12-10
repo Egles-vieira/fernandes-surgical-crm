@@ -225,7 +225,6 @@ export default function VendaDetalhes() {
   const [valorEstimado, setValorEstimado] = useState<number>(0);
   const [probabilidade, setProbabilidade] = useState<number>(50);
   const [origemLead, setOrigemLead] = useState("");
-  const [contatoResponsavelId, setContatoResponsavelId] = useState<string>("");
   const [validadeProposta, setValidadeProposta] = useState<string>("");
   const [faturamentoParcial, setFaturamentoParcial] = useState(false);
   const [dataFaturamentoProgramado, setDataFaturamentoProgramado] = useState<string>("");
@@ -281,7 +280,6 @@ export default function VendaDetalhes() {
         setValorEstimado(vendaCarregada.valor_estimado || 0);
         setProbabilidade(vendaCarregada.probabilidade || 50);
         setOrigemLead(vendaCarregada.origem_lead || "");
-        setContatoResponsavelId((vendaCarregada as any).contato_responsavel_id || "");
         setValidadeProposta(vendaCarregada.validade_proposta || "");
         setFaturamentoParcial(vendaCarregada.faturamento_parcial === "YES");
         setDataFaturamentoProgramado((vendaCarregada as any).data_faturamento_programado || "");
@@ -588,7 +586,6 @@ export default function VendaDetalhes() {
         valor_estimado: valorEstimado,
         probabilidade,
         origem_lead: origemLead,
-        contato_responsavel_id: contatoResponsavelId || null,
         validade_proposta: validadeProposta || null,
         faturamento_parcial: faturamentoParcial ? "YES" : "NO",
         data_faturamento_programado: dataFaturamentoProgramado || null,
@@ -675,7 +672,6 @@ export default function VendaDetalhes() {
         valor_estimado: valorEstimado,
         probabilidade,
         origem_lead: origemLead,
-        contato_responsavel_id: contatoResponsavelId || null,
         validade_proposta: validadeProposta || null,
         faturamento_parcial: faturamentoParcial ? "YES" : "NO",
         data_faturamento_programado: dataFaturamentoProgramado || null
@@ -830,28 +826,6 @@ export default function VendaDetalhes() {
     }, {
       label: "Valor Estimado",
       value: venda.valor_estimado ? formatCurrency(venda.valor_estimado) : null
-    }, {
-      label: "Contato Responsável",
-      value: null,
-      type: "select" as const,
-      options: contatosCliente.map(c => ({
-        id: c.id,
-        nome_completo: c.nome_completo,
-        cargo: c.cargo
-      })),
-      selectedId: (venda as any).contato_responsavel_id || null,
-      onSelect: async (contatoId: string) => {
-        try {
-          await updateVenda.mutateAsync({
-            id: venda.id,
-            contato_responsavel_id: contatoId
-          } as any);
-          setContatoResponsavelId(contatoId);
-          toast.success("Contato responsável atualizado");
-        } catch (error) {
-          toast.error("Erro ao atualizar contato responsável");
-        }
-      }
     }]} onEditarCampos={() => {
       window.scrollTo({
         top: 0,
