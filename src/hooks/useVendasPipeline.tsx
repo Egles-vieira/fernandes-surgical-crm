@@ -10,15 +10,18 @@ type EtapaPipeline = Tables<"vendas">["etapa_pipeline"];
 export interface VendaPipelineCard {
   id: string;
   numero_venda: string;
+  cliente_id: string | null;
   cliente_nome: string;
+  cliente_cnpj: string | null;
   etapa_pipeline: string;
   valor_estimado: number;
+  valor_total: number;
   probabilidade: number;
-  status: string;
+  data_fechamento_prevista: string | null;
   created_at: string;
-  updated_at: string;
   vendedor_id: string | null;
-  total_na_etapa: number;
+  vendedor_nome: string | null;
+  total_na_etapa?: number;
 }
 
 interface UseVendasPipelineOptions {
