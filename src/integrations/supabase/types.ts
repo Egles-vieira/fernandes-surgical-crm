@@ -10155,22 +10155,19 @@ export type Database = {
         | {
             Args: { p_dias_historico?: number; p_limites_por_etapa?: Json }
             Returns: {
+              cliente_cgc: string
               cliente_id: string
               cliente_nome: string
               created_at: string
-              data_previsao_fechamento: string
               etapa_pipeline: string
-              has_more: boolean
               id: string
               numero_venda: string
+              previsao_fechamento: string
               probabilidade: number
-              status: string
-              total_etapa: number
-              updated_at: string
+              total_na_etapa: number
               valor_estimado: number
-              valor_potencial: number
+              valor_total: number
               vendedor_id: string
-              vendedor_nome: string
             }[]
           }
         | {
