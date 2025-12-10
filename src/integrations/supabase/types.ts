@@ -10178,19 +10178,17 @@ export type Database = {
               p_limites_por_etapa?: Json
             }
             Returns: {
+              cliente_cgc: string
               cliente_id: string
               cliente_nome: string
               created_at: string
               data_previsao_fechamento: string
-              etapa_pipeline: string
+              etapa_pipeline: Database["public"]["Enums"]["etapa_pipeline"]
               id: string
               numero_venda: string
               probabilidade: number
               total_por_etapa: number
               valor_estimado: number
-              valor_final: number
-              vendedor_id: string
-              vendedor_nome: string
             }[]
           }
       has_any_role: {
