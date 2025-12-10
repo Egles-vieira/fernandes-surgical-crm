@@ -1,7 +1,15 @@
 import { DragDropContext, DropResult } from "@hello-pangea/dnd";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { KanbanColumn, EtapaPipeline } from "./KanbanColumn";
-import type { VendaPipelineCard } from "@/hooks/useVendasPipeline";
+import type { Database } from "@/integrations/supabase/types";
+
+type Tables = Database["public"]["Tables"];
+type Venda = Tables["vendas"]["Row"];
+
+interface VendaPipeline extends Venda {
+  vendas_itens?: any[];
+  total_na_etapa?: number;
+}
 
 // Tipo para totais por etapa
 interface TotaisEtapa {
@@ -12,13 +20,12 @@ interface TotaisEtapa {
 }
 
 interface KanbanBoardProps {
-  vendas: VendaPipelineCard[];
+  vendas: VendaPipeline[];
   totaisPorEtapa?: Record<string, TotaisEtapa>;
   etapaCarregando?: string | null;
   onDragEnd: (result: DropResult) => void;
-  onViewDetails: (venda: VendaPipelineCard) => void;
+  onViewDetails: (venda: VendaPipeline) => void;
   onCarregarMais?: (etapa: EtapaPipeline) => void;
-  onMoverEtapa?: (id: string, etapa: string) => void;
 }
 
 const ETAPAS_CONFIG: Record<EtapaPipeline, {
@@ -86,8 +93,8 @@ const ETAPAS_ATIVAS: EtapaPipeline[] = [
   "fechamento",
 ];
 
-export function KanbanBoard({ vendas, totaisPorEtapa, etapaCarregando, onDragEnd, onViewDetails, onCarregarMais, onMoverEtapa }: KanbanBoardProps) {
-  const getVendasPorEtapa = (etapa: EtapaPipeline): VendaPipelineCard[] => {
+export function KanbanBoard({ vendas, totaisPorEtapa, etapaCarregando, onDragEnd, onViewDetails, onCarregarMais }: KanbanBoardProps) {
+  const getVendasPorEtapa = (etapa: EtapaPipeline): VendaPipeline[] => {
     return vendas.filter((v) => v.etapa_pipeline === etapa);
   };
 
@@ -119,7 +126,6 @@ export function KanbanBoard({ vendas, totaisPorEtapa, etapaCarregando, onDragEnd
                 isLoadingMore={etapaCarregando === etapa}
                 onViewDetails={onViewDetails}
                 onCarregarMais={onCarregarMais}
-                onMoverEtapa={onMoverEtapa}
               />
             ))}
           </div>

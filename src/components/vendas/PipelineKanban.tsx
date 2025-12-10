@@ -1,6 +1,14 @@
 import { DropResult } from "@hello-pangea/dnd";
 import { KanbanBoard } from "./pipeline/KanbanBoard";
-import type { VendaPipelineCard } from "@/hooks/useVendasPipeline";
+import type { Database } from "@/integrations/supabase/types";
+
+type Tables = Database["public"]["Tables"];
+type Venda = Tables["vendas"]["Row"];
+
+interface VendaPipeline extends Venda {
+  vendas_itens?: any[];
+  total_na_etapa?: number;
+}
 
 // Tipo para totais por etapa
 interface TotaisEtapa {
@@ -13,13 +21,12 @@ interface TotaisEtapa {
 export type EtapaPipeline = "prospeccao" | "qualificacao" | "proposta" | "negociacao" | "fechamento" | "followup_cliente" | "ganho" | "perdido";
 
 interface PipelineKanbanProps {
-  vendas: VendaPipelineCard[];
+  vendas: VendaPipeline[];
   totaisPorEtapa?: Record<string, TotaisEtapa>;
   etapaCarregando?: string | null;
   onDragEnd: (result: DropResult) => void;
-  onViewDetails: (venda: VendaPipelineCard) => void;
+  onViewDetails: (venda: VendaPipeline) => void;
   onCarregarMais?: (etapa: EtapaPipeline) => void;
-  onMoverEtapa?: (id: string, etapa: string) => void;
 }
 
 export function PipelineKanban({
@@ -28,8 +35,7 @@ export function PipelineKanban({
   etapaCarregando,
   onDragEnd,
   onViewDetails,
-  onCarregarMais,
-  onMoverEtapa
+  onCarregarMais
 }: PipelineKanbanProps) {
   return (
     <div className="flex flex-col h-full">
@@ -40,7 +46,6 @@ export function PipelineKanban({
         onDragEnd={onDragEnd} 
         onViewDetails={onViewDetails}
         onCarregarMais={onCarregarMais}
-        onMoverEtapa={onMoverEtapa}
       />
     </div>
   );

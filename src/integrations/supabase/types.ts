@@ -10164,19 +10164,17 @@ export type Database = {
       get_vendas_pipeline_paginado: {
         Args: { p_dias_atras?: number; p_limites_por_etapa?: Json }
         Returns: {
-          cliente_cnpj: string
-          cliente_id: string
           cliente_nome: string
           created_at: string
-          data_fechamento_prevista: string
           etapa_pipeline: string
           id: string
           numero_venda: string
           probabilidade: number
+          status: string
+          total_na_etapa: number
+          updated_at: string
           valor_estimado: number
-          valor_total: number
           vendedor_id: string
-          vendedor_nome: string
         }[]
       }
       has_any_role: {

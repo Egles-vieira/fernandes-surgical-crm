@@ -3,7 +3,15 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { List, Loader2 } from "lucide-react";
 import { KanbanCard } from "./KanbanCard";
-import type { VendaPipelineCard } from "@/hooks/useVendasPipeline";
+import type { Database } from "@/integrations/supabase/types";
+
+type Tables = Database["public"]["Tables"];
+type Venda = Tables["vendas"]["Row"];
+
+interface VendaPipeline extends Venda {
+  vendas_itens?: any[];
+  total_na_etapa?: number;
+}
 
 export type EtapaPipeline =
   | "prospeccao"
@@ -25,13 +33,12 @@ interface EtapaConfig {
 interface KanbanColumnProps {
   etapa: EtapaPipeline;
   config: EtapaConfig;
-  vendas: VendaPipelineCard[];
+  vendas: VendaPipeline[];
   valorTotal: number;
   totalReal?: number;
   isLoadingMore?: boolean;
-  onViewDetails: (venda: VendaPipelineCard) => void;
+  onViewDetails: (venda: VendaPipeline) => void;
   onCarregarMais?: (etapa: EtapaPipeline) => void;
-  onMoverEtapa?: (id: string, etapa: string) => void;
 }
 
 export function KanbanColumn({ 
@@ -42,8 +49,7 @@ export function KanbanColumn({
   totalReal,
   isLoadingMore,
   onViewDetails,
-  onCarregarMais,
-  onMoverEtapa
+  onCarregarMais
 }: KanbanColumnProps) {
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {
@@ -93,7 +99,6 @@ export function KanbanColumn({
                     venda={venda}
                     index={index}
                     onViewDetails={onViewDetails}
-                    onMoverEtapa={onMoverEtapa}
                   />
                 ))}
                 {provided.placeholder}
