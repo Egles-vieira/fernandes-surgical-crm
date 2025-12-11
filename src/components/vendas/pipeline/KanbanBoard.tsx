@@ -1,15 +1,7 @@
 import { DragDropContext, DropResult } from "@hello-pangea/dnd";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { KanbanColumn, EtapaPipeline } from "./KanbanColumn";
-import type { Database } from "@/integrations/supabase/types";
-
-type Tables = Database["public"]["Tables"];
-type Venda = Tables["vendas"]["Row"];
-
-interface VendaPipeline extends Venda {
-  vendas_itens?: any[];
-  total_na_etapa?: number;
-}
+import type { VendaPipelineCard } from "@/hooks/useVendasPipeline";
 
 // Tipo para totais por etapa
 interface TotaisEtapa {
@@ -20,11 +12,11 @@ interface TotaisEtapa {
 }
 
 interface KanbanBoardProps {
-  vendas: VendaPipeline[];
+  vendas: VendaPipelineCard[];
   totaisPorEtapa?: Record<string, TotaisEtapa>;
   etapaCarregando?: string | null;
   onDragEnd: (result: DropResult) => void;
-  onViewDetails: (venda: VendaPipeline) => void;
+  onViewDetails: (venda: VendaPipelineCard) => void;
   onCarregarMais?: (etapa: EtapaPipeline) => void;
 }
 
@@ -94,13 +86,13 @@ const ETAPAS_ATIVAS: EtapaPipeline[] = [
 ];
 
 export function KanbanBoard({ vendas, totaisPorEtapa, etapaCarregando, onDragEnd, onViewDetails, onCarregarMais }: KanbanBoardProps) {
-  const getVendasPorEtapa = (etapa: EtapaPipeline): VendaPipeline[] => {
+  const getVendasPorEtapa = (etapa: EtapaPipeline): VendaPipelineCard[] => {
     return vendas.filter((v) => v.etapa_pipeline === etapa);
   };
 
   const calcularValorTotal = (etapa: EtapaPipeline): number => {
     return getVendasPorEtapa(etapa).reduce((total, venda) => {
-      const valorBase = (venda.valor_estimado || 0) > 0 ? venda.valor_estimado : (venda.valor_total || 0);
+      const valorBase = venda.valor_estimado || 0;
       const valorPotencial = (valorBase || 0) * ((venda.probabilidade || 0) / 100);
       return total + valorPotencial;
     }, 0);

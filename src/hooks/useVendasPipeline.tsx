@@ -10,20 +10,18 @@ type EtapaPipeline = Tables<"vendas">["etapa_pipeline"];
 export interface VendaPipelineCard {
   id: string;
   numero_venda: string;
-  cliente_id: string;
-  cliente_nome: string;
+  cliente_id: string | null;
+  cliente_nome: string | null;
   etapa_pipeline: string;
-  valor_estimado: number;
-  valor_potencial: number;
-  probabilidade: number;
-  status: string;
+  valor_estimado: number | null;
+  probabilidade: number | null;
   created_at: string;
-  updated_at: string;
-  data_previsao_fechamento: string;
-  vendedor_id: string;
-  vendedor_nome: string;
+  data_previsao_fechamento: string | null;
+  vendedor_nome: string | null;
+  total_itens: number;
   total_etapa: number;
-  has_more: boolean;
+  valor_total_etapa: number;
+  valor_potencial_etapa: number;
 }
 
 interface UseVendasPipelineOptions {
@@ -77,7 +75,7 @@ export function useVendasPipeline(options: UseVendasPipelineOptions = {}) {
       // Usar RPC otimizada que retorna TOP N por etapa com limites individuais
       const { data, error } = await supabase.rpc("get_vendas_pipeline_paginado", {
         p_limites_por_etapa: limitesPorEtapa,
-        p_dias_historico: diasAtras,
+        p_dias_atras: diasAtras,
       });
 
       if (error) throw error;
