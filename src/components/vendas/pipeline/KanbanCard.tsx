@@ -111,11 +111,11 @@ export function KanbanCard({ venda, index, onViewDetails }: KanbanCardProps) {
               </div>
 
               {/* Data prevista */}
-              {venda.data_previsao_fechamento && (
+              {venda.data_fechamento_prevista && (
                 <div className="flex items-center gap-1.5 mb-3">
                   <Calendar className="h-3 w-3 text-muted-foreground/60" />
                   <span className="text-[11px] text-muted-foreground">
-                    Previsão: {formatDate(venda.data_previsao_fechamento)}
+                    Previsão: {formatDate(venda.data_fechamento_prevista)}
                   </span>
                 </div>
               )}

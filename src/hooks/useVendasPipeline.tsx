@@ -16,7 +16,7 @@ export interface VendaPipelineCard {
   valor_estimado: number | null;
   probabilidade: number | null;
   created_at: string;
-  data_previsao_fechamento: string | null;
+  data_fechamento_prevista: string | null;
   vendedor_nome: string | null;
   total_itens: number;
   total_etapa: number;
