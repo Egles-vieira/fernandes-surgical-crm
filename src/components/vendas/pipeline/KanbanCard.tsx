@@ -1,21 +1,14 @@
-import { Building2, Calendar, TrendingUp, DollarSign, User } from "lucide-react";
+import { Building2, Calendar, TrendingUp, DollarSign } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Draggable } from "@hello-pangea/dnd";
-import type { Database } from "@/integrations/supabase/types";
 import { cn } from "@/lib/utils";
-
-type Tables = Database["public"]["Tables"];
-type Venda = Tables["vendas"]["Row"];
-
-interface VendaPipeline extends Venda {
-  vendas_itens?: any[];
-}
+import type { VendaPipelineCard } from "@/hooks/useVendasPipeline";
 
 interface KanbanCardProps {
-  venda: VendaPipeline;
+  venda: VendaPipelineCard;
   index: number;
-  onViewDetails: (venda: VendaPipeline) => void;
+  onViewDetails: (venda: VendaPipelineCard) => void;
 }
 
 export function KanbanCard({ venda, index, onViewDetails }: KanbanCardProps) {
@@ -56,8 +49,7 @@ export function KanbanCard({ venda, index, onViewDetails }: KanbanCardProps) {
     };
   };
 
-  // Usar valor_total se valor_estimado for 0
-  const valorBase = (venda.valor_estimado || 0) > 0 ? venda.valor_estimado : (venda.valor_total || 0);
+  const valorBase = venda.valor_estimado || 0;
   const valorPotencial = valorBase * ((venda.probabilidade || 0) / 100);
   const probConfig = getProbabilidadeConfig(venda.probabilidade || 0);
 
@@ -110,25 +102,20 @@ export function KanbanCard({ venda, index, onViewDetails }: KanbanCardProps) {
                   <Building2 className="h-3.5 w-3.5 text-primary" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-foreground leading-tight" title={venda.cliente_nome}>
+                  <p className="text-sm font-semibold text-foreground leading-tight" title={venda.cliente_nome || ''}>
                     {venda.cliente_nome && venda.cliente_nome.length > 20 
                       ? `${venda.cliente_nome.substring(0, 20)}...` 
-                      : venda.cliente_nome}
+                      : venda.cliente_nome || 'Sem cliente'}
                   </p>
-                  {venda.cliente_cnpj && (
-                    <p className="text-[10px] text-muted-foreground/70 truncate mt-0.5 font-mono">
-                      {venda.cliente_cnpj}
-                    </p>
-                  )}
                 </div>
               </div>
 
               {/* Data prevista */}
-              {venda.data_fechamento_prevista && (
+              {venda.data_previsao_fechamento && (
                 <div className="flex items-center gap-1.5 mb-3">
                   <Calendar className="h-3 w-3 text-muted-foreground/60" />
                   <span className="text-[11px] text-muted-foreground">
-                    Previsão: {formatDate(venda.data_fechamento_prevista)}
+                    Previsão: {formatDate(venda.data_previsao_fechamento)}
                   </span>
                 </div>
               )}
