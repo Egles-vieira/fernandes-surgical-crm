@@ -360,7 +360,7 @@ export default function Auth() {
                     )}
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="space-y-2 col-span-2">
                     <Label htmlFor="cnpj" className="text-sm font-medium text-foreground">
                       CNPJ *
                     </Label>
