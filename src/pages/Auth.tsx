@@ -99,21 +99,23 @@ export default function Auth() {
     try {
       // Inserir solicitação na tabela de solicitações de cadastro
       // Usando dados_coletados JSONB para armazenar os dados do formulário
-      const { error } = await supabase.from("solicitacoes_cadastro").insert([{
-        cnpj: data.cnpj.replace(/\D/g, ''), // Remove formatação
-        status: "rascunho" as const,
-        dados_coletados: {
-          nome: data.nome,
-          empresa: data.empresa,
-          cnpj: data.cnpj,
-          email: data.email,
-          telefone: data.telefone,
-          mensagem: data.mensagem || null,
-          origem: "formulario_login",
-          data_solicitacao: new Date().toISOString(),
+      const { error } = await supabase.from("solicitacoes_cadastro").insert([
+        {
+          cnpj: data.cnpj.replace(/\D/g, ""), // Remove formatação
+          status: "rascunho" as const,
+          dados_coletados: {
+            nome: data.nome,
+            empresa: data.empresa,
+            cnpj: data.cnpj,
+            email: data.email,
+            telefone: data.telefone,
+            mensagem: data.mensagem || null,
+            origem: "formulario_login",
+            data_solicitacao: new Date().toISOString(),
+          },
+          observacoes: `Solicitação de acesso via login - ${data.nome} (${data.empresa})`,
         },
-        observacoes: `Solicitação de acesso via login - ${data.nome} (${data.empresa})`,
-      }]);
+      ]);
 
       if (error) throw error;
 
@@ -135,18 +137,13 @@ export default function Auth() {
     }
   };
 
-  const handleSubmit = isLogin 
-    ? loginForm.handleSubmit(handleLogin) 
-    : contatoForm.handleSubmit(handleContatoComercial);
+  const handleSubmit = isLogin ? loginForm.handleSubmit(handleLogin) : contatoForm.handleSubmit(handleContatoComercial);
   return (
-    <div className="min-h-screen flex font-sans" style={{ fontFamily: 'var(--font, Lexend, sans-serif)' }}>
+    <div className="min-h-screen flex font-sans" style={{ fontFamily: "var(--font, Lexend, sans-serif)" }}>
       {/* Left Side - Brand Section */}
       <div className="hidden lg:flex lg:w-[62%] relative overflow-hidden">
         {/* Background Image */}
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url(${heroImage})` }}
-        />
+        <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${heroImage})` }} />
 
         {/* Subtle dark gradient for text readability */}
         <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent"></div>
@@ -162,12 +159,8 @@ export default function Auth() {
         ></div>
 
         {/* Floating shapes for depth */}
-        <div
-          className="absolute top-20 right-20 w-72 h-72 bg-white/5 rounded-full blur-3xl"
-        ></div>
-        <div
-          className="absolute bottom-32 left-20 w-96 h-96 bg-black/10 rounded-full blur-3xl"
-        ></div>
+        <div className="absolute top-20 right-20 w-72 h-72 bg-white/5 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-32 left-20 w-96 h-96 bg-black/10 rounded-full blur-3xl"></div>
 
         <div className="relative z-10 text-white w-full px-16 flex flex-col justify-center py-20">
           {/* Logo with glow effect */}
@@ -262,9 +255,7 @@ export default function Auth() {
                 </h2>
               </div>
               <p className="text-muted-foreground text-sm">
-                {isLogin 
-                  ? "Acesse sua conta para continuar" 
-                  : "Preencha seus dados e nossa equipe entrará em contato"}
+                {isLogin ? "Acesse sua conta para continuar" : "Preencha seus dados e nossa equipe entrará em contato"}
               </p>
             </div>
 
@@ -367,28 +358,28 @@ export default function Auth() {
                         {contatoForm.formState.errors.empresa?.message}
                       </p>
                     )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="cnpj" className="text-sm font-medium text-foreground">
-                    CNPJ *
-                  </Label>
-                  <div className="relative group">
-                    <FileText className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transition-colors group-focus-within:text-[#3fb39d]" />
-                    <Input
-                      id="cnpj"
-                      placeholder="00.000.000/0000-00"
-                      className="pl-10 h-11 bg-background/50 border-input focus:border-[#3fb39d] focus:ring-1 focus:ring-[#3fb39d] transition-all"
-                      {...contatoForm.register("cnpj")}
-                    />
                   </div>
-                  {contatoForm.formState.errors.cnpj && (
-                    <p className="text-xs text-destructive flex items-center gap-1">
-                      <AlertCircle className="h-3 w-3" />
-                      {contatoForm.formState.errors.cnpj?.message}
-                    </p>
-                  )}
-                </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="cnpj" className="text-sm font-medium text-foreground">
+                      CNPJ *
+                    </Label>
+                    <div className="relative group">
+                      <FileText className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transition-colors group-focus-within:text-[#3fb39d]" />
+                      <Input
+                        id="cnpj"
+                        placeholder="00.000.000/0000-00"
+                        className="pl-10 h-11 bg-background/50 border-input focus:border-[#3fb39d] focus:ring-1 focus:ring-[#3fb39d] transition-all"
+                        {...contatoForm.register("cnpj")}
+                      />
+                    </div>
+                    {contatoForm.formState.errors.cnpj && (
+                      <p className="text-xs text-destructive flex items-center gap-1">
+                        <AlertCircle className="h-3 w-3" />
+                        {contatoForm.formState.errors.cnpj?.message}
+                      </p>
+                    )}
+                  </div>
                 </div>
 
                 <div className="space-y-2">
@@ -471,9 +462,7 @@ export default function Auth() {
                     <div className="w-full border-t border-border"></div>
                   </div>
                   <div className="relative flex justify-center text-xs">
-                    <span className="bg-white dark:bg-gray-900 px-2 text-muted-foreground">
-                      Novo por aqui?
-                    </span>
+                    <span className="bg-white dark:bg-gray-900 px-2 text-muted-foreground">Novo por aqui?</span>
                   </div>
                 </div>
 
