@@ -10153,6 +10153,24 @@ export type Database = {
       }
       get_vendas_pipeline_paginado:
         | {
+            Args: { p_dias_atras?: number; p_limites_por_etapa?: Json }
+            Returns: {
+              cliente_id: string
+              cliente_nome: string
+              created_at: string
+              data_previsao_fechamento: string
+              etapa_pipeline: string
+              id: string
+              numero_venda: string
+              probabilidade: number
+              total_itens: number
+              valor_estimado: number
+              valor_potencial_etapa: number
+              valor_total_etapa: number
+              vendedor_nome: string
+            }[]
+          }
+        | {
             Args: {
               p_data_fim?: string
               p_data_inicio?: string
@@ -10170,25 +10188,6 @@ export type Database = {
               probabilidade: number
               total_por_etapa: number
               valor_estimado: number
-            }[]
-          }
-        | {
-            Args: { p_dias_atras?: number; p_limites_por_etapa?: Json }
-            Returns: {
-              cliente_id: string
-              cliente_nome: string
-              created_at: string
-              data_previsao_fechamento: string
-              etapa_pipeline: string
-              id: string
-              numero_venda: string
-              probabilidade: number
-              total_etapa: number
-              total_itens: number
-              valor_estimado: number
-              valor_potencial_etapa: number
-              valor_total_etapa: number
-              vendedor_nome: string
             }[]
           }
       has_any_role: {
