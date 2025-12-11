@@ -50,7 +50,7 @@ const ETAPAS = [
 ] as const;
 
 export function useVendasPipeline(options: UseVendasPipelineOptions = {}) {
-  const { limitePorEtapaInicial = 20, diasAtras = 90, enabled = true } = options;
+  const { limitePorEtapaInicial = 20, diasAtras = 365, enabled = true } = options;
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
