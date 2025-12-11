@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { AlertCircle, Lock, Mail, Building2, Phone, User, ArrowLeft, Send } from "lucide-react";
+import { AlertCircle, Lock, Mail, Building2, Phone, User, ArrowLeft, Send, FileText } from "lucide-react";
 import { loginSchema, LoginInput } from "@/lib/validations/auth";
 import logo from "@/assets/logo-convertiai.png";
 import heroImage from "@/assets/auth-hero-professional.jpg";
@@ -19,6 +19,7 @@ import { TypewriterText } from "@/components/TypewriterText";
 const contatoComercialSchema = z.object({
   nome: z.string().min(3, "Nome deve ter pelo menos 3 caracteres"),
   empresa: z.string().min(2, "Informe o nome da empresa"),
+  cnpj: z.string().min(14, "CNPJ deve ter 14 dígitos").max(18, "CNPJ inválido"),
   email: z.string().email("E-mail inválido"),
   telefone: z.string().min(10, "Telefone deve ter pelo menos 10 dígitos"),
   mensagem: z.string().optional(),
@@ -43,6 +44,7 @@ export default function Auth() {
     defaultValues: {
       nome: "",
       empresa: "",
+      cnpj: "",
       email: "",
       telefone: "",
       mensagem: "",
@@ -98,11 +100,12 @@ export default function Auth() {
       // Inserir solicitação na tabela de solicitações de cadastro
       // Usando dados_coletados JSONB para armazenar os dados do formulário
       const { error } = await supabase.from("solicitacoes_cadastro").insert([{
-        cnpj: data.telefone, // Usando telefone como identificador temporário
+        cnpj: data.cnpj.replace(/\D/g, ''), // Remove formatação
         status: "rascunho" as const,
         dados_coletados: {
           nome: data.nome,
           empresa: data.empresa,
+          cnpj: data.cnpj,
           email: data.email,
           telefone: data.telefone,
           mensagem: data.mensagem || null,
@@ -364,7 +367,28 @@ export default function Auth() {
                         {contatoForm.formState.errors.empresa?.message}
                       </p>
                     )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="cnpj" className="text-sm font-medium text-foreground">
+                    CNPJ *
+                  </Label>
+                  <div className="relative group">
+                    <FileText className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transition-colors group-focus-within:text-[#3fb39d]" />
+                    <Input
+                      id="cnpj"
+                      placeholder="00.000.000/0000-00"
+                      className="pl-10 h-11 bg-background/50 border-input focus:border-[#3fb39d] focus:ring-1 focus:ring-[#3fb39d] transition-all"
+                      {...contatoForm.register("cnpj")}
+                    />
                   </div>
+                  {contatoForm.formState.errors.cnpj && (
+                    <p className="text-xs text-destructive flex items-center gap-1">
+                      <AlertCircle className="h-3 w-3" />
+                      {contatoForm.formState.errors.cnpj?.message}
+                    </p>
+                  )}
+                </div>
                 </div>
 
                 <div className="space-y-2">
