@@ -10158,11 +10158,12 @@ export type Database = {
               cliente_id: string
               cliente_nome: string
               created_at: string
-              data_previsao_fechamento: string
+              data_fechamento_prevista: string
               etapa_pipeline: string
               id: string
               numero_venda: string
               probabilidade: number
+              total_etapa: number
               total_itens: number
               valor_estimado: number
               valor_potencial_etapa: number
