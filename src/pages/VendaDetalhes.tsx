@@ -857,57 +857,133 @@ export default function VendaDetalhes() {
               </Button>}
           </div>
 
-          {/* Endereço de Entrega */}
-          {clienteSelecionado && <div>
-              <Label>Endereço de Entrega</Label>
-              <Select value={enderecoEntregaId} onValueChange={value => {
-              setEnderecoEntregaId(value);
-              setFreteCalculado(false);
-              setValorFrete(0);
-            }} disabled={isLoadingEnderecos}>
-                <SelectTrigger className="mt-2">
-                  <SelectValue placeholder={isLoadingEnderecos ? "Carregando endereços..." : enderecosCliente.length === 0 ? "Nenhum endereço cadastrado" : "Selecione o endereço..."} />
-                </SelectTrigger>
-                <SelectContent>
-                  {enderecosCliente.map(endereco => <SelectItem key={endereco.id} value={endereco.id}>
-                      <div className="flex flex-col">
-                        <span className="font-medium">
-                          {endereco.is_principal && "⭐ "}
-                          {endereco.endereco}
-                          {endereco.tipo === "entrega" && " (Entrega)"}
-                          {endereco.tipo === "cobranca" && " (Cobrança)"}
-                          {endereco.tipo === "principal" && " (Principal)"}
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          {endereco.bairro}, {endereco.cidade}/{endereco.estado} - CEP: {endereco.cep}
-                        </span>
-                      </div>
-                    </SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>}
+          <Separator />
+
+          {/* Seção Unificada de Frete/Transporte */}
+          {clienteSelecionado && (
+            <div className="p-4 bg-muted/20 rounded-lg border border-border/50 space-y-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Package className="h-5 w-5 text-primary" />
+                <Label className="text-base font-semibold">Frete e Transporte</Label>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Tipo de Frete</Label>
+                  <Select value={tipoFreteId} onValueChange={value => {
+                    setTipoFreteId(value);
+                    setFreteCalculado(false);
+                    setValorFrete(0);
+                  }}>
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Selecione..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {tiposFrete?.map(tipo => <SelectItem key={tipo.id} value={tipo.id}>
+                          {tipo.nome}
+                        </SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label>Endereço de Entrega</Label>
+                  <Select value={enderecoEntregaId} onValueChange={value => {
+                    setEnderecoEntregaId(value);
+                    setFreteCalculado(false);
+                    setValorFrete(0);
+                  }} disabled={isLoadingEnderecos}>
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder={isLoadingEnderecos ? "Carregando..." : enderecosCliente.length === 0 ? "Nenhum endereço" : "Selecione..."} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {enderecosCliente.map(endereco => <SelectItem key={endereco.id} value={endereco.id}>
+                          <div className="flex flex-col">
+                            <span className="font-medium">
+                              {endereco.is_principal && "⭐ "}
+                              {endereco.endereco}
+                              {endereco.tipo === "entrega" && " (Entrega)"}
+                              {endereco.tipo === "cobranca" && " (Cobrança)"}
+                              {endereco.tipo === "principal" && " (Principal)"}
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              {endereco.bairro}, {endereco.cidade}/{endereco.estado} - CEP: {endereco.cep}
+                            </span>
+                          </div>
+                        </SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Resultado da Transportadora ou Botão Calcular */}
+              {freteCalculado && (venda as any).transportadora_nome ? (
+                <div className="p-3 bg-background rounded-lg border border-primary/20">
+                  <div className="flex items-center gap-4">
+                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                      <CheckSquare className="h-5 w-5 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs text-muted-foreground">Transportadora Selecionada</p>
+                      <p className="font-semibold truncate">{(venda as any).transportadora_nome}</p>
+                    </div>
+                    <div className="text-center shrink-0 px-4 border-l border-r border-border/50">
+                      <p className="text-xs text-muted-foreground">Prazo</p>
+                      <p className="font-semibold">
+                        {(venda as any).prazo_entrega_dias 
+                          ? `${(venda as any).prazo_entrega_dias} dias`
+                          : "—"
+                        }
+                      </p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-xs text-muted-foreground">Valor do Frete</p>
+                      <p className="font-semibold text-primary text-lg">{formatCurrency(valorFrete)}</p>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={handleCalcularFrete}
+                      disabled={isCalculatingFrete}
+                    >
+                      {isCalculatingFrete ? <Loader2 className="h-4 w-4 animate-spin" /> : "Recalcular"}
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center gap-3">
+                  <Button 
+                    variant="outline" 
+                    onClick={handleCalcularFrete}
+                    disabled={isCalculatingFrete || !tipoFreteId || !enderecoEntregaId || carrinho.length === 0}
+                    className="flex-1"
+                  >
+                    {isCalculatingFrete ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Calculando...
+                      </>
+                    ) : (
+                      <>
+                        <Calculator className="h-4 w-4 mr-2" />
+                        Calcular Frete
+                      </>
+                    )}
+                  </Button>
+                  {(!tipoFreteId || !enderecoEntregaId || carrinho.length === 0) && (
+                    <p className="text-xs text-muted-foreground">
+                      Preencha tipo de frete, endereço e adicione itens
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
 
           <Separator />
 
           {/* Dados da Venda */}
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label>Tipo de Frete</Label>
-              <Select value={tipoFreteId} onValueChange={value => {
-                setTipoFreteId(value);
-                setFreteCalculado(false);
-                setValorFrete(0);
-              }}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {tiposFrete?.map(tipo => <SelectItem key={tipo.id} value={tipo.id}>
-                      {tipo.nome}
-                    </SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
 
             <div>
               <Label className={!tipoPedidoId ? "text-destructive" : ""}>
@@ -1081,29 +1157,6 @@ export default function VendaDetalhes() {
                 </div>
               </div>}
 
-            {/* Transportadora Selecionada */}
-            {freteCalculado && (venda as any).transportadora_nome && (
-              <div className="p-4 bg-muted/30 rounded-lg border border-border/50 mt-4">
-                <div className="flex items-center gap-4">
-                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                    <Package className="h-5 w-5 text-primary" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs text-muted-foreground">Transportadora</p>
-                    <p className="font-medium truncate">{(venda as any).transportadora_nome}</p>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <p className="text-xs text-muted-foreground">Prazo</p>
-                    <p className="font-medium">
-                      {(venda as any).prazo_entrega_dias 
-                        ? `${(venda as any).prazo_entrega_dias} dias`
-                        : "—"
-                      }
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
 
             <div className="sticky bottom-0 bg-card border-t border-border pt-4 pb-2 -mx-6 px-6 mt-4">
               <div className="flex justify-end gap-8">
