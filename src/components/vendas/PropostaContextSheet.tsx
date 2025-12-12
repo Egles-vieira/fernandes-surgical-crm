@@ -210,7 +210,7 @@ export function PropostaContextSheet({
 
                 <ScrollArea className="h-[calc(100%-2.5rem)] [&_[data-radix-scroll-area-viewport]]:scrollbar-context">
                   <TabsContent value="timeline" className="m-0 p-4">
-                    <Accordion type="multiple" defaultValue={["engajamento", "historico"]} className="space-y-2">
+                    <Accordion type="multiple" defaultValue={["historico"]} className="space-y-2">
                       {/* Seção de Tracking da Proposta */}
                       <AccordionItem value="engajamento" className="border rounded-lg px-3">
                         <AccordionTrigger className="hover:no-underline py-3">
