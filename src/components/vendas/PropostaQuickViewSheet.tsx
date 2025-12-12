@@ -110,7 +110,10 @@ export function PropostaQuickViewSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="sm:max-w-4xl p-0 gap-0">
+      <SheetContent 
+        className="sm:max-w-4xl p-0 gap-0" 
+        overlayClassName="bg-background/60 backdrop-blur-sm"
+      >
         {/* Header com indicador de posição */}
         <SheetHeader className="px-6 py-4 border-b bg-muted/30">
           <div className="flex items-center justify-between">
