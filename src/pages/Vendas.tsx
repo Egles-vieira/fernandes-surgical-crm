@@ -1425,7 +1425,7 @@ export default function Vendas() {
         });
       }} onViewDetails={venda => {
         navigate(`/vendas/${venda.id}`);
-      }} onCarregarMais={etapa => {
+      }} onDuplicar={handleDuplicarVenda} onCarregarMais={etapa => {
         carregarMais(etapa);
       }} /> : <div className="h-full overflow-auto px-8 py-6">
             {/* Search */}

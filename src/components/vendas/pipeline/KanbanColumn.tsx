@@ -30,6 +30,7 @@ interface KanbanColumnProps {
   totalReal?: number;
   isLoadingMore?: boolean;
   onViewDetails: (venda: VendaPipelineCard) => void;
+  onDuplicar?: (venda: VendaPipelineCard) => void;
   onCarregarMais?: (etapa: EtapaPipeline) => void;
 }
 
@@ -41,6 +42,7 @@ export function KanbanColumn({
   totalReal,
   isLoadingMore,
   onViewDetails,
+  onDuplicar,
   onCarregarMais
 }: KanbanColumnProps) {
   const formatCurrency = (value: number) => {
@@ -91,6 +93,7 @@ export function KanbanColumn({
                     venda={venda}
                     index={index}
                     onViewDetails={onViewDetails}
+                    onDuplicar={onDuplicar}
                   />
                 ))}
                 {provided.placeholder}
