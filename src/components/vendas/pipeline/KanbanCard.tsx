@@ -1,4 +1,4 @@
-import { Building2, Calendar, TrendingUp, MoreVertical, Eye, Copy } from "lucide-react";
+import { Building2, Calendar, TrendingUp, MoreVertical, Eye, Copy, FileSearch } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,13 +17,15 @@ interface KanbanCardProps {
   index: number;
   onViewDetails: (venda: VendaPipelineCard) => void;
   onDuplicar?: (venda: VendaPipelineCard) => void;
+  onQuickView?: (venda: VendaPipelineCard) => void;
 }
 
 export function KanbanCard({
   venda,
   index,
   onViewDetails,
-  onDuplicar
+  onDuplicar,
+  onQuickView
 }: KanbanCardProps) {
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {
@@ -89,6 +91,10 @@ export function KanbanCard({
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="z-50 bg-popover">
+                      <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onQuickView?.(venda); }}>
+                        <FileSearch className="w-4 h-4 mr-2" />
+                        Visualização Rápida
+                      </DropdownMenuItem>
                       <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onViewDetails(venda); }}>
                         <Eye className="w-4 h-4 mr-2" />
                         Ver Detalhes

@@ -30,6 +30,7 @@ import { ClienteSearchDialog } from "@/components/ClienteSearchDialog";
 import { VendasActionBar } from "@/components/VendasActionBar";
 import { VendasFilters } from "@/components/vendas/VendasFilters";
 import { PipelineKanban, EtapaPipeline } from "@/components/vendas/PipelineKanban";
+import { PropostaQuickViewSheet } from "@/components/vendas/PropostaQuickViewSheet";
 import { AprovarVendaDialog } from "@/components/vendas/AprovarVendaDialog";
 import { IntegracaoDatasulLog } from "@/components/IntegracaoDatasulLog";
 import { Tables } from "@/integrations/supabase/types";
@@ -118,6 +119,9 @@ export default function Vendas() {
     pageSize: 20,
     enabled: view === "list"
   });
+
+  // Estado para Quick View Sheet
+  const [quickViewVenda, setQuickViewVenda] = useState<typeof vendasPipeline[0] | null>(null);
 
   // Hook para detalhes (usado apenas quando edita)
   const [editandoVendaId, setEditandoVendaId] = useState<string | null>(null);
@@ -1425,7 +1429,9 @@ export default function Vendas() {
         });
       }} onViewDetails={venda => {
         navigate(`/vendas/${venda.id}`);
-      }} onDuplicar={handleDuplicarVenda} onCarregarMais={etapa => {
+      }} onDuplicar={handleDuplicarVenda} onQuickView={venda => {
+        setQuickViewVenda(venda);
+      }} onCarregarMais={etapa => {
         carregarMais(etapa);
       }} /> : <div className="h-full overflow-auto px-8 py-6">
             {/* Search */}
@@ -1504,5 +1510,13 @@ export default function Vendas() {
       <ProdutoSearchDialog open={showProdutoSearch} onOpenChange={setShowProdutoSearch} onSelectProduto={handleAddProduto} />
       <ClienteSearchDialog open={showClienteSearch} onOpenChange={setShowClienteSearch} onSelectCliente={handleSelectCliente} />
       <AprovarVendaDialog open={!!vendaParaAprovar} onOpenChange={open => !open && setVendaParaAprovar(null)} onConfirm={confirmarAprovacao} vendaNumero={vendaParaAprovar?.numero || ""} vendaValor={vendaParaAprovar?.valor || 0} isLoading={aprovarVenda.isPending} />
+      
+      {/* Quick View Sheet */}
+      <PropostaQuickViewSheet 
+        venda={quickViewVenda} 
+        open={!!quickViewVenda} 
+        onOpenChange={(open) => !open && setQuickViewVenda(null)}
+        onDuplicar={handleDuplicarVenda}
+      />
     </div>;
 }

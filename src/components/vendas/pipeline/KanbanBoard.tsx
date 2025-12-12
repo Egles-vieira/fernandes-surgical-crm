@@ -18,6 +18,7 @@ interface KanbanBoardProps {
   onDragEnd: (result: DropResult) => void;
   onViewDetails: (venda: VendaPipelineCard) => void;
   onDuplicar?: (venda: VendaPipelineCard) => void;
+  onQuickView?: (venda: VendaPipelineCard) => void;
   onCarregarMais?: (etapa: EtapaPipeline) => void;
 }
 
@@ -86,7 +87,7 @@ const ETAPAS_ATIVAS: EtapaPipeline[] = [
   "fechamento",
 ];
 
-export function KanbanBoard({ vendas, totaisPorEtapa, etapaCarregando, onDragEnd, onViewDetails, onDuplicar, onCarregarMais }: KanbanBoardProps) {
+export function KanbanBoard({ vendas, totaisPorEtapa, etapaCarregando, onDragEnd, onViewDetails, onDuplicar, onQuickView, onCarregarMais }: KanbanBoardProps) {
   const getVendasPorEtapa = (etapa: EtapaPipeline): VendaPipelineCard[] => {
     return vendas.filter((v) => v.etapa_pipeline === etapa);
   };
@@ -119,6 +120,7 @@ export function KanbanBoard({ vendas, totaisPorEtapa, etapaCarregando, onDragEnd
                 isLoadingMore={etapaCarregando === etapa}
                 onViewDetails={onViewDetails}
                 onDuplicar={onDuplicar}
+                onQuickView={onQuickView}
                 onCarregarMais={onCarregarMais}
               />
             ))}
