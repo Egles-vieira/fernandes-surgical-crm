@@ -328,14 +328,12 @@ export default function Layout({
                       {({
                     isActive
                   }) => <>
-                          {isActive && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-10 rounded-r-full bg-secondary" />}
+                          {isActive && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-10 rounded-r-full bg-success" />}
                           <div className="relative">
                             <item.icon size={24} className="mb-1.5 transition-transform duration-200 group-hover:scale-110 menu-icon" />
-                            {item.badge && item.badge > 0 && (
-                              <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-[9px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center px-1">
+                            {item.badge && item.badge > 0 && <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-[9px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center px-1">
                                 {item.badge}
-                              </span>
-                            )}
+                              </span>}
                           </div>
                           <span className="text-[10px] font-medium text-center leading-tight px-1 menu-text">{item.label}</span>
                         </>}
@@ -351,11 +349,9 @@ export default function Layout({
                         {isActive && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-white rounded-r-full" />}
                         <div className="relative">
                           <item.icon size={20} className="flex-shrink-0 transition-transform duration-200 group-hover:scale-110 menu-icon" />
-                          {item.badge && item.badge > 0 && (
-                            <span className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground text-[9px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center px-1">
+                          {item.badge && item.badge > 0 && <span className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground text-[9px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center px-1">
                               {item.badge}
-                            </span>
-                          )}
+                            </span>}
                         </div>
                         <span className="font-medium text-sm menu-text">{item.label}</span>
                       </>}
