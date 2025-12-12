@@ -1,18 +1,29 @@
-import { Building2, Calendar, TrendingUp, DollarSign } from "lucide-react";
+import { Building2, Calendar, TrendingUp, MoreVertical, Eye, Copy } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Draggable } from "@hello-pangea/dnd";
 import { cn } from "@/lib/utils";
 import type { VendaPipelineCard } from "@/hooks/useVendasPipeline";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
 interface KanbanCardProps {
   venda: VendaPipelineCard;
   index: number;
   onViewDetails: (venda: VendaPipelineCard) => void;
+  onDuplicar?: (venda: VendaPipelineCard) => void;
 }
+
 export function KanbanCard({
   venda,
   index,
-  onViewDetails
+  onViewDetails,
+  onDuplicar
 }: KanbanCardProps) {
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {
@@ -62,14 +73,33 @@ export function KanbanCard({
             </div>
 
             <div className="p-3.5">
-              {/* Header com número e probabilidade */}
+              {/* Header com número, probabilidade e menu de ações */}
               <div className="flex items-center justify-between mb-3">
                 <span className="text-[11px] font-mono text-muted-foreground/70 tracking-wide">
                   #{venda.numero_venda.slice(-8)}
                 </span>
-                <Badge variant="outline" className={cn("text-[10px] font-semibold px-2 py-0.5 border", probConfig.bg, probConfig.color)}>
-                  {venda.probabilidade || 0}%
-                </Badge>
+                <div className="flex items-center gap-1">
+                  <Badge variant="outline" className={cn("text-[10px] font-semibold px-2 py-0.5 border", probConfig.bg, probConfig.color)}>
+                    {venda.probabilidade || 0}%
+                  </Badge>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                      <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground">
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="z-50 bg-popover">
+                      <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onViewDetails(venda); }}>
+                        <Eye className="w-4 h-4 mr-2" />
+                        Ver Detalhes
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onDuplicar?.(venda); }}>
+                        <Copy className="w-4 h-4 mr-2" />
+                        Duplicar Proposta
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </div>
 
               {/* Cliente */}

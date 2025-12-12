@@ -18,6 +18,7 @@ interface PipelineKanbanProps {
   etapaCarregando?: string | null;
   onDragEnd: (result: DropResult) => void;
   onViewDetails: (venda: VendaPipelineCard) => void;
+  onDuplicar?: (venda: VendaPipelineCard) => void;
   onCarregarMais?: (etapa: EtapaPipeline) => void;
 }
 
@@ -27,6 +28,7 @@ export function PipelineKanban({
   etapaCarregando,
   onDragEnd,
   onViewDetails,
+  onDuplicar,
   onCarregarMais
 }: PipelineKanbanProps) {
   return (
@@ -37,6 +39,7 @@ export function PipelineKanban({
         etapaCarregando={etapaCarregando}
         onDragEnd={onDragEnd} 
         onViewDetails={onViewDetails}
+        onDuplicar={onDuplicar}
         onCarregarMais={onCarregarMais}
       />
     </div>
