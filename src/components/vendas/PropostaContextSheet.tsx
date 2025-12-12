@@ -61,7 +61,7 @@ export function PropostaContextSheet({
   cliente,
   children 
 }: PropostaContextSheetProps) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
   const [activeTab, setActiveTab] = useState("timeline");
   const [showNovaAtividade, setShowNovaAtividade] = useState(false);
   const [atividadeSelecionadaId, setAtividadeSelecionadaId] = useState<string | null>(null);
