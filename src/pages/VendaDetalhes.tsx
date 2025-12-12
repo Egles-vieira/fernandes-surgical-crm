@@ -887,34 +887,6 @@ export default function VendaDetalhes() {
               </Select>
             </div>}
 
-          {/* Transportadora Selecionada */}
-          {freteCalculado && (venda as any).transportadora_nome && (
-            <div className="p-4 bg-muted/50 rounded-lg border border-border/50">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Package className="h-5 w-5 text-primary" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm text-muted-foreground">Transportadora Selecionada</p>
-                  <p className="font-semibold">{(venda as any).transportadora_nome}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm text-muted-foreground">Prazo de Entrega</p>
-                  <p className="font-semibold">
-                    {(venda as any).prazo_entrega_dias 
-                      ? `${(venda as any).prazo_entrega_dias} dias`
-                      : "Sem prazo definido"
-                    }
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm text-muted-foreground">Valor do Frete</p>
-                  <p className="font-semibold text-primary">{formatCurrency(valorFrete)}</p>
-                </div>
-              </div>
-            </div>
-          )}
-
           <Separator />
 
           {/* Dados da Venda */}
@@ -1108,6 +1080,30 @@ export default function VendaDetalhes() {
                   </div>
                 </div>
               </div>}
+
+            {/* Transportadora Selecionada */}
+            {freteCalculado && (venda as any).transportadora_nome && (
+              <div className="p-4 bg-muted/30 rounded-lg border border-border/50 mt-4">
+                <div className="flex items-center gap-4">
+                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                    <Package className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-muted-foreground">Transportadora</p>
+                    <p className="font-medium truncate">{(venda as any).transportadora_nome}</p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className="text-xs text-muted-foreground">Prazo</p>
+                    <p className="font-medium">
+                      {(venda as any).prazo_entrega_dias 
+                        ? `${(venda as any).prazo_entrega_dias} dias`
+                        : "—"
+                      }
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="sticky bottom-0 bg-card border-t border-border pt-4 pb-2 -mx-6 px-6 mt-4">
               <div className="flex justify-end gap-8">
