@@ -110,9 +110,9 @@ export function PropostaQuickViewSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="sm:max-w-4xl p-0 gap-0 bg-background border-l">
+      <SheetContent className="sm:max-w-4xl p-0 gap-0">
         {/* Header com indicador de posição */}
-        <SheetHeader className="px-6 py-4 border-b bg-background">
+        <SheetHeader className="px-6 py-4 border-b bg-muted/30">
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground">
               Proposta #{venda?.numero_venda?.slice(-8) || "..."}
@@ -130,7 +130,7 @@ export function PropostaQuickViewSheet({
 
         <div className="flex h-[calc(100vh-80px)]">
           {/* COLUNA ESQUERDA - Resumo */}
-          <div className="w-[340px] border-r bg-background flex flex-col">
+          <div className="w-[340px] border-r bg-card flex flex-col">
             <ScrollArea className="flex-1">
               <div className="p-5 space-y-5">
                 {/* Tags */}
