@@ -16,13 +16,13 @@ import { ptBR } from 'date-fns/locale';
 
 const ConfiguracaoGlobal = () => {
   const navigate = useNavigate();
-  const { config, isLoading, isOficial, isGupshup, isWAPI, atualizarConfig, isAtualizando } = useWhatsAppConfig();
+  const { config, isLoading, isOficial, isGupshup, isWAPI, isMetaCloudAPI, atualizarConfig, isAtualizando } = useWhatsAppConfig();
   
   const [modoSelecionado, setModoSelecionado] = useState<'oficial' | 'nao_oficial'>(
     config?.modo_api || 'oficial'
   );
-  const [provedorSelecionado, setProvedorSelecionado] = useState<'gupshup' | 'w_api'>(
-    config?.provedor_ativo || 'gupshup'
+  const [provedorSelecionado, setProvedorSelecionado] = useState<'gupshup' | 'w_api' | 'meta_cloud_api'>(
+    config?.provedor_ativo || 'meta_cloud_api'
   );
   const [observacoes, setObservacoes] = useState<string>(config?.observacoes || '');
 
@@ -67,7 +67,7 @@ const ConfiguracaoGlobal = () => {
             variant={isOficial ? 'default' : 'secondary'}
             className="text-sm px-3 py-1"
           >
-            {isOficial ? '🏢 Oficial' : '🔌 Não Oficial'} - {isGupshup ? 'Gupshup' : 'W-API'}
+            {isOficial ? '🏢 Oficial' : '🔌 Não Oficial'} - {isMetaCloudAPI ? 'Meta Cloud API' : isGupshup ? 'Gupshup' : 'W-API'}
           </Badge>
         )}
       </div>
@@ -97,7 +97,7 @@ const ConfiguracaoGlobal = () => {
             </div>
             <div className="flex justify-between">
               <span className="text-sm font-medium">Provedor:</span>
-              <span className="text-sm capitalize">{isGupshup ? 'Gupshup' : 'W-API'}</span>
+              <span className="text-sm capitalize">{isMetaCloudAPI ? 'Meta Cloud API' : isGupshup ? 'Gupshup' : 'W-API'}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm font-medium">Configurado em:</span>
@@ -167,11 +167,17 @@ const ConfiguracaoGlobal = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Select value={provedorSelecionado} onValueChange={(value) => setProvedorSelecionado(value as 'gupshup' | 'w_api')}>
+          <Select value={provedorSelecionado} onValueChange={(value) => setProvedorSelecionado(value as 'gupshup' | 'w_api' | 'meta_cloud_api')}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="meta_cloud_api">
+                <div className="flex items-center gap-2">
+                  <span>Meta Cloud API</span>
+                  {isMetaCloudAPI && <Badge variant="secondary" className="text-xs">Atual</Badge>}
+                </div>
+              </SelectItem>
               <SelectItem value="gupshup">
                 <div className="flex items-center gap-2">
                   <span>Gupshup</span>

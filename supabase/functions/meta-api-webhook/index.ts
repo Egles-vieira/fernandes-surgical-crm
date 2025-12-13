@@ -73,16 +73,37 @@ Deno.serve(async (req) => {
       for (const entry of payload.entry) {
         const wabaId = entry.id;
         
-        // Find account by meta_waba_id
-        const { data: conta } = await supabase
+        // FASE 1.2: Find account with fallback - try meta_waba_id first, then waba_id
+        let conta = null;
+        
+        // Try meta_waba_id first (new field)
+        const { data: contaByMetaWaba } = await supabase
           .from('whatsapp_contas')
           .select('*')
           .eq('meta_waba_id', wabaId)
           .eq('provedor', 'meta_cloud_api')
           .single();
+        
+        if (contaByMetaWaba) {
+          conta = contaByMetaWaba;
+          console.log(`✅ Account found by meta_waba_id: ${conta.id}`);
+        } else {
+          // Fallback to waba_id (legacy field)
+          const { data: contaByWaba } = await supabase
+            .from('whatsapp_contas')
+            .select('*')
+            .eq('waba_id', wabaId)
+            .eq('provedor', 'meta_cloud_api')
+            .single();
+          
+          if (contaByWaba) {
+            conta = contaByWaba;
+            console.log(`✅ Account found by waba_id (legacy): ${conta.id}`);
+          }
+        }
 
         if (!conta) {
-          console.warn(`⚠️ Account not found for WABA ID: ${wabaId}`);
+          console.warn(`⚠️ Account not found for WABA ID: ${wabaId} - tried meta_waba_id and waba_id`);
           continue;
         }
 
