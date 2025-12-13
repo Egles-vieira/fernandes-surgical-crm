@@ -186,6 +186,12 @@ export default function Header({ collapsed, onToggle }: HeaderProps) {
           description: "Gestão Eletrônica de Documentos",
           breadcrumb: "Cirúrgica Fernandes / GED / Documentos",
         };
+      case "/configuracoes":
+        return {
+          title: "Configurações",
+          description: "Configurações gerais do sistema",
+          breadcrumb: "Cirúrgica Fernandes / Configurações",
+        };
       default:
         if (location.pathname.startsWith("/tickets/")) {
           return {
