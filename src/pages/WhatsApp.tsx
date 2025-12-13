@@ -8,6 +8,7 @@ import ConversasList from "@/components/whatsapp/ConversasList";
 import ChatArea from "@/components/whatsapp/ChatArea";
 import { ConectarWAPIDialog } from "@/components/whatsapp/ConectarWAPIDialog";
 import { StatusDisponibilidadeBadge } from "@/components/whatsapp/StatusDisponibilidadeBadge";
+import { TokenAlertBanner } from "@/components/whatsapp/TokenAlertBanner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 const WhatsApp = () => {
@@ -142,9 +143,14 @@ const WhatsApp = () => {
       supabase.removeChannel(channel);
     };
   }, [contaAtiva, queryClient]);
-  return <div className="fixed top-[64px] right-0 bottom-0 bg-gradient-to-br from-background via-background to-muted/20 overflow-hidden" style={{
+  return <div className="fixed top-[64px] right-0 bottom-0 bg-gradient-to-br from-background via-background to-muted/20 overflow-hidden flex flex-col" style={{
     left: 'var(--sidebar-width, 4rem)'
   }}>
+      {/* Token Alert Banner */}
+      <div className="flex-shrink-0 px-4 pt-2">
+        <TokenAlertBanner />
+      </div>
+      
       {!contaAtiva ? <div className="flex items-center justify-center h-full p-4">
           <Card className="p-12 text-center">
             <MessageSquare className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />

@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 export interface WhatsAppConfigGlobal {
   id: string;
   modo_api: 'oficial' | 'nao_oficial';
-  provedor_ativo: 'gupshup' | 'w_api';
+  provedor_ativo: 'gupshup' | 'w_api' | 'meta_cloud_api';
   esta_ativo: boolean;
   configurado_em: string;
   observacoes: string | null;
@@ -34,7 +34,7 @@ export function useWhatsAppConfig() {
   const atualizarConfig = useMutation({
     mutationFn: async (novaConfig: {
       modo_api: 'oficial' | 'nao_oficial';
-      provedor_ativo: 'gupshup' | 'w_api';
+      provedor_ativo: 'gupshup' | 'w_api' | 'meta_cloud_api';
       observacoes?: string;
     }) => {
       // Desativar config atual
@@ -86,6 +86,7 @@ export function useWhatsAppConfig() {
     isNaoOficial: config?.modo_api === 'nao_oficial',
     isGupshup: config?.provedor_ativo === 'gupshup',
     isWAPI: config?.provedor_ativo === 'w_api',
+    isMetaCloudAPI: config?.provedor_ativo === 'meta_cloud_api',
     
     // Mutation
     atualizarConfig: atualizarConfig.mutate,
