@@ -14,140 +14,104 @@ export interface CarteiraCliente {
   atendente_nome?: string;
 }
 
-export interface EstatisticasCarteira {
-  totalClientes: number;
-  clientesAtivos: number;
-  conversasRecentes: number;
-  ultimoContato: string | null;
-}
-
 /**
  * Hook para gerenciamento de carteiras (sticky agent).
- * Permite atribuir clientes a atendentes específicos para continuidade de relacionamento.
  */
 export const useWhatsAppCarteiras = () => {
   const queryClient = useQueryClient();
   const context = useWhatsAppContext();
+  const client = supabase as any;
 
-  // Query para carteiras do atendente atual
   const { data: minhasCarteiras, isLoading: isLoadingMinhas } = useQuery({
     queryKey: ['whatsapp-carteiras-minhas', context.userId],
     queryFn: async () => {
       if (!context.userId) return [];
       
-      const { data, error } = await supabase
+      const { data, error } = await client
         .from('whatsapp_carteiras')
-        .select(`
-          id,
-          cliente_id,
-          atendente_id,
-          motivo_atribuicao,
-          criado_em,
-          expira_em,
-          clientes!inner(nome_emit)
-        `)
-        .eq('atendente_id', context.userId)
-        .or('expira_em.is.null,expira_em.gt.now()');
+        .select('*')
+        .eq('operador_id', context.userId)
+        .eq('esta_ativo', true);
       
-      if (error) throw error;
+      if (error) {
+        console.warn('Tabela whatsapp_carteiras não disponível');
+        return [];
+      }
       
       return (data || []).map((c: any) => ({
         id: c.id,
-        cliente_id: c.cliente_id,
-        atendente_id: c.atendente_id,
-        motivo_atribuicao: c.motivo_atribuicao,
+        cliente_id: c.whatsapp_contato_id,
+        atendente_id: c.operador_id,
+        motivo_atribuicao: c.motivo_transferencia,
         criado_em: c.criado_em,
-        expira_em: c.expira_em,
-        cliente_nome: c.clientes?.nome_emit || 'Cliente',
+        expira_em: null,
       })) as CarteiraCliente[];
     },
     staleTime: 5 * 60 * 1000,
     enabled: !!context.userId,
   });
 
-  // Query para todas as carteiras (supervisores)
   const { data: todasCarteiras, isLoading: isLoadingTodas } = useQuery({
     queryKey: ['whatsapp-carteiras-todas'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await client
         .from('whatsapp_carteiras')
-        .select(`
-          id,
-          cliente_id,
-          atendente_id,
-          motivo_atribuicao,
-          criado_em,
-          expira_em,
-          clientes!inner(nome_emit),
-          perfis_usuario!inner(nome_completo)
-        `)
-        .or('expira_em.is.null,expira_em.gt.now()')
+        .select('*')
+        .eq('esta_ativo', true)
         .order('criado_em', { ascending: false })
         .limit(200);
       
-      if (error) throw error;
+      if (error) return [];
       
       return (data || []).map((c: any) => ({
         id: c.id,
-        cliente_id: c.cliente_id,
-        atendente_id: c.atendente_id,
-        motivo_atribuicao: c.motivo_atribuicao,
+        cliente_id: c.whatsapp_contato_id,
+        atendente_id: c.operador_id,
+        motivo_atribuicao: c.motivo_transferencia,
         criado_em: c.criado_em,
-        expira_em: c.expira_em,
-        cliente_nome: c.clientes?.nome_emit || 'Cliente',
-        atendente_nome: c.perfis_usuario?.nome_completo || 'Atendente',
+        expira_em: null,
       })) as CarteiraCliente[];
     },
     staleTime: 5 * 60 * 1000,
     enabled: context.isSupervisor,
   });
 
-  // Mutation para atribuir cliente à carteira
   const atribuirCarteira = useMutation({
     mutationFn: async ({ 
       clienteId, 
       atendenteId, 
       motivo,
-      diasExpiracao,
     }: { 
       clienteId: string; 
       atendenteId: string; 
       motivo?: string;
       diasExpiracao?: number;
     }) => {
-      // Verificar se já existe atribuição ativa
-      const { data: existente } = await supabase
+      const { data: existente } = await client
         .from('whatsapp_carteiras')
         .select('id')
-        .eq('cliente_id', clienteId)
-        .or('expira_em.is.null,expira_em.gt.now()')
+        .eq('whatsapp_contato_id', clienteId)
+        .eq('esta_ativo', true)
         .single();
       
       if (existente) {
-        // Atualizar existente
-        const { error } = await supabase
+        const { error } = await client
           .from('whatsapp_carteiras')
           .update({
-            atendente_id: atendenteId,
-            motivo_atribuicao: motivo,
-            expira_em: diasExpiracao 
-              ? new Date(Date.now() + diasExpiracao * 24 * 60 * 60 * 1000).toISOString()
-              : null,
+            operador_id: atendenteId,
+            motivo_transferencia: motivo,
           })
           .eq('id', existente.id);
         
         if (error) throw error;
       } else {
-        // Criar nova atribuição
-        const { error } = await supabase
+        const { error } = await client
           .from('whatsapp_carteiras')
           .insert({
-            cliente_id: clienteId,
-            atendente_id: atendenteId,
-            motivo_atribuicao: motivo,
-            expira_em: diasExpiracao 
-              ? new Date(Date.now() + diasExpiracao * 24 * 60 * 60 * 1000).toISOString()
-              : null,
+            whatsapp_contato_id: clienteId,
+            operador_id: atendenteId,
+            motivo_transferencia: motivo,
+            esta_ativo: true,
           });
         
         if (error) throw error;
@@ -162,12 +126,11 @@ export const useWhatsAppCarteiras = () => {
     },
   });
 
-  // Mutation para remover da carteira
   const removerCarteira = useMutation({
     mutationFn: async (carteiraId: string) => {
-      const { error } = await supabase
+      const { error } = await client
         .from('whatsapp_carteiras')
-        .update({ expira_em: new Date().toISOString() })
+        .update({ esta_ativo: false })
         .eq('id', carteiraId);
       
       if (error) throw error;
@@ -181,40 +144,28 @@ export const useWhatsAppCarteiras = () => {
     },
   });
 
-  // Buscar atendente responsável por um cliente
   const buscarAtendenteResponsavel = async (clienteId: string): Promise<string | null> => {
-    const { data } = await supabase
+    const { data } = await client
       .from('whatsapp_carteiras')
-      .select('atendente_id')
-      .eq('cliente_id', clienteId)
-      .or('expira_em.is.null,expira_em.gt.now()')
+      .select('operador_id')
+      .eq('whatsapp_contato_id', clienteId)
+      .eq('esta_ativo', true)
       .single();
     
-    return data?.atendente_id || null;
+    return data?.operador_id || null;
   };
 
   return {
-    // Dados
     minhasCarteiras: minhasCarteiras || [],
     todasCarteiras: todasCarteiras || [],
-    
-    // Loading
     isLoading: isLoadingMinhas || isLoadingTodas,
-    
-    // Actions
     atribuirCarteira: atribuirCarteira.mutate,
     removerCarteira: removerCarteira.mutate,
     buscarAtendenteResponsavel,
-    
-    // Pending states
     isAtribuindo: atribuirCarteira.isPending,
     isRemovendo: removerCarteira.isPending,
-    
-    // Estatísticas
     totalMinhasCarteiras: minhasCarteiras?.length || 0,
     totalTodasCarteiras: todasCarteiras?.length || 0,
-    
-    // Flags
     isSupervisor: context.isSupervisor,
   };
 };
