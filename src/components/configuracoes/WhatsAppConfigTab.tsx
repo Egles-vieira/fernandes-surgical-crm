@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // Componentes de Config existentes
 import ContasWhatsAppList from "@/components/whatsapp/config/ContasWhatsAppList";
-import NovaContaDialog from "@/components/whatsapp/config/NovaContaDialog";
+import { NovaContaSheet } from "@/components/whatsapp/config/NovaContaSheet";
 import TemplatesWhatsApp from "@/components/whatsapp/config/TemplatesWhatsApp";
 import RespostasRapidas from "@/components/whatsapp/config/RespostasRapidas";
 import { GerenciarFilas } from "@/components/whatsapp/config/GerenciarFilas";
@@ -212,7 +212,7 @@ export const WhatsAppConfigTab = () => {
         </TabsContent>
       </Tabs>
 
-      <NovaContaDialog 
+      <NovaContaSheet 
         open={dialogOpen} 
         onOpenChange={setDialogOpen} 
       />
