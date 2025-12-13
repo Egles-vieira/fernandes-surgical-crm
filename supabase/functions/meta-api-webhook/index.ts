@@ -124,54 +124,105 @@ Deno.serve(async (req) => {
 
 async function processarMensagemRecebida(supabase: any, conta: any, message: any, contact: any) {
   console.log('📨 Processing message:', message.id);
+  console.log('📍 From account:', conta.id, '- Contact info:', contact?.profile?.name);
 
   const numeroRemetente = message.from;
   const messageId = message.id;
   const timestamp = new Date(parseInt(message.timestamp) * 1000).toISOString();
 
-  // Find or create contact with correct column: nome_whatsapp (not nome)
-  let { data: contato } = await supabase
+  // Find or create contact with robust error handling
+  console.log('🔍 Looking for contact:', numeroRemetente, 'in account:', conta.id);
+  
+  let { data: contato, error: contatoError } = await supabase
     .from('whatsapp_contatos')
     .select('*')
     .eq('numero_whatsapp', numeroRemetente)
     .eq('whatsapp_conta_id', conta.id)
     .single();
 
+  if (contatoError && contatoError.code !== 'PGRST116') {
+    console.error('❌ Error fetching contact:', contatoError);
+  }
+
   if (!contato) {
-    const { data: novoContato } = await supabase
+    console.log('📝 Creating new contact for:', numeroRemetente);
+    const insertData = {
+      whatsapp_conta_id: conta.id,
+      numero_whatsapp: numeroRemetente,
+      nome_whatsapp: contact?.profile?.name || 'Desconhecido',
+      whatsapp_id: numeroRemetente,
+    };
+    console.log('📋 Contact insert data:', JSON.stringify(insertData));
+    
+    const { data: novoContato, error: insertContatoError } = await supabase
       .from('whatsapp_contatos')
-      .insert({
-        whatsapp_conta_id: conta.id,
-        numero_whatsapp: numeroRemetente,
-        nome_whatsapp: contact?.profile?.name || 'Desconhecido',
-        whatsapp_id: numeroRemetente,
-      })
+      .insert(insertData)
       .select()
       .single();
+    
+    if (insertContatoError) {
+      console.error('❌ Error creating contact:', insertContatoError);
+      throw new Error(`Failed to create contact: ${insertContatoError.message}`);
+    }
+    
     contato = novoContato;
+    console.log('✅ Contact created:', contato?.id);
+  } else {
+    console.log('✅ Existing contact found:', contato.id);
+  }
+
+  // Validate contact exists before proceeding
+  if (!contato || !contato.id) {
+    console.error('❌ Contact is null after creation attempt');
+    throw new Error('Failed to create or find contact');
   }
 
   // Find or create conversation
-  let { data: conversa } = await supabase
+  console.log('🔍 Looking for active conversation for contact:', contato.id);
+  
+  let { data: conversa, error: conversaError } = await supabase
     .from('whatsapp_conversas')
     .select('*')
     .eq('whatsapp_contato_id', contato.id)
     .eq('status', 'ativa')
     .single();
 
+  if (conversaError && conversaError.code !== 'PGRST116') {
+    console.error('❌ Error fetching conversation:', conversaError);
+  }
+
   if (!conversa) {
-    const { data: novaConversa } = await supabase
+    console.log('📝 Creating new conversation for contact:', contato.id);
+    const conversaInsert = {
+      whatsapp_conta_id: conta.id,
+      whatsapp_contato_id: contato.id,
+      status: 'ativa',
+      origem_atendimento: 'receptivo',
+      unidade_id: conta.unidade_padrao_id || null,
+    };
+    console.log('📋 Conversation insert data:', JSON.stringify(conversaInsert));
+    
+    const { data: novaConversa, error: insertConversaError } = await supabase
       .from('whatsapp_conversas')
-      .insert({
-        whatsapp_conta_id: conta.id,
-        whatsapp_contato_id: contato.id,
-        status: 'ativa',
-        origem_atendimento: 'receptivo',
-        unidade_id: conta.unidade_padrao_id,
-      })
+      .insert(conversaInsert)
       .select()
       .single();
+    
+    if (insertConversaError) {
+      console.error('❌ Error creating conversation:', insertConversaError);
+      throw new Error(`Failed to create conversation: ${insertConversaError.message}`);
+    }
+    
     conversa = novaConversa;
+    console.log('✅ Conversation created:', conversa?.id);
+  } else {
+    console.log('✅ Existing conversation found:', conversa.id);
+  }
+
+  // Validate conversation exists before proceeding
+  if (!conversa || !conversa.id) {
+    console.error('❌ Conversation is null after creation attempt');
+    throw new Error('Failed to create or find conversation');
   }
 
   // Extract message content
