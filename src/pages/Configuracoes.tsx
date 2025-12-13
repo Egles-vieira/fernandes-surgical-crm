@@ -4,21 +4,9 @@ import { Building2, Settings as SettingsIcon, Palette, MessageSquare } from "luc
 import { EmpresaConfig } from "@/components/configuracoes/EmpresaConfig";
 import { PersonalizarCores } from "@/components/configuracoes/PersonalizarCores";
 import { WhatsAppConfigTab } from "@/components/configuracoes/WhatsAppConfigTab";
-
 export default function Configuracoes() {
-  return (
-    <div className="container mx-auto py-6 space-y-6">
-      <div className="flex items-center gap-3">
-        <div className="p-2 rounded-lg bg-primary/10">
-          <SettingsIcon className="h-6 w-6 text-primary" />
-        </div>
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Configurações</h1>
-          <p className="text-muted-foreground">
-            Gerencie as configurações do sistema
-          </p>
-        </div>
-      </div>
+  return <div className="container mx-auto py-6 space-y-6">
+      
 
       <Card className="p-6">
         <Tabs defaultValue="empresa" className="space-y-6">
@@ -50,6 +38,5 @@ export default function Configuracoes() {
           </TabsContent>
         </Tabs>
       </Card>
-    </div>
-  );
+    </div>;
 }
