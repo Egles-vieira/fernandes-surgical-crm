@@ -38,7 +38,8 @@ export function WhatsAppModule() {
   const { data: conversas = [], isLoading: isLoadingConversas } = useQuery({
     queryKey: ['whatsapp-conversas-v2'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Fetch conversations
+      const { data: conversasData, error } = await supabase
         .from('whatsapp_conversas')
         .select(`
           id,
@@ -56,7 +57,30 @@ export function WhatsAppModule() {
         .limit(50);
 
       if (error) throw error;
-      return data as Conversa[];
+      if (!conversasData || conversasData.length === 0) return [];
+
+      // Fetch last message for each conversation
+      const conversaIds = conversasData.map(c => c.id);
+      const { data: mensagensData } = await supabase
+        .from('whatsapp_mensagens')
+        .select('conversa_id, corpo, criado_em')
+        .in('conversa_id', conversaIds)
+        .order('criado_em', { ascending: false });
+
+      // Map last message per conversation
+      const ultimaMensagemMap: Record<string, string> = {};
+      if (mensagensData) {
+        for (const msg of mensagensData) {
+          if (!ultimaMensagemMap[msg.conversa_id]) {
+            ultimaMensagemMap[msg.conversa_id] = msg.corpo || '';
+          }
+        }
+      }
+
+      return conversasData.map(c => ({
+        ...c,
+        ultima_mensagem: ultimaMensagemMap[c.id] || ''
+      })) as Conversa[];
     },
   });
 
