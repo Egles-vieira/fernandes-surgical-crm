@@ -5527,6 +5527,7 @@ export type Database = {
       }
       perfis_usuario: {
         Row: {
+          atendimentos_ativos_whatsapp: number | null
           atualizado_em: string | null
           cargo: string | null
           celular: string | null
@@ -5536,6 +5537,7 @@ export type Database = {
           empresa_id: string | null
           esta_ativo: boolean | null
           esta_disponivel: boolean | null
+          filas_atendimento_ids: string[] | null
           foto_perfil_url: string | null
           fuso_horario: string | null
           gerente_id: string | null
@@ -5543,19 +5545,28 @@ export type Database = {
           horario_trabalho_inicio: string | null
           id: string
           idioma: string | null
+          max_atendimentos_whatsapp: number | null
           max_conversas_simultaneas: number | null
+          motivo_pausa: string | null
           nome_completo: string | null
           numero_celular: string | null
+          pausa_iniciada_em: string | null
           perfil_id: string | null
           primeiro_nome: string | null
           ramal: string | null
           sobrenome: string | null
           status_atendimento: string
+          status_atendimento_whatsapp: string | null
           telefone: string | null
+          tempo_medio_atendimento_dia: number | null
+          total_atendimentos_dia: number | null
+          ultimo_atendimento_whatsapp_em: string | null
           ultimo_login_em: string | null
+          unidades_atendimento_ids: string[] | null
           url_avatar: string | null
         }
         Insert: {
+          atendimentos_ativos_whatsapp?: number | null
           atualizado_em?: string | null
           cargo?: string | null
           celular?: string | null
@@ -5565,6 +5576,7 @@ export type Database = {
           empresa_id?: string | null
           esta_ativo?: boolean | null
           esta_disponivel?: boolean | null
+          filas_atendimento_ids?: string[] | null
           foto_perfil_url?: string | null
           fuso_horario?: string | null
           gerente_id?: string | null
@@ -5572,19 +5584,28 @@ export type Database = {
           horario_trabalho_inicio?: string | null
           id: string
           idioma?: string | null
+          max_atendimentos_whatsapp?: number | null
           max_conversas_simultaneas?: number | null
+          motivo_pausa?: string | null
           nome_completo?: string | null
           numero_celular?: string | null
+          pausa_iniciada_em?: string | null
           perfil_id?: string | null
           primeiro_nome?: string | null
           ramal?: string | null
           sobrenome?: string | null
           status_atendimento?: string
+          status_atendimento_whatsapp?: string | null
           telefone?: string | null
+          tempo_medio_atendimento_dia?: number | null
+          total_atendimentos_dia?: number | null
+          ultimo_atendimento_whatsapp_em?: string | null
           ultimo_login_em?: string | null
+          unidades_atendimento_ids?: string[] | null
           url_avatar?: string | null
         }
         Update: {
+          atendimentos_ativos_whatsapp?: number | null
           atualizado_em?: string | null
           cargo?: string | null
           celular?: string | null
@@ -5594,6 +5615,7 @@ export type Database = {
           empresa_id?: string | null
           esta_ativo?: boolean | null
           esta_disponivel?: boolean | null
+          filas_atendimento_ids?: string[] | null
           foto_perfil_url?: string | null
           fuso_horario?: string | null
           gerente_id?: string | null
@@ -5601,16 +5623,24 @@ export type Database = {
           horario_trabalho_inicio?: string | null
           id?: string
           idioma?: string | null
+          max_atendimentos_whatsapp?: number | null
           max_conversas_simultaneas?: number | null
+          motivo_pausa?: string | null
           nome_completo?: string | null
           numero_celular?: string | null
+          pausa_iniciada_em?: string | null
           perfil_id?: string | null
           primeiro_nome?: string | null
           ramal?: string | null
           sobrenome?: string | null
           status_atendimento?: string
+          status_atendimento_whatsapp?: string | null
           telefone?: string | null
+          tempo_medio_atendimento_dia?: number | null
+          total_atendimentos_dia?: number | null
+          ultimo_atendimento_whatsapp_em?: string | null
           ultimo_login_em?: string | null
+          unidades_atendimento_ids?: string[] | null
           url_avatar?: string | null
         }
         Relationships: [
@@ -7827,6 +7857,137 @@ export type Database = {
           },
         ]
       }
+      whatsapp_auditoria: {
+        Row: {
+          acao: string
+          alerta_enviado: boolean | null
+          alerta_enviado_em: string | null
+          alerta_para: string[] | null
+          categoria: string
+          dados_anteriores: Json | null
+          dados_novos: Json | null
+          descricao: string | null
+          dispositivo: string | null
+          entidade_id: string | null
+          entidade_nome: string | null
+          entidade_tipo: string | null
+          id: string
+          ip_address: unknown
+          localizacao_aproximada: string | null
+          nivel_risco:
+            | Database["public"]["Enums"]["nivel_risco_auditoria"]
+            | null
+          ocorrido_em: string | null
+          user_agent: string | null
+          usuario_id: string | null
+          usuario_nome: string | null
+          usuario_role: string | null
+        }
+        Insert: {
+          acao: string
+          alerta_enviado?: boolean | null
+          alerta_enviado_em?: string | null
+          alerta_para?: string[] | null
+          categoria: string
+          dados_anteriores?: Json | null
+          dados_novos?: Json | null
+          descricao?: string | null
+          dispositivo?: string | null
+          entidade_id?: string | null
+          entidade_nome?: string | null
+          entidade_tipo?: string | null
+          id?: string
+          ip_address?: unknown
+          localizacao_aproximada?: string | null
+          nivel_risco?:
+            | Database["public"]["Enums"]["nivel_risco_auditoria"]
+            | null
+          ocorrido_em?: string | null
+          user_agent?: string | null
+          usuario_id?: string | null
+          usuario_nome?: string | null
+          usuario_role?: string | null
+        }
+        Update: {
+          acao?: string
+          alerta_enviado?: boolean | null
+          alerta_enviado_em?: string | null
+          alerta_para?: string[] | null
+          categoria?: string
+          dados_anteriores?: Json | null
+          dados_novos?: Json | null
+          descricao?: string | null
+          dispositivo?: string | null
+          entidade_id?: string | null
+          entidade_nome?: string | null
+          entidade_tipo?: string | null
+          id?: string
+          ip_address?: unknown
+          localizacao_aproximada?: string | null
+          nivel_risco?:
+            | Database["public"]["Enums"]["nivel_risco_auditoria"]
+            | null
+          ocorrido_em?: string | null
+          user_agent?: string | null
+          usuario_id?: string | null
+          usuario_nome?: string | null
+          usuario_role?: string | null
+        }
+        Relationships: []
+      }
+      whatsapp_carteiras: {
+        Row: {
+          atualizado_em: string | null
+          criado_em: string | null
+          esta_ativo: boolean | null
+          id: string
+          motivo_transferencia: string | null
+          operador_id: string
+          tipo: string | null
+          total_atendimentos: number | null
+          transferido_de_id: string | null
+          transferido_em: string | null
+          ultimo_atendimento_em: string | null
+          whatsapp_contato_id: string
+        }
+        Insert: {
+          atualizado_em?: string | null
+          criado_em?: string | null
+          esta_ativo?: boolean | null
+          id?: string
+          motivo_transferencia?: string | null
+          operador_id: string
+          tipo?: string | null
+          total_atendimentos?: number | null
+          transferido_de_id?: string | null
+          transferido_em?: string | null
+          ultimo_atendimento_em?: string | null
+          whatsapp_contato_id: string
+        }
+        Update: {
+          atualizado_em?: string | null
+          criado_em?: string | null
+          esta_ativo?: boolean | null
+          id?: string
+          motivo_transferencia?: string | null
+          operador_id?: string
+          tipo?: string | null
+          total_atendimentos?: number | null
+          transferido_de_id?: string | null
+          transferido_em?: string | null
+          ultimo_atendimento_em?: string | null
+          whatsapp_contato_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_carteiras_whatsapp_contato_id_fkey"
+            columns: ["whatsapp_contato_id"]
+            isOneToOne: true
+            referencedRelation: "whatsapp_contatos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       whatsapp_configuracao_global: {
         Row: {
           configurado_em: string | null
@@ -7857,14 +8018,90 @@ export type Database = {
         }
         Relationships: []
       }
+      whatsapp_configuracoes_atendimento: {
+        Row: {
+          apenas_operadores_online: boolean | null
+          atualizado_em: string | null
+          bloquear_ao_atingir_limite: boolean | null
+          carteirizacao_ativa: boolean | null
+          criado_em: string | null
+          criado_por: string | null
+          entidade_id: string | null
+          exibir_nome_operador: boolean | null
+          formato_nome: string | null
+          id: string
+          max_atendimentos_simultaneos: number | null
+          mensagem_encerramento_inatividade: string | null
+          modo_carteirizacao: string | null
+          nivel: string | null
+          notificar_antes_encerramento_minutos: number | null
+          sla_inatividade_horas: number | null
+          tabulacao_padrao_inatividade: string | null
+          tempo_max_aceite_segundos: number | null
+          tipo_distribuicao: string | null
+        }
+        Insert: {
+          apenas_operadores_online?: boolean | null
+          atualizado_em?: string | null
+          bloquear_ao_atingir_limite?: boolean | null
+          carteirizacao_ativa?: boolean | null
+          criado_em?: string | null
+          criado_por?: string | null
+          entidade_id?: string | null
+          exibir_nome_operador?: boolean | null
+          formato_nome?: string | null
+          id?: string
+          max_atendimentos_simultaneos?: number | null
+          mensagem_encerramento_inatividade?: string | null
+          modo_carteirizacao?: string | null
+          nivel?: string | null
+          notificar_antes_encerramento_minutos?: number | null
+          sla_inatividade_horas?: number | null
+          tabulacao_padrao_inatividade?: string | null
+          tempo_max_aceite_segundos?: number | null
+          tipo_distribuicao?: string | null
+        }
+        Update: {
+          apenas_operadores_online?: boolean | null
+          atualizado_em?: string | null
+          bloquear_ao_atingir_limite?: boolean | null
+          carteirizacao_ativa?: boolean | null
+          criado_em?: string | null
+          criado_por?: string | null
+          entidade_id?: string | null
+          exibir_nome_operador?: boolean | null
+          formato_nome?: string | null
+          id?: string
+          max_atendimentos_simultaneos?: number | null
+          mensagem_encerramento_inatividade?: string | null
+          modo_carteirizacao?: string | null
+          nivel?: string | null
+          notificar_antes_encerramento_minutos?: number | null
+          sla_inatividade_horas?: number | null
+          tabulacao_padrao_inatividade?: string | null
+          tempo_max_aceite_segundos?: number | null
+          tipo_distribuicao?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_configuracoes_atendi_tabulacao_padrao_inatividade_fkey"
+            columns: ["tabulacao_padrao_inatividade"]
+            isOneToOne: false
+            referencedRelation: "codigos_disposicao"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       whatsapp_contas: {
         Row: {
           account_sid: string | null
           agente_vendas_ativo: boolean | null
           api_key_gupshup: string | null
+          api_version: string | null
           app_id_gupshup: string | null
           atualizado_em: string | null
           business_account_id: string | null
+          business_id: string | null
           categoria_negocio: string | null
           conectada_em: string | null
           criado_em: string | null
@@ -7874,15 +8111,19 @@ export type Database = {
           email_contato: string | null
           endereco: string | null
           excluido_em: string | null
+          expediente_id: string | null
           foto_perfil_url: string | null
           horario_atendimento: Json | null
           id: string
           instance_id_wapi: string | null
           limite_mensagens_dia: number | null
           mensagem_fora_horario: string | null
+          menu_setores_config: Json | null
+          meta_access_token: string | null
           nome_conta: string
           nome_exibicao: string | null
           numero_whatsapp: string
+          phone_number_id: string | null
           phone_number_id_gupshup: string | null
           provedor: string
           provider: string
@@ -7895,7 +8136,9 @@ export type Database = {
           total_mensagens_enviadas: number | null
           total_mensagens_recebidas: number | null
           ultima_sincronizacao_em: string | null
+          unidade_padrao_id: string | null
           verificada: boolean | null
+          waba_id: string | null
           webhook_connected_url: string | null
           webhook_delivery_url: string | null
           webhook_disconnected_url: string | null
@@ -7908,9 +8151,11 @@ export type Database = {
           account_sid?: string | null
           agente_vendas_ativo?: boolean | null
           api_key_gupshup?: string | null
+          api_version?: string | null
           app_id_gupshup?: string | null
           atualizado_em?: string | null
           business_account_id?: string | null
+          business_id?: string | null
           categoria_negocio?: string | null
           conectada_em?: string | null
           criado_em?: string | null
@@ -7920,15 +8165,19 @@ export type Database = {
           email_contato?: string | null
           endereco?: string | null
           excluido_em?: string | null
+          expediente_id?: string | null
           foto_perfil_url?: string | null
           horario_atendimento?: Json | null
           id?: string
           instance_id_wapi?: string | null
           limite_mensagens_dia?: number | null
           mensagem_fora_horario?: string | null
+          menu_setores_config?: Json | null
+          meta_access_token?: string | null
           nome_conta: string
           nome_exibicao?: string | null
           numero_whatsapp: string
+          phone_number_id?: string | null
           phone_number_id_gupshup?: string | null
           provedor: string
           provider: string
@@ -7941,7 +8190,9 @@ export type Database = {
           total_mensagens_enviadas?: number | null
           total_mensagens_recebidas?: number | null
           ultima_sincronizacao_em?: string | null
+          unidade_padrao_id?: string | null
           verificada?: boolean | null
+          waba_id?: string | null
           webhook_connected_url?: string | null
           webhook_delivery_url?: string | null
           webhook_disconnected_url?: string | null
@@ -7954,9 +8205,11 @@ export type Database = {
           account_sid?: string | null
           agente_vendas_ativo?: boolean | null
           api_key_gupshup?: string | null
+          api_version?: string | null
           app_id_gupshup?: string | null
           atualizado_em?: string | null
           business_account_id?: string | null
+          business_id?: string | null
           categoria_negocio?: string | null
           conectada_em?: string | null
           criado_em?: string | null
@@ -7966,15 +8219,19 @@ export type Database = {
           email_contato?: string | null
           endereco?: string | null
           excluido_em?: string | null
+          expediente_id?: string | null
           foto_perfil_url?: string | null
           horario_atendimento?: Json | null
           id?: string
           instance_id_wapi?: string | null
           limite_mensagens_dia?: number | null
           mensagem_fora_horario?: string | null
+          menu_setores_config?: Json | null
+          meta_access_token?: string | null
           nome_conta?: string
           nome_exibicao?: string | null
           numero_whatsapp?: string
+          phone_number_id?: string | null
           phone_number_id_gupshup?: string | null
           provedor?: string
           provider?: string
@@ -7987,7 +8244,9 @@ export type Database = {
           total_mensagens_enviadas?: number | null
           total_mensagens_recebidas?: number | null
           ultima_sincronizacao_em?: string | null
+          unidade_padrao_id?: string | null
           verificada?: boolean | null
+          waba_id?: string | null
           webhook_connected_url?: string | null
           webhook_delivery_url?: string | null
           webhook_disconnected_url?: string | null
@@ -7996,7 +8255,15 @@ export type Database = {
           webhook_url?: string | null
           webhook_verificado?: boolean | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_contas_unidade_padrao_id_fkey"
+            columns: ["unidade_padrao_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_unidades"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       whatsapp_contatos: {
         Row: {
@@ -8129,15 +8396,20 @@ export type Database = {
           atualizado_em: string | null
           avaliacao_satisfacao: number | null
           avaliada_em: string | null
+          campanha_origem: string | null
           categoria: string | null
           comentario_avaliacao: string | null
           conta_id: string | null
           contato_id: string | null
           conversa_externa_id: string | null
           criado_em: string | null
+          csat_score: number | null
+          distribuicao_iniciada_em: string | null
+          em_distribuicao: boolean | null
           emoji_sentimento: string | null
           estagio_agente: string | null
           fechada_em: string | null
+          fila_id: string | null
           gerenciada_por_bot: boolean | null
           id: string
           iniciada_em: string | null
@@ -8145,8 +8417,11 @@ export type Database = {
           janela_aberta_em: string | null
           janela_fecha_em: string | null
           mensagens_analisadas: number | null
+          nps_score: number | null
+          numero_protocolo: string | null
           oportunidade_id: string | null
           origem: string | null
+          origem_atendimento: string | null
           prioridade: string | null
           produtos_carrinho: Json | null
           proposta_ativa_id: string | null
@@ -8156,6 +8431,7 @@ export type Database = {
           tags: string[] | null
           tempo_primeira_resposta_minutos: number | null
           tempo_total_resposta_minutos: number | null
+          tentativas_distribuicao: number | null
           tipo_conversa: string | null
           titulo: string | null
           total_mensagens: number | null
@@ -8168,6 +8444,10 @@ export type Database = {
           ultima_interacao_agente_em: string | null
           ultima_interacao_cliente_em: string | null
           ultima_mensagem_em: string | null
+          unidade_id: string | null
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
           whatsapp_conta_id: string
           whatsapp_contato_id: string
         }
@@ -8178,15 +8458,20 @@ export type Database = {
           atualizado_em?: string | null
           avaliacao_satisfacao?: number | null
           avaliada_em?: string | null
+          campanha_origem?: string | null
           categoria?: string | null
           comentario_avaliacao?: string | null
           conta_id?: string | null
           contato_id?: string | null
           conversa_externa_id?: string | null
           criado_em?: string | null
+          csat_score?: number | null
+          distribuicao_iniciada_em?: string | null
+          em_distribuicao?: boolean | null
           emoji_sentimento?: string | null
           estagio_agente?: string | null
           fechada_em?: string | null
+          fila_id?: string | null
           gerenciada_por_bot?: boolean | null
           id?: string
           iniciada_em?: string | null
@@ -8194,8 +8479,11 @@ export type Database = {
           janela_aberta_em?: string | null
           janela_fecha_em?: string | null
           mensagens_analisadas?: number | null
+          nps_score?: number | null
+          numero_protocolo?: string | null
           oportunidade_id?: string | null
           origem?: string | null
+          origem_atendimento?: string | null
           prioridade?: string | null
           produtos_carrinho?: Json | null
           proposta_ativa_id?: string | null
@@ -8205,6 +8493,7 @@ export type Database = {
           tags?: string[] | null
           tempo_primeira_resposta_minutos?: number | null
           tempo_total_resposta_minutos?: number | null
+          tentativas_distribuicao?: number | null
           tipo_conversa?: string | null
           titulo?: string | null
           total_mensagens?: number | null
@@ -8217,6 +8506,10 @@ export type Database = {
           ultima_interacao_agente_em?: string | null
           ultima_interacao_cliente_em?: string | null
           ultima_mensagem_em?: string | null
+          unidade_id?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
           whatsapp_conta_id: string
           whatsapp_contato_id: string
         }
@@ -8227,15 +8520,20 @@ export type Database = {
           atualizado_em?: string | null
           avaliacao_satisfacao?: number | null
           avaliada_em?: string | null
+          campanha_origem?: string | null
           categoria?: string | null
           comentario_avaliacao?: string | null
           conta_id?: string | null
           contato_id?: string | null
           conversa_externa_id?: string | null
           criado_em?: string | null
+          csat_score?: number | null
+          distribuicao_iniciada_em?: string | null
+          em_distribuicao?: boolean | null
           emoji_sentimento?: string | null
           estagio_agente?: string | null
           fechada_em?: string | null
+          fila_id?: string | null
           gerenciada_por_bot?: boolean | null
           id?: string
           iniciada_em?: string | null
@@ -8243,8 +8541,11 @@ export type Database = {
           janela_aberta_em?: string | null
           janela_fecha_em?: string | null
           mensagens_analisadas?: number | null
+          nps_score?: number | null
+          numero_protocolo?: string | null
           oportunidade_id?: string | null
           origem?: string | null
+          origem_atendimento?: string | null
           prioridade?: string | null
           produtos_carrinho?: Json | null
           proposta_ativa_id?: string | null
@@ -8254,6 +8555,7 @@ export type Database = {
           tags?: string[] | null
           tempo_primeira_resposta_minutos?: number | null
           tempo_total_resposta_minutos?: number | null
+          tentativas_distribuicao?: number | null
           tipo_conversa?: string | null
           titulo?: string | null
           total_mensagens?: number | null
@@ -8266,6 +8568,10 @@ export type Database = {
           ultima_interacao_agente_em?: string | null
           ultima_interacao_cliente_em?: string | null
           ultima_mensagem_em?: string | null
+          unidade_id?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
           whatsapp_conta_id?: string
           whatsapp_contato_id?: string
         }
@@ -8292,6 +8598,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "whatsapp_conversas_fila_id_fkey"
+            columns: ["fila_id"]
+            isOneToOne: false
+            referencedRelation: "filas_atendimento"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "whatsapp_conversas_oportunidade_id_fkey"
             columns: ["oportunidade_id"]
             isOneToOne: false
@@ -8303,6 +8616,13 @@ export type Database = {
             columns: ["proposta_ativa_id"]
             isOneToOne: false
             referencedRelation: "whatsapp_propostas_comerciais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_conversas_unidade_id_fkey"
+            columns: ["unidade_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_unidades"
             referencedColumns: ["id"]
           },
           {
@@ -8381,6 +8701,123 @@ export type Database = {
           },
         ]
       }
+      whatsapp_etiquetas_ia: {
+        Row: {
+          categoria: string | null
+          confianca: number
+          conversa_id: string | null
+          criado_em: string | null
+          etiqueta: string
+          etiqueta_corrigida: string | null
+          foi_corrigida: boolean | null
+          id: string
+          mensagem_id: string | null
+          modelo_ia: string | null
+          validada_em: string | null
+          validada_por: string | null
+          validada_por_humano: boolean | null
+        }
+        Insert: {
+          categoria?: string | null
+          confianca: number
+          conversa_id?: string | null
+          criado_em?: string | null
+          etiqueta: string
+          etiqueta_corrigida?: string | null
+          foi_corrigida?: boolean | null
+          id?: string
+          mensagem_id?: string | null
+          modelo_ia?: string | null
+          validada_em?: string | null
+          validada_por?: string | null
+          validada_por_humano?: boolean | null
+        }
+        Update: {
+          categoria?: string | null
+          confianca?: number
+          conversa_id?: string | null
+          criado_em?: string | null
+          etiqueta?: string
+          etiqueta_corrigida?: string | null
+          foi_corrigida?: boolean | null
+          id?: string
+          mensagem_id?: string | null
+          modelo_ia?: string | null
+          validada_em?: string | null
+          validada_por?: string | null
+          validada_por_humano?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_etiquetas_ia_conversa_id_fkey"
+            columns: ["conversa_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_conversas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_etiquetas_ia_mensagem_id_fkey"
+            columns: ["mensagem_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_mensagens"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_expedientes: {
+        Row: {
+          atualizado_em: string | null
+          comportamento_fora_expediente: string | null
+          criado_em: string | null
+          criado_por: string | null
+          descricao: string | null
+          entidade_id: string | null
+          esta_ativo: boolean | null
+          horarios_semana: Json
+          id: string
+          mensagem_feriado: string | null
+          mensagem_fora_expediente: string | null
+          nome: string
+          prioridade: number | null
+          timezone: string | null
+          tipo_entidade: string
+        }
+        Insert: {
+          atualizado_em?: string | null
+          comportamento_fora_expediente?: string | null
+          criado_em?: string | null
+          criado_por?: string | null
+          descricao?: string | null
+          entidade_id?: string | null
+          esta_ativo?: boolean | null
+          horarios_semana?: Json
+          id?: string
+          mensagem_feriado?: string | null
+          mensagem_fora_expediente?: string | null
+          nome: string
+          prioridade?: number | null
+          timezone?: string | null
+          tipo_entidade: string
+        }
+        Update: {
+          atualizado_em?: string | null
+          comportamento_fora_expediente?: string | null
+          criado_em?: string | null
+          criado_por?: string | null
+          descricao?: string | null
+          entidade_id?: string | null
+          esta_ativo?: boolean | null
+          horarios_semana?: Json
+          id?: string
+          mensagem_feriado?: string | null
+          mensagem_fora_expediente?: string | null
+          nome?: string
+          prioridade?: number | null
+          timezone?: string | null
+          tipo_entidade?: string
+        }
+        Relationships: []
+      }
       whatsapp_feedback_produtos: {
         Row: {
           comentario_cliente: string | null
@@ -8451,6 +8888,145 @@ export type Database = {
             columns: ["proposta_id"]
             isOneToOne: false
             referencedRelation: "whatsapp_propostas_comerciais"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_feriados: {
+        Row: {
+          abrangencia: string | null
+          atualizado_em: string | null
+          cidade: string | null
+          criado_em: string | null
+          criado_por: string | null
+          data: string
+          descricao: string | null
+          eh_recorrente: boolean | null
+          esta_ativo: boolean | null
+          estado: string | null
+          horario_especial: Json | null
+          id: string
+          mensagem_feriado: string | null
+          nome: string
+          tipo_fechamento: string | null
+          unidades_ids: string[] | null
+        }
+        Insert: {
+          abrangencia?: string | null
+          atualizado_em?: string | null
+          cidade?: string | null
+          criado_em?: string | null
+          criado_por?: string | null
+          data: string
+          descricao?: string | null
+          eh_recorrente?: boolean | null
+          esta_ativo?: boolean | null
+          estado?: string | null
+          horario_especial?: Json | null
+          id?: string
+          mensagem_feriado?: string | null
+          nome: string
+          tipo_fechamento?: string | null
+          unidades_ids?: string[] | null
+        }
+        Update: {
+          abrangencia?: string | null
+          atualizado_em?: string | null
+          cidade?: string | null
+          criado_em?: string | null
+          criado_por?: string | null
+          data?: string
+          descricao?: string | null
+          eh_recorrente?: boolean | null
+          esta_ativo?: boolean | null
+          estado?: string | null
+          horario_especial?: Json | null
+          id?: string
+          mensagem_feriado?: string | null
+          nome?: string
+          tipo_fechamento?: string | null
+          unidades_ids?: string[] | null
+        }
+        Relationships: []
+      }
+      whatsapp_fila_espera: {
+        Row: {
+          atendido_em: string | null
+          atendido_por_id: string | null
+          atualizado_em: string | null
+          conversa_id: string
+          criado_em: string | null
+          entrou_fila_em: string | null
+          fila_destino_id: string | null
+          id: string
+          operador_preferencial_id: string | null
+          operadores_rejeitaram: string[] | null
+          posicao: number
+          prioridade: string | null
+          status: string | null
+          tempo_estimado_segundos: number | null
+          tentativas_distribuicao: number | null
+          ultima_tentativa_em: string | null
+          unidade_id: string | null
+        }
+        Insert: {
+          atendido_em?: string | null
+          atendido_por_id?: string | null
+          atualizado_em?: string | null
+          conversa_id: string
+          criado_em?: string | null
+          entrou_fila_em?: string | null
+          fila_destino_id?: string | null
+          id?: string
+          operador_preferencial_id?: string | null
+          operadores_rejeitaram?: string[] | null
+          posicao: number
+          prioridade?: string | null
+          status?: string | null
+          tempo_estimado_segundos?: number | null
+          tentativas_distribuicao?: number | null
+          ultima_tentativa_em?: string | null
+          unidade_id?: string | null
+        }
+        Update: {
+          atendido_em?: string | null
+          atendido_por_id?: string | null
+          atualizado_em?: string | null
+          conversa_id?: string
+          criado_em?: string | null
+          entrou_fila_em?: string | null
+          fila_destino_id?: string | null
+          id?: string
+          operador_preferencial_id?: string | null
+          operadores_rejeitaram?: string[] | null
+          posicao?: number
+          prioridade?: string | null
+          status?: string | null
+          tempo_estimado_segundos?: number | null
+          tentativas_distribuicao?: number | null
+          ultima_tentativa_em?: string | null
+          unidade_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_fila_espera_conversa_id_fkey"
+            columns: ["conversa_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_conversas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_fila_espera_fila_destino_id_fkey"
+            columns: ["fila_destino_id"]
+            isOneToOne: false
+            referencedRelation: "filas_atendimento"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_fila_espera_unidade_id_fkey"
+            columns: ["unidade_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_unidades"
             referencedColumns: ["id"]
           },
         ]
@@ -9170,6 +9746,60 @@ export type Database = {
           },
         ]
       }
+      whatsapp_tabulacoes: {
+        Row: {
+          codigo_disposicao_id: string
+          conversa_id: string
+          criado_em: string | null
+          id: string
+          observacoes: string | null
+          proximo_contato_em: string | null
+          proximo_passo: string | null
+          subcategoria: string | null
+          tabulado_em: string | null
+          tabulado_por: string
+        }
+        Insert: {
+          codigo_disposicao_id: string
+          conversa_id: string
+          criado_em?: string | null
+          id?: string
+          observacoes?: string | null
+          proximo_contato_em?: string | null
+          proximo_passo?: string | null
+          subcategoria?: string | null
+          tabulado_em?: string | null
+          tabulado_por: string
+        }
+        Update: {
+          codigo_disposicao_id?: string
+          conversa_id?: string
+          criado_em?: string | null
+          id?: string
+          observacoes?: string | null
+          proximo_contato_em?: string | null
+          proximo_passo?: string | null
+          subcategoria?: string | null
+          tabulado_em?: string | null
+          tabulado_por?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_tabulacoes_codigo_disposicao_id_fkey"
+            columns: ["codigo_disposicao_id"]
+            isOneToOne: false
+            referencedRelation: "codigos_disposicao"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_tabulacoes_conversa_id_fkey"
+            columns: ["conversa_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_conversas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       whatsapp_templates: {
         Row: {
           aprovado_em: string | null
@@ -9282,6 +9912,164 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "whatsapp_templates_whatsapp_conta_id_fkey"
+            columns: ["whatsapp_conta_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_contas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_templates_sistema: {
+        Row: {
+          atualizado_em: string | null
+          codigo: string
+          conteudo: string
+          criado_em: string | null
+          criado_por: string | null
+          descricao: string | null
+          esta_ativo: boolean | null
+          id: string
+          nome: string
+          setor_id: string | null
+          tipo: string
+          unidade_id: string | null
+          variaveis_disponiveis: string[] | null
+        }
+        Insert: {
+          atualizado_em?: string | null
+          codigo: string
+          conteudo: string
+          criado_em?: string | null
+          criado_por?: string | null
+          descricao?: string | null
+          esta_ativo?: boolean | null
+          id?: string
+          nome: string
+          setor_id?: string | null
+          tipo: string
+          unidade_id?: string | null
+          variaveis_disponiveis?: string[] | null
+        }
+        Update: {
+          atualizado_em?: string | null
+          codigo?: string
+          conteudo?: string
+          criado_em?: string | null
+          criado_por?: string | null
+          descricao?: string | null
+          esta_ativo?: boolean | null
+          id?: string
+          nome?: string
+          setor_id?: string | null
+          tipo?: string
+          unidade_id?: string | null
+          variaveis_disponiveis?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_templates_sistema_setor_id_fkey"
+            columns: ["setor_id"]
+            isOneToOne: false
+            referencedRelation: "filas_atendimento"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_templates_sistema_unidade_id_fkey"
+            columns: ["unidade_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_unidades"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_unidades: {
+        Row: {
+          aceita_atendimento_remoto: boolean | null
+          atualizado_em: string | null
+          bairro: string | null
+          cep: string | null
+          cidade: string
+          cnpj: string | null
+          codigo: string | null
+          complemento: string | null
+          criado_em: string | null
+          criado_por: string | null
+          email: string | null
+          estado: string
+          excluido_em: string | null
+          id: string
+          latitude: number | null
+          logradouro: string | null
+          longitude: number | null
+          nome: string
+          numero: string | null
+          pais: string | null
+          prioridade_roteamento: number | null
+          raio_cobertura_km: number | null
+          status: string | null
+          telefone_principal: string | null
+          telefone_whatsapp: string | null
+          whatsapp_conta_id: string | null
+        }
+        Insert: {
+          aceita_atendimento_remoto?: boolean | null
+          atualizado_em?: string | null
+          bairro?: string | null
+          cep?: string | null
+          cidade: string
+          cnpj?: string | null
+          codigo?: string | null
+          complemento?: string | null
+          criado_em?: string | null
+          criado_por?: string | null
+          email?: string | null
+          estado: string
+          excluido_em?: string | null
+          id?: string
+          latitude?: number | null
+          logradouro?: string | null
+          longitude?: number | null
+          nome: string
+          numero?: string | null
+          pais?: string | null
+          prioridade_roteamento?: number | null
+          raio_cobertura_km?: number | null
+          status?: string | null
+          telefone_principal?: string | null
+          telefone_whatsapp?: string | null
+          whatsapp_conta_id?: string | null
+        }
+        Update: {
+          aceita_atendimento_remoto?: boolean | null
+          atualizado_em?: string | null
+          bairro?: string | null
+          cep?: string | null
+          cidade?: string
+          cnpj?: string | null
+          codigo?: string | null
+          complemento?: string | null
+          criado_em?: string | null
+          criado_por?: string | null
+          email?: string | null
+          estado?: string
+          excluido_em?: string | null
+          id?: string
+          latitude?: number | null
+          logradouro?: string | null
+          longitude?: number | null
+          nome?: string
+          numero?: string | null
+          pais?: string | null
+          prioridade_roteamento?: number | null
+          raio_cobertura_km?: number | null
+          status?: string | null
+          telefone_principal?: string | null
+          telefone_whatsapp?: string | null
+          whatsapp_conta_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_unidades_whatsapp_conta_id_fkey"
             columns: ["whatsapp_conta_id"]
             isOneToOne: false
             referencedRelation: "whatsapp_contas"
@@ -9658,6 +10446,25 @@ export type Database = {
           valor_mes: number | null
           valor_total: number | null
           vendas_ganhas: number | null
+        }
+        Relationships: []
+      }
+      mv_whatsapp_bam_dashboard: {
+        Row: {
+          atendimentos_em_andamento: number | null
+          atualizado_em: string | null
+          conversas_ativas: number | null
+          conversas_detratores: number | null
+          conversas_hoje: number | null
+          conversas_na_fila: number | null
+          operadores_ocupados: number | null
+          operadores_offline: number | null
+          operadores_online: number | null
+          operadores_pausa: number | null
+          tempo_max_espera_segundos: number | null
+          tempo_medio_espera_segundos: number | null
+          tma_medio_segundos: number | null
+          total_fila_espera: number | null
         }
         Relationships: []
       }
@@ -10040,6 +10847,14 @@ export type Database = {
         Returns: boolean
       }
       can_access_menu_tecnico: { Args: { _user_id: string }; Returns: boolean }
+      distribuir_conversa_whatsapp: {
+        Args: {
+          p_conversa_id: string
+          p_fila_id?: string
+          p_unidade_id?: string
+        }
+        Returns: Json
+      }
       gerar_numero_ticket: { Args: never; Returns: string }
       gerar_token_proposta: { Args: never; Returns: string }
       get_clientes_acessiveis: {
@@ -10301,6 +11116,7 @@ export type Database = {
       refresh_dashboard_views: { Args: never; Returns: undefined }
       refresh_ged_mvs: { Args: never; Returns: undefined }
       refresh_mv_atividades_prioridade: { Args: never; Returns: undefined }
+      refresh_whatsapp_bam_dashboard: { Args: never; Returns: undefined }
       registrar_feedback_ia: {
         Args: {
           p_feedback_tipo: string
@@ -10330,6 +11146,14 @@ export type Database = {
       }
       unaccent: { Args: { "": string }; Returns: string }
       verificar_alertas_metas: { Args: never; Returns: undefined }
+      verificar_dentro_expediente: {
+        Args: {
+          p_setor_id?: string
+          p_timestamp?: string
+          p_unidade_id?: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
       app_role:
@@ -10359,6 +11183,7 @@ export type Database = {
       identificacao_tipo: "Cliente" | "Fornecedor" | "Ambos"
       metodo_vinculacao: "ia_automatico" | "ia_manual" | "manual" | "importado"
       natureza_tipo: "Juridica" | "Fisica"
+      nivel_risco_auditoria: "baixo" | "medio" | "alto" | "critico"
       prioridade_atividade: "critica" | "alta" | "media" | "baixa"
       prioridade_ticket: "baixa" | "normal" | "alta" | "urgente"
       sentimento_tipo:
@@ -10589,6 +11414,7 @@ export const Constants = {
       identificacao_tipo: ["Cliente", "Fornecedor", "Ambos"],
       metodo_vinculacao: ["ia_automatico", "ia_manual", "manual", "importado"],
       natureza_tipo: ["Juridica", "Fisica"],
+      nivel_risco_auditoria: ["baixo", "medio", "alto", "critico"],
       prioridade_atividade: ["critica", "alta", "media", "baixa"],
       prioridade_ticket: ["baixa", "normal", "alta", "urgente"],
       sentimento_tipo: [
