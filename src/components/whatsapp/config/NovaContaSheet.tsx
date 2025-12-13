@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -111,6 +112,37 @@ export function NovaContaSheet({ open, onOpenChange, conta }: NovaContaSheetProp
       mensagem_fora_horario: conta?.mensagem_fora_horario || "",
     },
   });
+
+  // Reset form when conta changes (for editing)
+  useEffect(() => {
+    if (open) {
+      form.reset({
+        nome_conta: conta?.nome_conta || "",
+        numero_whatsapp: conta?.numero_whatsapp || "",
+        provider: conta?.provider || "meta_cloud_api",
+        provedor: conta?.provedor || "meta_cloud_api",
+        meta_access_token: conta?.meta_access_token || "",
+        meta_phone_number_id: conta?.meta_phone_number_id || "",
+        meta_waba_id: conta?.meta_waba_id || "",
+        account_sid: conta?.account_sid || "",
+        business_account_id: conta?.business_account_id || "",
+        phone_number_id_gupshup: conta?.phone_number_id_gupshup || "",
+        app_id_gupshup: conta?.app_id_gupshup || "",
+        api_key_gupshup: conta?.api_key_gupshup || "",
+        instance_id_wapi: conta?.instance_id_wapi || "",
+        token_wapi: conta?.token_wapi || "",
+        nome_exibicao: conta?.nome_exibicao || "",
+        descricao_negocio: conta?.descricao_negocio || "",
+        categoria_negocio: conta?.categoria_negocio || "",
+        site: conta?.site || "",
+        email_contato: conta?.email_contato || "",
+        endereco: conta?.endereco || "",
+        limite_mensagens_dia: conta?.limite_mensagens_dia || 1000,
+        resposta_automatica_ativa: conta?.resposta_automatica_ativa ?? true,
+        mensagem_fora_horario: conta?.mensagem_fora_horario || "",
+      });
+    }
+  }, [open, conta, form]);
 
   const mutation = useMutation({
     mutationFn: async (data: ContaFormData) => {
