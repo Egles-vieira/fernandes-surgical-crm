@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useWhatsAppConfig } from "@/hooks/useWhatsAppConfig";
+import { useWhatsAppGlobal } from "@/hooks/useWhatsAppGlobal";
 import { useAuth } from "@/hooks/useAuth";
+import { whatsappAdapter } from "@/lib/whatsappAdapter";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -47,9 +48,11 @@ const ChatArea = ({
     toast
   } = useToast();
   const queryClient = useQueryClient();
-  const {
-    isWAPI
-  } = useWhatsAppConfig();
+  // Usar hook global do WhatsApp
+  const { configuracao } = useWhatsAppGlobal();
+  
+  // Meta API oficial sempre requer janela 24h, W-API não
+  const isMetaAPI = configuracao?.provedor_ativo === 'meta';
   const { user } = useAuth();
 
   // Buscar dados do usuário logado
@@ -192,9 +195,6 @@ const ChatArea = ({
       // Enviar via adapter
       if (data) {
         try {
-          const {
-            whatsappAdapter
-          } = await import('@/lib/whatsappAdapter');
           await whatsappAdapter.enviarMensagem(data.id);
         } catch (functionError) {
           console.error('❌ Erro ao enviar via adapter:', functionError);
@@ -249,9 +249,7 @@ const ChatArea = ({
       }).eq('id', mensagemId);
 
       // Reenviar via adapter
-      const {
-        whatsappAdapter
-      } = await import('@/lib/whatsappAdapter');
+      await whatsappAdapter.enviarMensagem(mensagemId);
       await whatsappAdapter.enviarMensagem(mensagemId);
     },
     onSuccess: () => {
@@ -465,8 +463,8 @@ const ChatArea = ({
   const nomeContato = conversa?.whatsapp_contatos?.contatos?.nome_completo || conversa?.whatsapp_contatos?.nome_whatsapp || conversa?.whatsapp_contatos?.numero_whatsapp;
   const iniciais = nomeContato?.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
 
-  // Regra: API não oficial (W-API) não precisa de janela de 24h
-  const podeEnviar = isWAPI || conversa?.janela_24h_ativa;
+  // Regra: Meta API oficial requer janela de 24h
+  const podeEnviar = !isMetaAPI || conversa?.janela_24h_ativa;
   return <Card className="h-full min-h-0 flex flex-col bg-card/50 backdrop-blur border-muted">
       {/* Header */}
       <div className="p-4 border-b border-border/50 bg-gradient-to-br from-muted/30 to-transparent bg-slate-50">
@@ -848,8 +846,8 @@ const ChatArea = ({
                       {isErro && <AlertCircle className="w-4 h-4 text-destructive" />}
                     </div>
                     
-                    {/* Ações da mensagem */}
-                    {isWAPI && !isDeletada && (
+                    {/* Ações da mensagem - disponível para todas as APIs */}
+                    {!isDeletada && (
                       <MessageActions
                         messageId={msg.id}
                         messageContent={msg.corpo || ''}
@@ -942,12 +940,10 @@ const ChatArea = ({
                 <FileText className="w-4 h-4 mr-2" />
                 Enviar Documento
               </DropdownMenuItem>
-              {isWAPI && (
-                <DropdownMenuItem onClick={() => setShowButtonBuilder(true)}>
-                  <ListIcon className="w-4 h-4 mr-2" />
-                  Mensagem com Botões
-                </DropdownMenuItem>
-              )}
+              <DropdownMenuItem onClick={() => setShowButtonBuilder(true)}>
+                <ListIcon className="w-4 h-4 mr-2" />
+                Mensagem com Botões
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
           
