@@ -284,7 +284,13 @@ export default function Layout({
                         <HoverCardContent side="right" align="start" className="w-48 bg-card border-border p-2 ml-2">
                           <div className="space-y-1">
                             <p className="text-xs font-semibold text-muted-foreground mb-2 px-2">{item.label}</p>
-                            {item.children.filter(child => !child.adminOnly || isAdmin || isManager).map(child => {})}
+                            {item.children.filter(child => !child.adminOnly || isAdmin || isManager).map(child => <NavLink key={child.path} to={child.path!} end={child.path === "/"} className={({
+                          isActive
+                        }) => `flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200
+                                ${isActive ? "bg-primary/10 text-primary font-medium" : "hover:bg-muted text-foreground"}`}>
+                                  <child.icon size={16} className="flex-shrink-0" />
+                                  <span className="text-sm">{child.label}</span>
+                                </NavLink>)}
                           </div>
                         </HoverCardContent>
                       </HoverCard>;
