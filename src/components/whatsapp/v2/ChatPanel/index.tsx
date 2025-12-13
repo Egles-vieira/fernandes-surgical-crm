@@ -255,10 +255,21 @@ export function ChatPanel({
             <p>Nenhuma mensagem ainda</p>
           </div>
         ) : (
-          <div className="space-y-3">
-            {mensagens.map((msg) => (
-              <MessageBubble key={msg.id} mensagem={msg} />
-            ))}
+          <div className="space-y-4">
+            {mensagens.map((msg, index) => {
+              // Show sender if first message or different direction from previous
+              const prevMsg = mensagens[index - 1];
+              const showSender = !prevMsg || prevMsg.direcao !== msg.direcao;
+              
+              return (
+                <MessageBubble 
+                  key={msg.id} 
+                  mensagem={msg} 
+                  contato={contato}
+                  showSender={showSender}
+                />
+              );
+            })}
             <div ref={scrollRef} />
           </div>
         )}
@@ -318,48 +329,111 @@ export function ChatPanel({
   );
 }
 
-function MessageBubble({ mensagem }: { mensagem: Mensagem }) {
+interface MessageBubbleProps {
+  mensagem: Mensagem;
+  contato?: Contato;
+  showSender?: boolean;
+}
+
+function MessageBubble({ mensagem, contato, showSender = true }: MessageBubbleProps) {
   const isOutgoing = mensagem.direcao === 'enviada';
 
   const getStatusIcon = () => {
     switch (mensagem.status) {
       case 'lida':
-        return <CheckCheck className="h-3 w-3 text-primary" />;
+        return <CheckCheck className="h-3 w-3 text-blue-400" />;
       case 'entregue':
         return <CheckCheck className="h-3 w-3 text-muted-foreground" />;
       case 'enviada':
         return <Check className="h-3 w-3 text-muted-foreground" />;
       case 'pendente':
-        return <Clock className="h-3 w-3 text-muted-foreground" />;
+        return <Clock className="h-3 w-3 text-muted-foreground animate-pulse" />;
       default:
         return null;
     }
   };
 
+  const getInitials = (nome: string) => {
+    return nome
+      .split(' ')
+      .slice(0, 2)
+      .map(n => n[0])
+      .join('')
+      .toUpperCase();
+  };
+
+  const senderName = isOutgoing ? 'Você' : (contato?.nome_whatsapp || 'Cliente');
+  const formattedTime = format(new Date(mensagem.criado_em), 'HH:mm', { locale: ptBR });
+
   return (
-    <div className={cn("flex", isOutgoing ? "justify-end" : "justify-start")}>
-      <div
-        className={cn(
-          "max-w-[70%] rounded-lg px-3 py-2",
-          isOutgoing 
-            ? "bg-primary text-primary-foreground" 
-            : "bg-muted"
+    <div className={cn(
+      "flex gap-3 group",
+      isOutgoing ? "flex-row-reverse" : "flex-row"
+    )}>
+      {/* Avatar */}
+      <Avatar className="h-8 w-8 shrink-0 mt-1 ring-2 ring-background shadow-sm">
+        {isOutgoing ? (
+          <>
+            <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground text-xs font-medium">
+              Eu
+            </AvatarFallback>
+          </>
+        ) : (
+          <>
+            <AvatarImage src={contato?.foto_url} />
+            <AvatarFallback className="bg-gradient-to-br from-muted to-muted/80 text-muted-foreground text-xs font-medium">
+              {getInitials(contato?.nome_whatsapp || 'CL')}
+            </AvatarFallback>
+          </>
         )}
-      >
-        {mensagem.enviada_por_bot && (
-          <Badge variant="outline" className="text-[10px] mb-1 px-1.5 py-0">
-            🤖 Bot
-          </Badge>
+      </Avatar>
+
+      {/* Message Content */}
+      <div className={cn(
+        "flex flex-col max-w-[70%]",
+        isOutgoing ? "items-end" : "items-start"
+      )}>
+        {/* Sender Name & Time */}
+        {showSender && (
+          <div className={cn(
+            "flex items-center gap-2 mb-1 text-xs",
+            isOutgoing ? "flex-row-reverse" : "flex-row"
+          )}>
+            <span className="font-medium text-foreground">{senderName}</span>
+            <span className="text-muted-foreground">{formattedTime}</span>
+          </div>
         )}
-        <p className="text-sm whitespace-pre-wrap break-words">{mensagem.corpo}</p>
-        <div className={cn(
-          "flex items-center justify-end gap-1 mt-1",
-          isOutgoing ? "text-primary-foreground/70" : "text-muted-foreground"
-        )}>
-          <span className="text-[10px]">
-            {format(new Date(mensagem.criado_em), 'HH:mm', { locale: ptBR })}
-          </span>
-          {isOutgoing && getStatusIcon()}
+
+        {/* Message Bubble */}
+        <div
+          className={cn(
+            "relative px-4 py-2.5 rounded-2xl shadow-sm transition-all",
+            isOutgoing 
+              ? "bg-gradient-to-br from-primary via-primary to-primary/90 text-primary-foreground rounded-tr-md" 
+              : "bg-muted/80 text-foreground rounded-tl-md border border-border/50"
+          )}
+        >
+          {mensagem.enviada_por_bot && (
+            <Badge 
+              variant="secondary" 
+              className={cn(
+                "text-[10px] mb-1.5 px-1.5 py-0 font-normal",
+                isOutgoing ? "bg-primary-foreground/20 text-primary-foreground" : ""
+              )}
+            >
+              🤖 Bot
+            </Badge>
+          )}
+          <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">
+            {mensagem.corpo}
+          </p>
+          
+          {/* Status indicator for outgoing */}
+          {isOutgoing && (
+            <div className="flex items-center justify-end gap-1 mt-1 -mb-0.5">
+              {getStatusIcon()}
+            </div>
+          )}
         </div>
       </div>
     </div>
