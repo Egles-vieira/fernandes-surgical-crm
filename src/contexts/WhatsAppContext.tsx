@@ -198,7 +198,7 @@ export const WhatsAppProvider: React.FC<WhatsAppProviderProps> = ({ children }) 
           atribuida_para_id,
           ultima_mensagem_em,
           nao_lidas,
-          whatsapp_contatos!inner(nome)
+          whatsapp_contatos!inner(nome_whatsapp)
         `)
         .eq('atribuida_para_id', userId)
         .in('status', ['aberto', 'em_atendimento', 'aguardando_cliente'])
@@ -212,7 +212,7 @@ export const WhatsAppProvider: React.FC<WhatsAppProviderProps> = ({ children }) 
           status: c.status,
           prioridade: c.prioridade || 0,
           atendente_id: c.atribuida_para_id,
-          cliente_nome: c.whatsapp_contatos?.nome || 'Desconhecido',
+          cliente_nome: c.whatsapp_contatos?.nome_whatsapp || 'Desconhecido',
           ultima_mensagem_em: c.ultima_mensagem_em,
           nao_lidas: c.nao_lidas || 0,
           tempo_espera_segundos: null,
@@ -278,9 +278,7 @@ export const WhatsAppProvider: React.FC<WhatsAppProviderProps> = ({ children }) 
         .select(`
           id,
           nome_completo,
-          status_atendimento,
-          whatsapp_max_conversas,
-          whatsapp_unidade_id
+          status_atendimento
         `)
         .not('status_atendimento', 'is', null)
         .order('nome_completo');
@@ -304,8 +302,8 @@ export const WhatsAppProvider: React.FC<WhatsAppProviderProps> = ({ children }) 
           nome_completo: p.nome_completo || 'Sem nome',
           status_atendimento: p.status_atendimento as StatusAtendimento,
           conversas_ativas: contagemMap[p.id] || 0,
-          max_conversas_simultaneas: p.whatsapp_max_conversas || 5,
-          unidade_id: p.whatsapp_unidade_id,
+          max_conversas_simultaneas: 5,
+          unidade_id: null,
         }));
         setOperadores(ops);
       }

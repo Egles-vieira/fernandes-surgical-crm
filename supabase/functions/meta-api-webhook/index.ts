@@ -143,6 +143,21 @@ Deno.serve(async (req) => {
   }
 });
 
+// Mapeamento de tipos Meta API → tipos do banco (português)
+const tipoMensagemMap: Record<string, string> = {
+  'text': 'texto',
+  'image': 'imagem',
+  'video': 'video',
+  'audio': 'audio',
+  'document': 'documento',
+  'location': 'localizacao',
+  'contacts': 'contato',
+  'sticker': 'sticker',
+  'button': 'botao',
+  'interactive': 'lista',
+  'reaction': 'reacao',
+};
+
 async function processarMensagemRecebida(supabase: any, conta: any, message: any, contact: any) {
   console.log('📨 Processing message:', message.id);
   console.log('📍 From account:', conta.id, '- Contact info:', contact?.profile?.name);
@@ -297,7 +312,7 @@ async function processarMensagemRecebida(supabase: any, conta: any, message: any
       whatsapp_conta_id: conta.id,
       whatsapp_contato_id: contato.id,
       direcao: 'recebida',
-      tipo_mensagem: tipoMensagem,
+      tipo_mensagem: tipoMensagemMap[tipoMensagem] || 'texto',
       corpo,
       mensagem_externa_id: messageId,
       status: 'entregue',
@@ -362,7 +377,7 @@ async function enviarRespostaAgente(supabase: any, conta: any, conversa: any, co
       whatsapp_conta_id: conta.id,
       whatsapp_contato_id: contato.id,
       direcao: 'enviada',
-      tipo_mensagem: 'text',
+      tipo_mensagem: 'texto',
       corpo: resposta,
       status: 'pendente',
       enviada_por_bot: true,
