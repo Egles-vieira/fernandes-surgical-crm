@@ -8120,6 +8120,8 @@ export type Database = {
           mensagem_fora_horario: string | null
           menu_setores_config: Json | null
           meta_access_token: string | null
+          meta_phone_number_id: string | null
+          meta_waba_id: string | null
           nome_conta: string
           nome_exibicao: string | null
           numero_whatsapp: string
@@ -8174,6 +8176,8 @@ export type Database = {
           mensagem_fora_horario?: string | null
           menu_setores_config?: Json | null
           meta_access_token?: string | null
+          meta_phone_number_id?: string | null
+          meta_waba_id?: string | null
           nome_conta: string
           nome_exibicao?: string | null
           numero_whatsapp: string
@@ -8228,6 +8232,8 @@ export type Database = {
           mensagem_fora_horario?: string | null
           menu_setores_config?: Json | null
           meta_access_token?: string | null
+          meta_phone_number_id?: string | null
+          meta_waba_id?: string | null
           nome_conta?: string
           nome_exibicao?: string | null
           numero_whatsapp?: string
