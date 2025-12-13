@@ -35,27 +35,21 @@ export function TokenAlertBanner() {
     return null;
   }
 
-  const expirados = tokensExpirando.filter(t => t.status_token === 'expirado');
-  const expirando = tokensExpirando.filter(t => t.status_token === 'expirando');
-  const desconhecidos = tokensExpirando.filter(t => t.status_token === 'desconhecido');
 
-  if (expirados.length === 0 && expirando.length === 0 && desconhecidos.length === 0) {
-    return null;
-  }
+  // Conta global - pegar apenas a primeira (única) conta
+  const contaGlobal = tokensExpirando[0];
+  
+  if (!contaGlobal) return null;
 
   return (
     <div className="space-y-2">
-      {expirados.length > 0 && (
+      {contaGlobal.status_token === 'expirado' && (
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Token Expirado!</AlertTitle>
           <AlertDescription className="flex items-center justify-between">
             <span>
-              {expirados.length === 1 
-                ? `O token da conta "${expirados[0].nome_conta}" expirou.`
-                : `${expirados.length} contas com tokens expirados.`
-              }
-              {' '}Renove o token no Meta Developer Console.
+              O token da conta WhatsApp expirou. Renove no Meta Developer Console.
             </span>
             <Button 
               variant="outline" 
@@ -69,16 +63,13 @@ export function TokenAlertBanner() {
         </Alert>
       )}
 
-      {expirando.length > 0 && (
+      {contaGlobal.status_token === 'expirando' && (
         <Alert className="border-amber-500 bg-amber-50 dark:bg-amber-950/20">
           <AlertTriangle className="h-4 w-4 text-amber-600" />
           <AlertTitle className="text-amber-800 dark:text-amber-400">Token Expirando</AlertTitle>
           <AlertDescription className="flex items-center justify-between text-amber-700 dark:text-amber-300">
             <span>
-              {expirando.length === 1 
-                ? `O token da conta "${expirando[0].nome_conta}" expira em ${Math.floor(expirando[0].dias_restantes || 0)} dias.`
-                : `${expirando.length} contas com tokens expirando em breve.`
-              }
+              O token expira em {Math.floor(contaGlobal.dias_restantes || 0)} dias. Renove antes do vencimento.
             </span>
             <Button 
               variant="outline" 
@@ -93,15 +84,12 @@ export function TokenAlertBanner() {
         </Alert>
       )}
 
-      {desconhecidos.length > 0 && expirados.length === 0 && expirando.length === 0 && (
+      {contaGlobal.status_token === 'desconhecido' && (
         <Alert>
           <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Data de Expiração Desconhecida</AlertTitle>
+          <AlertTitle>Data de Expiração Não Configurada</AlertTitle>
           <AlertDescription>
-            {desconhecidos.length === 1 
-              ? `A conta "${desconhecidos[0].nome_conta}" não possui data de expiração configurada.`
-              : `${desconhecidos.length} contas sem data de expiração configurada.`
-            }
+            Configure a data de expiração do token para receber alertas.
           </AlertDescription>
         </Alert>
       )}
