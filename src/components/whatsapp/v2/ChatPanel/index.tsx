@@ -60,6 +60,7 @@ interface Mensagem {
   status: string;
   criado_em: string;
   enviada_por_bot?: boolean;
+  enviada_por_id?: string;
 }
 
 export function ChatPanel({ 
@@ -72,6 +73,24 @@ export function ChatPanel({
   const scrollRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
 
+  // Fetch current user profile
+  const { data: currentUserProfile } = useQuery({
+    queryKey: ['current-user-profile'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+      
+      const { data } = await supabase
+        .from('perfis_usuario')
+        .select('id, nome_completo')
+        .eq('id', user.id)
+        .single();
+      
+      return data;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
   // Fetch messages
   const { data: mensagens = [], isLoading } = useQuery({
     queryKey: ['whatsapp-mensagens', conversaId],
@@ -79,13 +98,33 @@ export function ChatPanel({
       if (!conversaId) return [];
       const { data, error } = await supabase
         .from('whatsapp_mensagens')
-        .select('*')
+        .select('id, corpo, tipo_mensagem, direcao, status, criado_em, enviada_por_bot, enviada_por_usuario_id')
         .eq('conversa_id', conversaId)
         .order('criado_em', { ascending: true })
         .limit(100);
 
       if (error) throw error;
-      return data as Mensagem[];
+      
+      // Fetch user names for outgoing messages
+      const userIds = [...new Set(data.filter(m => m.enviada_por_usuario_id).map(m => m.enviada_por_usuario_id))];
+      let userMap: Record<string, string> = {};
+      
+      if (userIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from('perfis_usuario')
+          .select('id, nome_completo')
+          .in('id', userIds);
+        
+        userMap = (profiles || []).reduce((acc, p) => {
+          acc[p.id] = p.nome_completo || 'Operador';
+          return acc;
+        }, {} as Record<string, string>);
+      }
+      
+      return data.map(m => ({
+        ...m,
+        operador_nome: m.enviada_por_usuario_id ? userMap[m.enviada_por_usuario_id] : undefined
+      })) as (Mensagem & { operador_nome?: string })[];
     },
     enabled: !!conversaId,
   });
@@ -267,6 +306,7 @@ export function ChatPanel({
                   mensagem={msg} 
                   contato={contato}
                   showSender={showSender}
+                  operadorNome={msg.operador_nome || currentUserProfile?.nome_completo}
                 />
               );
             })}
@@ -333,9 +373,10 @@ interface MessageBubbleProps {
   mensagem: Mensagem;
   contato?: Contato;
   showSender?: boolean;
+  operadorNome?: string;
 }
 
-function MessageBubble({ mensagem, contato, showSender = true }: MessageBubbleProps) {
+function MessageBubble({ mensagem, contato, showSender = true, operadorNome }: MessageBubbleProps) {
   const isOutgoing = mensagem.direcao === 'enviada';
 
   const getStatusIcon = () => {
@@ -362,7 +403,9 @@ function MessageBubble({ mensagem, contato, showSender = true }: MessageBubblePr
       .toUpperCase();
   };
 
-  const senderName = isOutgoing ? 'Você' : (contato?.nome_whatsapp || 'Cliente');
+  const senderName = isOutgoing 
+    ? (operadorNome || 'Operador') 
+    : (contato?.nome_whatsapp || 'Cliente');
   const formattedTime = format(new Date(mensagem.criado_em), 'HH:mm', { locale: ptBR });
 
   return (
