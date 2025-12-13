@@ -1,35 +1,86 @@
 import { useState } from 'react';
-import { useWhatsAppConfig } from '@/hooks/useWhatsAppConfig';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
-import { Loader2, CheckCircle2, AlertCircle, Info, ArrowLeft, Bot } from 'lucide-react';
+import { Loader2, CheckCircle2, AlertCircle, Info, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useToast } from '@/hooks/use-toast';
 
 const ConfiguracaoGlobal = () => {
   const navigate = useNavigate();
-  const { config, isLoading, isOficial, isGupshup, isWAPI, isMetaCloudAPI, atualizarConfig, isAtualizando } = useWhatsAppConfig();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
   
-  const [modoSelecionado, setModoSelecionado] = useState<'oficial' | 'nao_oficial'>(
-    config?.modo_api || 'oficial'
-  );
-  const [provedorSelecionado, setProvedorSelecionado] = useState<'gupshup' | 'w_api' | 'meta_cloud_api'>(
-    config?.provedor_ativo || 'meta_cloud_api'
-  );
-  const [observacoes, setObservacoes] = useState<string>(config?.observacoes || '');
+  // Buscar configuração atual
+  const { data: config, isLoading } = useQuery({
+    queryKey: ['whatsapp-config-global'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('whatsapp_configuracao_global')
+        .select('*')
+        .eq('esta_ativo', true)
+        .order('configurado_em', { ascending: false })
+        .limit(1)
+        .single();
+      
+      if (error && error.code !== 'PGRST116') throw error;
+      return data;
+    }
+  });
+  
+  const [modoSelecionado, setModoSelecionado] = useState<'oficial' | 'nao_oficial'>('oficial');
+  const [observacoes, setObservacoes] = useState<string>('');
+
+  // Mutation para atualizar configuração
+  const atualizarMutation = useMutation({
+    mutationFn: async (data: { modo_api: string; observacoes?: string }) => {
+      // Desativar configuração anterior
+      await supabase
+        .from('whatsapp_configuracao_global')
+        .update({ esta_ativo: false })
+        .eq('esta_ativo', true);
+
+      // Criar nova configuração - usar insert com array
+      const { error } = await supabase
+        .from('whatsapp_configuracao_global')
+        .insert([{
+          modo_api: data.modo_api,
+          provedor_ativo: 'meta_cloud_api',
+          esta_ativo: true,
+          observacoes: data.observacoes || null,
+          configurado_por: (await supabase.auth.getUser()).data.user?.id || '',
+        }]);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['whatsapp-config-global'] });
+      toast({
+        title: 'Configuração salva',
+        description: 'A configuração foi atualizada com sucesso',
+      });
+      window.location.reload();
+    },
+    onError: (error: any) => {
+      toast({
+        variant: 'destructive',
+        title: 'Erro ao salvar',
+        description: error.message,
+      });
+    },
+  });
 
   const handleSalvar = () => {
-    atualizarConfig({
+    atualizarMutation.mutate({
       modo_api: modoSelecionado,
-      provedor_ativo: provedorSelecionado,
       observacoes: observacoes || undefined,
     });
   };
@@ -41,6 +92,8 @@ const ConfiguracaoGlobal = () => {
       </div>
     );
   }
+
+  const isMetaCloudAPI = config?.provedor_ativo === 'meta_cloud_api';
 
   return (
     <div className="container mx-auto p-6 max-w-4xl space-y-6">
@@ -57,17 +110,14 @@ const ConfiguracaoGlobal = () => {
           <div>
             <h1 className="text-3xl font-bold">Configuração Global WhatsApp</h1>
             <p className="text-muted-foreground mt-1">
-              Escolha qual provedor de API o sistema deve utilizar
+              Configuração da integração com Meta Cloud API
             </p>
           </div>
         </div>
         
         {config && (
-          <Badge 
-            variant={isOficial ? 'default' : 'secondary'}
-            className="text-sm px-3 py-1"
-          >
-            {isOficial ? '🏢 Oficial' : '🔌 Não Oficial'} - {isMetaCloudAPI ? 'Meta Cloud API' : isGupshup ? 'Gupshup' : 'W-API'}
+          <Badge variant="default" className="text-sm px-3 py-1">
+            🏢 Meta Cloud API (Oficial)
           </Badge>
         )}
       </div>
@@ -76,8 +126,8 @@ const ConfiguracaoGlobal = () => {
       <Alert>
         <Info className="h-4 w-4" />
         <AlertDescription>
-          Esta configuração afeta <strong>todo o sistema</strong>. Ao mudar o provedor, 
-          os webhooks e lógica de envio serão alterados automaticamente.
+          Este sistema utiliza exclusivamente a <strong>Meta Cloud API Oficial</strong>. 
+          APIs não-oficiais foram removidas para garantir estabilidade e conformidade.
         </AlertDescription>
       </Alert>
 
@@ -92,12 +142,12 @@ const ConfiguracaoGlobal = () => {
           </CardHeader>
           <CardContent className="space-y-2">
             <div className="flex justify-between">
-              <span className="text-sm font-medium">Modo:</span>
-              <span className="text-sm">{isOficial ? 'API Oficial' : 'API Não Oficial'}</span>
+              <span className="text-sm font-medium">Provedor:</span>
+              <span className="text-sm">Meta Cloud API</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm font-medium">Provedor:</span>
-              <span className="text-sm capitalize">{isMetaCloudAPI ? 'Meta Cloud API' : isGupshup ? 'Gupshup' : 'W-API'}</span>
+              <span className="text-sm font-medium">Modo:</span>
+              <span className="text-sm">API Oficial</span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm font-medium">Configurado em:</span>
@@ -112,8 +162,8 @@ const ConfiguracaoGlobal = () => {
       {/* Seleção de Modo */}
       <Card>
         <CardHeader>
-          <CardTitle>Modo de API</CardTitle>
-          <CardDescription>Selecione qual tipo de integração utilizar</CardDescription>
+          <CardTitle>Modo de Operação</CardTitle>
+          <CardDescription>O sistema opera exclusivamente com Meta Cloud API</CardDescription>
         </CardHeader>
         <CardContent>
           <RadioGroup 
@@ -121,80 +171,24 @@ const ConfiguracaoGlobal = () => {
             onValueChange={(value) => setModoSelecionado(value as 'oficial' | 'nao_oficial')}
             className="space-y-4"
           >
-            <div className="flex items-start space-x-3 p-4 border rounded-lg hover:bg-accent transition-colors">
+            <div className="flex items-start space-x-3 p-4 border rounded-lg bg-accent/50">
               <RadioGroupItem value="oficial" id="oficial" className="mt-1" />
               <div className="flex-1">
                 <Label htmlFor="oficial" className="font-semibold text-base cursor-pointer">
-                  🏢 API Oficial
+                  🏢 Meta Cloud API (Recomendado)
                 </Label>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Utiliza provedores homologados para envio de mensagens WhatsApp Business. 
-                  Mais estável e com suporte oficial.
+                  Integração oficial com a API do Meta/Facebook. 
+                  Estável, com suporte oficial e em conformidade com as políticas.
                 </p>
                 <div className="flex gap-2 mt-2">
+                  <Badge variant="outline" className="text-xs">Oficial</Badge>
                   <Badge variant="outline" className="text-xs">Estável</Badge>
                   <Badge variant="outline" className="text-xs">Suporte</Badge>
                 </div>
               </div>
             </div>
-
-            <div className="flex items-start space-x-3 p-4 border rounded-lg hover:bg-accent transition-colors">
-              <RadioGroupItem value="nao_oficial" id="nao_oficial" className="mt-1" />
-              <div className="flex-1">
-                <Label htmlFor="nao_oficial" className="font-semibold text-base cursor-pointer">
-                  🔌 API Não Oficial
-                </Label>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Utiliza APIs alternativas como W-API. Setup mais rápido, 
-                  mas depende de disponibilidade de terceiros.
-                </p>
-                <div className="flex gap-2 mt-2">
-                  <Badge variant="outline" className="text-xs">Setup Rápido</Badge>
-                  <Badge variant="outline" className="text-xs">Flexível</Badge>
-                </div>
-              </div>
-            </div>
           </RadioGroup>
-        </CardContent>
-      </Card>
-
-      {/* Seleção de Provedor */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Provedor Ativo</CardTitle>
-          <CardDescription>
-            Escolha qual provedor será utilizado
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Select value={provedorSelecionado} onValueChange={(value) => setProvedorSelecionado(value as 'gupshup' | 'w_api' | 'meta_cloud_api')}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="meta_cloud_api">
-                <div className="flex items-center gap-2">
-                  <span>Meta Cloud API</span>
-                  {isMetaCloudAPI && <Badge variant="secondary" className="text-xs">Atual</Badge>}
-                </div>
-              </SelectItem>
-              <SelectItem value="gupshup">
-                <div className="flex items-center gap-2">
-                  <span>Gupshup</span>
-                  {isGupshup && <Badge variant="secondary" className="text-xs">Atual</Badge>}
-                </div>
-              </SelectItem>
-              <SelectItem value="w_api">
-                <div className="flex items-center gap-2">
-                  <span>W-API</span>
-                  {isWAPI && <Badge variant="secondary" className="text-xs">Atual</Badge>}
-                </div>
-              </SelectItem>
-            </SelectContent>
-          </Select>
-          <p className="text-sm text-muted-foreground mt-2">
-            Certifique-se de ter as credenciais configuradas para o provedor escolhido
-          </p>
         </CardContent>
       </Card>
 
@@ -208,7 +202,7 @@ const ConfiguracaoGlobal = () => {
           <Textarea
             value={observacoes}
             onChange={(e) => setObservacoes(e.target.value)}
-            placeholder="Ex: Migrando para W-API para testes..."
+            placeholder="Ex: Configuração inicial da Meta Cloud API..."
             rows={3}
           />
         </CardContent>
@@ -224,11 +218,11 @@ const ConfiguracaoGlobal = () => {
         </Button>
         <Button 
           onClick={handleSalvar} 
-          disabled={isAtualizando}
+          disabled={atualizarMutation.isPending}
           size="lg"
         >
-          {isAtualizando && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Salvar e Aplicar
+          {atualizarMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          Salvar Configuração
         </Button>
       </div>
 
