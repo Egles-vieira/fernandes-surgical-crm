@@ -8133,6 +8133,8 @@ export type Database = {
           resposta_automatica_ativa: boolean | null
           site: string | null
           status: string | null
+          token_alertado_em: string | null
+          token_expira_em: string | null
           token_wapi: string | null
           total_conversas: number | null
           total_mensagens_enviadas: number | null
@@ -8189,6 +8191,8 @@ export type Database = {
           resposta_automatica_ativa?: boolean | null
           site?: string | null
           status?: string | null
+          token_alertado_em?: string | null
+          token_expira_em?: string | null
           token_wapi?: string | null
           total_conversas?: number | null
           total_mensagens_enviadas?: number | null
@@ -8245,6 +8249,8 @@ export type Database = {
           resposta_automatica_ativa?: boolean | null
           site?: string | null
           status?: string | null
+          token_alertado_em?: string | null
+          token_expira_em?: string | null
           token_wapi?: string | null
           total_conversas?: number | null
           total_mensagens_enviadas?: number | null
@@ -8383,6 +8389,13 @@ export type Database = {
             columns: ["contato_id"]
             isOneToOne: false
             referencedRelation: "contatos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_contatos_whatsapp_conta_id_fkey"
+            columns: ["whatsapp_conta_id"]
+            isOneToOne: false
+            referencedRelation: "vw_whatsapp_tokens_expirando"
             referencedColumns: ["id"]
           },
           {
@@ -8629,6 +8642,13 @@ export type Database = {
             columns: ["unidade_id"]
             isOneToOne: false
             referencedRelation: "whatsapp_unidades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_conversas_whatsapp_conta_id_fkey"
+            columns: ["whatsapp_conta_id"]
+            isOneToOne: false
+            referencedRelation: "vw_whatsapp_tokens_expirando"
             referencedColumns: ["id"]
           },
           {
@@ -9387,6 +9407,13 @@ export type Database = {
             foreignKeyName: "whatsapp_mensagens_whatsapp_conta_id_fkey"
             columns: ["whatsapp_conta_id"]
             isOneToOne: false
+            referencedRelation: "vw_whatsapp_tokens_expirando"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_mensagens_whatsapp_conta_id_fkey"
+            columns: ["whatsapp_conta_id"]
+            isOneToOne: false
             referencedRelation: "whatsapp_contas"
             referencedColumns: ["id"]
           },
@@ -9446,6 +9473,13 @@ export type Database = {
           whatsapp_conta_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "whatsapp_metricas_agente_whatsapp_conta_id_fkey"
+            columns: ["whatsapp_conta_id"]
+            isOneToOne: false
+            referencedRelation: "vw_whatsapp_tokens_expirando"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "whatsapp_metricas_agente_whatsapp_conta_id_fkey"
             columns: ["whatsapp_conta_id"]
@@ -9747,6 +9781,13 @@ export type Database = {
             foreignKeyName: "whatsapp_respostas_rapidas_whatsapp_conta_id_fkey"
             columns: ["whatsapp_conta_id"]
             isOneToOne: false
+            referencedRelation: "vw_whatsapp_tokens_expirando"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_respostas_rapidas_whatsapp_conta_id_fkey"
+            columns: ["whatsapp_conta_id"]
+            isOneToOne: false
             referencedRelation: "whatsapp_contas"
             referencedColumns: ["id"]
           },
@@ -9920,6 +9961,13 @@ export type Database = {
             foreignKeyName: "whatsapp_templates_whatsapp_conta_id_fkey"
             columns: ["whatsapp_conta_id"]
             isOneToOne: false
+            referencedRelation: "vw_whatsapp_tokens_expirando"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_templates_whatsapp_conta_id_fkey"
+            columns: ["whatsapp_conta_id"]
+            isOneToOne: false
             referencedRelation: "whatsapp_contas"
             referencedColumns: ["id"]
           },
@@ -9984,6 +10032,51 @@ export type Database = {
             columns: ["unidade_id"]
             isOneToOne: false
             referencedRelation: "whatsapp_unidades"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_tokens_log: {
+        Row: {
+          criado_em: string | null
+          criado_por: string | null
+          detalhes: string | null
+          id: string
+          tipo_evento: string
+          token_anterior_hash: string | null
+          whatsapp_conta_id: string
+        }
+        Insert: {
+          criado_em?: string | null
+          criado_por?: string | null
+          detalhes?: string | null
+          id?: string
+          tipo_evento: string
+          token_anterior_hash?: string | null
+          whatsapp_conta_id: string
+        }
+        Update: {
+          criado_em?: string | null
+          criado_por?: string | null
+          detalhes?: string | null
+          id?: string
+          tipo_evento?: string
+          token_anterior_hash?: string | null
+          whatsapp_conta_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_tokens_log_whatsapp_conta_id_fkey"
+            columns: ["whatsapp_conta_id"]
+            isOneToOne: false
+            referencedRelation: "vw_whatsapp_tokens_expirando"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_tokens_log_whatsapp_conta_id_fkey"
+            columns: ["whatsapp_conta_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_contas"
             referencedColumns: ["id"]
           },
         ]
@@ -10078,6 +10171,13 @@ export type Database = {
             foreignKeyName: "whatsapp_unidades_whatsapp_conta_id_fkey"
             columns: ["whatsapp_conta_id"]
             isOneToOne: false
+            referencedRelation: "vw_whatsapp_tokens_expirando"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_unidades_whatsapp_conta_id_fkey"
+            columns: ["whatsapp_conta_id"]
+            isOneToOne: false
             referencedRelation: "whatsapp_contas"
             referencedColumns: ["id"]
           },
@@ -10145,6 +10245,13 @@ export type Database = {
             columns: ["mensagem_id"]
             isOneToOne: false
             referencedRelation: "whatsapp_mensagens"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_webhooks_log_whatsapp_conta_id_fkey"
+            columns: ["whatsapp_conta_id"]
+            isOneToOne: false
+            referencedRelation: "vw_whatsapp_tokens_expirando"
             referencedColumns: ["id"]
           },
           {
@@ -10762,6 +10869,36 @@ export type Database = {
           nome_completo: string | null
           pode_receber_conversa: boolean | null
           user_id: string | null
+        }
+        Relationships: []
+      }
+      vw_whatsapp_tokens_expirando: {
+        Row: {
+          dias_restantes: number | null
+          id: string | null
+          nome_conta: string | null
+          provedor: string | null
+          status_token: string | null
+          token_alertado_em: string | null
+          token_expira_em: string | null
+        }
+        Insert: {
+          dias_restantes?: never
+          id?: string | null
+          nome_conta?: string | null
+          provedor?: string | null
+          status_token?: never
+          token_alertado_em?: string | null
+          token_expira_em?: string | null
+        }
+        Update: {
+          dias_restantes?: never
+          id?: string | null
+          nome_conta?: string | null
+          provedor?: string | null
+          status_token?: never
+          token_alertado_em?: string | null
+          token_expira_em?: string | null
         }
         Relationships: []
       }
