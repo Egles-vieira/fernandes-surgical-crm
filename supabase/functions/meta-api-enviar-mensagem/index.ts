@@ -57,7 +57,6 @@ Deno.serve(async (req) => {
           phone_number_id,
           meta_phone_number_id,
           meta_access_token,
-          access_token,
           api_version,
           provedor,
           status
@@ -126,8 +125,8 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Access Token
-    const accessToken = conta.meta_access_token || conta.access_token || Deno.env.get('META_WHATSAPP_ACCESS_TOKEN');
+    // Access Token - usar meta_access_token da conta
+    const accessToken = conta.meta_access_token || Deno.env.get('META_WHATSAPP_ACCESS_TOKEN');
     
     if (!accessToken) {
       throw new Error('Access Token não configurado');
