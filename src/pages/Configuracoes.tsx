@@ -1,8 +1,9 @@
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Building2, Settings as SettingsIcon, Palette } from "lucide-react";
+import { Building2, Settings as SettingsIcon, Palette, MessageSquare } from "lucide-react";
 import { EmpresaConfig } from "@/components/configuracoes/EmpresaConfig";
 import { PersonalizarCores } from "@/components/configuracoes/PersonalizarCores";
+import { WhatsAppConfigTab } from "@/components/configuracoes/WhatsAppConfigTab";
 
 export default function Configuracoes() {
   return (
@@ -21,7 +22,7 @@ export default function Configuracoes() {
 
       <Card className="p-6">
         <Tabs defaultValue="empresa" className="space-y-6">
-          <TabsList className="grid w-full max-w-2xl grid-cols-2">
+          <TabsList className="grid w-full max-w-3xl grid-cols-3">
             <TabsTrigger value="empresa" className="gap-2">
               <Building2 className="h-4 w-4" />
               Empresa
@@ -29,6 +30,10 @@ export default function Configuracoes() {
             <TabsTrigger value="cores" className="gap-2">
               <Palette className="h-4 w-4" />
               Personalizar Cores
+            </TabsTrigger>
+            <TabsTrigger value="whatsapp" className="gap-2">
+              <MessageSquare className="h-4 w-4" />
+              WhatsApp
             </TabsTrigger>
           </TabsList>
 
@@ -38,6 +43,10 @@ export default function Configuracoes() {
 
           <TabsContent value="cores">
             <PersonalizarCores />
+          </TabsContent>
+
+          <TabsContent value="whatsapp">
+            <WhatsAppConfigTab />
           </TabsContent>
         </Tabs>
       </Card>
