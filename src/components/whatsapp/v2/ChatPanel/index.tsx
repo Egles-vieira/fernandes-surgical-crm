@@ -381,7 +381,7 @@ function MessageBubble({ mensagem, contato, showSender = true }: MessageBubblePr
         ) : (
           <>
             <AvatarImage src={contato?.foto_url} />
-            <AvatarFallback className="bg-gradient-to-br from-muted to-muted/80 text-muted-foreground text-xs font-medium">
+            <AvatarFallback className="bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-600 dark:to-slate-700 text-slate-700 dark:text-slate-200 text-xs font-medium">
               {getInitials(contato?.nome_whatsapp || 'CL')}
             </AvatarFallback>
           </>
@@ -407,10 +407,10 @@ function MessageBubble({ mensagem, contato, showSender = true }: MessageBubblePr
         {/* Message Bubble */}
         <div
           className={cn(
-            "relative px-4 py-2.5 rounded-2xl shadow-sm transition-all",
+            "relative px-4 py-2.5 rounded-2xl shadow-md transition-all",
             isOutgoing 
               ? "bg-gradient-to-br from-primary via-primary to-primary/90 text-primary-foreground rounded-tr-md" 
-              : "bg-muted/80 text-foreground rounded-tl-md border border-border/50"
+              : "bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 text-slate-800 dark:text-slate-100 rounded-tl-md border border-slate-200 dark:border-slate-600"
           )}
         >
           {mensagem.enviada_por_bot && (
