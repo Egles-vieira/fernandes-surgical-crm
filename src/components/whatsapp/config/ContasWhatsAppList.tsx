@@ -26,7 +26,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import NovaContaDialog from "./NovaContaDialog";
+import { NovaContaSheet } from "./NovaContaSheet";
 import AgenteVendasToggle from "./AgenteVendasToggle";
 
 const ContasWhatsAppList = () => {
@@ -246,7 +246,7 @@ const ContasWhatsAppList = () => {
         ))}
       </div>
 
-      <NovaContaDialog
+      <NovaContaSheet
         open={dialogEditarOpen}
         onOpenChange={handleCloseDialog}
         conta={contaParaEditar}
