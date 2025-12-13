@@ -1,6 +1,7 @@
 import { Toaster } from "@/components/ui/sonner";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { WhatsAppProvider } from "@/contexts/WhatsAppContext";
 import Layout from "./components/Layout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Index from "./pages/Index";
@@ -73,8 +74,9 @@ const PublicRoutes = () => (
 // App principal com ThemeProvider
 const MainApp = () => (
   <ThemeProvider>
-    <Toaster />
-    <Routes>
+    <WhatsAppProvider>
+      <Toaster />
+      <Routes>
       <Route path="/auth" element={<Auth />} />
       <Route path="/" element={<ProtectedRoute>
           <Layout>
@@ -299,6 +301,7 @@ const MainApp = () => (
       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
       <Route path="*" element={<NotFound />} />
     </Routes>
+    </WhatsAppProvider>
   </ThemeProvider>
 );
 
