@@ -33,7 +33,7 @@ import HistoricoImportacoes from "./pages/plataformas/HistoricoImportacoes";
 import SolicitacaoParticipacao from "./pages/licitacoes/SolicitacaoParticipacao";
 import ContratosGoverno from "./pages/licitacoes/ContratosGoverno";
 import WhatsApp from "./pages/WhatsApp";
-import ConfiguracoesWhatsApp from "./pages/whatsapp/Configuracoes";
+// ConfiguracoesWhatsApp migrado para /configuracoes tab WhatsApp
 import ConfiguracaoGlobal from "./pages/whatsapp/ConfiguracaoGlobal";
 import Governanca from "./pages/whatsapp/Governanca";
 import BAMDashboard from "./pages/whatsapp/BAMDashboard";
@@ -215,11 +215,7 @@ const MainApp = () => (
             <WhatsApp />
           </Layout>
         </ProtectedRoute>} />
-      <Route path="/whatsapp/configuracoes" element={<ProtectedRoute>
-          <Layout>
-            <ConfiguracoesWhatsApp />
-          </Layout>
-        </ProtectedRoute>} />
+      {/* /whatsapp/configuracoes removido - migrado para /configuracoes tab WhatsApp */}
       <Route path="/whatsapp/configuracao-global" element={<ProtectedRoute>
           <Layout>
             <ConfiguracaoGlobal />
