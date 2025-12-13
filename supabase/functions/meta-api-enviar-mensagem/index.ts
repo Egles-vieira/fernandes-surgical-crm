@@ -1,3 +1,8 @@
+// ============================================
+// Meta API - Enviar Mensagem
+// CRÍTICO: Usa SEMPRE phone_number_id (não waba_id)
+// ============================================
+
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
@@ -5,10 +10,25 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Meta API Version - Sempre usar a mais recente
+const META_API_VERSION = 'v21.0';
+const META_GRAPH_URL = 'https://graph.facebook.com';
+
+// Códigos de erro específicos da Meta
+const META_ERROR_CODES = {
+  INVALID_PHONE_NUMBER_ID: { code: 100, subcode: 33 },
+  TOKEN_EXPIRED: { code: 190 },
+  RATE_LIMITED: { code: 80007 },
+  TEMPLATE_NOT_FOUND: { code: 132000 },
+  MESSAGE_OUTSIDE_WINDOW: { code: 131047 },
+};
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
+
+  const startTime = Date.now();
 
   try {
     const supabase = createClient(
@@ -18,16 +38,29 @@ Deno.serve(async (req) => {
 
     const { mensagemId } = await req.json();
 
+    if (!mensagemId) {
+      return new Response(
+        JSON.stringify({ error: 'mensagemId é obrigatório' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log(`📨 [meta-api-enviar-mensagem] Iniciando envio - mensagemId: ${mensagemId}`);
+
     // Fetch message with account and contact data
     const { data: mensagem, error: mensagemError } = await supabase
       .from('whatsapp_mensagens')
       .select(`
         *,
         whatsapp_contas (
+          id,
           phone_number_id,
+          meta_phone_number_id,
           meta_access_token,
+          access_token,
           api_version,
-          provedor
+          provedor,
+          status
         ),
         whatsapp_contatos (
           numero_whatsapp
@@ -38,34 +71,79 @@ Deno.serve(async (req) => {
       .single();
 
     if (mensagemError || !mensagem) {
-      console.error('❌ Message not found:', mensagemError);
-      throw new Error('Mensagem não encontrada');
+      console.error('❌ Mensagem não encontrada:', mensagemError);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Mensagem não encontrada ou já processada',
+          details: mensagemError?.message 
+        }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     const conta = mensagem.whatsapp_contas as any;
     const contato = mensagem.whatsapp_contatos as any;
 
-    if (!conta || !contato) {
-      throw new Error('Conta ou contato não encontrado');
+    // Validações críticas
+    if (!conta) {
+      throw new Error('Conta WhatsApp não encontrada');
+    }
+
+    if (!contato) {
+      throw new Error('Contato não encontrado');
     }
 
     if (conta.provedor !== 'meta_cloud_api') {
-      throw new Error('Conta não é do provedor Meta Cloud API');
+      throw new Error(`Provedor inválido: ${conta.provedor}. Esperado: meta_cloud_api`);
     }
 
-    // Format phone number
+    // CRÍTICO: Usar meta_phone_number_id (não waba_id!)
+    const phoneNumberId = conta.meta_phone_number_id || conta.phone_number_id;
+    
+    if (!phoneNumberId) {
+      console.error('❌ ERRO CRÍTICO: Phone Number ID não configurado');
+      
+      // Atualiza mensagem com erro específico
+      await supabase
+        .from('whatsapp_mensagens')
+        .update({
+          status: 'erro',
+          erro_mensagem: 'Phone Number ID não configurado. Configure nas configurações do WhatsApp.',
+          erro_codigo: '100',
+          status_falhou_em: new Date().toISOString(),
+        })
+        .eq('id', mensagemId);
+
+      return new Response(
+        JSON.stringify({ 
+          error: 'Phone Number ID não configurado',
+          errorCode: 100,
+          errorSubcode: 33,
+          action: 'settings',
+          message: 'Configure o Phone Number ID (não o WABA ID) nas configurações do WhatsApp.'
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Access Token
+    const accessToken = conta.meta_access_token || conta.access_token || Deno.env.get('META_WHATSAPP_ACCESS_TOKEN');
+    
+    if (!accessToken) {
+      throw new Error('Access Token não configurado');
+    }
+
+    // Format phone number - sempre com código do país
     let numeroDestino = (contato.numero_whatsapp || '').replace(/\D/g, '');
     if (!numeroDestino.startsWith('55')) {
       numeroDestino = `55${numeroDestino}`;
     }
 
-    const apiVersion = conta.api_version || 'v18.0';
-    const accessToken = conta.meta_access_token || Deno.env.get('META_WHATSAPP_ACCESS_TOKEN');
-
-    console.log('📤 Sending message via Meta Cloud API:', {
-      phone_number_id: conta.phone_number_id,
-      to: numeroDestino,
-      type: mensagem.tipo,
+    console.log('📤 Enviando via Meta Cloud API:', {
+      phoneNumberId: `***${phoneNumberId.slice(-4)}`,
+      to: `***${numeroDestino.slice(-4)}`,
+      type: mensagem.tipo_mensagem || mensagem.tipo,
+      apiVersion: META_API_VERSION,
     });
 
     // Build message payload
@@ -121,39 +199,101 @@ Deno.serve(async (req) => {
         messagePayload.text = { body: mensagem.corpo };
     }
 
-    // Send via Meta Cloud API
-    const metaResponse = await fetch(
-      `https://graph.facebook.com/${apiVersion}/${conta.phone_number_id}/messages`,
-      {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(messagePayload),
+    // Build API URL - SEMPRE usar phoneNumberId
+    const apiUrl = `${META_GRAPH_URL}/${META_API_VERSION}/${phoneNumberId}/messages`;
+
+    // Send via Meta Cloud API com retry
+    let metaResponse: Response;
+    let responseData: any;
+    let retryCount = 0;
+    const maxRetries = 2;
+
+    while (retryCount <= maxRetries) {
+      try {
+        metaResponse = await fetch(apiUrl, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(messagePayload),
+        });
+
+        responseData = await metaResponse.json();
+        
+        // Se não for erro de rate limit, não tenta novamente
+        if (!responseData.error || responseData.error.code !== 80007) {
+          break;
+        }
+
+        // Rate limit - espera e tenta novamente
+        retryCount++;
+        if (retryCount <= maxRetries) {
+          const waitTime = Math.pow(2, retryCount) * 1000; // Exponential backoff
+          console.log(`⏳ Rate limited. Aguardando ${waitTime}ms antes de retry ${retryCount}/${maxRetries}`);
+          await new Promise(resolve => setTimeout(resolve, waitTime));
+        }
+      } catch (fetchError) {
+        console.error(`❌ Fetch error (tentativa ${retryCount + 1}):`, fetchError);
+        retryCount++;
+        if (retryCount > maxRetries) {
+          throw fetchError;
+        }
+        await new Promise(resolve => setTimeout(resolve, 2000));
       }
-    );
+    }
 
-    const responseData = await metaResponse.json();
-    console.log('📥 Meta API response:', responseData);
+    const executionTime = Date.now() - startTime;
+    console.log(`📥 Meta API response (${executionTime}ms):`, JSON.stringify(responseData));
 
-    if (!metaResponse.ok || responseData.error) {
+    if (!metaResponse!.ok || responseData.error) {
       console.error('❌ Meta API error:', responseData);
+
+      // Tratamento específico de erros
+      const errorCode = responseData.error?.code;
+      const errorSubcode = responseData.error?.error_subcode;
+      let userFriendlyMessage = responseData.error?.message || 'Erro desconhecido';
+      let action = 'retry';
+
+      // Erro 100/33 - Phone Number ID inválido
+      if (errorCode === 100 && errorSubcode === 33) {
+        userFriendlyMessage = 'Erro de Configuração: Verifique se você está usando o Phone Number ID (não o WABA ID) e se o token possui as permissões corretas.';
+        action = 'settings';
+      }
+      // Erro 190 - Token expirado
+      else if (errorCode === 190) {
+        userFriendlyMessage = 'Token expirado. Renove o token no Meta Developer Console.';
+        action = 'renew_token';
+      }
+      // Erro 131047 - Fora da janela de 24h
+      else if (errorCode === 131047) {
+        userFriendlyMessage = 'Janela de 24h expirada. Use um template aprovado para iniciar a conversa.';
+        action = 'use_template';
+      }
 
       await supabase
         .from('whatsapp_mensagens')
         .update({
           status: 'erro',
-          erro_mensagem: responseData.error?.message || JSON.stringify(responseData),
-          erro_codigo: responseData.error?.code?.toString() || null,
+          erro_mensagem: userFriendlyMessage,
+          erro_codigo: errorCode?.toString() || null,
           status_falhou_em: new Date().toISOString(),
         })
         .eq('id', mensagemId);
 
-      throw new Error(`Meta API error: ${responseData.error?.message || 'Unknown error'}`);
+      return new Response(
+        JSON.stringify({ 
+          error: userFriendlyMessage,
+          errorCode,
+          errorSubcode,
+          action,
+          originalError: responseData.error,
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
-    // Update message status
+    // Update message status - sucesso
     await supabase
       .from('whatsapp_mensagens')
       .update({
@@ -163,10 +303,13 @@ Deno.serve(async (req) => {
       })
       .eq('id', mensagemId);
 
+    console.log(`✅ Mensagem enviada com sucesso em ${executionTime}ms - ID: ${responseData.messages?.[0]?.id}`);
+
     return new Response(
       JSON.stringify({
         success: true,
         messageId: responseData.messages?.[0]?.id,
+        executionTimeMs: executionTime,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
@@ -175,7 +318,10 @@ Deno.serve(async (req) => {
     console.error('❌ Error in meta-api-enviar-mensagem:', error);
     const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
     return new Response(
-      JSON.stringify({ error: errorMessage }),
+      JSON.stringify({ 
+        error: errorMessage,
+        stack: error instanceof Error ? error.stack : undefined,
+      }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
