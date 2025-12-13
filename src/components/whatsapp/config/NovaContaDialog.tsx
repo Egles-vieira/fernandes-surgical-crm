@@ -44,8 +44,8 @@ const contaSchema = z.object({
     .trim()
     .regex(/^\+?[1-9]\d{1,14}$/, "Número deve estar no formato internacional (ex: +5511999999999)")
     .max(20, "Número muito longo"),
-  provider: z.enum(["gupshup", "w_api"]),
-  provedor: z.enum(["gupshup", "w_api"]).default("gupshup"),
+  provider: z.enum(["gupshup", "w_api", "meta_cloud_api"]),
+  provedor: z.enum(["gupshup", "w_api", "meta_cloud_api"]).default("meta_cloud_api"),
   // Gupshup
   app_id_gupshup: z.string().trim().max(255).optional(),
   api_key_gupshup: z.string().trim().max(255).optional(),
@@ -53,6 +53,10 @@ const contaSchema = z.object({
   // W-API
   instance_id_wapi: z.string().trim().max(255).optional(),
   token_wapi: z.string().trim().max(255).optional(),
+  // Meta Cloud API (Oficial)
+  meta_access_token: z.string().trim().max(500).optional(),
+  meta_phone_number_id: z.string().trim().max(100).optional(),
+  meta_waba_id: z.string().trim().max(100).optional(),
   // Outros
   account_sid: z.string().trim().max(255).optional(),
   business_account_id: z.string().trim().max(255).optional(),
@@ -85,8 +89,11 @@ const NovaContaDialog = ({ open, onOpenChange, conta }: NovaContaDialogProps) =>
     defaultValues: {
       nome_conta: conta?.nome_conta || "",
       numero_whatsapp: conta?.numero_whatsapp || "",
-      provider: conta?.provider || "gupshup",
-      provedor: conta?.provedor || "gupshup",
+      provider: conta?.provider || "meta_cloud_api",
+      provedor: conta?.provedor || "meta_cloud_api",
+      meta_access_token: conta?.meta_access_token || "",
+      meta_phone_number_id: conta?.meta_phone_number_id || "",
+      meta_waba_id: conta?.meta_waba_id || "",
       account_sid: conta?.account_sid || "",
       business_account_id: conta?.business_account_id || "",
       phone_number_id_gupshup: conta?.phone_number_id_gupshup || "",
@@ -125,6 +132,9 @@ const NovaContaDialog = ({ open, onOpenChange, conta }: NovaContaDialogProps) =>
             api_key_gupshup: data.api_key_gupshup || null,
             instance_id_wapi: data.instance_id_wapi || null,
             token_wapi: data.token_wapi || null,
+            meta_access_token: data.meta_access_token || null,
+            meta_phone_number_id: data.meta_phone_number_id || null,
+            meta_waba_id: data.meta_waba_id || null,
             nome_exibicao: data.nome_exibicao || null,
             descricao_negocio: data.descricao_negocio || null,
             categoria_negocio: data.categoria_negocio || null,
@@ -156,6 +166,9 @@ const NovaContaDialog = ({ open, onOpenChange, conta }: NovaContaDialogProps) =>
             api_key_gupshup: data.api_key_gupshup || null,
             instance_id_wapi: data.instance_id_wapi || null,
             token_wapi: data.token_wapi || null,
+            meta_access_token: data.meta_access_token || null,
+            meta_phone_number_id: data.meta_phone_number_id || null,
+            meta_waba_id: data.meta_waba_id || null,
             nome_exibicao: data.nome_exibicao || null,
             descricao_negocio: data.descricao_negocio || null,
             categoria_negocio: data.categoria_negocio || null,
@@ -261,7 +274,7 @@ const NovaContaDialog = ({ open, onOpenChange, conta }: NovaContaDialogProps) =>
                     <FormLabel>Provider *</FormLabel>
                     <Select onValueChange={(value) => {
                       field.onChange(value);
-                      form.setValue('provedor', value as 'gupshup' | 'w_api');
+                      form.setValue('provedor', value as 'gupshup' | 'w_api' | 'meta_cloud_api');
                     }} value={field.value} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -269,8 +282,9 @@ const NovaContaDialog = ({ open, onOpenChange, conta }: NovaContaDialogProps) =>
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="gupshup">Gupshup (API Oficial)</SelectItem>
-                        <SelectItem value="w_api">W-API (API Não Oficial)</SelectItem>
+                        <SelectItem value="meta_cloud_api">Meta Cloud API (Oficial)</SelectItem>
+                        <SelectItem value="gupshup">Gupshup</SelectItem>
+                        <SelectItem value="w_api">W-API (Não Oficial)</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -283,6 +297,73 @@ const NovaContaDialog = ({ open, onOpenChange, conta }: NovaContaDialogProps) =>
             <div className="space-y-4">
               <h3 className="text-sm font-semibold">Credenciais do Provider</h3>
               
+              {form.watch("provider") === "meta_cloud_api" && (
+                <>
+                  <FormField
+                    control={form.control}
+                    name="meta_access_token"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Access Token (Meta) *</FormLabel>
+                        <FormControl>
+                          <Input type="password" placeholder="Token de acesso permanente" {...field} />
+                        </FormControl>
+                        <FormDescription>
+                          Token de acesso obtido no Meta Business Manager
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="meta_phone_number_id"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Phone Number ID (Meta) *</FormLabel>
+                        <FormControl>
+                          <Input placeholder="ID do número de telefone" {...field} />
+                        </FormControl>
+                        <FormDescription>
+                          ID do número registrado no WhatsApp Business
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="meta_waba_id"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>WABA ID (Meta) *</FormLabel>
+                        <FormControl>
+                          <Input placeholder="WhatsApp Business Account ID" {...field} />
+                        </FormControl>
+                        <FormDescription>
+                          ID da conta WhatsApp Business
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="rounded-lg border border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800 p-4">
+                    <p className="text-sm text-green-900 dark:text-green-100">
+                      <strong>URL do Webhook:</strong><br/>
+                      <code className="text-xs bg-green-100 dark:bg-green-900 px-2 py-1 rounded block mt-2">
+                        https://rzzzfprgnoywmmjwepzm.supabase.co/functions/v1/meta-api-webhook
+                      </code>
+                      <br/>
+                      <strong>Verify Token:</strong> Configure o mesmo token no Meta Dashboard<br/><br/>
+                      Configure no Meta Business Manager → WhatsApp → Configuration → Webhook
+                    </p>
+                  </div>
+                </>
+              )}
+
               {form.watch("provider") === "gupshup" && (
                 <>
                   <FormField
