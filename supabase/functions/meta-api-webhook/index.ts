@@ -56,11 +56,11 @@ Deno.serve(async (req) => {
     const payload = JSON.parse(body);
     console.log('📥 Meta Webhook received:', JSON.stringify(payload, null, 2));
 
-    // Log webhook
+    // Log webhook with correct column name: payload (not payload_completo)
     await supabase.from('whatsapp_webhooks_log').insert({
       provedor: 'meta_cloud_api',
       tipo_evento: payload.object || 'unknown',
-      payload_completo: payload,
+      payload: payload,
     });
 
     // Process entries
@@ -68,11 +68,11 @@ Deno.serve(async (req) => {
       for (const entry of payload.entry) {
         const wabaId = entry.id;
         
-        // Find account by waba_id
+        // Find account by meta_waba_id
         const { data: conta } = await supabase
           .from('whatsapp_contas')
           .select('*')
-          .eq('waba_id', wabaId)
+          .eq('meta_waba_id', wabaId)
           .eq('provedor', 'meta_cloud_api')
           .single();
 
@@ -124,7 +124,7 @@ async function processarMensagemRecebida(supabase: any, conta: any, message: any
   const messageId = message.id;
   const timestamp = new Date(parseInt(message.timestamp) * 1000).toISOString();
 
-  // Find or create contact
+  // Find or create contact with correct column: nome_whatsapp (not nome)
   let { data: contato } = await supabase
     .from('whatsapp_contatos')
     .select('*')
@@ -138,8 +138,8 @@ async function processarMensagemRecebida(supabase: any, conta: any, message: any
       .insert({
         whatsapp_conta_id: conta.id,
         numero_whatsapp: numeroRemetente,
-        nome: contact?.profile?.name || 'Desconhecido',
-        provedor_contato_id: numeroRemetente,
+        nome_whatsapp: contact?.profile?.name || 'Desconhecido',
+        whatsapp_id: numeroRemetente,
       })
       .select()
       .single();
@@ -208,20 +208,26 @@ async function processarMensagemRecebida(supabase: any, conta: any, message: any
       corpo = `[${message.type}]`;
   }
 
-  // Insert message
+  // Insert message with correct column names:
+  // - conversa_id (not whatsapp_conversa_id)
+  // - tipo_mensagem (not tipo)
+  // - recebida_em (not status_recebida_em)
+  // - metadata (not metadados)
   const { data: novaMensagem, error } = await supabase
     .from('whatsapp_mensagens')
     .insert({
-      whatsapp_conversa_id: conversa.id,
+      conversa_id: conversa.id,
       whatsapp_conta_id: conta.id,
       whatsapp_contato_id: contato.id,
       direcao: 'recebida',
-      tipo: tipoMensagem,
+      tipo_mensagem: tipoMensagem,
       corpo,
       mensagem_externa_id: messageId,
       status: 'recebida',
-      status_recebida_em: timestamp,
-      metadados: midiaDados ? { midia: midiaDados } : null,
+      recebida_em: timestamp,
+      metadata: midiaDados ? { midia: midiaDados } : null,
+      numero_de: numeroRemetente,
+      nome_remetente: contact?.profile?.name || null,
     })
     .select()
     .single();
@@ -268,17 +274,22 @@ async function processarMensagemRecebida(supabase: any, conta: any, message: any
 }
 
 async function enviarRespostaAgente(supabase: any, conta: any, conversa: any, contato: any, resposta: string) {
+  // Insert agent message with correct column names:
+  // - conversa_id (not whatsapp_conversa_id)
+  // - tipo_mensagem (not tipo)
+  // - enviada_por_bot (not enviado_por_agente)
   const { data: mensagemAgente } = await supabase
     .from('whatsapp_mensagens')
     .insert({
-      whatsapp_conversa_id: conversa.id,
+      conversa_id: conversa.id,
       whatsapp_conta_id: conta.id,
       whatsapp_contato_id: contato.id,
       direcao: 'enviada',
-      tipo: 'text',
+      tipo_mensagem: 'text',
       corpo: resposta,
       status: 'pendente',
-      enviado_por_agente: true,
+      enviada_por_bot: true,
+      numero_para: contato.numero_whatsapp,
     })
     .select()
     .single();
