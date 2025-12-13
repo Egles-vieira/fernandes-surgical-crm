@@ -184,7 +184,7 @@ async function processarMensagemRecebida(supabase: any, conta: any, message: any
     .from('whatsapp_conversas')
     .select('*')
     .eq('whatsapp_contato_id', contato.id)
-    .eq('status', 'ativa')
+    .eq('status', 'aberta')
     .single();
 
   if (conversaError && conversaError.code !== 'PGRST116') {
@@ -196,7 +196,7 @@ async function processarMensagemRecebida(supabase: any, conta: any, message: any
     const conversaInsert = {
       whatsapp_conta_id: conta.id,
       whatsapp_contato_id: contato.id,
-      status: 'ativa',
+      status: 'aberta',
       origem_atendimento: 'receptivo',
       unidade_id: conta.unidade_padrao_id || null,
     };
