@@ -279,7 +279,7 @@ async function processarMensagemRecebida(supabase: any, conta: any, message: any
       tipo_mensagem: tipoMensagem,
       corpo,
       mensagem_externa_id: messageId,
-      status: 'recebida',
+      status: 'entregue',
       recebida_em: timestamp,
       metadata: midiaDados ? { midia: midiaDados } : null,
       numero_de: numeroRemetente,
