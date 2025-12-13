@@ -104,13 +104,18 @@ export function ChatPanel({
 
       if (!conversa) throw new Error('Conversa não encontrada');
 
-      return whatsAppService.sendMessage({
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuário não autenticado');
+
+      // Use sendTextMessage which creates the message and sends it
+      return whatsAppService.sendTextMessage(
         conversaId,
-        contaId: conversa.whatsapp_conta_id,
-        contatoId: contato.id,
-        tipo: 'texto' as const,
-        corpo: texto,
-      });
+        texto,
+        conversa.whatsapp_conta_id,
+        contato.id,
+        user.id
+      );
     },
     onSuccess: () => {
       setMessage('');
