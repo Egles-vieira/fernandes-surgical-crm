@@ -35,6 +35,8 @@ import ContratosGoverno from "./pages/licitacoes/ContratosGoverno";
 import WhatsApp from "./pages/WhatsApp";
 import ConfiguracoesWhatsApp from "./pages/whatsapp/Configuracoes";
 import ConfiguracaoGlobal from "./pages/whatsapp/ConfiguracaoGlobal";
+import Governanca from "./pages/whatsapp/Governanca";
+import BAMDashboard from "./pages/whatsapp/BAMDashboard";
 import URAs from "./pages/URAs";
 import URAEditor from "./pages/URAEditor";
 import Tickets from "./pages/Tickets";
@@ -221,6 +223,16 @@ const MainApp = () => (
       <Route path="/whatsapp/configuracao-global" element={<ProtectedRoute>
           <Layout>
             <ConfiguracaoGlobal />
+          </Layout>
+        </ProtectedRoute>} />
+      <Route path="/whatsapp/governanca" element={<ProtectedRoute>
+          <Layout>
+            <Governanca />
+          </Layout>
+        </ProtectedRoute>} />
+      <Route path="/whatsapp/bam" element={<ProtectedRoute>
+          <Layout>
+            <BAMDashboard />
           </Layout>
         </ProtectedRoute>} />
       <Route path="/uras" element={<ProtectedRoute>
