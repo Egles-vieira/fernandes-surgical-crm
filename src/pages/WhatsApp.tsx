@@ -6,31 +6,30 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import ConversasList from "@/components/whatsapp/ConversasList";
 import ChatArea from "@/components/whatsapp/ChatArea";
-import { ConectarWAPIDialog } from "@/components/whatsapp/ConectarWAPIDialog";
 import { StatusDisponibilidadeBadge } from "@/components/whatsapp/StatusDisponibilidadeBadge";
 import { TokenAlertBanner } from "@/components/whatsapp/TokenAlertBanner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+
 const WhatsApp = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [conversaSelecionada, setConversaSelecionada] = useState<string | null>(null);
-  const [conectarDialogOpen, setConectarDialogOpen] = useState(false);
   const queryClient = useQueryClient();
-  const {
-    data: contas
-  } = useQuery({
+
+  const { data: contas } = useQuery({
     queryKey: ['whatsapp-contas'],
     queryFn: async () => {
-      const {
-        data,
-        error
-      } = await supabase.from('whatsapp_contas').select('*').is('excluido_em', null).eq('status', 'ativo').order('criado_em', {
-        ascending: false
-      });
+      const { data, error } = await supabase
+        .from('whatsapp_contas')
+        .select('*')
+        .is('excluido_em', null)
+        .eq('status', 'ativo')
+        .order('criado_em', { ascending: false });
       if (error) throw error;
       return data;
     }
   });
+
   const contaAtiva = contas?.[0];
 
   // Buscar/criar conversa a partir do número na URL
@@ -143,42 +142,60 @@ const WhatsApp = () => {
       supabase.removeChannel(channel);
     };
   }, [contaAtiva, queryClient]);
-  return <div className="fixed top-[64px] right-0 bottom-0 bg-gradient-to-br from-background via-background to-muted/20 overflow-hidden flex flex-col" style={{
-    left: 'var(--sidebar-width, 4rem)'
-  }}>
+
+  const handleSolicitarConexao = () => {
+    // Redirecionar para configurações quando token expirar
+    window.location.href = '/whatsapp/configuracoes';
+  };
+
+  return (
+    <div 
+      className="fixed top-[64px] right-0 bottom-0 bg-gradient-to-br from-background via-background to-muted/20 overflow-hidden flex flex-col" 
+      style={{ left: 'var(--sidebar-width, 4rem)' }}
+    >
       {/* Token Alert Banner */}
       <div className="flex-shrink-0 px-4 pt-2">
         <TokenAlertBanner />
       </div>
       
-      {!contaAtiva ? <div className="flex items-center justify-center h-full p-4">
+      {!contaAtiva ? (
+        <div className="flex items-center justify-center h-full p-4">
           <Card className="p-12 text-center">
             <MessageSquare className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
             <h2 className="text-2xl font-semibold mb-2">Nenhuma conta conectada</h2>
             <p className="text-muted-foreground mb-6">
               Configure uma conta WhatsApp Business para começar a gerenciar conversas
             </p>
-            <Button onClick={() => window.location.href = '/whatsapp/configuracoes'} className="bg-gradient-to-br from-primary to-primary/90">
+            <Button 
+              onClick={() => window.location.href = '/whatsapp/configuracoes'} 
+              className="bg-gradient-to-br from-primary to-primary/90"
+            >
               <Settings className="w-4 h-4 mr-2" />
               Configurar Conta
             </Button>
           </Card>
-        </div> : <>
+        </div>
+      ) : (
+        <>
           {/* Header com status de conexão */}
           <div className="px-4 py-3 border-b border-border/50 backdrop-blur flex items-center justify-between bg-slate-50">
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2">
-                {contaAtiva.status === 'ativo' ? <>
+                {contaAtiva.status === 'ativo' ? (
+                  <>
                     <Wifi className="w-4 h-4 text-green-500" />
                     <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/20">
                       Conectado
                     </Badge>
-                  </> : <>
+                  </>
+                ) : (
+                  <>
                     <WifiOff className="w-4 h-4 text-destructive" />
                     <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/20">
                       Desconectado
                     </Badge>
-                  </>}
+                  </>
+                )}
               </div>
               <span className="text-sm text-muted-foreground">
                 {contaAtiva.nome_conta}
@@ -187,23 +204,40 @@ const WhatsApp = () => {
             
             <div className="flex items-center gap-2">
               <StatusDisponibilidadeBadge />
-              {contaAtiva.provedor === 'w_api' && contaAtiva.status !== 'ativo' && <Button size="sm" onClick={() => setConectarDialogOpen(true)} className="bg-gradient-to-br from-primary to-primary/90">
-                  <Wifi className="w-4 h-4 mr-2" />
-                  Conectar WhatsApp
-                </Button>}
+              {contaAtiva.status !== 'ativo' && (
+                <Button 
+                  size="sm" 
+                  onClick={() => window.location.href = '/whatsapp/configuracoes'} 
+                  className="bg-gradient-to-br from-primary to-primary/90"
+                >
+                  <Settings className="w-4 h-4 mr-2" />
+                  Configurar
+                </Button>
+              )}
             </div>
           </div>
 
           <div className="grid grid-cols-12 h-[calc(100%-57px)] min-h-0 overflow-hidden">
             <div className="col-span-4 h-full min-h-0">
-              <ConversasList contaId={contaAtiva.id} conversaSelecionada={conversaSelecionada} onSelectConversa={setConversaSelecionada} />
+              <ConversasList 
+                contaId={contaAtiva.id} 
+                conversaSelecionada={conversaSelecionada} 
+                onSelectConversa={setConversaSelecionada} 
+              />
             </div>
             
-            {conversaSelecionada && <div className="col-span-8 h-full min-h-0">
-                <ChatArea conversaId={conversaSelecionada} contaId={contaAtiva.id} onSolicitarConexao={() => setConectarDialogOpen(true)} />
-              </div>}
+            {conversaSelecionada && (
+              <div className="col-span-8 h-full min-h-0">
+                <ChatArea 
+                  conversaId={conversaSelecionada} 
+                  contaId={contaAtiva.id} 
+                  onSolicitarConexao={handleSolicitarConexao} 
+                />
+              </div>
+            )}
             
-            {!conversaSelecionada && <div className="col-span-8 flex items-center justify-center h-full min-h-0">
+            {!conversaSelecionada && (
+              <div className="col-span-8 flex items-center justify-center h-full min-h-0">
                 <Card className="p-12 text-center bg-card/30 backdrop-blur">
                   <MessageSquare className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
                   <h3 className="text-lg font-semibold mb-2">Selecione uma conversa</h3>
@@ -211,11 +245,13 @@ const WhatsApp = () => {
                     Escolha uma conversa na lista para começar a atender
                   </p>
                 </Card>
-              </div>}
+              </div>
+            )}
           </div>
-
-          <ConectarWAPIDialog open={conectarDialogOpen} onOpenChange={setConectarDialogOpen} contaId={contaAtiva.id} />
-        </>}
-    </div>;
+        </>
+      )}
+    </div>
+  );
 };
+
 export default WhatsApp;

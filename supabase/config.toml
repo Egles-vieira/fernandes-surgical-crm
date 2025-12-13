@@ -27,12 +27,6 @@ verify_jwt = true
 [functions.classificar-criticidade-ticket]
 verify_jwt = true
 
-[functions.gupshup-enviar-mensagem]
-verify_jwt = false
-
-[functions.gupshup-webhook]
-verify_jwt = false
-
 [functions.handle-ura-zenvia]
 verify_jwt = false
 
@@ -44,45 +38,6 @@ verify_jwt = false
 
 [functions.upload-anexo-spaces]
 verify_jwt = true
-
-[functions.w-api-webhook]
-verify_jwt = false
-
-[functions.w-api-baixar-midia]
-verify_jwt = false
-
-[functions.w-api-enviar-mensagem]
-verify_jwt = false
-
-[functions.w-api-enviar-imagem]
-verify_jwt = false
-
-[functions.w-api-enviar-video]
-verify_jwt = false
-
-[functions.w-api-enviar-audio]
-verify_jwt = false
-
-[functions.w-api-enviar-documento]
-verify_jwt = false
-
-[functions.w-api-enviar-botoes]
-verify_jwt = false
-
-[functions.w-api-verificar-status]
-verify_jwt = false
-
-[functions.w-api-gerar-qrcode]
-verify_jwt = false
-
-[functions.w-api-reagir-mensagem]
-verify_jwt = false
-
-[functions.w-api-editar-mensagem]
-verify_jwt = false
-
-[functions.w-api-deletar-mensagem]
-verify_jwt = false
 
 [functions.transcrever-audio-whatsapp]
 verify_jwt = false

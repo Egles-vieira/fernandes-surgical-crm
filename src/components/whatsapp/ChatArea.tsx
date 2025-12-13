@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useWhatsAppGlobal } from "@/hooks/useWhatsAppGlobal";
 import { useAuth } from "@/hooks/useAuth";
-import { whatsappAdapter } from "@/lib/whatsappAdapter";
+import { whatsAppService } from "@/services/whatsapp";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -192,12 +192,12 @@ const ChatArea = ({
       }).select().single();
       if (error) throw error;
 
-      // Enviar via adapter
+      // Enviar via service centralizado
       if (data) {
         try {
-          await whatsappAdapter.enviarMensagem(data.id);
+          await whatsAppService.sendMessage(data.id);
         } catch (functionError) {
-          console.error('❌ Erro ao enviar via adapter:', functionError);
+          console.error('❌ Erro ao enviar via service:', functionError);
           
           // Atualizar mensagem como erro
           await supabase.from('whatsapp_mensagens').update({
@@ -208,7 +208,7 @@ const ChatArea = ({
 
           // Se estiver desconectado, solicitar reconexão
           const msg = (functionError as any)?.message ? String((functionError as any).message) : String(functionError);
-          if (msg.includes('Instância desconectada')) {
+          if (msg.includes('Instância desconectada') || msg.includes('Token Expirado')) {
             onSolicitarConexao?.();
           }
           
@@ -248,9 +248,8 @@ const ChatArea = ({
         status_falhou_em: null
       }).eq('id', mensagemId);
 
-      // Reenviar via adapter
-      await whatsappAdapter.enviarMensagem(mensagemId);
-      await whatsappAdapter.enviarMensagem(mensagemId);
+      // Reenviar via service centralizado
+      await whatsAppService.sendMessage(mensagemId);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
