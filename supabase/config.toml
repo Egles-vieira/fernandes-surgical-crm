@@ -146,3 +146,12 @@ verify_jwt = false
 
 [functions.meta-api-phone-numbers]
 verify_jwt = true
+
+[functions.meta-api-sync-templates]
+verify_jwt = true
+
+[functions.meta-api-create-template]
+verify_jwt = true
+
+[functions.meta-api-delete-template]
+verify_jwt = true
