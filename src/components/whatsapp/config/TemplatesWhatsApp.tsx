@@ -31,10 +31,14 @@ import {
   CheckCircle,
   XCircle,
   Clock,
+  RefreshCw,
+  AlertCircle,
+  Pause,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import NovoTemplateDialog from "./NovoTemplateDialog";
+import { useSyncTemplates } from "@/hooks/whatsapp/useWhatsAppTemplates";
 
 const TemplatesWhatsApp = () => {
   const [busca, setBusca] = useState("");
@@ -43,6 +47,7 @@ const TemplatesWhatsApp = () => {
   const [dialogVisualizacao, setDialogVisualizacao] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const syncTemplatesMutation = useSyncTemplates();
 
   const { data: contas } = useQuery({
     queryKey: ['whatsapp-contas-admin'],
@@ -115,12 +120,17 @@ const TemplatesWhatsApp = () => {
 
   const getStatusBadge = (status: string | null) => {
     const statusMap: Record<string, { variant: "default" | "destructive" | "outline" | "secondary", icon: any, label: string }> = {
+      APPROVED: { variant: "default", icon: CheckCircle, label: "Aprovado" },
       aprovado: { variant: "default", icon: CheckCircle, label: "Aprovado" },
+      PENDING: { variant: "secondary", icon: Clock, label: "Pendente" },
       pendente: { variant: "secondary", icon: Clock, label: "Pendente" },
+      REJECTED: { variant: "destructive", icon: XCircle, label: "Rejeitado" },
       rejeitado: { variant: "destructive", icon: XCircle, label: "Rejeitado" },
+      PAUSED: { variant: "outline", icon: Pause, label: "Pausado" },
+      DISABLED: { variant: "destructive", icon: AlertCircle, label: "Desativado" },
     };
 
-    const config = statusMap[status || 'pendente'] || statusMap.pendente;
+    const config = statusMap[status || 'PENDING'] || statusMap.PENDING;
     const Icon = config.icon;
 
     return (
@@ -156,10 +166,20 @@ const TemplatesWhatsApp = () => {
               Gerencie seus templates de mensagens aprovados
             </p>
           </div>
-          <Button onClick={() => setDialogNovoTemplate(true)}>
-            <Plus className="w-4 h-4 mr-2" />
-            Novo Template
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => contaAtiva && syncTemplatesMutation.mutate(contaAtiva.id)}
+              disabled={syncTemplatesMutation.isPending}
+            >
+              <RefreshCw className={`w-4 h-4 mr-2 ${syncTemplatesMutation.isPending ? 'animate-spin' : ''}`} />
+              {syncTemplatesMutation.isPending ? 'Sincronizando...' : 'Sincronizar'}
+            </Button>
+            <Button onClick={() => setDialogNovoTemplate(true)}>
+              <Plus className="w-4 h-4 mr-2" />
+              Novo Template
+            </Button>
+          </div>
         </div>
 
         <div className="relative mb-6">
