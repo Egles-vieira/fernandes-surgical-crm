@@ -102,12 +102,12 @@ const MediaUploader = ({
 
       if (error) throw error;
 
-      // Obter URL pública temporária (válida por 1 hora)
-      const { data: urlData } = await supabase.storage
+      // Obter URL pública permanente (bucket é público)
+      const { data: urlData } = supabase.storage
         .from('whatsapp-media')
-        .createSignedUrl(data.path, 3600);
+        .getPublicUrl(data.path);
 
-      if (!urlData?.signedUrl) {
+      if (!urlData?.publicUrl) {
         throw new Error('Erro ao gerar URL do arquivo');
       }
 
@@ -116,7 +116,7 @@ const MediaUploader = ({
         description: "Arquivo pronto para envio",
       });
 
-      onUploadComplete(urlData.signedUrl, fileType, selectedFile.name, selectedFile.type);
+      onUploadComplete(urlData.publicUrl, fileType, selectedFile.name, selectedFile.type);
 
     } catch (error: any) {
       console.error('Erro no upload:', error);
