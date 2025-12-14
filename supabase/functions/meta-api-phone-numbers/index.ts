@@ -45,7 +45,7 @@ Deno.serve(async (req) => {
     // Buscar conta
     const { data: conta, error: contaError } = await supabase
       .from('whatsapp_contas')
-      .select('id, meta_waba_id, meta_access_token, nome')
+      .select('id, meta_waba_id, meta_access_token')
       .eq('id', contaId)
       .single();
 
