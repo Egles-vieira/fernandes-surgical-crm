@@ -104,15 +104,15 @@ const AudioRecorder = ({ onRecordComplete, onCancel }: AudioRecorderProps) => {
 
       if (error) throw error;
 
-      const { data: urlData } = await supabase.storage
+      const { data: urlData } = supabase.storage
         .from('whatsapp-media')
-        .createSignedUrl(data.path, 3600);
+        .getPublicUrl(data.path);
 
-      if (!urlData?.signedUrl) {
+      if (!urlData?.publicUrl) {
         throw new Error('Erro ao gerar URL do áudio');
       }
 
-      onRecordComplete(urlData.signedUrl, duration);
+      onRecordComplete(urlData.publicUrl, duration);
 
     } catch (error: any) {
       toast({
