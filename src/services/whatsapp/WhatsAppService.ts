@@ -268,22 +268,30 @@ class WhatsAppServiceClass {
     texto: string, 
     contaId: string,
     contatoId: string,
-    userId: string
+    userId: string,
+    respostaParaId?: string
   ): Promise<SendResult> {
     try {
       // 1. Criar mensagem no banco como pendente
+      const insertData: any = {
+        conversa_id: conversaId,
+        whatsapp_conta_id: contaId,
+        whatsapp_contato_id: contatoId,
+        corpo: texto,
+        direcao: 'enviada',
+        tipo_mensagem: 'texto',
+        status: 'pendente',
+        enviada_por_usuario_id: userId,
+      };
+
+      // Adicionar referência de resposta se existir
+      if (respostaParaId) {
+        insertData.resposta_para_id = respostaParaId;
+      }
+
       const { data: mensagem, error: insertError } = await supabase
         .from('whatsapp_mensagens')
-        .insert({
-          conversa_id: conversaId,
-          whatsapp_conta_id: contaId,
-          whatsapp_contato_id: contatoId,
-          corpo: texto,
-          direcao: 'enviada',
-          tipo_mensagem: 'texto',
-          status: 'pendente',
-          enviada_por_usuario_id: userId,
-        })
+        .insert(insertData)
         .select()
         .single();
 
@@ -313,6 +321,91 @@ class WhatsAppServiceClass {
         success: false,
         error: error.message,
       };
+    }
+  }
+
+  // ============================================
+  // REAÇÕES
+  // ============================================
+
+  /**
+   * Envia uma reação para uma mensagem
+   */
+  async sendReaction(mensagemId: string, emoji: string, userId: string): Promise<SendResult> {
+    try {
+      console.log('😊 Enviando reação:', emoji, 'para mensagem:', mensagemId);
+
+      const { data, error } = await supabase.functions.invoke('meta-api-enviar-reacao', {
+        body: { mensagemId, emoji, userId }
+      });
+
+      if (error) {
+        console.error('❌ Erro ao enviar reação:', error);
+        return { success: false, error: error.message };
+      }
+
+      if (!data?.success) {
+        return { success: false, error: data?.error || 'Erro ao enviar reação' };
+      }
+
+      return { success: true };
+    } catch (error: any) {
+      console.error('❌ Erro ao enviar reação:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Remove uma reação de uma mensagem
+   */
+  async removeReaction(mensagemId: string, userId: string): Promise<SendResult> {
+    try {
+      console.log('🗑️ Removendo reação da mensagem:', mensagemId);
+
+      const { data, error } = await supabase.functions.invoke('meta-api-enviar-reacao', {
+        body: { mensagemId, emoji: '', userId }
+      });
+
+      if (error) {
+        console.error('❌ Erro ao remover reação:', error);
+        return { success: false, error: error.message };
+      }
+
+      if (!data?.success) {
+        return { success: false, error: data?.error || 'Erro ao remover reação' };
+      }
+
+      return { success: true };
+    } catch (error: any) {
+      console.error('❌ Erro ao remover reação:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  // ============================================
+  // MARCAR COMO LIDA
+  // ============================================
+
+  /**
+   * Marca uma mensagem como lida
+   */
+  async markAsRead(mensagemId: string): Promise<SendResult> {
+    try {
+      console.log('👁️ Marcando mensagem como lida:', mensagemId);
+
+      const { data, error } = await supabase.functions.invoke('meta-api-marcar-lida', {
+        body: { mensagemId }
+      });
+
+      if (error) {
+        console.error('❌ Erro ao marcar como lida:', error);
+        return { success: false, error: error.message };
+      }
+
+      return { success: true };
+    } catch (error: any) {
+      console.error('❌ Erro ao marcar como lida:', error);
+      return { success: false, error: error.message };
     }
   }
 

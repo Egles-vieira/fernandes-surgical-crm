@@ -155,3 +155,9 @@ verify_jwt = true
 
 [functions.meta-api-delete-template]
 verify_jwt = true
+
+[functions.meta-api-enviar-reacao]
+verify_jwt = false
+
+[functions.meta-api-marcar-lida]
+verify_jwt = false

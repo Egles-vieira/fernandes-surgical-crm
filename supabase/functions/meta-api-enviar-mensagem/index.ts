@@ -47,7 +47,7 @@ Deno.serve(async (req) => {
 
     console.log(`📨 [meta-api-enviar-mensagem] Iniciando envio - mensagemId: ${mensagemId}`);
 
-    // Fetch message with account and contact data
+    // Fetch message with account, contact data, and reply reference
     const { data: mensagem, error: mensagemError } = await supabase
       .from('whatsapp_mensagens')
       .select(`
@@ -63,6 +63,9 @@ Deno.serve(async (req) => {
         ),
         whatsapp_contatos (
           numero_whatsapp
+        ),
+        resposta_para:resposta_para_id (
+          mensagem_externa_id
         )
       `)
       .eq('id', mensagemId)
@@ -151,6 +154,15 @@ Deno.serve(async (req) => {
       recipient_type: 'individual',
       to: numeroDestino,
     };
+
+    // Adicionar context se for resposta a outra mensagem
+    const respostaPara = mensagem.resposta_para as any;
+    if (respostaPara?.mensagem_externa_id) {
+      messagePayload.context = {
+        message_id: respostaPara.mensagem_externa_id,
+      };
+      console.log('↩️ Respondendo à mensagem:', respostaPara.mensagem_externa_id);
+    }
 
     switch (mensagem.tipo) {
       case 'text':
