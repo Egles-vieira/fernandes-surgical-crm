@@ -3,12 +3,12 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,19 +24,19 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { FileText, Loader2, AlertCircle, Cloud } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 
-interface NovoTemplateDialogProps {
+interface NovoTemplateSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   contaId: string;
   template?: any;
 }
 
-const NovoTemplateDialog = ({
+const NovoTemplateSheet = ({
   open,
   onOpenChange,
   contaId,
   template,
-}: NovoTemplateDialogProps) => {
+}: NovoTemplateSheetProps) => {
   const [nomeTemplate, setNomeTemplate] = useState("");
   const [categoria, setCategoria] = useState("MARKETING");
   const [idioma, setIdioma] = useState("pt_BR");
@@ -49,7 +49,7 @@ const NovoTemplateDialog = ({
   const queryClient = useQueryClient();
   const isEditing = !!template;
 
-  // Reset form when dialog opens/closes or template changes
+  // Reset form when sheet opens/closes or template changes
   useEffect(() => {
     if (open) {
       if (template) {
@@ -240,21 +240,21 @@ const NovoTemplateDialog = ({
   const isPending = criarNaMetaMutation.isPending || salvarLocalMutation.isPending;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[650px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent className="sm:max-w-[550px] overflow-y-auto">
+        <SheetHeader>
+          <SheetTitle className="flex items-center gap-2">
             <FileText className="w-5 h-5" />
             {isEditing ? "Editar Template" : "Novo Template HSM"}
-          </DialogTitle>
-          <DialogDescription>
+          </SheetTitle>
+          <SheetDescription>
             {isEditing 
               ? "Edite as informações do template WhatsApp" 
               : "Crie um novo template de mensagem para WhatsApp Business"}
-          </DialogDescription>
-        </DialogHeader>
+          </SheetDescription>
+        </SheetHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 mt-6">
           {!isEditing && (
             <div className="flex items-center justify-between p-3 rounded-lg border bg-muted/50">
               <div className="flex items-center gap-2">
@@ -284,21 +284,21 @@ const NovoTemplateDialog = ({
             </Alert>
           )}
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="nome">Nome do Template *</Label>
-              <Input
-                id="nome"
-                placeholder="ex: boas_vindas"
-                value={nomeTemplate}
-                onChange={(e) => setNomeTemplate(e.target.value)}
-                disabled={isPending}
-              />
-              <p className="text-xs text-muted-foreground">
-                Use apenas letras minúsculas e underscores
-              </p>
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="nome">Nome do Template *</Label>
+            <Input
+              id="nome"
+              placeholder="ex: boas_vindas"
+              value={nomeTemplate}
+              onChange={(e) => setNomeTemplate(e.target.value)}
+              disabled={isPending}
+            />
+            <p className="text-xs text-muted-foreground">
+              Use apenas letras minúsculas e underscores
+            </p>
+          </div>
 
+          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="categoria">Categoria *</Label>
               <Select value={categoria} onValueChange={setCategoria} disabled={isPending}>
@@ -312,21 +312,21 @@ const NovoTemplateDialog = ({
                 </SelectContent>
               </Select>
             </div>
-          </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="idioma">Idioma</Label>
-            <Select value={idioma} onValueChange={setIdioma} disabled={isPending}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="pt_BR">Português (Brasil)</SelectItem>
-                <SelectItem value="en">English</SelectItem>
-                <SelectItem value="en_US">English (US)</SelectItem>
-                <SelectItem value="es">Español</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="space-y-2">
+              <Label htmlFor="idioma">Idioma</Label>
+              <Select value={idioma} onValueChange={setIdioma} disabled={isPending}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pt_BR">Português (BR)</SelectItem>
+                  <SelectItem value="en">English</SelectItem>
+                  <SelectItem value="en_US">English (US)</SelectItem>
+                  <SelectItem value="es">Español</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <div className="space-y-2">
@@ -357,7 +357,7 @@ const NovoTemplateDialog = ({
               maxLength={1024}
             />
             <div className="flex justify-between text-xs text-muted-foreground">
-              <span>Use {`{{1}}`}, {`{{2}}`}, etc. para variáveis dinâmicas</span>
+              <span>Use {`{{1}}`}, {`{{2}}`}, etc. para variáveis</span>
               <span>{corpo.length}/1024</span>
             </div>
           </div>
@@ -377,7 +377,7 @@ const NovoTemplateDialog = ({
             </p>
           </div>
 
-          <div className="flex gap-3 justify-end pt-4">
+          <div className="flex gap-3 justify-end pt-4 border-t">
             <Button
               type="button"
               variant="outline"
@@ -390,7 +390,7 @@ const NovoTemplateDialog = ({
               {isPending ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  {criarNaMeta ? "Enviando para Meta..." : "Salvando..."}
+                  {criarNaMeta ? "Enviando..." : "Salvando..."}
                 </>
               ) : (
                 <>
@@ -410,9 +410,9 @@ const NovoTemplateDialog = ({
             </Button>
           </div>
         </form>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 };
 
-export default NovoTemplateDialog;
+export default NovoTemplateSheet;
