@@ -9243,6 +9243,7 @@ export type Database = {
           idioma_detectado: string | null
           intencao: string | null
           latitude: number | null
+          lida_confirmada_em: string | null
           lista_opcoes: Json | null
           longitude: number | null
           mensagem_externa_id: string | null
@@ -9259,6 +9260,7 @@ export type Database = {
           recebida_em: string | null
           resposta_botao: string | null
           resposta_lista: string | null
+          resposta_para_id: string | null
           sentimento: string | null
           status: string | null
           status_entregue_em: string | null
@@ -9312,6 +9314,7 @@ export type Database = {
           idioma_detectado?: string | null
           intencao?: string | null
           latitude?: number | null
+          lida_confirmada_em?: string | null
           lista_opcoes?: Json | null
           longitude?: number | null
           mensagem_externa_id?: string | null
@@ -9328,6 +9331,7 @@ export type Database = {
           recebida_em?: string | null
           resposta_botao?: string | null
           resposta_lista?: string | null
+          resposta_para_id?: string | null
           sentimento?: string | null
           status?: string | null
           status_entregue_em?: string | null
@@ -9381,6 +9385,7 @@ export type Database = {
           idioma_detectado?: string | null
           intencao?: string | null
           latitude?: number | null
+          lida_confirmada_em?: string | null
           lista_opcoes?: Json | null
           longitude?: number | null
           mensagem_externa_id?: string | null
@@ -9397,6 +9402,7 @@ export type Database = {
           recebida_em?: string | null
           resposta_botao?: string | null
           resposta_lista?: string | null
+          resposta_para_id?: string | null
           sentimento?: string | null
           status?: string | null
           status_entregue_em?: string | null
@@ -9425,6 +9431,13 @@ export type Database = {
             columns: ["conversa_id"]
             isOneToOne: false
             referencedRelation: "whatsapp_conversas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_mensagens_resposta_para_id_fkey"
+            columns: ["resposta_para_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_mensagens"
             referencedColumns: ["id"]
           },
           {
@@ -9802,6 +9815,85 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "whatsapp_propostas_comerciais"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_reacoes: {
+        Row: {
+          atualizado_em: string | null
+          criado_em: string | null
+          emoji: string
+          id: string
+          mensagem_externa_id: string | null
+          mensagem_id: string
+          reagido_por_contato_id: string | null
+          reagido_por_tipo: string
+          reagido_por_usuario_id: string | null
+        }
+        Insert: {
+          atualizado_em?: string | null
+          criado_em?: string | null
+          emoji: string
+          id?: string
+          mensagem_externa_id?: string | null
+          mensagem_id: string
+          reagido_por_contato_id?: string | null
+          reagido_por_tipo: string
+          reagido_por_usuario_id?: string | null
+        }
+        Update: {
+          atualizado_em?: string | null
+          criado_em?: string | null
+          emoji?: string
+          id?: string
+          mensagem_externa_id?: string | null
+          mensagem_id?: string
+          reagido_por_contato_id?: string | null
+          reagido_por_tipo?: string
+          reagido_por_usuario_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_reacoes_mensagem_id_fkey"
+            columns: ["mensagem_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_mensagens"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_reacoes_reagido_por_contato_id_fkey"
+            columns: ["reagido_por_contato_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_contatos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_reacoes_reagido_por_usuario_id_fkey"
+            columns: ["reagido_por_usuario_id"]
+            isOneToOne: false
+            referencedRelation: "mv_top_vendedores"
+            referencedColumns: ["vendedor_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_reacoes_reagido_por_usuario_id_fkey"
+            columns: ["reagido_por_usuario_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_usuario"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_reacoes_reagido_por_usuario_id_fkey"
+            columns: ["reagido_por_usuario_id"]
+            isOneToOne: false
+            referencedRelation: "vw_performance_vendedor"
+            referencedColumns: ["vendedor_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_reacoes_reagido_por_usuario_id_fkey"
+            columns: ["reagido_por_usuario_id"]
+            isOneToOne: false
+            referencedRelation: "vw_vendedores_disponiveis"
+            referencedColumns: ["user_id"]
           },
         ]
       }

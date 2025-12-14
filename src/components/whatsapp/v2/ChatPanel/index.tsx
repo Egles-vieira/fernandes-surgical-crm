@@ -1,8 +1,9 @@
 // ============================================
-// Chat Panel Component
+// Chat Panel Component - Fase 4: Mensagens Avançadas
+// Suporte a Reply, Reactions, Mark as Read
 // ============================================
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -22,7 +23,9 @@ import {
   PanelRightOpen,
   CheckCheck,
   Check,
-  Clock
+  Clock,
+  Reply,
+  CornerDownLeft
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -37,6 +40,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { ReplyPreview } from './ReplyPreview';
+import { MessageReactions } from './MessageReactions';
 
 interface Contato {
   id: string;
@@ -61,6 +66,19 @@ interface Mensagem {
   criado_em: string;
   enviada_por_bot?: boolean;
   enviada_por_id?: string;
+  mensagem_externa_id?: string;
+  nome_remetente?: string;
+  resposta_para_id?: string;
+  lida_confirmada_em?: string;
+}
+
+interface Reacao {
+  id: string;
+  mensagem_id: string;
+  emoji: string;
+  reagido_por_tipo: 'usuario' | 'contato';
+  reagido_por_usuario_id?: string;
+  reagido_por_contato_id?: string;
 }
 
 export function ChatPanel({ 
@@ -70,8 +88,19 @@ export function ChatPanel({
   showDetailsButton 
 }: ChatPanelProps) {
   const [message, setMessage] = useState('');
+  const [replyingTo, setReplyingTo] = useState<Mensagem | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
+
+  // Fetch current user
+  const { data: currentUser } = useQuery({
+    queryKey: ['current-user'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      return user;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
 
   // Fetch current user profile
   const { data: currentUserProfile } = useQuery({
@@ -91,14 +120,18 @@ export function ChatPanel({
     staleTime: 5 * 60 * 1000,
   });
 
-  // Fetch messages
+  // Fetch messages with reply references
   const { data: mensagens = [], isLoading } = useQuery({
     queryKey: ['whatsapp-mensagens', conversaId],
     queryFn: async () => {
       if (!conversaId) return [];
       const { data, error } = await supabase
         .from('whatsapp_mensagens')
-        .select('id, corpo, tipo_mensagem, direcao, status, criado_em, enviada_por_bot, enviada_por_usuario_id')
+        .select(`
+          id, corpo, tipo_mensagem, direcao, status, criado_em, 
+          enviada_por_bot, enviada_por_usuario_id, mensagem_externa_id,
+          nome_remetente, resposta_para_id, lida_confirmada_em
+        `)
         .eq('conversa_id', conversaId)
         .order('criado_em', { ascending: true })
         .limit(100);
@@ -129,12 +162,33 @@ export function ChatPanel({
     enabled: !!conversaId,
   });
 
+  // Fetch reactions for all messages
+  const messageIds = mensagens.map(m => m.id);
+  const { data: reacoes = [] } = useQuery({
+    queryKey: ['whatsapp-reacoes', messageIds],
+    queryFn: async () => {
+      if (messageIds.length === 0) return [];
+      const { data } = await supabase
+        .from('whatsapp_reacoes')
+        .select('*')
+        .in('mensagem_id', messageIds);
+      return (data || []) as Reacao[];
+    },
+    enabled: messageIds.length > 0,
+  });
+
+  // Group reactions by message
+  const reacoesPorMensagem = reacoes.reduce((acc, r) => {
+    if (!acc[r.mensagem_id]) acc[r.mensagem_id] = [];
+    acc[r.mensagem_id].push(r);
+    return acc;
+  }, {} as Record<string, Reacao[]>);
+
   // Send message mutation
   const sendMutation = useMutation({
     mutationFn: async (texto: string) => {
       if (!conversaId || !contato) throw new Error('Conversa não selecionada');
       
-      // Get the whatsapp_conta_id from the conversation
       const { data: conversa } = await supabase
         .from('whatsapp_conversas')
         .select('whatsapp_conta_id')
@@ -143,21 +197,21 @@ export function ChatPanel({
 
       if (!conversa) throw new Error('Conversa não encontrada');
 
-      // Get current user
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
 
-      // Use sendTextMessage which creates the message and sends it
       return whatsAppService.sendTextMessage(
         conversaId,
         texto,
         conversa.whatsapp_conta_id,
         contato.id,
-        user.id
+        user.id,
+        replyingTo?.id // Pass reply reference
       );
     },
     onSuccess: () => {
       setMessage('');
+      setReplyingTo(null);
       queryClient.invalidateQueries({ queryKey: ['whatsapp-mensagens', conversaId] });
     },
     onError: (error) => {
@@ -167,6 +221,38 @@ export function ChatPanel({
     },
   });
 
+  // React mutation
+  const reactMutation = useMutation({
+    mutationFn: async ({ mensagemId, emoji }: { mensagemId: string; emoji: string }) => {
+      if (!currentUser) throw new Error('Usuário não autenticado');
+      return whatsAppService.sendReaction(mensagemId, emoji, currentUser.id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['whatsapp-reacoes'] });
+    },
+    onError: (error) => {
+      toast.error('Erro ao reagir', {
+        description: error instanceof Error ? error.message : 'Tente novamente',
+      });
+    },
+  });
+
+  // Remove reaction mutation
+  const removeReactionMutation = useMutation({
+    mutationFn: async (mensagemId: string) => {
+      if (!currentUser) throw new Error('Usuário não autenticado');
+      return whatsAppService.removeReaction(mensagemId, currentUser.id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['whatsapp-reacoes'] });
+    },
+  });
+
+  // Mark as read when message is visible
+  const markAsRead = useCallback(async (mensagemId: string) => {
+    await whatsAppService.markAsRead(mensagemId);
+  }, []);
+
   // Scroll to bottom on new messages
   useEffect(() => {
     if (scrollRef.current) {
@@ -174,7 +260,7 @@ export function ChatPanel({
     }
   }, [mensagens]);
 
-  // Realtime subscription
+  // Realtime subscription for messages
   useEffect(() => {
     if (!conversaId) return;
 
@@ -199,6 +285,30 @@ export function ChatPanel({
     };
   }, [conversaId, queryClient]);
 
+  // Realtime subscription for reactions
+  useEffect(() => {
+    if (messageIds.length === 0) return;
+
+    const channel = supabase
+      .channel('reacoes-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'whatsapp_reacoes',
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['whatsapp-reacoes'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [messageIds, queryClient]);
+
   const handleSend = () => {
     if (!message.trim()) return;
     sendMutation.mutate(message.trim());
@@ -209,6 +319,27 @@ export function ChatPanel({
       e.preventDefault();
       handleSend();
     }
+    if (e.key === 'Escape' && replyingTo) {
+      setReplyingTo(null);
+    }
+  };
+
+  const handleReply = (msg: Mensagem) => {
+    setReplyingTo(msg);
+  };
+
+  const handleReact = (mensagemId: string, emoji: string) => {
+    reactMutation.mutate({ mensagemId, emoji });
+  };
+
+  const handleRemoveReaction = (mensagemId: string) => {
+    removeReactionMutation.mutate(mensagemId);
+  };
+
+  // Get the message being replied to
+  const getReplyMessage = (replyId: string | undefined) => {
+    if (!replyId) return null;
+    return mensagens.find(m => m.id === replyId);
   };
 
   if (!conversaId) {
@@ -296,9 +427,10 @@ export function ChatPanel({
         ) : (
           <div className="space-y-4">
             {mensagens.map((msg, index) => {
-              // Show sender if first message or different direction from previous
               const prevMsg = mensagens[index - 1];
               const showSender = !prevMsg || prevMsg.direcao !== msg.direcao;
+              const msgReacoes = reacoesPorMensagem[msg.id] || [];
+              const replyMessage = getReplyMessage(msg.resposta_para_id);
               
               return (
                 <MessageBubble 
@@ -307,6 +439,13 @@ export function ChatPanel({
                   contato={contato}
                   showSender={showSender}
                   operadorNome={msg.operador_nome || currentUserProfile?.nome_completo}
+                  reacoes={msgReacoes}
+                  currentUserId={currentUser?.id}
+                  replyMessage={replyMessage}
+                  onReply={() => handleReply(msg)}
+                  onReact={(emoji) => handleReact(msg.id, emoji)}
+                  onRemoveReaction={() => handleRemoveReaction(msg.id)}
+                  onMarkAsRead={() => markAsRead(msg.id)}
                 />
               );
             })}
@@ -314,6 +453,16 @@ export function ChatPanel({
           </div>
         )}
       </ScrollArea>
+
+      {/* Reply Preview */}
+      {replyingTo && (
+        <div className="px-3 pt-2">
+          <ReplyPreview 
+            message={replyingTo}
+            onCancel={() => setReplyingTo(null)}
+          />
+        </div>
+      )}
 
       {/* Input Area */}
       <div className="p-3 border-t bg-card">
@@ -344,7 +493,7 @@ export function ChatPanel({
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Digite sua mensagem..."
+            placeholder={replyingTo ? "Digite sua resposta..." : "Digite sua mensagem..."}
             className="min-h-[36px] max-h-32 resize-none"
             rows={1}
           />
@@ -370,14 +519,55 @@ export function ChatPanel({
 }
 
 interface MessageBubbleProps {
-  mensagem: Mensagem;
+  mensagem: Mensagem & { operador_nome?: string };
   contato?: Contato;
   showSender?: boolean;
   operadorNome?: string;
+  reacoes: Reacao[];
+  currentUserId?: string;
+  replyMessage?: Mensagem | null;
+  onReply: () => void;
+  onReact: (emoji: string) => void;
+  onRemoveReaction: () => void;
+  onMarkAsRead: () => void;
 }
 
-function MessageBubble({ mensagem, contato, showSender = true, operadorNome }: MessageBubbleProps) {
+function MessageBubble({ 
+  mensagem, 
+  contato, 
+  showSender = true, 
+  operadorNome,
+  reacoes,
+  currentUserId,
+  replyMessage,
+  onReply,
+  onReact,
+  onRemoveReaction,
+  onMarkAsRead
+}: MessageBubbleProps) {
   const isOutgoing = mensagem.direcao === 'enviada';
+  const messageRef = useRef<HTMLDivElement>(null);
+
+  // Mark as read when message becomes visible (for incoming messages)
+  useEffect(() => {
+    if (!isOutgoing && !mensagem.lida_confirmada_em && mensagem.mensagem_externa_id) {
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) {
+            onMarkAsRead();
+            observer.disconnect();
+          }
+        },
+        { threshold: 0.5 }
+      );
+
+      if (messageRef.current) {
+        observer.observe(messageRef.current);
+      }
+
+      return () => observer.disconnect();
+    }
+  }, [isOutgoing, mensagem.lida_confirmada_em, mensagem.mensagem_externa_id, onMarkAsRead]);
 
   const getStatusIcon = () => {
     switch (mensagem.status) {
@@ -408,19 +598,38 @@ function MessageBubble({ mensagem, contato, showSender = true, operadorNome }: M
     : (contato?.nome_whatsapp || 'Cliente');
   const formattedTime = format(new Date(mensagem.criado_em), 'HH:mm', { locale: ptBR });
 
+  // Transform reactions for display
+  const groupedReactions = reacoes.reduce((acc, r) => {
+    const existing = acc.find(a => a.emoji === r.emoji);
+    if (existing) {
+      existing.count++;
+      if (r.reagido_por_usuario_id === currentUserId) {
+        existing.hasUserReacted = true;
+      }
+    } else {
+      acc.push({
+        emoji: r.emoji,
+        count: 1,
+        hasUserReacted: r.reagido_por_usuario_id === currentUserId,
+      });
+    }
+    return acc;
+  }, [] as { emoji: string; count: number; hasUserReacted: boolean }[]);
+
   return (
-    <div className={cn(
-      "flex gap-3 group",
-      isOutgoing ? "flex-row-reverse" : "flex-row"
-    )}>
+    <div 
+      ref={messageRef}
+      className={cn(
+        "flex gap-3 group",
+        isOutgoing ? "flex-row-reverse" : "flex-row"
+      )}
+    >
       {/* Avatar */}
       <Avatar className="h-8 w-8 shrink-0 mt-1 ring-2 ring-background shadow-sm">
         {isOutgoing ? (
-          <>
-            <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground text-xs font-medium">
-              Eu
-            </AvatarFallback>
-          </>
+          <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground text-xs font-medium">
+            Eu
+          </AvatarFallback>
         ) : (
           <>
             <AvatarImage src={contato?.foto_url} />
@@ -444,6 +653,19 @@ function MessageBubble({ mensagem, contato, showSender = true, operadorNome }: M
           )}>
             <span className="font-medium text-foreground">{senderName}</span>
             <span className="text-muted-foreground">{formattedTime}</span>
+          </div>
+        )}
+
+        {/* Reply Reference */}
+        {replyMessage && (
+          <div className={cn(
+            "flex items-center gap-1 text-xs text-muted-foreground mb-1 px-2 py-1 bg-muted/50 rounded-md border-l-2 border-primary/50",
+            isOutgoing ? "flex-row-reverse" : "flex-row"
+          )}>
+            <CornerDownLeft className="h-3 w-3" />
+            <span className="truncate max-w-[200px]">
+              {replyMessage.corpo}
+            </span>
           </div>
         )}
 
@@ -477,7 +699,29 @@ function MessageBubble({ mensagem, contato, showSender = true, operadorNome }: M
               {getStatusIcon()}
             </div>
           )}
+
+          {/* Reply button (appears on hover) */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className={cn(
+              "absolute -top-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity bg-background shadow-sm border",
+              isOutgoing ? "-left-2" : "-right-2"
+            )}
+            onClick={onReply}
+            title="Responder"
+          >
+            <Reply className="h-3 w-3" />
+          </Button>
         </div>
+
+        {/* Reactions */}
+        <MessageReactions
+          reactions={groupedReactions}
+          onReact={onReact}
+          onRemoveReaction={onRemoveReaction}
+          isOutgoing={isOutgoing}
+        />
       </div>
     </div>
   );

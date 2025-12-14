@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { MoreVerticalIcon, SmileIcon, Edit2Icon, Trash2Icon, CopyIcon } from 'lucide-react';
+import { MoreVerticalIcon, SmileIcon, Edit2Icon, Trash2Icon, CopyIcon, Reply } from 'lucide-react';
 import { EmojiPicker } from './EmojiPicker';
 import { toast } from 'sonner';
 
@@ -21,6 +21,7 @@ interface MessageActionsProps {
   onReact: (emoji: string) => void;
   onEdit: (newText: string) => void;
   onDelete: () => void;
+  onReply?: () => void;
 }
 
 export function MessageActions({
@@ -30,6 +31,7 @@ export function MessageActions({
   onReact,
   onEdit,
   onDelete,
+  onReply,
 }: MessageActionsProps) {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -60,6 +62,14 @@ export function MessageActions({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-48">
+          {/* Responder */}
+          {onReply && (
+            <DropdownMenuItem onClick={onReply}>
+              <Reply className="h-4 w-4 mr-2" />
+              Responder
+            </DropdownMenuItem>
+          )}
+
           {/* Reagir */}
           <div className="px-2 py-1.5">
             <EmojiPicker

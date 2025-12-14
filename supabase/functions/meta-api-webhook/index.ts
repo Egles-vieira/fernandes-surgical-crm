@@ -115,7 +115,12 @@ Deno.serve(async (req) => {
             // Process incoming messages
             if (value.messages) {
               for (const message of value.messages) {
-                await processarMensagemRecebida(supabase, conta, message, value.contacts?.[0]);
+                // Processar reações separadamente
+                if (message.type === 'reaction') {
+                  await processarReacaoRecebida(supabase, conta, message);
+                } else {
+                  await processarMensagemRecebida(supabase, conta, message, value.contacts?.[0]);
+                }
               }
             }
 
@@ -431,4 +436,76 @@ async function atualizarStatusMensagem(supabase: any, status: any) {
     .eq('mensagem_externa_id', status.id);
 
   console.log(`📊 Status updated for ${status.id}: ${novoStatus}`);
+}
+
+// ============================================
+// Processar Reação Recebida
+// ============================================
+async function processarReacaoRecebida(supabase: any, conta: any, message: any) {
+  console.log('😊 Processing reaction:', message.reaction);
+
+  const reaction = message.reaction;
+  const messageIdReacted = reaction?.message_id;
+  const emoji = reaction?.emoji;
+  const from = message.from;
+
+  if (!messageIdReacted) {
+    console.warn('⚠️ Reaction without message_id');
+    return;
+  }
+
+  // Buscar a mensagem que foi reagida
+  const { data: mensagemOriginal } = await supabase
+    .from('whatsapp_mensagens')
+    .select('id, whatsapp_contato_id')
+    .eq('mensagem_externa_id', messageIdReacted)
+    .single();
+
+  if (!mensagemOriginal) {
+    console.warn('⚠️ Original message not found for reaction:', messageIdReacted);
+    return;
+  }
+
+  // Buscar contato pelo número
+  const { data: contato } = await supabase
+    .from('whatsapp_contatos')
+    .select('id')
+    .eq('numero_whatsapp', from)
+    .eq('whatsapp_conta_id', conta.id)
+    .single();
+
+  if (!contato) {
+    console.warn('⚠️ Contact not found for reaction');
+    return;
+  }
+
+  // Se emoji está vazio, é remoção de reação
+  if (!emoji || emoji === '') {
+    console.log('🗑️ Removing reaction');
+    await supabase
+      .from('whatsapp_reacoes')
+      .delete()
+      .eq('mensagem_id', mensagemOriginal.id)
+      .eq('reagido_por_contato_id', contato.id);
+    return;
+  }
+
+  // Inserir ou atualizar reação
+  const { error: upsertError } = await supabase
+    .from('whatsapp_reacoes')
+    .upsert({
+      mensagem_id: mensagemOriginal.id,
+      emoji,
+      reagido_por_tipo: 'contato',
+      reagido_por_contato_id: contato.id,
+      mensagem_externa_id: message.id,
+    }, {
+      onConflict: 'mensagem_id,reagido_por_contato_id',
+    });
+
+  if (upsertError) {
+    console.error('❌ Error saving reaction:', upsertError);
+  } else {
+    console.log('✅ Reaction saved:', emoji);
+  }
 }
