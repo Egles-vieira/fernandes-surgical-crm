@@ -137,6 +137,15 @@ serve(async (req) => {
 
     const metaTemplateId = responseData.id;
 
+    // Extrair campos dos components para salvar localmente
+    const headerComponent = components.find((c: TemplateComponent) => c.type === 'HEADER');
+    const bodyComponent = components.find((c: TemplateComponent) => c.type === 'BODY');
+    const footerComponent = components.find((c: TemplateComponent) => c.type === 'FOOTER');
+
+    const titulo = headerComponent?.text || null;
+    const corpo = bodyComponent?.text || '';
+    const rodape = footerComponent?.text || null;
+
     // Criar registro local
     const { data: newTemplate, error: insertError } = await supabase
       .from('whatsapp_templates')
@@ -145,8 +154,11 @@ serve(async (req) => {
         nome_template: name,
         template_externo_id: metaTemplateId,
         status_aprovacao: 'PENDING',
-        categoria: category,
+        categoria: category.toLowerCase(),
         idioma: language,
+        titulo,
+        corpo,
+        rodape,
         components_meta: components,
         sincronizado_com_meta: true,
         ultima_sincronizacao_em: new Date().toISOString(),
