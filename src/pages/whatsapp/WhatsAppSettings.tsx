@@ -28,7 +28,8 @@ import {
   Copy,
   Webhook,
   Clock,
-  ArrowLeft
+  ArrowLeft,
+  Building2,
 } from 'lucide-react';
 import { useWhatsAppService } from '@/services/whatsapp/hooks/useWhatsAppService';
 import { whatsAppService } from '@/services/whatsapp';
@@ -162,6 +163,12 @@ export default function WhatsAppSettings() {
                 </>
               )}
             </Badge>
+            <Button variant="outline" size="sm" asChild>
+              <Link to="/whatsapp/waba">
+                <Building2 className="h-4 w-4 mr-2" />
+                Config WABA
+              </Link>
+            </Button>
           </div>
         </div>
       </div>
