@@ -143,3 +143,6 @@ verify_jwt = false
 
 [functions.whatsapp-verificar-sla]
 verify_jwt = false
+
+[functions.meta-api-phone-numbers]
+verify_jwt = true

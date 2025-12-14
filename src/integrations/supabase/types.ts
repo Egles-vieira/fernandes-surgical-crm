@@ -8128,6 +8128,7 @@ export type Database = {
           numero_whatsapp: string
           phone_number_id: string | null
           phone_number_id_gupshup: string | null
+          phone_numbers_sincronizados_em: string | null
           provedor: string
           provider: string
           qualidade_conta: string | null
@@ -8193,6 +8194,7 @@ export type Database = {
           numero_whatsapp: string
           phone_number_id?: string | null
           phone_number_id_gupshup?: string | null
+          phone_numbers_sincronizados_em?: string | null
           provedor: string
           provider: string
           qualidade_conta?: string | null
@@ -8258,6 +8260,7 @@ export type Database = {
           numero_whatsapp?: string
           phone_number_id?: string | null
           phone_number_id_gupshup?: string | null
+          phone_numbers_sincronizados_em?: string | null
           provedor?: string
           provider?: string
           qualidade_conta?: string | null
@@ -9504,6 +9507,75 @@ export type Database = {
           {
             foreignKeyName: "whatsapp_metricas_agente_whatsapp_conta_id_fkey"
             columns: ["whatsapp_conta_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_contas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_phone_numbers: {
+        Row: {
+          atualizado_em: string | null
+          code_verification_status: string | null
+          conta_id: string
+          criado_em: string | null
+          display_phone_number: string
+          id: string
+          is_principal: boolean | null
+          is_registered: boolean | null
+          name_status: string | null
+          phone_number_id: string
+          platform_type: string | null
+          quality_rating: string | null
+          throughput_level: string | null
+          ultima_sincronizacao_em: string | null
+          verified_name: string | null
+        }
+        Insert: {
+          atualizado_em?: string | null
+          code_verification_status?: string | null
+          conta_id: string
+          criado_em?: string | null
+          display_phone_number: string
+          id?: string
+          is_principal?: boolean | null
+          is_registered?: boolean | null
+          name_status?: string | null
+          phone_number_id: string
+          platform_type?: string | null
+          quality_rating?: string | null
+          throughput_level?: string | null
+          ultima_sincronizacao_em?: string | null
+          verified_name?: string | null
+        }
+        Update: {
+          atualizado_em?: string | null
+          code_verification_status?: string | null
+          conta_id?: string
+          criado_em?: string | null
+          display_phone_number?: string
+          id?: string
+          is_principal?: boolean | null
+          is_registered?: boolean | null
+          name_status?: string | null
+          phone_number_id?: string
+          platform_type?: string | null
+          quality_rating?: string | null
+          throughput_level?: string | null
+          ultima_sincronizacao_em?: string | null
+          verified_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_phone_numbers_conta_id_fkey"
+            columns: ["conta_id"]
+            isOneToOne: false
+            referencedRelation: "vw_whatsapp_tokens_expirando"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_phone_numbers_conta_id_fkey"
+            columns: ["conta_id"]
             isOneToOne: false
             referencedRelation: "whatsapp_contas"
             referencedColumns: ["id"]

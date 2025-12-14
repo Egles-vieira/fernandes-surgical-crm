@@ -9,13 +9,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import { 
   ArrowLeft,
   Building2,
-  Phone,
   Webhook,
   Shield,
   RefreshCw,
@@ -24,14 +22,14 @@ import {
   AlertTriangle,
   Clock,
   Key,
-  Globe,
   Zap,
   Signal,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useWABAInfo, useTokenInfo, useSubscriptionActions } from '@/hooks/whatsapp/useWABAInfo';
-import { format, formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { PhoneNumbersCard } from '@/components/whatsapp/PhoneNumbersCard';
 
 export default function WABAConfig() {
   const queryClient = useQueryClient();
@@ -75,19 +73,6 @@ export default function WABAConfig() {
       toast.error('Erro ao atualizar');
     } finally {
       setIsRefreshing(false);
-    }
-  };
-
-  const getQualityBadge = (rating?: string) => {
-    switch (rating) {
-      case 'GREEN':
-        return <Badge className="bg-green-500/20 text-green-500">Verde - Excelente</Badge>;
-      case 'YELLOW':
-        return <Badge className="bg-yellow-500/20 text-yellow-500">Amarelo - Atenção</Badge>;
-      case 'RED':
-        return <Badge className="bg-red-500/20 text-red-500">Vermelho - Crítico</Badge>;
-      default:
-        return <Badge variant="secondary">Desconhecido</Badge>;
     }
   };
 
@@ -239,52 +224,8 @@ export default function WABAConfig() {
             </CardContent>
           </Card>
 
-          {/* Phone Numbers Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base flex items-center gap-2">
-                <Phone className="h-4 w-4" />
-                Números de Telefone
-              </CardTitle>
-              <CardDescription>
-                Números registrados no WABA
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {isLoadingWaba ? (
-                <Skeleton className="h-20 w-full" />
-              ) : wabaData?.phoneNumbers && wabaData.phoneNumbers.length > 0 ? (
-                <div className="space-y-3">
-                  {wabaData.phoneNumbers.map((phone) => (
-                    <div 
-                      key={phone.id} 
-                      className="flex items-center justify-between p-4 rounded-lg border bg-card"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                          <Phone className="h-5 w-5 text-primary" />
-                        </div>
-                        <div>
-                          <p className="font-medium">{phone.display_phone_number}</p>
-                          <p className="text-sm text-muted-foreground">{phone.verified_name}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {getQualityBadge(phone.quality_rating)}
-                        {phone.id === (conta.meta_phone_number_id || conta.phone_number_id) && (
-                          <Badge variant="outline">Principal</Badge>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-center py-4 text-muted-foreground">
-                  Nenhum número encontrado
-                </p>
-              )}
-            </CardContent>
-          </Card>
+          {/* Phone Numbers Card - Novo componente com semáforos */}
+          <PhoneNumbersCard contaId={conta.id} />
 
           {/* Webhook Subscription Card */}
           <Card>
