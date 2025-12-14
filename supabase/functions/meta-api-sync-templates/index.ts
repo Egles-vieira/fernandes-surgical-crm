@@ -18,7 +18,7 @@ interface MetaTemplate {
   components: any[];
   quality_score?: {
     score: string;
-    date: string;
+    date: number;
   };
 }
 
@@ -108,10 +108,33 @@ serve(async (req) => {
         let mudancasStatus = 0;
 
         for (const metaTemplate of templatesFromMeta) {
-          // Buscar template existente pelo nome
+          // Extrair conteúdo dos components
+          let titulo: string | null = null;
+          let corpo: string | null = null;
+          let rodape: string | null = null;
+          
+          for (const comp of metaTemplate.components || []) {
+            if (comp.type === 'HEADER' && comp.format === 'TEXT') {
+              titulo = comp.text || null;
+            } else if (comp.type === 'BODY') {
+              corpo = comp.text || null;
+            } else if (comp.type === 'FOOTER') {
+              rodape = comp.text || null;
+            }
+          }
+          
+          // Garantir que corpo tenha um valor (obrigatório no DB)
+          if (!corpo) {
+            corpo = titulo || metaTemplate.name || 'Template sem corpo';
+          }
+          
+          // Converter categoria para minúsculas (constraint do DB)
+          const categoriaLower = metaTemplate.category?.toLowerCase() || 'utility';
+
+          // Buscar template existente pelo nome (incluindo excluídos para restaurar)
           const { data: existingTemplate, error: searchError } = await supabase
             .from('whatsapp_templates')
-            .select('id, status_aprovacao')
+            .select('id, status_aprovacao, excluido_em')
             .eq('whatsapp_conta_id', conta.id)
             .eq('nome_template', metaTemplate.name)
             .maybeSingle();
@@ -125,21 +148,25 @@ serve(async (req) => {
           const statusAnterior = existingTemplate?.status_aprovacao;
 
           if (existingTemplate) {
-            // Atualizar template existente
+            // Atualizar template existente (e restaurar se estava excluído)
             const { error: updateError } = await supabase
               .from('whatsapp_templates')
               .update({
                 template_externo_id: metaTemplate.id,
                 status_aprovacao: statusNovo,
-                categoria: metaTemplate.category,
+                categoria: categoriaLower,
                 idioma: metaTemplate.language,
+                titulo,
+                corpo,
+                rodape,
                 components_meta: metaTemplate.components,
                 quality_score: metaTemplate.quality_score,
-                quality_score_date: metaTemplate.quality_score?.date ? new Date(metaTemplate.quality_score.date) : null,
+                quality_score_date: metaTemplate.quality_score?.date ? new Date(metaTemplate.quality_score.date * 1000) : null,
                 sincronizado_com_meta: true,
                 ultima_sincronizacao_em: new Date().toISOString(),
                 aprovado_em: statusNovo === 'APPROVED' ? new Date().toISOString() : null,
                 rejeitado_em: statusNovo === 'REJECTED' ? new Date().toISOString() : null,
+                excluido_em: null, // Restaurar template se estava excluído
               })
               .eq('id', existingTemplate.id);
 
@@ -173,11 +200,14 @@ serve(async (req) => {
                 nome_template: metaTemplate.name,
                 template_externo_id: metaTemplate.id,
                 status_aprovacao: statusNovo,
-                categoria: metaTemplate.category,
+                categoria: categoriaLower,
                 idioma: metaTemplate.language,
+                titulo,
+                corpo,
+                rodape,
                 components_meta: metaTemplate.components,
                 quality_score: metaTemplate.quality_score,
-                quality_score_date: metaTemplate.quality_score?.date ? new Date(metaTemplate.quality_score.date) : null,
+                quality_score_date: metaTemplate.quality_score?.date ? new Date(metaTemplate.quality_score.date * 1000) : null,
                 sincronizado_com_meta: true,
                 ultima_sincronizacao_em: new Date().toISOString(),
                 aprovado_em: statusNovo === 'APPROVED' ? new Date().toISOString() : null,
