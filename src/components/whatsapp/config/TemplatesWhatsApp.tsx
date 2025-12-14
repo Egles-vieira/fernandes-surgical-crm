@@ -37,7 +37,7 @@ import {
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import NovoTemplateDialog from "./NovoTemplateDialog";
+import NovoTemplateSheet from "./NovoTemplateSheet";
 import { useSyncTemplates } from "@/hooks/whatsapp/useWhatsAppTemplates";
 
 const TemplatesWhatsApp = () => {
@@ -289,7 +289,7 @@ const TemplatesWhatsApp = () => {
         )}
       </Card>
 
-      <NovoTemplateDialog
+      <NovoTemplateSheet
         open={dialogNovoTemplate}
         onOpenChange={(open) => {
           setDialogNovoTemplate(open);
