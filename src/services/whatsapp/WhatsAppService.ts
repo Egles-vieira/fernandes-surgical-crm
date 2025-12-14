@@ -356,7 +356,6 @@ class WhatsAppServiceClass {
           whatsapp_contato_id: contatoId,
           corpo: caption || fileName || '',
           tipo_mensagem: tipo,
-          tipo: tipoMap[tipo], // For Edge Function compatibility
           direcao: 'enviada',
           status: 'pendente',
           url_midia: midiaUrl,
