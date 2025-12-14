@@ -187,7 +187,12 @@ export function useCreateTemplateMeta() {
       queryClient.invalidateQueries({ queryKey: ['whatsapp-templates', variables.contaId] });
     },
     onError: (error: Error) => {
-      toast.error(`Erro ao criar template: ${error.message}`);
+      // Verifica se é erro de template duplicado
+      if (error.message.includes('2388024') || error.message.includes('Já existe conteúdo')) {
+        toast.error('Template com este nome já existe na Meta. Use um nome diferente ou sincronize os templates.');
+      } else {
+        toast.error(`Erro ao criar template: ${error.message}`);
+      }
     },
   });
 }
