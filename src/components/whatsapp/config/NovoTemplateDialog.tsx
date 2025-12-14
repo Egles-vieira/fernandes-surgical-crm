@@ -36,8 +36,8 @@ const NovoTemplateDialog = ({
   template,
 }: NovoTemplateDialogProps) => {
   const [nomeTemplate, setNomeTemplate] = useState(template?.nome_template || "");
-  const [categoria, setCategoria] = useState(template?.categoria || "marketing");
-  const [idioma, setIdioma] = useState(template?.idioma || "pt_BR");
+  const [categoria, setCategoria] = useState(template?.categoria && template.categoria !== "" ? template.categoria : "marketing");
+  const [idioma, setIdioma] = useState(template?.idioma && template.idioma !== "" ? template.idioma : "pt_BR");
   const [titulo, setTitulo] = useState(template?.titulo || "");
   const [corpo, setCorpo] = useState(template?.corpo || "");
   const [rodape, setRodape] = useState(template?.rodape || "");
