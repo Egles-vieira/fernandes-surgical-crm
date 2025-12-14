@@ -262,13 +262,13 @@ export function ExpedienteConfig() {
                       <Label>Unidade (opcional)</Label>
                       <Select
                         value={formData.unidade_id}
-                        onValueChange={(v) => setFormData({ ...formData, unidade_id: v })}
+                        onValueChange={(v) => setFormData({ ...formData, unidade_id: v === "__all__" ? null : v })}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Todas as unidades" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">Todas as unidades</SelectItem>
+                          <SelectItem value="__all__">Todas as unidades</SelectItem>
                           {unidades?.map((u) => (
                             <SelectItem key={u.id} value={u.id}>
                               {u.nome}
