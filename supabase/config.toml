@@ -161,3 +161,6 @@ verify_jwt = false
 
 [functions.meta-api-marcar-lida]
 verify_jwt = false
+
+[functions.meta-api-verificar-tokens-cron]
+verify_jwt = false
