@@ -306,6 +306,25 @@ async function processarMensagemRecebida(supabase: any, conta: any, message: any
       corpo = `[${message.type}]`;
   }
 
+  // Process context/reply reference if present
+  let respostaParaId: string | null = null;
+  if (message.context?.id) {
+    console.log('↩️ Message is reply to:', message.context.id);
+    // Find the original message by external ID
+    const { data: mensagemOriginal } = await supabase
+      .from('whatsapp_mensagens')
+      .select('id')
+      .eq('mensagem_externa_id', message.context.id)
+      .single();
+    
+    if (mensagemOriginal) {
+      respostaParaId = mensagemOriginal.id;
+      console.log('✅ Found original message:', respostaParaId);
+    } else {
+      console.log('⚠️ Original message not found for context:', message.context.id);
+    }
+  }
+
   // Insert message with correct column names:
   // - conversa_id (not whatsapp_conversa_id)
   // - tipo_mensagem (not tipo)
@@ -326,6 +345,7 @@ async function processarMensagemRecebida(supabase: any, conta: any, message: any
       metadata: midiaDados ? { midia: midiaDados } : null,
       numero_de: numeroRemetente,
       nome_remetente: contact?.profile?.name || null,
+      resposta_para_id: respostaParaId,
     })
     .select()
     .single();
