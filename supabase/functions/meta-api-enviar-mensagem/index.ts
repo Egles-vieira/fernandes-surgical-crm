@@ -164,46 +164,58 @@ Deno.serve(async (req) => {
       console.log('↩️ Respondendo à mensagem:', respostaPara.mensagem_externa_id);
     }
 
-    switch (mensagem.tipo) {
+    // CRÍTICO: Suportar tanto tipo (EN) quanto tipo_mensagem (PT)
+    const messageType = mensagem.tipo || mensagem.tipo_mensagem;
+    console.log('📋 Tipo da mensagem:', messageType);
+
+    // Usar campos corretos do banco: url_midia e metadata
+    const midiaUrl = mensagem.url_midia || mensagem.midia_url;
+    const metadados = mensagem.metadata || mensagem.metadados;
+
+    switch (messageType) {
       case 'text':
+      case 'texto':
         messagePayload.type = 'text';
         messagePayload.text = { body: mensagem.corpo };
         break;
       case 'image':
+      case 'imagem':
         messagePayload.type = 'image';
-        messagePayload.image = mensagem.midia_url 
-          ? { link: mensagem.midia_url, caption: mensagem.corpo }
-          : { id: mensagem.metadados?.media_id, caption: mensagem.corpo };
+        messagePayload.image = midiaUrl 
+          ? { link: midiaUrl, caption: mensagem.corpo || undefined }
+          : { id: metadados?.media_id, caption: mensagem.corpo || undefined };
         break;
       case 'audio':
         messagePayload.type = 'audio';
-        messagePayload.audio = mensagem.midia_url 
-          ? { link: mensagem.midia_url }
-          : { id: mensagem.metadados?.media_id };
+        messagePayload.audio = midiaUrl 
+          ? { link: midiaUrl }
+          : { id: metadados?.media_id };
         break;
       case 'video':
         messagePayload.type = 'video';
-        messagePayload.video = mensagem.midia_url 
-          ? { link: mensagem.midia_url, caption: mensagem.corpo }
-          : { id: mensagem.metadados?.media_id, caption: mensagem.corpo };
+        messagePayload.video = midiaUrl 
+          ? { link: midiaUrl, caption: mensagem.corpo || undefined }
+          : { id: metadados?.media_id, caption: mensagem.corpo || undefined };
         break;
       case 'document':
+      case 'documento':
         messagePayload.type = 'document';
-        messagePayload.document = mensagem.midia_url 
-          ? { link: mensagem.midia_url, filename: mensagem.corpo }
-          : { id: mensagem.metadados?.media_id, filename: mensagem.corpo };
+        const fileName = metadados?.fileName || mensagem.corpo || 'documento';
+        messagePayload.document = midiaUrl 
+          ? { link: midiaUrl, filename: fileName }
+          : { id: metadados?.media_id, filename: fileName };
         break;
       case 'template':
         messagePayload.type = 'template';
-        messagePayload.template = mensagem.metadados?.template || {
-          name: mensagem.metadados?.template_name,
-          language: { code: mensagem.metadados?.language || 'pt_BR' },
-          components: mensagem.metadados?.components || [],
+        messagePayload.template = metadados?.template || {
+          name: metadados?.template_name,
+          language: { code: metadados?.language || 'pt_BR' },
+          components: metadados?.components || [],
         };
         break;
       case 'interactive':
         messagePayload.type = 'interactive';
-        messagePayload.interactive = mensagem.metadados?.interactive;
+        messagePayload.interactive = metadados?.interactive;
         break;
       default:
         messagePayload.type = 'text';

@@ -1,6 +1,6 @@
 // ============================================
 // Chat Panel Component - Fase 4: Mensagens Avançadas
-// Suporte a Reply, Reactions, Mark as Read
+// Suporte a Reply, Reactions, Mark as Read, Media, Audio
 // ============================================
 
 import { useState, useRef, useEffect, useCallback } from 'react';
@@ -13,7 +13,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { 
   Send, 
   Paperclip, 
-  Smile, 
   Phone, 
   Video, 
   MoreVertical,
@@ -25,7 +24,10 @@ import {
   Check,
   Clock,
   Reply,
-  CornerDownLeft
+  CornerDownLeft,
+  X,
+  Download,
+  Play
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -42,6 +44,9 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { ReplyPreview } from './ReplyPreview';
 import { MessageReactions } from './MessageReactions';
+import { EmojiPicker } from '@/components/whatsapp/EmojiPicker';
+import MediaUploader from '@/components/whatsapp/MediaUploader';
+import AudioRecorder from '@/components/whatsapp/AudioRecorder';
 
 interface Contato {
   id: string;
@@ -70,6 +75,13 @@ interface Mensagem {
   nome_remetente?: string;
   resposta_para_id?: string;
   lida_confirmada_em?: string;
+  url_midia?: string;
+  metadata?: {
+    fileName?: string;
+    mimeType?: string;
+    duration?: number;
+    [key: string]: any;
+  } | null;
 }
 
 interface Reacao {
@@ -89,7 +101,11 @@ export function ChatPanel({
 }: ChatPanelProps) {
   const [message, setMessage] = useState('');
   const [replyingTo, setReplyingTo] = useState<Mensagem | null>(null);
+  const [showMediaUploader, setShowMediaUploader] = useState(false);
+  const [showAudioRecorder, setShowAudioRecorder] = useState(false);
+  const [mediaType, setMediaType] = useState<'image' | 'video' | 'document'>('image');
   const scrollRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const queryClient = useQueryClient();
 
   // Fetch current user
@@ -130,7 +146,8 @@ export function ChatPanel({
         .select(`
           id, corpo, tipo_mensagem, direcao, status, criado_em, 
           enviada_por_bot, enviada_por_usuario_id, mensagem_externa_id,
-          nome_remetente, resposta_para_id, lida_confirmada_em
+          nome_remetente, resposta_para_id, lida_confirmada_em,
+          url_midia, metadata
         `)
         .eq('conversa_id', conversaId)
         .order('criado_em', { ascending: true })
@@ -248,6 +265,59 @@ export function ChatPanel({
     },
   });
 
+  // Send media mutation
+  const sendMediaMutation = useMutation({
+    mutationFn: async ({ 
+      tipo, 
+      midiaUrl, 
+      caption, 
+      fileName, 
+      mimeType 
+    }: { 
+      tipo: 'imagem' | 'video' | 'audio' | 'documento'; 
+      midiaUrl: string; 
+      caption?: string;
+      fileName?: string;
+      mimeType?: string;
+    }) => {
+      if (!conversaId || !contato) throw new Error('Conversa não selecionada');
+      
+      const { data: conversa } = await supabase
+        .from('whatsapp_conversas')
+        .select('whatsapp_conta_id')
+        .eq('id', conversaId)
+        .single();
+
+      if (!conversa) throw new Error('Conversa não encontrada');
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuário não autenticado');
+
+      return whatsAppService.sendMediaMessage(
+        conversaId,
+        tipo,
+        midiaUrl,
+        conversa.whatsapp_conta_id,
+        contato.id,
+        user.id,
+        caption,
+        fileName,
+        mimeType
+      );
+    },
+    onSuccess: () => {
+      setShowMediaUploader(false);
+      setShowAudioRecorder(false);
+      queryClient.invalidateQueries({ queryKey: ['whatsapp-mensagens', conversaId] });
+      toast.success('Mídia enviada com sucesso');
+    },
+    onError: (error) => {
+      toast.error('Erro ao enviar mídia', {
+        description: error instanceof Error ? error.message : 'Tente novamente',
+      });
+    },
+  });
+
   // Mark as read when message is visible
   const markAsRead = useCallback(async (mensagemId: string) => {
     await whatsAppService.markAsRead(mensagemId);
@@ -334,6 +404,46 @@ export function ChatPanel({
 
   const handleRemoveReaction = (mensagemId: string) => {
     removeReactionMutation.mutate(mensagemId);
+  };
+
+  // Handle media upload complete
+  const handleMediaUploadComplete = (
+    url: string, 
+    type: 'image' | 'video' | 'audio' | 'document', 
+    fileName?: string, 
+    mimeType?: string
+  ) => {
+    // Map English type to Portuguese
+    const tipoMap: Record<string, 'imagem' | 'video' | 'audio' | 'documento'> = {
+      image: 'imagem',
+      video: 'video',
+      audio: 'audio',
+      document: 'documento',
+    };
+    
+    sendMediaMutation.mutate({
+      tipo: tipoMap[type],
+      midiaUrl: url,
+      caption: fileName,
+      fileName,
+      mimeType,
+    });
+  };
+
+  // Handle audio record complete
+  const handleAudioRecordComplete = (url: string, duration: number) => {
+    sendMediaMutation.mutate({
+      tipo: 'audio',
+      midiaUrl: url,
+      caption: `Áudio (${Math.floor(duration / 60)}:${(duration % 60).toString().padStart(2, '0')})`,
+      mimeType: 'audio/ogg',
+    });
+  };
+
+  // Handle emoji select
+  const handleEmojiSelect = (emoji: string) => {
+    setMessage(prev => prev + emoji);
+    textareaRef.current?.focus();
   };
 
   // Get the message being replied to
@@ -464,56 +574,91 @@ export function ChatPanel({
         </div>
       )}
 
-      {/* Input Area */}
-      <div className="p-3 border-t bg-card">
-        <div className="flex items-end gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0">
-                <Paperclip className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start">
-              <DropdownMenuItem>
-                <ImageIcon className="h-4 w-4 mr-2" />
-                Imagem
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <FileText className="h-4 w-4 mr-2" />
-                Documento
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0">
-            <Smile className="h-4 w-4" />
-          </Button>
-
-          <Textarea
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder={replyingTo ? "Digite sua resposta..." : "Digite sua mensagem..."}
-            className="min-h-[36px] max-h-32 resize-none"
-            rows={1}
+      {/* Media Uploader Modal */}
+      {showMediaUploader && (
+        <div className="p-3 border-t bg-card">
+          <MediaUploader
+            onUploadComplete={handleMediaUploadComplete}
+            onCancel={() => setShowMediaUploader(false)}
+            acceptedTypes={
+              mediaType === 'image' ? 'image/*' :
+              mediaType === 'video' ? 'video/*' :
+              '.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip,.rar'
+            }
           />
-
-          {message.trim() ? (
-            <Button 
-              size="icon" 
-              className="h-9 w-9 shrink-0"
-              onClick={handleSend}
-              disabled={sendMutation.isPending}
-            >
-              <Send className="h-4 w-4" />
-            </Button>
-          ) : (
-            <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0">
-              <Mic className="h-4 w-4" />
-            </Button>
-          )}
         </div>
-      </div>
+      )}
+
+      {/* Audio Recorder Modal */}
+      {showAudioRecorder && (
+        <div className="p-3 border-t bg-card">
+          <AudioRecorder
+            onRecordComplete={handleAudioRecordComplete}
+            onCancel={() => setShowAudioRecorder(false)}
+          />
+        </div>
+      )}
+
+      {/* Input Area */}
+      {!showMediaUploader && !showAudioRecorder && (
+        <div className="p-3 border-t bg-card">
+          <div className="flex items-end gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0">
+                  <Paperclip className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start">
+                <DropdownMenuItem onClick={() => { setMediaType('image'); setShowMediaUploader(true); }}>
+                  <ImageIcon className="h-4 w-4 mr-2" />
+                  Imagem
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => { setMediaType('video'); setShowMediaUploader(true); }}>
+                  <Video className="h-4 w-4 mr-2" />
+                  Vídeo
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => { setMediaType('document'); setShowMediaUploader(true); }}>
+                  <FileText className="h-4 w-4 mr-2" />
+                  Documento
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <EmojiPicker onSelect={handleEmojiSelect} />
+
+            <Textarea
+              ref={textareaRef}
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder={replyingTo ? "Digite sua resposta..." : "Digite sua mensagem..."}
+              className="min-h-[36px] max-h-32 resize-none"
+              rows={1}
+            />
+
+            {message.trim() ? (
+              <Button 
+                size="icon" 
+                className="h-9 w-9 shrink-0"
+                onClick={handleSend}
+                disabled={sendMutation.isPending}
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+            ) : (
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-9 w-9 shrink-0"
+                onClick={() => setShowAudioRecorder(true)}
+              >
+                <Mic className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -689,9 +834,67 @@ function MessageBubble({
               🤖 Bot
             </Badge>
           )}
-          <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">
-            {mensagem.corpo}
-          </p>
+
+          {/* Render media based on type */}
+          {mensagem.tipo_mensagem === 'imagem' && mensagem.url_midia && (
+            <div className="mb-2">
+              <img 
+                src={mensagem.url_midia} 
+                alt="Imagem" 
+                className="max-w-full rounded-lg max-h-64 object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                onClick={() => window.open(mensagem.url_midia, '_blank')}
+              />
+            </div>
+          )}
+
+          {mensagem.tipo_mensagem === 'video' && mensagem.url_midia && (
+            <div className="mb-2">
+              <video 
+                src={mensagem.url_midia} 
+                controls 
+                className="max-w-full rounded-lg max-h-64"
+              />
+            </div>
+          )}
+
+          {mensagem.tipo_mensagem === 'audio' && mensagem.url_midia && (
+            <div className="mb-2">
+              <audio 
+                src={mensagem.url_midia} 
+                controls 
+                className="max-w-full min-w-[200px]"
+              />
+            </div>
+          )}
+
+          {mensagem.tipo_mensagem === 'documento' && mensagem.url_midia && (
+            <div className="mb-2">
+              <a 
+                href={mensagem.url_midia} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className={cn(
+                  "flex items-center gap-2 p-2 rounded-lg transition-colors",
+                  isOutgoing 
+                    ? "bg-primary-foreground/10 hover:bg-primary-foreground/20" 
+                    : "bg-slate-200 dark:bg-slate-600 hover:bg-slate-300 dark:hover:bg-slate-500"
+                )}
+              >
+                <FileText className="h-6 w-6" />
+                <span className="text-sm truncate max-w-[150px]">
+                  {(mensagem.metadata as any)?.fileName || 'Documento'}
+                </span>
+                <Download className="h-4 w-4 ml-auto" />
+              </a>
+            </div>
+          )}
+
+          {/* Text content */}
+          {mensagem.corpo && mensagem.tipo_mensagem !== 'documento' && (
+            <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">
+              {mensagem.corpo}
+            </p>
+          )}
           
           {/* Status indicator for outgoing */}
           {isOutgoing && (

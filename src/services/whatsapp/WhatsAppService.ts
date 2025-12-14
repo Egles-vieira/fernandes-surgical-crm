@@ -324,6 +324,77 @@ class WhatsAppServiceClass {
     }
   }
 
+  /**
+   * Envia mensagem de mídia (imagem, video, audio, documento)
+   */
+  async sendMediaMessage(
+    conversaId: string,
+    tipo: 'imagem' | 'video' | 'audio' | 'documento',
+    midiaUrl: string,
+    contaId: string,
+    contatoId: string,
+    userId: string,
+    caption?: string,
+    fileName?: string,
+    mimeType?: string
+  ): Promise<SendResult> {
+    try {
+      // Map Portuguese type to English for Edge Function
+      const tipoMap: Record<string, string> = {
+        imagem: 'image',
+        video: 'video',
+        audio: 'audio',
+        documento: 'document',
+      };
+
+      // 1. Criar mensagem no banco como pendente
+      const { data: mensagem, error: insertError } = await supabase
+        .from('whatsapp_mensagens')
+        .insert({
+          conversa_id: conversaId,
+          whatsapp_conta_id: contaId,
+          whatsapp_contato_id: contatoId,
+          corpo: caption || fileName || '',
+          tipo_mensagem: tipo,
+          tipo: tipoMap[tipo], // For Edge Function compatibility
+          direcao: 'enviada',
+          status: 'pendente',
+          url_midia: midiaUrl,
+          enviada_por_usuario_id: userId,
+          metadata: { fileName, mimeType },
+        })
+        .select()
+        .single();
+
+      if (insertError || !mensagem) {
+        throw new Error('Erro ao criar mensagem: ' + insertError?.message);
+      }
+
+      // 2. Enviar via Edge Function
+      const result = await this.sendMessage(mensagem.id);
+
+      // 3. Atualizar status no banco se erro
+      if (!result.success) {
+        await supabase
+          .from('whatsapp_mensagens')
+          .update({
+            status: 'erro',
+            erro_mensagem: result.error,
+            status_falhou_em: new Date().toISOString(),
+          })
+          .eq('id', mensagem.id);
+      }
+
+      return result;
+    } catch (error: any) {
+      console.error('❌ Erro ao enviar mídia:', error);
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
+  }
+
   // ============================================
   // REAÇÕES
   // ============================================
