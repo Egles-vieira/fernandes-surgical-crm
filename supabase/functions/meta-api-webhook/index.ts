@@ -35,28 +35,29 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
-    // ⚠️ TEMPORARY: Signature validation disabled for testing
-    // TODO: Re-enable when META_WHATSAPP_APP_SECRET is correctly configured
+    // ✅ PRODUCTION: Signature validation enabled
     const signature = req.headers.get('x-hub-signature-256');
     const body = await req.text();
     
-    console.log('🔓 Signature validation DISABLED for testing');
-    console.log('📝 Received signature:', signature ? 'present' : 'missing');
+    const appSecret = Deno.env.get('META_WHATSAPP_APP_SECRET');
     
-    // ORIGINAL CODE - Uncomment when ready for production:
-    // if (signature) {
-    //   const appSecret = Deno.env.get('META_WHATSAPP_APP_SECRET');
-    //   if (appSecret) {
-    //     const expectedSignature = 'sha256=' + createHmac('sha256', appSecret)
-    //       .update(body)
-    //       .digest('hex');
-    //     
-    //     if (signature !== expectedSignature) {
-    //       console.error('❌ Invalid signature');
-    //       return new Response('Invalid signature', { status: 401 });
-    //     }
-    //   }
-    // }
+    if (signature && appSecret) {
+      const expectedSignature = 'sha256=' + createHmac('sha256', appSecret)
+        .update(body)
+        .digest('hex');
+      
+      if (signature !== expectedSignature) {
+        console.error('❌ Invalid signature - rejecting webhook');
+        console.error('📝 Received:', signature);
+        console.error('📝 Expected:', expectedSignature);
+        return new Response('Invalid signature', { status: 401 });
+      }
+      console.log('✅ Signature validated successfully');
+    } else if (!signature) {
+      console.warn('⚠️ No signature header present - allowing for backwards compatibility');
+    } else if (!appSecret) {
+      console.warn('⚠️ META_WHATSAPP_APP_SECRET not configured - skipping signature validation');
+    }
 
     const payload = JSON.parse(body);
     console.log('📥 Meta Webhook received:', JSON.stringify(payload, null, 2));

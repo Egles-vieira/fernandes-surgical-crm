@@ -8120,6 +8120,7 @@ export type Database = {
           mensagem_fora_horario: string | null
           menu_setores_config: Json | null
           meta_access_token: string | null
+          meta_app_id: string | null
           meta_phone_number_id: string | null
           meta_waba_id: string | null
           nome_conta: string
@@ -8131,10 +8132,16 @@ export type Database = {
           provider: string
           qualidade_conta: string | null
           resposta_automatica_ativa: boolean | null
+          signature_validation_enabled: boolean | null
           site: string | null
           status: string | null
+          subscribed_fields: string[] | null
+          subscription_status: string | null
+          subscription_verificado_em: string | null
           token_alertado_em: string | null
           token_expira_em: string | null
+          token_renovacao_tentativas: number | null
+          token_renovado_em: string | null
           token_wapi: string | null
           total_conversas: number | null
           total_mensagens_enviadas: number | null
@@ -8178,6 +8185,7 @@ export type Database = {
           mensagem_fora_horario?: string | null
           menu_setores_config?: Json | null
           meta_access_token?: string | null
+          meta_app_id?: string | null
           meta_phone_number_id?: string | null
           meta_waba_id?: string | null
           nome_conta: string
@@ -8189,10 +8197,16 @@ export type Database = {
           provider: string
           qualidade_conta?: string | null
           resposta_automatica_ativa?: boolean | null
+          signature_validation_enabled?: boolean | null
           site?: string | null
           status?: string | null
+          subscribed_fields?: string[] | null
+          subscription_status?: string | null
+          subscription_verificado_em?: string | null
           token_alertado_em?: string | null
           token_expira_em?: string | null
+          token_renovacao_tentativas?: number | null
+          token_renovado_em?: string | null
           token_wapi?: string | null
           total_conversas?: number | null
           total_mensagens_enviadas?: number | null
@@ -8236,6 +8250,7 @@ export type Database = {
           mensagem_fora_horario?: string | null
           menu_setores_config?: Json | null
           meta_access_token?: string | null
+          meta_app_id?: string | null
           meta_phone_number_id?: string | null
           meta_waba_id?: string | null
           nome_conta?: string
@@ -8247,10 +8262,16 @@ export type Database = {
           provider?: string
           qualidade_conta?: string | null
           resposta_automatica_ativa?: boolean | null
+          signature_validation_enabled?: boolean | null
           site?: string | null
           status?: string | null
+          subscribed_fields?: string[] | null
+          subscription_status?: string | null
+          subscription_verificado_em?: string | null
           token_alertado_em?: string | null
           token_expira_em?: string | null
+          token_renovacao_tentativas?: number | null
+          token_renovado_em?: string | null
           token_wapi?: string | null
           total_conversas?: number | null
           total_mensagens_enviadas?: number | null
@@ -11296,6 +11317,14 @@ export type Database = {
           p_unidade_id?: string
         }
         Returns: Json
+      }
+      verificar_tokens_whatsapp_expirando: {
+        Args: never
+        Returns: {
+          conta_id_out: string
+          dias_restantes: number
+          nome_conta_out: string
+        }[]
       }
     }
     Enums: {

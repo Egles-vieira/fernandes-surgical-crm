@@ -129,6 +129,15 @@ verify_jwt = false
 [functions.meta-api-enviar-template]
 verify_jwt = false
 
+[functions.meta-api-get-waba]
+verify_jwt = true
+
+[functions.meta-api-subscribe-waba]
+verify_jwt = true
+
+[functions.meta-api-verificar-token]
+verify_jwt = true
+
 [functions.whatsapp-distribuir-conversa]
 verify_jwt = false
 

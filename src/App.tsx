@@ -37,6 +37,8 @@ import WhatsApp from "./pages/WhatsApp";
 import ConfiguracaoGlobal from "./pages/whatsapp/ConfiguracaoGlobal";
 import Governanca from "./pages/whatsapp/Governanca";
 import BAMDashboard from "./pages/whatsapp/BAMDashboard";
+import WABAConfig from "./pages/whatsapp/WABAConfig";
+import WhatsAppSettings from "./pages/whatsapp/WhatsAppSettings";
 import URAs from "./pages/URAs";
 import URAEditor from "./pages/URAEditor";
 import Tickets from "./pages/Tickets";
@@ -229,6 +231,16 @@ const MainApp = () => (
       <Route path="/whatsapp/bam" element={<ProtectedRoute>
           <Layout>
             <BAMDashboard />
+          </Layout>
+        </ProtectedRoute>} />
+      <Route path="/whatsapp/waba" element={<ProtectedRoute>
+          <Layout>
+            <WABAConfig />
+          </Layout>
+        </ProtectedRoute>} />
+      <Route path="/whatsapp/settings" element={<ProtectedRoute>
+          <Layout>
+            <WhatsAppSettings />
           </Layout>
         </ProtectedRoute>} />
       <Route path="/uras" element={<ProtectedRoute>
