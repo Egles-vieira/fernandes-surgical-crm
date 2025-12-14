@@ -9947,20 +9947,25 @@ export type Database = {
           atualizado_em: string | null
           botoes: Json | null
           categoria: string
+          components_meta: Json | null
           corpo: string
           criado_em: string | null
           criado_por: string
           excluido_em: string | null
           id: string
           idioma: string | null
+          meta_template_id: string | null
           motivo_rejeicao: string | null
           nome_template: string
           numero_parametros: number | null
           parametros: Json | null
           permite_personalizar: boolean | null
+          quality_score: Json | null
+          quality_score_date: string | null
           rejeitado_em: string | null
           requer_aprovacao_envio: boolean | null
           rodape: string | null
+          sincronizado_com_meta: boolean | null
           status_aprovacao: string | null
           subcategoria: string | null
           tags: string[] | null
@@ -9973,6 +9978,7 @@ export type Database = {
           total_enviados: number | null
           total_lidos: number | null
           total_respondidos: number | null
+          ultima_sincronizacao_em: string | null
           ultimo_envio_em: string | null
           url_midia_exemplo: string | null
           whatsapp_conta_id: string
@@ -9983,20 +9989,25 @@ export type Database = {
           atualizado_em?: string | null
           botoes?: Json | null
           categoria: string
+          components_meta?: Json | null
           corpo: string
           criado_em?: string | null
           criado_por: string
           excluido_em?: string | null
           id?: string
           idioma?: string | null
+          meta_template_id?: string | null
           motivo_rejeicao?: string | null
           nome_template: string
           numero_parametros?: number | null
           parametros?: Json | null
           permite_personalizar?: boolean | null
+          quality_score?: Json | null
+          quality_score_date?: string | null
           rejeitado_em?: string | null
           requer_aprovacao_envio?: boolean | null
           rodape?: string | null
+          sincronizado_com_meta?: boolean | null
           status_aprovacao?: string | null
           subcategoria?: string | null
           tags?: string[] | null
@@ -10009,6 +10020,7 @@ export type Database = {
           total_enviados?: number | null
           total_lidos?: number | null
           total_respondidos?: number | null
+          ultima_sincronizacao_em?: string | null
           ultimo_envio_em?: string | null
           url_midia_exemplo?: string | null
           whatsapp_conta_id: string
@@ -10019,20 +10031,25 @@ export type Database = {
           atualizado_em?: string | null
           botoes?: Json | null
           categoria?: string
+          components_meta?: Json | null
           corpo?: string
           criado_em?: string | null
           criado_por?: string
           excluido_em?: string | null
           id?: string
           idioma?: string | null
+          meta_template_id?: string | null
           motivo_rejeicao?: string | null
           nome_template?: string
           numero_parametros?: number | null
           parametros?: Json | null
           permite_personalizar?: boolean | null
+          quality_score?: Json | null
+          quality_score_date?: string | null
           rejeitado_em?: string | null
           requer_aprovacao_envio?: boolean | null
           rodape?: string | null
+          sincronizado_com_meta?: boolean | null
           status_aprovacao?: string | null
           subcategoria?: string | null
           tags?: string[] | null
@@ -10045,6 +10062,7 @@ export type Database = {
           total_enviados?: number | null
           total_lidos?: number | null
           total_respondidos?: number | null
+          ultima_sincronizacao_em?: string | null
           ultimo_envio_em?: string | null
           url_midia_exemplo?: string | null
           whatsapp_conta_id?: string
@@ -10062,6 +10080,50 @@ export type Database = {
             columns: ["whatsapp_conta_id"]
             isOneToOne: false
             referencedRelation: "whatsapp_contas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_templates_historico: {
+        Row: {
+          criado_em: string | null
+          dados_meta: Json | null
+          id: string
+          motivo_rejeicao: string | null
+          quality_score: Json | null
+          sincronizado_em: string | null
+          status_anterior: string | null
+          status_novo: string
+          template_id: string
+        }
+        Insert: {
+          criado_em?: string | null
+          dados_meta?: Json | null
+          id?: string
+          motivo_rejeicao?: string | null
+          quality_score?: Json | null
+          sincronizado_em?: string | null
+          status_anterior?: string | null
+          status_novo: string
+          template_id: string
+        }
+        Update: {
+          criado_em?: string | null
+          dados_meta?: Json | null
+          id?: string
+          motivo_rejeicao?: string | null
+          quality_score?: Json | null
+          sincronizado_em?: string | null
+          status_anterior?: string | null
+          status_novo?: string
+          template_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_templates_historico_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_templates"
             referencedColumns: ["id"]
           },
         ]
