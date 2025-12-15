@@ -32,8 +32,9 @@ import {
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
+import { format, isSameDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { DateDivider } from './DateDivider';
 import { whatsAppService } from '@/services/whatsapp';
 import { toast } from 'sonner';
 import {
@@ -542,21 +543,28 @@ export function ChatPanel({
               const msgReacoes = reacoesPorMensagem[msg.id] || [];
               const replyMessage = getReplyMessage(msg.resposta_para_id);
               
+              // Check if we need a date divider
+              const msgDate = new Date(msg.criado_em);
+              const prevMsgDate = prevMsg ? new Date(prevMsg.criado_em) : null;
+              const showDateDivider = !prevMsgDate || !isSameDay(msgDate, prevMsgDate);
+              
               return (
-                <MessageBubble 
-                  key={msg.id} 
-                  mensagem={msg} 
-                  contato={contato}
-                  showSender={showSender}
-                  operadorNome={msg.operador_nome || currentUserProfile?.nome_completo}
-                  reacoes={msgReacoes}
-                  currentUserId={currentUser?.id}
-                  replyMessage={replyMessage}
-                  onReply={() => handleReply(msg)}
-                  onReact={(emoji) => handleReact(msg.id, emoji)}
-                  onRemoveReaction={() => handleRemoveReaction(msg.id)}
-                  onMarkAsRead={() => markAsRead(msg.id)}
-                />
+                <div key={msg.id}>
+                  {showDateDivider && <DateDivider date={msgDate} />}
+                  <MessageBubble 
+                    mensagem={msg} 
+                    contato={contato}
+                    showSender={showSender}
+                    operadorNome={msg.operador_nome || currentUserProfile?.nome_completo}
+                    reacoes={msgReacoes}
+                    currentUserId={currentUser?.id}
+                    replyMessage={replyMessage}
+                    onReply={() => handleReply(msg)}
+                    onReact={(emoji) => handleReact(msg.id, emoji)}
+                    onRemoveReaction={() => handleRemoveReaction(msg.id)}
+                    onMarkAsRead={() => markAsRead(msg.id)}
+                  />
+                </div>
               );
             })}
             <div ref={scrollRef} />
