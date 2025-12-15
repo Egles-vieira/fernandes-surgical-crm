@@ -11,23 +11,30 @@ const corsHeaders = {
 // ============================================
 async function baixarMidiaMetaAPI(
   supabase: any,
-  conta: any, 
-  mediaId: string, 
-  mimeType: string
+  conta: any,
+  mediaId: string | null | undefined,
+  mimeType: string | null | undefined,
 ): Promise<string | null> {
   try {
-    console.log('📥 Baixando mídia da Meta API:', mediaId);
-    
+    if (!mediaId) {
+      console.warn('⚠️ Media ID ausente - não é possível baixar mídia');
+      return null;
+    }
+
+    const mimeBase = (mimeType || 'application/octet-stream').split(';')[0].trim();
+
+    console.log('📥 Baixando mídia da Meta API:', { mediaId, mimeType: mimeBase });
+
     const accessToken = conta.meta_access_token;
     if (!accessToken) {
       console.error('❌ Token de acesso não encontrado para a conta');
       return null;
     }
 
-    // 1. Obter URL de download da mídia
+    // 1) Obter URL de download
     const mediaInfoUrl = `https://graph.facebook.com/v21.0/${mediaId}`;
     const mediaInfoResponse = await fetch(mediaInfoUrl, {
-      headers: { 'Authorization': `Bearer ${accessToken}` }
+      headers: { Authorization: `Bearer ${accessToken}` },
     });
 
     if (!mediaInfoResponse.ok) {
@@ -44,9 +51,9 @@ async function baixarMidiaMetaAPI(
       return null;
     }
 
-    // 2. Baixar o arquivo de mídia
+    // 2) Baixar mídia (binário)
     const mediaResponse = await fetch(downloadUrl, {
-      headers: { 'Authorization': `Bearer ${accessToken}` }
+      headers: { Authorization: `Bearer ${accessToken}` },
     });
 
     if (!mediaResponse.ok) {
@@ -55,15 +62,17 @@ async function baixarMidiaMetaAPI(
     }
 
     const mediaBuffer = await mediaResponse.arrayBuffer();
-    console.log('📦 Mídia baixada:', mediaBuffer.byteLength, 'bytes');
+    const mediaBytes = new Uint8Array(mediaBuffer);
+    console.log('📦 Mídia baixada:', mediaBytes.byteLength, 'bytes');
 
-    // 3. Determinar extensão do arquivo
+    // 3) Extensão (a partir do mime normalizado)
     const extensaoMap: Record<string, string> = {
       'audio/ogg': 'ogg',
       'audio/mpeg': 'mp3',
       'audio/mp4': 'm4a',
       'audio/aac': 'aac',
       'audio/amr': 'amr',
+      'audio/webm': 'webm',
       'image/jpeg': 'jpg',
       'image/png': 'png',
       'image/webp': 'webp',
@@ -71,15 +80,18 @@ async function baixarMidiaMetaAPI(
       'video/3gpp': '3gp',
       'application/pdf': 'pdf',
     };
-    const extensao = extensaoMap[mimeType] || 'bin';
+
+    const fallbackExt = mimeBase.includes('/') ? mimeBase.split('/')[1] : 'bin';
+    const extensao = extensaoMap[mimeBase] || fallbackExt || 'bin';
+
     const nomeArquivo = `${mediaId}.${extensao}`;
     const caminhoStorage = `audios/${nomeArquivo}`;
 
-    // 4. Upload para Supabase Storage
+    // 4) Upload para Storage (IMPORTANTE: contentType sem "; codecs=..." para evitar 415)
     const { error: uploadError } = await supabase.storage
       .from('whatsapp-media')
-      .upload(caminhoStorage, mediaBuffer, {
-        contentType: mimeType,
+      .upload(caminhoStorage, mediaBytes, {
+        contentType: mimeBase,
         upsert: true,
       });
 
@@ -88,14 +100,13 @@ async function baixarMidiaMetaAPI(
       return null;
     }
 
-    // 5. Obter URL pública
+    // 5) URL pública
     const { data: urlData } = supabase.storage
       .from('whatsapp-media')
       .getPublicUrl(caminhoStorage);
 
     console.log('✅ Mídia salva no Storage:', urlData.publicUrl);
     return urlData.publicUrl;
-
   } catch (error) {
     console.error('❌ Erro ao processar mídia:', error);
     return null;
@@ -396,8 +407,6 @@ async function processarMensagemRecebida(supabase: any, conta: any, message: any
     case 'image':
       corpo = message.image?.caption || '[Imagem]';
       midiaDados = { media_id: message.image?.id, mime_type: message.image?.mime_type };
-      // Baixar imagem e salvar URL
-      urlMidia = await baixarMidiaMetaAPI(supabase, conta, message.image?.id, message.image?.mime_type);
       break;
     case 'audio':
       corpo = '[Áudio]';
@@ -409,12 +418,10 @@ async function processarMensagemRecebida(supabase: any, conta: any, message: any
     case 'video':
       corpo = message.video?.caption || '[Vídeo]';
       midiaDados = { media_id: message.video?.id, mime_type: message.video?.mime_type };
-      urlMidia = await baixarMidiaMetaAPI(supabase, conta, message.video?.id, message.video?.mime_type);
       break;
     case 'document':
       corpo = message.document?.filename || '[Documento]';
       midiaDados = { media_id: message.document?.id, mime_type: message.document?.mime_type };
-      urlMidia = await baixarMidiaMetaAPI(supabase, conta, message.document?.id, message.document?.mime_type);
       break;
     case 'location':
       corpo = `[Localização: ${message.location?.latitude}, ${message.location?.longitude}]`;
@@ -423,7 +430,7 @@ async function processarMensagemRecebida(supabase: any, conta: any, message: any
       corpo = message.button?.text || '[Botão]';
       break;
     case 'interactive':
-      corpo = message.interactive?.button_reply?.title || 
+      corpo = message.interactive?.button_reply?.title ||
               message.interactive?.list_reply?.title || '[Interativo]';
       break;
     default:
