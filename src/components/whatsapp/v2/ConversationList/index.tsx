@@ -102,11 +102,24 @@ export function ConversationList({
 
       {/* Conversation List */}
       <ScrollArea className="flex-1">
-        <div className="p-2 space-y-1">
+        <div className="p-2">
           {filteredConversas.length === 0 ? <div className="p-8 text-center text-muted-foreground">
               <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
               <p className="text-sm">Nenhuma conversa encontrada</p>
-            </div> : filteredConversas.map(conversa => <ConversationItem key={conversa.id} conversa={conversa} isSelected={conversa.id === selectedId} onSelect={() => onSelect(conversa.id)} getInitials={getInitials} getStatusBadge={getStatusBadge} />)}
+            </div> : filteredConversas.map((conversa, index) => (
+              <div key={conversa.id}>
+                <ConversationItem 
+                  conversa={conversa} 
+                  isSelected={conversa.id === selectedId} 
+                  onSelect={() => onSelect(conversa.id)} 
+                  getInitials={getInitials} 
+                  getStatusBadge={getStatusBadge} 
+                />
+                {index < filteredConversas.length - 1 && (
+                  <div className="mx-2 my-1 border-b border-border/50" />
+                )}
+              </div>
+            ))}
         </div>
       </ScrollArea>
     </div>;
