@@ -180,6 +180,37 @@ export function ChatPanel({
     enabled: !!conversaId,
   });
 
+  // Mark all unread messages as read when conversation is selected
+  useEffect(() => {
+    if (!conversaId) return;
+    
+    const marcarTodasComoLidas = async () => {
+      // Get unread messages for this conversation
+      const { data: mensagensNaoLidas } = await supabase
+        .from('whatsapp_mensagens')
+        .select('id')
+        .eq('conversa_id', conversaId)
+        .eq('direcao', 'recebida')
+        .is('status_lida_em', null);
+      
+      if (mensagensNaoLidas && mensagensNaoLidas.length > 0) {
+        const idsNaoLidas = mensagensNaoLidas.map(m => m.id);
+        
+        // Update all as read
+        await supabase
+          .from('whatsapp_mensagens')
+          .update({ status_lida_em: new Date().toISOString() })
+          .in('id', idsNaoLidas);
+        
+        // Invalidate queries to update UI
+        queryClient.invalidateQueries({ queryKey: ['whatsapp-conversas-v2'] });
+        queryClient.invalidateQueries({ queryKey: ['whatsapp-mensagens', conversaId] });
+      }
+    };
+    
+    marcarTodasComoLidas();
+  }, [conversaId, queryClient]);
+
   // Fetch reactions for all messages
   const messageIds = mensagens.map(m => m.id);
   const { data: reacoes = [] } = useQuery({
