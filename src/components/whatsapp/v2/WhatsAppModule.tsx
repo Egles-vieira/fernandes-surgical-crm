@@ -9,7 +9,7 @@ import { ConversationList } from './ConversationList';
 import { ChatPanel } from './ChatPanel';
 import { ContactDetailsPanel } from './ContactDetailsPanel';
 import { StatusBar } from './StatusBar';
-import { TokenAlertBanner } from '../TokenAlertBanner';
+
 import { useWhatsAppService } from '@/services/whatsapp/hooks/useWhatsAppService';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -95,8 +95,6 @@ export function WhatsAppModule() {
 
   return (
     <div className="h-[calc(100vh-64px)] flex flex-col bg-background">
-      {/* Token Alert Banner */}
-      <TokenAlertBanner />
 
       {/* Main Content */}
       <div className="flex-1 overflow-hidden">
