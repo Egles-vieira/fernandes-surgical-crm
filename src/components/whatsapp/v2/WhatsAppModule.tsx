@@ -133,7 +133,7 @@ export function WhatsAppModule() {
         .select('conversa_id')
         .in('conversa_id', conversaIds)
         .eq('direcao', 'recebida')
-        .is('lida_em', null);
+        .is('status_lida_em', null);
 
       // Count unread per conversation
       const naoLidasMap: Record<string, number> = {};
