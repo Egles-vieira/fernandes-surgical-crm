@@ -11,6 +11,30 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+/**
+ * Sanitiza a resposta removendo textos de function calls vazados do DeepSeek
+ * O DeepSeek às vezes retorna texto bruto <｜DSML｜...> no content
+ */
+function sanitizarResposta(texto: string | null): string | null {
+  if (!texto) return texto;
+  
+  // Remove blocos DSML completos (function_calls)
+  let limpo = texto.replace(/<｜DSML｜function_calls>[\s\S]*?<\/｜DSML｜function_calls>/g, '');
+  
+  // Remove tags DSML órfãs e parciais
+  limpo = limpo.replace(/<｜DSML｜[^>]*>[\s\S]*?<\/｜DSML｜[^>]*>/g, '');
+  limpo = limpo.replace(/<｜DSML｜[^>]*>/g, '');
+  limpo = limpo.replace(/<\/｜DSML｜[^>]*>/g, '');
+  
+  // Remove padrões de function call em texto (fallback)
+  limpo = limpo.replace(/\[function_call:[\s\S]*?\]/g, '');
+  
+  // Limpa espaços múltiplos e linhas em branco excessivas
+  limpo = limpo.replace(/\n{3,}/g, '\n\n').trim();
+  
+  return limpo || null;
+}
+
 // === HANDLER PRINCIPAL ===
 
 Deno.serve(async (req) => {
@@ -138,7 +162,7 @@ Deno.serve(async (req) => {
 
     // === EXECUTAR FERRAMENTAS E GERAR RESPOSTA FINAL ===
     let produtosEncontrados: any[] = [];
-    let respostaFinal = respostaInicial;
+    let respostaFinal = sanitizarResposta(respostaInicial);
 
     if (toolCalls.length > 0) {
       // Executar todas as ferramentas
@@ -352,7 +376,7 @@ INSTRUÇÕES CRÍTICAS:
 
       if (response2.ok) {
         const data2 = await response2.json();
-        respostaFinal = data2.choices[0].message.content;
+        respostaFinal = sanitizarResposta(data2.choices[0].message.content);
         console.log("✅ Resposta final gerada");
       } else {
         console.error("❌ Erro na segunda chamada DeepSeek");
