@@ -1,6 +1,22 @@
 import type { PerfilCliente } from "./types.ts";
 
 /**
+ * Sanitiza a resposta removendo textos de function calls vazados do DeepSeek
+ */
+function sanitizarResposta(texto: string | null): string | null {
+  if (!texto) return texto;
+  
+  let limpo = texto.replace(/<｜DSML｜function_calls>[\s\S]*?<\/｜DSML｜function_calls>/g, '');
+  limpo = limpo.replace(/<｜DSML｜[^>]*>[\s\S]*?<\/｜DSML｜[^>]*>/g, '');
+  limpo = limpo.replace(/<｜DSML｜[^>]*>/g, '');
+  limpo = limpo.replace(/<\/｜DSML｜[^>]*>/g, '');
+  limpo = limpo.replace(/\[function_call:[\s\S]*?\]/g, '');
+  limpo = limpo.replace(/\n{3,}/g, '\n\n').trim();
+  
+  return limpo || null;
+}
+
+/**
  * Gerar resposta inteligente usando DeepSeek com Tool Calling
  * O agente decide quando buscar produtos, criar proposta, etc.
  */
@@ -281,7 +297,7 @@ COMPORTAMENTO INTELIGENTE:
 
     // Retornar resposta e tool calls (não executar aqui)
     return {
-      resposta: assistantMessage.content,
+      resposta: sanitizarResposta(assistantMessage.content),
       toolCalls: assistantMessage.tool_calls || [],
     };
   } catch (error) {
