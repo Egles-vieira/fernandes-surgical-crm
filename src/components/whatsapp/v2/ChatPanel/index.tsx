@@ -10,11 +10,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { 
-  Send, 
-  Paperclip, 
-  Phone, 
-  Video, 
+import {
+  Send,
+  Paperclip,
+  Phone,
+  Video,
   MoreVertical,
   Image as ImageIcon,
   FileText,
@@ -27,7 +27,7 @@ import {
   CornerDownLeft,
   X,
   Download,
-  Play
+  Play,
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -37,6 +37,7 @@ import { ptBR } from 'date-fns/locale';
 import { DateDivider } from './DateDivider';
 import { whatsAppService } from '@/services/whatsapp';
 import { toast } from 'sonner';
+import { z } from 'zod';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -77,6 +78,8 @@ interface Mensagem {
   resposta_para_id?: string;
   lida_confirmada_em?: string;
   url_midia?: string;
+  transcricao_audio?: string | null;
+  transcricao_processada_em?: string | null;
   metadata?: {
     fileName?: string;
     mimeType?: string;
@@ -145,33 +148,34 @@ export function ChatPanel({
       const { data, error } = await supabase
         .from('whatsapp_mensagens')
         .select(`
-          id, corpo, tipo_mensagem, direcao, status, criado_em, 
+          id, corpo, tipo_mensagem, direcao, status, criado_em,
           enviada_por_bot, enviada_por_usuario_id, mensagem_externa_id,
           nome_remetente, resposta_para_id, lida_confirmada_em,
-          url_midia, metadata
+          url_midia, transcricao_audio, transcricao_processada_em,
+          metadata
         `)
         .eq('conversa_id', conversaId)
         .order('criado_em', { ascending: true })
         .limit(100);
 
       if (error) throw error;
-      
+
       // Fetch user names for outgoing messages
       const userIds = [...new Set(data.filter(m => m.enviada_por_usuario_id).map(m => m.enviada_por_usuario_id))];
       let userMap: Record<string, string> = {};
-      
+
       if (userIds.length > 0) {
         const { data: profiles } = await supabase
           .from('perfis_usuario')
           .select('id, nome_completo')
           .in('id', userIds);
-        
+
         userMap = (profiles || []).reduce((acc, p) => {
           acc[p.id] = p.nome_completo || 'Operador';
           return acc;
         }, {} as Record<string, string>);
       }
-      
+
       return data.map(m => ({
         ...m,
         operador_nome: m.enviada_por_usuario_id ? userMap[m.enviada_por_usuario_id] : undefined
@@ -180,6 +184,49 @@ export function ChatPanel({
     enabled: !!conversaId,
   });
 
+  // Auto-transcrever áudios recebidos (quando ainda não existe transcrição)
+  const inFlightTranscricoesRef = useRef<Set<string>>(new Set());
+
+  const transcreverAudioMutation = useMutation({
+    mutationFn: async (mensagemId: string) => {
+      const schema = z.object({ mensagemId: z.string().uuid() });
+      const parsed = schema.parse({ mensagemId });
+
+      const { data, error } = await supabase.functions.invoke('transcrever-audio-whatsapp', {
+        body: parsed,
+      });
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      if (!conversaId) return;
+      queryClient.invalidateQueries({ queryKey: ['whatsapp-mensagens', conversaId] });
+    },
+    onError: (err: any) => {
+      const msg = err?.message || 'Falha ao transcrever áudio';
+      toast.error(msg);
+    },
+  });
+
+  useEffect(() => {
+    if (!conversaId) return;
+    if (isLoading) return;
+
+    const pendentes = mensagens.filter(
+      (m) => m.tipo_mensagem === 'audio' && !!m.url_midia && !m.transcricao_audio
+    );
+
+    const proximo = pendentes.find((m) => !inFlightTranscricoesRef.current.has(m.id));
+    if (!proximo) return;
+
+    inFlightTranscricoesRef.current.add(proximo.id);
+    transcreverAudioMutation.mutate(proximo.id, {
+      onSettled: () => {
+        inFlightTranscricoesRef.current.delete(proximo.id);
+      },
+    });
+  }, [conversaId, isLoading, mensagens, transcreverAudioMutation]);
   // Mark all unread messages as read when conversation is selected
   useEffect(() => {
     if (!conversaId) return;
@@ -897,25 +944,39 @@ function MessageBubble({
           )}
 
           {mensagem.tipo_mensagem === 'audio' && mensagem.url_midia && (
-            <div className="mb-2">
-              <audio 
-                src={mensagem.url_midia} 
-                controls 
+            <div className="mb-2 space-y-2">
+              <audio
+                src={mensagem.url_midia}
+                controls
                 className="max-w-full min-w-[200px]"
               />
+
+              <div className={cn(
+                "text-xs leading-relaxed whitespace-pre-wrap",
+                isOutgoing ? "text-primary-foreground/90" : "text-muted-foreground"
+              )}>
+                {mensagem.transcricao_audio ? (
+                  <span>
+                    <span className={cn(isOutgoing ? "text-primary-foreground" : "text-foreground")}>Transcrição:</span>{' '}
+                    {mensagem.transcricao_audio}
+                  </span>
+                ) : (
+                  <span>Transcrevendo áudio…</span>
+                )}
+              </div>
             </div>
           )}
 
           {mensagem.tipo_mensagem === 'documento' && mensagem.url_midia && (
             <div className="mb-2">
-              <a 
-                href={mensagem.url_midia} 
-                target="_blank" 
+              <a
+                href={mensagem.url_midia}
+                target="_blank"
                 rel="noopener noreferrer"
                 className={cn(
                   "flex items-center gap-2 p-2 rounded-lg transition-colors",
-                  isOutgoing 
-                    ? "bg-primary-foreground/10 hover:bg-primary-foreground/20" 
+                  isOutgoing
+                    ? "bg-primary-foreground/10 hover:bg-primary-foreground/20"
                     : "bg-slate-200 dark:bg-slate-600 hover:bg-slate-300 dark:hover:bg-slate-500"
                 )}
               >
@@ -929,7 +990,7 @@ function MessageBubble({
           )}
 
           {/* Text content */}
-          {mensagem.corpo && mensagem.tipo_mensagem !== 'documento' && (
+          {mensagem.corpo && mensagem.tipo_mensagem !== 'documento' && !(mensagem.tipo_mensagem === 'audio' && mensagem.corpo === '[Áudio]') && (
             <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">
               {mensagem.corpo}
             </p>
