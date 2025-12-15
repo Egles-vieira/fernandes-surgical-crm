@@ -6,6 +6,102 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// ============================================
+// Baixar mídia da Meta API e fazer upload para Storage
+// ============================================
+async function baixarMidiaMetaAPI(
+  supabase: any,
+  conta: any, 
+  mediaId: string, 
+  mimeType: string
+): Promise<string | null> {
+  try {
+    console.log('📥 Baixando mídia da Meta API:', mediaId);
+    
+    const accessToken = conta.meta_access_token;
+    if (!accessToken) {
+      console.error('❌ Token de acesso não encontrado para a conta');
+      return null;
+    }
+
+    // 1. Obter URL de download da mídia
+    const mediaInfoUrl = `https://graph.facebook.com/v21.0/${mediaId}`;
+    const mediaInfoResponse = await fetch(mediaInfoUrl, {
+      headers: { 'Authorization': `Bearer ${accessToken}` }
+    });
+
+    if (!mediaInfoResponse.ok) {
+      console.error('❌ Erro ao obter info da mídia:', await mediaInfoResponse.text());
+      return null;
+    }
+
+    const mediaInfo = await mediaInfoResponse.json();
+    const downloadUrl = mediaInfo.url;
+    console.log('📍 URL de download obtida:', downloadUrl ? 'OK' : 'FALHA');
+
+    if (!downloadUrl) {
+      console.error('❌ URL de download não encontrada');
+      return null;
+    }
+
+    // 2. Baixar o arquivo de mídia
+    const mediaResponse = await fetch(downloadUrl, {
+      headers: { 'Authorization': `Bearer ${accessToken}` }
+    });
+
+    if (!mediaResponse.ok) {
+      console.error('❌ Erro ao baixar mídia:', mediaResponse.status);
+      return null;
+    }
+
+    const mediaBuffer = await mediaResponse.arrayBuffer();
+    console.log('📦 Mídia baixada:', mediaBuffer.byteLength, 'bytes');
+
+    // 3. Determinar extensão do arquivo
+    const extensaoMap: Record<string, string> = {
+      'audio/ogg': 'ogg',
+      'audio/mpeg': 'mp3',
+      'audio/mp4': 'm4a',
+      'audio/aac': 'aac',
+      'audio/amr': 'amr',
+      'image/jpeg': 'jpg',
+      'image/png': 'png',
+      'image/webp': 'webp',
+      'video/mp4': 'mp4',
+      'video/3gpp': '3gp',
+      'application/pdf': 'pdf',
+    };
+    const extensao = extensaoMap[mimeType] || 'bin';
+    const nomeArquivo = `${mediaId}.${extensao}`;
+    const caminhoStorage = `audios/${nomeArquivo}`;
+
+    // 4. Upload para Supabase Storage
+    const { error: uploadError } = await supabase.storage
+      .from('whatsapp-media')
+      .upload(caminhoStorage, mediaBuffer, {
+        contentType: mimeType,
+        upsert: true,
+      });
+
+    if (uploadError) {
+      console.error('❌ Erro no upload para Storage:', uploadError);
+      return null;
+    }
+
+    // 5. Obter URL pública
+    const { data: urlData } = supabase.storage
+      .from('whatsapp-media')
+      .getPublicUrl(caminhoStorage);
+
+    console.log('✅ Mídia salva no Storage:', urlData.publicUrl);
+    return urlData.publicUrl;
+
+  } catch (error) {
+    console.error('❌ Erro ao processar mídia:', error);
+    return null;
+  }
+}
+
 Deno.serve(async (req) => {
   // Handle GET for webhook verification
   if (req.method === 'GET') {
@@ -291,6 +387,7 @@ async function processarMensagemRecebida(supabase: any, conta: any, message: any
   let corpo = '';
   let tipoMensagem = message.type;
   let midiaDados: any = null;
+  let urlMidia: string | null = null;
 
   switch (message.type) {
     case 'text':
@@ -299,18 +396,25 @@ async function processarMensagemRecebida(supabase: any, conta: any, message: any
     case 'image':
       corpo = message.image?.caption || '[Imagem]';
       midiaDados = { media_id: message.image?.id, mime_type: message.image?.mime_type };
+      // Baixar imagem e salvar URL
+      urlMidia = await baixarMidiaMetaAPI(supabase, conta, message.image?.id, message.image?.mime_type);
       break;
     case 'audio':
       corpo = '[Áudio]';
       midiaDados = { media_id: message.audio?.id, mime_type: message.audio?.mime_type };
+      // Baixar áudio e salvar URL para transcrição
+      urlMidia = await baixarMidiaMetaAPI(supabase, conta, message.audio?.id, message.audio?.mime_type);
+      console.log('🎵 URL do áudio para transcrição:', urlMidia);
       break;
     case 'video':
       corpo = message.video?.caption || '[Vídeo]';
       midiaDados = { media_id: message.video?.id, mime_type: message.video?.mime_type };
+      urlMidia = await baixarMidiaMetaAPI(supabase, conta, message.video?.id, message.video?.mime_type);
       break;
     case 'document':
       corpo = message.document?.filename || '[Documento]';
       midiaDados = { media_id: message.document?.id, mime_type: message.document?.mime_type };
+      urlMidia = await baixarMidiaMetaAPI(supabase, conta, message.document?.id, message.document?.mime_type);
       break;
     case 'location':
       corpo = `[Localização: ${message.location?.latitude}, ${message.location?.longitude}]`;
@@ -366,6 +470,7 @@ async function processarMensagemRecebida(supabase: any, conta: any, message: any
       numero_de: numeroRemetente,
       nome_remetente: contact?.profile?.name || null,
       resposta_para_id: respostaParaId,
+      url_midia: urlMidia, // URL da mídia no Storage
     })
     .select()
     .single();
@@ -380,6 +485,10 @@ async function processarMensagemRecebida(supabase: any, conta: any, message: any
   // Check if agent is active for this account
   if (conta.agente_vendas_ativo && (message.type === 'text' || message.type === 'audio')) {
     try {
+      console.log('🤖 Chamando agente de vendas...');
+      console.log('📋 Tipo da mensagem:', message.type);
+      console.log('📋 URL da mídia:', urlMidia);
+      
       const response = await fetch(
         `${Deno.env.get('SUPABASE_URL')}/functions/v1/agente-vendas-whatsapp`,
         {
@@ -394,6 +503,8 @@ async function processarMensagemRecebida(supabase: any, conta: any, message: any
             contatoId: contato.id,
             contaId: conta.id,
             mensagemTexto: corpo,
+            tipoMensagem: message.type, // Passa o tipo para o agente
+            urlMidia: urlMidia, // Passa a URL da mídia para transcrição
           }),
         }
       );
@@ -404,6 +515,8 @@ async function processarMensagemRecebida(supabase: any, conta: any, message: any
           // Send agent response via Meta API
           await enviarRespostaAgente(supabase, conta, conversa, contato, result.resposta);
         }
+      } else {
+        console.error('❌ Erro na resposta do agente:', response.status);
       }
     } catch (agentError) {
       console.error('❌ Agent error:', agentError);
