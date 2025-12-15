@@ -35,31 +35,51 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
-    // ✅ PRODUCTION: Signature validation enabled
-    const signature = req.headers.get('x-hub-signature-256');
     const body = await req.text();
-    
-    const appSecret = Deno.env.get('META_WHATSAPP_APP_SECRET');
-    
-    if (signature && appSecret) {
-      const expectedSignature = 'sha256=' + createHmac('sha256', appSecret)
-        .update(body)
-        .digest('hex');
-      
-      if (signature !== expectedSignature) {
-        console.error('❌ Invalid signature - rejecting webhook');
-        console.error('📝 Received:', signature);
-        console.error('📝 Expected:', expectedSignature);
-        return new Response('Invalid signature', { status: 401 });
-      }
-      console.log('✅ Signature validated successfully');
-    } else if (!signature) {
-      console.warn('⚠️ No signature header present - allowing for backwards compatibility');
-    } else if (!appSecret) {
-      console.warn('⚠️ META_WHATSAPP_APP_SECRET not configured - skipping signature validation');
-    }
-
     const payload = JSON.parse(body);
+    
+    // Check if any account has signature validation disabled
+    // Parse payload first to get WABA ID for account-specific validation
+    let skipSignatureValidation = false;
+    
+    if (payload.entry?.[0]?.id) {
+      const wabaId = payload.entry[0].id;
+      const { data: conta } = await supabase
+        .from('whatsapp_contas')
+        .select('signature_validation_enabled')
+        .or(`meta_waba_id.eq.${wabaId},waba_id.eq.${wabaId}`)
+        .eq('provedor', 'meta_cloud_api')
+        .single();
+      
+      if (conta && conta.signature_validation_enabled === false) {
+        skipSignatureValidation = true;
+        console.log('⚠️ Signature validation DISABLED for this account');
+      }
+    }
+    
+    // Signature validation (if enabled)
+    if (!skipSignatureValidation) {
+      const signature = req.headers.get('x-hub-signature-256');
+      const appSecret = Deno.env.get('META_WHATSAPP_APP_SECRET');
+      
+      if (signature && appSecret) {
+        const expectedSignature = 'sha256=' + createHmac('sha256', appSecret)
+          .update(body)
+          .digest('hex');
+        
+        if (signature !== expectedSignature) {
+          console.error('❌ Invalid signature - rejecting webhook');
+          console.error('📝 Received:', signature);
+          console.error('📝 Expected:', expectedSignature);
+          return new Response('Invalid signature', { status: 401 });
+        }
+        console.log('✅ Signature validated successfully');
+      } else if (!signature) {
+        console.warn('⚠️ No signature header present - allowing for backwards compatibility');
+      } else if (!appSecret) {
+        console.warn('⚠️ META_WHATSAPP_APP_SECRET not configured - skipping signature validation');
+      }
+    }
     console.log('📥 Meta Webhook received:', JSON.stringify(payload, null, 2));
 
     // Log webhook with correct column name: payload (not payload_completo)
