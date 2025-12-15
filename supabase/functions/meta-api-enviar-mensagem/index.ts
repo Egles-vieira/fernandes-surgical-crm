@@ -45,7 +45,8 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log(`📨 [meta-api-enviar-mensagem] Iniciando envio - mensagemId: ${mensagemId}`);
+    console.log(`📨 [meta-api-enviar-mensagem] ====== INÍCIO DO ENVIO ======`);
+    console.log(`📨 [meta-api-enviar-mensagem] mensagemId: ${mensagemId}`);
 
     // Fetch message with account, contact data, and reply reference
     const { data: mensagem, error: mensagemError } = await supabase
@@ -141,12 +142,12 @@ Deno.serve(async (req) => {
       numeroDestino = `55${numeroDestino}`;
     }
 
-    console.log('📤 Enviando via Meta Cloud API:', {
-      phoneNumberId: `***${phoneNumberId.slice(-4)}`,
-      to: `***${numeroDestino.slice(-4)}`,
-      type: mensagem.tipo_mensagem || mensagem.tipo,
-      apiVersion: META_API_VERSION,
-    });
+    console.log('📤 Enviando via Meta Cloud API:');
+    console.log('   - phoneNumberId:', phoneNumberId);
+    console.log('   - to:', numeroDestino);
+    console.log('   - type:', mensagem.tipo_mensagem || mensagem.tipo);
+    console.log('   - corpo:', (mensagem.corpo || '').substring(0, 100));
+    console.log('   - apiVersion:', META_API_VERSION);
 
     // Build message payload
     let messagePayload: any = {
@@ -224,6 +225,9 @@ Deno.serve(async (req) => {
 
     // Build API URL - SEMPRE usar phoneNumberId
     const apiUrl = `${META_GRAPH_URL}/${META_API_VERSION}/${phoneNumberId}/messages`;
+    
+    console.log('📤 API URL:', apiUrl);
+    console.log('📤 Payload:', JSON.stringify(messagePayload, null, 2));
 
     // Send via Meta Cloud API com retry
     let metaResponse: Response;

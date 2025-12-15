@@ -516,14 +516,27 @@ async function processarMensagemRecebida(supabase: any, conta: any, message: any
         }
       );
 
+      const responseText = await response.text();
+      console.log('🤖 Resposta do agente (status:', response.status, '):', responseText);
+      
       if (response.ok) {
-        const result = await response.json();
-        if (result.resposta) {
-          // Send agent response via Meta API
-          await enviarRespostaAgente(supabase, conta, conversa, contato, result.resposta);
+        try {
+          const result = JSON.parse(responseText);
+          console.log('🤖 Resultado parseado:', JSON.stringify(result));
+          
+          if (result.resposta) {
+            console.log('📤 Enviando resposta do agente:', result.resposta.substring(0, 100) + '...');
+            // Send agent response via Meta API
+            const enviado = await enviarRespostaAgente(supabase, conta, conversa, contato, result.resposta);
+            console.log('📤 Resultado do envio:', enviado ? '✅ Sucesso' : '❌ Falha');
+          } else {
+            console.warn('⚠️ Agente não retornou resposta');
+          }
+        } catch (parseError) {
+          console.error('❌ Erro ao parsear resposta do agente:', parseError);
         }
       } else {
-        console.error('❌ Erro na resposta do agente:', response.status);
+        console.error('❌ Erro na resposta do agente:', response.status, responseText);
       }
     } catch (agentError) {
       console.error('❌ Agent error:', agentError);
@@ -531,30 +544,41 @@ async function processarMensagemRecebida(supabase: any, conta: any, message: any
   }
 }
 
-async function enviarRespostaAgente(supabase: any, conta: any, conversa: any, contato: any, resposta: string) {
-  // Insert agent message with correct column names:
-  // - conversa_id (not whatsapp_conversa_id)
-  // - tipo_mensagem (not tipo)
-  // - enviada_por_bot (not enviado_por_agente)
-  const { data: mensagemAgente } = await supabase
-    .from('whatsapp_mensagens')
-    .insert({
-      conversa_id: conversa.id,
-      whatsapp_conta_id: conta.id,
-      whatsapp_contato_id: contato.id,
-      direcao: 'enviada',
-      tipo_mensagem: 'texto',
-      corpo: resposta,
-      status: 'pendente',
-      enviada_por_bot: true,
-      numero_para: contato.numero_whatsapp,
-    })
-    .select()
-    .single();
+async function enviarRespostaAgente(supabase: any, conta: any, conversa: any, contato: any, resposta: string): Promise<boolean> {
+  console.log('📝 enviarRespostaAgente - Iniciando...');
+  console.log('📝 Conta ID:', conta.id);
+  console.log('📝 Contato ID:', contato.id);
+  console.log('📝 Resposta:', resposta.substring(0, 100) + '...');
+  
+  try {
+    // Insert agent message
+    const { data: mensagemAgente, error: insertError } = await supabase
+      .from('whatsapp_mensagens')
+      .insert({
+        conversa_id: conversa.id,
+        whatsapp_conta_id: conta.id,
+        whatsapp_contato_id: contato.id,
+        direcao: 'enviada',
+        tipo_mensagem: 'texto',
+        corpo: resposta,
+        status: 'pendente',
+        enviada_por_bot: true,
+        numero_para: contato.numero_whatsapp,
+      })
+      .select()
+      .single();
 
-  if (mensagemAgente) {
-    // Call meta-api-enviar-mensagem
-    await fetch(
+    if (insertError) {
+      console.error('❌ Erro ao inserir mensagem do agente:', insertError);
+      return false;
+    }
+
+    console.log('✅ Mensagem do agente criada:', mensagemAgente.id);
+
+    // Call meta-api-enviar-mensagem and AWAIT the response
+    console.log('📤 Chamando meta-api-enviar-mensagem para mensagemId:', mensagemAgente.id);
+    
+    const enviarResponse = await fetch(
       `${Deno.env.get('SUPABASE_URL')}/functions/v1/meta-api-enviar-mensagem`,
       {
         method: 'POST',
@@ -565,6 +589,20 @@ async function enviarRespostaAgente(supabase: any, conta: any, conversa: any, co
         body: JSON.stringify({ mensagemId: mensagemAgente.id }),
       }
     );
+
+    const enviarResult = await enviarResponse.text();
+    console.log('📤 meta-api-enviar-mensagem response (status:', enviarResponse.status, '):', enviarResult);
+
+    if (!enviarResponse.ok) {
+      console.error('❌ Erro ao enviar mensagem via Meta API:', enviarResponse.status, enviarResult);
+      return false;
+    }
+
+    console.log('✅ Mensagem enviada com sucesso via Meta API');
+    return true;
+  } catch (error) {
+    console.error('❌ Erro em enviarRespostaAgente:', error);
+    return false;
   }
 }
 
