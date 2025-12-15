@@ -377,21 +377,38 @@ INSTRUÇÕES CRÍTICAS:
       if (response2.ok) {
         const data2 = await response2.json();
         respostaFinal = sanitizarResposta(data2.choices[0].message.content);
-        console.log("✅ Resposta final gerada");
+        console.log("✅ Resposta final gerada:", respostaFinal ? "com conteúdo" : "vazia após sanitização");
+        
+        // Fallback se sanitização removeu tudo
+        if (!respostaFinal && produtosEncontrados.length > 0) {
+          console.log("⚠️ Resposta vazia após sanitização, gerando fallback com produtos");
+          respostaFinal =
+            `opa, achei essas opções aqui:\n\n` +
+            produtosEncontrados
+              .slice(0, 3)
+              .map(
+                (p, i) =>
+                  `${i + 1}. ${p.nome}\n   cód: ${p.referencia} - R$ ${p.preco?.toFixed(2) || '0.00'} - estoque: ${p.estoque || 0} un`,
+              )
+              .join("\n\n") +
+            `\n\nqual vc quer?`;
+        } else if (!respostaFinal) {
+          respostaFinal = "opa, deixa eu ver aqui... pode me dar mais detalhes do que vc precisa?";
+        }
       } else {
         console.error("❌ Erro na segunda chamada DeepSeek");
         // Fallback: apresentar produtos manualmente
         if (produtosEncontrados.length > 0) {
           respostaFinal =
-            `Show! Encontrei algumas opções de cânulas:\n\n` +
+            `opa, achei essas opções:\n\n` +
             produtosEncontrados
               .slice(0, 3)
               .map(
                 (p, i) =>
-                  `${i + 1}. *${p.nome}*\n   Cód: ${p.referencia}\n   R$ ${p.preco.toFixed(2)} - Estoque: ${p.estoque} un\n`,
+                  `${i + 1}. ${p.nome}\n   cód: ${p.referencia} - R$ ${p.preco?.toFixed(2) || '0.00'} - estoque: ${p.estoque || 0} un`,
               )
-              .join("\n") +
-            `\nQual te interessou mais?`;
+              .join("\n\n") +
+            `\n\nqual te interessou?`;
         }
       }
     }
