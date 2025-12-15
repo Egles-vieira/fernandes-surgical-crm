@@ -19,7 +19,7 @@ Deno.serve(async (req) => {
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY')!;
+    const deepseekApiKey = Deno.env.get('DEEPSEEK_API_KEY')!;
     
     const supabase = createClient(supabaseUrl, supabaseKey);
 
@@ -57,15 +57,15 @@ Deno.serve(async (req) => {
 
     console.log('Analisando sentimento para', mensagens.length, 'mensagens');
 
-    // Chamar Lovable AI para análise de sentimento
-    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    // Chamar DeepSeek API para análise de sentimento
+    const aiResponse = await fetch('https://api.deepseek.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${lovableApiKey}`,
+        'Authorization': `Bearer ${deepseekApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-lite', // Modelo rápido e barato para classificação
+        model: 'deepseek-chat',
         messages: [
           {
             role: 'system',
@@ -96,13 +96,13 @@ Sentimentos possíveis:
 
     if (!aiResponse.ok) {
       const errorText = await aiResponse.text();
-      console.error('Erro na API de IA:', aiResponse.status, errorText);
+      console.error('Erro na API DeepSeek:', aiResponse.status, errorText);
       
       if (aiResponse.status === 429) {
         throw new Error('Limite de requisições atingido. Tente novamente em alguns instantes.');
       }
-      if (aiResponse.status === 402) {
-        throw new Error('Créditos da IA esgotados. Adicione créditos em Settings -> Workspace -> Usage.');
+      if (aiResponse.status === 401) {
+        throw new Error('Erro de autenticação com DeepSeek. Verifique a API Key.');
       }
       
       throw new Error(`Erro na análise: ${aiResponse.status}`);
@@ -111,7 +111,7 @@ Sentimentos possíveis:
     const aiData = await aiResponse.json();
     const content = aiData.choices[0].message.content;
     
-    console.log('Resposta da IA:', content);
+    console.log('Resposta do DeepSeek:', content);
 
     // Parse da resposta
     let resultado;
