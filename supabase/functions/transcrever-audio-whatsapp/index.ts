@@ -66,20 +66,36 @@ Deno.serve(async (req) => {
       throw new Error(`Mensagem não encontrada: ${msgError?.message}`);
     }
 
+    // Idempotência: se já transcreveu, só retorna
+    if (mensagem.transcricao_audio) {
+      return new Response(
+        JSON.stringify({ success: true, transcricao: mensagem.transcricao_audio }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
+
     if (!mensagem.url_midia) {
       throw new Error('Mensagem não possui áudio');
     }
 
+    // Normalizar mime (evitar "audio/ogg; codecs=opus")
+    const mimeFromMetadata =
+      (mensagem.metadata?.midia?.mime_type as string | undefined) ||
+      (mensagem.metadata?.mimeType as string | undefined) ||
+      (mensagem.mime_type as string | undefined);
+
+    const mimeBase = (mimeFromMetadata || 'audio/ogg').split(';')[0].trim();
+
     console.log('📥 Baixando áudio de:', mensagem.url_midia);
 
-    // Baixar o áudio do Supabase Storage
+    // Baixar o áudio do Storage
     const audioResponse = await fetch(mensagem.url_midia);
     if (!audioResponse.ok) {
       throw new Error(`Erro ao baixar áudio: ${audioResponse.statusText}`);
     }
 
     const audioArrayBuffer = await audioResponse.arrayBuffer();
-    const audioBlob = new Blob([audioArrayBuffer], { type: mensagem.mime_type || 'audio/ogg' });
+    const audioBlob = new Blob([audioArrayBuffer], { type: mimeBase });
 
     console.log('🔊 Áudio baixado, tamanho:', audioBlob.size, 'bytes');
 
@@ -87,7 +103,7 @@ Deno.serve(async (req) => {
     const formData = new FormData();
     formData.append('file', audioBlob, 'audio.ogg');
     formData.append('model', 'whisper-1');
-    formData.append('language', 'pt'); // Português
+    formData.append('language', 'pt');
 
     console.log('🚀 Enviando para Whisper API...');
 
@@ -113,9 +129,9 @@ Deno.serve(async (req) => {
     // Atualizar mensagem com transcrição
     const { error: updateError } = await supabase
       .from('whatsapp_mensagens')
-      .update({ 
+      .update({
         transcricao_audio: textoTranscrito,
-        transcricao_processada_em: new Date().toISOString()
+        transcricao_processada_em: new Date().toISOString(),
       })
       .eq('id', mensagemId);
 
@@ -126,45 +142,55 @@ Deno.serve(async (req) => {
 
     console.log('💾 Transcrição salva no banco de dados');
 
-    // Chamar o agente de vendas para processar a transcrição
+    // Só chama o agente se estiver ativo na conta
     try {
-      console.log('🤖 Chamando agente de vendas para processar transcrição...');
-      
-      const { data: agenteData, error: agenteError } = await supabase.functions.invoke('agente-vendas-whatsapp', {
-        body: {
-          mensagemTexto: textoTranscrito,
-          conversaId: mensagem.conversa_id,
-          tipoMensagem: 'audio_transcrito'
-        }
-      });
+      const { data: conta } = await supabase
+        .from('whatsapp_contas')
+        .select('agente_vendas_ativo')
+        .eq('id', mensagem.whatsapp_conta_id)
+        .single();
 
-      if (agenteError) {
-        console.error('⚠️ Erro ao chamar agente de vendas:', agenteError);
-      } else {
-        console.log('✅ Agente de vendas processou a transcrição:', agenteData);
-        
-        // Enviar resposta do agente de volta para o WhatsApp
-        if (agenteData?.resposta) {
-          const { error: respostaError } = await supabase
-            .from('whatsapp_mensagens')
-            .insert({
-              conversa_id: mensagem.conversa_id,
-              whatsapp_conta_id: mensagem.whatsapp_conta_id,
-              whatsapp_contato_id: mensagem.whatsapp_contato_id,
-              tipo_mensagem: 'texto',
-              corpo: agenteData.resposta,
-              direcao: 'enviada',
-              status: 'pendente',
-              enviada_por_bot: true,
-              metadata: { gerada_por_agente: true }
-            });
+      if (conta?.agente_vendas_ativo) {
+        console.log('🤖 Chamando agente de vendas para processar transcrição...');
 
-          if (respostaError) {
-            console.error('❌ Erro ao salvar resposta do agente:', respostaError);
-          } else {
-            console.log('✅ Resposta do agente salva no banco de dados');
+        const { data: agenteData, error: agenteError } = await supabase.functions.invoke('agente-vendas-whatsapp', {
+          body: {
+            mensagemTexto: textoTranscrito,
+            conversaId: mensagem.conversa_id,
+            tipoMensagem: 'audio_transcrito',
+          },
+        });
+
+        if (agenteError) {
+          console.error('⚠️ Erro ao chamar agente de vendas:', agenteError);
+        } else {
+          console.log('✅ Agente de vendas processou a transcrição');
+
+          // Salvar resposta do agente (envio para WhatsApp é responsabilidade do webhook)
+          if (agenteData?.resposta) {
+            const { error: respostaError } = await supabase
+              .from('whatsapp_mensagens')
+              .insert({
+                conversa_id: mensagem.conversa_id,
+                whatsapp_conta_id: mensagem.whatsapp_conta_id,
+                whatsapp_contato_id: mensagem.whatsapp_contato_id,
+                tipo_mensagem: 'texto',
+                corpo: agenteData.resposta,
+                direcao: 'enviada',
+                status: 'pendente',
+                enviada_por_bot: true,
+                metadata: { gerada_por_agente: true },
+              });
+
+            if (respostaError) {
+              console.error('❌ Erro ao salvar resposta do agente:', respostaError);
+            } else {
+              console.log('✅ Resposta do agente salva no banco de dados');
+            }
           }
         }
+      } else {
+        console.log('ℹ️ Agente desativado para a conta - pulando processamento de resposta');
       }
     } catch (agenteError) {
       console.error('⚠️ Erro não crítico ao processar com agente:', agenteError);
