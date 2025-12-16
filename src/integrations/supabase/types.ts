@@ -8204,6 +8204,7 @@ export type Database = {
           carteirizacao_ativa: boolean | null
           criado_em: string | null
           criado_por: string | null
+          distribuicao_automatica_ativa: boolean | null
           entidade_id: string | null
           exibir_nome_operador: boolean | null
           formato_nome: string | null
@@ -8225,6 +8226,7 @@ export type Database = {
           carteirizacao_ativa?: boolean | null
           criado_em?: string | null
           criado_por?: string | null
+          distribuicao_automatica_ativa?: boolean | null
           entidade_id?: string | null
           exibir_nome_operador?: boolean | null
           formato_nome?: string | null
@@ -8246,6 +8248,7 @@ export type Database = {
           carteirizacao_ativa?: boolean | null
           criado_em?: string | null
           criado_por?: string | null
+          distribuicao_automatica_ativa?: boolean | null
           entidade_id?: string | null
           exibir_nome_operador?: boolean | null
           formato_nome?: string | null
