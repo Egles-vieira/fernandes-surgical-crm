@@ -24,6 +24,10 @@ interface ConfigAtendimento {
   tempo_inatividade_redistribuir_min: number;
   priorizar_carteira: boolean;
   
+  // Carteirização
+  carteirizacao_ativa: boolean;
+  modo_carteirizacao: 'preferencial' | 'forcar';
+  
   // SLA
   sla_primeira_resposta_min: number;
   sla_tempo_medio_resposta_min: number;
@@ -43,6 +47,7 @@ interface ConfigAtendimento {
   horario_atendimento_habilitado: boolean;
   feriados_habilitado: boolean;
   transferencia_entre_unidades: boolean;
+  distribuicao_automatica: boolean;
 }
 
 const MODOS_DISTRIBUICAO = [
@@ -52,6 +57,11 @@ const MODOS_DISTRIBUICAO = [
   { value: 'manual', label: 'Manual', desc: 'Supervisores distribuem manualmente' },
 ];
 
+const MODOS_CARTEIRIZACAO = [
+  { value: 'preferencial', label: 'Preferencial', desc: 'Se operador indisponível, redistribui para outro' },
+  { value: 'forcar', label: 'Forçar', desc: 'SEMPRE vai para operador da carteira, aguarda se offline' },
+];
+
 export function ConfiguracoesAtendimento() {
   const queryClient = useQueryClient();
   const [config, setConfig] = useState<ConfigAtendimento>({
@@ -59,6 +69,8 @@ export function ConfiguracoesAtendimento() {
     max_atendimentos_por_operador: 5,
     tempo_inatividade_redistribuir_min: 30,
     priorizar_carteira: true,
+    carteirizacao_ativa: true,
+    modo_carteirizacao: 'preferencial',
     sla_primeira_resposta_min: 5,
     sla_tempo_medio_resposta_min: 10,
     sla_tempo_resolucao_min: 60,
@@ -71,6 +83,7 @@ export function ConfiguracoesAtendimento() {
     horario_atendimento_habilitado: true,
     feriados_habilitado: true,
     transferencia_entre_unidades: true,
+    distribuicao_automatica: true,
   });
 
   // Buscar configuração existente
@@ -196,6 +209,40 @@ export function ConfiguracoesAtendimento() {
             />
             <Label>Priorizar carteira (sticky agent)</Label>
           </div>
+
+          {config.priorizar_carteira && (
+            <div className="space-y-4 pl-6 border-l-2 border-primary/20">
+              <div className="flex items-center space-x-2">
+                <Switch
+                  checked={config.carteirizacao_ativa}
+                  onCheckedChange={(v) => setConfig({ ...config, carteirizacao_ativa: v })}
+                />
+                <Label>Carteirização ativa</Label>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Modo de Carteirização</Label>
+                <Select
+                  value={config.modo_carteirizacao}
+                  onValueChange={(v: 'preferencial' | 'forcar') => setConfig({ ...config, modo_carteirizacao: v })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {MODOS_CARTEIRIZACAO.map((m) => (
+                      <SelectItem key={m.value} value={m.value}>
+                        <div>
+                          <div className="font-medium">{m.label}</div>
+                          <div className="text-xs text-muted-foreground">{m.desc}</div>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
