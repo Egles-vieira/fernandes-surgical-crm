@@ -247,8 +247,16 @@ export function useWhatsAppFilas() {
   // Mutation para vincular operador à fila
   const vincularOperador = useMutation({
     mutationFn: async ({ operadorId, filaId }: { operadorId: string; filaId: string }) => {
-      const operador = operadoresDisponiveis.find((op) => op.id === operadorId);
-      const filasAtuais = operador?.filas_atendimento_ids || [];
+      // Buscar dados atuais diretamente do banco para evitar problemas de cache
+      const { data: operadorAtual, error: fetchError } = await supabase
+        .from("perfis_usuario")
+        .select("filas_atendimento_ids")
+        .eq("id", operadorId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      const filasAtuais = operadorAtual?.filas_atendimento_ids || [];
       
       if (filasAtuais.includes(filaId)) {
         throw new Error("Operador já está vinculado a esta fila");
