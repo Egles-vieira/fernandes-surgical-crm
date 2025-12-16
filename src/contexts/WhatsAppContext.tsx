@@ -287,13 +287,13 @@ export const WhatsAppProvider: React.FC<WhatsAppProviderProps> = ({ children }) 
         // Contar conversas ativas por operador
         const { data: contagens } = await supabase
           .from('whatsapp_conversas')
-          .select('atendente_id')
+          .select('atribuida_para_id')
           .in('status', ['aberto', 'em_atendimento', 'aguardando_cliente']);
         
         const contagemMap: Record<string, number> = {};
         contagens?.forEach((c: any) => {
-          if (c.atendente_id) {
-            contagemMap[c.atendente_id] = (contagemMap[c.atendente_id] || 0) + 1;
+          if (c.atribuida_para_id) {
+            contagemMap[c.atribuida_para_id] = (contagemMap[c.atribuida_para_id] || 0) + 1;
           }
         });
         
@@ -316,7 +316,7 @@ export const WhatsAppProvider: React.FC<WhatsAppProviderProps> = ({ children }) 
   useEffect(() => {
     if (!userId) return;
 
-    // Listener para minhas conversas (filtrado por atendente_id)
+    // Listener para minhas conversas (filtrado por atribuida_para_id)
     const conversasChannel = supabase
       .channel(`whatsapp-conversas-${userId}`)
       .on(
@@ -325,7 +325,7 @@ export const WhatsAppProvider: React.FC<WhatsAppProviderProps> = ({ children }) 
           event: '*',
           schema: 'public',
           table: 'whatsapp_conversas',
-          filter: `atendente_id=eq.${userId}`,
+          filter: `atribuida_para_id=eq.${userId}`,
         },
         () => {
           loadMinhasConversas();
