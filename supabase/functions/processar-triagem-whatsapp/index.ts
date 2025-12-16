@@ -369,7 +369,7 @@ async function solicitarCNPJ(supabase: any, triagem: TriagemPendente) {
   // Buscar contato
   const { data: contato } = await supabase
     .from('whatsapp_contatos')
-    .select('telefone')
+    .select('numero_whatsapp')
     .eq('id', triagem.contato_id)
     .single();
 
@@ -388,7 +388,7 @@ async function solicitarCNPJ(supabase: any, triagem: TriagemPendente) {
           tipo_mensagem: 'texto',
           direcao: 'enviada',
           status: 'pendente',
-          numero_para: contato.telefone,
+          numero_para: contato.numero_whatsapp,
           enviada_por_bot: true,
           enviada_automaticamente: true,
         })
