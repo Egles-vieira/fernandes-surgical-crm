@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useWhatsAppFilas, WhatsAppFila, WhatsAppFilaInsert } from "@/hooks/useWhatsAppFilas";
+import { useWhatsAppFilas, WhatsAppFila, WhatsAppFilaInsert, OperadorFila } from "@/hooks/useWhatsAppFilas";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -29,7 +29,21 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Plus, MoreHorizontal, Pencil, Trash2, RotateCcw, Clock, Users, Inbox } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Plus, MoreHorizontal, Pencil, Trash2, RotateCcw, Clock, Users, Inbox, X, UserPlus } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const CORES_DISPONIVEIS = [
@@ -91,13 +105,57 @@ const initialFormData: FilaFormData = {
 };
 
 export function GerenciarFilasWhatsApp() {
-  const { filas, todasFilas, isLoading, createFila, updateFila, deleteFila, reativarFila } = useWhatsAppFilas();
+  const { 
+    filas, 
+    todasFilas, 
+    isLoading, 
+    createFila, 
+    updateFila, 
+    deleteFila, 
+    reativarFila,
+    operadoresDisponiveis,
+    getOperadoresDaFila,
+    getOperadoresNaoVinculados,
+    vincularOperador,
+    desvincularOperador,
+  } = useWhatsAppFilas();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingFila, setEditingFila] = useState<WhatsAppFila | null>(null);
   const [formData, setFormData] = useState<FilaFormData>(initialFormData);
   const [showInactive, setShowInactive] = useState(false);
+  const [selectedOperadorId, setSelectedOperadorId] = useState<string>("");
 
   const filasExibidas = showInactive ? todasFilas : filas;
+
+  const handleVincularOperador = async () => {
+    if (!selectedOperadorId || !editingFila) return;
+    await vincularOperador.mutateAsync({ operadorId: selectedOperadorId, filaId: editingFila.id });
+    setSelectedOperadorId("");
+  };
+
+  const handleDesvincularOperador = async (operadorId: string) => {
+    if (!editingFila) return;
+    await desvincularOperador.mutateAsync({ operadorId, filaId: editingFila.id });
+  };
+
+  const getStatusColor = (status: string | null) => {
+    switch (status) {
+      case "online": return "bg-green-500";
+      case "pausa": return "bg-yellow-500";
+      case "ocupado": return "bg-orange-500";
+      default: return "bg-gray-400";
+    }
+  };
+
+  const getOperadorNomeCompleto = (op: OperadorFila) => {
+    return `${op.primeiro_nome || ""} ${op.sobrenome || ""}`.trim() || "Sem nome";
+  };
+
+  const getOperadorIniciais = (op: OperadorFila) => {
+    const nome = op.primeiro_nome || "";
+    const sobrenome = op.sobrenome || "";
+    return `${nome.charAt(0)}${sobrenome.charAt(0)}`.toUpperCase() || "?";
+  };
 
   const handleOpenCreate = () => {
     setEditingFila(null);
@@ -219,6 +277,7 @@ export function GerenciarFilasWhatsApp() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Fila</TableHead>
+                  <TableHead>Operadores</TableHead>
                   <TableHead>SLA 1ª Resposta</TableHead>
                   <TableHead>SLA Resolução</TableHead>
                   <TableHead>Horário</TableHead>
@@ -243,6 +302,38 @@ export function GerenciarFilasWhatsApp() {
                           )}
                         </div>
                       </div>
+                    </TableCell>
+                    <TableCell>
+                      {(() => {
+                        const operadoresFila = getOperadoresDaFila(fila.id);
+                        const count = operadoresFila.length;
+                        return (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="flex items-center gap-1 cursor-pointer">
+                                  <Users className="h-3 w-3 text-muted-foreground" />
+                                  <span className="text-sm">{count}</span>
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                {count === 0 ? (
+                                  <span>Nenhum operador vinculado</span>
+                                ) : (
+                                  <div className="space-y-1">
+                                    {operadoresFila.map(op => (
+                                      <div key={op.id} className="flex items-center gap-2">
+                                        <div className={`w-2 h-2 rounded-full ${getStatusColor(op.status_atendimento_whatsapp)}`} />
+                                        <span>{getOperadorNomeCompleto(op)}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        );
+                      })()}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
@@ -429,7 +520,84 @@ export function GerenciarFilasWhatsApp() {
                   value={formData.horario_inicio}
                   onChange={(e) => setFormData({ ...formData, horario_inicio: e.target.value })}
                 />
+            </div>
+
+            {/* Operadores da Fila - só aparece ao editar */}
+            {editingFila && (
+              <div className="space-y-4 border-t pt-6">
+                <div className="flex items-center gap-2">
+                  <Users className="h-5 w-5 text-muted-foreground" />
+                  <Label className="text-base font-semibold">Operadores da Fila</Label>
+                </div>
+
+                {/* Adicionar operador */}
+                <div className="flex gap-2">
+                  <Select value={selectedOperadorId} onValueChange={setSelectedOperadorId}>
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder="Selecionar operador..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {getOperadoresNaoVinculados(editingFila.id).map((op) => (
+                        <SelectItem key={op.id} value={op.id}>
+                          <div className="flex items-center gap-2">
+                            <div className={`w-2 h-2 rounded-full ${getStatusColor(op.status_atendimento_whatsapp)}`} />
+                            {getOperadorNomeCompleto(op)}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button 
+                    onClick={handleVincularOperador} 
+                    disabled={!selectedOperadorId || vincularOperador.isPending}
+                    size="sm"
+                  >
+                    <UserPlus className="h-4 w-4 mr-1" />
+                    Adicionar
+                  </Button>
+                </div>
+
+                {/* Lista de operadores vinculados */}
+                <div className="space-y-2">
+                  {getOperadoresDaFila(editingFila.id).length === 0 ? (
+                    <div className="text-center py-4 text-sm text-muted-foreground border rounded-md">
+                      Nenhum operador vinculado a esta fila
+                    </div>
+                  ) : (
+                    <div className="space-y-2 max-h-48 overflow-y-auto">
+                      {getOperadoresDaFila(editingFila.id).map((op) => (
+                        <div
+                          key={op.id}
+                          className="flex items-center justify-between p-2 rounded-md border bg-muted/50"
+                        >
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-8 w-8">
+                              <AvatarImage src={op.url_avatar || undefined} />
+                              <AvatarFallback className="text-xs">
+                                {getOperadorIniciais(op)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex items-center gap-2">
+                              <div className={`w-2 h-2 rounded-full ${getStatusColor(op.status_atendimento_whatsapp)}`} />
+                              <span className="text-sm font-medium">{getOperadorNomeCompleto(op)}</span>
+                            </div>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                            onClick={() => handleDesvincularOperador(op.id)}
+                            disabled={desvincularOperador.isPending}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
+            )}
               <div className="space-y-2">
                 <Label htmlFor="horario_fim">Horário de Fim</Label>
                 <Input
