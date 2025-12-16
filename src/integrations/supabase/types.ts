@@ -11188,6 +11188,10 @@ export type Database = {
         Args: { p_items: Json; p_venda_id: string }
         Returns: number
       }
+      buscar_contato_crm_por_telefone: {
+        Args: { numero_whatsapp: string }
+        Returns: string
+      }
       buscar_produtos_hibrido: {
         Args: { p_descricao: string; p_limite?: number; p_numeros?: string[] }
         Returns: {
@@ -11462,6 +11466,7 @@ export type Database = {
           similarity: number
         }[]
       }
+      normalizar_telefone: { Args: { telefone: string }; Returns: string }
       pode_acessar_cliente: {
         Args: { _cliente_id: string; _user_id: string }
         Returns: boolean

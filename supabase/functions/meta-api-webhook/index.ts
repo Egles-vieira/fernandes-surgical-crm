@@ -384,6 +384,85 @@ async function processarMensagemRecebida(supabase: any, conta: any, message: any
     
     conversa = novaConversa;
     console.log('✅ Conversation created:', conversa?.id);
+    
+    // ===== FASE 2: DISTRIBUIÇÃO AUTOMÁTICA =====
+    // Após criar nova conversa, enriquecer dados e distribuir automaticamente
+    try {
+      // Buscar dados do contato CRM vinculado (Fase 3: Enriquecimento)
+      if (contato.contato_id) {
+        console.log('🔗 Contato vinculado ao CRM:', contato.contato_id);
+        const { data: contatoCRM } = await supabase
+          .from('contatos')
+          .select('id, cliente_id, primeiro_nome, sobrenome, cargo, pontuacao_lead, status_lead')
+          .eq('id', contato.contato_id)
+          .single();
+        
+        if (contatoCRM?.cliente_id) {
+          // Atualizar conversa com cliente_id
+          await supabase
+            .from('whatsapp_conversas')
+            .update({ cliente_id: contatoCRM.cliente_id })
+            .eq('id', conversa.id);
+          
+          console.log('✅ Conversa enriquecida com cliente_id:', contatoCRM.cliente_id);
+          
+          // Classificar tipo de contato baseado em histórico
+          const { data: historicoCompras } = await supabase
+            .from('vendas')
+            .select('id')
+            .eq('cliente_id', contatoCRM.cliente_id)
+            .eq('status', 'finalizado')
+            .limit(10);
+          
+          const totalCompras = historicoCompras?.length || 0;
+          let tipoContato = 'lead';
+          if (totalCompras >= 10) tipoContato = 'cliente_vip';
+          else if (totalCompras >= 1) tipoContato = 'cliente_regular';
+          else if (totalCompras === 0 && contatoCRM.cliente_id) tipoContato = 'cliente_novo';
+          
+          console.log(`📊 Classificação do contato: ${tipoContato} (${totalCompras} compras)`);
+        }
+      }
+      
+      // Verificar configuração de distribuição automática
+      const { data: configDistribuicao } = await supabase
+        .from('whatsapp_config_atendimento')
+        .select('*')
+        .eq('esta_ativa', true)
+        .limit(1)
+        .single();
+      
+      if (configDistribuicao?.distribuicao_automatica) {
+        console.log('🎯 Distribuição automática ativada, chamando distribuidor...');
+        
+        // Chamar função de distribuição
+        const distribuicaoResponse = await fetch(
+          `${Deno.env.get('SUPABASE_URL')}/functions/v1/whatsapp-distribuir-conversa`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+            },
+            body: JSON.stringify({
+              conversaId: conversa.id,
+              filaId: configDistribuicao.fila_padrao_id || null,
+              unidadeId: conta.unidade_padrao_id || null,
+            }),
+          }
+        );
+        
+        const distribuicaoResult = await distribuicaoResponse.json();
+        console.log('📋 Resultado da distribuição:', JSON.stringify(distribuicaoResult));
+      } else {
+        console.log('ℹ️ Distribuição automática desativada ou sem configuração');
+      }
+    } catch (distError) {
+      // Não bloqueia o fluxo se a distribuição falhar
+      console.error('⚠️ Erro na distribuição automática (não bloqueante):', distError);
+    }
+    // ===== FIM FASE 2 =====
+    
   } else {
     console.log('✅ Existing conversation found:', conversa.id);
   }

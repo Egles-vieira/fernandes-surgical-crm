@@ -16,9 +16,9 @@ export function normalizarNumeroWhatsApp(numero: string): string {
 
 /**
  * Busca um contato no CRM pelo número de WhatsApp
- * Procura nos campos: telefone, celular, whatsapp_numero
+ * Usa a função otimizada do banco de dados com índices
  * @param supabase - Cliente Supabase
- * @param numeroWhatsApp - Número normalizado (apenas dígitos)
+ * @param numeroWhatsApp - Número de telefone (qualquer formato)
  * @returns ID do contato se encontrado, null caso contrário
  */
 export async function buscarContatoCRM(
@@ -31,31 +31,18 @@ export async function buscarContatoCRM(
   
   console.log('🔍 Buscando contato no CRM pelo número:', numeroLimpo);
   
-  // Busca todos os contatos e normaliza os números para comparação
-  const { data: contatos, error } = await supabase
-    .from('contatos')
-    .select('id, telefone, celular, whatsapp_numero');
+  // Usa a função RPC otimizada do banco de dados
+  const { data: contatoId, error } = await supabase
+    .rpc('buscar_contato_crm_por_telefone', { numero_whatsapp: numeroLimpo });
 
   if (error) {
-    console.error('❌ Erro ao buscar contatos no CRM:', error);
+    console.error('❌ Erro ao buscar contato no CRM:', error);
     return null;
   }
 
-  // Busca contato normalizando os números
-  const contatoEncontrado = contatos?.find((contato: any) => {
-    const telefoneLimpo = normalizarNumeroWhatsApp(contato.telefone || '');
-    const celularLimpo = normalizarNumeroWhatsApp(contato.celular || '');
-    const whatsappLimpo = normalizarNumeroWhatsApp(contato.whatsapp_numero || '');
-    
-    // Verifica se o número limpo contém ou está contido no número procurado
-    return (numeroLimpo && telefoneLimpo && (numeroLimpo.includes(telefoneLimpo) || telefoneLimpo.includes(numeroLimpo))) ||
-           (numeroLimpo && celularLimpo && (numeroLimpo.includes(celularLimpo) || celularLimpo.includes(numeroLimpo))) ||
-           (numeroLimpo && whatsappLimpo && (numeroLimpo.includes(whatsappLimpo) || whatsappLimpo.includes(numeroLimpo)));
-  });
-
-  if (contatoEncontrado?.id) {
-    console.log('✅ Contato encontrado no CRM:', contatoEncontrado.id);
-    return contatoEncontrado.id;
+  if (contatoId) {
+    console.log('✅ Contato encontrado no CRM:', contatoId);
+    return contatoId;
   }
 
   console.log('ℹ️ Contato não encontrado no CRM');
