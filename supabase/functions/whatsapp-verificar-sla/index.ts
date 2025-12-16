@@ -34,7 +34,7 @@ Deno.serve(async (req) => {
       .select(`
         id,
         created_at,
-        atendente_id,
+        atribuida_para_id,
         whatsapp_conta_id,
         whatsapp_mensagens (
           id,
@@ -83,7 +83,7 @@ Deno.serve(async (req) => {
               nivel_risco: percentualExcedido > 100 ? 'critico' : 'alto',
               whatsapp_conversa_id: conversa.id,
               whatsapp_conta_id: conversa.whatsapp_conta_id,
-              usuario_id: conversa.atendente_id,
+              usuario_id: conversa.atribuida_para_id,
               dados_evento: {
                 tempo_espera_segundos: tempoEspera,
                 sla_limite_segundos: slaTempoResposta,
@@ -92,9 +92,9 @@ Deno.serve(async (req) => {
             });
 
             // Notify attendant if assigned
-            if (conversa.atendente_id) {
+            if (conversa.atribuida_para_id) {
               await supabase.from('notificacoes').insert({
-                user_id: conversa.atendente_id,
+                user_id: conversa.atribuida_para_id,
                 tipo: 'whatsapp_sla_alerta',
                 titulo: '⚠️ SLA em risco',
                 descricao: `Conversa aguardando resposta há ${Math.floor(tempoEspera / 60)} minutos`,
@@ -114,7 +114,7 @@ Deno.serve(async (req) => {
           nivel_risco: 'alto',
           whatsapp_conversa_id: conversa.id,
           whatsapp_conta_id: conversa.whatsapp_conta_id,
-          usuario_id: conversa.atendente_id,
+          usuario_id: conversa.atribuida_para_id,
           dados_evento: {
             tempo_conversa_segundos: tempoConversa,
             sla_limite_segundos: slaTempoResolucao,

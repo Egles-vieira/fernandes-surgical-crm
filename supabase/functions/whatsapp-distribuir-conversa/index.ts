@@ -80,7 +80,7 @@ Deno.serve(async (req) => {
           const { count: atendimentosAtivos } = await supabase
             .from('whatsapp_conversas')
             .select('id', { count: 'exact', head: true })
-            .eq('operador_id', operadorCarteira)
+            .eq('atribuida_para_id', operadorCarteira)
             .eq('status', 'aberta');
           
           if ((atendimentosAtivos || 0) < maxAtendimentos) {
@@ -137,7 +137,7 @@ Deno.serve(async (req) => {
           const { count } = await supabase
             .from('whatsapp_conversas')
             .select('id', { count: 'exact', head: true })
-            .eq('operador_id', op.id)
+            .eq('atribuida_para_id', op.id)
             .eq('status', 'aberta');
           
           if ((count || 0) < maxAtendimentos) {
@@ -164,7 +164,7 @@ Deno.serve(async (req) => {
       const { error: updateError } = await supabase
         .from('whatsapp_conversas')
         .update({
-          operador_id: atendenteId,
+          atribuida_para_id: atendenteId,
           status: 'aberta',
           em_distribuicao: false,
           distribuicao_iniciada_em: null,
