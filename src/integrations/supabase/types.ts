@@ -7988,6 +7988,184 @@ export type Database = {
           },
         ]
       }
+      whatsapp_carteiras_contatos: {
+        Row: {
+          carteira_id: string
+          id: string
+          motivo_vinculo: string | null
+          vinculado_em: string | null
+          vinculado_por: string | null
+          whatsapp_contato_id: string
+        }
+        Insert: {
+          carteira_id: string
+          id?: string
+          motivo_vinculo?: string | null
+          vinculado_em?: string | null
+          vinculado_por?: string | null
+          whatsapp_contato_id: string
+        }
+        Update: {
+          carteira_id?: string
+          id?: string
+          motivo_vinculo?: string | null
+          vinculado_em?: string | null
+          vinculado_por?: string | null
+          whatsapp_contato_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_carteiras_contatos_carteira_id_fkey"
+            columns: ["carteira_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_carteiras_v2"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_carteiras_contatos_vinculado_por_fkey"
+            columns: ["vinculado_por"]
+            isOneToOne: false
+            referencedRelation: "mv_top_vendedores"
+            referencedColumns: ["vendedor_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_carteiras_contatos_vinculado_por_fkey"
+            columns: ["vinculado_por"]
+            isOneToOne: false
+            referencedRelation: "perfis_usuario"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_carteiras_contatos_vinculado_por_fkey"
+            columns: ["vinculado_por"]
+            isOneToOne: false
+            referencedRelation: "vw_performance_vendedor"
+            referencedColumns: ["vendedor_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_carteiras_contatos_vinculado_por_fkey"
+            columns: ["vinculado_por"]
+            isOneToOne: false
+            referencedRelation: "vw_vendedores_disponiveis"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_carteiras_contatos_whatsapp_contato_id_fkey"
+            columns: ["whatsapp_contato_id"]
+            isOneToOne: true
+            referencedRelation: "whatsapp_contatos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_carteiras_v2: {
+        Row: {
+          atualizado_em: string | null
+          cor: string | null
+          criado_em: string | null
+          criado_por: string | null
+          descricao: string | null
+          esta_ativa: boolean | null
+          id: string
+          max_contatos: number | null
+          nome: string
+          operador_id: string
+          recebe_novos_contatos: boolean | null
+          total_atendimentos: number | null
+          total_contatos: number | null
+          ultimo_atendimento_em: string | null
+        }
+        Insert: {
+          atualizado_em?: string | null
+          cor?: string | null
+          criado_em?: string | null
+          criado_por?: string | null
+          descricao?: string | null
+          esta_ativa?: boolean | null
+          id?: string
+          max_contatos?: number | null
+          nome: string
+          operador_id: string
+          recebe_novos_contatos?: boolean | null
+          total_atendimentos?: number | null
+          total_contatos?: number | null
+          ultimo_atendimento_em?: string | null
+        }
+        Update: {
+          atualizado_em?: string | null
+          cor?: string | null
+          criado_em?: string | null
+          criado_por?: string | null
+          descricao?: string | null
+          esta_ativa?: boolean | null
+          id?: string
+          max_contatos?: number | null
+          nome?: string
+          operador_id?: string
+          recebe_novos_contatos?: boolean | null
+          total_atendimentos?: number | null
+          total_contatos?: number | null
+          ultimo_atendimento_em?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_carteiras_v2_criado_por_fkey"
+            columns: ["criado_por"]
+            isOneToOne: false
+            referencedRelation: "mv_top_vendedores"
+            referencedColumns: ["vendedor_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_carteiras_v2_criado_por_fkey"
+            columns: ["criado_por"]
+            isOneToOne: false
+            referencedRelation: "perfis_usuario"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_carteiras_v2_criado_por_fkey"
+            columns: ["criado_por"]
+            isOneToOne: false
+            referencedRelation: "vw_performance_vendedor"
+            referencedColumns: ["vendedor_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_carteiras_v2_criado_por_fkey"
+            columns: ["criado_por"]
+            isOneToOne: false
+            referencedRelation: "vw_vendedores_disponiveis"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_carteiras_v2_operador_id_fkey"
+            columns: ["operador_id"]
+            isOneToOne: false
+            referencedRelation: "mv_top_vendedores"
+            referencedColumns: ["vendedor_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_carteiras_v2_operador_id_fkey"
+            columns: ["operador_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_usuario"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_carteiras_v2_operador_id_fkey"
+            columns: ["operador_id"]
+            isOneToOne: false
+            referencedRelation: "vw_performance_vendedor"
+            referencedColumns: ["vendedor_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_carteiras_v2_operador_id_fkey"
+            columns: ["operador_id"]
+            isOneToOne: false
+            referencedRelation: "vw_vendedores_disponiveis"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       whatsapp_configuracao_global: {
         Row: {
           configurado_em: string | null
@@ -11275,6 +11453,10 @@ export type Database = {
       }
       buscar_contato_crm_por_telefone: {
         Args: { numero_whatsapp: string }
+        Returns: string
+      }
+      buscar_operador_carteira: {
+        Args: { p_contato_id: string }
         Returns: string
       }
       buscar_produtos_hibrido: {
