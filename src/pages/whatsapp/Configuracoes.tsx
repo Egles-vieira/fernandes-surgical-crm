@@ -10,7 +10,7 @@ import ContasWhatsAppList from "@/components/whatsapp/config/ContasWhatsAppList"
 import NovaContaDialog from "@/components/whatsapp/config/NovaContaDialog";
 import TemplatesWhatsApp from "@/components/whatsapp/config/TemplatesWhatsApp";
 import RespostasRapidas from "@/components/whatsapp/config/RespostasRapidas";
-import { GerenciarFilas } from "@/components/whatsapp/config/GerenciarFilas";
+import { GerenciarFilasWhatsApp } from "@/components/whatsapp/config/GerenciarFilasWhatsApp";
 
 // Componentes de Governança
 import { 
@@ -172,9 +172,9 @@ const ConfiguracoesWhatsApp = () => {
             </div>
           </TabsContent>
 
-          {/* Tab: Filas */}
+          {/* Tab: Filas WhatsApp */}
           <TabsContent value="filas">
-            <GerenciarFilas />
+            <GerenciarFilasWhatsApp />
           </TabsContent>
 
           {/* Tab: Templates */}
