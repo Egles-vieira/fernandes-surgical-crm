@@ -16,44 +16,183 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
-    const { conversaId, filaId, unidadeId, forcarDistribuicao = false } = await req.json();
+    const { 
+      conversaId, 
+      contatoId,
+      filaId, 
+      unidadeId, 
+      operadorCarteiraId,
+      modoCarteirizacao = 'preferencial',
+      carteirizacaoAtiva = false,
+      forcarDistribuicao = false 
+    } = await req.json();
 
     if (!conversaId) {
       throw new Error('conversaId é obrigatório');
     }
 
-    console.log('🔄 Distribuindo conversa:', { conversaId, filaId, unidadeId });
-
-    // Call the database function for distribution
-    const { data, error } = await supabase.rpc('distribuir_conversa_whatsapp', {
-      p_conversa_id: conversaId,
-      p_fila_id: filaId || null,
+    console.log('🔄 Distribuindo conversa:', { 
+      conversaId, 
+      contatoId,
+      filaId, 
+      unidadeId, 
+      operadorCarteiraId, 
+      modoCarteirizacao, 
+      carteirizacaoAtiva 
     });
 
-    if (error) {
-      console.error('❌ Distribution error:', error);
-      throw error;
+    // ===== FASE 1: VERIFICAR CARTEIRA V2 =====
+    let atendenteId: string | null = null;
+    let motivoDistribuicao = '';
+
+    // Se carteirização ativa, priorizar operador da carteira
+    if (carteirizacaoAtiva && contatoId) {
+      console.log('📂 Verificando carteira v2 para contato:', contatoId);
+      
+      // Usar a função buscar_operador_carteira que já criamos
+      const { data: operadorCarteira, error: carteiraError } = await supabase
+        .rpc('buscar_operador_carteira', { p_contato_id: contatoId });
+      
+      if (carteiraError) {
+        console.warn('⚠️ Erro ao buscar carteira:', carteiraError);
+      }
+      
+      if (operadorCarteira) {
+        console.log('✅ Operador da carteira encontrado:', operadorCarteira);
+        
+        // Verificar se operador está online
+        const { data: perfilOperador } = await supabase
+          .from('perfis_usuario')
+          .select('id, nome, status_atendimento')
+          .eq('id', operadorCarteira)
+          .single();
+        
+        if (perfilOperador?.status_atendimento === 'online') {
+          // Verificar limite de atendimentos
+          const { data: configAtendimento } = await supabase
+            .from('whatsapp_configuracoes_atendimento')
+            .select('max_atendimentos_simultaneos')
+            .limit(1)
+            .single();
+          
+          const maxAtendimentos = configAtendimento?.max_atendimentos_simultaneos || 5;
+          
+          const { count: atendimentosAtivos } = await supabase
+            .from('whatsapp_conversas')
+            .select('id', { count: 'exact', head: true })
+            .eq('atendente_id', operadorCarteira)
+            .eq('status', 'aberta');
+          
+          if ((atendimentosAtivos || 0) < maxAtendimentos) {
+            atendenteId = operadorCarteira;
+            motivoDistribuicao = 'carteira_v2';
+            console.log('✅ Operador da carteira disponível e dentro do limite');
+          } else {
+            console.log('⚠️ Operador da carteira está no limite de atendimentos');
+            if (modoCarteirizacao === 'forcar') {
+              // Modo forçar: aguarda operador da carteira
+              motivoDistribuicao = 'aguardando_operador_carteira';
+            }
+          }
+        } else {
+          console.log('⚠️ Operador da carteira não está online:', perfilOperador?.status_atendimento);
+          if (modoCarteirizacao === 'forcar') {
+            // Modo forçar: aguarda operador da carteira ficar online
+            motivoDistribuicao = 'aguardando_operador_carteira';
+          }
+        }
+      }
     }
 
-    const result = data as { sucesso: boolean; atendente_id?: string; motivo?: string };
+    // ===== FASE 2: FALLBACK PARA DISTRIBUIÇÃO ROUND-ROBIN =====
+    if (!atendenteId && motivoDistribuicao !== 'aguardando_operador_carteira') {
+      console.log('🔄 Iniciando distribuição round-robin...');
+      
+      // Buscar configuração
+      const { data: configAtendimento } = await supabase
+        .from('whatsapp_configuracoes_atendimento')
+        .select('*')
+        .limit(1)
+        .single();
+      
+      const maxAtendimentos = configAtendimento?.max_atendimentos_simultaneos || 5;
+      
+      // Buscar operadores online com capacidade
+      const { data: operadoresDisponiveis } = await supabase
+        .from('perfis_usuario')
+        .select(`
+          id,
+          nome,
+          status_atendimento,
+          whatsapp_conversas:whatsapp_conversas(count)
+        `)
+        .eq('status_atendimento', 'online')
+        .eq('whatsapp_ativo', true);
+      
+      if (operadoresDisponiveis && operadoresDisponiveis.length > 0) {
+        // Filtrar operadores com capacidade disponível
+        const operadoresComCapacidade = [];
+        
+        for (const op of operadoresDisponiveis) {
+          const { count } = await supabase
+            .from('whatsapp_conversas')
+            .select('id', { count: 'exact', head: true })
+            .eq('atendente_id', op.id)
+            .eq('status', 'aberta');
+          
+          if ((count || 0) < maxAtendimentos) {
+            operadoresComCapacidade.push({
+              ...op,
+              atendimentos_ativos: count || 0
+            });
+          }
+        }
+        
+        if (operadoresComCapacidade.length > 0) {
+          // Ordenar por menor quantidade de atendimentos (menos ocupado primeiro)
+          operadoresComCapacidade.sort((a, b) => a.atendimentos_ativos - b.atendimentos_ativos);
+          atendenteId = operadoresComCapacidade[0].id;
+          motivoDistribuicao = 'round_robin_menos_ocupado';
+          console.log('✅ Operador selecionado por round-robin:', atendenteId);
+        }
+      }
+    }
 
-    if (result.sucesso && result.atendente_id) {
+    // ===== FASE 3: ATRIBUIR OU COLOCAR NA FILA =====
+    if (atendenteId) {
+      // Atribuir conversa ao atendente
+      const { error: updateError } = await supabase
+        .from('whatsapp_conversas')
+        .update({
+          atendente_id: atendenteId,
+          status: 'aberta',
+          em_distribuicao: false,
+          distribuicao_iniciada_em: null,
+        })
+        .eq('id', conversaId);
+
+      if (updateError) {
+        console.error('❌ Erro ao atribuir conversa:', updateError);
+        throw updateError;
+      }
+
       // Get attendant info
       const { data: atendente } = await supabase
         .from('perfis_usuario')
         .select('id, nome')
-        .eq('id', result.atendente_id)
+        .eq('id', atendenteId)
         .single();
 
       // Audit log
       await supabase.from('whatsapp_auditoria').insert({
         tipo_evento: 'conversa_distribuida',
-        descricao: `Conversa distribuída para ${atendente?.nome || 'atendente'}`,
-        usuario_id: result.atendente_id,
+        descricao: `Conversa distribuída para ${atendente?.nome || 'atendente'} (${motivoDistribuicao})`,
+        usuario_id: atendenteId,
         whatsapp_conversa_id: conversaId,
         dados_evento: {
-          atendente_id: result.atendente_id,
+          atendente_id: atendenteId,
           atendente_nome: atendente?.nome,
+          motivo: motivoDistribuicao,
           fila_id: filaId,
           unidade_id: unidadeId,
         },
@@ -61,25 +200,28 @@ Deno.serve(async (req) => {
 
       // Send notification to attendant
       await supabase.from('notificacoes').insert({
-        user_id: result.atendente_id,
+        user_id: atendenteId,
         tipo: 'whatsapp_nova_conversa',
         titulo: 'Nova conversa WhatsApp',
         descricao: 'Uma nova conversa foi atribuída a você',
         dados: { conversa_id: conversaId },
       });
 
+      console.log('✅ Conversa distribuída com sucesso:', { atendenteId, motivoDistribuicao });
+
       return new Response(
         JSON.stringify({
           success: true,
-          atendenteId: result.atendente_id,
+          atendenteId: atendenteId,
           atendentNome: atendente?.nome,
+          motivo: motivoDistribuicao,
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     // No attendant available - add to queue
-    console.log('⏳ No attendant available, adding to queue:', result.motivo);
+    console.log('⏳ Nenhum atendente disponível, adicionando à fila:', motivoDistribuicao || 'sem_operadores_disponiveis');
 
     // Check if already in queue
     const { data: existingQueue } = await supabase
@@ -99,8 +241,8 @@ Deno.serve(async (req) => {
 
       await supabase.from('whatsapp_fila_espera').insert({
         conversa_id: conversaId,
-        whatsapp_fila_id: filaId || null, // Usar nova coluna
-        fila_id: filaId || null, // Manter compatibilidade
+        whatsapp_fila_id: filaId || null,
+        fila_id: filaId || null,
         unidade_id: unidadeId || null,
         prioridade: conversa?.prioridade || 'normal',
         status: 'aguardando',
@@ -121,7 +263,7 @@ Deno.serve(async (req) => {
       JSON.stringify({
         success: false,
         queued: true,
-        reason: result.motivo || 'Nenhum atendente disponível',
+        reason: motivoDistribuicao || 'Nenhum atendente disponível',
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

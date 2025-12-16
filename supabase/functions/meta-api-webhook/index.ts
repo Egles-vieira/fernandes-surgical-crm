@@ -424,16 +424,33 @@ async function processarMensagemRecebida(supabase: any, conta: any, message: any
         }
       }
       
-      // Verificar configuração de distribuição automática
-      const { data: configDistribuicao } = await supabase
-        .from('whatsapp_config_atendimento')
+      // Verificar configuração de distribuição automática (TABELA CORRETA: whatsapp_configuracoes_atendimento)
+      const { data: configDistribuicao, error: configError } = await supabase
+        .from('whatsapp_configuracoes_atendimento')
         .select('*')
-        .eq('esta_ativa', true)
         .limit(1)
         .single();
       
-      if (configDistribuicao?.distribuicao_automatica) {
-        console.log('🎯 Distribuição automática ativada, chamando distribuidor...');
+      if (configError && configError.code !== 'PGRST116') {
+        console.error('⚠️ Erro ao buscar configuração de distribuição:', configError);
+      }
+      
+      console.log('📋 Configuração de distribuição:', JSON.stringify(configDistribuicao));
+      
+      if (configDistribuicao?.distribuicao_automatica_ativa !== false) {
+        console.log('🎯 Distribuição automática ativada, verificando carteiras v2...');
+        
+        // Verificar se existe carteira v2 para este contato
+        let operadorCarteira = null;
+        if (configDistribuicao?.carteirizacao_ativa && contato?.id) {
+          const { data: carteira } = await supabase
+            .rpc('buscar_operador_carteira', { p_contato_id: contato.id });
+          
+          if (carteira) {
+            operadorCarteira = carteira;
+            console.log('📂 Operador da carteira v2 encontrado:', operadorCarteira);
+          }
+        }
         
         // Chamar função de distribuição
         const distribuicaoResponse = await fetch(
@@ -446,8 +463,12 @@ async function processarMensagemRecebida(supabase: any, conta: any, message: any
             },
             body: JSON.stringify({
               conversaId: conversa.id,
-              filaId: configDistribuicao.fila_padrao_id || null,
+              contatoId: contato.id,
+              filaId: null,
               unidadeId: conta.unidade_padrao_id || null,
+              operadorCarteiraId: operadorCarteira,
+              modoCarteirizacao: configDistribuicao?.modo_carteirizacao || 'preferencial',
+              carteirizacaoAtiva: configDistribuicao?.carteirizacao_ativa || false,
             }),
           }
         );
@@ -455,7 +476,7 @@ async function processarMensagemRecebida(supabase: any, conta: any, message: any
         const distribuicaoResult = await distribuicaoResponse.json();
         console.log('📋 Resultado da distribuição:', JSON.stringify(distribuicaoResult));
       } else {
-        console.log('ℹ️ Distribuição automática desativada ou sem configuração');
+        console.log('ℹ️ Distribuição automática desativada');
       }
     } catch (distError) {
       // Não bloqueia o fluxo se a distribuição falhar
