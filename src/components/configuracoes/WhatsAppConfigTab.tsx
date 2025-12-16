@@ -10,7 +10,8 @@ import ContasWhatsAppList from "@/components/whatsapp/config/ContasWhatsAppList"
 import { NovaContaSheet } from "@/components/whatsapp/config/NovaContaSheet";
 import TemplatesWhatsApp from "@/components/whatsapp/config/TemplatesWhatsApp";
 import RespostasRapidas from "@/components/whatsapp/config/RespostasRapidas";
-import { GerenciarFilas } from "@/components/whatsapp/config/GerenciarFilas";
+import { GerenciarFilasWhatsApp } from "@/components/whatsapp/config/GerenciarFilasWhatsApp";
+import { GerenciarCarteiras } from "@/components/whatsapp/config/GerenciarCarteiras";
 
 // Componentes de Governança
 import { 
@@ -164,7 +165,7 @@ export const WhatsAppConfigTab = () => {
 
         {/* Tab: Filas */}
         <TabsContent value="filas">
-          <GerenciarFilas />
+          <GerenciarFilasWhatsApp />
         </TabsContent>
 
         {/* Tab: Templates */}
@@ -203,20 +204,26 @@ export const WhatsAppConfigTab = () => {
 
         {/* Tab: Equipe */}
         <TabsContent value="equipe">
-          <Card>
-            <CardHeader>
-              <CardTitle>Gestão de Equipe</CardTitle>
-              <CardDescription>
-                Configurações de operadores e disponibilidade gerenciadas via BAM
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button onClick={() => navigate('/whatsapp/bam')}>
-                <Activity className="w-4 h-4 mr-2" />
-                Acessar Monitor BAM
-              </Button>
-            </CardContent>
-          </Card>
+          <div className="space-y-6">
+            {/* Gestão de Carteiras */}
+            <GerenciarCarteiras />
+
+            {/* Acesso ao BAM */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Monitor em Tempo Real</CardTitle>
+                <CardDescription>
+                  Acompanhe operadores e disponibilidade em tempo real
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button onClick={() => navigate('/whatsapp/bam')}>
+                  <Activity className="w-4 h-4 mr-2" />
+                  Acessar Monitor BAM
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
 
