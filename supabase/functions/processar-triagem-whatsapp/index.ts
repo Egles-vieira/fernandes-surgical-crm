@@ -374,11 +374,36 @@ async function solicitarCNPJ(supabase: any, triagem: TriagemPendente) {
     .single();
 
   if (conta && contato) {
-    // Enviar mensagem solicitando CNPJ
-    const mensagem = '👋 Olá! Para melhor atendê-lo, por favor, informe o CNPJ da sua empresa.';
+    const mensagemTexto = '👋 Olá! Para melhor atendê-lo, por favor, informe o CNPJ da sua empresa.';
 
     try {
-      await fetch(
+      // 1. Criar mensagem no banco de dados primeiro
+      const { data: novaMensagem, error: insertError } = await supabase
+        .from('whatsapp_mensagens')
+        .insert({
+          conversa_id: triagem.conversa_id,
+          whatsapp_conta_id: conta.id,
+          whatsapp_contato_id: triagem.contato_id,
+          corpo: mensagemTexto,
+          tipo_mensagem: 'texto',
+          direcao: 'enviada',
+          status: 'pendente',
+          numero_para: contato.telefone,
+          enviada_por_bot: true,
+          enviada_automaticamente: true,
+        })
+        .select('id')
+        .single();
+
+      if (insertError) {
+        console.error('⚠️ Erro ao criar mensagem no banco:', insertError);
+        return;
+      }
+
+      console.log('✅ Mensagem criada no banco:', novaMensagem.id);
+
+      // 2. Chamar meta-api-enviar-mensagem com o mensagemId
+      const response = await fetch(
         `${Deno.env.get('SUPABASE_URL')}/functions/v1/meta-api-enviar-mensagem`,
         {
           method: 'POST',
@@ -386,16 +411,22 @@ async function solicitarCNPJ(supabase: any, triagem: TriagemPendente) {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
           },
-          body: JSON.stringify({
-            contaId: conta.id,
-            destinatario: contato.telefone,
-            mensagem: mensagem,
-          }),
+          body: JSON.stringify({ mensagemId: novaMensagem.id }),
         }
       );
+
+      const result = await response.json();
+      
+      if (!response.ok) {
+        console.error('⚠️ Erro ao enviar mensagem de CNPJ:', result);
+      } else {
+        console.log('✅ Mensagem de CNPJ enviada com sucesso:', result);
+      }
     } catch (error) {
       console.error('⚠️ Erro ao enviar mensagem de CNPJ:', error);
     }
+  } else {
+    console.error('⚠️ Conta ou contato não encontrado para envio de CNPJ');
   }
 
   // Atualizar triagem
