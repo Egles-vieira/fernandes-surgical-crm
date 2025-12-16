@@ -21,6 +21,15 @@ export interface WhatsAppFila {
   atualizado_em: string;
 }
 
+export interface OperadorFila {
+  id: string;
+  primeiro_nome: string;
+  sobrenome: string;
+  url_avatar: string | null;
+  status_atendimento_whatsapp: string | null;
+  filas_atendimento_ids: string[] | null;
+}
+
 export interface WhatsAppFilaInsert {
   nome: string;
   descricao?: string | null;
@@ -207,6 +216,98 @@ export function useWhatsAppFilas() {
     },
   });
 
+  // Query para buscar todos os operadores disponíveis
+  const { data: operadoresDisponiveis = [], isLoading: isLoadingOperadores } = useQuery({
+    queryKey: ["whatsapp_operadores_disponiveis"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("perfis_usuario")
+        .select("id, primeiro_nome, sobrenome, url_avatar, status_atendimento_whatsapp, filas_atendimento_ids")
+        .order("primeiro_nome", { ascending: true });
+
+      if (error) throw error;
+      return data as OperadorFila[];
+    },
+  });
+
+  // Função para obter operadores de uma fila específica
+  const getOperadoresDaFila = (filaId: string): OperadorFila[] => {
+    return operadoresDisponiveis.filter(
+      (op) => op.filas_atendimento_ids?.includes(filaId)
+    );
+  };
+
+  // Função para obter operadores NÃO vinculados a uma fila
+  const getOperadoresNaoVinculados = (filaId: string): OperadorFila[] => {
+    return operadoresDisponiveis.filter(
+      (op) => !op.filas_atendimento_ids?.includes(filaId)
+    );
+  };
+
+  // Mutation para vincular operador à fila
+  const vincularOperador = useMutation({
+    mutationFn: async ({ operadorId, filaId }: { operadorId: string; filaId: string }) => {
+      const operador = operadoresDisponiveis.find((op) => op.id === operadorId);
+      const filasAtuais = operador?.filas_atendimento_ids || [];
+      
+      if (filasAtuais.includes(filaId)) {
+        throw new Error("Operador já está vinculado a esta fila");
+      }
+
+      const { error } = await supabase
+        .from("perfis_usuario")
+        .update({ filas_atendimento_ids: [...filasAtuais, filaId] })
+        .eq("id", operadorId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["whatsapp_operadores_disponiveis"] });
+      toast({
+        title: "Operador vinculado!",
+        description: "O operador foi adicionado à fila com sucesso.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro ao vincular operador",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Mutation para desvincular operador da fila
+  const desvincularOperador = useMutation({
+    mutationFn: async ({ operadorId, filaId }: { operadorId: string; filaId: string }) => {
+      const operador = operadoresDisponiveis.find((op) => op.id === operadorId);
+      const filasAtuais = operador?.filas_atendimento_ids || [];
+      
+      const novasFilas = filasAtuais.filter((id) => id !== filaId);
+
+      const { error } = await supabase
+        .from("perfis_usuario")
+        .update({ filas_atendimento_ids: novasFilas })
+        .eq("id", operadorId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["whatsapp_operadores_disponiveis"] });
+      toast({
+        title: "Operador removido!",
+        description: "O operador foi removido da fila com sucesso.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro ao remover operador",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   return {
     filas,
     todasFilas,
@@ -217,5 +318,12 @@ export function useWhatsAppFilas() {
     deleteFila,
     reativarFila,
     reordenarFilas,
+    // Operadores
+    operadoresDisponiveis,
+    isLoadingOperadores,
+    getOperadoresDaFila,
+    getOperadoresNaoVinculados,
+    vincularOperador,
+    desvincularOperador,
   };
 }
