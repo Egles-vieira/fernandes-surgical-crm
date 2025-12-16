@@ -2,7 +2,6 @@
 // Status Bar Component
 // ============================================
 
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { 
   CheckCircle2, 
@@ -11,7 +10,8 @@ import {
   Settings,
   Wifi,
   WifiOff,
-  Circle
+  Circle,
+  Loader2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Link } from 'react-router-dom';
@@ -28,7 +28,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface StatusBarProps {
   isConnected: boolean;
@@ -36,14 +38,63 @@ interface StatusBarProps {
   qualityRating?: 'GREEN' | 'YELLOW' | 'RED' | 'UNKNOWN';
 }
 
-type OperatorStatus = 'online' | 'busy' | 'break' | 'offline';
+// Valores do banco: online, ocupado, paused, offline
+type OperatorStatusDB = 'online' | 'ocupado' | 'paused' | 'offline';
+
+const STATUS_OPTIONS: { value: OperatorStatusDB; label: string; color: string }[] = [
+  { value: 'online', label: 'Disponível', color: 'bg-green-500' },
+  { value: 'ocupado', label: 'Ocupado', color: 'bg-yellow-500' },
+  { value: 'paused', label: 'Em Pausa', color: 'bg-orange-500' },
+  { value: 'offline', label: 'Offline', color: 'bg-gray-400' },
+];
 
 export function StatusBar({ 
   isConnected, 
   phoneNumberId,
   qualityRating = 'UNKNOWN' 
 }: StatusBarProps) {
-  const [operatorStatus, setOperatorStatus] = useState<OperatorStatus>('online');
+  const queryClient = useQueryClient();
+
+  // Buscar status atual do banco
+  const { data: operatorStatus = 'offline', isLoading } = useQuery({
+    queryKey: ['whatsapp-operator-status'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return 'offline';
+      
+      const { data } = await supabase
+        .from('perfis_usuario')
+        .select('status_atendimento_whatsapp')
+        .eq('id', user.id)
+        .single();
+      
+      return (data?.status_atendimento_whatsapp as OperatorStatusDB) || 'offline';
+    },
+  });
+
+  // Mutation para atualizar status
+  const updateStatus = useMutation({
+    mutationFn: async (status: OperatorStatusDB) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Não autenticado');
+      
+      const { error } = await supabase
+        .from('perfis_usuario')
+        .update({ status_atendimento_whatsapp: status })
+        .eq('id', user.id);
+      
+      if (error) throw error;
+      return status;
+    },
+    onSuccess: (status) => {
+      queryClient.invalidateQueries({ queryKey: ['whatsapp-operator-status'] });
+      const option = STATUS_OPTIONS.find(o => o.value === status);
+      toast.success(`Status alterado para ${option?.label || status}`);
+    },
+    onError: () => {
+      toast.error('Erro ao atualizar status');
+    }
+  });
 
   const getQualityIcon = () => {
     switch (qualityRating) {
@@ -71,30 +122,12 @@ export function StatusBar({
     }
   };
 
-  const getStatusColor = (status: OperatorStatus) => {
-    switch (status) {
-      case 'online':
-        return 'bg-green-500';
-      case 'busy':
-        return 'bg-yellow-500';
-      case 'break':
-        return 'bg-orange-500';
-      case 'offline':
-        return 'bg-gray-400';
-    }
+  const getStatusColor = (status: OperatorStatusDB) => {
+    return STATUS_OPTIONS.find(o => o.value === status)?.color || 'bg-gray-400';
   };
 
-  const getStatusLabel = (status: OperatorStatus) => {
-    switch (status) {
-      case 'online':
-        return 'Disponível';
-      case 'busy':
-        return 'Ocupado';
-      case 'break':
-        return 'Em Pausa';
-      case 'offline':
-        return 'Offline';
-    }
+  const getStatusLabel = (status: OperatorStatusDB) => {
+    return STATUS_OPTIONS.find(o => o.value === status)?.label || 'Offline';
   };
 
   const maskedPhoneId = phoneNumberId 
@@ -106,38 +139,30 @@ export function StatusBar({
       <div className="h-10 px-4 flex items-center justify-between border-t bg-card text-sm">
         {/* Left: Operator Status */}
         <div className="flex items-center gap-3">
-          <Select value={operatorStatus} onValueChange={(v) => setOperatorStatus(v as OperatorStatus)}>
+          <Select 
+            value={operatorStatus} 
+            onValueChange={(v) => updateStatus.mutate(v as OperatorStatusDB)}
+            disabled={isLoading || updateStatus.isPending}
+          >
             <SelectTrigger className="h-7 w-32 text-xs">
               <div className="flex items-center gap-2">
-                <span className={cn("h-2 w-2 rounded-full", getStatusColor(operatorStatus))} />
-                <SelectValue />
+                {updateStatus.isPending ? (
+                  <Loader2 className="h-2 w-2 animate-spin" />
+                ) : (
+                  <span className={cn("h-2 w-2 rounded-full", getStatusColor(operatorStatus))} />
+                )}
+                <SelectValue>{getStatusLabel(operatorStatus)}</SelectValue>
               </div>
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="online">
-                <div className="flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-green-500" />
-                  Disponível
-                </div>
-              </SelectItem>
-              <SelectItem value="busy">
-                <div className="flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-yellow-500" />
-                  Ocupado
-                </div>
-              </SelectItem>
-              <SelectItem value="break">
-                <div className="flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-orange-500" />
-                  Em Pausa
-                </div>
-              </SelectItem>
-              <SelectItem value="offline">
-                <div className="flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-gray-400" />
-                  Offline
-                </div>
-              </SelectItem>
+              {STATUS_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  <div className="flex items-center gap-2">
+                    <span className={cn("h-2 w-2 rounded-full", option.color)} />
+                    {option.label}
+                  </div>
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
