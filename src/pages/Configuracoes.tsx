@@ -1,9 +1,10 @@
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Building2, Palette, MessageSquare, Cloud } from "lucide-react";
+import { Building2, Palette, MessageSquare, Cloud, Clock } from "lucide-react";
 import { EmpresaConfig } from "@/components/configuracoes/EmpresaConfig";
 import { PersonalizarCores } from "@/components/configuracoes/PersonalizarCores";
 import { WhatsAppConfigTab } from "@/components/configuracoes/WhatsAppConfigTab";
+import { CronJobsConfig } from "@/components/configuracoes/CronJobsConfig";
 import WABAConfig from "@/pages/whatsapp/WABAConfig";
 
 export default function Configuracoes() {
@@ -11,7 +12,7 @@ export default function Configuracoes() {
     <div className="container mx-auto py-6 space-y-6">
       <Card className="p-6">
         <Tabs defaultValue="empresa" className="space-y-6">
-          <TabsList className="grid w-full max-w-4xl grid-cols-4">
+          <TabsList className="grid w-full max-w-5xl grid-cols-5">
             <TabsTrigger value="empresa" className="gap-2">
               <Building2 className="h-4 w-4" />
               Empresa
@@ -27,6 +28,10 @@ export default function Configuracoes() {
             <TabsTrigger value="waba" className="gap-2">
               <Cloud className="h-4 w-4" />
               Config. Meta
+            </TabsTrigger>
+            <TabsTrigger value="agendamentos" className="gap-2">
+              <Clock className="h-4 w-4" />
+              Agendamentos
             </TabsTrigger>
           </TabsList>
 
@@ -44,6 +49,10 @@ export default function Configuracoes() {
 
           <TabsContent value="waba">
             <WABAConfig />
+          </TabsContent>
+
+          <TabsContent value="agendamentos">
+            <CronJobsConfig />
           </TabsContent>
         </Tabs>
       </Card>

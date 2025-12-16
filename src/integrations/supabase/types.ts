@@ -11625,6 +11625,10 @@ export type Database = {
         Returns: undefined
       }
       atribuir_conversas_em_fila: { Args: never; Returns: number }
+      atualizar_cron_job: {
+        Args: { p_command: string; p_jobid: number; p_schedule: string }
+        Returns: boolean
+      }
       atualizar_progresso_meta: {
         Args: {
           _meta_id: string
@@ -11723,6 +11727,7 @@ export type Database = {
         Returns: boolean
       }
       can_access_menu_tecnico: { Args: { _user_id: string }; Returns: boolean }
+      desabilitar_cron_job: { Args: { p_jobid: number }; Returns: boolean }
       distribuir_conversa_whatsapp: {
         Args: {
           p_conversa_id: string
@@ -11882,6 +11887,7 @@ export type Database = {
               vendedor_nome: string
             }[]
           }
+      habilitar_cron_job: { Args: { p_jobid: number }; Returns: boolean }
       has_any_role: {
         Args: {
           _roles: Database["public"]["Enums"]["app_role"][]
@@ -11895,6 +11901,20 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      historico_cron_job: {
+        Args: { p_jobid: number; p_limit?: number }
+        Returns: {
+          command: string
+          database: string
+          end_time: string
+          job_pid: number
+          return_message: string
+          runid: number
+          start_time: string
+          status: string
+          username: string
+        }[]
       }
       inserir_itens_venda_bulk: {
         Args: { p_itens: Json; p_venda_id: string }
@@ -11912,6 +11932,20 @@ export type Database = {
           email: string
           roles: Database["public"]["Enums"]["app_role"][]
           user_id: string
+        }[]
+      }
+      listar_cron_jobs: {
+        Args: never
+        Returns: {
+          active: boolean
+          command: string
+          database: string
+          jobid: number
+          jobname: string
+          nodename: string
+          nodeport: number
+          schedule: string
+          username: string
         }[]
       }
       match_produtos: {
