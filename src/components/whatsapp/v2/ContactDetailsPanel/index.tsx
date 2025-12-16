@@ -2,29 +2,35 @@
 // Contact Details Panel Component
 // ============================================
 
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   X, 
   Phone, 
   Mail, 
   Building2, 
-  MapPin, 
   Tag, 
   FileText, 
   Clock,
   User,
   ExternalLink,
-  Edit
+  Edit,
+  Wallet,
+  Check,
+  Loader2
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useWhatsAppCarteiras } from '@/hooks/useWhatsAppCarteiras';
+import { toast } from 'sonner';
 
 interface Contato {
   id: string;
@@ -44,6 +50,9 @@ export function ContactDetailsPanel({
   conversaId,
   onClose 
 }: ContactDetailsPanelProps) {
+  const [selectedCarteira, setSelectedCarteira] = useState<string>('');
+  const { carteiras, adicionarContato, removerContato, isAdicionandoContato, isRemovendoContato } = useWhatsAppCarteiras();
+
   // Fetch additional contact data
   const { data: contatoCompleto } = useQuery({
     queryKey: ['whatsapp-contato-detalhe', contato?.id],
@@ -77,6 +86,32 @@ export function ContactDetailsPanel({
     enabled: !!contato?.id,
   });
 
+  // Check if contact is already in a carteira
+  const { data: carteiraAtual, refetch: refetchCarteira } = useQuery({
+    queryKey: ['whatsapp-contato-carteira', contato?.id],
+    queryFn: async () => {
+      if (!contato?.id) return null;
+      const { data, error } = await (supabase as any)
+        .from('whatsapp_carteiras_contatos')
+        .select(`
+          id,
+          carteira_id,
+          carteira:whatsapp_carteiras_v2!whatsapp_carteiras_contatos_carteira_id_fkey(
+            id, nome, cor, operador:perfis_usuario!whatsapp_carteiras_v2_operador_id_fkey(nome_completo)
+          )
+        `)
+        .eq('whatsapp_contato_id', contato.id)
+        .maybeSingle();
+
+      if (error) {
+        console.warn('Erro ao buscar carteira do contato:', error);
+        return null;
+      }
+      return data;
+    },
+    enabled: !!contato?.id,
+  });
+
   // Fetch conversation stats
   const { data: stats } = useQuery({
     queryKey: ['whatsapp-conversa-stats', conversaId],
@@ -97,6 +132,30 @@ export function ContactDetailsPanel({
     },
     enabled: !!conversaId,
   });
+
+  const handleCarteirizar = () => {
+    if (!selectedCarteira || !contato?.id) return;
+    
+    adicionarContato({
+      carteiraId: selectedCarteira,
+      contatoId: contato.id,
+    }, {
+      onSuccess: () => {
+        setSelectedCarteira('');
+        refetchCarteira();
+      }
+    });
+  };
+
+  const handleRemoverCarteira = () => {
+    if (!carteiraAtual?.id) return;
+    
+    removerContato(carteiraAtual.id, {
+      onSuccess: () => {
+        refetchCarteira();
+      }
+    });
+  };
 
   if (!contato) {
     return (
@@ -222,7 +281,83 @@ export function ContactDetailsPanel({
             </Card>
           )}
 
-          {/* Conversation Stats */}
+          {/* Carteira */}
+          <Card>
+            <CardHeader className="py-3 px-4">
+              <CardTitle className="text-xs font-medium flex items-center gap-2">
+                <Wallet className="h-3.5 w-3.5" />
+                Carteira
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="py-2 px-4">
+              {carteiraAtual ? (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <div 
+                      className="w-2 h-2 rounded-full" 
+                      style={{ backgroundColor: carteiraAtual.carteira?.cor || '#3b82f6' }}
+                    />
+                    <span className="text-sm font-medium">{carteiraAtual.carteira?.nome}</span>
+                  </div>
+                  {carteiraAtual.carteira?.operador?.nome_completo && (
+                    <p className="text-xs text-muted-foreground">
+                      Operador: {carteiraAtual.carteira.operador.nome_completo}
+                    </p>
+                  )}
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full text-destructive hover:text-destructive"
+                    onClick={handleRemoverCarteira}
+                    disabled={isRemovendoContato}
+                  >
+                    {isRemovendoContato ? (
+                      <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                    ) : (
+                      <X className="h-3.5 w-3.5 mr-1.5" />
+                    )}
+                    Remover da Carteira
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <Select value={selectedCarteira} onValueChange={setSelectedCarteira}>
+                    <SelectTrigger className="h-8 text-xs">
+                      <SelectValue placeholder="Selecionar carteira..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {carteiras?.map((carteira) => (
+                        <SelectItem key={carteira.id} value={carteira.id}>
+                          <div className="flex items-center gap-2">
+                            <div 
+                              className="w-2 h-2 rounded-full" 
+                              style={{ backgroundColor: carteira.cor }}
+                            />
+                            {carteira.nome}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button 
+                    variant="default" 
+                    size="sm" 
+                    className="w-full"
+                    onClick={handleCarteirizar}
+                    disabled={!selectedCarteira || isAdicionandoContato}
+                  >
+                    {isAdicionandoContato ? (
+                      <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                    ) : (
+                      <Check className="h-3.5 w-3.5 mr-1.5" />
+                    )}
+                    Carteirizar
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           {stats && (
             <Card>
               <CardHeader className="py-3 px-4">
