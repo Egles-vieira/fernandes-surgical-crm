@@ -63,7 +63,7 @@ Deno.serve(async (req) => {
         // Verificar se operador está online
         const { data: perfilOperador } = await supabase
           .from('perfis_usuario')
-          .select('id, nome, status_atendimento')
+          .select('id, nome_completo, status_atendimento')
           .eq('id', operadorCarteira)
           .single();
         
@@ -122,7 +122,7 @@ Deno.serve(async (req) => {
         .from('perfis_usuario')
         .select(`
           id,
-          nome,
+          nome_completo,
           status_atendimento,
           whatsapp_conversas:whatsapp_conversas(count)
         `)
@@ -179,19 +179,19 @@ Deno.serve(async (req) => {
       // Get attendant info
       const { data: atendente } = await supabase
         .from('perfis_usuario')
-        .select('id, nome')
+        .select('id, nome_completo')
         .eq('id', atendenteId)
         .single();
 
       // Audit log
       await supabase.from('whatsapp_auditoria').insert({
         tipo_evento: 'conversa_distribuida',
-        descricao: `Conversa distribuída para ${atendente?.nome || 'atendente'} (${motivoDistribuicao})`,
+        descricao: `Conversa distribuída para ${atendente?.nome_completo || 'atendente'} (${motivoDistribuicao})`,
         usuario_id: atendenteId,
         whatsapp_conversa_id: conversaId,
         dados_evento: {
           atendente_id: atendenteId,
-          atendente_nome: atendente?.nome,
+          atendente_nome: atendente?.nome_completo,
           motivo: motivoDistribuicao,
           fila_id: filaId,
           unidade_id: unidadeId,
@@ -213,7 +213,7 @@ Deno.serve(async (req) => {
         JSON.stringify({
           success: true,
           atendenteId: atendenteId,
-          atendentNome: atendente?.nome,
+          atendentNome: atendente?.nome_completo,
           motivo: motivoDistribuicao,
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
