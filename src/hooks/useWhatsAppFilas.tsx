@@ -19,6 +19,11 @@ export interface WhatsAppFila {
   esta_ativa: boolean;
   criado_em: string;
   atualizado_em: string;
+  // Campos de triagem IA
+  palavras_chave: string[] | null;
+  regras_triagem: string | null;
+  prioridade_triagem: number | null;
+  tipo_fila: string | null;
 }
 
 export interface OperadorFila {
@@ -44,6 +49,11 @@ export interface WhatsAppFilaInsert {
   dias_semana?: number[];
   unidade_id?: string | null;
   esta_ativa?: boolean;
+  // Campos de triagem IA
+  palavras_chave?: string[] | null;
+  regras_triagem?: string | null;
+  prioridade_triagem?: number | null;
+  tipo_fila?: string | null;
 }
 
 export interface WhatsAppFilaUpdate extends Partial<WhatsAppFilaInsert> {

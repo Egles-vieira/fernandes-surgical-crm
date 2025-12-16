@@ -104,35 +104,70 @@ Deno.serve(async (req) => {
       }
     }
 
-    // ===== FASE 2: FALLBACK PARA DISTRIBUIÇÃO ROUND-ROBIN =====
-    if (!atendenteId && motivoDistribuicao !== 'aguardando_operador_carteira') {
-      console.log('🔄 Iniciando distribuição round-robin...');
+  // ===== FASE 2: FALLBACK PARA DISTRIBUIÇÃO ROUND-ROBIN =====
+  if (!atendenteId && motivoDistribuicao !== 'aguardando_operador_carteira') {
+    console.log('🔄 Iniciando distribuição round-robin...');
+    
+    // Buscar configuração
+    const { data: configAtendimento } = await supabase
+      .from('whatsapp_configuracoes_atendimento')
+      .select('*')
+      .limit(1)
+      .single();
+    
+    const maxAtendimentos = configAtendimento?.max_atendimentos_simultaneos || 5;
+    
+    // Buscar operadores online com capacidade
+    // Se filaId informado, filtrar operadores que pertencem à fila
+    let queryOperadores = supabase
+      .from('perfis_usuario')
+      .select(`
+        id,
+        nome_completo,
+        status_atendimento,
+        filas_atendimento_ids
+      `)
+      .eq('status_atendimento', 'online')
+      .eq('whatsapp_ativo', true);
+    
+    const { data: operadoresDisponiveis } = await queryOperadores;
+    
+    if (operadoresDisponiveis && operadoresDisponiveis.length > 0) {
+      // Filtrar operadores com capacidade disponível E que pertencem à fila (se informada)
+      const operadoresComCapacidade = [];
       
-      // Buscar configuração
-      const { data: configAtendimento } = await supabase
-        .from('whatsapp_configuracoes_atendimento')
-        .select('*')
-        .limit(1)
-        .single();
-      
-      const maxAtendimentos = configAtendimento?.max_atendimentos_simultaneos || 5;
-      
-      // Buscar operadores online com capacidade
-      const { data: operadoresDisponiveis } = await supabase
-        .from('perfis_usuario')
-        .select(`
-          id,
-          nome_completo,
-          status_atendimento,
-          whatsapp_conversas:whatsapp_conversas(count)
-        `)
-        .eq('status_atendimento', 'online')
-        .eq('whatsapp_ativo', true);
-      
-      if (operadoresDisponiveis && operadoresDisponiveis.length > 0) {
-        // Filtrar operadores com capacidade disponível
-        const operadoresComCapacidade = [];
+      for (const op of operadoresDisponiveis) {
+        // Se filaId informado, verificar se operador pertence à fila
+        if (filaId && op.filas_atendimento_ids) {
+          if (!op.filas_atendimento_ids.includes(filaId)) {
+            console.log(`⏭️ Operador ${op.nome_completo} não pertence à fila ${filaId}`);
+            continue;
+          }
+        }
         
+        const { count } = await supabase
+          .from('whatsapp_conversas')
+          .select('id', { count: 'exact', head: true })
+          .eq('atribuida_para_id', op.id)
+          .eq('status', 'aberta');
+        
+        if ((count || 0) < maxAtendimentos) {
+          operadoresComCapacidade.push({
+            ...op,
+            atendimentos_ativos: count || 0
+          });
+        }
+      }
+      
+      if (operadoresComCapacidade.length > 0) {
+        // Ordenar por menor quantidade de atendimentos (menos ocupado primeiro)
+        operadoresComCapacidade.sort((a, b) => a.atendimentos_ativos - b.atendimentos_ativos);
+        atendenteId = operadoresComCapacidade[0].id;
+        motivoDistribuicao = filaId ? 'round_robin_por_fila' : 'round_robin_menos_ocupado';
+        console.log(`✅ Operador selecionado por round-robin${filaId ? ' (filtrado por fila)' : ''}:`, atendenteId);
+      } else if (filaId) {
+        console.log('⚠️ Nenhum operador disponível na fila especificada, tentando sem filtro...');
+        // Retry sem filtro de fila
         for (const op of operadoresDisponiveis) {
           const { count } = await supabase
             .from('whatsapp_conversas')
@@ -149,14 +184,14 @@ Deno.serve(async (req) => {
         }
         
         if (operadoresComCapacidade.length > 0) {
-          // Ordenar por menor quantidade de atendimentos (menos ocupado primeiro)
           operadoresComCapacidade.sort((a, b) => a.atendimentos_ativos - b.atendimentos_ativos);
           atendenteId = operadoresComCapacidade[0].id;
-          motivoDistribuicao = 'round_robin_menos_ocupado';
-          console.log('✅ Operador selecionado por round-robin:', atendenteId);
+          motivoDistribuicao = 'round_robin_fallback';
+          console.log('✅ Operador selecionado por fallback:', atendenteId);
         }
       }
     }
+  }
 
     // ===== FASE 3: ATRIBUIR OU COLOCAR NA FILA =====
     if (atendenteId) {

@@ -440,7 +440,7 @@ async function processarMensagemRecebida(supabase: any, conta: any, message: any
       if (configDistribuicao?.distribuicao_automatica_ativa !== false) {
         console.log('🎯 Distribuição automática ativada, verificando carteiras v2...');
         
-        // Verificar se existe carteira v2 para este contato
+        // PRIORIDADE 1: Verificar se existe carteira v2 para este contato
         let operadorCarteira = null;
         if (configDistribuicao?.carteirizacao_ativa && contato?.id) {
           const { data: carteira } = await supabase
@@ -449,32 +449,65 @@ async function processarMensagemRecebida(supabase: any, conta: any, message: any
           if (carteira) {
             operadorCarteira = carteira;
             console.log('📂 Operador da carteira v2 encontrado:', operadorCarteira);
+            
+            // Se tem carteira, distribuir diretamente (sem triagem IA)
+            const distribuicaoResponse = await fetch(
+              `${Deno.env.get('SUPABASE_URL')}/functions/v1/whatsapp-distribuir-conversa`,
+              {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+                },
+                body: JSON.stringify({
+                  conversaId: conversa.id,
+                  contatoId: contato.id,
+                  filaId: null,
+                  unidadeId: conta.unidade_padrao_id || null,
+                  operadorCarteiraId: operadorCarteira,
+                  modoCarteirizacao: configDistribuicao?.modo_carteirizacao || 'preferencial',
+                  carteirizacaoAtiva: true,
+                }),
+              }
+            );
+            
+            const distribuicaoResult = await distribuicaoResponse.json();
+            console.log('📋 Resultado da distribuição (carteira):', JSON.stringify(distribuicaoResult));
           }
         }
         
-        // Chamar função de distribuição
-        const distribuicaoResponse = await fetch(
-          `${Deno.env.get('SUPABASE_URL')}/functions/v1/whatsapp-distribuir-conversa`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
-            },
-            body: JSON.stringify({
-              conversaId: conversa.id,
-              contatoId: contato.id,
-              filaId: null,
-              unidadeId: conta.unidade_padrao_id || null,
-              operadorCarteiraId: operadorCarteira,
-              modoCarteirizacao: configDistribuicao?.modo_carteirizacao || 'preferencial',
-              carteirizacaoAtiva: configDistribuicao?.carteirizacao_ativa || false,
-            }),
+        // PRIORIDADE 2: Se não tem carteira, criar triagem pendente com delay 10s
+        if (!operadorCarteira) {
+          console.log('🔄 Sem carteira, criando triagem pendente com delay 10s...');
+          
+          // Verificar se já existe triagem pendente para esta conversa
+          const { data: triagemExistente } = await supabase
+            .from('whatsapp_triagem_pendente')
+            .select('id')
+            .eq('conversa_id', conversa.id)
+            .in('status', ['aguardando', 'processando'])
+            .single();
+          
+          if (!triagemExistente) {
+            // Criar triagem pendente
+            await supabase.from('whatsapp_triagem_pendente').insert({
+              conversa_id: conversa.id,
+              contato_id: contato.id,
+              conta_id: conta.id,
+              aguardar_ate: new Date(Date.now() + 10000).toISOString(), // 10 segundos
+            });
+            
+            // Atualizar status da conversa
+            await supabase
+              .from('whatsapp_conversas')
+              .update({ triagem_status: 'em_triagem' })
+              .eq('id', conversa.id);
+            
+            console.log('✅ Triagem pendente criada, aguardando 10s para acumular mensagens');
+          } else {
+            console.log('ℹ️ Triagem pendente já existe para esta conversa');
           }
-        );
-        
-        const distribuicaoResult = await distribuicaoResponse.json();
-        console.log('📋 Resultado da distribuição:', JSON.stringify(distribuicaoResult));
+        }
       } else {
         console.log('ℹ️ Distribuição automática desativada');
       }
