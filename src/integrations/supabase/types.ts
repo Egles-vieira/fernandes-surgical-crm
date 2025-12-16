@@ -8493,6 +8493,7 @@ export type Database = {
           utm_source: string | null
           whatsapp_conta_id: string
           whatsapp_contato_id: string
+          whatsapp_fila_id: string | null
         }
         Insert: {
           atribuicao_automatica?: boolean | null
@@ -8555,6 +8556,7 @@ export type Database = {
           utm_source?: string | null
           whatsapp_conta_id: string
           whatsapp_contato_id: string
+          whatsapp_fila_id?: string | null
         }
         Update: {
           atribuicao_automatica?: boolean | null
@@ -8617,6 +8619,7 @@ export type Database = {
           utm_source?: string | null
           whatsapp_conta_id?: string
           whatsapp_contato_id?: string
+          whatsapp_fila_id?: string | null
         }
         Relationships: [
           {
@@ -8687,6 +8690,13 @@ export type Database = {
             columns: ["whatsapp_contato_id"]
             isOneToOne: false
             referencedRelation: "whatsapp_contatos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_conversas_whatsapp_fila_id_fkey"
+            columns: ["whatsapp_fila_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_filas"
             referencedColumns: ["id"]
           },
         ]
@@ -9018,6 +9028,7 @@ export type Database = {
           tentativas_distribuicao: number | null
           ultima_tentativa_em: string | null
           unidade_id: string | null
+          whatsapp_fila_id: string | null
         }
         Insert: {
           atendido_em?: string | null
@@ -9037,6 +9048,7 @@ export type Database = {
           tentativas_distribuicao?: number | null
           ultima_tentativa_em?: string | null
           unidade_id?: string | null
+          whatsapp_fila_id?: string | null
         }
         Update: {
           atendido_em?: string | null
@@ -9056,6 +9068,7 @@ export type Database = {
           tentativas_distribuicao?: number | null
           ultima_tentativa_em?: string | null
           unidade_id?: string | null
+          whatsapp_fila_id?: string | null
         }
         Relationships: [
           {
@@ -9074,6 +9087,78 @@ export type Database = {
           },
           {
             foreignKeyName: "whatsapp_fila_espera_unidade_id_fkey"
+            columns: ["unidade_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_unidades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_fila_espera_whatsapp_fila_id_fkey"
+            columns: ["whatsapp_fila_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_filas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_filas: {
+        Row: {
+          atualizado_em: string | null
+          cor: string | null
+          criado_em: string | null
+          descricao: string | null
+          dias_semana: number[] | null
+          esta_ativa: boolean | null
+          horario_fim: string | null
+          horario_inicio: string | null
+          icone: string | null
+          id: string
+          max_conversas_simultaneas: number | null
+          nome: string
+          ordem: number | null
+          sla_primeira_resposta_minutos: number | null
+          sla_resolucao_minutos: number | null
+          unidade_id: string | null
+        }
+        Insert: {
+          atualizado_em?: string | null
+          cor?: string | null
+          criado_em?: string | null
+          descricao?: string | null
+          dias_semana?: number[] | null
+          esta_ativa?: boolean | null
+          horario_fim?: string | null
+          horario_inicio?: string | null
+          icone?: string | null
+          id?: string
+          max_conversas_simultaneas?: number | null
+          nome: string
+          ordem?: number | null
+          sla_primeira_resposta_minutos?: number | null
+          sla_resolucao_minutos?: number | null
+          unidade_id?: string | null
+        }
+        Update: {
+          atualizado_em?: string | null
+          cor?: string | null
+          criado_em?: string | null
+          descricao?: string | null
+          dias_semana?: number[] | null
+          esta_ativa?: boolean | null
+          horario_fim?: string | null
+          horario_inicio?: string | null
+          icone?: string | null
+          id?: string
+          max_conversas_simultaneas?: number | null
+          nome?: string
+          ordem?: number | null
+          sla_primeira_resposta_minutos?: number | null
+          sla_resolucao_minutos?: number | null
+          unidade_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_filas_unidade_id_fkey"
             columns: ["unidade_id"]
             isOneToOne: false
             referencedRelation: "whatsapp_unidades"

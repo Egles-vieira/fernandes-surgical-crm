@@ -99,7 +99,8 @@ Deno.serve(async (req) => {
 
       await supabase.from('whatsapp_fila_espera').insert({
         conversa_id: conversaId,
-        fila_id: filaId || null,
+        whatsapp_fila_id: filaId || null, // Usar nova coluna
+        fila_id: filaId || null, // Manter compatibilidade
         unidade_id: unidadeId || null,
         prioridade: conversa?.prioridade || 'normal',
         status: 'aguardando',
