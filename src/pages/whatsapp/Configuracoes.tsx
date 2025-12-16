@@ -11,8 +11,6 @@ import NovaContaDialog from "@/components/whatsapp/config/NovaContaDialog";
 import TemplatesWhatsApp from "@/components/whatsapp/config/TemplatesWhatsApp";
 import RespostasRapidas from "@/components/whatsapp/config/RespostasRapidas";
 import { GerenciarFilas } from "@/components/whatsapp/config/GerenciarFilas";
-import { StatusDisponibilidadeCard } from "@/components/whatsapp/StatusDisponibilidadeCard";
-import { VendedoresDisponiveisPanel } from "@/components/whatsapp/VendedoresDisponiveisPanel";
 
 // Componentes de Governança
 import { 
@@ -208,17 +206,22 @@ const ConfiguracoesWhatsApp = () => {
             </div>
           </TabsContent>
 
-          {/* Tab: Respostas */}
-          <TabsContent value="respostas">
-            <RespostasRapidas />
-          </TabsContent>
-
           {/* Tab: Equipe */}
           <TabsContent value="equipe">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <StatusDisponibilidadeCard />
-              <VendedoresDisponiveisPanel />
-            </div>
+            <Card>
+              <CardHeader>
+                <CardTitle>Gestão de Equipe</CardTitle>
+                <CardDescription>
+                  Configurações de operadores e disponibilidade gerenciadas via BAM
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button onClick={() => navigate('/whatsapp/bam')}>
+                  <Activity className="w-4 h-4 mr-2" />
+                  Acessar Monitor BAM
+                </Button>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
 
