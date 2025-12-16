@@ -8,8 +8,13 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 import { 
   X, 
   Phone, 
@@ -217,208 +222,216 @@ export function ContactDetailsPanel({
 
           <Separator />
 
-          {/* CRM Link */}
-          {linkedContact ? (
-            <Card>
-              <CardHeader className="py-3 px-4">
-                <CardTitle className="text-xs font-medium flex items-center gap-2">
-                  <User className="h-3.5 w-3.5" />
-                  Contato no CRM
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="py-2 px-4 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm">
-                    {linkedContact.primeiro_nome} {linkedContact.sobrenome}
+          <Accordion type="multiple" defaultValue={['crm', 'carteira', 'stats']} className="space-y-2">
+            {/* CRM Link */}
+            {linkedContact ? (
+              <AccordionItem value="crm" className="border rounded-lg px-4">
+                <AccordionTrigger className="py-3 hover:no-underline">
+                  <span className="text-xs font-medium flex items-center gap-2">
+                    <User className="h-3.5 w-3.5" />
+                    Contato no CRM
                   </span>
-                  <Button variant="ghost" size="icon" className="h-6 w-6">
-                    <ExternalLink className="h-3 w-3" />
-                  </Button>
-                </div>
-                {linkedContact.email && (
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <Mail className="h-3 w-3" />
-                    {linkedContact.email}
+                </AccordionTrigger>
+                <AccordionContent className="pb-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">
+                      {linkedContact.primeiro_nome} {linkedContact.sobrenome}
+                    </span>
+                    <Button variant="ghost" size="icon" className="h-6 w-6">
+                      <ExternalLink className="h-3 w-3" />
+                    </Button>
                   </div>
-                )}
-                {linkedContact.cargo && (
-                  <Badge variant="outline" className="text-xs">
-                    {linkedContact.cargo}
-                  </Badge>
-                )}
-              </CardContent>
-            </Card>
-          ) : (
-            <Card className="border-dashed">
-              <CardContent className="py-4 text-center">
-                <User className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
-                <p className="text-xs text-muted-foreground mb-2">
-                  Não vinculado ao CRM
-                </p>
-                <Button variant="outline" size="sm">
-                  Vincular Contato
-                </Button>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Client Info */}
-          {linkedClient && (
-            <Card>
-              <CardHeader className="py-3 px-4">
-                <CardTitle className="text-xs font-medium flex items-center gap-2">
-                  <Building2 className="h-3.5 w-3.5" />
-                  Empresa
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="py-2 px-4 space-y-1">
-                <p className="text-sm font-medium">
-                  {linkedClient.nome_fantasia || linkedClient.nome_emit}
-                </p>
-                {linkedClient.cgc && (
-                  <p className="text-xs text-muted-foreground">
-                    CNPJ: {linkedClient.cgc}
+                  {linkedContact.email && (
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Mail className="h-3 w-3" />
+                      {linkedContact.email}
+                    </div>
+                  )}
+                  {linkedContact.cargo && (
+                    <Badge variant="outline" className="text-xs">
+                      {linkedContact.cargo}
+                    </Badge>
+                  )}
+                </AccordionContent>
+              </AccordionItem>
+            ) : (
+              <AccordionItem value="crm" className="border border-dashed rounded-lg px-4">
+                <AccordionTrigger className="py-3 hover:no-underline">
+                  <span className="text-xs font-medium flex items-center gap-2">
+                    <User className="h-3.5 w-3.5" />
+                    Contato no CRM
+                  </span>
+                </AccordionTrigger>
+                <AccordionContent className="pb-3 text-center">
+                  <p className="text-xs text-muted-foreground mb-2">
+                    Não vinculado ao CRM
                   </p>
-                )}
-              </CardContent>
-            </Card>
-          )}
+                  <Button variant="outline" size="sm">
+                    Vincular Contato
+                  </Button>
+                </AccordionContent>
+              </AccordionItem>
+            )}
 
-          {/* Carteira */}
-          <Card>
-            <CardHeader className="py-3 px-4">
-              <CardTitle className="text-xs font-medium flex items-center gap-2">
-                <Wallet className="h-3.5 w-3.5" />
-                Carteira
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="py-2 px-4">
-              {carteiraAtual ? (
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <div 
-                      className="w-2 h-2 rounded-full" 
-                      style={{ backgroundColor: carteiraAtual.carteira?.cor || '#3b82f6' }}
-                    />
-                    <span className="text-sm font-medium">{carteiraAtual.carteira?.nome}</span>
-                  </div>
-                  {carteiraAtual.carteira?.operador?.nome_completo && (
+            {/* Client Info */}
+            {linkedClient && (
+              <AccordionItem value="empresa" className="border rounded-lg px-4">
+                <AccordionTrigger className="py-3 hover:no-underline">
+                  <span className="text-xs font-medium flex items-center gap-2">
+                    <Building2 className="h-3.5 w-3.5" />
+                    Empresa
+                  </span>
+                </AccordionTrigger>
+                <AccordionContent className="pb-3 space-y-1">
+                  <p className="text-sm font-medium">
+                    {linkedClient.nome_fantasia || linkedClient.nome_emit}
+                  </p>
+                  {linkedClient.cgc && (
                     <p className="text-xs text-muted-foreground">
-                      Operador: {carteiraAtual.carteira.operador.nome_completo}
+                      CNPJ: {linkedClient.cgc}
                     </p>
                   )}
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="w-full text-destructive hover:text-destructive"
-                    onClick={handleRemoverCarteira}
-                    disabled={isRemovendoContato}
-                  >
-                    {isRemovendoContato ? (
-                      <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
-                    ) : (
-                      <X className="h-3.5 w-3.5 mr-1.5" />
-                    )}
-                    Remover da Carteira
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <Select value={selectedCarteira} onValueChange={setSelectedCarteira}>
-                    <SelectTrigger className="h-8 text-xs">
-                      <SelectValue placeholder="Selecionar carteira..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {carteiras?.map((carteira) => (
-                        <SelectItem key={carteira.id} value={carteira.id}>
-                          <div className="flex items-center gap-2">
-                            <div 
-                              className="w-2 h-2 rounded-full" 
-                              style={{ backgroundColor: carteira.cor }}
-                            />
-                            {carteira.nome}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Button 
-                    variant="default" 
-                    size="sm" 
-                    className="w-full"
-                    onClick={handleCarteirizar}
-                    disabled={!selectedCarteira || isAdicionandoContato}
-                  >
-                    {isAdicionandoContato ? (
-                      <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
-                    ) : (
-                      <Check className="h-3.5 w-3.5 mr-1.5" />
-                    )}
-                    Carteirizar
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                </AccordionContent>
+              </AccordionItem>
+            )}
 
-          {stats && (
-            <Card>
-              <CardHeader className="py-3 px-4">
-                <CardTitle className="text-xs font-medium flex items-center gap-2">
-                  <Clock className="h-3.5 w-3.5" />
-                  Estatísticas
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="py-2 px-4">
-                <div className="grid grid-cols-2 gap-3 text-center">
-                  <div className="p-2 rounded-lg bg-muted/50">
-                    <p className="text-lg font-semibold">{stats.received}</p>
-                    <p className="text-[10px] text-muted-foreground">Recebidas</p>
+            {/* Carteira */}
+            <AccordionItem value="carteira" className="border rounded-lg px-4">
+              <AccordionTrigger className="py-3 hover:no-underline">
+                <span className="text-xs font-medium flex items-center gap-2">
+                  <Wallet className="h-3.5 w-3.5" />
+                  Carteira
+                </span>
+              </AccordionTrigger>
+              <AccordionContent className="pb-3">
+                {carteiraAtual ? (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <div 
+                        className="w-2 h-2 rounded-full" 
+                        style={{ backgroundColor: carteiraAtual.carteira?.cor || '#3b82f6' }}
+                      />
+                      <span className="text-sm font-medium">{carteiraAtual.carteira?.nome}</span>
+                    </div>
+                    {carteiraAtual.carteira?.operador?.nome_completo && (
+                      <p className="text-xs text-muted-foreground">
+                        Operador: {carteiraAtual.carteira.operador.nome_completo}
+                      </p>
+                    )}
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full text-destructive hover:text-destructive"
+                      onClick={handleRemoverCarteira}
+                      disabled={isRemovendoContato}
+                    >
+                      {isRemovendoContato ? (
+                        <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                      ) : (
+                        <X className="h-3.5 w-3.5 mr-1.5" />
+                      )}
+                      Remover da Carteira
+                    </Button>
                   </div>
-                  <div className="p-2 rounded-lg bg-muted/50">
-                    <p className="text-lg font-semibold">{stats.sent}</p>
-                    <p className="text-[10px] text-muted-foreground">Enviadas</p>
+                ) : (
+                  <div className="space-y-2">
+                    <Select value={selectedCarteira} onValueChange={setSelectedCarteira}>
+                      <SelectTrigger className="h-8 text-xs">
+                        <SelectValue placeholder="Selecionar carteira..." />
+                      </SelectTrigger>
+                      <SelectContent className="bg-popover z-50">
+                        {carteiras?.map((carteira) => (
+                          <SelectItem key={carteira.id} value={carteira.id}>
+                            <div className="flex items-center gap-2">
+                              <div 
+                                className="w-2 h-2 rounded-full" 
+                                style={{ backgroundColor: carteira.cor }}
+                              />
+                              {carteira.nome}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button 
+                      variant="default" 
+                      size="sm" 
+                      className="w-full"
+                      onClick={handleCarteirizar}
+                      disabled={!selectedCarteira || isAdicionandoContato}
+                    >
+                      {isAdicionandoContato ? (
+                        <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                      ) : (
+                        <Check className="h-3.5 w-3.5 mr-1.5" />
+                      )}
+                      Carteirizar
+                    </Button>
                   </div>
-                </div>
-                {stats.firstMessage && (
-                  <p className="text-[10px] text-muted-foreground text-center mt-2">
-                    Primeira mensagem: {format(new Date(stats.firstMessage), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                  </p>
                 )}
-              </CardContent>
-            </Card>
-          )}
+              </AccordionContent>
+            </AccordionItem>
 
-          {/* Tags */}
-          <Card>
-            <CardHeader className="py-3 px-4">
-              <CardTitle className="text-xs font-medium flex items-center gap-2">
-                <Tag className="h-3.5 w-3.5" />
-                Etiquetas
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="py-2 px-4">
-              <div className="flex flex-wrap gap-1.5">
-                <Badge variant="secondary" className="text-xs">Lead</Badge>
-                <Badge variant="outline" className="text-xs">+ Adicionar</Badge>
-              </div>
-            </CardContent>
-          </Card>
+            {/* Estatísticas */}
+            {stats && (
+              <AccordionItem value="stats" className="border rounded-lg px-4">
+                <AccordionTrigger className="py-3 hover:no-underline">
+                  <span className="text-xs font-medium flex items-center gap-2">
+                    <Clock className="h-3.5 w-3.5" />
+                    Estatísticas
+                  </span>
+                </AccordionTrigger>
+                <AccordionContent className="pb-3">
+                  <div className="grid grid-cols-2 gap-3 text-center">
+                    <div className="p-2 rounded-lg bg-muted/50">
+                      <p className="text-lg font-semibold">{stats.received}</p>
+                      <p className="text-[10px] text-muted-foreground">Recebidas</p>
+                    </div>
+                    <div className="p-2 rounded-lg bg-muted/50">
+                      <p className="text-lg font-semibold">{stats.sent}</p>
+                      <p className="text-[10px] text-muted-foreground">Enviadas</p>
+                    </div>
+                  </div>
+                  {stats.firstMessage && (
+                    <p className="text-[10px] text-muted-foreground text-center mt-2">
+                      Primeira mensagem: {format(new Date(stats.firstMessage), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                    </p>
+                  )}
+                </AccordionContent>
+              </AccordionItem>
+            )}
 
-          {/* Documents */}
-          <Card>
-            <CardHeader className="py-3 px-4">
-              <CardTitle className="text-xs font-medium flex items-center gap-2">
-                <FileText className="h-3.5 w-3.5" />
-                Documentos Compartilhados
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="py-2 px-4">
-              <p className="text-xs text-muted-foreground text-center py-2">
-                Nenhum documento
-              </p>
-            </CardContent>
-          </Card>
+            {/* Tags */}
+            <AccordionItem value="tags" className="border rounded-lg px-4">
+              <AccordionTrigger className="py-3 hover:no-underline">
+                <span className="text-xs font-medium flex items-center gap-2">
+                  <Tag className="h-3.5 w-3.5" />
+                  Etiquetas
+                </span>
+              </AccordionTrigger>
+              <AccordionContent className="pb-3">
+                <div className="flex flex-wrap gap-1.5">
+                  <Badge variant="secondary" className="text-xs">Lead</Badge>
+                  <Badge variant="outline" className="text-xs">+ Adicionar</Badge>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+
+            {/* Documents */}
+            <AccordionItem value="docs" className="border rounded-lg px-4">
+              <AccordionTrigger className="py-3 hover:no-underline">
+                <span className="text-xs font-medium flex items-center gap-2">
+                  <FileText className="h-3.5 w-3.5" />
+                  Documentos Compartilhados
+                </span>
+              </AccordionTrigger>
+              <AccordionContent className="pb-3">
+                <p className="text-xs text-muted-foreground text-center py-2">
+                  Nenhum documento
+                </p>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </div>
       </ScrollArea>
     </div>
