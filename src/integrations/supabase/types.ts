@@ -8663,6 +8663,8 @@ export type Database = {
           total_mensagens_recebidas: number | null
           transferida_em: string | null
           transferida_para_humano: boolean | null
+          triagem_motivo: string | null
+          triagem_status: string | null
           ultima_analise_sentimento_em: string | null
           ultima_intencao_detectada: string | null
           ultima_interacao_agente_em: string | null
@@ -8726,6 +8728,8 @@ export type Database = {
           total_mensagens_recebidas?: number | null
           transferida_em?: string | null
           transferida_para_humano?: boolean | null
+          triagem_motivo?: string | null
+          triagem_status?: string | null
           ultima_analise_sentimento_em?: string | null
           ultima_intencao_detectada?: string | null
           ultima_interacao_agente_em?: string | null
@@ -8789,6 +8793,8 @@ export type Database = {
           total_mensagens_recebidas?: number | null
           transferida_em?: string | null
           transferida_para_humano?: boolean | null
+          triagem_motivo?: string | null
+          triagem_status?: string | null
           ultima_analise_sentimento_em?: string | null
           ultima_intencao_detectada?: string | null
           ultima_interacao_agente_em?: string | null
@@ -9297,8 +9303,12 @@ export type Database = {
           max_conversas_simultaneas: number | null
           nome: string
           ordem: number | null
+          palavras_chave: string[] | null
+          prioridade_triagem: number | null
+          regras_triagem: string | null
           sla_primeira_resposta_minutos: number | null
           sla_resolucao_minutos: number | null
+          tipo_fila: string | null
           unidade_id: string | null
         }
         Insert: {
@@ -9315,8 +9325,12 @@ export type Database = {
           max_conversas_simultaneas?: number | null
           nome: string
           ordem?: number | null
+          palavras_chave?: string[] | null
+          prioridade_triagem?: number | null
+          regras_triagem?: string | null
           sla_primeira_resposta_minutos?: number | null
           sla_resolucao_minutos?: number | null
+          tipo_fila?: string | null
           unidade_id?: string | null
         }
         Update: {
@@ -9333,8 +9347,12 @@ export type Database = {
           max_conversas_simultaneas?: number | null
           nome?: string
           ordem?: number | null
+          palavras_chave?: string[] | null
+          prioridade_triagem?: number | null
+          regras_triagem?: string | null
           sla_primeira_resposta_minutos?: number | null
           sla_resolucao_minutos?: number | null
+          tipo_fila?: string | null
           unidade_id?: string | null
         }
         Relationships: [
@@ -10594,6 +10612,187 @@ export type Database = {
           },
         ]
       }
+      whatsapp_triagem_pendente: {
+        Row: {
+          aguardar_ate: string
+          cliente_encontrado_id: string | null
+          cnpj_informado: string | null
+          cnpj_solicitado: boolean | null
+          cnpj_solicitado_em: string | null
+          cnpj_validado: boolean | null
+          cnpj_validado_em: string | null
+          conta_id: string | null
+          contato_id: string | null
+          conversa_id: string
+          criado_em: string
+          erro_mensagem: string | null
+          fila_definida_id: string | null
+          id: string
+          max_tentativas: number | null
+          motivo_atribuicao: string | null
+          operador_atribuido_id: string | null
+          processado_em: string | null
+          resultado_triagem: Json | null
+          status: string
+          tentativas: number | null
+          vendedor_encontrado_id: string | null
+        }
+        Insert: {
+          aguardar_ate?: string
+          cliente_encontrado_id?: string | null
+          cnpj_informado?: string | null
+          cnpj_solicitado?: boolean | null
+          cnpj_solicitado_em?: string | null
+          cnpj_validado?: boolean | null
+          cnpj_validado_em?: string | null
+          conta_id?: string | null
+          contato_id?: string | null
+          conversa_id: string
+          criado_em?: string
+          erro_mensagem?: string | null
+          fila_definida_id?: string | null
+          id?: string
+          max_tentativas?: number | null
+          motivo_atribuicao?: string | null
+          operador_atribuido_id?: string | null
+          processado_em?: string | null
+          resultado_triagem?: Json | null
+          status?: string
+          tentativas?: number | null
+          vendedor_encontrado_id?: string | null
+        }
+        Update: {
+          aguardar_ate?: string
+          cliente_encontrado_id?: string | null
+          cnpj_informado?: string | null
+          cnpj_solicitado?: boolean | null
+          cnpj_solicitado_em?: string | null
+          cnpj_validado?: boolean | null
+          cnpj_validado_em?: string | null
+          conta_id?: string | null
+          contato_id?: string | null
+          conversa_id?: string
+          criado_em?: string
+          erro_mensagem?: string | null
+          fila_definida_id?: string | null
+          id?: string
+          max_tentativas?: number | null
+          motivo_atribuicao?: string | null
+          operador_atribuido_id?: string | null
+          processado_em?: string | null
+          resultado_triagem?: Json | null
+          status?: string
+          tentativas?: number | null
+          vendedor_encontrado_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_triagem_pendente_cliente_encontrado_id_fkey"
+            columns: ["cliente_encontrado_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_triagem_pendente_cliente_encontrado_id_fkey"
+            columns: ["cliente_encontrado_id"]
+            isOneToOne: false
+            referencedRelation: "vw_clientes_completo"
+            referencedColumns: ["cliente_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_triagem_pendente_conta_id_fkey"
+            columns: ["conta_id"]
+            isOneToOne: false
+            referencedRelation: "vw_whatsapp_tokens_expirando"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_triagem_pendente_conta_id_fkey"
+            columns: ["conta_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_contas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_triagem_pendente_contato_id_fkey"
+            columns: ["contato_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_contatos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_triagem_pendente_conversa_id_fkey"
+            columns: ["conversa_id"]
+            isOneToOne: true
+            referencedRelation: "whatsapp_conversas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_triagem_pendente_fila_definida_id_fkey"
+            columns: ["fila_definida_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_filas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_triagem_pendente_operador_atribuido_id_fkey"
+            columns: ["operador_atribuido_id"]
+            isOneToOne: false
+            referencedRelation: "mv_top_vendedores"
+            referencedColumns: ["vendedor_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_triagem_pendente_operador_atribuido_id_fkey"
+            columns: ["operador_atribuido_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_usuario"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_triagem_pendente_operador_atribuido_id_fkey"
+            columns: ["operador_atribuido_id"]
+            isOneToOne: false
+            referencedRelation: "vw_performance_vendedor"
+            referencedColumns: ["vendedor_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_triagem_pendente_operador_atribuido_id_fkey"
+            columns: ["operador_atribuido_id"]
+            isOneToOne: false
+            referencedRelation: "vw_vendedores_disponiveis"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_triagem_pendente_vendedor_encontrado_id_fkey"
+            columns: ["vendedor_encontrado_id"]
+            isOneToOne: false
+            referencedRelation: "mv_top_vendedores"
+            referencedColumns: ["vendedor_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_triagem_pendente_vendedor_encontrado_id_fkey"
+            columns: ["vendedor_encontrado_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_usuario"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_triagem_pendente_vendedor_encontrado_id_fkey"
+            columns: ["vendedor_encontrado_id"]
+            isOneToOne: false
+            referencedRelation: "vw_performance_vendedor"
+            referencedColumns: ["vendedor_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_triagem_pendente_vendedor_encontrado_id_fkey"
+            columns: ["vendedor_encontrado_id"]
+            isOneToOne: false
+            referencedRelation: "vw_vendedores_disponiveis"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       whatsapp_unidades: {
         Row: {
           aceita_atendimento_remoto: boolean | null
@@ -11492,6 +11691,19 @@ export type Database = {
           referencia_interna: string
           score_similaridade: number
           unidade_medida: string
+        }[]
+      }
+      buscar_triagens_pendentes: {
+        Args: { p_limit?: number }
+        Returns: {
+          cliente_encontrado_id: string
+          cnpj_informado: string
+          cnpj_solicitado: boolean
+          conta_id: string
+          contato_id: string
+          conversa_id: string
+          id: string
+          tentativas: number
         }[]
       }
       calcular_score_prioridade: {

@@ -164,3 +164,9 @@ verify_jwt = false
 
 [functions.meta-api-verificar-tokens-cron]
 verify_jwt = false
+
+[functions.processar-triagem-whatsapp]
+verify_jwt = false
+
+[functions.triar-conversa-deepseek]
+verify_jwt = false

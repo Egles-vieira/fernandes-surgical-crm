@@ -89,6 +89,11 @@ interface FilaFormData {
   horario_inicio: string;
   horario_fim: string;
   dias_semana: number[];
+  // Campos de triagem IA
+  palavras_chave: string[];
+  regras_triagem: string;
+  prioridade_triagem: number;
+  tipo_fila: string;
 }
 
 const initialFormData: FilaFormData = {
@@ -102,7 +107,21 @@ const initialFormData: FilaFormData = {
   horario_inicio: "",
   horario_fim: "",
   dias_semana: [1, 2, 3, 4, 5],
+  // Campos de triagem IA
+  palavras_chave: [],
+  regras_triagem: "",
+  prioridade_triagem: 50,
+  tipo_fila: "atendimento",
 };
+
+const TIPOS_FILA = [
+  { value: "atendimento", label: "Atendimento Geral" },
+  { value: "vendas", label: "Vendas" },
+  { value: "suporte", label: "Suporte Técnico" },
+  { value: "financeiro", label: "Financeiro" },
+  { value: "sac", label: "SAC" },
+  { value: "comercial", label: "Comercial" },
+];
 
 export function GerenciarFilasWhatsApp() {
   const { 
@@ -176,6 +195,11 @@ export function GerenciarFilasWhatsApp() {
       horario_inicio: fila.horario_inicio || "",
       horario_fim: fila.horario_fim || "",
       dias_semana: fila.dias_semana || [1, 2, 3, 4, 5],
+      // Campos de triagem IA
+      palavras_chave: fila.palavras_chave || [],
+      regras_triagem: fila.regras_triagem || "",
+      prioridade_triagem: fila.prioridade_triagem || 50,
+      tipo_fila: fila.tipo_fila || "atendimento",
     });
     setDialogOpen(true);
   };
@@ -192,6 +216,11 @@ export function GerenciarFilasWhatsApp() {
       horario_inicio: formData.horario_inicio || null,
       horario_fim: formData.horario_fim || null,
       dias_semana: formData.dias_semana,
+      // Campos de triagem IA
+      palavras_chave: formData.palavras_chave.length > 0 ? formData.palavras_chave : null,
+      regras_triagem: formData.regras_triagem || null,
+      prioridade_triagem: formData.prioridade_triagem,
+      tipo_fila: formData.tipo_fila,
     };
 
     if (editingFila) {
@@ -624,6 +653,78 @@ export function GerenciarFilasWhatsApp() {
                     {dia.label}
                   </Button>
                 ))}
+              </div>
+            </div>
+
+            {/* Seção Triagem IA */}
+            <div className="space-y-4 border-t pt-6">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">🤖</span>
+                <Label className="text-base font-semibold">Triagem Inteligente (IA)</Label>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Configure palavras-chave e regras para a IA direcionar automaticamente conversas para esta fila.
+              </p>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="tipo_fila">Tipo da Fila</Label>
+                  <Select
+                    value={formData.tipo_fila}
+                    onValueChange={(value) => setFormData({ ...formData, tipo_fila: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecionar tipo..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {TIPOS_FILA.map((tipo) => (
+                        <SelectItem key={tipo.value} value={tipo.value}>
+                          {tipo.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="prioridade_triagem">Prioridade (1-100)</Label>
+                  <Input
+                    id="prioridade_triagem"
+                    type="number"
+                    value={formData.prioridade_triagem}
+                    onChange={(e) =>
+                      setFormData({ ...formData, prioridade_triagem: parseInt(e.target.value) || 50 })
+                    }
+                    min={1}
+                    max={100}
+                  />
+                  <p className="text-xs text-muted-foreground">Menor = maior prioridade</p>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="palavras_chave">Palavras-chave (separadas por vírgula)</Label>
+                <Input
+                  id="palavras_chave"
+                  value={formData.palavras_chave.join(", ")}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      palavras_chave: e.target.value.split(",").map((p) => p.trim()).filter(Boolean),
+                    })
+                  }
+                  placeholder="Ex: preço, cotação, comprar, pedido"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="regras_triagem">Regras de Triagem (texto livre)</Label>
+                <Textarea
+                  id="regras_triagem"
+                  value={formData.regras_triagem}
+                  onChange={(e) => setFormData({ ...formData, regras_triagem: e.target.value })}
+                  placeholder="Ex: Direcionar para esta fila quando o cliente mencionar produtos específicos, solicitar orçamentos ou demonstrar interesse em compra."
+                  rows={3}
+                />
               </div>
             </div>
           </div>
