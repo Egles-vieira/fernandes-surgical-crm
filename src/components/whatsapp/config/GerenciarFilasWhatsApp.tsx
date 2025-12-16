@@ -8,13 +8,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import {
   Table,
   TableBody,
@@ -323,16 +323,16 @@ export function GerenciarFilasWhatsApp() {
         </CardContent>
       </Card>
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>
+      <Sheet open={dialogOpen} onOpenChange={setDialogOpen}>
+        <SheetContent side="right" className="sm:max-w-2xl overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>
               {editingFila ? "Editar Fila" : "Nova Fila de WhatsApp"}
-            </DialogTitle>
-            <DialogDescription>
+            </SheetTitle>
+            <SheetDescription>
               Configure os parâmetros da fila de atendimento
-            </DialogDescription>
-          </DialogHeader>
+            </SheetDescription>
+          </SheetHeader>
 
           <div className="grid gap-6 py-4">
             {/* Nome e Descrição */}
@@ -460,7 +460,7 @@ export function GerenciarFilasWhatsApp() {
             </div>
           </div>
 
-          <DialogFooter>
+          <SheetFooter className="mt-6">
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
               Cancelar
             </Button>
@@ -470,9 +470,9 @@ export function GerenciarFilasWhatsApp() {
             >
               {editingFila ? "Salvar Alterações" : "Criar Fila"}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
     </>
   );
 }
