@@ -63,11 +63,11 @@ Deno.serve(async (req) => {
         // Verificar se operador está online
         const { data: perfilOperador } = await supabase
           .from('perfis_usuario')
-          .select('id, nome_completo, status_atendimento')
+          .select('id, nome_completo, status_atendimento_whatsapp')
           .eq('id', operadorCarteira)
           .single();
         
-        if (perfilOperador?.status_atendimento === 'online') {
+        if (perfilOperador?.status_atendimento_whatsapp === 'online') {
           // Verificar limite de atendimentos
           const { data: configAtendimento } = await supabase
             .from('whatsapp_configuracoes_atendimento')
@@ -95,7 +95,7 @@ Deno.serve(async (req) => {
             }
           }
         } else {
-          console.log('⚠️ Operador da carteira não está online:', perfilOperador?.status_atendimento);
+          console.log('⚠️ Operador da carteira não está online:', perfilOperador?.status_atendimento_whatsapp);
           if (modoCarteirizacao === 'forcar') {
             // Modo forçar: aguarda operador da carteira ficar online
             motivoDistribuicao = 'aguardando_operador_carteira';
@@ -124,10 +124,10 @@ Deno.serve(async (req) => {
       .select(`
         id,
         nome_completo,
-        status_atendimento,
+        status_atendimento_whatsapp,
         filas_atendimento_ids
       `)
-      .eq('status_atendimento', 'online')
+      .eq('status_atendimento_whatsapp', 'online')
       .eq('whatsapp_ativo', true);
     
     const { data: operadoresDisponiveis } = await queryOperadores;
