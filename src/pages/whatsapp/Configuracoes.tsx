@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Settings, Plus, Activity, Building2, Clock, Users, MessageSquare, Zap, LayoutGrid, Phone } from "lucide-react";
+import { Settings, Plus, Activity, Building2, Clock, Users, MessageSquare, Zap, LayoutGrid, Phone, Briefcase } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -11,6 +11,7 @@ import NovaContaDialog from "@/components/whatsapp/config/NovaContaDialog";
 import TemplatesWhatsApp from "@/components/whatsapp/config/TemplatesWhatsApp";
 import RespostasRapidas from "@/components/whatsapp/config/RespostasRapidas";
 import { GerenciarFilasWhatsApp } from "@/components/whatsapp/config/GerenciarFilasWhatsApp";
+import { GerenciarCarteiras } from "@/components/whatsapp/config/GerenciarCarteiras";
 
 // Componentes de Governança
 import { 
@@ -206,22 +207,31 @@ const ConfiguracoesWhatsApp = () => {
             </div>
           </TabsContent>
 
-          {/* Tab: Equipe */}
+          {/* Tab: Equipe - Carteiras + BAM */}
           <TabsContent value="equipe">
-            <Card>
-              <CardHeader>
-                <CardTitle>Gestão de Equipe</CardTitle>
-                <CardDescription>
-                  Configurações de operadores e disponibilidade gerenciadas via BAM
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button onClick={() => navigate('/whatsapp/bam')}>
-                  <Activity className="w-4 h-4 mr-2" />
-                  Acessar Monitor BAM
-                </Button>
-              </CardContent>
-            </Card>
+            <div className="space-y-6">
+              {/* Carteiras de Clientes */}
+              <GerenciarCarteiras />
+
+              {/* Acesso ao BAM */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Activity className="h-5 w-5" />
+                    Monitor de Atendimento (BAM)
+                  </CardTitle>
+                  <CardDescription>
+                    Acompanhe operadores em tempo real, gerencie disponibilidade e distribua conversas
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button onClick={() => navigate('/whatsapp/bam')}>
+                    <Activity className="w-4 h-4 mr-2" />
+                    Acessar Monitor BAM
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
         </Tabs>
 
