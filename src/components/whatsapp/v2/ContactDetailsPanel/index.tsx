@@ -25,7 +25,7 @@ import {
   Check,
   Loader2
 } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -50,6 +50,7 @@ export function ContactDetailsPanel({
   conversaId,
   onClose 
 }: ContactDetailsPanelProps) {
+  const queryClient = useQueryClient();
   const [selectedCarteira, setSelectedCarteira] = useState<string>('');
   const { carteiras, adicionarContato, removerContato, isAdicionandoContato, isRemovendoContato } = useWhatsAppCarteiras();
 
@@ -143,6 +144,7 @@ export function ContactDetailsPanel({
       onSuccess: () => {
         setSelectedCarteira('');
         refetchCarteira();
+        queryClient.invalidateQueries({ queryKey: ['whatsapp-conversas-v2'] });
       }
     });
   };
@@ -153,6 +155,7 @@ export function ContactDetailsPanel({
     removerContato(carteiraAtual.id, {
       onSuccess: () => {
         refetchCarteira();
+        queryClient.invalidateQueries({ queryKey: ['whatsapp-conversas-v2'] });
       }
     });
   };
