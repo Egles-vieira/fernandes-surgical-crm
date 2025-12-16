@@ -7,14 +7,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { useFilasAtendimento } from "@/hooks/useFilasAtendimento";
 import { Plus, Edit2, Trash2, GripVertical } from "lucide-react";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 
 export function GerenciarFilas() {
@@ -79,23 +79,23 @@ export function GerenciarFilas() {
               Organize conversas em filas para melhor distribuição
             </CardDescription>
           </div>
-          <Dialog open={dialogOpen} onOpenChange={(open) => {
+          <Sheet open={dialogOpen} onOpenChange={(open) => {
             setDialogOpen(open);
             if (!open) resetForm();
           }}>
-            <DialogTrigger asChild>
+            <SheetTrigger asChild>
               <Button>
                 <Plus className="w-4 h-4 mr-2" />
                 Nova Fila
               </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>{editingFila ? "Editar" : "Nova"} Fila</DialogTitle>
-                <DialogDescription>
+            </SheetTrigger>
+            <SheetContent>
+              <SheetHeader>
+                <SheetTitle>{editingFila ? "Editar" : "Nova"} Fila</SheetTitle>
+                <SheetDescription>
                   Configure as informações da fila de atendimento
-                </DialogDescription>
-              </DialogHeader>
+                </SheetDescription>
+              </SheetHeader>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
                   <Label htmlFor="nome">Nome da Fila</Label>
@@ -133,16 +133,16 @@ export function GerenciarFilas() {
                   </div>
                 </div>
               </div>
-              <DialogFooter>
+              <SheetFooter>
                 <Button variant="outline" onClick={() => setDialogOpen(false)}>
                   Cancelar
                 </Button>
                 <Button onClick={handleSubmit} disabled={!nome}>
                   {editingFila ? "Salvar" : "Criar"} Fila
                 </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+              </SheetFooter>
+            </SheetContent>
+          </Sheet>
         </div>
       </CardHeader>
       <CardContent>
