@@ -869,7 +869,9 @@ async function acionarAgenteIA(supabase: any, triagem: TriagemPendente) {
         body: JSON.stringify({
           conversaId: triagem.conversa_id,
           mensagemId: ultimaMensagem.id,
-          origem: 'triagem_concluida', // Indicar que veio da triagem
+          mensagemTexto: ultimaMensagem.corpo,  // Passar o texto da mensagem
+          tipoMensagem: 'text',                  // Tipo da mensagem
+          origem: 'triagem_concluida',           // Indicar que veio da triagem
         }),
       }
     );

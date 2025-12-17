@@ -272,10 +272,13 @@ COMPORTAMENTO INTELIGENTE:
         model: "deepseek-chat",
         messages: [
           { role: "system", content: systemPrompt },
-          ...historicoCompleto.map((msg) => ({
-            role: msg.role,
-            content: msg.content,
-          })),
+          // Filtrar mensagens com content vazio/null para evitar erro "missing field content"
+          ...historicoCompleto
+            .filter((msg) => msg.content && msg.content.trim() !== '')
+            .map((msg) => ({
+              role: msg.role,
+              content: msg.content,
+            })),
           { role: "user", content: mensagemCliente },
         ],
         tools,
