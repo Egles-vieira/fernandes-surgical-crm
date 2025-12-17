@@ -186,7 +186,7 @@ function ConversationItem({
             {conversa.emoji_sentimento && <TooltipProvider delayDuration={200}>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <span className="text-sm shrink-0">{conversa.emoji_sentimento}</span>
+                    
                   </TooltipTrigger>
                   <TooltipContent side="top" className="text-xs">
                     Sentimento: {conversa.sentimento_cliente || 'Analisando...'}
