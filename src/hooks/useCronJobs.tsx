@@ -143,6 +143,22 @@ export function useCronJobs() {
     },
   });
 
+  // Executar job manualmente
+  const executarMutation = useMutation({
+    mutationFn: async (jobid: number) => {
+      const { error } = await supabase.rpc('executar_cron_job_manual', { p_jobid: jobid });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cron-jobs'] });
+      queryClient.invalidateQueries({ queryKey: ['cron-job-history'] });
+      toast.success('Cron job executado com sucesso');
+    },
+    onError: (error: Error) => {
+      toast.error(`Erro ao executar cron job: ${error.message}`);
+    },
+  });
+
   // Buscar histórico de um job
   const useJobHistory = (jobid: number | null, limit = 50) => {
     return useQuery({
@@ -169,9 +185,11 @@ export function useCronJobs() {
     habilitar: habilitarMutation.mutate,
     desabilitar: desabilitarMutation.mutate,
     atualizar: atualizarMutation.mutate,
+    executar: executarMutation.mutate,
     isHabilitando: habilitarMutation.isPending,
     isDesabilitando: desabilitarMutation.isPending,
     isAtualizando: atualizarMutation.isPending,
+    isExecutando: executarMutation.isPending,
     useJobHistory,
   };
 }
