@@ -764,45 +764,113 @@ async function processarMensagemRecebida(supabase: any, conta: any, message: any
   const clienteCadastrado = !!contato.contato_id;
   const temOperador = !!conversa.atribuida_para_id;
   const aguardandoCnpj = conversa.triagem_status === 'aguardando_cnpj';
+  const emTriagem = conversa.triagem_status === 'em_triagem';
+  const triageConcluidaOuInexistente = conversa.triagem_status === 'triagem_concluida' || !conversa.triagem_status;
   const agentePermitidoNaConversa = conversa.agente_ia_ativo !== false;
   const tipoMensagemValido = message.type === 'text' || message.type === 'audio';
 
-  // Aplicar regras configuráveis
+  // ===== GATING CNPJ: Verificar se tem carteira ou vendedor vinculado =====
+  // Se não tem carteira NEM vendedor, o agente SÓ pode responder APÓS triagem concluída
+  let temCarteiraOuVendedor = false;
+  
+  // Verificar carteira do contato
+  if (contato?.id) {
+    const { data: carteiraContato } = await supabase
+      .from('whatsapp_carteiras_contatos')
+      .select('id')
+      .eq('contato_id', contato.id)
+      .limit(1)
+      .single();
+    
+    if (carteiraContato) {
+      temCarteiraOuVendedor = true;
+      console.log('📂 Contato tem carteira vinculada');
+    }
+  }
+  
+  // Verificar vendedor vinculado via contato CRM
+  if (!temCarteiraOuVendedor && contato.contato_id) {
+    const { data: contatoCRM } = await supabase
+      .from('contatos')
+      .select('cliente_id')
+      .eq('id', contato.contato_id)
+      .single();
+    
+    if (contatoCRM?.cliente_id) {
+      const { data: cliente } = await supabase
+        .from('clientes')
+        .select('vendedor_id')
+        .eq('id', contatoCRM.cliente_id)
+        .single();
+      
+      if (cliente?.vendedor_id) {
+        temCarteiraOuVendedor = true;
+        console.log('👤 Contato tem vendedor vinculado via cliente:', cliente.vendedor_id);
+      }
+    }
+  }
+
+  // Aplicar regras configuráveis COM GATING CNPJ
   let deveAcionarPorRegra = false;
   let motivoAcionamento = '';
+  let bloqueadoPorTriagem = false;
 
-  if (clienteCadastrado) {
+  if (clienteCadastrado && temCarteiraOuVendedor) {
+    // Cliente cadastrado COM carteira/vendedor - pode responder
     deveAcionarPorRegra = agenteConfig.regras?.responder_cliente_cadastrado || false;
-    motivoAcionamento = 'cliente_cadastrado';
+    motivoAcionamento = 'cliente_cadastrado_com_vinculo';
   } else if (temOperador) {
+    // Tem operador atribuído - pode responder conforme config
     deveAcionarPorRegra = agenteConfig.regras?.responder_com_operador_atribuido || false;
     motivoAcionamento = 'com_operador';
   } else if (aguardandoCnpj) {
+    // Aguardando CNPJ - verificar config (geralmente false)
     deveAcionarPorRegra = agenteConfig.regras?.responder_aguardando_cnpj || false;
     motivoAcionamento = 'aguardando_cnpj';
-  } else {
-    // Cliente novo sem operador
+  } else if (emTriagem) {
+    // ===== GATING CRÍTICO: Em triagem = NÃO responder =====
+    // Conversa está em processo de triagem (aguardando solicitação de CNPJ)
+    deveAcionarPorRegra = false;
+    motivoAcionamento = 'em_triagem_aguardando_cnpj';
+    bloqueadoPorTriagem = true;
+    console.log('🚫 GATING CNPJ: Agente bloqueado - conversa em triagem, aguardando solicitação de CNPJ');
+  } else if (!temCarteiraOuVendedor && !triageConcluidaOuInexistente) {
+    // Sem carteira/vendedor e triagem não concluída - NÃO responder
+    deveAcionarPorRegra = false;
+    motivoAcionamento = 'sem_vinculo_triagem_pendente';
+    bloqueadoPorTriagem = true;
+    console.log('🚫 GATING CNPJ: Agente bloqueado - sem carteira/vendedor e triagem pendente');
+  } else if (triageConcluidaOuInexistente && !temCarteiraOuVendedor) {
+    // Triagem concluída mas sem carteira/vendedor - pode responder se config permitir
     deveAcionarPorRegra = agenteConfig.regras?.responder_cliente_novo_sem_operador !== false;
-    motivoAcionamento = 'cliente_novo_sem_operador';
+    motivoAcionamento = 'triagem_concluida_sem_vinculo';
+  } else {
+    // Cliente novo sem operador COM carteira/vendedor - pode responder
+    deveAcionarPorRegra = agenteConfig.regras?.responder_cliente_novo_sem_operador !== false;
+    motivoAcionamento = 'cliente_novo_com_vinculo';
   }
 
   const deveAcionarAgente = 
     conta.agente_vendas_ativo && 
     agentePermitidoNaConversa &&
     deveAcionarPorRegra &&
+    !bloqueadoPorTriagem &&
     dentroDoHorario &&
     dentroDoLimite &&
     tipoMensagemValido;
 
-  console.log('🤖 Verificação do Agente IA (Configurável):', {
+  console.log('🤖 Verificação do Agente IA (com GATING CNPJ):', {
     contaAtiva: conta.agente_vendas_ativo,
     conversaPermite: agentePermitidoNaConversa,
+    temCarteiraOuVendedor,
+    triageStatus: conversa.triagem_status,
+    bloqueadoPorTriagem,
     motivoAcionamento,
     deveAcionarPorRegra,
     dentroDoHorario,
     dentroDoLimite: `${respostasAgente || 0}/${agenteConfig.limite_respostas_por_conversa || 10}`,
     tipoMensagemValido,
-    RESULTADO: deveAcionarAgente ? 'ACIONANDO' : 'NÃO ACIONAR'
+    RESULTADO: deveAcionarAgente ? 'ACIONANDO' : 'NÃO ACIONAR (GATING CNPJ)'
   });
 
   // Enviar mensagem de fora do horário se configurado
