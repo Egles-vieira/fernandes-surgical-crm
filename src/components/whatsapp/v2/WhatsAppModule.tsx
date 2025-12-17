@@ -74,6 +74,7 @@ export function WhatsAppModule() {
           atribuida_para_id,
           em_distribuicao,
           fila_id,
+          whatsapp_fila_id,
           whatsapp_contatos (
             id,
             nome_whatsapp,
@@ -93,7 +94,7 @@ export function WhatsAppModule() {
         .map(c => c.atribuida_para_id)
         .filter((id): id is string => !!id);
       const filaIds = conversasData
-        .map(c => c.fila_id)
+        .map(c => (c as any).fila_id || (c as any).whatsapp_fila_id)
         .filter((id): id is string => !!id);
 
       // Fetch operators
@@ -159,6 +160,7 @@ export function WhatsAppModule() {
 
       return conversasData.map(c => {
         const contato = c.whatsapp_contatos as any;
+        const filaIdToUse = c.fila_id || (c as any).whatsapp_fila_id;
         return {
           id: c.id,
           status: c.status,
@@ -173,7 +175,7 @@ export function WhatsAppModule() {
           atribuida_para_id: c.atribuida_para_id,
           em_distribuicao: (c as any).em_distribuicao,
           operador: c.atribuida_para_id ? operadoresMap[c.atribuida_para_id] || null : null,
-          setor: c.fila_id ? setoresMap[c.fila_id] || null : null,
+          setor: filaIdToUse ? setoresMap[filaIdToUse] || null : null,
           whatsapp_contatos: {
             id: contato?.id || '',
             nome_whatsapp: contato?.nome_whatsapp || '',
