@@ -78,9 +78,18 @@ export default function EditarContatoDialog({ open, onOpenChange, contato, clien
   const onSubmit = async (data: ContatoInput) => {
     setIsSubmitting(true);
     try {
+      // Converter strings vazias para null em campos de data/timestamp
+      const cleanedData = {
+        ...data,
+        data_nascimento: data.data_nascimento || null,
+        data_consentimento_lgpd: data.data_consentimento_lgpd || null,
+        ultimo_contato: data.ultimo_contato || null,
+        proximo_followup: data.proximo_followup || null,
+      };
+      
       await updateContato.mutateAsync({
         id: contato.id,
-        ...data,
+        ...cleanedData,
       });
       onOpenChange(false);
     } finally {
