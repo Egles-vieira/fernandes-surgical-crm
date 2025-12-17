@@ -18,6 +18,8 @@ import {
   NPSIndicator
 } from '@/components/whatsapp/bam';
 import { useWhatsAppBAM } from '@/hooks/useWhatsAppBAM';
+import { useWhatsAppDistribuicao } from '@/hooks/useWhatsAppDistribuicao';
+import { useWhatsAppGlobal } from '@/hooks/useWhatsAppGlobal';
 
 export default function BAMDashboard() {
   const {
@@ -26,9 +28,11 @@ export default function BAMDashboard() {
     operadores,
     isLoadingMetricas,
     refreshMetricas,
-    distribuirProximaConversa,
     isSupervisor,
   } = useWhatsAppBAM();
+
+  const { atribuirConversaManual, isAtribuindo } = useWhatsAppDistribuicao();
+  const { userId } = useWhatsAppGlobal();
 
   // Auto-refresh a cada 30 segundos
   useEffect(() => {
@@ -142,8 +146,12 @@ export default function BAMDashboard() {
         {/* Coluna 1: Fila de Espera */}
         <FilaEsperaPanel
           conversas={conversasFila}
-          onDistribuir={() => distribuirProximaConversa?.()}
-          isLoading={isLoadingMetricas}
+          onDistribuir={(conversaId) => {
+            if (userId) {
+              atribuirConversaManual({ conversaId, atendenteId: userId });
+            }
+          }}
+          isLoading={isLoadingMetricas || isAtribuindo}
         />
 
         {/* Coluna 2: Operadores */}

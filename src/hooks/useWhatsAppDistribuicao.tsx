@@ -111,28 +111,48 @@ export const useWhatsAppDistribuicao = () => {
 
   const atribuirConversaManual = useMutation({
     mutationFn: async ({ conversaId, atendenteId }: { conversaId: string; atendenteId: string }) => {
-      const { error } = await supabase
+      console.log('🎯 Resgatando conversa:', conversaId, 'para operador:', atendenteId);
+      
+      // 1. Atualizar a conversa para o operador
+      const { error: updateError } = await supabase
         .from('whatsapp_conversas')
         .update({
           atribuida_para_id: atendenteId,
           status: 'em_atendimento',
+          em_distribuicao: false,
+          distribuicao_concluida_em: new Date().toISOString(),
         } as any)
         .eq('id', conversaId);
       
-      if (error) throw error;
+      if (updateError) {
+        console.error('❌ Erro ao atualizar conversa:', updateError);
+        throw updateError;
+      }
+      console.log('✅ Conversa atribuída ao operador');
       
-      // Marcar como atendido na fila
-      await client
+      // 2. Remover da fila de espera
+      const { error: deleteError } = await client
         .from('whatsapp_fila_espera')
-        .update({ atendido_em: new Date().toISOString() })
+        .delete()
         .eq('conversa_id', conversaId);
+      
+      if (deleteError) {
+        console.warn('⚠️ Erro ao remover da fila (pode não existir):', deleteError);
+      } else {
+        console.log('✅ Conversa removida da fila de espera');
+      }
+      
+      return { conversaId, atendenteId };
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['whatsapp-bam-metricas'] });
+      queryClient.invalidateQueries({ queryKey: ['whatsapp-conversas-v2'] });
       context.refreshData();
-      toast.success('Conversa atribuída');
+      toast.success('Conversa resgatada com sucesso!');
     },
     onError: (error: any) => {
-      toast.error('Erro ao atribuir: ' + error.message);
+      console.error('❌ Erro ao resgatar conversa:', error);
+      toast.error('Erro ao resgatar: ' + error.message);
     },
   });
 
