@@ -229,6 +229,7 @@ export const WhatsAppProvider: React.FC<WhatsAppProviderProps> = ({ children }) 
     if (!isSupervisor) return;
     
     try {
+      // Buscar fila de espera com dados da conversa e contato
       const { data } = await supabase
         .from('whatsapp_fila_espera' as any)
         .select(`
@@ -243,25 +244,71 @@ export const WhatsAppProvider: React.FC<WhatsAppProviderProps> = ({ children }) 
         .order('entrou_fila_em', { ascending: true })
         .limit(100);
       
-      if (data) {
+      if (data && data.length > 0) {
+        // Buscar dados das conversas
+        const conversaIds = (data as any[]).map(f => f.conversa_id).filter(Boolean);
+        
+        const { data: conversasData } = await supabase
+          .from('whatsapp_conversas')
+          .select(`
+            id,
+            numero_protocolo,
+            whatsapp_contato_id
+          `)
+          .in('id', conversaIds);
+        
+        // Mapear conversas
+        const conversasMap: Record<string, any> = {};
+        const contatoIds: string[] = [];
+        
+        (conversasData || []).forEach((c: any) => {
+          conversasMap[c.id] = c;
+          if (c.whatsapp_contato_id) {
+            contatoIds.push(c.whatsapp_contato_id);
+          }
+        });
+        
+        // Buscar dados dos contatos
+        let contatosMap: Record<string, any> = {};
+        if (contatoIds.length > 0) {
+          const { data: contatosData } = await supabase
+            .from('whatsapp_contatos')
+            .select('id, nome_whatsapp, numero_whatsapp')
+            .in('id', contatoIds);
+          
+          (contatosData || []).forEach((ct: any) => {
+            contatosMap[ct.id] = ct;
+          });
+        }
+        
+        // Montar lista da fila
         const fila: WhatsAppConversaResumo[] = (data as any[]).map((f) => {
           const tempoEspera = f.entrou_fila_em 
             ? Math.floor((Date.now() - new Date(f.entrou_fila_em).getTime()) / 1000)
             : 0;
           
+          const conversa = conversasMap[f.conversa_id];
+          const contato = conversa?.whatsapp_contato_id 
+            ? contatosMap[conversa.whatsapp_contato_id] 
+            : null;
+          
           return {
             id: f.conversa_id,
-            numero_protocolo: null,
+            numero_protocolo: conversa?.numero_protocolo || null,
             status: 'aguardando',
             prioridade: f.prioridade || 0,
             atendente_id: null,
-            cliente_nome: 'Aguardando',
+            cliente_nome: contato?.nome_whatsapp || contato?.numero_whatsapp || 'Desconhecido',
+            contato_telefone: contato?.numero_whatsapp || null,
             ultima_mensagem_em: null,
             nao_lidas: 0,
             tempo_espera_segundos: tempoEspera,
+            entrou_fila_em: f.entrou_fila_em,
           };
         });
         setFilaEspera(fila);
+      } else {
+        setFilaEspera([]);
       }
     } catch (error) {
       console.error('Erro ao carregar fila de espera:', error);
