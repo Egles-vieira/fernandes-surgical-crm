@@ -30,6 +30,7 @@ import {
   UserPlus,
   AlertCircle,
   Play,
+  Bot,
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -63,6 +64,7 @@ interface Contato {
 interface ConversaInfo {
   atribuida_para_id: string | null;
   em_distribuicao: boolean;
+  agente_ia_ativo?: boolean;
 }
 
 interface ChatPanelProps {
@@ -409,6 +411,29 @@ export function ChatPanel({
     },
   });
 
+  // Toggle agente IA mutation
+  const toggleAgenteMutation = useMutation({
+    mutationFn: async () => {
+      if (!conversaId) throw new Error('Conversa não selecionada');
+      const novoStatus = !(conversaInfo?.agente_ia_ativo ?? true);
+      
+      const { error } = await supabase
+        .from('whatsapp_conversas')
+        .update({ agente_ia_ativo: novoStatus })
+        .eq('id', conversaId);
+      
+      if (error) throw error;
+      return novoStatus;
+    },
+    onSuccess: (novoStatus) => {
+      queryClient.invalidateQueries({ queryKey: ['whatsapp-conversas-v2'] });
+      toast.success(novoStatus ? 'Agente IA ativado para esta conversa' : 'Agente IA desativado para esta conversa');
+    },
+    onError: () => {
+      toast.error('Erro ao alterar status do agente');
+    }
+  });
+
   // Mark as read when message is visible
   const markAsRead = useCallback(async (mensagemId: string) => {
     await whatsAppService.markAsRead(mensagemId);
@@ -585,6 +610,13 @@ export function ChatPanel({
           </div>
         </div>
         <div className="flex items-center gap-1">
+          {/* Badge indicando status do agente IA */}
+          {(conversaInfo?.agente_ia_ativo ?? true) && !conversaInfo?.atribuida_para_id && (
+            <Badge variant="outline" className="text-xs bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800 mr-2">
+              <Bot className="h-3 w-3 mr-1" />
+              IA Ativo
+            </Badge>
+          )}
           <Button variant="ghost" size="icon" className="h-8 w-8">
             <Phone className="h-4 w-4" />
           </Button>
@@ -603,6 +635,14 @@ export function ChatPanel({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
+              <DropdownMenuItem 
+                onClick={() => toggleAgenteMutation.mutate()}
+                disabled={toggleAgenteMutation.isPending}
+                className="flex items-center gap-2"
+              >
+                <Bot className="h-4 w-4" />
+                {(conversaInfo?.agente_ia_ativo ?? true) ? 'Desativar Agente IA' : 'Ativar Agente IA'}
+              </DropdownMenuItem>
               <DropdownMenuItem>Fechar conversa</DropdownMenuItem>
               <DropdownMenuItem>Transferir</DropdownMenuItem>
               <DropdownMenuItem>Bloquear contato</DropdownMenuItem>

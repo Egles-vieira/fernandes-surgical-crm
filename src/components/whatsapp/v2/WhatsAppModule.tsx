@@ -39,6 +39,7 @@ interface Conversa {
   nao_lidas: number;
   atribuida_para_id?: string | null;
   em_distribuicao?: boolean;
+  agente_ia_ativo?: boolean;
   operador?: Operador | null;
   setor?: Setor | null;
   whatsapp_contatos: {
@@ -75,6 +76,7 @@ export function WhatsAppModule() {
           em_distribuicao,
           fila_id,
           whatsapp_fila_id,
+          agente_ia_ativo,
           whatsapp_contatos (
             id,
             nome_whatsapp,
@@ -174,6 +176,7 @@ export function WhatsAppModule() {
           nao_lidas: naoLidasMap[c.id] || 0,
           atribuida_para_id: c.atribuida_para_id,
           em_distribuicao: (c as any).em_distribuicao,
+          agente_ia_ativo: (c as any).agente_ia_ativo,
           operador: c.atribuida_para_id ? operadoresMap[c.atribuida_para_id] || null : null,
           setor: filaIdToUse ? setoresMap[filaIdToUse] || null : null,
           whatsapp_contatos: {
@@ -247,6 +250,7 @@ export function WhatsAppModule() {
               conversaInfo={selectedConversa ? {
                 atribuida_para_id: selectedConversa.atribuida_para_id || null,
                 em_distribuicao: selectedConversa.em_distribuicao || false,
+                agente_ia_ativo: selectedConversa.agente_ia_ativo ?? true,
               } : undefined}
             />
           </ResizablePanel>
