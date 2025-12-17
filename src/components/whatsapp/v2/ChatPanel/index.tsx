@@ -27,6 +27,8 @@ import {
   CornerDownLeft,
   X,
   Download,
+  UserPlus,
+  AlertCircle,
   Play,
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -49,6 +51,7 @@ import { MessageReactions } from './MessageReactions';
 import { EmojiPicker } from '@/components/whatsapp/EmojiPicker';
 import MediaUploader from '@/components/whatsapp/MediaUploader';
 import AudioRecorder from '@/components/whatsapp/AudioRecorder';
+import { useWhatsAppDistribuicao } from '@/hooks/useWhatsAppDistribuicao';
 
 interface Contato {
   id: string;
@@ -57,11 +60,17 @@ interface Contato {
   foto_url?: string;
 }
 
+interface ConversaInfo {
+  atribuida_para_id: string | null;
+  em_distribuicao: boolean;
+}
+
 interface ChatPanelProps {
   conversaId: string | null;
   contato?: Contato;
   onToggleDetails: () => void;
   showDetailsButton: boolean;
+  conversaInfo?: ConversaInfo;
 }
 
 interface Mensagem {
@@ -101,7 +110,8 @@ export function ChatPanel({
   conversaId, 
   contato, 
   onToggleDetails,
-  showDetailsButton 
+  showDetailsButton,
+  conversaInfo,
 }: ChatPanelProps) {
   const [message, setMessage] = useState('');
   const [replyingTo, setReplyingTo] = useState<Mensagem | null>(null);
@@ -111,7 +121,9 @@ export function ChatPanel({
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const queryClient = useQueryClient();
-
+  
+  // Hook para resgate de conversa
+  const { atribuirConversaManual, isAtribuindo } = useWhatsAppDistribuicao();
   // Fetch current user
   const { data: currentUser } = useQuery({
     queryKey: ['current-user'],
@@ -598,6 +610,31 @@ export function ChatPanel({
           </DropdownMenu>
         </div>
       </div>
+
+      {/* Banner de Resgate - quando conversa está na fila sem operador */}
+      {conversaInfo && !conversaInfo.atribuida_para_id && conversaInfo.em_distribuicao && (
+        <div className="px-4 py-3 bg-amber-50 dark:bg-amber-950/30 border-b border-amber-200 dark:border-amber-800 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 min-w-0">
+            <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
+            <span className="text-sm text-amber-800 dark:text-amber-200 truncate">
+              Esta conversa está aguardando atendimento na fila
+            </span>
+          </div>
+          <Button 
+            size="sm" 
+            onClick={() => {
+              if (conversaId && currentUser?.id) {
+                atribuirConversaManual({ conversaId, atendenteId: currentUser.id });
+              }
+            }}
+            disabled={isAtribuindo || !currentUser}
+            className="shrink-0"
+          >
+            <UserPlus className="h-4 w-4 mr-2" />
+            {isAtribuindo ? 'Resgatando...' : 'Resgatar Conversa'}
+          </Button>
+        </div>
+      )}
 
       {/* Messages Area */}
       <ScrollArea className="flex-1 p-4">
