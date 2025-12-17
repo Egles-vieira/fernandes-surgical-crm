@@ -11736,6 +11736,10 @@ export type Database = {
         }
         Returns: Json
       }
+      executar_cron_job_manual: {
+        Args: { p_jobid: number }
+        Returns: undefined
+      }
       gerar_numero_ticket: { Args: never; Returns: string }
       gerar_token_proposta: { Args: never; Returns: string }
       get_clientes_acessiveis: {

@@ -146,7 +146,7 @@ export function useCronJobs() {
   // Executar job manualmente
   const executarMutation = useMutation({
     mutationFn: async (jobid: number) => {
-      const { error } = await supabase.rpc('executar_cron_job_manual', { p_jobid: jobid });
+      const { error } = await supabase.rpc('executar_cron_job_manual' as any, { p_jobid: jobid });
       if (error) throw error;
     },
     onSuccess: () => {
