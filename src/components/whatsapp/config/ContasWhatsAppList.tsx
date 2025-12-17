@@ -27,7 +27,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { NovaContaSheet } from "./NovaContaSheet";
-import AgenteVendasToggle from "./AgenteVendasToggle";
+import AgenteVendasConfig from "./AgenteVendasConfig";
 
 const ContasWhatsAppList = () => {
   const { toast } = useToast();
@@ -216,9 +216,10 @@ const ContasWhatsAppList = () => {
 
                     {/* Agente de Vendas */}
                     <div className="mt-4">
-                      <AgenteVendasToggle 
+                      <AgenteVendasConfig 
                         contaId={conta.id} 
                         agenteAtivo={conta.agente_vendas_ativo || false}
+                        config={conta.agente_ia_config}
                       />
                     </div>
                   </div>

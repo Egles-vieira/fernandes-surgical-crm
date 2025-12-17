@@ -710,37 +710,118 @@ async function processarMensagemRecebida(supabase: any, conta: any, message: any
   }
   // ===== FIM PROCESSAMENTO CNPJ =====
 
-  // ===== VERIFICAÇÃO INTELIGENTE DO AGENTE DE VENDAS IA =====
-  // O agente SÓ responde quando:
-  // 1. Conta tem agente ativo globalmente
-  // 2. Conversa permite agente (não foi desativado manualmente)
-  // 3. Cliente NÃO está cadastrado no CRM (contato.contato_id é NULL)
-  // 4. Conversa NÃO tem operador atribuído
-  // 5. Conversa NÃO está aguardando CNPJ (não interferir na triagem)
+  // ===== VERIFICAÇÃO INTELIGENTE DO AGENTE DE VENDAS IA (CONFIGURÁVEL) =====
+  // Carregar configurações avançadas do agente
+  const agenteConfig = (conta.agente_ia_config as any) || {
+    tom_voz: 'profissional',
+    limite_respostas_por_conversa: 10,
+    tempo_espera_segundos: 30,
+    horario_funcionamento: { ativo: false, inicio: '08:00', fim: '18:00', dias_semana: [1,2,3,4,5] },
+    regras: {
+      responder_cliente_cadastrado: false,
+      responder_com_operador_atribuido: false,
+      responder_aguardando_cnpj: false,
+      responder_cliente_novo_sem_operador: true
+    },
+    mensagens: {
+      fora_horario: 'Olá! Nosso atendimento funciona de segunda a sexta, das 8h às 18h. Deixe sua mensagem que retornaremos!',
+      limite_atingido: 'Para um atendimento mais personalizado, vou transferir você para um de nossos especialistas.'
+    }
+  };
 
-  const clienteNaoCadastrado = !contato.contato_id;
-  const semOperador = !conversa.atribuida_para_id;
+  // Verificar horário de funcionamento
+  const verificarHorarioFuncionamento = (config: any): boolean => {
+    if (!config?.ativo) return true;
+    
+    const agora = new Date();
+    const diaSemana = agora.getDay();
+    
+    if (!config.dias_semana?.includes(diaSemana)) return false;
+    
+    const horaAtual = agora.getHours() * 60 + agora.getMinutes();
+    const [inicioH, inicioM] = (config.inicio || '08:00').split(':').map(Number);
+    const [fimH, fimM] = (config.fim || '18:00').split(':').map(Number);
+    
+    const inicioMinutos = inicioH * 60 + inicioM;
+    const fimMinutos = fimH * 60 + fimM;
+    
+    return horaAtual >= inicioMinutos && horaAtual <= fimMinutos;
+  };
+
+  const dentroDoHorario = verificarHorarioFuncionamento(agenteConfig.horario_funcionamento);
+
+  // Contar respostas do agente na conversa
+  const { count: respostasAgente } = await supabase
+    .from('whatsapp_mensagens')
+    .select('*', { count: 'exact', head: true })
+    .eq('conversa_id', conversa.id)
+    .eq('direcao', 'enviada')
+    .eq('enviada_por_bot', true);
+  
+  const dentroDoLimite = (respostasAgente || 0) < (agenteConfig.limite_respostas_por_conversa || 10);
+
+  // Estados da conversa
+  const clienteCadastrado = !!contato.contato_id;
+  const temOperador = !!conversa.atribuida_para_id;
+  const aguardandoCnpj = conversa.triagem_status === 'aguardando_cnpj';
   const agentePermitidoNaConversa = conversa.agente_ia_ativo !== false;
-  const naoAguardandoCnpj = conversa.triagem_status !== 'aguardando_cnpj';
   const tipoMensagemValido = message.type === 'text' || message.type === 'audio';
+
+  // Aplicar regras configuráveis
+  let deveAcionarPorRegra = false;
+  let motivoAcionamento = '';
+
+  if (clienteCadastrado) {
+    deveAcionarPorRegra = agenteConfig.regras?.responder_cliente_cadastrado || false;
+    motivoAcionamento = 'cliente_cadastrado';
+  } else if (temOperador) {
+    deveAcionarPorRegra = agenteConfig.regras?.responder_com_operador_atribuido || false;
+    motivoAcionamento = 'com_operador';
+  } else if (aguardandoCnpj) {
+    deveAcionarPorRegra = agenteConfig.regras?.responder_aguardando_cnpj || false;
+    motivoAcionamento = 'aguardando_cnpj';
+  } else {
+    // Cliente novo sem operador
+    deveAcionarPorRegra = agenteConfig.regras?.responder_cliente_novo_sem_operador !== false;
+    motivoAcionamento = 'cliente_novo_sem_operador';
+  }
 
   const deveAcionarAgente = 
     conta.agente_vendas_ativo && 
     agentePermitidoNaConversa &&
-    clienteNaoCadastrado && 
-    semOperador &&
-    naoAguardandoCnpj &&
+    deveAcionarPorRegra &&
+    dentroDoHorario &&
+    dentroDoLimite &&
     tipoMensagemValido;
 
-  console.log('🤖 Verificação do Agente IA:', {
+  console.log('🤖 Verificação do Agente IA (Configurável):', {
     contaAtiva: conta.agente_vendas_ativo,
     conversaPermite: agentePermitidoNaConversa,
-    clienteNaoCadastrado,
-    semOperador,
-    naoAguardandoCnpj,
+    motivoAcionamento,
+    deveAcionarPorRegra,
+    dentroDoHorario,
+    dentroDoLimite: `${respostasAgente || 0}/${agenteConfig.limite_respostas_por_conversa || 10}`,
     tipoMensagemValido,
     RESULTADO: deveAcionarAgente ? 'ACIONANDO' : 'NÃO ACIONAR'
   });
+
+  // Enviar mensagem de fora do horário se configurado
+  if (conta.agente_vendas_ativo && agentePermitidoNaConversa && deveAcionarPorRegra && !dentroDoHorario && tipoMensagemValido) {
+    console.log('⏰ Fora do horário de funcionamento - enviando mensagem automática');
+    const mensagemForaHorario = agenteConfig.mensagens?.fora_horario;
+    if (mensagemForaHorario) {
+      await enviarRespostaAgente(supabase, conta, conversa, contato, mensagemForaHorario);
+    }
+  }
+
+  // Enviar mensagem de limite atingido se configurado
+  if (conta.agente_vendas_ativo && agentePermitidoNaConversa && deveAcionarPorRegra && dentroDoHorario && !dentroDoLimite && tipoMensagemValido) {
+    console.log('🛑 Limite de respostas atingido - enviando mensagem automática');
+    const mensagemLimite = agenteConfig.mensagens?.limite_atingido;
+    if (mensagemLimite && respostasAgente === agenteConfig.limite_respostas_por_conversa) {
+      await enviarRespostaAgente(supabase, conta, conversa, contato, mensagemLimite);
+    }
+  }
 
   if (deveAcionarAgente) {
     try {
