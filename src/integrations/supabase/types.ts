@@ -8614,6 +8614,7 @@ export type Database = {
       }
       whatsapp_conversas: {
         Row: {
+          agente_ia_ativo: boolean | null
           atribuicao_automatica: boolean | null
           atribuida_em: string | null
           atribuida_para_id: string | null
@@ -8679,6 +8680,7 @@ export type Database = {
           whatsapp_fila_id: string | null
         }
         Insert: {
+          agente_ia_ativo?: boolean | null
           atribuicao_automatica?: boolean | null
           atribuida_em?: string | null
           atribuida_para_id?: string | null
@@ -8744,6 +8746,7 @@ export type Database = {
           whatsapp_fila_id?: string | null
         }
         Update: {
+          agente_ia_ativo?: boolean | null
           atribuicao_automatica?: boolean | null
           atribuida_em?: string | null
           atribuida_para_id?: string | null

@@ -710,10 +710,41 @@ async function processarMensagemRecebida(supabase: any, conta: any, message: any
   }
   // ===== FIM PROCESSAMENTO CNPJ =====
 
-  // Check if agent is active for this account
-  if (conta.agente_vendas_ativo && (message.type === 'text' || message.type === 'audio')) {
+  // ===== VERIFICAÇÃO INTELIGENTE DO AGENTE DE VENDAS IA =====
+  // O agente SÓ responde quando:
+  // 1. Conta tem agente ativo globalmente
+  // 2. Conversa permite agente (não foi desativado manualmente)
+  // 3. Cliente NÃO está cadastrado no CRM (contato.contato_id é NULL)
+  // 4. Conversa NÃO tem operador atribuído
+  // 5. Conversa NÃO está aguardando CNPJ (não interferir na triagem)
+
+  const clienteNaoCadastrado = !contato.contato_id;
+  const semOperador = !conversa.atribuida_para_id;
+  const agentePermitidoNaConversa = conversa.agente_ia_ativo !== false;
+  const naoAguardandoCnpj = conversa.triagem_status !== 'aguardando_cnpj';
+  const tipoMensagemValido = message.type === 'text' || message.type === 'audio';
+
+  const deveAcionarAgente = 
+    conta.agente_vendas_ativo && 
+    agentePermitidoNaConversa &&
+    clienteNaoCadastrado && 
+    semOperador &&
+    naoAguardandoCnpj &&
+    tipoMensagemValido;
+
+  console.log('🤖 Verificação do Agente IA:', {
+    contaAtiva: conta.agente_vendas_ativo,
+    conversaPermite: agentePermitidoNaConversa,
+    clienteNaoCadastrado,
+    semOperador,
+    naoAguardandoCnpj,
+    tipoMensagemValido,
+    RESULTADO: deveAcionarAgente ? 'ACIONANDO' : 'NÃO ACIONAR'
+  });
+
+  if (deveAcionarAgente) {
     try {
-      console.log('🤖 Chamando agente de vendas...');
+      console.log('🤖 Chamando agente de vendas (cliente não cadastrado + sem operador)...');
       console.log('📋 Tipo da mensagem:', message.type);
       console.log('📋 URL da mídia:', urlMidia);
       
