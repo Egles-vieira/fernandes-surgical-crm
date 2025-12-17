@@ -98,22 +98,36 @@ Deno.serve(async (req) => {
             .eq('id', conversaId)
             .single();
 
-          await supabase.from('whatsapp_fila_espera').insert({
+          // Insert into wait queue
+          const { error: insertError } = await supabase.from('whatsapp_fila_espera').insert({
             conversa_id: conversaId,
             whatsapp_fila_id: filaId,
-            fila_id: filaId,
+            fila_destino_id: filaId,
             prioridade: conversa?.prioridade || 'normal',
             status: 'aguardando',
           });
 
-          // Update conversation to indicate it's waiting for manual assignment
-          await supabase
+          if (insertError) {
+            console.error('❌ Erro ao inserir na fila de espera:', insertError);
+          } else {
+            console.log('✅ Conversa inserida na fila de espera');
+          }
+
+          // Update conversation with fila_id and distribution status
+          const { error: updateError } = await supabase
             .from('whatsapp_conversas')
             .update({
+              fila_id: filaId,
               em_distribuicao: true,
               distribuicao_iniciada_em: new Date().toISOString(),
             })
             .eq('id', conversaId);
+
+          if (updateError) {
+            console.error('❌ Erro ao atualizar conversa:', updateError);
+          } else {
+            console.log('✅ Conversa atualizada com fila_id:', filaId);
+          }
         }
 
         // Audit log
@@ -377,7 +391,7 @@ Deno.serve(async (req) => {
       await supabase.from('whatsapp_fila_espera').insert({
         conversa_id: conversaId,
         whatsapp_fila_id: filaId || null,
-        fila_id: filaId || null,
+        fila_destino_id: filaId || null,
         unidade_id: unidadeId || null,
         prioridade: conversa?.prioridade || 'normal',
         status: 'aguardando',
