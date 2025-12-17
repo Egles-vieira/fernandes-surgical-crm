@@ -74,6 +74,7 @@ export function ContactDetailsPanel({
             sobrenome,
             email,
             telefone,
+            celular,
             cargo,
             clientes (
               id,
@@ -234,7 +235,7 @@ export function ContactDetailsPanel({
                 </AccordionTrigger>
                 <AccordionContent className="pb-3 space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm">
+                    <span className="text-sm font-medium">
                       {linkedContact.primeiro_nome} {linkedContact.sobrenome}
                     </span>
                     <Button variant="ghost" size="icon" className="h-6 w-6">
@@ -243,8 +244,20 @@ export function ContactDetailsPanel({
                   </div>
                   {linkedContact.email && (
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <Mail className="h-3 w-3" />
-                      {linkedContact.email}
+                      <Mail className="h-3 w-3 flex-shrink-0" />
+                      <span className="truncate">{linkedContact.email}</span>
+                    </div>
+                  )}
+                  {linkedContact.telefone && (
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Phone className="h-3 w-3 flex-shrink-0" />
+                      <span>{linkedContact.telefone}</span>
+                    </div>
+                  )}
+                  {linkedContact.celular && (
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Phone className="h-3 w-3 flex-shrink-0" />
+                      <span>{linkedContact.celular}</span>
                     </div>
                   )}
                   {linkedContact.cargo && (
