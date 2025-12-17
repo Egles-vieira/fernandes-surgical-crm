@@ -11,7 +11,7 @@ import { ContactDetailsPanel } from './ContactDetailsPanel';
 import { StatusBar } from './StatusBar';
 
 import { useWhatsAppService } from '@/services/whatsapp/hooks/useWhatsAppService';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 interface Operador {
@@ -51,6 +51,7 @@ export function WhatsAppModule() {
   const [selectedConversaId, setSelectedConversaId] = useState<string | null>(null);
   const [showDetailsPanel, setShowDetailsPanel] = useState(true);
   const { connectionStatus, isConnected } = useWhatsAppService();
+  const queryClient = useQueryClient();
 
   // Fetch conversas
   const { data: conversas = [], isLoading: isLoadingConversas } = useQuery({
@@ -178,6 +179,29 @@ export function WhatsAppModule() {
       }) as Conversa[];
     },
   });
+
+  // Realtime listener para atualizar lista quando conversas mudam
+  useEffect(() => {
+    const channel = supabase
+      .channel('whatsapp-conversas-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'whatsapp_conversas',
+        },
+        (payload) => {
+          console.log('🔄 Conversa atualizada via Realtime:', payload);
+          queryClient.invalidateQueries({ queryKey: ['whatsapp-conversas-v2'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
 
   // Auto-select first conversation
   useEffect(() => {
