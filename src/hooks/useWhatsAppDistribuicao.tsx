@@ -110,8 +110,20 @@ export const useWhatsAppDistribuicao = () => {
   });
 
   const atribuirConversaManual = useMutation({
-    mutationFn: async ({ conversaId, atendenteId }: { conversaId: string; atendenteId: string }) => {
+    mutationFn: async ({ conversaId, atendenteId, filaId }: { conversaId: string; atendenteId: string; filaId?: string }) => {
       console.log('🎯 Resgatando conversa:', conversaId, 'para operador:', atendenteId);
+      
+      // Se não foi passada uma fila, buscar a fila "Geral" como padrão
+      let filaParaUsar = filaId;
+      if (!filaParaUsar) {
+        const { data: filaGeral } = await supabase
+          .from('whatsapp_filas')
+          .select('id')
+          .eq('nome', 'Geral')
+          .eq('esta_ativa', true)
+          .single();
+        filaParaUsar = filaGeral?.id;
+      }
       
       // 1. Atualizar a conversa para o operador
       const { error: updateError } = await supabase
@@ -121,6 +133,7 @@ export const useWhatsAppDistribuicao = () => {
           status: 'aberta',
           em_distribuicao: false,
           atribuida_em: new Date().toISOString(),
+          whatsapp_fila_id: filaParaUsar,
         } as any)
         .eq('id', conversaId);
       
@@ -128,7 +141,7 @@ export const useWhatsAppDistribuicao = () => {
         console.error('❌ Erro ao atualizar conversa:', updateError);
         throw updateError;
       }
-      console.log('✅ Conversa atribuída ao operador');
+      console.log('✅ Conversa atribuída ao operador com fila:', filaParaUsar);
       
       // 2. Remover da fila de espera
       const { error: deleteError } = await client
