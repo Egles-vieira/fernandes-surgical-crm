@@ -679,6 +679,12 @@ async function distribuirParaFila(supabase: any, triagem: TriagemPendente, resul
     metadata: resultadoTriagem,
     executado_por_bot: true,
   });
+
+  // ===== NOVO: Se não atribuiu operador, acionar agente IA =====
+  if (!distribuicaoResult.atendenteId) {
+    console.log('🤖 Nenhum operador atribuído - verificando se deve acionar agente IA...');
+    await acionarAgenteIA(supabase, triagem);
+  }
 }
 
 async function colocarNaFilaEspera(supabase: any, triagem: TriagemPendente) {
@@ -706,4 +712,95 @@ async function colocarNaFilaEspera(supabase: any, triagem: TriagemPendente) {
       motivo_atribuicao: 'fila_espera',
     })
     .eq('id', triagem.id);
+
+  // ===== NOVO: Sem operador na fila de espera, acionar agente IA =====
+  console.log('🤖 Conversa em fila de espera sem operador - verificando se deve acionar agente IA...');
+  await acionarAgenteIA(supabase, triagem);
+}
+
+// ===== NOVA FUNÇÃO: Acionar agente IA após triagem concluída sem operador =====
+async function acionarAgenteIA(supabase: any, triagem: TriagemPendente) {
+  try {
+    console.log('🤖 Verificando se deve acionar agente IA após triagem...');
+    
+    // Buscar configuração do agente na conta
+    const { data: conta, error: contaError } = await supabase
+      .from('whatsapp_contas')
+      .select('id, agente_vendas_ativo, agente_ia_config')
+      .eq('id', triagem.conta_id)
+      .single();
+    
+    if (contaError || !conta) {
+      console.log('⚠️ Erro ao buscar conta WhatsApp:', contaError?.message);
+      return;
+    }
+
+    if (!conta.agente_vendas_ativo) {
+      console.log('ℹ️ Agente de vendas não está ativo na conta');
+      return;
+    }
+    
+    const agenteConfig = conta.agente_ia_config || {};
+    const regras = agenteConfig.regras || {};
+    const deveResponder = regras.responder_cliente_novo_sem_operador !== false;
+    
+    if (!deveResponder) {
+      console.log('ℹ️ Configuração não permite responder cliente novo sem operador');
+      return;
+    }
+    
+    // Buscar última mensagem recebida para processar
+    const { data: ultimaMensagem, error: msgError } = await supabase
+      .from('whatsapp_mensagens')
+      .select('id, conteudo')
+      .eq('conversa_id', triagem.conversa_id)
+      .eq('direcao', 'recebida')
+      .order('criado_em', { ascending: false })
+      .limit(1)
+      .single();
+    
+    if (msgError || !ultimaMensagem) {
+      console.log('⚠️ Nenhuma mensagem recebida encontrada para processar:', msgError?.message);
+      return;
+    }
+    
+    console.log(`🚀 Acionando agente IA via agente-vendas-ia para conversa ${triagem.conversa_id}...`);
+    console.log(`   Mensagem a processar: "${ultimaMensagem.conteudo?.substring(0, 50)}..."`);
+    
+    // Chamar o agente de vendas
+    const response = await fetch(
+      `${Deno.env.get('SUPABASE_URL')}/functions/v1/agente-vendas-ia`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+        },
+        body: JSON.stringify({
+          conversaId: triagem.conversa_id,
+          mensagemId: ultimaMensagem.id,
+          origem: 'triagem_concluida', // Indicar que veio da triagem
+        }),
+      }
+    );
+    
+    if (response.ok) {
+      const resultado = await response.json();
+      console.log('✅ Agente IA acionado com sucesso após triagem:', resultado);
+      
+      // Log de auditoria
+      await supabase.from('whatsapp_interacoes').insert({
+        conversa_id: triagem.conversa_id,
+        tipo_evento: 'agente_ia_acionado_pos_triagem',
+        descricao: 'Agente IA acionado automaticamente após triagem concluir sem operador',
+        metadata: { origem: 'triagem_concluida', mensagem_id: ultimaMensagem.id },
+        executado_por_bot: true,
+      });
+    } else {
+      const errorText = await response.text();
+      console.error('⚠️ Erro ao acionar agente IA:', response.status, errorText);
+    }
+  } catch (error) {
+    console.error('❌ Erro inesperado ao acionar agente IA:', error);
+  }
 }
