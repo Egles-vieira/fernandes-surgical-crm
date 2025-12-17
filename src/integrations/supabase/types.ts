@@ -4263,6 +4263,33 @@ export type Database = {
           },
         ]
       }
+      ia_configuracoes: {
+        Row: {
+          ativo: boolean | null
+          atualizado_em: string | null
+          config: Json | null
+          criado_em: string | null
+          id: string
+          modulo: string
+        }
+        Insert: {
+          ativo?: boolean | null
+          atualizado_em?: string | null
+          config?: Json | null
+          criado_em?: string | null
+          id?: string
+          modulo: string
+        }
+        Update: {
+          ativo?: boolean | null
+          atualizado_em?: string | null
+          config?: Json | null
+          criado_em?: string | null
+          id?: string
+          modulo?: string
+        }
+        Relationships: []
+      }
       ia_feedback_historico: {
         Row: {
           cotacao_item_id: string
