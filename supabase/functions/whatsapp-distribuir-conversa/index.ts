@@ -70,6 +70,77 @@ Deno.serve(async (req) => {
       carteirizacaoAtiva 
     });
 
+    // ===== VERIFICAR MODO DE DISTRIBUIÇÃO DA FILA =====
+    if (filaId) {
+      const { data: filaConfig } = await supabase
+        .from('whatsapp_filas')
+        .select('modo_distribuicao, nome')
+        .eq('id', filaId)
+        .single();
+      
+      // Se modo manual, colocar direto na fila de espera
+      if (filaConfig?.modo_distribuicao === 'manual') {
+        console.log(`📋 Fila "${filaConfig.nome}" em modo MANUAL - aguardando resgate por operador`);
+        
+        // Check if already in queue
+        const { data: existingQueue } = await supabase
+          .from('whatsapp_fila_espera')
+          .select('id')
+          .eq('conversa_id', conversaId)
+          .eq('status', 'aguardando')
+          .single();
+
+        if (!existingQueue) {
+          // Get conversation priority
+          const { data: conversa } = await supabase
+            .from('whatsapp_conversas')
+            .select('prioridade')
+            .eq('id', conversaId)
+            .single();
+
+          await supabase.from('whatsapp_fila_espera').insert({
+            conversa_id: conversaId,
+            whatsapp_fila_id: filaId,
+            fila_id: filaId,
+            prioridade: conversa?.prioridade || 'normal',
+            status: 'aguardando',
+          });
+
+          // Update conversation to indicate it's waiting for manual assignment
+          await supabase
+            .from('whatsapp_conversas')
+            .update({
+              em_distribuicao: true,
+              distribuicao_iniciada_em: new Date().toISOString(),
+            })
+            .eq('id', conversaId);
+        }
+
+        // Audit log
+        await supabase.from('whatsapp_auditoria').insert({
+          tipo_evento: 'conversa_aguardando_resgate',
+          descricao: `Conversa adicionada à fila de espera "${filaConfig.nome}" (modo manual)`,
+          whatsapp_conversa_id: conversaId,
+          dados_evento: {
+            fila_id: filaId,
+            fila_nome: filaConfig.nome,
+            modo: 'manual',
+          },
+        });
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            queued: true,
+            reason: 'Fila em modo manual - aguardando resgate',
+            filaId: filaId,
+            filaNome: filaConfig.nome,
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
+
     // ===== FASE 1: VERIFICAR CARTEIRA V2 =====
     let atendenteId: string | null = null;
     let motivoDistribuicao = '';
