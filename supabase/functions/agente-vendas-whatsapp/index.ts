@@ -43,9 +43,9 @@ Deno.serve(async (req) => {
   }
 
   try {
-    let { mensagemTexto, conversaId, tipoMensagem, urlMidia, clienteId } = await req.json();
+    let { mensagemTexto, conversaId, tipoMensagem, urlMidia, clienteId, mensagemId } = await req.json();
 
-    console.log("🤖 Agente Vendas Inteligente v3 - Iniciando", { conversaId, tipoMensagem, clienteId });
+    console.log("🤖 Agente Vendas Inteligente v3 - Iniciando", { conversaId, tipoMensagem, clienteId, mensagemId });
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -55,7 +55,7 @@ Deno.serve(async (req) => {
     if (!deepseekApiKey || !openAiApiKey) {
       throw new Error("Chaves de API faltando");
     }
-
+    
     const supabase = createClient(supabaseUrl, supabaseKey, {
       auth: {
         persistSession: false,
@@ -63,6 +63,27 @@ Deno.serve(async (req) => {
         detectSessionInUrl: false,
       },
     });
+
+    // === FALLBACK: Buscar mensagemTexto pelo mensagemId se não veio no body ===
+    if (!mensagemTexto && mensagemId) {
+      console.log("🔍 mensagemTexto não recebido, buscando pelo mensagemId:", mensagemId);
+      const { data: msgData } = await supabase
+        .from('whatsapp_mensagens')
+        .select('corpo')
+        .eq('id', mensagemId)
+        .single();
+      
+      mensagemTexto = msgData?.corpo || '';
+      console.log("📝 mensagemTexto recuperada:", mensagemTexto?.substring(0, 50));
+    }
+
+    // Validar que mensagemTexto existe e não está vazia
+    if (!mensagemTexto || mensagemTexto.trim() === '') {
+      console.warn("⚠️ Mensagem vazia, ignorando...");
+      return new Response(JSON.stringify({ resposta: null, erro: 'Mensagem vazia' }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     // === RESOLUÇÃO DE CLIENTE ===
     if (!clienteId) {
