@@ -292,14 +292,28 @@ export const WhatsAppProvider: React.FC<WhatsAppProviderProps> = ({ children }) 
             ? contatosMap[conversa.whatsapp_contato_id] 
             : null;
           
+          const prioridadeNum = typeof f.prioridade === 'number'
+            ? f.prioridade
+            : f.prioridade === 'alta'
+              ? 3
+              : f.prioridade === 'media'
+                ? 2
+                : 1;
+
+          const nomeContato = (contato?.nome_whatsapp || '').trim();
+          const nomeExibicao = nomeContato.length > 0 ? nomeContato : null;
+
           return {
             id: f.conversa_id,
             numero_protocolo: conversa?.numero_protocolo || null,
             status: 'aguardando',
-            prioridade: f.prioridade || 0,
+            prioridade: prioridadeNum,
             atendente_id: null,
-            cliente_nome: contato?.nome_whatsapp || contato?.numero_whatsapp || 'Desconhecido',
+            // Compatibilidade: BAMDashboard espera contato_nome
+            contato_nome: nomeExibicao || null,
             contato_telefone: contato?.numero_whatsapp || null,
+            // Compatibilidade: outras telas podem usar cliente_nome
+            cliente_nome: nomeExibicao || contato?.numero_whatsapp || 'Desconhecido',
             ultima_mensagem_em: null,
             nao_lidas: 0,
             tempo_espera_segundos: tempoEspera,
