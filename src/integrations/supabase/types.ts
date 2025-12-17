@@ -9301,6 +9301,7 @@ export type Database = {
           icone: string | null
           id: string
           max_conversas_simultaneas: number | null
+          modo_distribuicao: string | null
           nome: string
           ordem: number | null
           palavras_chave: string[] | null
@@ -9323,6 +9324,7 @@ export type Database = {
           icone?: string | null
           id?: string
           max_conversas_simultaneas?: number | null
+          modo_distribuicao?: string | null
           nome: string
           ordem?: number | null
           palavras_chave?: string[] | null
@@ -9345,6 +9347,7 @@ export type Database = {
           icone?: string | null
           id?: string
           max_conversas_simultaneas?: number | null
+          modo_distribuicao?: string | null
           nome?: string
           ordem?: number | null
           palavras_chave?: string[] | null

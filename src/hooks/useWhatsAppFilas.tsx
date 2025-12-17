@@ -24,6 +24,8 @@ export interface WhatsAppFila {
   regras_triagem: string | null;
   prioridade_triagem: number | null;
   tipo_fila: string | null;
+  // Modo de distribuição
+  modo_distribuicao: string | null;
 }
 
 export interface OperadorFila {
@@ -54,6 +56,8 @@ export interface WhatsAppFilaInsert {
   regras_triagem?: string | null;
   prioridade_triagem?: number | null;
   tipo_fila?: string | null;
+  // Modo de distribuição
+  modo_distribuicao?: string | null;
 }
 
 export interface WhatsAppFilaUpdate extends Partial<WhatsAppFilaInsert> {

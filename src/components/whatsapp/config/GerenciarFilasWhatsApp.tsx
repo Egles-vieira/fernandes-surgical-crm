@@ -94,7 +94,15 @@ interface FilaFormData {
   regras_triagem: string;
   prioridade_triagem: number;
   tipo_fila: string;
+  // Modo de distribuição
+  modo_distribuicao: string;
 }
+
+const MODOS_DISTRIBUICAO = [
+  { value: "round_robin", label: "Round Robin (automático)" },
+  { value: "menos_ocupado", label: "Menos Ocupado (automático)" },
+  { value: "manual", label: "Manual (operadores resgatam)" },
+];
 
 const initialFormData: FilaFormData = {
   nome: "",
@@ -112,6 +120,8 @@ const initialFormData: FilaFormData = {
   regras_triagem: "",
   prioridade_triagem: 50,
   tipo_fila: "atendimento",
+  // Modo de distribuição
+  modo_distribuicao: "round_robin",
 };
 
 const TIPOS_FILA = [
@@ -200,6 +210,8 @@ export function GerenciarFilasWhatsApp() {
       regras_triagem: fila.regras_triagem || "",
       prioridade_triagem: fila.prioridade_triagem || 50,
       tipo_fila: fila.tipo_fila || "atendimento",
+      // Modo de distribuição
+      modo_distribuicao: fila.modo_distribuicao || "round_robin",
     });
     setDialogOpen(true);
   };
@@ -221,6 +233,8 @@ export function GerenciarFilasWhatsApp() {
       regras_triagem: formData.regras_triagem || null,
       prioridade_triagem: formData.prioridade_triagem,
       tipo_fila: formData.tipo_fila,
+      // Modo de distribuição
+      modo_distribuicao: formData.modo_distribuicao,
     };
 
     if (editingFila) {
@@ -549,6 +563,41 @@ export function GerenciarFilasWhatsApp() {
                   value={formData.horario_inicio}
                   onChange={(e) => setFormData({ ...formData, horario_inicio: e.target.value })}
                 />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="horario_fim">Horário de Fim</Label>
+                <Input
+                  id="horario_fim"
+                  type="time"
+                  value={formData.horario_fim}
+                  onChange={(e) => setFormData({ ...formData, horario_fim: e.target.value })}
+                />
+              </div>
+            </div>
+
+            {/* Modo de Distribuição */}
+            <div className="space-y-2 border-t pt-4">
+              <Label htmlFor="modo_distribuicao">Modo de Distribuição</Label>
+              <Select
+                value={formData.modo_distribuicao}
+                onValueChange={(value) => setFormData({ ...formData, modo_distribuicao: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecionar modo..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {MODOS_DISTRIBUICAO.map((modo) => (
+                    <SelectItem key={modo.value} value={modo.value}>
+                      {modo.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                {formData.modo_distribuicao === 'manual' 
+                  ? 'Conversas aguardam na fila até um operador resgatar manualmente'
+                  : 'Conversas são distribuídas automaticamente para operadores disponíveis'}
+              </p>
             </div>
 
             {/* Operadores da Fila - só aparece ao editar */}
@@ -627,16 +676,6 @@ export function GerenciarFilasWhatsApp() {
                 </div>
               </div>
             )}
-              <div className="space-y-2">
-                <Label htmlFor="horario_fim">Horário de Fim</Label>
-                <Input
-                  id="horario_fim"
-                  type="time"
-                  value={formData.horario_fim}
-                  onChange={(e) => setFormData({ ...formData, horario_fim: e.target.value })}
-                />
-              </div>
-            </div>
 
             {/* Dias da Semana */}
             <div className="space-y-2">
