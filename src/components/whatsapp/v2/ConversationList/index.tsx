@@ -204,7 +204,7 @@ function ConversationItem({
           <TooltipProvider delayDuration={300}>
             <Tooltip>
               <TooltipTrigger asChild>
-                <span className="truncate flex-1 text-slate-950 text-sm">
+                <span className="text-xs text-muted-foreground truncate flex-1 text-gray-950">
                   {conversa.ultima_mensagem ? conversa.ultima_mensagem.slice(0, 40) + (conversa.ultima_mensagem.length > 40 ? '...' : '') : contato?.numero_whatsapp || ''}
                 </span>
               </TooltipTrigger>
