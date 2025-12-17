@@ -519,6 +519,60 @@ async function processarMensagemRecebida(supabase: any, conta: any, message: any
     
   } else {
     console.log('✅ Existing conversation found:', conversa.id);
+    
+    // ===== REDISTRIBUIÇÃO DE CONVERSAS SEM OPERADOR =====
+    // Se conversa existe mas NÃO tem operador atribuído e triagem concluída, tentar redistribuir
+    if (!conversa.atribuida_para_id && conversa.triagem_status === 'triagem_concluida') {
+      console.log('🔄 Conversa sem operador atribuído, tentando redistribuir...');
+      
+      try {
+        // Buscar fila_id da conversa ou da triagem concluída
+        let filaParaDistribuir = conversa.fila_id;
+        
+        if (!filaParaDistribuir) {
+          const { data: triagemConcluida } = await supabase
+            .from('whatsapp_triagem_pendente')
+            .select('fila_definida_id')
+            .eq('conversa_id', conversa.id)
+            .eq('status', 'concluido')
+            .order('atualizado_em', { ascending: false })
+            .limit(1)
+            .single();
+          
+          if (triagemConcluida?.fila_definida_id) {
+            filaParaDistribuir = triagemConcluida.fila_definida_id;
+            console.log('📋 Fila obtida da triagem:', filaParaDistribuir);
+          }
+        }
+        
+        const distribuicaoResponse = await fetch(
+          `${Deno.env.get('SUPABASE_URL')}/functions/v1/whatsapp-distribuir-conversa`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+            },
+            body: JSON.stringify({
+              conversaId: conversa.id,
+              contatoId: contato.id,
+              filaId: filaParaDistribuir,
+              unidadeId: conversa.unidade_id,
+            }),
+          }
+        );
+        
+        const resultado = await distribuicaoResponse.json();
+        console.log('📋 Resultado da redistribuição:', JSON.stringify(resultado));
+        
+        if (resultado.success && resultado.atendenteId) {
+          // Atualizar conversa local para refletir atribuição
+          conversa.atribuida_para_id = resultado.atendenteId;
+        }
+      } catch (redistError) {
+        console.error('⚠️ Erro na redistribuição (não bloqueante):', redistError);
+      }
+    }
   }
 
   // Validate conversation exists before proceeding

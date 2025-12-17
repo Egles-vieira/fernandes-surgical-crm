@@ -16,7 +16,7 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
-    const { 
+    let { 
       conversaId, 
       contatoId,
       filaId, 
@@ -29,6 +29,35 @@ Deno.serve(async (req) => {
 
     if (!conversaId) {
       throw new Error('conversaId é obrigatório');
+    }
+
+    // Se não veio filaId no payload, buscar da conversa ou triagem
+    if (!filaId && conversaId) {
+      const { data: conversaData } = await supabase
+        .from('whatsapp_conversas')
+        .select('fila_id')
+        .eq('id', conversaId)
+        .single();
+      
+      if (conversaData?.fila_id) {
+        filaId = conversaData.fila_id;
+        console.log('📋 Fila obtida da conversa:', filaId);
+      } else {
+        // Buscar da triagem concluída
+        const { data: triagem } = await supabase
+          .from('whatsapp_triagem_pendente')
+          .select('fila_definida_id')
+          .eq('conversa_id', conversaId)
+          .eq('status', 'concluido')
+          .order('atualizado_em', { ascending: false })
+          .limit(1)
+          .single();
+        
+        if (triagem?.fila_definida_id) {
+          filaId = triagem.fila_definida_id;
+          console.log('📋 Fila obtida da triagem:', filaId);
+        }
+      }
     }
 
     console.log('🔄 Distribuindo conversa:', { 
@@ -119,6 +148,7 @@ Deno.serve(async (req) => {
     
     // Buscar operadores online com capacidade
     // Se filaId informado, filtrar operadores que pertencem à fila
+    // CORREÇÃO: Usar apenas status_atendimento_whatsapp, não whatsapp_ativo
     let queryOperadores = supabase
       .from('perfis_usuario')
       .select(`
@@ -127,8 +157,7 @@ Deno.serve(async (req) => {
         status_atendimento_whatsapp,
         filas_atendimento_ids
       `)
-      .eq('status_atendimento_whatsapp', 'online')
-      .eq('whatsapp_ativo', true);
+      .eq('status_atendimento_whatsapp', 'online');
     
     const { data: operadoresDisponiveis } = await queryOperadores;
     
