@@ -98,26 +98,37 @@ Deno.serve(async (req) => {
             .eq('id', conversaId)
             .single();
 
-          // Insert into wait queue
+          // Get next position in queue
+          const { data: maxPosData } = await supabase
+            .from('whatsapp_fila_espera')
+            .select('posicao')
+            .eq('whatsapp_fila_id', filaId)
+            .order('posicao', { ascending: false })
+            .limit(1)
+            .single();
+          
+          const nextPosition = (maxPosData?.posicao || 0) + 1;
+
+          // Insert into wait queue (without fila_destino_id due to FK constraint)
           const { error: insertError } = await supabase.from('whatsapp_fila_espera').insert({
             conversa_id: conversaId,
             whatsapp_fila_id: filaId,
-            fila_destino_id: filaId,
             prioridade: conversa?.prioridade || 'normal',
             status: 'aguardando',
+            posicao: nextPosition,
           });
 
           if (insertError) {
             console.error('❌ Erro ao inserir na fila de espera:', insertError);
           } else {
-            console.log('✅ Conversa inserida na fila de espera');
+            console.log('✅ Conversa inserida na fila de espera, posição:', nextPosition);
           }
 
-          // Update conversation with fila_id and distribution status
+          // Update conversation with whatsapp_fila_id and distribution status
           const { error: updateError } = await supabase
             .from('whatsapp_conversas')
             .update({
-              fila_id: filaId,
+              whatsapp_fila_id: filaId,
               em_distribuicao: true,
               distribuicao_iniciada_em: new Date().toISOString(),
             })
@@ -126,7 +137,7 @@ Deno.serve(async (req) => {
           if (updateError) {
             console.error('❌ Erro ao atualizar conversa:', updateError);
           } else {
-            console.log('✅ Conversa atualizada com fila_id:', filaId);
+            console.log('✅ Conversa atualizada com whatsapp_fila_id:', filaId);
           }
         }
 
@@ -388,19 +399,31 @@ Deno.serve(async (req) => {
         .eq('id', conversaId)
         .single();
 
+      // Get next position in queue
+      const { data: maxPosData } = await supabase
+        .from('whatsapp_fila_espera')
+        .select('posicao')
+        .eq('whatsapp_fila_id', filaId || '')
+        .order('posicao', { ascending: false })
+        .limit(1)
+        .single();
+      
+      const nextPosition = (maxPosData?.posicao || 0) + 1;
+
       await supabase.from('whatsapp_fila_espera').insert({
         conversa_id: conversaId,
         whatsapp_fila_id: filaId || null,
-        fila_destino_id: filaId || null,
         unidade_id: unidadeId || null,
         prioridade: conversa?.prioridade || 'normal',
         status: 'aguardando',
+        posicao: nextPosition,
       });
 
       // Update conversation
       await supabase
         .from('whatsapp_conversas')
         .update({
+          whatsapp_fila_id: filaId || null,
           em_distribuicao: true,
           distribuicao_iniciada_em: new Date().toISOString(),
           tentativas_distribuicao: 1,
