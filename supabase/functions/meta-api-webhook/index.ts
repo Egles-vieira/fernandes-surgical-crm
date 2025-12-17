@@ -765,7 +765,8 @@ async function processarMensagemRecebida(supabase: any, conta: any, message: any
   const temOperador = !!conversa.atribuida_para_id;
   const aguardandoCnpj = conversa.triagem_status === 'aguardando_cnpj';
   const emTriagem = conversa.triagem_status === 'em_triagem';
-  const triageConcluidaOuInexistente = conversa.triagem_status === 'triagem_concluida' || !conversa.triagem_status;
+  const triageNaoIniciada = !conversa.triagem_status; // null = triagem ainda não começou
+  const triageConcluida = conversa.triagem_status === 'triagem_concluida';
   const agentePermitidoNaConversa = conversa.agente_ia_ativo !== false;
   const tipoMensagemValido = message.type === 'text' || message.type === 'audio';
 
@@ -834,13 +835,20 @@ async function processarMensagemRecebida(supabase: any, conta: any, message: any
     motivoAcionamento = 'em_triagem_aguardando_cnpj';
     bloqueadoPorTriagem = true;
     console.log('🚫 GATING CNPJ: Agente bloqueado - conversa em triagem, aguardando solicitação de CNPJ');
-  } else if (!temCarteiraOuVendedor && !triageConcluidaOuInexistente) {
-    // Sem carteira/vendedor e triagem não concluída - NÃO responder
+  } else if (!temCarteiraOuVendedor && triageNaoIniciada) {
+    // ===== GATING CRÍTICO: Triagem não iniciada = NÃO responder =====
+    // Sem carteira/vendedor e triagem ainda não começou - aguardar triagem
+    deveAcionarPorRegra = false;
+    motivoAcionamento = 'sem_vinculo_aguardando_triagem_iniciar';
+    bloqueadoPorTriagem = true;
+    console.log('🚫 GATING CNPJ: Agente bloqueado - sem carteira/vendedor, aguardando triagem iniciar');
+  } else if (!temCarteiraOuVendedor && !triageConcluida) {
+    // Sem carteira/vendedor e triagem não concluída (outros estados) - NÃO responder
     deveAcionarPorRegra = false;
     motivoAcionamento = 'sem_vinculo_triagem_pendente';
     bloqueadoPorTriagem = true;
     console.log('🚫 GATING CNPJ: Agente bloqueado - sem carteira/vendedor e triagem pendente');
-  } else if (triageConcluidaOuInexistente && !temCarteiraOuVendedor) {
+  } else if (triageConcluida && !temCarteiraOuVendedor) {
     // Triagem concluída mas sem carteira/vendedor - pode responder se config permitir
     deveAcionarPorRegra = agenteConfig.regras?.responder_cliente_novo_sem_operador !== false;
     motivoAcionamento = 'triagem_concluida_sem_vinculo';
