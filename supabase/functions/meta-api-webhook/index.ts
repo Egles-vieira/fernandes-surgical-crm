@@ -676,6 +676,40 @@ async function processarMensagemRecebida(supabase: any, conta: any, message: any
 
   console.log('✅ Message saved:', novaMensagem.id);
 
+  // ===== PROCESSAR RESPOSTA DE CNPJ SE CONVERSA AGUARDANDO =====
+  if (conversa.triagem_status === 'aguardando_cnpj' && message.type === 'text') {
+    console.log('📋 Conversa aguardando CNPJ, verificando resposta...');
+    
+    // Extrair apenas números da mensagem
+    const apenasNumeros = corpo.replace(/\D/g, '');
+    
+    // Verificar se parece um CNPJ (14 dígitos)
+    if (apenasNumeros.length === 14) {
+      console.log('🔍 CNPJ detectado na mensagem:', apenasNumeros);
+      
+      // Atualizar triagem pendente com o CNPJ informado
+      const { error: updateTriagemError } = await supabase
+        .from('whatsapp_triagem_pendente')
+        .update({
+          cnpj_informado: apenasNumeros,
+          aguardar_ate: new Date().toISOString(), // Processar imediatamente
+        })
+        .eq('conversa_id', conversa.id)
+        .eq('status', 'aguardando');
+      
+      if (updateTriagemError) {
+        console.error('❌ Erro ao atualizar CNPJ na triagem:', updateTriagemError);
+      } else {
+        console.log('✅ CNPJ registrado na triagem, aguardando processamento');
+      }
+    } else if (apenasNumeros.length === 11) {
+      console.log('⚠️ CPF detectado ao invés de CNPJ:', apenasNumeros);
+    } else {
+      console.log('ℹ️ Mensagem não parece ser CNPJ:', corpo.substring(0, 50));
+    }
+  }
+  // ===== FIM PROCESSAMENTO CNPJ =====
+
   // Check if agent is active for this account
   if (conta.agente_vendas_ativo && (message.type === 'text' || message.type === 'audio')) {
     try {
