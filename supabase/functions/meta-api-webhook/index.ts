@@ -816,8 +816,20 @@ async function processarMensagemRecebida(supabase: any, conta: any, message: any
   let motivoAcionamento = '';
   let bloqueadoPorTriagem = false;
 
-  if (clienteCadastrado && temCarteiraOuVendedor) {
-    // Cliente cadastrado COM carteira/vendedor - pode responder
+  // ===== REGRA ESPECIAL: Fila "Atendimento IA" =====
+  // Conversas nesta fila vieram da triagem e devem ser atendidas pelo agente
+  // independente da regra responder_cliente_cadastrado
+  const FILA_ATENDIMENTO_IA_ID = 'ddc8e523-18dd-422b-a9cc-105d1bae3016';
+  const estaFilaAtendimentoIA = conversa.whatsapp_fila_id === FILA_ATENDIMENTO_IA_ID;
+
+  if (estaFilaAtendimentoIA && triageConcluida && !temOperador) {
+    // ===== PRIORIDADE MÁXIMA: Fila "Atendimento IA" =====
+    // Agente DEVE responder - esta fila foi criada especificamente para atendimento IA
+    deveAcionarPorRegra = true;
+    motivoAcionamento = 'fila_atendimento_ia';
+    console.log('✅ Conversa na fila "Atendimento IA" - agente ativado com prioridade máxima');
+  } else if (clienteCadastrado && temCarteiraOuVendedor && !estaFilaAtendimentoIA) {
+    // Cliente cadastrado COM carteira/vendedor (fora da fila IA) - aplicar regra configurada
     deveAcionarPorRegra = agenteConfig.regras?.responder_cliente_cadastrado || false;
     motivoAcionamento = 'cliente_cadastrado_com_vinculo';
   } else if (temOperador) {
@@ -872,13 +884,14 @@ async function processarMensagemRecebida(supabase: any, conta: any, message: any
     conversaPermite: agentePermitidoNaConversa,
     temCarteiraOuVendedor,
     triageStatus: conversa.triagem_status,
+    estaFilaAtendimentoIA,
     bloqueadoPorTriagem,
     motivoAcionamento,
     deveAcionarPorRegra,
     dentroDoHorario,
     dentroDoLimite: `${respostasAgente || 0}/${agenteConfig.limite_respostas_por_conversa || 10}`,
     tipoMensagemValido,
-    RESULTADO: deveAcionarAgente ? 'ACIONANDO' : 'NÃO ACIONAR (GATING CNPJ)'
+    RESULTADO: deveAcionarAgente ? 'ACIONANDO' : 'NÃO ACIONAR'
   });
 
   // Enviar mensagem de fora do horário se configurado
