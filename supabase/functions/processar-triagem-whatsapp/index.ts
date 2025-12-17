@@ -5,6 +5,9 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// ID da fila "Atendimento IA" - destino para clientes sem operador
+const FILA_ATENDIMENTO_IA_ID = 'ddc8e523-18dd-422b-a9cc-105d1bae3016';
+
 interface TriagemPendente {
   id: string;
   conversa_id: string;
@@ -99,12 +102,19 @@ Deno.serve(async (req) => {
               // Vincular contato ao cliente no CRM
               await vincularContatoCliente(supabase, triagem.contato_id, cliente.cliente_id);
               
-              // CNPJ válido, atribuir ao vendedor do cliente
+              // CNPJ válido, tentar atribuir ao vendedor do cliente
               const atribuido = await atribuirVendedorCliente(supabase, triagem, cliente);
               if (atribuido) {
                 resultados.push({ id: triagem.id, status: 'cnpj_validado', cliente_id: cliente.cliente_id });
                 continue;
               }
+              
+              // ===== NOVO: Vendedor offline/inexistente → Fila "Atendimento IA" =====
+              console.log('🤖 Vendedor não disponível - direcionando para fila "Atendimento IA"...');
+              await direcionarParaFilaIA(supabase, triagem, cliente);
+              await acionarAgenteIA(supabase, triagem);
+              resultados.push({ id: triagem.id, status: 'fila_atendimento_ia', cliente_id: cliente.cliente_id });
+              continue;
             } else {
               console.log(`⚠️ CNPJ ${cnpjEncontrado} não encontrado no CRM`);
               // Informar cliente que CNPJ não foi encontrado
@@ -716,6 +726,74 @@ async function colocarNaFilaEspera(supabase: any, triagem: TriagemPendente) {
   // ===== NOVO: Sem operador na fila de espera, acionar agente IA =====
   console.log('🤖 Conversa em fila de espera sem operador - verificando se deve acionar agente IA...');
   await acionarAgenteIA(supabase, triagem);
+}
+
+// ===== NOVA FUNÇÃO: Direcionar para fila "Atendimento IA" =====
+async function direcionarParaFilaIA(supabase: any, triagem: TriagemPendente, clienteInfo: any) {
+  console.log(`🤖 Direcionando conversa ${triagem.conversa_id} para fila "Atendimento IA"...`);
+  
+  // 1. Atualizar conversa com fila e cliente
+  const { error: updateConversaError } = await supabase
+    .from('whatsapp_conversas')
+    .update({
+      whatsapp_fila_id: FILA_ATENDIMENTO_IA_ID,
+      cliente_id: clienteInfo.cliente_id,
+      triagem_status: 'triagem_concluida',
+      triagem_motivo: `Cliente ${clienteInfo.cliente_nome} identificado - Atendimento IA`,
+      em_distribuicao: true, // Permite resgate manual por operador
+    })
+    .eq('id', triagem.conversa_id);
+
+  if (updateConversaError) {
+    console.error('❌ Erro ao atualizar conversa:', updateConversaError);
+  }
+
+  // 2. Finalizar triagem pendente
+  const { error: updateTriagemError } = await supabase
+    .from('whatsapp_triagem_pendente')
+    .update({
+      status: 'concluido',
+      cliente_encontrado_id: clienteInfo.cliente_id,
+      vendedor_encontrado_id: clienteInfo.vendedor_id,
+      fila_definida_id: FILA_ATENDIMENTO_IA_ID,
+      motivo_atribuicao: 'fila_atendimento_ia',
+    })
+    .eq('id', triagem.id);
+
+  if (updateTriagemError) {
+    console.error('❌ Erro ao finalizar triagem:', updateTriagemError);
+  }
+
+  // 3. Colocar na fila de espera para possível resgate manual
+  const { error: filaError } = await supabase
+    .from('whatsapp_fila_espera')
+    .insert({
+      conversa_id: triagem.conversa_id,
+      whatsapp_fila_id: FILA_ATENDIMENTO_IA_ID,
+      prioridade: 'normal',
+      status: 'aguardando',
+    });
+
+  if (filaError) {
+    console.error('❌ Erro ao inserir na fila de espera:', filaError);
+  }
+
+  // 4. Log de auditoria
+  await supabase.from('whatsapp_interacoes').insert({
+    conversa_id: triagem.conversa_id,
+    tipo_evento: 'direcionado_fila_ia',
+    descricao: `Cliente ${clienteInfo.cliente_nome} direcionado para fila "Atendimento IA" - aguardando atendimento bot`,
+    metadata: { 
+      cliente_id: clienteInfo.cliente_id, 
+      cliente_nome: clienteInfo.cliente_nome,
+      vendedor_id: clienteInfo.vendedor_id,
+      fila_id: FILA_ATENDIMENTO_IA_ID,
+      motivo: 'vendedor_offline_ou_inexistente'
+    },
+    executado_por_bot: true,
+  });
+
+  console.log(`✅ Conversa direcionada para "Atendimento IA" - cliente: ${clienteInfo.cliente_nome}`);
 }
 
 // ===== NOVA FUNÇÃO: Acionar agente IA após triagem concluída sem operador =====
