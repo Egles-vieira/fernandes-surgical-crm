@@ -171,10 +171,11 @@ Deno.serve(async (req) => {
     let motivoDistribuicao = '';
 
     // Se carteirização ativa, priorizar operador da carteira
+    // REGRA: Contato com carteira SEMPRE vai para o operador da carteira
+    // independente do status (online/offline) ou limite de atendimentos
     if (carteirizacaoAtiva && contatoId) {
       console.log('📂 Verificando carteira v2 para contato:', contatoId);
       
-      // Usar a função buscar_operador_carteira que já criamos
       const { data: operadorCarteira, error: carteiraError } = await supabase
         .rpc('buscar_operador_carteira', { p_contato_id: contatoId });
       
@@ -185,52 +186,16 @@ Deno.serve(async (req) => {
       if (operadorCarteira) {
         console.log('✅ Operador da carteira encontrado:', operadorCarteira);
         
-        // Verificar se operador está online
-        const { data: perfilOperador } = await supabase
-          .from('perfis_usuario')
-          .select('id, nome_completo, status_atendimento_whatsapp')
-          .eq('id', operadorCarteira)
-          .single();
-        
-        if (perfilOperador?.status_atendimento_whatsapp === 'online') {
-          // Verificar limite de atendimentos
-          const { data: configAtendimento } = await supabase
-            .from('whatsapp_configuracoes_atendimento')
-            .select('max_atendimentos_simultaneos')
-            .limit(1)
-            .single();
-          
-          const maxAtendimentos = configAtendimento?.max_atendimentos_simultaneos || 5;
-          
-          const { count: atendimentosAtivos } = await supabase
-            .from('whatsapp_conversas')
-            .select('id', { count: 'exact', head: true })
-            .eq('atribuida_para_id', operadorCarteira)
-            .eq('status', 'aberta');
-          
-          if ((atendimentosAtivos || 0) < maxAtendimentos) {
-            atendenteId = operadorCarteira;
-            motivoDistribuicao = 'carteira_v2';
-            console.log('✅ Operador da carteira disponível e dentro do limite');
-          } else {
-            console.log('⚠️ Operador da carteira está no limite de atendimentos');
-            if (modoCarteirizacao === 'forcar') {
-              // Modo forçar: aguarda operador da carteira
-              motivoDistribuicao = 'aguardando_operador_carteira';
-            }
-          }
-        } else {
-          console.log('⚠️ Operador da carteira não está online:', perfilOperador?.status_atendimento_whatsapp);
-          if (modoCarteirizacao === 'forcar') {
-            // Modo forçar: aguarda operador da carteira ficar online
-            motivoDistribuicao = 'aguardando_operador_carteira';
-          }
-        }
+        // Atribuir SEMPRE ao operador da carteira (regra absoluta)
+        atendenteId = operadorCarteira;
+        motivoDistribuicao = 'carteira_v2';
+        console.log('✅ Conversa atribuída ao operador da carteira (independente do status)');
       }
     }
 
   // ===== FASE 2: FALLBACK PARA DISTRIBUIÇÃO ROUND-ROBIN =====
-  if (!atendenteId && motivoDistribuicao !== 'aguardando_operador_carteira') {
+  // Só entra aqui se contato NÃO tem carteira
+  if (!atendenteId) {
     console.log('🔄 Iniciando distribuição round-robin...');
     
     // Buscar configuração
