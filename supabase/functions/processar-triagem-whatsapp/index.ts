@@ -839,6 +839,29 @@ async function acionarAgenteIA(supabase: any, triagem: TriagemPendente) {
       return;
     }
     
+    // Buscar dados da conversa e contato para enviar mensagem
+    const { data: conversa, error: conversaError } = await supabase
+      .from('whatsapp_conversas')
+      .select('id, whatsapp_contato_id')
+      .eq('id', triagem.conversa_id)
+      .single();
+    
+    if (conversaError || !conversa) {
+      console.log('⚠️ Erro ao buscar conversa:', conversaError?.message);
+      return;
+    }
+    
+    const { data: contato, error: contatoError } = await supabase
+      .from('whatsapp_contatos')
+      .select('id, numero_whatsapp')
+      .eq('id', conversa.whatsapp_contato_id)
+      .single();
+    
+    if (contatoError || !contato) {
+      console.log('⚠️ Erro ao buscar contato:', contatoError?.message);
+      return;
+    }
+    
     // Buscar última mensagem recebida para processar
     const { data: ultimaMensagem, error: msgError } = await supabase
       .from('whatsapp_mensagens')
@@ -857,7 +880,7 @@ async function acionarAgenteIA(supabase: any, triagem: TriagemPendente) {
     console.log(`🚀 Acionando agente IA via agente-vendas-whatsapp para conversa ${triagem.conversa_id}...`);
     console.log(`   Mensagem a processar: "${ultimaMensagem.corpo?.substring(0, 50)}..."`);
     
-    // Chamar o agente de vendas (nome correto da função)
+    // Chamar o agente de vendas
     const response = await fetch(
       `${Deno.env.get('SUPABASE_URL')}/functions/v1/agente-vendas-whatsapp`,
       {
@@ -869,23 +892,77 @@ async function acionarAgenteIA(supabase: any, triagem: TriagemPendente) {
         body: JSON.stringify({
           conversaId: triagem.conversa_id,
           mensagemId: ultimaMensagem.id,
-          mensagemTexto: ultimaMensagem.corpo,  // Passar o texto da mensagem
-          tipoMensagem: 'text',                  // Tipo da mensagem
-          origem: 'triagem_concluida',           // Indicar que veio da triagem
+          mensagemTexto: ultimaMensagem.corpo,
+          tipoMensagem: 'text',
+          origem: 'triagem_concluida',
         }),
       }
     );
     
     if (response.ok) {
       const resultado = await response.json();
-      console.log('✅ Agente IA acionado com sucesso após triagem:', resultado);
+      console.log('✅ Agente IA retornou:', resultado);
+      
+      // === ENVIAR RESPOSTA DO AGENTE PARA O WHATSAPP ===
+      if (resultado.resposta) {
+        console.log('📤 Enviando resposta do agente para WhatsApp:', resultado.resposta.substring(0, 100));
+        
+        // 1. Inserir mensagem no banco
+        const { data: mensagemAgente, error: insertError } = await supabase
+          .from('whatsapp_mensagens')
+          .insert({
+            conversa_id: triagem.conversa_id,
+            whatsapp_conta_id: triagem.conta_id,
+            whatsapp_contato_id: conversa.whatsapp_contato_id,
+            direcao: 'enviada',
+            tipo_mensagem: 'texto',
+            corpo: resultado.resposta,
+            status: 'pendente',
+            enviada_por_bot: true,
+            numero_para: contato.numero_whatsapp,
+          })
+          .select()
+          .single();
+        
+        if (insertError) {
+          console.error('❌ Erro ao inserir mensagem do agente:', insertError.message);
+        } else if (mensagemAgente) {
+          console.log('📝 Mensagem inserida com ID:', mensagemAgente.id);
+          
+          // 2. Chamar meta-api-enviar-mensagem para enviar de fato
+          const enviarResponse = await fetch(
+            `${Deno.env.get('SUPABASE_URL')}/functions/v1/meta-api-enviar-mensagem`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+              },
+              body: JSON.stringify({ mensagemId: mensagemAgente.id }),
+            }
+          );
+          
+          if (enviarResponse.ok) {
+            console.log('✅ Mensagem do agente enviada com sucesso via Meta API');
+          } else {
+            const enviarError = await enviarResponse.text();
+            console.error('❌ Erro ao enviar mensagem via Meta API:', enviarError);
+          }
+        }
+      } else {
+        console.log('ℹ️ Agente não retornou resposta para enviar');
+      }
       
       // Log de auditoria
       await supabase.from('whatsapp_interacoes').insert({
         conversa_id: triagem.conversa_id,
         tipo_evento: 'agente_ia_acionado_pos_triagem',
         descricao: 'Agente IA acionado automaticamente após triagem concluir sem operador',
-        metadata: { origem: 'triagem_concluida', mensagem_id: ultimaMensagem.id },
+        metadata: { 
+          origem: 'triagem_concluida', 
+          mensagem_id: ultimaMensagem.id,
+          resposta_enviada: !!resultado.resposta,
+        },
         executado_por_bot: true,
       });
     } else {
