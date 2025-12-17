@@ -110,11 +110,11 @@ export function WhatsAppModule() {
         }
       }
 
-      // Fetch sectors
+      // Fetch sectors from whatsapp_filas
       let setoresMap: Record<string, Setor> = {};
       if (filaIds.length > 0) {
         const { data: setoresData } = await supabase
-          .from('filas_atendimento')
+          .from('whatsapp_filas')
           .select('id, nome, cor')
           .in('id', filaIds);
         if (setoresData) {
