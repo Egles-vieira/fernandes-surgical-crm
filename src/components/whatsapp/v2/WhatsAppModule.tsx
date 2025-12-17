@@ -37,6 +37,8 @@ interface Conversa {
   emoji_sentimento?: string;
   sentimento_cliente?: string;
   nao_lidas: number;
+  atribuida_para_id?: string | null;
+  em_distribuicao?: boolean;
   operador?: Operador | null;
   setor?: Setor | null;
   whatsapp_contatos: {
@@ -70,6 +72,7 @@ export function WhatsAppModule() {
           emoji_sentimento,
           sentimento_cliente,
           atribuida_para_id,
+          em_distribuicao,
           fila_id,
           whatsapp_contatos (
             id,
@@ -167,6 +170,8 @@ export function WhatsAppModule() {
           sentimento_cliente: c.sentimento_cliente,
           ultima_mensagem: ultimaMensagemMap[c.id] || '',
           nao_lidas: naoLidasMap[c.id] || 0,
+          atribuida_para_id: c.atribuida_para_id,
+          em_distribuicao: (c as any).em_distribuicao,
           operador: c.atribuida_para_id ? operadoresMap[c.atribuida_para_id] || null : null,
           setor: c.fila_id ? setoresMap[c.fila_id] || null : null,
           whatsapp_contatos: {
@@ -237,6 +242,10 @@ export function WhatsAppModule() {
               contato={selectedConversa?.whatsapp_contatos}
               onToggleDetails={() => setShowDetailsPanel(!showDetailsPanel)}
               showDetailsButton={!showDetailsPanel}
+              conversaInfo={selectedConversa ? {
+                atribuida_para_id: selectedConversa.atribuida_para_id || null,
+                em_distribuicao: selectedConversa.em_distribuicao || false,
+              } : undefined}
             />
           </ResizablePanel>
 
