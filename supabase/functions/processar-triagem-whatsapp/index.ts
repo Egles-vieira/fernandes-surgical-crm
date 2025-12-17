@@ -752,7 +752,7 @@ async function acionarAgenteIA(supabase: any, triagem: TriagemPendente) {
     // Buscar última mensagem recebida para processar
     const { data: ultimaMensagem, error: msgError } = await supabase
       .from('whatsapp_mensagens')
-      .select('id, conteudo')
+      .select('id, corpo')
       .eq('conversa_id', triagem.conversa_id)
       .eq('direcao', 'recebida')
       .order('criado_em', { ascending: false })
@@ -765,7 +765,7 @@ async function acionarAgenteIA(supabase: any, triagem: TriagemPendente) {
     }
     
     console.log(`🚀 Acionando agente IA via agente-vendas-ia para conversa ${triagem.conversa_id}...`);
-    console.log(`   Mensagem a processar: "${ultimaMensagem.conteudo?.substring(0, 50)}..."`);
+    console.log(`   Mensagem a processar: "${ultimaMensagem.corpo?.substring(0, 50)}..."`);
     
     // Chamar o agente de vendas
     const response = await fetch(
