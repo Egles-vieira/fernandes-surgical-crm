@@ -72,26 +72,55 @@ Deno.serve(async (req) => {
           }
         }
 
-        // 3. FASE: Se não tem cliente vinculado, verificar se já solicitou CNPJ
-        if (!triagem.cnpj_solicitado && !resultadoCliente.cliente_id) {
-          // Coletar mensagens e verificar se cliente enviou CNPJ
+        // 3. FASE: Se não tem cliente vinculado, verificar CNPJ
+        if (!resultadoCliente.cliente_id) {
+          // Sempre buscar CNPJ nas mensagens (independente se já solicitou)
           const cnpjEncontrado = await buscarCNPJNasMensagens(supabase, triagem.conversa_id);
           
           if (cnpjEncontrado) {
+            console.log(`📝 CNPJ encontrado nas mensagens: ${cnpjEncontrado}`);
+            
             // Validar CNPJ
             const cliente = await validarCNPJ(supabase, cnpjEncontrado);
             if (cliente) {
+              console.log(`✅ CNPJ válido! Cliente: ${cliente.cliente_nome}`);
+              
+              // Atualizar triagem com CNPJ informado
+              await supabase
+                .from('whatsapp_triagem_pendente')
+                .update({ 
+                  cnpj_informado: cnpjEncontrado,
+                  cnpj_validado: true,
+                  cnpj_validado_em: new Date().toISOString(),
+                  cliente_encontrado_id: cliente.cliente_id,
+                })
+                .eq('id', triagem.id);
+              
+              // Vincular contato ao cliente no CRM
+              await vincularContatoCliente(supabase, triagem.contato_id, cliente.cliente_id);
+              
               // CNPJ válido, atribuir ao vendedor do cliente
               const atribuido = await atribuirVendedorCliente(supabase, triagem, cliente);
               if (atribuido) {
                 resultados.push({ id: triagem.id, status: 'cnpj_validado', cliente_id: cliente.cliente_id });
                 continue;
               }
+            } else {
+              console.log(`⚠️ CNPJ ${cnpjEncontrado} não encontrado no CRM`);
+              // Informar cliente que CNPJ não foi encontrado
+              await informarCNPJNaoEncontrado(supabase, triagem, cnpjEncontrado);
+              resultados.push({ id: triagem.id, status: 'cnpj_nao_encontrado' });
+              continue;
             }
-          } else {
-            // Não encontrou CNPJ, enviar mensagem solicitando
+          } else if (!triagem.cnpj_solicitado) {
+            // Não encontrou CNPJ e ainda não solicitou - enviar mensagem
             await solicitarCNPJ(supabase, triagem);
             resultados.push({ id: triagem.id, status: 'cnpj_solicitado' });
+            continue;
+          } else {
+            // Já solicitou mas cliente ainda não respondeu com CNPJ válido - aguardar
+            console.log('⏳ Aguardando resposta de CNPJ do cliente...');
+            resultados.push({ id: triagem.id, status: 'aguardando_cnpj' });
             continue;
           }
         }
@@ -206,13 +235,13 @@ async function verificarClienteVinculado(supabase: any, triagem: TriagemPendente
   // Buscar contato CRM vinculado ao contato WhatsApp
   const { data: whatsappContato } = await supabase
     .from('whatsapp_contatos')
-    .select('contato_id, telefone')
+    .select('contato_id, numero_whatsapp')
     .eq('id', triagem.contato_id)
     .single();
 
   if (!whatsappContato?.contato_id) {
     // Tentar buscar por telefone normalizado
-    const telefoneNormalizado = whatsappContato?.telefone?.replace(/\D/g, '');
+    const telefoneNormalizado = whatsappContato?.numero_whatsapp?.replace(/\D/g, '');
     if (telefoneNormalizado) {
       const { data: contatoCRM } = await supabase
         .from('contatos')
@@ -335,6 +364,113 @@ async function buscarCNPJNasMensagens(supabase: any, conversaId: string): Promis
   }
 
   return null;
+}
+
+async function vincularContatoCliente(supabase: any, whatsappContatoId: string | null, clienteId: string) {
+  if (!whatsappContatoId) return;
+  
+  // Buscar ou criar contato CRM vinculado ao WhatsApp
+  const { data: whatsappContato } = await supabase
+    .from('whatsapp_contatos')
+    .select('contato_id, nome_whatsapp, numero_whatsapp')
+    .eq('id', whatsappContatoId)
+    .single();
+
+  if (!whatsappContato?.contato_id) {
+    // Criar contato CRM
+    const { data: novoContato } = await supabase
+      .from('contatos')
+      .insert({
+        primeiro_nome: whatsappContato?.nome_whatsapp || 'Cliente WhatsApp',
+        sobrenome: '',
+        celular: whatsappContato?.numero_whatsapp,
+        whatsapp_numero: whatsappContato?.numero_whatsapp,
+        cliente_id: clienteId,
+        estagio_ciclo_vida: 'cliente',
+        esta_ativo: true,
+      })
+      .select('id')
+      .single();
+
+    if (novoContato) {
+      // Vincular contato WhatsApp ao contato CRM
+      await supabase
+        .from('whatsapp_contatos')
+        .update({ contato_id: novoContato.id })
+        .eq('id', whatsappContatoId);
+      
+      console.log(`✅ Contato CRM criado e vinculado: ${novoContato.id}`);
+    }
+  } else {
+    // Atualizar cliente_id do contato existente
+    await supabase
+      .from('contatos')
+      .update({ cliente_id: clienteId })
+      .eq('id', whatsappContato.contato_id);
+    
+    console.log(`✅ Contato CRM atualizado com cliente_id`);
+  }
+}
+
+async function informarCNPJNaoEncontrado(supabase: any, triagem: TriagemPendente, cnpj: string) {
+  const { data: conta } = await supabase
+    .from('whatsapp_contas')
+    .select('id')
+    .eq('id', triagem.conta_id)
+    .single();
+
+  const { data: contato } = await supabase
+    .from('whatsapp_contatos')
+    .select('numero_whatsapp')
+    .eq('id', triagem.contato_id)
+    .single();
+
+  if (conta && contato) {
+    const cnpjFormatado = cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5');
+    const mensagemTexto = `⚠️ O CNPJ ${cnpjFormatado} não foi encontrado em nossa base. Por favor, verifique se digitou corretamente ou informe outro CNPJ.`;
+
+    const { data: novaMensagem } = await supabase
+      .from('whatsapp_mensagens')
+      .insert({
+        conversa_id: triagem.conversa_id,
+        whatsapp_conta_id: conta.id,
+        whatsapp_contato_id: triagem.contato_id,
+        corpo: mensagemTexto,
+        tipo_mensagem: 'texto',
+        direcao: 'enviada',
+        status: 'pendente',
+        numero_para: contato.numero_whatsapp,
+        enviada_por_bot: true,
+        enviada_automaticamente: true,
+      })
+      .select('id')
+      .single();
+
+    if (novaMensagem) {
+      await fetch(
+        `${Deno.env.get('SUPABASE_URL')}/functions/v1/meta-api-enviar-mensagem`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+          },
+          body: JSON.stringify({ mensagemId: novaMensagem.id }),
+        }
+      );
+      console.log('✅ Mensagem de CNPJ não encontrado enviada');
+    }
+  }
+
+  // Manter em aguardando para nova tentativa
+  await supabase
+    .from('whatsapp_triagem_pendente')
+    .update({
+      cnpj_informado: cnpj,
+      cnpj_validado: false,
+      aguardar_ate: new Date(Date.now() + 60000).toISOString(),
+    })
+    .eq('id', triagem.id);
 }
 
 async function validarCNPJ(supabase: any, cnpj: string) {
