@@ -8276,6 +8276,7 @@ export type Database = {
       whatsapp_contas: {
         Row: {
           account_sid: string | null
+          agente_ia_config: Json | null
           agente_vendas_ativo: boolean | null
           api_key_gupshup: string | null
           api_version: string | null
@@ -8342,6 +8343,7 @@ export type Database = {
         }
         Insert: {
           account_sid?: string | null
+          agente_ia_config?: Json | null
           agente_vendas_ativo?: boolean | null
           api_key_gupshup?: string | null
           api_version?: string | null
@@ -8408,6 +8410,7 @@ export type Database = {
         }
         Update: {
           account_sid?: string | null
+          agente_ia_config?: Json | null
           agente_vendas_ativo?: boolean | null
           api_key_gupshup?: string | null
           api_version?: string | null
