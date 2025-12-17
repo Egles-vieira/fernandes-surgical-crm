@@ -732,12 +732,11 @@ async function colocarNaFilaEspera(supabase: any, triagem: TriagemPendente) {
 async function direcionarParaFilaIA(supabase: any, triagem: TriagemPendente, clienteInfo: any) {
   console.log(`🤖 Direcionando conversa ${triagem.conversa_id} para fila "Atendimento IA"...`);
   
-  // 1. Atualizar conversa com fila e cliente
+  // 1. Atualizar conversa com fila (cliente_id não existe na tabela - vínculo feito via contato)
   const { error: updateConversaError } = await supabase
     .from('whatsapp_conversas')
     .update({
       whatsapp_fila_id: FILA_ATENDIMENTO_IA_ID,
-      cliente_id: clienteInfo.cliente_id,
       triagem_status: 'triagem_concluida',
       triagem_motivo: `Cliente ${clienteInfo.cliente_nome} identificado - Atendimento IA`,
       em_distribuicao: true, // Permite resgate manual por operador
@@ -765,6 +764,18 @@ async function direcionarParaFilaIA(supabase: any, triagem: TriagemPendente, cli
   }
 
   // 3. Colocar na fila de espera para possível resgate manual
+  // Calcular próxima posição na fila
+  const { data: ultimaPosicao } = await supabase
+    .from('whatsapp_fila_espera')
+    .select('posicao')
+    .eq('whatsapp_fila_id', FILA_ATENDIMENTO_IA_ID)
+    .eq('status', 'aguardando')
+    .order('posicao', { ascending: false })
+    .limit(1)
+    .single();
+
+  const proximaPosicao = (ultimaPosicao?.posicao || 0) + 1;
+
   const { error: filaError } = await supabase
     .from('whatsapp_fila_espera')
     .insert({
@@ -772,6 +783,7 @@ async function direcionarParaFilaIA(supabase: any, triagem: TriagemPendente, cli
       whatsapp_fila_id: FILA_ATENDIMENTO_IA_ID,
       prioridade: 'normal',
       status: 'aguardando',
+      posicao: proximaPosicao,
     });
 
   if (filaError) {
@@ -842,12 +854,12 @@ async function acionarAgenteIA(supabase: any, triagem: TriagemPendente) {
       return;
     }
     
-    console.log(`🚀 Acionando agente IA via agente-vendas-ia para conversa ${triagem.conversa_id}...`);
+    console.log(`🚀 Acionando agente IA via agente-vendas-whatsapp para conversa ${triagem.conversa_id}...`);
     console.log(`   Mensagem a processar: "${ultimaMensagem.corpo?.substring(0, 50)}..."`);
     
-    // Chamar o agente de vendas
+    // Chamar o agente de vendas (nome correto da função)
     const response = await fetch(
-      `${Deno.env.get('SUPABASE_URL')}/functions/v1/agente-vendas-ia`,
+      `${Deno.env.get('SUPABASE_URL')}/functions/v1/agente-vendas-whatsapp`,
       {
         method: 'POST',
         headers: {
