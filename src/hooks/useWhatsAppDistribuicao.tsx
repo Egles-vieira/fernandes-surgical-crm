@@ -118,7 +118,7 @@ export const useWhatsAppDistribuicao = () => {
         .from('whatsapp_conversas')
         .update({
           atribuida_para_id: atendenteId,
-          status: 'em_atendimento',
+          status: 'aberta',
           em_distribuicao: false,
           atribuida_em: new Date().toISOString(),
         } as any)
@@ -162,14 +162,14 @@ export const useWhatsAppDistribuicao = () => {
         .from('whatsapp_conversas')
         .select('id')
         .eq('atribuida_para_id', atendenteId)
-        .in('status', ['em_atendimento', 'aguardando_cliente']);
+        .in('status', ['aberta', 'aguardando']);
       
       if (fetchError) throw fetchError;
       
       for (const conversa of (conversas || []) as any[]) {
         await client
           .from('whatsapp_conversas')
-          .update({ atribuida_para_id: null, status: 'aberto' })
+          .update({ atribuida_para_id: null, status: 'aberta' })
           .eq('id', conversa.id);
         
         await client
