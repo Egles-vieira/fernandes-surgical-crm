@@ -120,7 +120,7 @@ export const useWhatsAppDistribuicao = () => {
           atribuida_para_id: atendenteId,
           status: 'em_atendimento',
           em_distribuicao: false,
-          distribuicao_concluida_em: new Date().toISOString(),
+          atribuida_em: new Date().toISOString(),
         } as any)
         .eq('id', conversaId);
       
