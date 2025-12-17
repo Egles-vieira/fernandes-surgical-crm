@@ -29,7 +29,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 export function CronJobsConfig() {
-  const { jobs, isLoading, refetch, habilitar, desabilitar, atualizar, isHabilitando, isDesabilitando, isAtualizando, useJobHistory } = useCronJobs();
+  const { jobs, isLoading, refetch, habilitar, desabilitar, atualizar, executar, isHabilitando, isDesabilitando, isAtualizando, isExecutando, useJobHistory } = useCronJobs();
   
   const [editingJob, setEditingJob] = useState<CronJob | null>(null);
   const [historyJobId, setHistoryJobId] = useState<number | null>(null);
@@ -157,6 +157,20 @@ export function CronJobsConfig() {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            onClick={() => executar(job.jobid)}
+                            disabled={isExecutando}
+                          >
+                            <Play className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Executar agora</TooltipContent>
+                      </Tooltip>
+
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Button 
