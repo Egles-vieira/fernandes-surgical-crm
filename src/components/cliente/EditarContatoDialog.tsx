@@ -78,13 +78,14 @@ export default function EditarContatoDialog({ open, onOpenChange, contato, clien
   const onSubmit = async (data: ContatoInput) => {
     setIsSubmitting(true);
     try {
-      // Converter strings vazias para null em campos de data/timestamp
+      // Converter strings vazias para null em campos de data/timestamp e UUID
       const cleanedData = {
         ...data,
         data_nascimento: data.data_nascimento || null,
         data_consentimento_lgpd: data.data_consentimento_lgpd || null,
         ultimo_contato: data.ultimo_contato || null,
         proximo_followup: data.proximo_followup || null,
+        relacionamento_com: data.relacionamento_com || null,
       };
       
       await updateContato.mutateAsync({
