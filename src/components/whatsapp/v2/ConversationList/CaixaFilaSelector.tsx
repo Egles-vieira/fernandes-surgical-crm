@@ -71,7 +71,7 @@ export function CaixaFilaSelector({
   const selectedContador = contadores && selectedOption ? contadores[selectedOption.contadorKey] : 0;
   return <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs font-medium max-w-[200px] text-center mx-0 px-0">
+        <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs font-medium w-full justify-between px-3">
           <SelectedIcon className="h-3.5 w-3.5 shrink-0" />
           <span className="truncate">{selectedLabel}</span>
           {selectedContador > 0 && <Badge variant="secondary" className="h-4 min-w-4 px-1 text-[10px] font-bold">
