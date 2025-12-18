@@ -11955,6 +11955,29 @@ export type Database = {
         Returns: string
       }
       get_nivel_hierarquico: { Args: { _user_id: string }; Returns: number }
+      get_oportunidades_pipeline_paginado: {
+        Args: {
+          p_limite_default?: number
+          p_limites_por_estagio?: Json
+          p_pipeline_id: string
+        }
+        Returns: {
+          campos_customizados: Json
+          codigo: string
+          conta_nome: string
+          contato_nome: string
+          data_fechamento: string
+          dias_no_estagio: number
+          estagio_id: string
+          id: string
+          nome_oportunidade: string
+          percentual_probabilidade: number
+          proprietario_id: string
+          total_estagio: number
+          valor: number
+          valor_total_estagio: number
+        }[]
+      }
       get_pacing_semanal: {
         Args: { p_periodo_fim: string; p_periodo_inicio: string }
         Returns: {
