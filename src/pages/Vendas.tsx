@@ -28,8 +28,9 @@ import { useColumnVisibility } from "@/hooks/useColumnVisibility";
 import { ProdutoSearchDialog } from "@/components/ProdutoSearchDialog";
 import { ClienteSearchDialog } from "@/components/ClienteSearchDialog";
 import { VendasActionBar } from "@/components/VendasActionBar";
-import { VendasFilters } from "@/components/vendas/VendasFilters";
+import { VendasFilters, VendasViewType } from "@/components/vendas/VendasFilters";
 import { PipelineKanban, EtapaPipeline } from "@/components/vendas/PipelineKanban";
+import { MultiPipelineKanban } from "@/components/pipelines/kanban";
 import { PropostaQuickViewSheet } from "@/components/vendas/PropostaQuickViewSheet";
 import { AprovarVendaDialog } from "@/components/vendas/AprovarVendaDialog";
 import { IntegracaoDatasulLog } from "@/components/IntegracaoDatasulLog";
@@ -84,7 +85,7 @@ export default function Vendas() {
   } = useDatasulCalculaPedido();
 
   // Estado de visualização
-  const [view, setView] = useState<"pipeline" | "list" | "nova">("pipeline");
+  const [view, setView] = useState<VendasViewType | "nova">("pipeline");
 
   // Hook OTIMIZADO para Pipeline (Kanban) - carrega TOP 20 por etapa via RPC
   const {
@@ -1401,7 +1402,7 @@ export default function Vendas() {
   }
   return <div className="h-[calc(100vh-64px)] flex flex-col overflow-hidden">
       {/* Filtros - Fixo */}
-      <VendasFilters view={view as "pipeline" | "list"} onViewChange={v => setView(v)} onFilterChange={newFilters => {
+      <VendasFilters view={view as VendasViewType} onViewChange={v => setView(v)} onFilterChange={newFilters => {
       // Usar updateFiltros do hook paginado para filtrar server-side
       updateFiltros({
         status: newFilters.status,
@@ -1413,27 +1414,37 @@ export default function Vendas() {
 
       {/* Conteúdo principal - flex-1 */}
       <div className="flex-1 overflow-hidden">
-        {view === "pipeline" ? <PipelineKanban vendas={vendasPipeline as any} totaisPorEtapa={totaisPorEtapa} etapaCarregando={etapaCarregando} onDragEnd={result => {
-        const {
-          source,
-          destination,
-          draggableId
-        } = result;
-        if (!destination) return;
-        if (source.droppableId === destination.droppableId && source.index === destination.index) return;
-        const novaEtapa = destination.droppableId as EtapaPipeline;
-        // Usar mutation otimista do hook
-        moverEtapa.mutate({
-          id: draggableId,
-          etapa_pipeline: novaEtapa
-        });
-      }} onViewDetails={venda => {
-        navigate(`/vendas/${venda.id}`);
-      }} onDuplicar={handleDuplicarVenda} onQuickView={venda => {
-        setQuickViewVenda(venda);
-      }} onCarregarMais={etapa => {
-        carregarMais(etapa);
-      }} /> : <div className="h-full overflow-auto px-8 py-6">
+        {view === "pipeline" ? (
+          <PipelineKanban vendas={vendasPipeline as any} totaisPorEtapa={totaisPorEtapa} etapaCarregando={etapaCarregando} onDragEnd={result => {
+            const {
+              source,
+              destination,
+              draggableId
+            } = result;
+            if (!destination) return;
+            if (source.droppableId === destination.droppableId && source.index === destination.index) return;
+            const novaEtapa = destination.droppableId as EtapaPipeline;
+            // Usar mutation otimista do hook
+            moverEtapa.mutate({
+              id: draggableId,
+              etapa_pipeline: novaEtapa
+            });
+          }} onViewDetails={venda => {
+            navigate(`/vendas/${venda.id}`);
+          }} onDuplicar={handleDuplicarVenda} onQuickView={venda => {
+            setQuickViewVenda(venda);
+          }} onCarregarMais={etapa => {
+            carregarMais(etapa);
+          }} />
+        ) : view === "oportunidades" ? (
+          <MultiPipelineKanban
+            onOportunidadeClick={(oportunidade) => {
+              // Navegar para detalhes ou abrir sheet
+              console.log('Oportunidade clicada:', oportunidade);
+            }}
+          />
+        ) : (
+          <div className="h-full overflow-auto px-8 py-6">
             {/* Search */}
             
 
@@ -1503,7 +1514,8 @@ export default function Vendas() {
                   </div>
                 </div>}
             </Card>
-          </div>}
+          </div>
+        )}
       </div>
 
       {/* Dialogs */}

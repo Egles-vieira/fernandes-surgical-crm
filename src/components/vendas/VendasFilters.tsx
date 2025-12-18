@@ -1,11 +1,15 @@
-import { Filter, Users, BarChart3, Calendar, SlidersHorizontal, Kanban, List, TestTube, Plus } from "lucide-react";
+import { Filter, Users, BarChart3, Calendar, SlidersHorizontal, Kanban, List, Plus, Target } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
+
+export type VendasViewType = "pipeline" | "list" | "oportunidades";
+
 interface VendasFiltersProps {
-  view: "pipeline" | "list";
-  onViewChange: (view: "pipeline" | "list") => void;
+  view: VendasViewType;
+  onViewChange: (view: VendasViewType) => void;
   onFilterChange?: (filters: FilterValues) => void;
   onCriarVendaTeste?: () => void;
   isCreatingTest?: boolean;
@@ -135,15 +139,54 @@ export function VendasFilters({
         </Badge>
       </Button>
 
-      {/* Toggle de visualização Pipeline/Lista */}
-      <ToggleGroup type="single" value={view} onValueChange={value => value && onViewChange(value as "pipeline" | "list")} className="h-8 bg-muted/50 rounded-md p-0.5 gap-0.5">
-        <ToggleGroupItem value="pipeline" aria-label="Visualização Pipeline" className="h-7 w-7 px-0 text-muted-foreground data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:shadow-sm rounded">
-          <Kanban className="h-3.5 w-3.5" />
-        </ToggleGroupItem>
-        <ToggleGroupItem value="list" aria-label="Visualização Lista" className="h-7 w-7 px-0 text-muted-foreground data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:shadow-sm rounded">
-          <List className="h-3.5 w-3.5" />
-        </ToggleGroupItem>
-      </ToggleGroup>
+      {/* Toggle de visualização Pipeline/Lista/Oportunidades */}
+      <TooltipProvider>
+        <ToggleGroup 
+          type="single" 
+          value={view} 
+          onValueChange={value => value && onViewChange(value as VendasViewType)} 
+          className="h-8 bg-muted/50 rounded-md p-0.5 gap-0.5"
+        >
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <ToggleGroupItem 
+                value="pipeline" 
+                aria-label="Pipeline de Vendas" 
+                className="h-7 w-7 px-0 text-muted-foreground data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:shadow-sm rounded"
+              >
+                <Kanban className="h-3.5 w-3.5" />
+              </ToggleGroupItem>
+            </TooltipTrigger>
+            <TooltipContent>Pipeline de Vendas</TooltipContent>
+          </Tooltip>
+          
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <ToggleGroupItem 
+                value="oportunidades" 
+                aria-label="Oportunidades Multi-Pipeline" 
+                className="h-7 w-7 px-0 text-muted-foreground data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:shadow-sm rounded"
+              >
+                <Target className="h-3.5 w-3.5" />
+              </ToggleGroupItem>
+            </TooltipTrigger>
+            <TooltipContent>Oportunidades (Multi-Pipeline)</TooltipContent>
+          </Tooltip>
+          
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <ToggleGroupItem 
+                value="list" 
+                aria-label="Lista de Vendas" 
+                className="h-7 w-7 px-0 text-muted-foreground data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:shadow-sm rounded"
+              >
+                <List className="h-3.5 w-3.5" />
+              </ToggleGroupItem>
+            </TooltipTrigger>
+            <TooltipContent>Lista de Vendas</TooltipContent>
+          </Tooltip>
+        </ToggleGroup>
+      </TooltipProvider>
 
     </div>;
 }
