@@ -11776,6 +11776,10 @@ export type Database = {
         Args: { p_jobid: number }
         Returns: undefined
       }
+      fn_whatsapp_contadores_usuario: {
+        Args: { p_user_id: string }
+        Returns: Json
+      }
       gerar_numero_ticket: { Args: never; Returns: string }
       gerar_token_proposta: { Args: never; Returns: string }
       get_clientes_acessiveis: {

@@ -3,7 +3,7 @@
 // Layout: 3 colunas (Conversas | Chat | Detalhes)
 // ============================================
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { ConversationList } from './ConversationList';
 import { ChatPanel } from './ChatPanel';
@@ -13,6 +13,7 @@ import { StatusBar } from './StatusBar';
 import { useWhatsAppService } from '@/services/whatsapp/hooks/useWhatsAppService';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import type { ConversationFiltersState } from '@/hooks/useConversationFilters';
 
 interface Operador {
   id: string;
@@ -53,15 +54,41 @@ interface Conversa {
 export function WhatsAppModule() {
   const [selectedConversaId, setSelectedConversaId] = useState<string | null>(null);
   const [showDetailsPanel, setShowDetailsPanel] = useState(true);
+  const [filters, setFilters] = useState<ConversationFiltersState>({
+    caixa: 'meus_atendimentos',
+    setorId: null,
+    canalTipo: 'todos',
+    contaId: null,
+    searchTerm: '',
+    ordenacao: 'mais_recente',
+  });
+  const [userId, setUserId] = useState<string | null>(null);
+
   const { connectionStatus, isConnected } = useWhatsAppService();
   const queryClient = useQueryClient();
 
-  // Fetch conversas
+  // Buscar userId
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) setUserId(user.id);
+    };
+    getUser();
+  }, []);
+
+  // Handle filters change
+  const handleFiltersChange = useCallback((newFilters: ConversationFiltersState) => {
+    setFilters(newFilters);
+  }, []);
+
+  // Fetch conversas com filtros aplicados
   const { data: conversas = [], isLoading: isLoadingConversas } = useQuery({
-    queryKey: ['whatsapp-conversas-v2'],
+    queryKey: ['whatsapp-conversas-v2', filters, userId],
     queryFn: async () => {
-      // Fetch conversations with operator and sector
-      const { data: conversasData, error } = await supabase
+      if (!userId) return [];
+
+      // Build query base
+      let query = supabase
         .from('whatsapp_conversas')
         .select(`
           id,
@@ -76,6 +103,7 @@ export function WhatsAppModule() {
           em_distribuicao,
           fila_id,
           whatsapp_fila_id,
+          whatsapp_conta_id,
           agente_ia_ativo,
           whatsapp_contatos (
             id,
@@ -83,9 +111,52 @@ export function WhatsAppModule() {
             numero_whatsapp,
             foto_perfil_url
           )
-        `)
-        .order('atualizado_em', { ascending: false })
-        .limit(50);
+        `);
+
+      // Aplicar filtro por caixa
+      switch (filters.caixa) {
+        case 'meus_atendimentos':
+          query = query.eq('atribuida_para_id', userId);
+          break;
+        case 'fila_espera':
+          query = query.is('atribuida_para_id', null).neq('status', 'fechada').neq('status', 'resolvida');
+          break;
+        case 'chatbot':
+          query = query.eq('agente_ia_ativo', true);
+          break;
+        case 'todos':
+        case 'todos_nao_lidas':
+        case 'operadores':
+          // Não adicionar filtro de atribuição
+          break;
+        case 'nao_lidas':
+          // Será filtrado após buscar mensagens
+          query = query.eq('atribuida_para_id', userId);
+          break;
+      }
+
+      // Filtrar por status (excluir fechadas por padrão)
+      if (filters.caixa !== 'todos' && filters.caixa !== 'todos_nao_lidas') {
+        query = query.neq('status', 'fechada').neq('status', 'resolvida');
+      }
+
+      // Filtrar por setor
+      if (filters.setorId) {
+        query = query.or(`fila_id.eq.${filters.setorId},whatsapp_fila_id.eq.${filters.setorId}`);
+      }
+
+      // Filtrar por conta
+      if (filters.contaId) {
+        query = query.eq('whatsapp_conta_id', filters.contaId);
+      }
+
+      // Ordenação
+      const ascending = filters.ordenacao === 'mais_antiga';
+      query = query.order('atualizado_em', { ascending });
+
+      query = query.limit(100);
+
+      const { data: conversasData, error } = await query;
 
       if (error) throw error;
       if (!conversasData || conversasData.length === 0) return [];
@@ -96,7 +167,7 @@ export function WhatsAppModule() {
         .map(c => c.atribuida_para_id)
         .filter((id): id is string => !!id);
       const filaIds = conversasData
-        .map(c => (c as any).fila_id || (c as any).whatsapp_fila_id)
+        .map(c => c.fila_id || c.whatsapp_fila_id)
         .filter((id): id is string => !!id);
 
       // Fetch operators
@@ -160,9 +231,9 @@ export function WhatsAppModule() {
         }
       }
 
-      return conversasData.map(c => {
+      let result = conversasData.map(c => {
         const contato = c.whatsapp_contatos as any;
-        const filaIdToUse = c.fila_id || (c as any).whatsapp_fila_id;
+        const filaIdToUse = c.fila_id || c.whatsapp_fila_id;
         return {
           id: c.id,
           status: c.status,
@@ -175,8 +246,8 @@ export function WhatsAppModule() {
           ultima_mensagem: ultimaMensagemMap[c.id] || '',
           nao_lidas: naoLidasMap[c.id] || 0,
           atribuida_para_id: c.atribuida_para_id,
-          em_distribuicao: (c as any).em_distribuicao,
-          agente_ia_ativo: (c as any).agente_ia_ativo,
+          em_distribuicao: c.em_distribuicao,
+          agente_ia_ativo: c.agente_ia_ativo,
           operador: c.atribuida_para_id ? operadoresMap[c.atribuida_para_id] || null : null,
           setor: filaIdToUse ? setoresMap[filaIdToUse] || null : null,
           whatsapp_contatos: {
@@ -187,7 +258,20 @@ export function WhatsAppModule() {
           },
         };
       }) as Conversa[];
+
+      // Filtrar por não lidas se necessário
+      if (filters.caixa === 'nao_lidas' || filters.caixa === 'todos_nao_lidas') {
+        result = result.filter(c => c.nao_lidas > 0);
+      }
+
+      // Ordenar por não lidas primeiro se selecionado
+      if (filters.ordenacao === 'nao_lidas_primeiro') {
+        result.sort((a, b) => b.nao_lidas - a.nao_lidas);
+      }
+
+      return result;
     },
+    enabled: !!userId,
   });
 
   // Realtime listener para atualizar lista quando conversas mudam
@@ -235,6 +319,7 @@ export function WhatsAppModule() {
               selectedId={selectedConversaId}
               onSelect={setSelectedConversaId}
               isLoading={isLoadingConversas}
+              onFiltersChange={handleFiltersChange}
             />
           </ResizablePanel>
 

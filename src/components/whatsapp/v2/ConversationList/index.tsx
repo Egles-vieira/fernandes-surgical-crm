@@ -1,34 +1,39 @@
 // ============================================
-// Conversation List Component - Redesigned
+// Conversation List Component - Com Filtros
 // ============================================
 
-import { useState } from 'react';
-import { Input } from '@/components/ui/input';
+import { useState, useEffect } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
-import { Search, MessageSquare, Star, User } from 'lucide-react';
+import { MessageSquare, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format, isToday, isYesterday } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { ConversationFilters } from './ConversationFilters';
+import { useConversationFilters, type ConversationFiltersState } from '@/hooks/useConversationFilters';
+
 interface Operador {
   id: string;
   primeiro_nome: string | null;
   sobrenome: string | null;
 }
+
 interface Setor {
   id: string;
   nome: string;
   cor: string;
 }
+
 interface Contato {
   id: string;
   nome_whatsapp: string;
   numero_whatsapp: string;
   foto_url?: string;
 }
+
 interface Conversa {
   id: string;
   status: string;
@@ -44,80 +49,130 @@ interface Conversa {
   setor?: Setor | null;
   whatsapp_contatos: Contato;
 }
+
 interface ConversationListProps {
   conversas: Conversa[];
   selectedId: string | null;
   onSelect: (id: string) => void;
   isLoading: boolean;
+  onFiltersChange?: (filters: ConversationFiltersState) => void;
 }
+
 export function ConversationList({
   conversas,
   selectedId,
   onSelect,
-  isLoading
+  isLoading,
+  onFiltersChange
 }: ConversationListProps) {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const {
+    filters,
+    setCaixa,
+    setSetorId,
+    setCanalTipo,
+    setContaId,
+    setSearchTerm,
+    setOrdenacao,
+    contadores,
+    setores,
+    contas,
+    isLoadingContadores,
+    isLoadingSetores,
+    isLoadingContas,
+  } = useConversationFilters();
+
+  // Notificar mudanças de filtros
+  useEffect(() => {
+    onFiltersChange?.(filters);
+  }, [filters, onFiltersChange]);
+
+  // Filtrar conversas localmente pela busca
   const filteredConversas = conversas.filter(conversa => {
-    if (!searchTerm) return true;
+    if (!filters.searchTerm) return true;
     const nome = conversa.whatsapp_contatos?.nome_whatsapp?.toLowerCase() || '';
     const numero = conversa.whatsapp_contatos?.numero_whatsapp || '';
-    return nome.includes(searchTerm.toLowerCase()) || numero.includes(searchTerm);
+    return nome.includes(filters.searchTerm.toLowerCase()) || numero.includes(filters.searchTerm);
   });
+
   const getInitials = (nome: string) => {
     return nome.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase();
   };
+
   if (isLoading) {
-    return <div className="h-full flex flex-col border-r">
-        <div className="p-3 border-b">
-          <Skeleton className="h-9 w-full" />
+    return (
+      <div className="h-full flex flex-col border-r">
+        <div className="p-3 border-b space-y-2">
+          <Skeleton className="h-8 w-full" />
+          <Skeleton className="h-8 w-full" />
+          <Skeleton className="h-7 w-32 ml-auto" />
         </div>
         <div className="flex-1 p-3 space-y-3">
-          {[1, 2, 3, 4, 5].map(i => <div key={i} className="flex items-start gap-3 p-2">
+          {[1, 2, 3, 4, 5].map(i => (
+            <div key={i} className="flex items-start gap-3 p-2">
               <Skeleton className="h-12 w-12 rounded-full" />
               <div className="flex-1 space-y-2">
                 <Skeleton className="h-4 w-3/4" />
                 <Skeleton className="h-3 w-full" />
                 <Skeleton className="h-3 w-1/2" />
               </div>
-            </div>)}
-        </div>
-      </div>;
-  }
-  return <div className="h-full flex flex-col border-r bg-card">
-      {/* Header */}
-      <div className="p-3 border-b space-y-2">
-        <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold flex items-center gap-2">
-            <MessageSquare className="h-4 w-4" />
-            Conversas
-            <Badge variant="secondary" className="text-xs">
-              {conversas.length}
-            </Badge>
-          </h2>
-          <button onClick={() => setShowFavoritesOnly(!showFavoritesOnly)} className={cn("p-1.5 rounded-md hover:bg-muted transition-colors", showFavoritesOnly && "bg-primary/10 text-primary")}>
-            <Star className="h-4 w-4" />
-          </button>
-        </div>
-        <div className="relative">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Buscar conversa..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-8 h-9 text-sm" />
+            </div>
+          ))}
         </div>
       </div>
+    );
+  }
 
-      {/* Conversation List */}
+  return (
+    <div className="h-full flex flex-col border-r bg-card">
+      {/* Filtros */}
+      <ConversationFilters
+        caixa={filters.caixa}
+        setorId={filters.setorId}
+        canalTipo={filters.canalTipo}
+        contaId={filters.contaId}
+        searchTerm={filters.searchTerm}
+        ordenacao={filters.ordenacao}
+        onCaixaChange={setCaixa}
+        onSetorChange={setSetorId}
+        onCanalChange={setCanalTipo}
+        onContaChange={setContaId}
+        onSearchChange={setSearchTerm}
+        onOrdenacaoChange={setOrdenacao}
+        contadores={contadores}
+        setores={setores}
+        contas={contas}
+        isLoadingContadores={isLoadingContadores}
+        isLoadingSetores={isLoadingSetores}
+        isLoadingContas={isLoadingContas}
+      />
+
+      {/* Lista de Conversas */}
       <ScrollArea className="flex-1">
         <div className="p-2">
-          {filteredConversas.length === 0 ? <div className="p-8 text-center text-muted-foreground">
+          {filteredConversas.length === 0 ? (
+            <div className="p-8 text-center text-muted-foreground">
               <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
               <p className="text-sm">Nenhuma conversa encontrada</p>
-            </div> : filteredConversas.map((conversa, index) => <div key={conversa.id}>
-                <ConversationItem conversa={conversa} isSelected={conversa.id === selectedId} onSelect={() => onSelect(conversa.id)} getInitials={getInitials} />
-                {index < filteredConversas.length - 1 && <div className="mx-2 my-1 border-b border-border/30" />}
-              </div>)}
+            </div>
+          ) : (
+            filteredConversas.map((conversa, index) => (
+              <div key={conversa.id}>
+                <ConversationItem 
+                  conversa={conversa} 
+                  isSelected={conversa.id === selectedId} 
+                  onSelect={() => onSelect(conversa.id)} 
+                  getInitials={getInitials} 
+                />
+                {index < filteredConversas.length - 1 && (
+                  <div className="mx-2 my-1 border-b border-border/30" />
+                )}
+              </div>
+            ))
+          )}
         </div>
       </ScrollArea>
-    </div>;
+    </div>
+  );
 }
 
 // Helper to format time
@@ -130,9 +185,7 @@ function formatMessageTime(dateStr: string | null): string {
   if (isYesterday(date)) {
     return 'Ontem';
   }
-  return format(date, 'dd/MM', {
-    locale: ptBR
-  });
+  return format(date, 'dd/MM', { locale: ptBR });
 }
 
 // Get operator display name
@@ -141,6 +194,7 @@ function getOperatorName(operador: Operador | null | undefined): string {
   const nome = [operador.primeiro_nome, operador.sobrenome].filter(Boolean).join(' ');
   return nome || 'SEM OPERADOR';
 }
+
 function ConversationItem({
   conversa,
   isSelected,
@@ -158,7 +212,16 @@ function ConversationItem({
   const setorCor = conversa.setor?.cor || '#6B7280';
   const temOperador = !!conversa.operador;
   const temSetor = !!conversa.setor;
-  return <button onClick={onSelect} className={cn("w-full flex items-start gap-3 p-3 rounded-lg text-left transition-all", "hover:bg-muted/50", isSelected && "bg-primary/10 border border-primary/20")}>
+
+  return (
+    <button 
+      onClick={onSelect} 
+      className={cn(
+        "w-full flex items-start gap-3 p-3 rounded-lg text-left transition-all",
+        "hover:bg-muted/50",
+        isSelected && "bg-primary/10 border border-primary/20"
+      )}
+    >
       {/* Avatar Column */}
       <div className="relative shrink-0">
         <Avatar className="h-12 w-12">
@@ -183,16 +246,18 @@ function ConversationItem({
             <span className="font-semibold text-sm truncate">
               {contato?.nome_whatsapp || 'Desconhecido'}
             </span>
-            {conversa.emoji_sentimento && <TooltipProvider delayDuration={200}>
+            {conversa.emoji_sentimento && (
+              <TooltipProvider delayDuration={200}>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    
+                    <span className="text-sm">{conversa.emoji_sentimento}</span>
                   </TooltipTrigger>
                   <TooltipContent side="top" className="text-xs">
                     Sentimento: {conversa.sentimento_cliente || 'Analisando...'}
                   </TooltipContent>
                 </Tooltip>
-              </TooltipProvider>}
+              </TooltipProvider>
+            )}
           </div>
           <span className="text-xs text-muted-foreground shrink-0 font-medium">
             {formatMessageTime(conversa.ultima_mensagem_em || conversa.atualizado_em)}
@@ -204,13 +269,17 @@ function ConversationItem({
           <TooltipProvider delayDuration={300}>
             <Tooltip>
               <TooltipTrigger asChild>
-                <span className="text-xs text-muted-foreground truncate flex-1 text-gray-950">
-                  {conversa.ultima_mensagem ? conversa.ultima_mensagem.slice(0, 40) + (conversa.ultima_mensagem.length > 40 ? '...' : '') : contato?.numero_whatsapp || ''}
+                <span className="text-xs text-muted-foreground truncate flex-1">
+                  {conversa.ultima_mensagem 
+                    ? conversa.ultima_mensagem.slice(0, 40) + (conversa.ultima_mensagem.length > 40 ? '...' : '') 
+                    : contato?.numero_whatsapp || ''}
                 </span>
               </TooltipTrigger>
-              {conversa.ultima_mensagem && conversa.ultima_mensagem.length > 40 && <TooltipContent side="bottom" className="max-w-[300px] text-xs">
+              {conversa.ultima_mensagem && conversa.ultima_mensagem.length > 40 && (
+                <TooltipContent side="bottom" className="max-w-[300px] text-xs">
                   {conversa.ultima_mensagem}
-                </TooltipContent>}
+                </TooltipContent>
+              )}
             </Tooltip>
           </TooltipProvider>
         </div>
@@ -220,10 +289,14 @@ function ConversationItem({
           <div className="flex items-center gap-2 min-w-0">
             {/* Sector Tag */}
             <div className="flex items-center gap-1.5 min-w-0">
-              <span className="w-2 h-2 rounded-full shrink-0" style={{
-              backgroundColor: temSetor ? setorCor : '#9CA3AF'
-            }} />
-              <span className={cn("text-xs truncate", temSetor ? "text-foreground" : "text-muted-foreground")}>
+              <span 
+                className="w-2 h-2 rounded-full shrink-0" 
+                style={{ backgroundColor: temSetor ? setorCor : '#9CA3AF' }} 
+              />
+              <span className={cn(
+                "text-xs truncate",
+                temSetor ? "text-foreground" : "text-muted-foreground"
+              )}>
                 {setorNome}
               </span>
             </div>
@@ -234,17 +307,26 @@ function ConversationItem({
             {/* Operator */}
             <div className="flex items-center gap-1 min-w-0">
               <User className="h-3 w-3 text-muted-foreground shrink-0" />
-              <span className={cn("text-xs truncate max-w-[80px]", temOperador ? "text-foreground" : "text-destructive font-medium")}>
+              <span className={cn(
+                "text-xs truncate max-w-[80px]",
+                temOperador ? "text-foreground" : "text-destructive font-medium"
+              )}>
                 {operadorNome}
               </span>
             </div>
           </div>
 
           {/* Unread Badge */}
-          {conversa.nao_lidas > 0 && <Badge variant="default" className="h-5 min-w-5 px-1.5 text-xs font-bold rounded-full bg-primary text-primary-foreground">
+          {conversa.nao_lidas > 0 && (
+            <Badge 
+              variant="default" 
+              className="h-5 min-w-5 px-1.5 text-xs font-bold rounded-full bg-primary text-primary-foreground"
+            >
               {conversa.nao_lidas}
-            </Badge>}
+            </Badge>
+          )}
         </div>
       </div>
-    </button>;
+    </button>
+  );
 }
