@@ -314,9 +314,9 @@ export function useKanbanOportunidades(pipelineId: string | null | undefined) {
           data_fechamento,
           estagio_id,
           campos_customizados,
+          proprietario_id,
           conta:contas(nome_conta),
-          contato:contatos(primeiro_nome, sobrenome),
-          proprietario:perfis_usuario!oportunidades_proprietario_id_fkey(nome_completo)
+          contato:contatos(primeiro_nome, sobrenome)
         `)
         .eq('pipeline_id', pipelineId)
         .eq('esta_fechada', false)
@@ -350,9 +350,7 @@ export function useKanbanOportunidades(pipelineId: string | null | undefined) {
             contato: op.contato 
               ? `${(op.contato as unknown as { primeiro_nome: string }).primeiro_nome} ${(op.contato as unknown as { sobrenome: string }).sobrenome}` 
               : null,
-            proprietario: op.proprietario 
-              ? (op.proprietario as unknown as { nome_completo: string }).nome_completo 
-              : null,
+            proprietario: null, // Removido JOIN inválido - buscar separadamente se necessário
             camposKanban: (op.campos_customizados as Record<string, unknown>) || {},
             estaEstagnado: alertaDias !== null && diasNoEstagio >= alertaDias,
           };

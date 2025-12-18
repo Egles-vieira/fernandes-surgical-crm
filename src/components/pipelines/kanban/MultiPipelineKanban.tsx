@@ -46,11 +46,6 @@ export function MultiPipelineKanban({
     apenasVisivelKanban: true,
   });
 
-  // Debug logs
-  console.log("[MultiPipelineKanban] pipelineId:", pipelineId);
-  console.log("[MultiPipelineKanban] estagios:", estagios);
-  console.log("[MultiPipelineKanban] kanbanData:", kanbanData);
-
   // Mutation para mover estágio
   const moverEstagio = useMoverEstagio();
 
