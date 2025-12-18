@@ -3386,46 +3386,61 @@ export type Database = {
       }
       estagios_pipeline: {
         Row: {
+          alerta_estagnacao_dias: number | null
           atualizado_em: string | null
+          automacoes: Json | null
+          campos_obrigatorios: Json | null
           cor: string | null
           criado_em: string | null
           descricao: string | null
           duracao_esperada_dias: number | null
           eh_ganho_fechado: boolean | null
           eh_perdido_fechado: boolean | null
+          icone: string | null
           id: string
           nome_estagio: string
           ordem_estagio: number
           percentual_probabilidade: number | null
           pipeline_id: string | null
+          validacoes: Json | null
         }
         Insert: {
+          alerta_estagnacao_dias?: number | null
           atualizado_em?: string | null
+          automacoes?: Json | null
+          campos_obrigatorios?: Json | null
           cor?: string | null
           criado_em?: string | null
           descricao?: string | null
           duracao_esperada_dias?: number | null
           eh_ganho_fechado?: boolean | null
           eh_perdido_fechado?: boolean | null
+          icone?: string | null
           id?: string
           nome_estagio: string
           ordem_estagio: number
           percentual_probabilidade?: number | null
           pipeline_id?: string | null
+          validacoes?: Json | null
         }
         Update: {
+          alerta_estagnacao_dias?: number | null
           atualizado_em?: string | null
+          automacoes?: Json | null
+          campos_obrigatorios?: Json | null
           cor?: string | null
           criado_em?: string | null
           descricao?: string | null
           duracao_esperada_dias?: number | null
           eh_ganho_fechado?: boolean | null
           eh_perdido_fechado?: boolean | null
+          icone?: string | null
           id?: string
           nome_estagio?: string
           ordem_estagio?: number
           percentual_probabilidade?: number | null
           pipeline_id?: string | null
+          validacoes?: Json | null
         }
         Relationships: [
           {
@@ -5282,11 +5297,14 @@ export type Database = {
         Row: {
           atualizado_em: string | null
           atualizado_por: string | null
+          campos_customizados: Json | null
+          codigo: string | null
           concorrentes: string | null
           conta_id: string | null
           contato_id: string | null
           criado_em: string | null
           criado_por: string | null
+          data_entrada_estagio: string | null
           data_fechamento: string | null
           descricao: string | null
           dias_no_estagio: number | null
@@ -5308,16 +5326,20 @@ export type Database = {
           tipo: string | null
           ultima_mudanca_estagio_em: string | null
           valor: number | null
+          venda_id: string | null
           vendedor_id: string | null
         }
         Insert: {
           atualizado_em?: string | null
           atualizado_por?: string | null
+          campos_customizados?: Json | null
+          codigo?: string | null
           concorrentes?: string | null
           conta_id?: string | null
           contato_id?: string | null
           criado_em?: string | null
           criado_por?: string | null
+          data_entrada_estagio?: string | null
           data_fechamento?: string | null
           descricao?: string | null
           dias_no_estagio?: number | null
@@ -5339,16 +5361,20 @@ export type Database = {
           tipo?: string | null
           ultima_mudanca_estagio_em?: string | null
           valor?: number | null
+          venda_id?: string | null
           vendedor_id?: string | null
         }
         Update: {
           atualizado_em?: string | null
           atualizado_por?: string | null
+          campos_customizados?: Json | null
+          codigo?: string | null
           concorrentes?: string | null
           conta_id?: string | null
           contato_id?: string | null
           criado_em?: string | null
           criado_por?: string | null
+          data_entrada_estagio?: string | null
           data_fechamento?: string | null
           descricao?: string | null
           dias_no_estagio?: number | null
@@ -5370,6 +5396,7 @@ export type Database = {
           tipo?: string | null
           ultima_mudanca_estagio_em?: string | null
           valor?: number | null
+          venda_id?: string | null
           vendedor_id?: string | null
         }
         Relationships: [
@@ -5427,6 +5454,13 @@ export type Database = {
             columns: ["pipeline_id"]
             isOneToOne: false
             referencedRelation: "pipelines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "oportunidades_venda_id_fkey"
+            columns: ["venda_id"]
+            isOneToOne: false
+            referencedRelation: "vendas"
             referencedColumns: ["id"]
           },
         ]
@@ -5711,10 +5745,13 @@ export type Database = {
       pipelines: {
         Row: {
           atualizado_em: string | null
+          configuracoes: Json | null
+          cor: string | null
           criado_em: string | null
           descricao: string | null
           esta_ativo: boolean | null
           excluido_em: string | null
+          icone: string | null
           id: string
           nome: string
           ordem_exibicao: number | null
@@ -5722,10 +5759,13 @@ export type Database = {
         }
         Insert: {
           atualizado_em?: string | null
+          configuracoes?: Json | null
+          cor?: string | null
           criado_em?: string | null
           descricao?: string | null
           esta_ativo?: boolean | null
           excluido_em?: string | null
+          icone?: string | null
           id?: string
           nome: string
           ordem_exibicao?: number | null
@@ -5733,10 +5773,13 @@ export type Database = {
         }
         Update: {
           atualizado_em?: string | null
+          configuracoes?: Json | null
+          cor?: string | null
           criado_em?: string | null
           descricao?: string | null
           esta_ativo?: boolean | null
           excluido_em?: string | null
+          icone?: string | null
           id?: string
           nome?: string
           ordem_exibicao?: number | null
