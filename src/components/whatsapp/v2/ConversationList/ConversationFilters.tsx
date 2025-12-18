@@ -71,14 +71,8 @@ export function ConversationFilters({
 
   return (
     <div className="space-y-2 p-3 border-b bg-card">
-      {/* Linha 1: Status + Caixa/Fila + Badge notificações */}
+      {/* Linha 1: Caixa/Fila + Badge notificações */}
       <div className="flex items-center gap-2">
-        <OperatorStatusDropdown
-          status={statusAtual}
-          onChange={changeStatus}
-          isChanging={isChangingStatus}
-        />
-        
         <CaixaFilaSelector
           value={caixa}
           onChange={onCaixaChange}
@@ -101,8 +95,14 @@ export function ConversationFilters({
         )}
       </div>
 
-      {/* Linha 2: Setor + Canal/Conta + Busca */}
+      {/* Linha 2: Status + Setor + Canal/Conta + Busca */}
       <div className="flex items-center gap-2">
+        <OperatorStatusDropdown
+          status={statusAtual}
+          onChange={changeStatus}
+          isChanging={isChangingStatus}
+        />
+        
         <SetorSelector
           value={setorId}
           onChange={onSetorChange}
