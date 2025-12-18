@@ -66,14 +66,14 @@ export function ConversationFilters({
     <div className="space-y-2 p-3 border-b bg-card">
       {/* Linha 1: Status + Caixa/Fila + Badge notificações */}
       <div className="flex items-center gap-2">
-        <CaixaFilaSelector
-          value={caixa}
-          onChange={onCaixaChange}
-          contadores={contadores}
-          isLoading={isLoadingContadores}
-        />
-
-        <div className="flex-1" />
+        <div className="flex-1">
+          <CaixaFilaSelector
+            value={caixa}
+            onChange={onCaixaChange}
+            contadores={contadores}
+            isLoading={isLoadingContadores}
+          />
+        </div>
 
         {totalNaoLidas > 0 && (
           <div className="relative">
