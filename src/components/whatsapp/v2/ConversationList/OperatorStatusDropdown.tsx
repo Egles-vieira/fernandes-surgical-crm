@@ -28,6 +28,41 @@ interface StatusOption {
   description: string;
 }
 
+const statusOptions: StatusOption[] = [
+  {
+    value: "online",
+    label: "Online",
+    icon: Wifi,
+    color: "text-green-500",
+    bgColor: "bg-green-500",
+    description: "Disponível para atendimento",
+  },
+  {
+    value: "ocupado",
+    label: "Ocupado",
+    icon: Circle,
+    color: "text-orange-500",
+    bgColor: "bg-orange-500",
+    description: "Em atendimento",
+  },
+  {
+    value: "pausa",
+    label: "Pausa",
+    icon: Coffee,
+    color: "text-yellow-500",
+    bgColor: "bg-yellow-500",
+    description: "Temporariamente indisponível",
+  },
+  {
+    value: "offline",
+    label: "Offline",
+    icon: Moon,
+    color: "text-gray-500",
+    bgColor: "bg-gray-500",
+    description: "Fora do expediente",
+  },
+];
+
 export function OperatorStatusDropdown({ status, onChange, isChanging }: OperatorStatusDropdownProps) {
   const selectedOption = statusOptions.find((opt) => opt.value === status) || statusOptions[0];
   const SelectedIcon = selectedOption.icon;
