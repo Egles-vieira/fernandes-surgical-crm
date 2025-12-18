@@ -1,3 +1,4 @@
+import { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -281,12 +282,40 @@ export function useMoverEstagio() {
   });
 }
 
+// Tipo para os limites por estágio
+interface LimitesPorEstagio {
+  [estagioId: string]: number;
+}
+
+interface UseKanbanOportunidadesOptions {
+  limitePorEstagioInicial?: number;
+}
+
+interface KanbanResult {
+  colunas: KanbanColumn[];
+  totalValor: number;
+  totalOportunidades: number;
+  limitesPorEstagio: LimitesPorEstagio;
+  carregarMais: (estagioId: string) => void;
+  estagioCarregando: string | null;
+}
+
 /**
- * Hook para buscar oportunidades formatadas para Kanban
+ * Hook para buscar oportunidades formatadas para Kanban - PAGINADO
+ * Usa RPC get_oportunidades_pipeline_paginado para escalabilidade
  */
-export function useKanbanOportunidades(pipelineId: string | null | undefined) {
-  return useQuery({
-    queryKey: ['kanban-oportunidades', pipelineId],
+export function useKanbanOportunidades(
+  pipelineId: string | null | undefined,
+  options: UseKanbanOportunidadesOptions = {}
+): KanbanResult & { isLoading: boolean; data: { colunas: KanbanColumn[]; totalValor: number; totalOportunidades: number } | undefined } {
+  const { limitePorEstagioInicial = 20 } = options;
+  const queryClient = useQueryClient();
+  const [limitesPorEstagio, setLimitesPorEstagio] = useState<LimitesPorEstagio>({});
+  const [estagioCarregando, setEstagioCarregando] = useState<string | null>(null);
+
+  // Query principal com RPC paginada
+  const query = useQuery({
+    queryKey: ['kanban-oportunidades', pipelineId, limitesPorEstagio],
     queryFn: async (): Promise<{ colunas: KanbanColumn[]; totalValor: number; totalOportunidades: number }> => {
       if (!pipelineId) {
         return { colunas: [], totalValor: 0, totalOportunidades: 0 };
@@ -301,39 +330,47 @@ export function useKanbanOportunidades(pipelineId: string | null | undefined) {
 
       if (estagiosError) throw estagiosError;
 
-      // Buscar oportunidades abertas
-      const { data: oportunidades, error: oportunidadesError } = await supabase
-        .from('oportunidades')
-        .select(`
-          id,
-          codigo,
-          nome_oportunidade,
-          valor,
-          percentual_probabilidade,
-          dias_no_estagio,
-          data_fechamento,
-          estagio_id,
-          campos_customizados,
-          proprietario_id,
-          conta:contas(nome_conta),
-          contato:contatos(primeiro_nome, sobrenome)
-        `)
-        .eq('pipeline_id', pipelineId)
-        .eq('esta_fechada', false)
-        .is('excluido_em', null);
+      // Chamar RPC paginada
+      const { data: oportunidadesRPC, error: rpcError } = await supabase
+        .rpc('get_oportunidades_pipeline_paginado', {
+          p_pipeline_id: pipelineId,
+          p_limites_por_estagio: limitesPorEstagio,
+          p_limite_default: limitePorEstagioInicial,
+        });
 
-      if (oportunidadesError) throw oportunidadesError;
+      if (rpcError) {
+        console.error('[useKanbanOportunidades] RPC Error:', rpcError);
+        throw rpcError;
+      }
+
+      // Agrupar totais por estágio (vem na primeira oportunidade de cada estágio)
+      const totaisPorEstagio: Record<string, { total: number; valor: number }> = {};
+      (oportunidadesRPC || []).forEach((op: {
+        estagio_id: string;
+        total_estagio: number;
+        valor_total_estagio: number;
+      }) => {
+        if (!totaisPorEstagio[op.estagio_id]) {
+          totaisPorEstagio[op.estagio_id] = {
+            total: Number(op.total_estagio) || 0,
+            valor: Number(op.valor_total_estagio) || 0,
+          };
+        }
+      });
 
       // Montar colunas do Kanban
       const colunas: KanbanColumn[] = (estagios || []).map(estagio => {
-        const oportunidadesEstagio = (oportunidades || []).filter(
-          op => op.estagio_id === estagio.id
+        const oportunidadesEstagio = (oportunidadesRPC || []).filter(
+          (op) => op.estagio_id === estagio.id
         );
 
-        const cards: OportunidadeCard[] = oportunidadesEstagio.map(op => {
+        const cards: OportunidadeCard[] = oportunidadesEstagio.map((op) => {
           const diasNoEstagio = op.dias_no_estagio || 0;
           const alertaDias = estagio.alerta_estagnacao_dias;
           const probabilidade = op.percentual_probabilidade;
+          const camposCustom = (typeof op.campos_customizados === 'object' && op.campos_customizados !== null)
+            ? op.campos_customizados as Record<string, unknown>
+            : {};
           
           return {
             id: op.id,
@@ -346,17 +383,15 @@ export function useKanbanOportunidades(pipelineId: string | null | undefined) {
             probabilidade,
             diasNoEstagio,
             dataFechamento: op.data_fechamento,
-            conta: (op.conta as { nome_conta: string } | null)?.nome_conta || null,
-            contato: op.contato 
-              ? `${(op.contato as unknown as { primeiro_nome: string }).primeiro_nome} ${(op.contato as unknown as { sobrenome: string }).sobrenome}` 
-              : null,
-            proprietario: null, // Removido JOIN inválido - buscar separadamente se necessário
-            camposKanban: (op.campos_customizados as Record<string, unknown>) || {},
+            conta: op.conta_nome || null,
+            contato: op.contato_nome || null,
+            proprietario: null,
+            camposKanban: camposCustom,
             estaEstagnado: alertaDias !== null && diasNoEstagio >= alertaDias,
           };
         });
 
-        const totalValorColuna = cards.reduce((sum, card) => sum + (card.valor || 0), 0);
+        const totais = totaisPorEstagio[estagio.id] || { total: 0, valor: 0 };
 
         return {
           id: estagio.id,
@@ -369,8 +404,8 @@ export function useKanbanOportunidades(pipelineId: string | null | undefined) {
           ehPerdido: estagio.eh_perdido_fechado || false,
           alertaEstagnacaoDias: estagio.alerta_estagnacao_dias,
           oportunidades: cards,
-          totalValor: totalValorColuna,
-          totalOportunidades: cards.length,
+          totalValor: totais.valor,
+          totalOportunidades: totais.total,
         };
       });
 
@@ -382,7 +417,35 @@ export function useKanbanOportunidades(pipelineId: string | null | undefined) {
     enabled: !!pipelineId,
     staleTime: 30 * 1000,
     gcTime: 5 * 60 * 1000,
+    placeholderData: (previousData) => previousData, // keepPreviousData
   });
+
+  // Função para carregar mais oportunidades de um estágio
+  const carregarMais = useCallback((estagioId: string) => {
+    setEstagioCarregando(estagioId);
+    setLimitesPorEstagio(prev => ({
+      ...prev,
+      [estagioId]: (prev[estagioId] || limitePorEstagioInicial) + 20,
+    }));
+    
+    // Limpar o estado de carregando após a query atualizar
+    setTimeout(() => setEstagioCarregando(null), 500);
+  }, [limitePorEstagioInicial]);
+
+  const colunas = query.data?.colunas || [];
+  const totalValor = query.data?.totalValor || 0;
+  const totalOportunidades = query.data?.totalOportunidades || 0;
+
+  return {
+    data: query.data,
+    isLoading: query.isLoading,
+    colunas,
+    totalValor,
+    totalOportunidades,
+    limitesPorEstagio,
+    carregarMais,
+    estagioCarregando,
+  };
 }
 
 /**

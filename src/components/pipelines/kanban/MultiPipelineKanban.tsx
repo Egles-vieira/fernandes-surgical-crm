@@ -34,10 +34,12 @@ export function MultiPipelineKanban({
     isLoading: loadingPipeline 
   } = usePipelineComEstagios(pipelineId);
 
-  // Buscar oportunidades organizadas para o Kanban
+  // Buscar oportunidades organizadas para o Kanban com paginação
   const {
     data: kanbanData,
     isLoading: loadingOportunidades,
+    carregarMais,
+    estagioCarregando,
   } = useKanbanOportunidades(pipelineId);
 
   // Buscar campos visíveis no Kanban
@@ -182,6 +184,8 @@ export function MultiPipelineKanban({
                   totalReal={totalOportunidades}
                   pipelineId={pipelineId}
                   onViewDetails={handleViewDetails}
+                  onCarregarMais={() => carregarMais(estagio.id)}
+                  isLoadingMore={estagioCarregando === estagio.id}
                 />
               ))}
             </div>
