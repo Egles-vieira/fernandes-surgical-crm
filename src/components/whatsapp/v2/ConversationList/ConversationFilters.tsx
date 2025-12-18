@@ -9,7 +9,6 @@ import { CaixaFilaSelector } from './CaixaFilaSelector';
 import { SetorSelector } from './SetorSelector';
 import { CanalContaSelector } from './CanalContaSelector';
 import { OrdenacaoSelector } from './OrdenacaoSelector';
-import { OperatorStatusDropdown } from './OperatorStatusDropdown';
 import { useWhatsAppContext } from '@/contexts/WhatsAppContext';
 import type { 
   CaixaTipo, 
@@ -67,7 +66,7 @@ export function ConversationFilters({
   isLoadingSetores,
   isLoadingContas,
 }: ConversationFiltersProps) {
-  const { statusAtual, changeStatus, isChangingStatus, totalNaoLidas } = useWhatsAppContext();
+  const { totalNaoLidas } = useWhatsAppContext();
 
   return (
     <div className="space-y-2 p-3 border-b bg-card">
@@ -95,14 +94,8 @@ export function ConversationFilters({
         )}
       </div>
 
-      {/* Linha 2: Status + Setor + Canal/Conta + Busca */}
+      {/* Linha 2: Setor + Canal/Conta + Busca */}
       <div className="flex items-center gap-2">
-        <OperatorStatusDropdown
-          status={statusAtual}
-          onChange={changeStatus}
-          isChanging={isChangingStatus}
-        />
-        
         <SetorSelector
           value={setorId}
           onChange={onSetorChange}
