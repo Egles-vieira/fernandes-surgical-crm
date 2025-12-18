@@ -769,69 +769,64 @@ export default function VendaDetalhes() {
         </div>
       </div>;
   }
-  return (
-    <PropostaContextSheet
-      vendaId={venda.id}
-      clienteId={clienteSelecionado?.id}
-      cliente={clienteSelecionado}
-    >
+  return <PropostaContextSheet vendaId={venda.id} clienteId={clienteSelecionado?.id} cliente={clienteSelecionado}>
       <div className="flex flex-col">
         {/* Barras sticky sem espaçamento entre elas */}
         <VendasActionBar status={venda.status as "rascunho" | "aprovada" | "cancelada"} onCalcular={handleCalcularDatasul} onCancelar={() => {
-          toast({
-            title: "Cancelar proposta",
-            description: "Funcionalidade em desenvolvimento"
-          });
-        }} onDiretoria={() => {
-          toast({
-            title: "Enviar para diretoria",
-            description: "Funcionalidade em desenvolvimento"
-          });
-        }} onEfetivar={() => setShowAprovarDialog(true)} onSalvar={handleSalvar} isSaving={false} isCalculating={isCalculating} editandoVendaId={venda.id} onVoltar={() => navigate("/vendas")} numeroVenda={numeroVenda || "Nova"} etapaPipeline={venda.etapa_pipeline || undefined} freteCalculado={freteCalculado} onCalcularFrete={handleCalcularFrete} isCalculatingFrete={isCalculatingFrete} valorFrete={valorFrete} className="py-[5px] border-none shadow-sm" />
+        toast({
+          title: "Cancelar proposta",
+          description: "Funcionalidade em desenvolvimento"
+        });
+      }} onDiretoria={() => {
+        toast({
+          title: "Enviar para diretoria",
+          description: "Funcionalidade em desenvolvimento"
+        });
+      }} onEfetivar={() => setShowAprovarDialog(true)} onSalvar={handleSalvar} isSaving={false} isCalculating={isCalculating} editandoVendaId={venda.id} onVoltar={() => navigate("/vendas")} numeroVenda={numeroVenda || "Nova"} etapaPipeline={venda.etapa_pipeline || undefined} freteCalculado={freteCalculado} onCalcularFrete={handleCalcularFrete} isCalculatingFrete={isCalculatingFrete} valorFrete={valorFrete} className="py-[5px] border-none shadow-sm" />
 
       <FunnelStagesBar etapaAtual={venda.etapa_pipeline as any || "proposta"} onEtapaClick={async novaEtapa => {
-      try {
-        await updateVenda.mutateAsync({
-          id: venda.id,
-          etapa_pipeline: novaEtapa
-        });
-        toast.success(`Etapa alterada para ${novaEtapa}`);
-      } catch (error) {
-        toast.error("Erro ao alterar etapa");
-      }
-    }} camposEtapa={[{
-      label: "Status",
-      value: venda.status || null
-    }, {
-      label: "Data Prevista",
-      value: venda.data_fechamento_prevista ? new Date(venda.data_fechamento_prevista).toLocaleDateString('pt-BR') : null
-    }, {
-      label: "Probabilidade",
-      value: venda.probabilidade ? `${venda.probabilidade}%` : null,
-      type: "probability-select" as const,
-      selectedId: venda.probabilidade?.toString() || "50",
-      onSelect: async (probValue: string) => {
         try {
-          const prob = parseInt(probValue);
           await updateVenda.mutateAsync({
             id: venda.id,
-            probabilidade: prob
+            etapa_pipeline: novaEtapa
           });
-          setProbabilidade(prob);
-          toast.success("Probabilidade atualizada");
+          toast.success(`Etapa alterada para ${novaEtapa}`);
         } catch (error) {
-          toast.error("Erro ao atualizar probabilidade");
+          toast.error("Erro ao alterar etapa");
         }
-      }
-    }, {
-      label: "Valor Estimado",
-      value: venda.valor_estimado ? formatCurrency(venda.valor_estimado) : null
-    }]} onEditarCampos={() => {
-      window.scrollTo({
-        top: 0,
-        behavior: 'smooth'
-      });
-    }} />
+      }} camposEtapa={[{
+        label: "Status",
+        value: venda.status || null
+      }, {
+        label: "Data Prevista",
+        value: venda.data_fechamento_prevista ? new Date(venda.data_fechamento_prevista).toLocaleDateString('pt-BR') : null
+      }, {
+        label: "Probabilidade",
+        value: venda.probabilidade ? `${venda.probabilidade}%` : null,
+        type: "probability-select" as const,
+        selectedId: venda.probabilidade?.toString() || "50",
+        onSelect: async (probValue: string) => {
+          try {
+            const prob = parseInt(probValue);
+            await updateVenda.mutateAsync({
+              id: venda.id,
+              probabilidade: prob
+            });
+            setProbabilidade(prob);
+            toast.success("Probabilidade atualizada");
+          } catch (error) {
+            toast.error("Erro ao atualizar probabilidade");
+          }
+        }
+      }, {
+        label: "Valor Estimado",
+        value: venda.valor_estimado ? formatCurrency(venda.valor_estimado) : null
+      }]} onEditarCampos={() => {
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        });
+      }} />
 
       {/* Conteúdo com espaçamento */}
       <div className="space-y-6 mt-6">
@@ -860,8 +855,7 @@ export default function VendaDetalhes() {
           <Separator />
 
           {/* Seção Unificada de Frete/Transporte */}
-          {clienteSelecionado && (
-            <div className="p-4 bg-muted/20 rounded-lg border border-border/50 space-y-4">
+          {clienteSelecionado && <div className="p-4 bg-muted/20 rounded-lg border border-border/50 space-y-4">
               <div className="flex items-center gap-2 mb-2">
                 <Package className="h-5 w-5 text-primary" />
                 <Label className="text-base font-semibold">Frete e Transporte</Label>
@@ -917,8 +911,7 @@ export default function VendaDetalhes() {
               </div>
 
               {/* Resultado da Transportadora ou Botão Calcular */}
-              {freteCalculado && (venda as any).transportadora_nome ? (
-                <div className="p-3 bg-background rounded-lg border border-primary/20">
+              {freteCalculado && (venda as any).transportadora_nome ? <div className="p-3 bg-background rounded-lg border border-primary/20">
                   <div className="flex items-center gap-4">
                     <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                       <CheckSquare className="h-5 w-5 text-primary" />
@@ -930,55 +923,22 @@ export default function VendaDetalhes() {
                     <div className="text-center shrink-0 px-4 border-l border-r border-border/50">
                       <p className="text-xs text-muted-foreground">Prazo</p>
                       <p className="font-semibold">
-                        {(venda as any).prazo_entrega_dias 
-                          ? `${(venda as any).prazo_entrega_dias} dias`
-                          : "—"
-                        }
+                        {(venda as any).prazo_entrega_dias ? `${(venda as any).prazo_entrega_dias} dias` : "—"}
                       </p>
                     </div>
                     <div className="text-right shrink-0">
                       <p className="text-xs text-muted-foreground">Valor do Frete</p>
                       <p className="font-semibold text-primary text-lg">{formatCurrency(valorFrete)}</p>
                     </div>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={handleCalcularFrete}
-                      disabled={isCalculatingFrete}
-                    >
+                    <Button variant="outline" size="sm" onClick={handleCalcularFrete} disabled={isCalculatingFrete}>
                       {isCalculatingFrete ? <Loader2 className="h-4 w-4 animate-spin" /> : "Recalcular"}
                     </Button>
                   </div>
-                </div>
-              ) : (
-                <div className="flex items-center gap-3">
-                  <Button 
-                    variant="outline" 
-                    onClick={handleCalcularFrete}
-                    disabled={isCalculatingFrete || !tipoFreteId || !enderecoEntregaId || carrinho.length === 0}
-                    className="flex-1"
-                  >
-                    {isCalculatingFrete ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Calculando...
-                      </>
-                    ) : (
-                      <>
-                        <Calculator className="h-4 w-4 mr-2" />
-                        Calcular Frete
-                      </>
-                    )}
-                  </Button>
-                  {(!tipoFreteId || !enderecoEntregaId || carrinho.length === 0) && (
-                    <p className="text-xs text-muted-foreground">
-                      Preencha tipo de frete, endereço e adicione itens
-                    </p>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
+                </div> : <div className="flex items-center gap-3">
+                  
+                  {!tipoFreteId || !enderecoEntregaId || carrinho.length === 0}
+                </div>}
+            </div>}
 
           <Separator />
 
@@ -1104,9 +1064,9 @@ export default function VendaDetalhes() {
                   <TableBody>
                     <SortableContext items={filteredCarrinho.slice((currentItemsPage - 1) * itemsPerPage, currentItemsPage * itemsPerPage).map(item => item.produto.id)} strategy={verticalListSortingStrategy}>
                       {filteredCarrinho.slice((currentItemsPage - 1) * itemsPerPage, currentItemsPage * itemsPerPage).map((item, index) => {
-                        const realIndex = (currentItemsPage - 1) * itemsPerPage + index;
-                        return <SortableItemRow key={item.produto.id} item={item} index={realIndex} density={density} visibleColumns={visibleColumns} onUpdate={handleAtualizarItem} onEdit={handleEditarItem} onRemove={handleRemoverItem} />;
-                      })}
+                          const realIndex = (currentItemsPage - 1) * itemsPerPage + index;
+                          return <SortableItemRow key={item.produto.id} item={item} index={realIndex} density={density} visibleColumns={visibleColumns} onUpdate={handleAtualizarItem} onEdit={handleEditarItem} onRemove={handleRemoverItem} />;
+                        })}
                     </SortableContext>
                   </TableBody>
                 </Table>
@@ -1121,9 +1081,9 @@ export default function VendaDetalhes() {
                 
                 <div className="flex items-center gap-2">
                   <Select value={String(itemsPerPage)} onValueChange={value => {
-                  setItemsPerPage(Number(value));
-                  setCurrentItemsPage(1);
-                }}>
+                    setItemsPerPage(Number(value));
+                    setCurrentItemsPage(1);
+                  }}>
                     <SelectTrigger className="w-[130px]">
                       <SelectValue />
                     </SelectTrigger>
@@ -1226,6 +1186,5 @@ export default function VendaDetalhes() {
           <IntegracaoDatasulLog vendaId={venda.id} />
         </Card>}
       </div>
-    </PropostaContextSheet>
-  );
+    </PropostaContextSheet>;
 }
