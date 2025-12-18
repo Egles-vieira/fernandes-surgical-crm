@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Check, Upload, Palette, Type, Image as ImageIcon, Shapes } from "lucide-react";
+import { Check, Upload, Palette, Type, Image as ImageIcon, Shapes, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -367,6 +367,32 @@ export function PersonalizarCores() {
     icon: "#ffffff",
     text: "#ffffff",
   });
+  const [textColors, setTextColors] = useState({
+    foreground: "#1a1a2e",
+    mutedForeground: "#64748b",
+  });
+  
+  // Presets de contraste para textos
+  const textContrastPresets = [
+    { 
+      name: "Alto Contraste", 
+      foreground: "#0f0f0f", 
+      mutedForeground: "#4a4a4a",
+      description: "Máxima legibilidade"
+    },
+    { 
+      name: "Médio (Padrão)", 
+      foreground: "#1a1a2e", 
+      mutedForeground: "#64748b",
+      description: "Equilibrado"
+    },
+    { 
+      name: "Suave", 
+      foreground: "#374151", 
+      mutedForeground: "#9ca3af",
+      description: "Tom mais leve"
+    },
+  ];
   
   const { empresa, uploadLogo, isUploading } = useEmpresa();
   const { themeConfig, updateThemeConfig, isLoading: isLoadingTheme } = useThemeConfig();
@@ -417,6 +443,11 @@ export function PersonalizarCores() {
     if (themeConfig.menuColors) {
       setMenuColors(themeConfig.menuColors);
       applyMenuColors(themeConfig.menuColors);
+    }
+
+    if (themeConfig.textColors) {
+      setTextColors(themeConfig.textColors);
+      applyTextColors(themeConfig.textColors);
     }
   }, [themeConfig, isLoadingTheme]);
 
@@ -626,6 +657,32 @@ export function PersonalizarCores() {
     updateThemeConfig({ menuColors: newColors });
   };
 
+  const applyTextColors = (colors: typeof textColors) => {
+    const root = document.documentElement;
+    const fgHSL = hexToHSL(colors.foreground);
+    root.style.setProperty("--foreground", fgHSL);
+    root.style.setProperty("--card-foreground", fgHSL);
+    root.style.setProperty("--popover-foreground", fgHSL);
+    root.style.setProperty("--muted-foreground", hexToHSL(colors.mutedForeground));
+  };
+
+  const handleTextColorChange = (color: keyof typeof textColors, value: string) => {
+    const newColors = { ...textColors, [color]: value };
+    setTextColors(newColors);
+    applyTextColors(newColors);
+    updateThemeConfig({ textColors: newColors });
+  };
+
+  const handleTextPresetClick = (preset: typeof textContrastPresets[number]) => {
+    const newColors = {
+      foreground: preset.foreground,
+      mutedForeground: preset.mutedForeground,
+    };
+    setTextColors(newColors);
+    applyTextColors(newColors);
+    updateThemeConfig({ textColors: newColors });
+  };
+
   // Aplicar estilos de ícone em todos os ícones Lucide do DOM
   useEffect(() => {
     const applyIconStylesToAll = () => {
@@ -682,9 +739,10 @@ export function PersonalizarCores() {
       </div>
 
       <Tabs defaultValue="presets" className="w-full">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="presets">Temas</TabsTrigger>
           <TabsTrigger value="custom">Cores</TabsTrigger>
+          <TabsTrigger value="texts">Textos</TabsTrigger>
           <TabsTrigger value="fonts">Fontes</TabsTrigger>
           <TabsTrigger value="icons">Ícones</TabsTrigger>
           <TabsTrigger value="styles">Estilos</TabsTrigger>
@@ -853,6 +911,138 @@ export function PersonalizarCores() {
                     style={{ backgroundColor: customColors.background, color: customColors.primary }}
                   >
                     Fundo
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="texts" className="space-y-4">
+          <div className="space-y-6">
+            {/* Presets de Contraste */}
+            <div>
+              <Label className="text-base font-medium mb-3 block">Níveis de Contraste</Label>
+              <p className="text-sm text-muted-foreground mb-4">
+                Escolha um preset de contraste para melhor legibilidade
+              </p>
+              <div className="grid grid-cols-3 gap-3">
+                {textContrastPresets.map((preset) => (
+                  <button
+                    key={preset.name}
+                    onClick={() => handleTextPresetClick(preset)}
+                    className={`p-4 border-2 rounded-lg hover:border-primary transition-all text-left ${
+                      textColors.foreground === preset.foreground && 
+                      textColors.mutedForeground === preset.mutedForeground 
+                        ? "border-primary bg-primary/5" 
+                        : ""
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-medium text-sm">{preset.name}</span>
+                      {textColors.foreground === preset.foreground && 
+                       textColors.mutedForeground === preset.mutedForeground && (
+                        <Check className="text-primary" size={16} />
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground mb-3">{preset.description}</p>
+                    <div className="space-y-1 p-2 bg-background rounded border">
+                      <p style={{ color: preset.foreground }} className="text-sm font-medium">
+                        Texto Principal
+                      </p>
+                      <p style={{ color: preset.mutedForeground }} className="text-xs">
+                        Texto secundário de exemplo
+                      </p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Cores Customizadas */}
+            <div className="border-t pt-4">
+              <Label className="text-base font-medium mb-3 block">Cores Personalizadas</Label>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="foreground" className="text-sm">Texto Principal</Label>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    Títulos, conteúdo principal
+                  </p>
+                  <div className="flex gap-2">
+                    <Input
+                      id="foreground"
+                      type="color"
+                      value={textColors.foreground}
+                      onChange={(e) => handleTextColorChange("foreground", e.target.value)}
+                      className="w-16 h-10 p-1 cursor-pointer"
+                    />
+                    <Input
+                      type="text"
+                      value={textColors.foreground}
+                      onChange={(e) => handleTextColorChange("foreground", e.target.value)}
+                      className="flex-1"
+                      placeholder="#1a1a2e"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="mutedForeground" className="text-sm">Texto Secundário</Label>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    Descrições, labels, placeholders
+                  </p>
+                  <div className="flex gap-2">
+                    <Input
+                      id="mutedForeground"
+                      type="color"
+                      value={textColors.mutedForeground}
+                      onChange={(e) => handleTextColorChange("mutedForeground", e.target.value)}
+                      className="w-16 h-10 p-1 cursor-pointer"
+                    />
+                    <Input
+                      type="text"
+                      value={textColors.mutedForeground}
+                      onChange={(e) => handleTextColorChange("mutedForeground", e.target.value)}
+                      className="flex-1"
+                      placeholder="#64748b"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Prévia */}
+            <div className="p-4 border rounded-lg bg-card">
+              <div className="flex items-center gap-2 mb-4">
+                <Eye className="h-4 w-4 text-muted-foreground" />
+                <p className="text-sm font-medium">Prévia dos Textos</p>
+              </div>
+              <div className="space-y-4 p-4 bg-background rounded-lg border">
+                <div>
+                  <h3 style={{ color: textColors.foreground }} className="text-lg font-semibold">
+                    Título Principal do Sistema
+                  </h3>
+                  <p style={{ color: textColors.mutedForeground }} className="text-sm">
+                    Este é um exemplo de texto secundário que aparece em descrições, 
+                    labels de formulários e informações adicionais.
+                  </p>
+                </div>
+                <div className="flex gap-4">
+                  <div className="flex-1 p-3 bg-muted/50 rounded">
+                    <p style={{ color: textColors.foreground }} className="text-sm font-medium">
+                      Card com Informações
+                    </p>
+                    <p style={{ color: textColors.mutedForeground }} className="text-xs mt-1">
+                      Última atualização: há 5 minutos
+                    </p>
+                  </div>
+                  <div className="flex-1 p-3 bg-muted/50 rounded">
+                    <p style={{ color: textColors.foreground }} className="text-sm font-medium">
+                      Status do Sistema
+                    </p>
+                    <p style={{ color: textColors.mutedForeground }} className="text-xs mt-1">
+                      Tudo funcionando normalmente
+                    </p>
                   </div>
                 </div>
               </div>

@@ -20,6 +20,10 @@ interface ThemeConfig {
     icon: string;
     text: string;
   };
+  textColors?: {
+    foreground: string;
+    mutedForeground: string;
+  };
 }
 
 export function useThemeConfig() {
