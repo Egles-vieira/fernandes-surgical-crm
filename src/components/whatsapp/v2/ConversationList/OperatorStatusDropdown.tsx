@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import type { StatusAtendimento } from '@/contexts/WhatsAppContext';
+import type { StatusAtendimento } from '@/hooks/useWhatsAppStatus';
 
 interface OperatorStatusDropdownProps {
   status: StatusAtendimento;
@@ -46,7 +46,7 @@ const statusOptions: StatusOption[] = [
     description: 'Não receber novas conversas'
   },
   { 
-    value: 'pausa', 
+    value: 'ausente', 
     label: 'Em Pausa', 
     icon: Coffee,
     color: 'text-yellow-500',
