@@ -39,14 +39,6 @@ export function SetorSelector({
           size="sm" 
           className="h-8 gap-1.5 text-xs font-medium max-w-[150px]"
         >
-          {selectedCor ? (
-            <span 
-              className="w-2.5 h-2.5 rounded-full shrink-0"
-              style={{ backgroundColor: selectedCor }}
-            />
-          ) : (
-            <FolderOpen className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-          )}
           <span className="truncate">{selectedLabel}</span>
           <ChevronDown className="h-3 w-3 shrink-0 opacity-50" />
         </Button>

@@ -76,11 +76,6 @@ export function CanalContaSelector({
           size="sm" 
           className="h-8 gap-1.5 text-xs font-medium max-w-[150px]"
         >
-          {canalTipo === 'whatsapp' || contaId ? (
-            <WhatsAppIcon className="h-3.5 w-3.5 shrink-0 text-[#25D366]" />
-          ) : (
-            <MessageSquare className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-          )}
           <span className="truncate">{selectedLabel}</span>
           <ChevronDown className="h-3 w-3 shrink-0 opacity-50" />
         </Button>
