@@ -8,6 +8,8 @@ import { CaixaFilaSelector } from './CaixaFilaSelector';
 import { SetorSelector } from './SetorSelector';
 import { CanalContaSelector } from './CanalContaSelector';
 import { OrdenacaoSelector } from './OrdenacaoSelector';
+import { OperatorStatusDropdown } from './OperatorStatusDropdown';
+import { useWhatsAppStatus } from '@/hooks/useWhatsAppStatus';
 import type { 
   CaixaTipo, 
   OrdenacaoTipo, 
@@ -64,31 +66,41 @@ export function ConversationFilters({
   isLoadingSetores,
   isLoadingContas,
 }: ConversationFiltersProps) {
+  const { statusAtual, isChanging, changeStatus } = useWhatsAppStatus();
+
   return (
     <div className="space-y-2 p-3 border-b bg-card">
-      {/* Linha 1: Setor + Canal/Conta + Caixa/Fila */}
-      <div className="flex items-center gap-2">
-        <SetorSelector
-          value={setorId}
-          onChange={onSetorChange}
-          setores={setores}
-          isLoading={isLoadingSetores}
-        />
+      {/* Linha 1: Setor + Canal/Conta + Caixa/Fila + Status do Operador */}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <SetorSelector
+            value={setorId}
+            onChange={onSetorChange}
+            setores={setores}
+            isLoading={isLoadingSetores}
+          />
+          
+          <CanalContaSelector
+            canalTipo={canalTipo}
+            contaId={contaId}
+            onCanalChange={onCanalChange}
+            onContaChange={onContaChange}
+            contas={contas}
+            isLoading={isLoadingContas}
+          />
+          
+          <CaixaFilaSelector
+            value={caixa}
+            onChange={onCaixaChange}
+            contadores={contadores}
+            isLoading={isLoadingContadores}
+          />
+        </div>
         
-        <CanalContaSelector
-          canalTipo={canalTipo}
-          contaId={contaId}
-          onCanalChange={onCanalChange}
-          onContaChange={onContaChange}
-          contas={contas}
-          isLoading={isLoadingContas}
-        />
-        
-        <CaixaFilaSelector
-          value={caixa}
-          onChange={onCaixaChange}
-          contadores={contadores}
-          isLoading={isLoadingContadores}
+        <OperatorStatusDropdown
+          status={statusAtual}
+          onChange={changeStatus}
+          isChanging={isChanging}
         />
       </div>
 
