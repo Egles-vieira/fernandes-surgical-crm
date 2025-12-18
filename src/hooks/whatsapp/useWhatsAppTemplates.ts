@@ -221,3 +221,56 @@ export function useDeleteTemplateMeta() {
     },
   });
 }
+
+// Interface para enviar template do chat
+interface SendTemplateFromChatParams {
+  contaId: string;
+  conversaId: string;
+  contatoId: string;
+  numeroDestino: string;
+  templateName: string;
+  languageCode: string;
+  components?: any[];
+}
+
+// Mutation para enviar template a partir do chat (quando janela 24h expirada)
+export function useSendTemplateFromChat() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (params: SendTemplateFromChatParams) => {
+      const { data, error } = await supabase.functions.invoke('meta-api-enviar-template', {
+        body: {
+          contaId: params.contaId,
+          numeroDestino: params.numeroDestino,
+          templateName: params.templateName,
+          languageCode: params.languageCode,
+          components: params.components,
+          conversaId: params.conversaId,
+          contatoId: params.contatoId,
+        },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      return data;
+    },
+    onSuccess: (data, variables) => {
+      toast.success('Template enviado com sucesso! A janela de 24h foi reaberta.');
+      // Invalidar queries de mensagens e janela
+      queryClient.invalidateQueries({ queryKey: ['whatsapp-mensagens', variables.conversaId] });
+      queryClient.invalidateQueries({ queryKey: ['janela-24h', variables.conversaId] });
+    },
+    onError: (error: Error) => {
+      // Tratar erros específicos da Meta
+      if (error.message.includes('131047')) {
+        toast.error('Janela de 24h expirada. Use um template aprovado.');
+      } else if (error.message.includes('132000')) {
+        toast.error('Número de telefone inválido ou não registrado no WhatsApp.');
+      } else {
+        toast.error(`Erro ao enviar template: ${error.message}`);
+      }
+    },
+  });
+}

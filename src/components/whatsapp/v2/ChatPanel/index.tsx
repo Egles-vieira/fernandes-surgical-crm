@@ -1,6 +1,7 @@
 // ============================================
 // Chat Panel Component - Fase 4: Mensagens Avançadas
 // Suporte a Reply, Reactions, Mark as Read, Media, Audio
+// + Controle de Janela 24h e Templates
 // ============================================
 
 import { useState, useRef, useEffect, useCallback } from 'react';
@@ -31,6 +32,7 @@ import {
   AlertCircle,
   Play,
   Bot,
+  MessageSquareText,
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -53,6 +55,9 @@ import { EmojiPicker } from '@/components/whatsapp/EmojiPicker';
 import MediaUploader from '@/components/whatsapp/MediaUploader';
 import AudioRecorder from '@/components/whatsapp/AudioRecorder';
 import { useWhatsAppDistribuicao } from '@/hooks/useWhatsAppDistribuicao';
+import { useJanela24h } from '@/hooks/whatsapp/useJanela24h';
+import { JanelaStatusBadge } from './JanelaStatusBadge';
+import { TemplateSelectorModal } from './TemplateSelectorModal';
 
 interface Contato {
   id: string;
@@ -73,7 +78,9 @@ interface ChatPanelProps {
   onToggleDetails: () => void;
   showDetailsButton: boolean;
   conversaInfo?: ConversaInfo;
+  contaId?: string | null;
 }
+
 
 interface Mensagem {
   id: string;
@@ -114,15 +121,24 @@ export function ChatPanel({
   onToggleDetails,
   showDetailsButton,
   conversaInfo,
+  contaId,
 }: ChatPanelProps) {
   const [message, setMessage] = useState('');
   const [replyingTo, setReplyingTo] = useState<Mensagem | null>(null);
   const [showMediaUploader, setShowMediaUploader] = useState(false);
   const [showAudioRecorder, setShowAudioRecorder] = useState(false);
+  const [showTemplateSelector, setShowTemplateSelector] = useState(false);
   const [mediaType, setMediaType] = useState<'image' | 'video' | 'document'>('image');
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const queryClient = useQueryClient();
+  
+  // Hook para controle da janela de 24h
+  const { 
+    janelaAberta, 
+    tempoRestanteFormatado, 
+    isLoading: isLoadingJanela 
+  } = useJanela24h(conversaId);
   
   // Hook para resgate de conversa
   const { atribuirConversaManual, isAtribuindo } = useWhatsAppDistribuicao();
@@ -610,14 +626,22 @@ export function ChatPanel({
           </div>
         </div>
         <div className="flex items-center gap-1">
+          {/* Badge de status da janela 24h */}
+          <JanelaStatusBadge
+            janelaAberta={janelaAberta}
+            tempoRestanteFormatado={tempoRestanteFormatado}
+            isLoading={isLoadingJanela}
+            compact={false}
+          />
+          
           {/* Badge indicando status do agente IA */}
           {(conversaInfo?.agente_ia_ativo ?? true) && !conversaInfo?.atribuida_para_id && (
-            <Badge variant="outline" className="text-xs bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800 mr-2">
+            <Badge variant="outline" className="text-xs bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800 ml-1">
               <Bot className="h-3 w-3 mr-1" />
               IA Ativo
             </Badge>
           )}
-          <Button variant="ghost" size="icon" className="h-8 w-8">
+          <Button variant="ghost" size="icon" className="h-8 w-8 ml-1">
             <Phone className="h-4 w-4" />
           </Button>
           <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -762,66 +786,100 @@ export function ChatPanel({
         </div>
       )}
 
-      {/* Input Area */}
+      {/* Input Area - Condicional baseado na janela 24h */}
       {!showMediaUploader && !showAudioRecorder && (
-        <div className="p-3 border-t bg-card">
-          <div className="flex items-end gap-2">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0">
-                  <Paperclip className="h-4 w-4" />
+        <>
+          {janelaAberta ? (
+            // Input normal - janela aberta
+            <div className="p-3 border-t bg-card">
+              <div className="flex items-end gap-2">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0">
+                      <Paperclip className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start">
+                    <DropdownMenuItem onClick={() => { setMediaType('image'); setShowMediaUploader(true); }}>
+                      <ImageIcon className="h-4 w-4 mr-2" />
+                      Imagem
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => { setMediaType('video'); setShowMediaUploader(true); }}>
+                      <Video className="h-4 w-4 mr-2" />
+                      Vídeo
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => { setMediaType('document'); setShowMediaUploader(true); }}>
+                      <FileText className="h-4 w-4 mr-2" />
+                      Documento
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                <EmojiPicker onSelect={handleEmojiSelect} />
+
+                <Textarea
+                  ref={textareaRef}
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder={replyingTo ? "Digite sua resposta..." : "Digite sua mensagem..."}
+                  className="min-h-[36px] max-h-32 resize-none"
+                  rows={1}
+                />
+
+                {message.trim() ? (
+                  <Button 
+                    size="icon" 
+                    className="h-9 w-9 shrink-0"
+                    onClick={handleSend}
+                    disabled={sendMutation.isPending}
+                  >
+                    <Send className="h-4 w-4" />
+                  </Button>
+                ) : (
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-9 w-9 shrink-0"
+                    onClick={() => setShowAudioRecorder(true)}
+                  >
+                    <Mic className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+            </div>
+          ) : (
+            // Área de templates - janela fechada
+            <div className="p-4 border-t bg-muted/50">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2 min-w-0">
+                  <Clock className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <span className="text-sm text-muted-foreground">
+                    Janela de 24h expirada. Use um template aprovado para reabrir.
+                  </span>
+                </div>
+                <Button 
+                  onClick={() => setShowTemplateSelector(true)}
+                  className="shrink-0"
+                >
+                  <MessageSquareText className="h-4 w-4 mr-2" />
+                  Enviar Template
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start">
-                <DropdownMenuItem onClick={() => { setMediaType('image'); setShowMediaUploader(true); }}>
-                  <ImageIcon className="h-4 w-4 mr-2" />
-                  Imagem
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => { setMediaType('video'); setShowMediaUploader(true); }}>
-                  <Video className="h-4 w-4 mr-2" />
-                  Vídeo
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => { setMediaType('document'); setShowMediaUploader(true); }}>
-                  <FileText className="h-4 w-4 mr-2" />
-                  Documento
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            <EmojiPicker onSelect={handleEmojiSelect} />
-
-            <Textarea
-              ref={textareaRef}
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder={replyingTo ? "Digite sua resposta..." : "Digite sua mensagem..."}
-              className="min-h-[36px] max-h-32 resize-none"
-              rows={1}
-            />
-
-            {message.trim() ? (
-              <Button 
-                size="icon" 
-                className="h-9 w-9 shrink-0"
-                onClick={handleSend}
-                disabled={sendMutation.isPending}
-              >
-                <Send className="h-4 w-4" />
-              </Button>
-            ) : (
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-9 w-9 shrink-0"
-                onClick={() => setShowAudioRecorder(true)}
-              >
-                <Mic className="h-4 w-4" />
-              </Button>
-            )}
-          </div>
-        </div>
+              </div>
+            </div>
+          )}
+        </>
       )}
+
+      {/* Modal de Seleção de Template */}
+      <TemplateSelectorModal
+        isOpen={showTemplateSelector}
+        onClose={() => setShowTemplateSelector(false)}
+        contaId={contaId || null}
+        conversaId={conversaId || ''}
+        contatoId={contato?.id || ''}
+        numeroDestino={contato?.numero_whatsapp || ''}
+      />
     </div>
   );
 }
