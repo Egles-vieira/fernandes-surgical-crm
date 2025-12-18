@@ -63,7 +63,6 @@ export function CaixaFilaSelector({
           size="sm" 
           className="h-8 gap-1.5 text-xs font-medium max-w-[150px]"
         >
-          <SelectedIcon className="h-3.5 w-3.5 shrink-0" />
           <span className="truncate">{selectedLabel}</span>
           {selectedContador > 0 && (
             <Badge 
