@@ -219,6 +219,21 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
+    // Aplicar cores de texto
+    if (themeConfig.textColors) {
+      const { foreground, mutedForeground } = themeConfig.textColors;
+      
+      if (foreground) {
+        const fgHSL = hexToHSL(foreground);
+        root.style.setProperty('--foreground', fgHSL);
+        root.style.setProperty('--card-foreground', fgHSL);
+        root.style.setProperty('--popover-foreground', fgHSL);
+      }
+      if (mutedForeground) {
+        root.style.setProperty('--muted-foreground', hexToHSL(mutedForeground));
+      }
+    }
+
     // Apply ring color based on primary
     if (themeConfig.colors?.primary) {
       root.style.setProperty('--ring', hexToHSL(themeConfig.colors.primary));
@@ -245,6 +260,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         iconStroke: themeConfig.iconStroke,
         iconVisual: themeConfig.iconVisual,
         menuColors: themeConfig.menuColors,
+        textColors: themeConfig.textColors,
       });
       
       // Verificar se variáveis foram aplicadas
