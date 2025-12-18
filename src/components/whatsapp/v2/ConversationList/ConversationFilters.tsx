@@ -67,7 +67,7 @@ export function ConversationFilters({
   return (
     <div className="space-y-2 p-3 border-b bg-card">
       {/* Linha 1: Setor + Canal/Conta + Caixa/Fila */}
-      <div className="flex items-center gap-2 flex-wrap">
+      <div className="flex items-center gap-2">
         <SetorSelector
           value={setorId}
           onChange={onSetorChange}
