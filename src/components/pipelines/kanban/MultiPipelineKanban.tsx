@@ -32,19 +32,24 @@ export function MultiPipelineKanban({
     pipeline,
     estagios, 
     isLoading: loadingPipeline 
-  } = usePipelineComEstagios(pipelineId || "");
+  } = usePipelineComEstagios(pipelineId);
 
   // Buscar oportunidades organizadas para o Kanban
   const {
     data: kanbanData,
     isLoading: loadingOportunidades,
-  } = useKanbanOportunidades(pipelineId || "");
+  } = useKanbanOportunidades(pipelineId);
 
   // Buscar campos visíveis no Kanban
   const { data: kanbanFields } = usePipelineFields({
     pipelineId: pipelineId || "",
     apenasVisivelKanban: true,
   });
+
+  // Debug logs
+  console.log("[MultiPipelineKanban] pipelineId:", pipelineId);
+  console.log("[MultiPipelineKanban] estagios:", estagios);
+  console.log("[MultiPipelineKanban] kanbanData:", kanbanData);
 
   // Mutation para mover estágio
   const moverEstagio = useMoverEstagio();
@@ -77,22 +82,31 @@ export function MultiPipelineKanban({
     onOportunidadeClick?.(oportunidade);
   };
 
-  // Organizar dados das colunas
+  // Organizar dados das colunas - usar diretamente kanbanData que já vem estruturado
   const colunas = useMemo(() => {
-    if (!estagios?.length || !kanbanData?.colunas) return [];
+    if (!kanbanData?.colunas?.length) {
+      console.log("[MultiPipelineKanban] Sem colunas no kanbanData");
+      return [];
+    }
 
-    return estagios
-      .sort((a, b) => a.ordem_estagio - b.ordem_estagio)
-      .map((estagio) => {
-        const coluna = kanbanData.colunas.find((c) => c.id === estagio.id);
-        return {
-          estagio,
-          oportunidades: coluna?.oportunidades || [],
-          valorTotal: coluna?.totalValor || 0,
-          totalOportunidades: coluna?.totalOportunidades || 0,
-        };
-      });
-  }, [estagios, kanbanData]);
+    // kanbanData.colunas já vem ordenado e com os estágios incluídos
+    return kanbanData.colunas.map((coluna) => ({
+      estagio: {
+        id: coluna.id,
+        nome_estagio: coluna.nome,
+        ordem_estagio: coluna.ordem,
+        cor: coluna.cor,
+        pipeline_id: pipelineId || "",
+        percentual_probabilidade: coluna.probabilidade,
+        eh_ganho_fechado: coluna.ehGanho,
+        eh_perdido_fechado: coluna.ehPerdido,
+        alerta_estagnacao_dias: coluna.alertaEstagnacaoDias,
+      } as EstagioPipeline,
+      oportunidades: coluna.oportunidades || [],
+      valorTotal: coluna.totalValor || 0,
+      totalOportunidades: coluna.totalOportunidades || 0,
+    }));
+  }, [kanbanData, pipelineId]);
 
   // Loading state
   if (!pipelineId) {
@@ -161,7 +175,7 @@ export function MultiPipelineKanban({
 
       {/* Área do Kanban */}
       <DragDropContext onDragEnd={handleDragEnd}>
-        <div className="flex-1 overflow-hidden bg-muted/20">
+        <div className="flex-1 min-h-0 overflow-hidden bg-muted/20">
           <ScrollArea className="h-full w-full">
             <div className="flex gap-3 p-4 min-w-max">
               {colunas.map(({ estagio, oportunidades, valorTotal, totalOportunidades }) => (
