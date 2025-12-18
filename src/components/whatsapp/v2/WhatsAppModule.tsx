@@ -64,7 +64,7 @@ export function WhatsAppModule() {
   });
   const [userId, setUserId] = useState<string | null>(null);
 
-  const { connectionStatus, isConnected } = useWhatsAppService();
+  const { connectionStatus, isConnected, activeAccount } = useWhatsAppService();
   const queryClient = useQueryClient();
 
   // Buscar userId
@@ -337,6 +337,7 @@ export function WhatsAppModule() {
                 em_distribuicao: selectedConversa.em_distribuicao || false,
                 agente_ia_ativo: selectedConversa.agente_ia_ativo ?? true,
               } : undefined}
+              contaId={activeAccount?.id || null}
             />
           </ResizablePanel>
 
