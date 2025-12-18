@@ -7,30 +7,31 @@ import { Json } from '@/integrations/supabase/types';
 // Tipos de Pipeline
 export type PipelineTipo = 'spot' | 'padronizacao' | 'licitacao' | 'equipamento' | 'hunter' | 'farmer' | 'edi';
 
-// Tipos de Campo Customizado
+// Tipos de Campo Customizado (nomes em português conforme banco de dados)
 export type CustomFieldTipo = 
-  | 'text' 
+  | 'texto' 
   | 'textarea' 
-  | 'number' 
+  | 'numero' 
   | 'decimal' 
-  | 'currency' 
-  | 'percentage'
-  | 'date' 
+  | 'moeda' 
+  | 'percentual'
+  | 'data' 
   | 'datetime' 
   | 'select' 
   | 'multiselect' 
   | 'checkbox' 
+  | 'boolean'
   | 'radio'
   | 'email' 
-  | 'phone' 
+  | 'telefone' 
   | 'url' 
   | 'cnpj' 
   | 'cpf' 
   | 'cep'
-  | 'file' 
-  | 'user' 
-  | 'client' 
-  | 'product';
+  | 'arquivo' 
+  | 'usuario' 
+  | 'cliente' 
+  | 'produto';
 
 // Status da Oportunidade
 export type OportunidadeStatus = 'aberto' | 'ganho' | 'perdido' | 'suspenso';
@@ -92,6 +93,7 @@ export interface PipelineCustomField {
   label: string;
   placeholder?: string | null;
   dica?: string | null;
+  descricao?: string | null;
   tipo_campo: CustomFieldTipo;
   opcoes?: FieldOption[] | Json | null;
   valor_padrao?: Json | null;
