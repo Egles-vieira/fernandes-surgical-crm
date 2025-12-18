@@ -71,7 +71,7 @@ export function ConversationFilters({
 
   return (
     <div className="space-y-2 p-3 border-b bg-card">
-      {/* Linha 1: Status + Caixa/Fila + Badge notificações */}
+      {/* Linha 1: Status + Caixa/Fila + Ordenação + Badge notificações */}
       <div className="flex items-center gap-2">
         <OperatorStatusDropdown
           status={statusAtual}
@@ -84,6 +84,11 @@ export function ConversationFilters({
           onChange={onCaixaChange}
           contadores={contadores}
           isLoading={isLoadingContadores}
+        />
+        
+        <OrdenacaoSelector
+          value={ordenacao}
+          onChange={onOrdenacaoChange}
         />
         
         <div className="flex-1" />
@@ -128,14 +133,6 @@ export function ConversationFilters({
             className="pl-8 h-8 text-xs"
           />
         </div>
-      </div>
-
-      {/* Linha 3: Ordenação */}
-      <div className="flex items-center justify-end">
-        <OrdenacaoSelector
-          value={ordenacao}
-          onChange={onOrdenacaoChange}
-        />
       </div>
     </div>
   );
