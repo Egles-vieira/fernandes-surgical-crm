@@ -2,7 +2,7 @@
 // Conversation List Component - Com Filtros
 // ============================================
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
@@ -14,6 +14,59 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ConversationFilters } from './ConversationFilters';
 import { useConversationFilters, type ConversationFiltersState } from '@/hooks/useConversationFilters';
+import { motion, AnimatePresence } from 'framer-motion';
+
+// Animation variants
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.04,
+      delayChildren: 0.02,
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { 
+    opacity: 0, 
+    y: 15, 
+    scale: 0.97 
+  },
+  visible: { 
+    opacity: 1, 
+    y: 0, 
+    scale: 1,
+    transition: {
+      type: "spring" as const,
+      stiffness: 400,
+      damping: 28
+    }
+  },
+  exit: { 
+    opacity: 0, 
+    x: -30,
+    scale: 0.95,
+    transition: { 
+      duration: 0.2,
+      ease: "easeOut" as const
+    }
+  }
+};
+
+const emptyStateVariants = {
+  hidden: { opacity: 0, scale: 0.9 },
+  visible: { 
+    opacity: 1, 
+    scale: 1,
+    transition: {
+      type: "spring" as const,
+      stiffness: 300,
+      damping: 25
+    }
+  }
+};
 
 interface Operador {
   id: string;
@@ -148,28 +201,46 @@ export function ConversationList({
 
       {/* Lista de Conversas */}
       <ScrollArea className="flex-1">
-        <div className="p-2">
-          {filteredConversas.length === 0 ? (
-            <div className="p-8 text-center text-muted-foreground">
-              <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">Nenhuma conversa encontrada</p>
-            </div>
-          ) : (
-            filteredConversas.map((conversa, index) => (
-              <div key={conversa.id}>
-                <ConversationItem 
-                  conversa={conversa} 
-                  isSelected={conversa.id === selectedId} 
-                  onSelect={() => onSelect(conversa.id)} 
-                  getInitials={getInitials} 
-                />
-                {index < filteredConversas.length - 1 && (
-                  <div className="mx-2 my-1 border-b border-border/30" />
-                )}
-              </div>
-            ))
-          )}
-        </div>
+        <AnimatePresence mode="popLayout">
+          <motion.div 
+            className="p-2"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            key={`list-${filters.caixa}-${filters.setorId}-${filters.contaId}-${filters.ordenacao}`}
+          >
+            {filteredConversas.length === 0 ? (
+              <motion.div 
+                className="p-8 text-center text-muted-foreground"
+                variants={emptyStateVariants}
+                initial="hidden"
+                animate="visible"
+              >
+                <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">Nenhuma conversa encontrada</p>
+              </motion.div>
+            ) : (
+              filteredConversas.map((conversa, index) => (
+                <motion.div 
+                  key={conversa.id}
+                  variants={itemVariants}
+                  layout
+                  layoutId={conversa.id}
+                >
+                  <ConversationItem 
+                    conversa={conversa} 
+                    isSelected={conversa.id === selectedId} 
+                    onSelect={() => onSelect(conversa.id)} 
+                    getInitials={getInitials} 
+                  />
+                  {index < filteredConversas.length - 1 && (
+                    <div className="mx-2 my-1 border-b border-border/30" />
+                  )}
+                </motion.div>
+              ))
+            )}
+          </motion.div>
+        </AnimatePresence>
       </ScrollArea>
     </div>
   );
