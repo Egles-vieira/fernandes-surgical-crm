@@ -5742,6 +5742,93 @@ export type Database = {
         }
         Relationships: []
       }
+      pipeline_custom_fields: {
+        Row: {
+          ativo: boolean | null
+          atualizado_em: string | null
+          criado_em: string | null
+          dica: string | null
+          estagio_id: string | null
+          grupo: string | null
+          id: string
+          label: string
+          largura: string | null
+          nome_campo: string
+          obrigatorio: boolean | null
+          opcoes: Json | null
+          ordem: number | null
+          pipeline_id: string
+          placeholder: string | null
+          tipo_campo: Database["public"]["Enums"]["custom_field_tipo"]
+          validacao: Json | null
+          valor_padrao: Json | null
+          visivel_formulario: boolean | null
+          visivel_kanban: boolean | null
+          visivel_lista: boolean | null
+        }
+        Insert: {
+          ativo?: boolean | null
+          atualizado_em?: string | null
+          criado_em?: string | null
+          dica?: string | null
+          estagio_id?: string | null
+          grupo?: string | null
+          id?: string
+          label: string
+          largura?: string | null
+          nome_campo: string
+          obrigatorio?: boolean | null
+          opcoes?: Json | null
+          ordem?: number | null
+          pipeline_id: string
+          placeholder?: string | null
+          tipo_campo?: Database["public"]["Enums"]["custom_field_tipo"]
+          validacao?: Json | null
+          valor_padrao?: Json | null
+          visivel_formulario?: boolean | null
+          visivel_kanban?: boolean | null
+          visivel_lista?: boolean | null
+        }
+        Update: {
+          ativo?: boolean | null
+          atualizado_em?: string | null
+          criado_em?: string | null
+          dica?: string | null
+          estagio_id?: string | null
+          grupo?: string | null
+          id?: string
+          label?: string
+          largura?: string | null
+          nome_campo?: string
+          obrigatorio?: boolean | null
+          opcoes?: Json | null
+          ordem?: number | null
+          pipeline_id?: string
+          placeholder?: string | null
+          tipo_campo?: Database["public"]["Enums"]["custom_field_tipo"]
+          validacao?: Json | null
+          valor_padrao?: Json | null
+          visivel_formulario?: boolean | null
+          visivel_kanban?: boolean | null
+          visivel_lista?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pipeline_custom_fields_estagio_id_fkey"
+            columns: ["estagio_id"]
+            isOneToOne: false
+            referencedRelation: "estagios_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pipeline_custom_fields_pipeline_id_fkey"
+            columns: ["pipeline_id"]
+            isOneToOne: false
+            referencedRelation: "pipelines"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pipelines: {
         Row: {
           atualizado_em: string | null
@@ -11893,6 +11980,22 @@ export type Database = {
           unidade_medida: string
         }[]
       }
+      get_pipeline_fields: {
+        Args: { p_estagio_id?: string; p_pipeline_id: string }
+        Returns: {
+          grupo: string
+          id: string
+          label: string
+          largura: string
+          nome_campo: string
+          obrigatorio: boolean
+          opcoes: Json
+          ordem: number
+          tipo_campo: Database["public"]["Enums"]["custom_field_tipo"]
+          validacao: Json
+          visivel_kanban: boolean
+        }[]
+      }
       get_table_statistics: {
         Args: never
         Returns: {
@@ -12177,6 +12280,29 @@ export type Database = {
         | "representante_comercial"
         | "executivo_contas"
         | "consultor_vendas"
+      custom_field_tipo:
+        | "text"
+        | "textarea"
+        | "number"
+        | "decimal"
+        | "currency"
+        | "percentage"
+        | "date"
+        | "datetime"
+        | "select"
+        | "multiselect"
+        | "checkbox"
+        | "radio"
+        | "email"
+        | "phone"
+        | "url"
+        | "cnpj"
+        | "cpf"
+        | "cep"
+        | "file"
+        | "user"
+        | "client"
+        | "product"
       etapa_pipeline:
         | "prospeccao"
         | "qualificacao"
@@ -12406,6 +12532,30 @@ export const Constants = {
         "representante_comercial",
         "executivo_contas",
         "consultor_vendas",
+      ],
+      custom_field_tipo: [
+        "text",
+        "textarea",
+        "number",
+        "decimal",
+        "currency",
+        "percentage",
+        "date",
+        "datetime",
+        "select",
+        "multiselect",
+        "checkbox",
+        "radio",
+        "email",
+        "phone",
+        "url",
+        "cnpj",
+        "cpf",
+        "cep",
+        "file",
+        "user",
+        "client",
+        "product",
       ],
       etapa_pipeline: [
         "prospeccao",
