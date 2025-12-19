@@ -19,7 +19,11 @@ import {
   Search,
   Edit,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  ChevronLeft,
+  ChevronRight,
+  PanelLeftClose,
+  PanelLeft
 } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { toast } from "sonner";
@@ -74,6 +78,7 @@ export function OportunidadeDetailsSheet({
   const [itemEditando, setItemEditando] = useState<ItemOportunidade | null>(null);
   const [showEditarItem, setShowEditarItem] = useState(false);
   const [isGridExpanded, setIsGridExpanded] = useState(true);
+  const [isLeftPanelExpanded, setIsLeftPanelExpanded] = useState(true);
 
   // Buscar dados da oportunidade
   const { data: oportunidade, isLoading } = useOportunidade(oportunidadeId);
@@ -297,9 +302,27 @@ export function OportunidadeDetailsSheet({
             </div>
 
             {/* Conteúdo principal - duas colunas */}
-            <div className="flex-1 flex min-h-0 overflow-hidden">
+            <div className="flex-1 flex min-h-0 overflow-hidden relative">
+              {/* Botão de colapsar painel lateral */}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-8 w-6 rounded-l-none rounded-r-md bg-muted/80 hover:bg-muted border border-l-0"
+                style={{ left: isLeftPanelExpanded ? '340px' : '0' }}
+                onClick={() => setIsLeftPanelExpanded(!isLeftPanelExpanded)}
+              >
+                {isLeftPanelExpanded ? (
+                  <ChevronLeft className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
+                )}
+              </Button>
+
               {/* Coluna esquerda - Dados principais */}
-              <div className="w-[340px] border-r flex flex-col bg-background">
+              <div className={cn(
+                "border-r flex flex-col bg-background transition-all duration-300",
+                isLeftPanelExpanded ? "w-[340px]" : "w-0 overflow-hidden"
+              )}>
                 <ScrollArea className="flex-1">
                   <div className="p-4 space-y-4">
                     {/* Badge de status */}
