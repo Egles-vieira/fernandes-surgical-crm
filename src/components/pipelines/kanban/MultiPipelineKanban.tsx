@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { DragDropContext, DropResult } from "@hello-pangea/dnd";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Loader2, Plus, Settings } from "lucide-react";
@@ -26,6 +26,13 @@ export function MultiPipelineKanban({
 }: MultiPipelineKanbanProps) {
   const [pipelineId, setPipelineId] = useState<string | null>(pipelineIdInicial || null);
   const [showNovaOportunidade, setShowNovaOportunidade] = useState(false);
+
+  // Sincronizar estado interno quando a prop externa mudar
+  useEffect(() => {
+    if (pipelineIdInicial !== undefined) {
+      setPipelineId(pipelineIdInicial);
+    }
+  }, [pipelineIdInicial]);
 
   // Buscar pipeline com estágios
   const { 

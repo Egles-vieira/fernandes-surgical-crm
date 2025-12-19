@@ -86,6 +86,9 @@ export default function Vendas() {
 
   // Estado de visualização
   const [view, setView] = useState<VendasViewType | "nova">("pipeline");
+  
+  // Estado do pipeline selecionado para Multi-Pipeline Kanban
+  const [selectedPipelineId, setSelectedPipelineId] = useState<string | null>(null);
 
   // Hook OTIMIZADO para Pipeline (Kanban) - carrega TOP 20 por etapa via RPC
   const {
@@ -1402,15 +1405,24 @@ export default function Vendas() {
   }
   return <div className="h-[calc(100vh-64px)] flex flex-col overflow-hidden">
       {/* Filtros - Fixo */}
-      <VendasFilters view={view as VendasViewType} onViewChange={v => setView(v)} onFilterChange={newFilters => {
-      // Usar updateFiltros do hook paginado para filtrar server-side
-      updateFiltros({
-        status: newFilters.status,
-        etapa: newFilters.pipeline,
-        responsavel: newFilters.responsavel,
-        periodo: newFilters.periodo
-      });
-    }} onCriarVendaTeste={handleCriarVendaTeste} isCreatingTest={isCreatingTest} onNovaOportunidade={handleNovaOportunidade} />
+      <VendasFilters 
+        view={view as VendasViewType} 
+        onViewChange={v => setView(v)} 
+        onFilterChange={newFilters => {
+          // Usar updateFiltros do hook paginado para filtrar server-side
+          updateFiltros({
+            status: newFilters.status,
+            etapa: newFilters.pipeline,
+            responsavel: newFilters.responsavel,
+            periodo: newFilters.periodo
+          });
+        }} 
+        onCriarVendaTeste={handleCriarVendaTeste} 
+        isCreatingTest={isCreatingTest} 
+        onNovaOportunidade={handleNovaOportunidade}
+        selectedPipelineId={selectedPipelineId}
+        onPipelineChange={setSelectedPipelineId}
+      />
 
       {/* Conteúdo principal - flex-1 */}
       <div className="flex-1 overflow-hidden">
@@ -1438,8 +1450,9 @@ export default function Vendas() {
           }} />
         ) : view === "oportunidades" ? (
           <MultiPipelineKanban
+            pipelineIdInicial={selectedPipelineId || undefined}
+            onPipelineChange={setSelectedPipelineId}
             onOportunidadeClick={(oportunidade) => {
-              // Navegar para detalhes ou abrir sheet
               console.log('Oportunidade clicada:', oportunidade);
             }}
           />
