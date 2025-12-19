@@ -90,7 +90,7 @@ export default function Vendas() {
   // Determinar view da URL - se tem ?oportunidade=xxx, forçar view oportunidades
   const hasOportunidade = searchParams.has("oportunidade") || searchParams.has("nova");
   const urlView = searchParams.get("view") as VendasViewType | "nova" | null;
-  const view: VendasViewType | "nova" = hasOportunidade ? "oportunidades" : (urlView || "pipeline");
+  const view: VendasViewType | "nova" = hasOportunidade ? "oportunidades" : (urlView || "oportunidades");
   
   // Função para mudar view via URL
   const setView = useCallback((newView: VendasViewType | "nova") => {
