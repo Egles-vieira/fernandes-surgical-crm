@@ -18,15 +18,31 @@ interface MultiPipelineKanbanProps {
   pipelineIdInicial?: string | null;
   onPipelineChange?: (pipelineId: string) => void;
   onOportunidadeClick?: (oportunidade: OportunidadeCard) => void;
+  showNovaOportunidadeDialog?: boolean;
+  onShowNovaOportunidadeDialogChange?: (show: boolean) => void;
 }
 
 export function MultiPipelineKanban({
   pipelineIdInicial,
   onPipelineChange,
   onOportunidadeClick,
+  showNovaOportunidadeDialog,
+  onShowNovaOportunidadeDialogChange,
 }: MultiPipelineKanbanProps) {
   const [pipelineId, setPipelineId] = useState<string | null>(pipelineIdInicial || null);
-  const [showNovaOportunidade, setShowNovaOportunidade] = useState(false);
+  
+  // Controle do dialog - usa props externas se fornecidas, senão estado interno
+  const isDialogControlledExternally = showNovaOportunidadeDialog !== undefined;
+  const [internalShowDialog, setInternalShowDialog] = useState(false);
+  
+  const showNovaOportunidade = isDialogControlledExternally ? showNovaOportunidadeDialog : internalShowDialog;
+  const setShowNovaOportunidade = (show: boolean) => {
+    if (isDialogControlledExternally && onShowNovaOportunidadeDialogChange) {
+      onShowNovaOportunidadeDialogChange(show);
+    } else {
+      setInternalShowDialog(show);
+    }
+  };
   const [selectedOportunidadeId, setSelectedOportunidadeId] = useState<string | null>(null);
 
   // Sincronizar estado interno quando a prop externa mudar
@@ -169,15 +185,18 @@ export function MultiPipelineKanban({
           )}
         </div>
 
-        <div className="flex items-center gap-2">
-          <Button
-            onClick={() => setShowNovaOportunidade(true)}
-            size="sm"
-          >
-            <Plus className="h-4 w-4 mr-1" />
-            Nova Oportunidade
-          </Button>
-        </div>
+        {/* Botão só aparece se não controlado externamente */}
+        {!isDialogControlledExternally && (
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={() => setShowNovaOportunidade(true)}
+              size="sm"
+            >
+              <Plus className="h-4 w-4 mr-1" />
+              Nova Oportunidade
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Área do Kanban */}

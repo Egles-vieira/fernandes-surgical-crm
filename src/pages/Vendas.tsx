@@ -89,6 +89,9 @@ export default function Vendas() {
   
   // Estado do pipeline selecionado para Multi-Pipeline Kanban
   const [selectedPipelineId, setSelectedPipelineId] = useState<string | null>(null);
+  
+  // Estado para controlar o dialog de nova oportunidade no MultiPipelineKanban
+  const [showNovaOportunidadeDialog, setShowNovaOportunidadeDialog] = useState(false);
 
   // Hook OTIMIZADO para Pipeline (Kanban) - carrega TOP 20 por etapa via RPC
   const {
@@ -818,6 +821,13 @@ export default function Vendas() {
     }
   };
   const handleNovaOportunidade = async () => {
+    // Se estiver na view de oportunidades (MultiPipelineKanban), abre o dialog do kanban
+    if (view === "oportunidades") {
+      setShowNovaOportunidadeDialog(true);
+      return;
+    }
+    
+    // Comportamento original: criar venda
     try {
       const {
         data: {
@@ -1455,6 +1465,8 @@ export default function Vendas() {
             onOportunidadeClick={(oportunidade) => {
               console.log('Oportunidade clicada:', oportunidade);
             }}
+            showNovaOportunidadeDialog={showNovaOportunidadeDialog}
+            onShowNovaOportunidadeDialogChange={setShowNovaOportunidadeDialog}
           />
         ) : (
           <div className="h-full overflow-auto px-8 py-6">
