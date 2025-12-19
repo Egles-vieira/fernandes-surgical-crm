@@ -371,21 +371,6 @@ export function OportunidadeDetailsSheet({
 
                     <Separator />
 
-                    {/* Valor */}
-                    <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">Proposta</span>
-                        <Button variant="link" size="sm" className="h-auto p-0 text-primary">
-                          Ver
-                        </Button>
-                      </div>
-                      <div className="text-2xl font-bold text-foreground mt-1">
-                        {formatCurrency(oportunidade.valor)}
-                      </div>
-                    </div>
-
-                    <Separator />
-
                     {/* Detalhes do Cliente */}
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
