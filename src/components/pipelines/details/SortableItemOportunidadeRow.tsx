@@ -101,7 +101,7 @@ export function SortableItemOportunidadeRow({
     <TableRow
       ref={setNodeRef}
       style={style}
-      className={cn(isDragging && "relative z-50 bg-muted")}
+      className={cn("hover:bg-accent/50", isDragging && "relative z-50 bg-card shadow-md")}
     >
       {/* Grip para arrastar */}
       <TableCell className={cn(paddingClass, "w-8")}>
