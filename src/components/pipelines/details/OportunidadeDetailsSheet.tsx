@@ -50,6 +50,7 @@ import { ItensOportunidadeSheet } from "./ItensOportunidadeSheet";
 import { ItensOportunidadeGrid } from "./ItensOportunidadeGrid";
 import { ClienteSearchDialog } from "@/components/ClienteSearchDialog";
 import { SpotFieldsSection } from "./SpotFieldsSection";
+import { ContatoClienteSection } from "./ContatoClienteSection";
 import { Tables } from "@/integrations/supabase/types";
 import { cn } from "@/lib/utils";
 
@@ -103,7 +104,7 @@ export function OportunidadeDetailsSheet({
   const moverEstagioMutation = useMoverEstagio();
 
   // Buscar contatos do cliente selecionado
-  const { contatos: contatosCliente } = useContatosCliente(clienteSelecionado?.id);
+  const { contatos: contatosCliente, isLoading: isLoadingContatos } = useContatosCliente(clienteSelecionado?.id);
 
   // IDs dos itens existentes para excluir da busca
   const itensExistentesIds = useMemo(() => {
@@ -435,47 +436,15 @@ export function OportunidadeDetailsSheet({
                     <Separator />
 
                     {/* Contatos do Cliente */}
-                    {clienteSelecionado && contatosCliente.length > 0 && (
+                    {clienteSelecionado && (
                       <>
                         <Separator />
-                        <div className="space-y-3">
-                          <h3 className="text-sm font-medium">Contato do Cliente</h3>
-                          <div className="space-y-2">
-                            {contatosCliente.map((contato) => (
-                              <div 
-                                key={contato.id}
-                                className={cn(
-                                  "flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors",
-                                  contatoSelecionadoId === contato.id 
-                                    ? "bg-primary/10 border border-primary/20" 
-                                    : "hover:bg-muted/50"
-                                )}
-                                onClick={() => handleSelecionarContato(
-                                  contatoSelecionadoId === contato.id ? null : contato.id
-                                )}
-                              >
-                                <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
-                                  {contato.primeiro_nome.substring(0, 1).toUpperCase()}
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-medium truncate">
-                                    {contato.nome_completo}
-                                  </p>
-                                  {contato.cargo && (
-                                    <p className="text-xs text-muted-foreground truncate">
-                                      {contato.cargo}
-                                    </p>
-                                  )}
-                                </div>
-                                {contatoSelecionadoId === contato.id && (
-                                  <Badge variant="secondary" className="text-xs">
-                                    Selecionado
-                                  </Badge>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
+                        <ContatoClienteSection
+                          contatos={contatosCliente}
+                          contatoSelecionadoId={contatoSelecionadoId}
+                          onSelecionarContato={handleSelecionarContato}
+                          isLoading={isLoadingContatos}
+                        />
                       </>
                     )}
 
