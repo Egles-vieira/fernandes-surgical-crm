@@ -13,7 +13,8 @@ import {
   Calendar,
   Clock,
   Save,
-  Check
+  Check,
+  GripVertical
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -185,14 +186,14 @@ export function OportunidadeDetailsSheet({
         side="right"
         style={{ width: sheetWidth, maxWidth: '95vw' }}
       >
-        {/* Resize Handle - área maior e z-index acima do overlay */}
+        {/* Resize Handle - mesmo estilo do ResizableHandle */}
         <div
-          className="absolute left-0 top-0 bottom-0 w-3 cursor-ew-resize z-[60] group"
-          style={{ marginLeft: '-6px' }}
+          className="absolute left-0 top-0 bottom-0 w-px flex items-center justify-center bg-border cursor-ew-resize z-[60] group after:absolute after:inset-y-0 after:left-1/2 after:w-1 after:-translate-x-1/2 hover:bg-primary/50 transition-colors"
           onMouseDown={handleMouseDown}
         >
-          {/* Indicador visual */}
-          <div className="absolute inset-y-0 right-0 w-1 bg-transparent group-hover:bg-primary/40 group-active:bg-primary/60 transition-colors" />
+          <div className="z-10 flex h-4 w-3 items-center justify-center rounded-sm border bg-border">
+            <GripVertical className="h-2.5 w-2.5" />
+          </div>
         </div>
         {isLoading ? (
           <div className="flex items-center justify-center h-full">
