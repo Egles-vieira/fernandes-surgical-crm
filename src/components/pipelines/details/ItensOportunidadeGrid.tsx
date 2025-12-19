@@ -316,7 +316,7 @@ export function ItensOportunidadeGrid({
 
       {/* Container com scroll e altura fixa */}
       {filteredItems.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-12 text-muted-foreground border border-border rounded-md bg-card">
+        <div className="flex flex-col items-center justify-center py-12 text-muted-foreground border rounded-md">
           <Package className="h-12 w-12 mb-4 opacity-50" />
           <p>{searchTerm ? "Nenhum item encontrado" : "Nenhum item adicionado"}</p>
           {!searchTerm && (
@@ -326,14 +326,14 @@ export function ItensOportunidadeGrid({
           )}
         </div>
       ) : (
-        <div className="border border-border rounded-md overflow-auto h-[400px] relative bg-card">
+        <div className="border rounded-md overflow-auto h-[400px] relative">
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
             onDragEnd={handleDragEnd}
           >
             <Table>
-              <TableHeader className="sticky top-0 z-20 bg-card border-b shadow-sm">
+              <TableHeader className="sticky top-0 z-20 bg-background border-b shadow-sm">
                 <TableRow>
                   <TableHead className="w-8"></TableHead>
                   <TableHead className="w-10 text-center">#</TableHead>
@@ -392,12 +392,12 @@ export function ItensOportunidadeGrid({
 
       {/* Totalizadores */}
       {filteredItems.length > 0 && (
-        <div className="flex justify-end pt-3 mt-2 border-t border-border">
-          <div className="text-right bg-primary/5 border border-primary/20 rounded-lg px-4 py-2">
+        <div className="flex justify-end pt-2 border-t">
+          <div className="text-right">
             <p className="text-sm text-muted-foreground">
               Total ({totais.quantidade} {totais.quantidade === 1 ? "item" : "itens"})
             </p>
-            <p className="text-lg font-bold text-foreground">{formatCurrency(totais.valor)}</p>
+            <p className="text-lg font-bold">{formatCurrency(totais.valor)}</p>
           </div>
         </div>
       )}
