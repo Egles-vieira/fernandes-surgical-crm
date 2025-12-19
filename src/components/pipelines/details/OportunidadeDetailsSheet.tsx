@@ -15,7 +15,8 @@ import {
   Save,
   Package,
   Plus,
-  Trash2
+  Trash2,
+  Search
 } from "lucide-react";
 import { toast } from "sonner";
 import { Sheet } from "@/components/ui/sheet";
@@ -36,7 +37,11 @@ import { useItensOportunidade, useRemoverItemOportunidade } from "@/hooks/pipeli
 import { DynamicField } from "@/components/pipelines/fields/DynamicField";
 import { PipelineStagesBar } from "./PipelineStagesBar";
 import { ItensOportunidadeSheet } from "./ItensOportunidadeSheet";
+import { ClienteSearchDialog } from "@/components/ClienteSearchDialog";
+import { Tables } from "@/integrations/supabase/types";
 import { cn } from "@/lib/utils";
+
+type Cliente = Tables<"clientes">;
 
 interface OportunidadeDetailsSheetProps {
   open: boolean;
@@ -56,6 +61,8 @@ export function OportunidadeDetailsSheet({
   const [camposCustomizados, setCamposCustomizados] = useState<Record<string, unknown>>({});
   const [hasChanges, setHasChanges] = useState(false);
   const [showItensSheet, setShowItensSheet] = useState(false);
+  const [showClienteSearch, setShowClienteSearch] = useState(false);
+  const [clienteSelecionado, setClienteSelecionado] = useState<Cliente | null>(null);
 
   // Buscar dados da oportunidade
   const { data: oportunidade, isLoading } = useOportunidade(oportunidadeId);
@@ -116,8 +123,40 @@ export function OportunidadeDetailsSheet({
       });
       setCamposCustomizados((oportunidade.campos_customizados as Record<string, unknown>) || {});
       setHasChanges(false);
+      
+      // Sincronizar cliente
+      if ((oportunidade as any).cliente_id) {
+        setClienteSelecionado({
+          id: (oportunidade as any).cliente_id,
+          nome_emit: (oportunidade as any).cliente_nome,
+          cgc: (oportunidade as any).cliente_cnpj,
+        } as Cliente);
+      } else {
+        setClienteSelecionado(null);
+      }
     }
   }, [oportunidade]);
+
+  // Handler para selecionar cliente
+  const handleSelecionarCliente = async (cliente: Cliente) => {
+    setClienteSelecionado(cliente);
+    setShowClienteSearch(false);
+    
+    if (!oportunidade) return;
+    
+    try {
+      await updateMutation.mutateAsync({
+        id: oportunidade.id,
+        dados: {
+          cliente_id: cliente.id,
+          cliente_nome: cliente.nome_emit,
+          cliente_cnpj: cliente.cgc,
+        },
+      });
+    } catch (error) {
+      // Error handled by mutation
+    }
+  };
 
   const handleFieldChange = (field: string, value: unknown) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -266,30 +305,63 @@ export function OportunidadeDetailsSheet({
 
                     {/* Detalhes do Cliente */}
                     <div className="space-y-3">
-                      <h3 className="text-sm font-medium">Detalhes do Cliente</h3>
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-sm font-medium">Cliente Vinculado</h3>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-7 px-2 text-xs"
+                          onClick={() => setShowClienteSearch(true)}
+                        >
+                          <Search className="h-3 w-3 mr-1" />
+                          {clienteSelecionado ? "Trocar" : "Vincular"}
+                        </Button>
+                      </div>
                       
-                      <div className="flex items-start gap-3">
-                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-medium text-primary">
-                          {(oportunidade.conta?.nome_conta || "?").substring(0, 2).toUpperCase()}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">
-                            {oportunidade.conta?.nome_conta || "Sem conta vinculada"}
-                          </p>
-                          <p className="text-xs text-muted-foreground">Cliente</p>
-                        </div>
-                      </div>
+                      {clienteSelecionado ? (
+                        <>
+                          <div className="flex items-start gap-3">
+                            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-medium text-primary">
+                              {(clienteSelecionado.nome_emit || "?").substring(0, 2).toUpperCase()}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium truncate">
+                                {clienteSelecionado.nome_emit}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {clienteSelecionado.cgc}
+                              </p>
+                            </div>
+                          </div>
 
-                      <div className="space-y-2 text-sm">
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <Mail className="h-4 w-4" />
-                          <span>{(oportunidade.contato as any)?.email || "—"}</span>
+                          <div className="space-y-2 text-sm">
+                            <div className="flex items-center gap-2 text-muted-foreground">
+                              <Mail className="h-4 w-4" />
+                              <span>{clienteSelecionado.e_mail || "—"}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-muted-foreground">
+                              <Phone className="h-4 w-4" />
+                              <span>{clienteSelecionado.telefone1 || "—"}</span>
+                            </div>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="p-4 border border-dashed rounded-lg text-center">
+                          <Building2 className="h-8 w-8 mx-auto text-muted-foreground/50 mb-2" />
+                          <p className="text-sm text-muted-foreground">
+                            Nenhum cliente vinculado
+                          </p>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="mt-2"
+                            onClick={() => setShowClienteSearch(true)}
+                          >
+                            <Search className="h-4 w-4 mr-2" />
+                            Buscar Cliente
+                          </Button>
                         </div>
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <Phone className="h-4 w-4" />
-                          <span>{(oportunidade.contato as any)?.telefone || "—"}</span>
-                        </div>
-                      </div>
+                      )}
                     </div>
 
                     <Separator />
@@ -602,6 +674,13 @@ export function OportunidadeDetailsSheet({
           }}
         />
       )}
+
+      {/* Dialog de busca de cliente */}
+      <ClienteSearchDialog
+        open={showClienteSearch}
+        onOpenChange={setShowClienteSearch}
+        onSelectCliente={handleSelecionarCliente}
+      />
     </Sheet>
   );
 }

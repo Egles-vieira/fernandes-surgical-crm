@@ -41,6 +41,9 @@ interface OportunidadeUpdateReal {
   esta_fechada?: boolean;
   foi_ganha?: boolean;
   motivo_perda?: string | null;
+  cliente_id?: string | null;
+  cliente_nome?: string | null;
+  cliente_cnpj?: string | null;
 }
 
 /**

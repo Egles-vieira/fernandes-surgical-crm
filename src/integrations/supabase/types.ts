@@ -5305,6 +5305,9 @@ export type Database = {
           atualizado_em: string | null
           atualizado_por: string | null
           campos_customizados: Json | null
+          cliente_cnpj: string | null
+          cliente_id: string | null
+          cliente_nome: string | null
           codigo: string | null
           concorrentes: string | null
           conta_id: string | null
@@ -5340,6 +5343,9 @@ export type Database = {
           atualizado_em?: string | null
           atualizado_por?: string | null
           campos_customizados?: Json | null
+          cliente_cnpj?: string | null
+          cliente_id?: string | null
+          cliente_nome?: string | null
           codigo?: string | null
           concorrentes?: string | null
           conta_id?: string | null
@@ -5375,6 +5381,9 @@ export type Database = {
           atualizado_em?: string | null
           atualizado_por?: string | null
           campos_customizados?: Json | null
+          cliente_cnpj?: string | null
+          cliente_id?: string | null
+          cliente_nome?: string | null
           codigo?: string | null
           concorrentes?: string | null
           conta_id?: string | null
@@ -5407,6 +5416,20 @@ export type Database = {
           vendedor_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "oportunidades_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "oportunidades_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "vw_clientes_completo"
+            referencedColumns: ["cliente_id"]
+          },
           {
             foreignKeyName: "oportunidades_conta_id_fkey"
             columns: ["conta_id"]
