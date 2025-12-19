@@ -1,9 +1,10 @@
-import { Filter, Users, BarChart3, Calendar, SlidersHorizontal, Kanban, List, Plus, Target } from "lucide-react";
+import { Filter, Users, Calendar, SlidersHorizontal, Kanban, List, Plus, Target } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
+import { PipelineSelector } from "@/components/pipelines/forms/PipelineSelector";
 
 export type VendasViewType = "pipeline" | "list" | "oportunidades";
 
@@ -14,6 +15,8 @@ interface VendasFiltersProps {
   onCriarVendaTeste?: () => void;
   isCreatingTest?: boolean;
   onNovaOportunidade?: () => void;
+  selectedPipelineId?: string | null;
+  onPipelineChange?: (pipelineId: string) => void;
 }
 interface FilterValues {
   pipeline?: string;
@@ -28,7 +31,9 @@ export function VendasFilters({
   onFilterChange,
   onCriarVendaTeste,
   isCreatingTest,
-  onNovaOportunidade
+  onNovaOportunidade,
+  selectedPipelineId,
+  onPipelineChange
 }: VendasFiltersProps) {
   const handleFilterChange = (key: keyof FilterValues, value: string) => {
     if (onFilterChange) {
@@ -37,6 +42,14 @@ export function VendasFilters({
       });
     }
   };
+
+  const handlePipelineChange = (pipelineId: string) => {
+    if (onPipelineChange) {
+      onPipelineChange(pipelineId);
+    }
+    handleFilterChange("pipeline", pipelineId);
+  };
+
   return <div className="shrink-0 z-30 flex items-center gap-3 py-3 px-4 border-b bg-card shadow-sm">
       {/* Botão Nova Oportunidade */}
       {onNovaOportunidade && <Button onClick={onNovaOportunidade} size="sm" className="h-9">
@@ -46,22 +59,14 @@ export function VendasFilters({
 
       <div className="h-6 w-px bg-border" />
 
-      {/* Funil de Vendas */}
-      <Select defaultValue="todos" onValueChange={value => handleFilterChange("pipeline", value)}>
-        <SelectTrigger className="w-[200px] h-9 bg-background">
-          <div className="flex items-center gap-2">
-            <BarChart3 className="h-4 w-4 text-muted-foreground" />
-            <SelectValue placeholder="Funil de Vendas" />
-          </div>
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="todos">Todos os funis</SelectItem>
-          <SelectItem value="closer">Funil de Vendas (Closer)</SelectItem>
-          <SelectItem value="enterprise">Funil Enterprise</SelectItem>
-          <SelectItem value="inbound">Funil Inbound</SelectItem>
-          <SelectItem value="outbound">Funil Outbound</SelectItem>
-        </SelectContent>
-      </Select>
+      {/* Pipeline Selector */}
+      <PipelineSelector
+        value={selectedPipelineId ?? null}
+        onChange={handlePipelineChange}
+        placeholder="Selecione um pipeline"
+        showLabel={false}
+        className="w-[220px]"
+      />
 
       {/* Responsável */}
       <Select defaultValue="todos" onValueChange={value => handleFilterChange("responsavel", value)}>
