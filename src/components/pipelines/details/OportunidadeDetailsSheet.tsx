@@ -359,30 +359,6 @@ export function OportunidadeDetailsSheet({
                       </h2>
                     </div>
 
-                    {/* Botões de ação */}
-                    <div className="flex gap-2">
-                      <Button 
-                        className="flex-1" 
-                        size="sm"
-                        variant={isFullscreen ? "secondary" : "default"}
-                        onClick={() => setIsFullscreen(!isFullscreen)}
-                      >
-                        {isFullscreen ? (
-                          <>
-                            <ChevronRight className="h-4 w-4 mr-2" />
-                            Recolher
-                          </>
-                        ) : (
-                          <>
-                            <ExternalLink className="h-4 w-4 mr-2" />
-                            Expandir
-                          </>
-                        )}
-                      </Button>
-                      <Button variant="outline" size="icon" onClick={handleCopyLink}>
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                    </div>
 
                     <Separator />
 
