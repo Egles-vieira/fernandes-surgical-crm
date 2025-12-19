@@ -22,6 +22,9 @@ import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { PipelineCustomField, FieldOption } from "@/types/pipelines";
 import { parseFieldOptions } from "@/hooks/pipelines/usePipelineFields";
+import { useTiposPedido } from "@/hooks/useTiposPedido";
+import { useCondicoesPagamento } from "@/hooks/useCondicoesPagamento";
+import { useTiposFrete } from "@/hooks/useTiposFrete";
 
 interface DynamicFieldProps {
   field: PipelineCustomField;
@@ -41,6 +44,11 @@ export function DynamicField({
   compact = false,
 }: DynamicFieldProps) {
   const options = parseFieldOptions(field.opcoes);
+  
+  // Hooks para campos especiais (carregam de tabelas auxiliares)
+  const { tipos: tiposPedido, isLoading: isLoadingTiposPedido } = useTiposPedido();
+  const { condicoes: condicoesPagamento, isLoading: isLoadingCondicoes } = useCondicoesPagamento();
+  const { tipos: tiposFrete, isLoading: isLoadingFrete } = useTiposFrete();
 
   const renderField = () => {
     switch (field.tipo_campo) {
@@ -261,6 +269,67 @@ export function DynamicField({
             disabled={disabled}
             className={cn("bg-background", error && "border-destructive")}
           />
+        );
+
+      // Campos especiais que buscam de tabelas auxiliares
+      case "select_tipo_pedido":
+        return (
+          <Select
+            value={value || ""}
+            onValueChange={onChange}
+            disabled={disabled || isLoadingTiposPedido}
+          >
+            <SelectTrigger className={cn(error && "border-destructive")}>
+              <SelectValue placeholder={isLoadingTiposPedido ? "Carregando..." : (field.placeholder || "Selecione o tipo de pedido")} />
+            </SelectTrigger>
+            <SelectContent>
+              {tiposPedido.map((tipo) => (
+                <SelectItem key={tipo.id} value={tipo.id}>
+                  {tipo.nome}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        );
+
+      case "select_condicao_pagamento":
+        return (
+          <Select
+            value={value || ""}
+            onValueChange={onChange}
+            disabled={disabled || isLoadingCondicoes}
+          >
+            <SelectTrigger className={cn(error && "border-destructive")}>
+              <SelectValue placeholder={isLoadingCondicoes ? "Carregando..." : (field.placeholder || "Selecione a condição")} />
+            </SelectTrigger>
+            <SelectContent>
+              {condicoesPagamento.map((cond) => (
+                <SelectItem key={cond.id} value={cond.id}>
+                  {cond.nome}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        );
+
+      case "select_tipo_frete":
+        return (
+          <Select
+            value={value || ""}
+            onValueChange={onChange}
+            disabled={disabled || isLoadingFrete}
+          >
+            <SelectTrigger className={cn(error && "border-destructive")}>
+              <SelectValue placeholder={isLoadingFrete ? "Carregando..." : (field.placeholder || "Selecione o tipo de frete")} />
+            </SelectTrigger>
+            <SelectContent>
+              {tiposFrete.map((tipo) => (
+                <SelectItem key={tipo.id} value={tipo.id}>
+                  {tipo.nome}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         );
 
       default:
