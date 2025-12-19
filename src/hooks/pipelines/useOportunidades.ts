@@ -135,7 +135,8 @@ export function useOportunidade(oportunidadeId: string | null | undefined) {
           pipeline:pipelines(id, nome, cor, icone, configuracoes),
           estagio:estagios_pipeline(*),
           conta:contas(id, nome_conta),
-          contato:contatos(id, primeiro_nome, sobrenome, email, telefone)
+          contato:contatos(id, primeiro_nome, sobrenome, email, telefone),
+          vendedor:perfis_usuario!oportunidades_vendedor_id_fkey(id, nome_completo)
         `)
         .eq('id', oportunidadeId)
         .maybeSingle();
