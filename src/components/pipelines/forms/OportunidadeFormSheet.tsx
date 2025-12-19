@@ -217,7 +217,7 @@ export function OportunidadeFormSheet({
         ) : (
           <>
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b bg-muted/30">
+            <div className="flex items-center justify-between px-6 py-4 border-b bg-card">
               <div className="flex items-center gap-3">
                 <SheetTitle className="text-lg font-semibold">
                   Nova Oportunidade
@@ -234,7 +234,7 @@ export function OportunidadeFormSheet({
               <Button
                 variant="ghost"
                 size="icon"
-                className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-8 w-6 rounded-l-none rounded-r-md bg-muted/80 hover:bg-muted border border-l-0"
+                className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-8 w-6 rounded-l-none rounded-r-md bg-card hover:bg-accent border border-l-0"
                 style={{ left: isLeftPanelExpanded ? '340px' : '0' }}
                 onClick={() => setIsLeftPanelExpanded(!isLeftPanelExpanded)}
               >
@@ -247,7 +247,7 @@ export function OportunidadeFormSheet({
 
               {/* Coluna esquerda - Dados principais */}
               <div className={cn(
-                "border-r flex flex-col bg-background transition-all duration-300",
+                "border-r flex flex-col bg-card transition-all duration-300",
                 isLeftPanelExpanded ? "w-[340px]" : "w-0 overflow-hidden"
               )}>
                 <ScrollArea className="flex-1">
@@ -277,7 +277,7 @@ export function OportunidadeFormSheet({
                     <Separator />
 
                     {/* Valor */}
-                    <div className="bg-muted/50 rounded-lg p-4">
+                    <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-sm text-muted-foreground">Valor Estimado</span>
                       </div>
@@ -340,8 +340,8 @@ export function OportunidadeFormSheet({
                           </div>
                         </>
                       ) : (
-                        <div className="p-4 border border-dashed rounded-lg text-center">
-                          <Building2 className="h-8 w-8 mx-auto text-muted-foreground/50 mb-2" />
+                        <div className="p-4 border border-dashed border-border rounded-lg text-center bg-card">
+                          <Building2 className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
                           <p className="text-sm text-muted-foreground">
                             Nenhum cliente vinculado
                           </p>
@@ -538,7 +538,7 @@ export function OportunidadeFormSheet({
             </div>
 
             {/* Footer com botões */}
-            <div className="px-6 py-3 border-t bg-muted/30 flex justify-end gap-2">
+            <div className="px-6 py-3 border-t bg-card flex justify-end gap-2">
               <Button variant="outline" onClick={() => onOpenChange(false)}>
                 Cancelar
               </Button>
