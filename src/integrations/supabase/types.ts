@@ -4740,7 +4740,14 @@ export type Database = {
             foreignKeyName: "itens_linha_oportunidade_produto_id_fkey"
             columns: ["produto_id"]
             isOneToOne: false
-            referencedRelation: "produtos_catalogo"
+            referencedRelation: "produtos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "itens_linha_oportunidade_produto_id_fkey"
+            columns: ["produto_id"]
+            isOneToOne: false
+            referencedRelation: "vw_produtos_mais_sugeridos_ia"
             referencedColumns: ["id"]
           },
         ]
