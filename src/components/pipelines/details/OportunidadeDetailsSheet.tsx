@@ -54,6 +54,7 @@ export function OportunidadeDetailsSheet({
   const [camposCustomizados, setCamposCustomizados] = useState<Record<string, unknown>>({});
   const [hasChanges, setHasChanges] = useState(false);
   const [sheetWidth, setSheetWidth] = useState(1200);
+  const [isResizingState, setIsResizingState] = useState(false);
   const isResizing = useRef(false);
 
   // Resize handlers usando useEffect para cleanup adequado
@@ -66,6 +67,9 @@ export function OportunidadeDetailsSheet({
 
     const handleMouseUp = () => {
       isResizing.current = false;
+      setIsResizingState(false);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
     };
 
     document.addEventListener('mousemove', handleMouseMove);
@@ -74,12 +78,17 @@ export function OportunidadeDetailsSheet({
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
     };
   }, []);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
     isResizing.current = true;
+    setIsResizingState(true);
+    document.body.style.cursor = 'ew-resize';
+    document.body.style.userSelect = 'none';
   };
 
   // Buscar dados da oportunidade
@@ -176,11 +185,15 @@ export function OportunidadeDetailsSheet({
         side="right"
         style={{ width: sheetWidth, maxWidth: '95vw' }}
       >
-        {/* Resize Handle */}
+        {/* Resize Handle - área maior e z-index acima do overlay */}
         <div
-          className="absolute left-0 top-0 bottom-0 w-1 cursor-ew-resize hover:bg-primary/20 active:bg-primary/30 transition-colors z-50"
+          className="absolute left-0 top-0 bottom-0 w-3 cursor-ew-resize z-[60] group"
+          style={{ marginLeft: '-6px' }}
           onMouseDown={handleMouseDown}
-        />
+        >
+          {/* Indicador visual */}
+          <div className="absolute inset-y-0 right-0 w-1 bg-transparent group-hover:bg-primary/40 group-active:bg-primary/60 transition-colors" />
+        </div>
         {isLoading ? (
           <div className="flex items-center justify-center h-full">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
