@@ -312,7 +312,7 @@ export function OportunidadeDetailsSheet({
                         <div key={estagio.id} className="flex items-center">
                           <div
                             className={cn(
-                              "relative flex items-center gap-2 px-4 py-2 text-sm font-medium whitespace-nowrap cursor-pointer transition-colors",
+                              "relative flex items-center gap-1.5 px-3 py-1 text-xs font-medium whitespace-nowrap cursor-pointer transition-colors",
                               isCompleted && "bg-emerald-600 text-white",
                               isCurrent && "bg-blue-600 text-white",
                               isFuture && "bg-muted text-muted-foreground",
@@ -325,7 +325,7 @@ export function OportunidadeDetailsSheet({
                               marginLeft: index === 0 ? 0 : "-8px"
                             }}
                           >
-                            {isCompleted && <Check className="h-4 w-4" />}
+                            {isCompleted && <Check className="h-3 w-3" />}
                             <span>{estagio.nome_estagio}</span>
                           </div>
                         </div>
