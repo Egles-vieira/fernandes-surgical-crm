@@ -13,6 +13,7 @@ interface ResizableSheetContentProps
   storageKey?: string;
   overlayClassName?: string;
   hideCloseButton?: boolean;
+  isFullscreen?: boolean;
 }
 
 const ResizableSheetContent = React.forwardRef<
@@ -29,6 +30,7 @@ const ResizableSheetContent = React.forwardRef<
       storageKey,
       overlayClassName,
       hideCloseButton = true,
+      isFullscreen = false,
       ...props
     },
     ref
@@ -110,30 +112,33 @@ const ResizableSheetContent = React.forwardRef<
         <SheetPrimitive.Content
           ref={ref}
           className={cn(
-            "fixed z-50 gap-4 bg-background shadow-lg transition ease-in-out data-[state=closed]:duration-300 data-[state=open]:duration-500 data-[state=open]:animate-in data-[state=closed]:animate-out",
+            "fixed z-50 gap-4 bg-background shadow-lg transition-all ease-in-out data-[state=closed]:duration-300 data-[state=open]:duration-500 data-[state=open]:animate-in data-[state=closed]:animate-out",
             "inset-y-0 right-0 h-full data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right",
+            isFullscreen && "!w-full",
             className
           )}
-          style={{ width: `${width}px` }}
+          style={{ width: isFullscreen ? '100%' : `${width}px` }}
           {...props}
         >
-          {/* Resize handle */}
-          <div
-            className={cn(
-              "absolute left-0 top-0 bottom-0 w-1.5 cursor-col-resize group z-10",
-              "hover:bg-primary/30 transition-colors",
-              isResizing && "bg-primary/50"
-            )}
-            onMouseDown={handleMouseDown}
-          >
+          {/* Resize handle - hidden when fullscreen */}
+          {!isFullscreen && (
             <div
               className={cn(
-                "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2",
-                "w-1 h-8 rounded-full bg-border opacity-0 group-hover:opacity-100 transition-opacity",
-                isResizing && "opacity-100 bg-primary"
+                "absolute left-0 top-0 bottom-0 w-1.5 cursor-col-resize group z-10",
+                "hover:bg-primary/30 transition-colors",
+                isResizing && "bg-primary/50"
               )}
-            />
-          </div>
+              onMouseDown={handleMouseDown}
+            >
+              <div
+                className={cn(
+                  "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2",
+                  "w-1 h-8 rounded-full bg-border opacity-0 group-hover:opacity-100 transition-opacity",
+                  isResizing && "opacity-100 bg-primary"
+                )}
+              />
+            </div>
+          )}
 
           {children}
         </SheetPrimitive.Content>
