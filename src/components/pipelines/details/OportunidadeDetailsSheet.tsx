@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { 
@@ -12,7 +12,10 @@ import {
   Phone, 
   Calendar,
   Clock,
-  Save
+  Save,
+  Package,
+  Plus,
+  Trash2
 } from "lucide-react";
 import { toast } from "sonner";
 import { Sheet } from "@/components/ui/sheet";
@@ -25,11 +28,14 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useOportunidade, useUpdateOportunidade, useMoverEstagio } from "@/hooks/pipelines/useOportunidades";
 import { usePipelineFields } from "@/hooks/pipelines/usePipelineFields";
 import { usePipelineComEstagios } from "@/hooks/pipelines/usePipelines";
+import { useItensOportunidade, useRemoverItemOportunidade } from "@/hooks/pipelines/useItensOportunidade";
 import { DynamicField } from "@/components/pipelines/fields/DynamicField";
 import { PipelineStagesBar } from "./PipelineStagesBar";
+import { ItensOportunidadeSheet } from "./ItensOportunidadeSheet";
 import { cn } from "@/lib/utils";
 
 interface OportunidadeDetailsSheetProps {
@@ -45,10 +51,11 @@ export function OportunidadeDetailsSheet({
   oportunidadeId,
   pipelineId,
 }: OportunidadeDetailsSheetProps) {
-  const [activeTab, setActiveTab] = useState("atividades");
+  const [activeTab, setActiveTab] = useState("itens");
   const [formData, setFormData] = useState<Record<string, unknown>>({});
   const [camposCustomizados, setCamposCustomizados] = useState<Record<string, unknown>>({});
   const [hasChanges, setHasChanges] = useState(false);
+  const [showItensSheet, setShowItensSheet] = useState(false);
 
   // Buscar dados da oportunidade
   const { data: oportunidade, isLoading } = useOportunidade(oportunidadeId);
@@ -61,9 +68,27 @@ export function OportunidadeDetailsSheet({
     pipelineId: pipelineId || "",
   });
 
+  // Buscar itens da oportunidade
+  const { data: itensOportunidade, isLoading: isLoadingItens } = useItensOportunidade(oportunidadeId);
+  const removerItemMutation = useRemoverItemOportunidade();
+
   // Mutation para atualizar
   const updateMutation = useUpdateOportunidade();
   const moverEstagioMutation = useMoverEstagio();
+
+  // IDs dos itens existentes para excluir da busca
+  const itensExistentesIds = useMemo(() => {
+    return itensOportunidade?.map(item => item.produto_id).filter(Boolean) as string[] || [];
+  }, [itensOportunidade]);
+
+  // Totais dos itens
+  const totaisItens = useMemo(() => {
+    if (!itensOportunidade) return { quantidade: 0, valor: 0 };
+    return itensOportunidade.reduce((acc, item) => ({
+      quantidade: acc.quantidade + item.quantidade,
+      valor: acc.valor + (item.preco_total || 0),
+    }), { quantidade: 0, valor: 0 });
+  }, [itensOportunidade]);
 
   // Handler para mudar estágio
   const handleEstagioChange = async (novoEstagioId: string) => {
@@ -327,6 +352,17 @@ export function OportunidadeDetailsSheet({
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
                   <TabsList className="mx-6 mt-4 justify-start bg-transparent border-b rounded-none h-auto p-0 gap-4">
                     <TabsTrigger 
+                      value="itens" 
+                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent pb-2"
+                    >
+                      Itens
+                      {itensOportunidade && itensOportunidade.length > 0 && (
+                        <Badge variant="secondary" className="ml-2 h-5 px-1.5">
+                          {itensOportunidade.length}
+                        </Badge>
+                      )}
+                    </TabsTrigger>
+                    <TabsTrigger 
                       value="atividades" 
                       className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent pb-2"
                     >
@@ -352,6 +388,85 @@ export function OportunidadeDetailsSheet({
                   </TabsList>
 
                   <ScrollArea className="flex-1">
+                    <TabsContent value="itens" className="mt-0 px-6 py-4">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-sm font-medium">Itens da Oportunidade</h3>
+                        <Button size="sm" onClick={() => setShowItensSheet(true)}>
+                          <Plus className="h-4 w-4 mr-2" />
+                          Adicionar Itens
+                        </Button>
+                      </div>
+                      
+                      {isLoadingItens ? (
+                        <div className="flex items-center justify-center py-12">
+                          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                        </div>
+                      ) : itensOportunidade && itensOportunidade.length > 0 ? (
+                        <div className="space-y-4">
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>Produto</TableHead>
+                                <TableHead className="w-20 text-right">Qtd</TableHead>
+                                <TableHead className="w-24 text-right">Preço Un.</TableHead>
+                                <TableHead className="w-20 text-right">Desc %</TableHead>
+                                <TableHead className="w-28 text-right">Total</TableHead>
+                                <TableHead className="w-12"></TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {itensOportunidade.map((item) => (
+                                <TableRow key={item.id}>
+                                  <TableCell className="font-medium">{item.nome_produto || "—"}</TableCell>
+                                  <TableCell className="text-right">{item.quantidade}</TableCell>
+                                  <TableCell className="text-right">{formatCurrency(item.preco_unitario)}</TableCell>
+                                  <TableCell className="text-right">{item.percentual_desconto || 0}%</TableCell>
+                                  <TableCell className="text-right font-medium">{formatCurrency(item.preco_total || 0)}</TableCell>
+                                  <TableCell>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-7 w-7"
+                                      onClick={() => {
+                                        if (oportunidadeId) {
+                                          removerItemMutation.mutate({
+                                            itemId: item.id,
+                                            oportunidadeId,
+                                          });
+                                        }
+                                      }}
+                                      disabled={removerItemMutation.isPending}
+                                    >
+                                      <Trash2 className="h-4 w-4 text-destructive" />
+                                    </Button>
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                          
+                          <div className="flex justify-end pt-2 border-t">
+                            <div className="text-right">
+                              <p className="text-sm text-muted-foreground">Total ({totaisItens.quantidade} itens)</p>
+                              <p className="text-lg font-bold">{formatCurrency(totaisItens.valor)}</p>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                          <Package className="h-12 w-12 mb-4 opacity-50" />
+                          <p>Nenhum item adicionado</p>
+                          <Button 
+                            variant="link" 
+                            className="mt-2"
+                            onClick={() => setShowItensSheet(true)}
+                          >
+                            Adicionar itens
+                          </Button>
+                        </div>
+                      )}
+                    </TabsContent>
+
                     <TabsContent value="atividades" className="mt-0 px-6 py-4">
                       <h3 className="text-sm font-medium mb-4">Últimas Atividades</h3>
                       <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
@@ -474,6 +589,19 @@ export function OportunidadeDetailsSheet({
           </div>
         )}
       </ResizableSheetContent>
+
+      {/* Sheet de inclusão de itens */}
+      {oportunidadeId && (
+        <ItensOportunidadeSheet
+          open={showItensSheet}
+          onOpenChange={setShowItensSheet}
+          oportunidadeId={oportunidadeId}
+          itensExistentes={itensExistentesIds}
+          onItensAdicionados={() => {
+            // Itens são invalidados automaticamente pelo hook
+          }}
+        />
+      )}
     </Sheet>
   );
 }

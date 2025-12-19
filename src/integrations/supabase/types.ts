@@ -12129,6 +12129,10 @@ export type Database = {
           username: string
         }[]
       }
+      inserir_itens_oportunidade_bulk: {
+        Args: { p_itens: Json; p_oportunidade_id: string }
+        Returns: undefined
+      }
       inserir_itens_venda_bulk: {
         Args: { p_itens: Json; p_venda_id: string }
         Returns: undefined
