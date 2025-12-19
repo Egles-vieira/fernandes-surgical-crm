@@ -123,7 +123,6 @@ interface DadosAtualizacaoItem {
   quantidade?: number;
   percentual_desconto?: number;
   preco_unitario?: number;
-  preco_total?: number;
   produto_id?: string;
   nome_produto?: string;
 }
@@ -141,9 +140,12 @@ export function useAtualizarItemOportunidade() {
       oportunidadeId: string;
       dados: DadosAtualizacaoItem;
     }) => {
+      // Remover preco_total pois é coluna calculada no banco
+      const { preco_total, ...dadosParaAtualizar } = dados as any;
+      
       const { error } = await supabase
         .from("itens_linha_oportunidade")
-        .update(dados)
+        .update(dadosParaAtualizar)
         .eq("id", itemId);
 
       if (error) throw error;
