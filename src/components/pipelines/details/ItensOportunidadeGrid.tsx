@@ -14,11 +14,19 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
+import { Search, Package, Settings2 } from "lucide-react";
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ItemOportunidade } from "@/hooks/pipelines/useItensOportunidade";
 import { SortableItemOportunidadeRow } from "./SortableItemOportunidadeRow";
 import { useDebouncedItemUpdate } from "@/hooks/pipelines/useDebouncedItemUpdate";
+import { useColumnVisibility } from "@/hooks/useColumnVisibility";
 import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
 
 const formatCurrency = (value: number) => {
   return new Intl.NumberFormat("pt-BR", {
@@ -29,11 +37,30 @@ const formatCurrency = (value: number) => {
   }).format(value);
 };
 
+// Labels das colunas para o popover de configuração
+const COLUMN_LABELS: Record<string, string> = {
+  precoTabela: "Preço Tabela",
+  quantidade: "Quantidade",
+  desconto: "Desc %",
+  precoUnit: "Preço Unit",
+  total: "Total",
+};
+
+// Colunas padrão visíveis
+const DEFAULT_COLUMNS = {
+  precoTabela: true,
+  quantidade: true,
+  desconto: true,
+  precoUnit: true,
+  total: true,
+};
+
 interface ItensOportunidadeGridProps {
   itens: ItemOportunidade[];
   oportunidadeId: string;
   onEdit: (item: ItemOportunidade) => void;
   onRemove: (itemId: string) => void;
+  onAddItems: () => void;
 }
 
 interface LocalItemState {
@@ -41,11 +68,14 @@ interface LocalItemState {
   desconto: number;
 }
 
+export type DensityType = "compact" | "normal" | "comfortable";
+
 export function ItensOportunidadeGrid({
   itens,
   oportunidadeId,
   onEdit,
   onRemove,
+  onAddItems,
 }: ItensOportunidadeGridProps) {
   // === TODOS OS HOOKS NO TOPO, SEM CONDICIONAL ===
   
@@ -54,6 +84,16 @@ export function ItensOportunidadeGrid({
 
   // Estado local para valores editáveis (quantidade e desconto)
   const [localState, setLocalState] = useState<Record<string, LocalItemState>>({});
+
+  // Estados para controles do grid
+  const [searchTerm, setSearchTerm] = useState("");
+  const [density, setDensity] = useState<DensityType>("normal");
+
+  // Hook de visibilidade de colunas com persistência
+  const { visibleColumns, toggleColumn } = useColumnVisibility(
+    "oportunidade_itens_columns",
+    DEFAULT_COLUMNS
+  );
 
   // Hook de debounce
   const { debouncedUpdate } = useDebouncedItemUpdate(oportunidadeId);
@@ -85,6 +125,15 @@ export function ItensOportunidadeGrid({
     });
     setLocalState(newState);
   }, [itens]);
+
+  // Filtrar itens pela busca
+  const filteredItems = useMemo(() => {
+    if (!searchTerm.trim()) return orderedItems;
+    const term = searchTerm.toLowerCase();
+    return orderedItems.filter(item => 
+      item.nome_produto?.toLowerCase().includes(term)
+    );
+  }, [orderedItems, searchTerm]);
 
   // Handler de drag end
   const handleDragEnd = useCallback((event: DragEndEvent) => {
@@ -177,9 +226,9 @@ export function ItensOportunidadeGrid({
     [orderedItems, localState, debouncedUpdate]
   );
 
-  // Calcular totais baseado no estado local
+  // Calcular totais baseado no estado local (usando filteredItems para consistência visual)
   const totais = useMemo(() => {
-    return orderedItems.reduce(
+    return filteredItems.reduce(
       (acc, item) => {
         const local = localState[item.id] || {
           quantidade: item.quantidade,
@@ -195,72 +244,163 @@ export function ItensOportunidadeGrid({
       },
       { quantidade: 0, valor: 0 }
     );
-  }, [orderedItems, localState]);
+  }, [filteredItems, localState]);
 
   // === RENDER ===
   
-  if (orderedItems.length === 0) {
-    return null;
-  }
-
   return (
     <div className="space-y-4">
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragEnd={handleDragEnd}
-      >
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-8"></TableHead>
-              <TableHead className="w-10 text-center">#</TableHead>
-              <TableHead>Produto</TableHead>
-              <TableHead className="w-24">Qtd</TableHead>
-              <TableHead className="w-24 text-right">Preço Un.</TableHead>
-              <TableHead className="w-24">Desc %</TableHead>
-              <TableHead className="w-28 text-right">Total</TableHead>
-              <TableHead className="w-20"></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            <SortableContext
-              items={orderedItems.map((item) => item.id)}
-              strategy={verticalListSortingStrategy}
-            >
-              {orderedItems.map((item, index) => {
-                const local = localState[item.id] || {
-                  quantidade: item.quantidade,
-                  desconto: item.percentual_desconto || 0,
-                };
+      {/* Barra de controles */}
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-2 flex-1">
+          {/* Campo de busca */}
+          <div className="relative max-w-[240px]">
+            <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar item..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-8 h-9"
+            />
+          </div>
 
-                return (
-                  <SortableItemOportunidadeRow
-                    key={item.id}
-                    item={item}
-                    index={index}
-                    localQuantidade={local.quantidade}
-                    localDesconto={local.desconto}
-                    onQuantidadeChange={handleQuantidadeChange}
-                    onDescontoChange={handleDescontoChange}
-                    onEdit={onEdit}
-                    onRemove={onRemove}
-                  />
-                );
-              })}
-            </SortableContext>
-          </TableBody>
-        </Table>
-      </DndContext>
+          {/* Seletor de densidade */}
+          <Select value={density} onValueChange={(v) => setDensity(v as DensityType)}>
+            <SelectTrigger className="w-[130px] h-9">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="compact">Compacta</SelectItem>
+              <SelectItem value="normal">Normal</SelectItem>
+              <SelectItem value="comfortable">Confortável</SelectItem>
+            </SelectContent>
+          </Select>
 
-      <div className="flex justify-end pt-2 border-t">
-        <div className="text-right">
-          <p className="text-sm text-muted-foreground">
-            Total ({totais.quantidade} {totais.quantidade === 1 ? "item" : "itens"})
-          </p>
-          <p className="text-lg font-bold">{formatCurrency(totais.valor)}</p>
+          {/* Popover de colunas */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm" className="h-9">
+                <Settings2 className="h-4 w-4 mr-2" />
+                Colunas
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-48" align="start">
+              <div className="space-y-2">
+                <p className="text-sm font-medium mb-3">Colunas visíveis</p>
+                {Object.entries(COLUMN_LABELS).map(([key, label]) => (
+                  <div key={key} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`col-${key}`}
+                      checked={visibleColumns[key] ?? true}
+                      onCheckedChange={() => toggleColumn(key)}
+                    />
+                    <label
+                      htmlFor={`col-${key}`}
+                      className="text-sm cursor-pointer"
+                    >
+                      {label}
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
         </div>
+
+        {/* Botão adicionar */}
+        <Button size="sm" onClick={onAddItems} className="h-9">
+          <Package className="h-4 w-4 mr-2" />
+          Adicionar Produtos
+        </Button>
       </div>
+
+      {/* Container com scroll e altura fixa */}
+      {filteredItems.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-12 text-muted-foreground border rounded-md">
+          <Package className="h-12 w-12 mb-4 opacity-50" />
+          <p>{searchTerm ? "Nenhum item encontrado" : "Nenhum item adicionado"}</p>
+          {!searchTerm && (
+            <Button variant="link" className="mt-2" onClick={onAddItems}>
+              Adicionar itens
+            </Button>
+          )}
+        </div>
+      ) : (
+        <div className="border rounded-md overflow-auto h-[400px] relative">
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <Table>
+              <TableHeader className="sticky top-0 z-20 bg-background border-b shadow-sm">
+                <TableRow>
+                  <TableHead className="w-8"></TableHead>
+                  <TableHead className="w-10 text-center">#</TableHead>
+                  <TableHead>Produto</TableHead>
+                  {visibleColumns.precoTabela && (
+                    <TableHead className="w-28 text-right">Preço Tab.</TableHead>
+                  )}
+                  {visibleColumns.quantidade && (
+                    <TableHead className="w-24">Qtd</TableHead>
+                  )}
+                  {visibleColumns.desconto && (
+                    <TableHead className="w-24">Desc %</TableHead>
+                  )}
+                  {visibleColumns.precoUnit && (
+                    <TableHead className="w-28 text-right">Preço Un.</TableHead>
+                  )}
+                  {visibleColumns.total && (
+                    <TableHead className="w-28 text-right">Total</TableHead>
+                  )}
+                  <TableHead className="w-20"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <SortableContext
+                  items={filteredItems.map((item) => item.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  {filteredItems.map((item, index) => {
+                    const local = localState[item.id] || {
+                      quantidade: item.quantidade,
+                      desconto: item.percentual_desconto || 0,
+                    };
+
+                    return (
+                      <SortableItemOportunidadeRow
+                        key={item.id}
+                        item={item}
+                        index={index}
+                        localQuantidade={local.quantidade}
+                        localDesconto={local.desconto}
+                        density={density}
+                        visibleColumns={visibleColumns}
+                        onQuantidadeChange={handleQuantidadeChange}
+                        onDescontoChange={handleDescontoChange}
+                        onEdit={onEdit}
+                        onRemove={onRemove}
+                      />
+                    );
+                  })}
+                </SortableContext>
+              </TableBody>
+            </Table>
+          </DndContext>
+        </div>
+      )}
+
+      {/* Totalizadores */}
+      {filteredItems.length > 0 && (
+        <div className="flex justify-end pt-2 border-t">
+          <div className="text-right">
+            <p className="text-sm text-muted-foreground">
+              Total ({totais.quantidade} {totais.quantidade === 1 ? "item" : "itens"})
+            </p>
+            <p className="text-lg font-bold">{formatCurrency(totais.valor)}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
