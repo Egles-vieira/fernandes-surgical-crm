@@ -7,8 +7,9 @@ import { Json } from '@/integrations/supabase/types';
 // Tipos de Pipeline
 export type PipelineTipo = 'spot' | 'padronizacao' | 'licitacao' | 'equipamento' | 'hunter' | 'farmer' | 'edi';
 
-// Tipos de Campo Customizado (nomes em português conforme banco de dados)
+// Tipos de Campo Customizado (suporta nomes em português e inglês do banco de dados)
 export type CustomFieldTipo = 
+  // Português
   | 'texto' 
   | 'textarea' 
   | 'numero' 
@@ -32,6 +33,17 @@ export type CustomFieldTipo =
   | 'usuario' 
   | 'cliente' 
   | 'produto'
+  // Inglês (valores do enum no banco)
+  | 'text'
+  | 'number'
+  | 'currency'
+  | 'percentage'
+  | 'date'
+  | 'phone'
+  | 'file'
+  | 'user'
+  | 'client'
+  | 'product'
   // Tipos especiais que buscam de tabelas auxiliares
   | 'select_tipo_pedido'
   | 'select_condicao_pagamento'
