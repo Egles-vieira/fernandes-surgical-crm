@@ -18,7 +18,6 @@ interface EditarItemOportunidadeDialogProps {
     quantidade: number;
     percentual_desconto: number;
     preco_unitario: number;
-    preco_total: number;
     produto_id?: string;
     nome_produto?: string;
   }) => void;
@@ -51,13 +50,12 @@ export function EditarItemOportunidadeDialog({
     if (!item || !produtoSelecionado) return;
 
     const precoUnitario = produtoSelecionado.preco;
-    const precoTotal = quantidade * precoUnitario * (1 - desconto / 100);
 
+    // preco_total é calculado automaticamente pelo banco
     const dados: any = {
       quantidade,
       percentual_desconto: desconto,
       preco_unitario: precoUnitario,
-      preco_total: precoTotal,
     };
 
     // Se mudou o produto

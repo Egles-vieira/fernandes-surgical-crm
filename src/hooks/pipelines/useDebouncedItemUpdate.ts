@@ -5,7 +5,6 @@ interface PendingUpdate {
   quantidade?: number;
   percentual_desconto?: number;
   preco_unitario?: number;
-  preco_total?: number;
 }
 
 export function useDebouncedItemUpdate(oportunidadeId: string | null) {
@@ -47,13 +46,9 @@ export function useDebouncedItemUpdate(oportunidadeId: string | null) {
       // Set new timeout
       const timeout = setTimeout(() => {
         const updateData = pendingUpdates.current.get(itemId);
-        const itemData = itemPrecos.current.get(itemId);
 
-        if (updateData && oportunidadeId && itemData) {
-          // Calculate total
-          const precoComDesconto = itemData.preco * (1 - itemData.desc / 100);
-          updateData.preco_total = itemData.qtd * precoComDesconto;
-
+        if (updateData && oportunidadeId) {
+          // preco_total é calculado automaticamente pelo banco
           atualizarMutation.mutate({
             itemId,
             oportunidadeId,
@@ -75,12 +70,9 @@ export function useDebouncedItemUpdate(oportunidadeId: string | null) {
     timeouts.current.forEach((timeout, itemId) => {
       clearTimeout(timeout);
       const updateData = pendingUpdates.current.get(itemId);
-      const itemData = itemPrecos.current.get(itemId);
 
-      if (updateData && oportunidadeId && itemData) {
-        const precoComDesconto = itemData.preco * (1 - itemData.desc / 100);
-        updateData.preco_total = itemData.qtd * precoComDesconto;
-
+      if (updateData && oportunidadeId) {
+        // preco_total é calculado automaticamente pelo banco
         atualizarMutation.mutate({
           itemId,
           oportunidadeId,
