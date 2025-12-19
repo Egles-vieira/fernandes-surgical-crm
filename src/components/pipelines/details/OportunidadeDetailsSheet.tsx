@@ -73,7 +73,7 @@ export function OportunidadeDetailsSheet({
       setFormData({
         nome_oportunidade: oportunidade.nome_oportunidade,
         valor: oportunidade.valor,
-        data_fechamento_prevista: oportunidade.data_fechamento_prevista,
+        data_fechamento: oportunidade.data_fechamento_prevista,
         observacoes: oportunidade.observacoes,
       });
       setCamposCustomizados((oportunidade.campos_customizados as Record<string, unknown>) || {});
@@ -378,8 +378,8 @@ export function OportunidadeDetailsSheet({
                             <Label>Data de Fechamento</Label>
                             <Input
                               type="date"
-                              value={formData.data_fechamento_prevista as string || ""}
-                              onChange={(e) => handleFieldChange("data_fechamento_prevista", e.target.value)}
+                              value={formData.data_fechamento as string || ""}
+                              onChange={(e) => handleFieldChange("data_fechamento", e.target.value)}
                             />
                           </div>
                           <div className="col-span-2 space-y-2">
@@ -441,7 +441,7 @@ export function OportunidadeDetailsSheet({
                       setFormData({
                         nome_oportunidade: oportunidade.nome_oportunidade,
                         valor: oportunidade.valor,
-                        data_fechamento_prevista: oportunidade.data_fechamento_prevista,
+                        data_fechamento: oportunidade.data_fechamento_prevista,
                         observacoes: oportunidade.observacoes,
                       });
                       setCamposCustomizados((oportunidade.campos_customizados as Record<string, unknown>) || {});
