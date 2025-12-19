@@ -385,7 +385,7 @@ export function OportunidadeDetailsSheet({
                                 {clienteSelecionado.nome_emit}
                               </p>
                               <p className="text-xs text-muted-foreground">
-                                {clienteSelecionado.cgc}
+                                {clienteSelecionado.cod_emitente && `#${clienteSelecionado.cod_emitente} · `}{clienteSelecionado.cgc}
                               </p>
                             </div>
                           </div>
