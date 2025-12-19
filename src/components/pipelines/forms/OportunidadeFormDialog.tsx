@@ -5,16 +5,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 import { OportunidadeForm } from "./OportunidadeForm";
+import { OportunidadeFormSheet } from "./OportunidadeFormSheet";
 import { useCreateOportunidade, useUpdateOportunidade } from "@/hooks/pipelines/useOportunidades";
 import { usePipeline } from "@/hooks/pipelines/usePipelines";
 import { Oportunidade, OportunidadeInsert, OportunidadeUpdate } from "@/types/pipelines";
@@ -65,7 +59,6 @@ export function OportunidadeFormDialog({
       }
       onOpenChange(false);
     } catch (error) {
-      // Erro já tratado no hook
       console.error("Erro ao salvar oportunidade:", error);
     }
   };
@@ -73,6 +66,19 @@ export function OportunidadeFormDialog({
   const handleCancel = () => {
     onOpenChange(false);
   };
+
+  // Para criação com variant="sheet", usar o novo componente completo
+  if (variant === "sheet" && !isEditing) {
+    return (
+      <OportunidadeFormSheet
+        open={open}
+        onOpenChange={onOpenChange}
+        pipelineId={pipelineId}
+        contaId={contaId}
+        contatoId={contatoId}
+      />
+    );
+  }
 
   const title = isEditing 
     ? `Editar Oportunidade` 
@@ -93,24 +99,6 @@ export function OportunidadeFormDialog({
       contatoId={contatoId}
     />
   );
-
-  if (variant === "sheet") {
-    return (
-      <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent className="sm:max-w-xl w-full p-0">
-          <SheetHeader className="px-6 pt-6 pb-4 border-b">
-            <SheetTitle>{title}</SheetTitle>
-            <SheetDescription>{description}</SheetDescription>
-          </SheetHeader>
-          <ScrollArea className="h-[calc(100vh-120px)]">
-            <div className="px-6 py-4">
-              {content}
-            </div>
-          </ScrollArea>
-        </SheetContent>
-      </Sheet>
-    );
-  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
