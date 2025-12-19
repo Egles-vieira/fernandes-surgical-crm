@@ -14,6 +14,7 @@ export interface ItemOportunidade {
   preco_total: number | null;
   ordem_linha: number | null;
   criado_em: string | null;
+  atualizado_em: string | null;
 }
 
 export function useItensOportunidade(oportunidadeId: string | null) {

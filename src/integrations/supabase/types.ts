@@ -11825,6 +11825,10 @@ export type Database = {
         Args: { p_command: string; p_jobid: number; p_schedule: string }
         Returns: boolean
       }
+      atualizar_itens_oportunidade_batch: {
+        Args: { p_itens: Json; p_oportunidade_id: string }
+        Returns: Json
+      }
       atualizar_progresso_meta: {
         Args: {
           _meta_id: string
