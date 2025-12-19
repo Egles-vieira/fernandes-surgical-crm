@@ -547,21 +547,13 @@ export function OportunidadeDetailsSheet({
 
                   <ScrollArea className="flex-1">
                     <TabsContent value="itens" className="mt-0 px-6 py-4">
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-sm font-medium">Itens da Oportunidade</h3>
-                        <Button size="sm" onClick={() => setShowItensSheet(true)}>
-                          <Plus className="h-4 w-4 mr-2" />
-                          Adicionar Itens
-                        </Button>
-                      </div>
-                      
                       {isLoadingItens ? (
                         <div className="flex items-center justify-center py-12">
                           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                         </div>
-                      ) : itensOportunidade && itensOportunidade.length > 0 ? (
+                      ) : (
                         <ItensOportunidadeGrid
-                          itens={itensOportunidade}
+                          itens={itensOportunidade || []}
                           oportunidadeId={oportunidadeId!}
                           onEdit={(item) => {
                             setItemEditando(item);
@@ -575,19 +567,8 @@ export function OportunidadeDetailsSheet({
                               });
                             }
                           }}
+                          onAddItems={() => setShowItensSheet(true)}
                         />
-                      ) : (
-                        <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-                          <Package className="h-12 w-12 mb-4 opacity-50" />
-                          <p>Nenhum item adicionado</p>
-                          <Button 
-                            variant="link" 
-                            className="mt-2"
-                            onClick={() => setShowItensSheet(true)}
-                          >
-                            Adicionar itens
-                          </Button>
-                        </div>
                       )}
                     </TabsContent>
 
