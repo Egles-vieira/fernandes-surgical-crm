@@ -135,8 +135,7 @@ export function useOportunidade(oportunidadeId: string | null | undefined) {
           pipeline:pipelines(id, nome, cor, icone, configuracoes),
           estagio:estagios_pipeline(*),
           conta:contas(id, nome_conta),
-          contato:contatos(id, primeiro_nome, sobrenome, email, telefone),
-          vendedor:perfis_usuario!oportunidades_vendedor_id_fkey(id, nome_completo)
+          contato:contatos(id, primeiro_nome, sobrenome, email, telefone)
         `)
         .eq('id', oportunidadeId)
         .maybeSingle();
@@ -148,8 +147,26 @@ export function useOportunidade(oportunidadeId: string | null | undefined) {
 
       if (!data) return null;
 
+      // A view/tabela perfis_usuario não possui FK declarada em oportunidades,
+      // então buscamos o vendedor em uma query separada (evita erro PGRST200 no embed)
+      let vendedor: { id: string; nome_completo: string | null } | null = null;
+      if ((data as any).vendedor_id) {
+        const { data: vendedorData, error: vendedorError } = await supabase
+          .from('perfis_usuario')
+          .select('id, nome_completo')
+          .eq('id', (data as any).vendedor_id)
+          .maybeSingle();
+
+        if (vendedorError) {
+          console.warn('[useOportunidade] Erro ao buscar vendedor:', vendedorError);
+        } else {
+          vendedor = vendedorData as any;
+        }
+      }
+
       return {
         ...data,
+        vendedor,
         probabilidade: data.percentual_probabilidade,
         data_fechamento_prevista: data.data_fechamento,
         status: data.esta_fechada 
