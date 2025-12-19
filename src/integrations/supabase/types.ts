@@ -4755,30 +4755,39 @@ export type Database = {
       jobs_recalculo_oportunidade: {
         Row: {
           criado_em: string | null
+          descricao: string | null
           erro: string | null
           id: string
           oportunidade_id: string
           processado_em: string | null
+          regra: string | null
           status: string | null
           tentativas: number | null
+          tipo_job: string | null
         }
         Insert: {
           criado_em?: string | null
+          descricao?: string | null
           erro?: string | null
           id?: string
           oportunidade_id: string
           processado_em?: string | null
+          regra?: string | null
           status?: string | null
           tentativas?: number | null
+          tipo_job?: string | null
         }
         Update: {
           criado_em?: string | null
+          descricao?: string | null
           erro?: string | null
           id?: string
           oportunidade_id?: string
           processado_em?: string | null
+          regra?: string | null
           status?: string | null
           tentativas?: number | null
+          tipo_job?: string | null
         }
         Relationships: [
           {
