@@ -16,7 +16,8 @@ import {
   Package,
   Plus,
   Trash2,
-  Search
+  Search,
+  Edit
 } from "lucide-react";
 import { toast } from "sonner";
 import { Sheet } from "@/components/ui/sheet";
@@ -33,7 +34,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useOportunidade, useUpdateOportunidade, useMoverEstagio } from "@/hooks/pipelines/useOportunidades";
 import { usePipelineFields } from "@/hooks/pipelines/usePipelineFields";
 import { usePipelineComEstagios } from "@/hooks/pipelines/usePipelines";
-import { useItensOportunidade, useRemoverItemOportunidade } from "@/hooks/pipelines/useItensOportunidade";
+import { useItensOportunidade, useRemoverItemOportunidade, useAtualizarItemOportunidade, ItemOportunidade } from "@/hooks/pipelines/useItensOportunidade";
+import { EditarItemOportunidadeDialog } from "./EditarItemOportunidadeDialog";
 import { useContatosCliente, ContatoCliente } from "@/hooks/useContatosCliente";
 import { DynamicField } from "@/components/pipelines/fields/DynamicField";
 import { PipelineStagesBar } from "./PipelineStagesBar";
@@ -65,6 +67,8 @@ export function OportunidadeDetailsSheet({
   const [showClienteSearch, setShowClienteSearch] = useState(false);
   const [clienteSelecionado, setClienteSelecionado] = useState<Cliente | null>(null);
   const [contatoSelecionadoId, setContatoSelecionadoId] = useState<string | null>(null);
+  const [itemEditando, setItemEditando] = useState<ItemOportunidade | null>(null);
+  const [showEditarItem, setShowEditarItem] = useState(false);
 
   // Buscar dados da oportunidade
   const { data: oportunidade, isLoading } = useOportunidade(oportunidadeId);
@@ -80,6 +84,7 @@ export function OportunidadeDetailsSheet({
   // Buscar itens da oportunidade
   const { data: itensOportunidade, isLoading: isLoadingItens } = useItensOportunidade(oportunidadeId);
   const removerItemMutation = useRemoverItemOportunidade();
+  const atualizarItemMutation = useAtualizarItemOportunidade();
 
   // Mutation para atualizar
   const updateMutation = useUpdateOportunidade();
@@ -563,7 +568,7 @@ export function OportunidadeDetailsSheet({
                                 <TableHead className="w-24 text-right">Preço Un.</TableHead>
                                 <TableHead className="w-20 text-right">Desc %</TableHead>
                                 <TableHead className="w-28 text-right">Total</TableHead>
-                                <TableHead className="w-12"></TableHead>
+                                <TableHead className="w-20"></TableHead>
                               </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -575,22 +580,35 @@ export function OportunidadeDetailsSheet({
                                   <TableCell className="text-right">{item.percentual_desconto || 0}%</TableCell>
                                   <TableCell className="text-right font-medium">{formatCurrency(item.preco_total || 0)}</TableCell>
                                   <TableCell>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="h-7 w-7"
-                                      onClick={() => {
-                                        if (oportunidadeId) {
-                                          removerItemMutation.mutate({
-                                            itemId: item.id,
-                                            oportunidadeId,
-                                          });
-                                        }
-                                      }}
-                                      disabled={removerItemMutation.isPending}
-                                    >
-                                      <Trash2 className="h-4 w-4 text-destructive" />
-                                    </Button>
+                                    <div className="flex gap-1">
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-7 w-7"
+                                        onClick={() => {
+                                          setItemEditando(item);
+                                          setShowEditarItem(true);
+                                        }}
+                                      >
+                                        <Edit className="h-4 w-4" />
+                                      </Button>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-7 w-7"
+                                        onClick={() => {
+                                          if (oportunidadeId) {
+                                            removerItemMutation.mutate({
+                                              itemId: item.id,
+                                              oportunidadeId,
+                                            });
+                                          }
+                                        }}
+                                        disabled={removerItemMutation.isPending}
+                                      >
+                                        <Trash2 className="h-4 w-4 text-destructive" />
+                                      </Button>
+                                    </div>
                                   </TableCell>
                                 </TableRow>
                               ))}
@@ -760,6 +778,22 @@ export function OportunidadeDetailsSheet({
         open={showClienteSearch}
         onOpenChange={setShowClienteSearch}
         onSelectCliente={handleSelecionarCliente}
+      />
+
+      {/* Dialog de edição de item */}
+      <EditarItemOportunidadeDialog
+        open={showEditarItem}
+        onOpenChange={setShowEditarItem}
+        item={itemEditando}
+        onSave={(itemId, dados) => {
+          if (oportunidadeId) {
+            atualizarItemMutation.mutate({
+              itemId,
+              oportunidadeId,
+              dados,
+            });
+          }
+        }}
       />
     </Sheet>
   );

@@ -118,3 +118,59 @@ export function useRemoverItemOportunidade() {
     },
   });
 }
+
+interface DadosAtualizacaoItem {
+  quantidade?: number;
+  percentual_desconto?: number;
+  preco_unitario?: number;
+  preco_total?: number;
+  produto_id?: string;
+  nome_produto?: string;
+}
+
+export function useAtualizarItemOportunidade() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      itemId,
+      oportunidadeId,
+      dados,
+    }: {
+      itemId: string;
+      oportunidadeId: string;
+      dados: DadosAtualizacaoItem;
+    }) => {
+      const { error } = await supabase
+        .from("itens_linha_oportunidade")
+        .update(dados)
+        .eq("id", itemId);
+
+      if (error) throw error;
+
+      // Recalcular valor total da oportunidade
+      const { data: itens } = await supabase
+        .from("itens_linha_oportunidade")
+        .select("preco_total")
+        .eq("oportunidade_id", oportunidadeId);
+
+      const novoTotal = itens?.reduce((acc, item) => acc + (item.preco_total || 0), 0) || 0;
+
+      await supabase
+        .from("oportunidades")
+        .update({ valor: novoTotal })
+        .eq("id", oportunidadeId);
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["itens-oportunidade", variables.oportunidadeId] });
+      queryClient.invalidateQueries({ queryKey: ["oportunidade", variables.oportunidadeId] });
+      queryClient.invalidateQueries({ queryKey: ["oportunidades"] });
+      queryClient.invalidateQueries({ queryKey: ["kanban-oportunidades"] });
+      toast.success("Item atualizado");
+    },
+    onError: (error: any) => {
+      console.error("Erro ao atualizar item:", error);
+      toast.error("Erro ao atualizar item: " + error.message);
+    },
+  });
+}
