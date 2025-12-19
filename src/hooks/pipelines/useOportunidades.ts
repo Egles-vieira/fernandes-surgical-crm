@@ -33,6 +33,7 @@ interface OportunidadeUpdateReal {
   conta_id?: string | null;
   contato_id?: string | null;
   proprietario_id?: string | null;
+  vendedor_id?: string | null;
   valor?: number | null;
   percentual_probabilidade?: number | null;
   data_fechamento?: string | null;
