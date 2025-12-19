@@ -323,6 +323,21 @@ export function OportunidadeDetailsSheet({
                 )}
               </Button>
 
+              {/* Botão lateral para expandir/recolher fullscreen */}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute -left-3 top-1/4 z-20 h-12 w-6 rounded-r-md bg-card hover:bg-accent border border-l-0 shadow-sm"
+                onClick={() => setIsFullscreen(!isFullscreen)}
+                title={isFullscreen ? "Recolher" : "Expandir"}
+              >
+                {isFullscreen ? (
+                  <ChevronRight className="h-4 w-4" />
+                ) : (
+                  <ChevronLeft className="h-4 w-4" />
+                )}
+              </Button>
+
               {/* Coluna esquerda - Dados principais */}
               <div className={cn(
                 "border-r flex flex-col bg-card transition-all duration-300",
