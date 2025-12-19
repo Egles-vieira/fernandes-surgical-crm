@@ -49,6 +49,7 @@ import { PipelineStagesBar } from "./PipelineStagesBar";
 import { ItensOportunidadeSheet } from "./ItensOportunidadeSheet";
 import { ItensOportunidadeGrid } from "./ItensOportunidadeGrid";
 import { ClienteSearchDialog } from "@/components/ClienteSearchDialog";
+import { SpotFieldsSection } from "./SpotFieldsSection";
 import { Tables } from "@/integrations/supabase/types";
 import { cn } from "@/lib/utils";
 
@@ -490,6 +491,17 @@ export function OportunidadeDetailsSheet({
                             ))}
                           </div>
                         </div>
+                      </>
+                    )}
+
+                    {/* Campos específicos do Pipeline Spot */}
+                    {oportunidade.pipeline?.nome === 'Spot' && (
+                      <>
+                        <Separator />
+                        <SpotFieldsSection
+                          camposCustomizados={camposCustomizados}
+                          onChange={handleCustomFieldChange}
+                        />
                       </>
                     )}
 
