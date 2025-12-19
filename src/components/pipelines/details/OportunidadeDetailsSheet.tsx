@@ -79,6 +79,7 @@ export function OportunidadeDetailsSheet({
   const [showEditarItem, setShowEditarItem] = useState(false);
   const [isGridExpanded, setIsGridExpanded] = useState(true);
   const [isLeftPanelExpanded, setIsLeftPanelExpanded] = useState(true);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Buscar dados da oportunidade
   const { data: oportunidade, isLoading } = useOportunidade(oportunidadeId);
@@ -272,6 +273,7 @@ export function OportunidadeDetailsSheet({
         minWidth={600}
         maxWidth={1400}
         storageKey="oportunidade-sheet-width"
+        isFullscreen={isFullscreen}
       >
         {isLoading ? (
           <div className="flex items-center justify-center h-full">
@@ -342,9 +344,23 @@ export function OportunidadeDetailsSheet({
 
                     {/* Botões de ação */}
                     <div className="flex gap-2">
-                      <Button className="flex-1" size="sm">
-                        <ExternalLink className="h-4 w-4 mr-2" />
-                        Ver Detalhes
+                      <Button 
+                        className="flex-1" 
+                        size="sm"
+                        variant={isFullscreen ? "secondary" : "default"}
+                        onClick={() => setIsFullscreen(!isFullscreen)}
+                      >
+                        {isFullscreen ? (
+                          <>
+                            <ChevronRight className="h-4 w-4 mr-2" />
+                            Recolher
+                          </>
+                        ) : (
+                          <>
+                            <ExternalLink className="h-4 w-4 mr-2" />
+                            Expandir
+                          </>
+                        )}
                       </Button>
                       <Button variant="outline" size="icon" onClick={handleCopyLink}>
                         <Copy className="h-4 w-4" />
