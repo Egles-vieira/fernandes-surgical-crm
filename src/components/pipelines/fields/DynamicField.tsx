@@ -52,7 +52,7 @@ export function DynamicField({
             onChange={(e) => onChange(e.target.value)}
             placeholder={field.placeholder || ""}
             disabled={disabled}
-            className={cn(error && "border-destructive")}
+            className={cn("bg-background", error && "border-destructive")}
           />
         );
 
@@ -65,7 +65,7 @@ export function DynamicField({
             onChange={(e) => onChange(e.target.value ? Number(e.target.value) : null)}
             placeholder={field.placeholder || ""}
             disabled={disabled}
-            className={cn(error && "border-destructive")}
+            className={cn("bg-background", error && "border-destructive")}
           />
         );
 
@@ -79,7 +79,7 @@ export function DynamicField({
             onChange={(e) => onChange(e.target.value ? Number(e.target.value) : null)}
             placeholder={field.placeholder || "R$ 0,00"}
             disabled={disabled}
-            className={cn(error && "border-destructive")}
+            className={cn("bg-background", error && "border-destructive")}
           />
         );
 
@@ -95,7 +95,7 @@ export function DynamicField({
               onChange={(e) => onChange(e.target.value ? Number(e.target.value) : null)}
               placeholder="0"
               disabled={disabled}
-              className={cn("pr-8", error && "border-destructive")}
+              className={cn("bg-background pr-8", error && "border-destructive")}
             />
             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
               %
@@ -144,7 +144,7 @@ export function DynamicField({
             value={value ? value.slice(0, 16) : ""}
             onChange={(e) => onChange(e.target.value ? new Date(e.target.value).toISOString() : null)}
             disabled={disabled}
-            className={cn(error && "border-destructive")}
+            className={cn("bg-background", error && "border-destructive")}
           />
         );
 
@@ -220,7 +220,7 @@ export function DynamicField({
             placeholder={field.placeholder || ""}
             disabled={disabled}
             rows={compact ? 2 : 4}
-            className={cn(error && "border-destructive")}
+            className={cn("bg-background", error && "border-destructive")}
           />
         );
 
@@ -233,7 +233,7 @@ export function DynamicField({
             onChange={(e) => onChange(e.target.value)}
             placeholder={field.placeholder || "https://"}
             disabled={disabled}
-            className={cn(error && "border-destructive")}
+            className={cn("bg-background", error && "border-destructive")}
           />
         );
 
@@ -246,7 +246,7 @@ export function DynamicField({
             onChange={(e) => onChange(e.target.value)}
             placeholder={field.placeholder || "email@exemplo.com"}
             disabled={disabled}
-            className={cn(error && "border-destructive")}
+            className={cn("bg-background", error && "border-destructive")}
           />
         );
 
@@ -259,7 +259,7 @@ export function DynamicField({
             onChange={(e) => onChange(e.target.value)}
             placeholder={field.placeholder || "(00) 00000-0000"}
             disabled={disabled}
-            className={cn(error && "border-destructive")}
+            className={cn("bg-background", error && "border-destructive")}
           />
         );
 
@@ -270,7 +270,7 @@ export function DynamicField({
             value={value || ""}
             onChange={(e) => onChange(e.target.value)}
             disabled={disabled}
-            className={cn(error && "border-destructive")}
+            className={cn("bg-background", error && "border-destructive")}
           />
         );
     }
@@ -282,7 +282,7 @@ export function DynamicField({
         <Label
           htmlFor={field.nome_campo}
           className={cn(
-            "text-xs font-medium",
+            "text-xs font-medium text-foreground",
             field.obrigatorio && "after:content-['*'] after:ml-0.5 after:text-destructive"
           )}
         >
@@ -299,6 +299,7 @@ export function DynamicField({
       <Label
         htmlFor={field.nome_campo}
         className={cn(
+          "text-foreground",
           field.obrigatorio && "after:content-['*'] after:ml-0.5 after:text-destructive"
         )}
       >
