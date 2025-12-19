@@ -1,0 +1,262 @@
+import { useState, useEffect, useMemo, useCallback } from "react";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ItemOportunidade } from "@/hooks/pipelines/useItensOportunidade";
+import { SortableItemOportunidadeRow } from "./SortableItemOportunidadeRow";
+import { useDebouncedItemUpdate } from "@/hooks/pipelines/useDebouncedItemUpdate";
+import { supabase } from "@/integrations/supabase/client";
+
+const formatCurrency = (value: number) => {
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value);
+};
+
+interface ItensOportunidadeGridProps {
+  itens: ItemOportunidade[];
+  oportunidadeId: string;
+  onEdit: (item: ItemOportunidade) => void;
+  onRemove: (itemId: string) => void;
+}
+
+interface LocalItemState {
+  quantidade: number;
+  desconto: number;
+}
+
+export function ItensOportunidadeGrid({
+  itens,
+  oportunidadeId,
+  onEdit,
+  onRemove,
+}: ItensOportunidadeGridProps) {
+  // Estado local para ordem dos itens (drag-and-drop)
+  const [orderedItems, setOrderedItems] = useState<ItemOportunidade[]>(itens);
+
+  // Estado local para valores editáveis (quantidade e desconto)
+  const [localState, setLocalState] = useState<Map<string, LocalItemState>>(
+    new Map()
+  );
+
+  const { debouncedUpdate } = useDebouncedItemUpdate(oportunidadeId);
+
+  // Sincronizar com prop quando itens mudam
+  useEffect(() => {
+    setOrderedItems(itens);
+
+    // Inicializar estado local com valores do banco
+    const newState = new Map<string, LocalItemState>();
+    itens.forEach((item) => {
+      newState.set(item.id, {
+        quantidade: item.quantidade,
+        desconto: item.percentual_desconto || 0,
+      });
+    });
+    setLocalState(newState);
+  }, [itens]);
+
+  // Sensors para drag-and-drop
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  // Handler de drag end
+  const handleDragEnd = useCallback(async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      setOrderedItems((items) => {
+        const oldIndex = items.findIndex((item) => item.id === active.id);
+        const newIndex = items.findIndex((item) => item.id === over.id);
+        const newOrder = arrayMove(items, oldIndex, newIndex);
+
+        // Atualizar ordem no banco (batch update)
+        const updates = newOrder.map((item, idx) => ({
+          id: item.id,
+          ordem_linha: idx + 1,
+        }));
+
+        // Fire-and-forget update
+        Promise.all(
+          updates.map((update) =>
+            supabase
+              .from("itens_linha_oportunidade")
+              .update({ ordem_linha: update.ordem_linha })
+              .eq("id", update.id)
+          )
+        ).catch(console.error);
+
+        return newOrder;
+      });
+    }
+  }, []);
+
+  // Handler para mudança de quantidade
+  const handleQuantidadeChange = useCallback(
+    (itemId: string, valor: number) => {
+      // Encontrar item e estado local atual
+      const item = orderedItems.find((i) => i.id === itemId);
+      if (!item) return;
+
+      const currentLocal = localState.get(itemId) || {
+        quantidade: item.quantidade,
+        desconto: item.percentual_desconto || 0,
+      };
+
+      // Atualizar estado local imediatamente
+      setLocalState((prev) => {
+        const newState = new Map(prev);
+        newState.set(itemId, { ...currentLocal, quantidade: valor });
+        return newState;
+      });
+
+      // Disparar debounced update
+      debouncedUpdate(
+        itemId,
+        "quantidade",
+        valor,
+        item.preco_unitario,
+        valor,
+        currentLocal.desconto
+      );
+    },
+    [orderedItems, localState, debouncedUpdate]
+  );
+
+  // Handler para mudança de desconto
+  const handleDescontoChange = useCallback(
+    (itemId: string, valor: number) => {
+      // Encontrar item e estado local atual
+      const item = orderedItems.find((i) => i.id === itemId);
+      if (!item) return;
+
+      const currentLocal = localState.get(itemId) || {
+        quantidade: item.quantidade,
+        desconto: item.percentual_desconto || 0,
+      };
+
+      // Atualizar estado local imediatamente
+      setLocalState((prev) => {
+        const newState = new Map(prev);
+        newState.set(itemId, { ...currentLocal, desconto: valor });
+        return newState;
+      });
+
+      // Disparar debounced update
+      debouncedUpdate(
+        itemId,
+        "percentual_desconto",
+        valor,
+        item.preco_unitario,
+        currentLocal.quantidade,
+        valor
+      );
+    },
+    [orderedItems, localState, debouncedUpdate]
+  );
+
+  // Calcular totais baseado no estado local
+  const totais = useMemo(() => {
+    return orderedItems.reduce(
+      (acc, item) => {
+        const local = localState.get(item.id) || {
+          quantidade: item.quantidade,
+          desconto: item.percentual_desconto || 0,
+        };
+        const precoComDesconto = item.preco_unitario * (1 - local.desconto / 100);
+        const valorItem = local.quantidade * precoComDesconto;
+
+        return {
+          quantidade: acc.quantidade + local.quantidade,
+          valor: acc.valor + valorItem,
+        };
+      },
+      { quantidade: 0, valor: 0 }
+    );
+  }, [orderedItems, localState]);
+
+  return (
+    <div className="space-y-4">
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-8"></TableHead>
+              <TableHead className="w-10 text-center">#</TableHead>
+              <TableHead>Produto</TableHead>
+              <TableHead className="w-24">Qtd</TableHead>
+              <TableHead className="w-24 text-right">Preço Un.</TableHead>
+              <TableHead className="w-24">Desc %</TableHead>
+              <TableHead className="w-28 text-right">Total</TableHead>
+              <TableHead className="w-20"></TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <SortableContext
+              items={orderedItems.map((item) => item.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              {orderedItems.map((item, index) => {
+                const local = localState.get(item.id) || {
+                  quantidade: item.quantidade,
+                  desconto: item.percentual_desconto || 0,
+                };
+
+                return (
+                  <SortableItemOportunidadeRow
+                    key={item.id}
+                    item={item}
+                    index={index}
+                    localQuantidade={local.quantidade}
+                    localDesconto={local.desconto}
+                    onQuantidadeChange={handleQuantidadeChange}
+                    onDescontoChange={handleDescontoChange}
+                    onEdit={onEdit}
+                    onRemove={onRemove}
+                  />
+                );
+              })}
+            </SortableContext>
+          </TableBody>
+        </Table>
+      </DndContext>
+
+      <div className="flex justify-end pt-2 border-t">
+        <div className="text-right">
+          <p className="text-sm text-muted-foreground">
+            Total ({totais.quantidade} {totais.quantidade === 1 ? "item" : "itens"})
+          </p>
+          <p className="text-lg font-bold">{formatCurrency(totais.valor)}</p>
+        </div>
+      </div>
+    </div>
+  );
+}

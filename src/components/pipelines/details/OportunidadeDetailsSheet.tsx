@@ -40,6 +40,7 @@ import { useContatosCliente, ContatoCliente } from "@/hooks/useContatosCliente";
 import { DynamicField } from "@/components/pipelines/fields/DynamicField";
 import { PipelineStagesBar } from "./PipelineStagesBar";
 import { ItensOportunidadeSheet } from "./ItensOportunidadeSheet";
+import { ItensOportunidadeGrid } from "./ItensOportunidadeGrid";
 import { ClienteSearchDialog } from "@/components/ClienteSearchDialog";
 import { Tables } from "@/integrations/supabase/types";
 import { cn } from "@/lib/utils";
@@ -559,69 +560,22 @@ export function OportunidadeDetailsSheet({
                           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                         </div>
                       ) : itensOportunidade && itensOportunidade.length > 0 ? (
-                        <div className="space-y-4">
-                          <Table>
-                            <TableHeader>
-                              <TableRow>
-                                <TableHead>Produto</TableHead>
-                                <TableHead className="w-20 text-right">Qtd</TableHead>
-                                <TableHead className="w-24 text-right">Preço Un.</TableHead>
-                                <TableHead className="w-20 text-right">Desc %</TableHead>
-                                <TableHead className="w-28 text-right">Total</TableHead>
-                                <TableHead className="w-20"></TableHead>
-                              </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                              {itensOportunidade.map((item) => (
-                                <TableRow key={item.id}>
-                                  <TableCell className="font-medium">{item.nome_produto || "—"}</TableCell>
-                                  <TableCell className="text-right">{item.quantidade}</TableCell>
-                                  <TableCell className="text-right">{formatCurrency(item.preco_unitario)}</TableCell>
-                                  <TableCell className="text-right">{item.percentual_desconto || 0}%</TableCell>
-                                  <TableCell className="text-right font-medium">{formatCurrency(item.preco_total || 0)}</TableCell>
-                                  <TableCell>
-                                    <div className="flex gap-1">
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-7 w-7"
-                                        onClick={() => {
-                                          setItemEditando(item);
-                                          setShowEditarItem(true);
-                                        }}
-                                      >
-                                        <Edit className="h-4 w-4" />
-                                      </Button>
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-7 w-7"
-                                        onClick={() => {
-                                          if (oportunidadeId) {
-                                            removerItemMutation.mutate({
-                                              itemId: item.id,
-                                              oportunidadeId,
-                                            });
-                                          }
-                                        }}
-                                        disabled={removerItemMutation.isPending}
-                                      >
-                                        <Trash2 className="h-4 w-4 text-destructive" />
-                                      </Button>
-                                    </div>
-                                  </TableCell>
-                                </TableRow>
-                              ))}
-                            </TableBody>
-                          </Table>
-                          
-                          <div className="flex justify-end pt-2 border-t">
-                            <div className="text-right">
-                              <p className="text-sm text-muted-foreground">Total ({totaisItens.quantidade} itens)</p>
-                              <p className="text-lg font-bold">{formatCurrency(totaisItens.valor)}</p>
-                            </div>
-                          </div>
-                        </div>
+                        <ItensOportunidadeGrid
+                          itens={itensOportunidade}
+                          oportunidadeId={oportunidadeId!}
+                          onEdit={(item) => {
+                            setItemEditando(item);
+                            setShowEditarItem(true);
+                          }}
+                          onRemove={(itemId) => {
+                            if (oportunidadeId) {
+                              removerItemMutation.mutate({
+                                itemId,
+                                oportunidadeId,
+                              });
+                            }
+                          }}
+                        />
                       ) : (
                         <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
                           <Package className="h-12 w-12 mb-4 opacity-50" />
