@@ -150,7 +150,7 @@ export function OportunidadeDetailsSheet({
       setFormData({
         nome_oportunidade: oportunidade.nome_oportunidade,
         valor: oportunidade.valor,
-        data_fechamento_prevista: oportunidade.data_fechamento_prevista,
+        data_fechamento: (oportunidade as any).data_fechamento || oportunidade.data_fechamento_prevista,
         observacoes: oportunidade.observacoes,
       });
       setCamposCustomizados((oportunidade.campos_customizados as Record<string, unknown>) || {});
