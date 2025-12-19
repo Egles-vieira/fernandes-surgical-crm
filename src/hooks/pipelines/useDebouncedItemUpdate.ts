@@ -12,7 +12,9 @@ interface PendingUpdate {
 
 interface ItemUpdateData {
   id: string;
-  dados: PendingUpdate;
+  quantidade?: number;
+  percentual_desconto?: number;
+  preco_unitario?: number;
   updated_at?: string;
 }
 
@@ -91,7 +93,9 @@ export function useDebouncedItemUpdate(oportunidadeId: string | null) {
         pendingUpdates.current.forEach((dados, id) => {
           itens.push({
             id,
-            dados,
+            quantidade: dados.quantidade,
+            percentual_desconto: dados.percentual_desconto,
+            preco_unitario: dados.preco_unitario,
             updated_at: itemTimestamps.current.get(id),
           });
         });
@@ -149,7 +153,9 @@ export function useDebouncedItemUpdate(oportunidadeId: string | null) {
         pendingUpdates.current.forEach((dados, id) => {
           itens.push({
             id,
-            dados,
+            quantidade: dados.quantidade,
+            percentual_desconto: dados.percentual_desconto,
+            preco_unitario: dados.preco_unitario,
             updated_at: itemTimestamps.current.get(id),
           });
         });
@@ -182,7 +188,9 @@ export function useDebouncedItemUpdate(oportunidadeId: string | null) {
     pendingUpdates.current.forEach((dados, id) => {
       itens.push({
         id,
-        dados,
+        quantidade: dados.quantidade,
+        percentual_desconto: dados.percentual_desconto,
+        preco_unitario: dados.preco_unitario,
         updated_at: itemTimestamps.current.get(id),
       });
     });
