@@ -170,3 +170,6 @@ verify_jwt = false
 
 [functions.triar-conversa-deepseek]
 verify_jwt = false
+
+[functions.processar-jobs-recalculo]
+verify_jwt = false
