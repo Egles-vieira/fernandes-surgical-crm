@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SheetTitle } from "@/components/ui/sheet";
 import { PipelineStagesBar } from "../details/PipelineStagesBar";
+import { SpotFieldsSection } from "../details/SpotFieldsSection";
 import { DynamicField } from "../fields/DynamicField";
 import { ClienteSearchDialog } from "@/components/ClienteSearchDialog";
 import { useEstagiosPipeline, usePipeline } from "@/hooks/pipelines/usePipelines";
@@ -72,6 +73,8 @@ export function OportunidadeFormSheet({
   const { data: estagios = [], isLoading: isLoadingEstagios } = useEstagiosPipeline(pipelineId);
   const { data: customFields = [] } = usePipelineFields({ pipelineId });
   const createMutation = useCreateOportunidade();
+  
+  const isSpotPipeline = pipeline?.nome === "Spot";
 
   const [estagioSelecionado, setEstagioSelecionado] = useState<string | null>(null);
   const [clienteSelecionado, setClienteSelecionado] = useState<Cliente | null>(null);
@@ -494,6 +497,16 @@ export function OportunidadeFormSheet({
                     </TabsContent>
 
                     <TabsContent value="campos" className="mt-0 px-6 py-4 space-y-6">
+                      {/* Campos específicos do Pipeline Spot */}
+                      {isSpotPipeline && (
+                        <div className="space-y-4">
+                          <SpotFieldsSection 
+                            camposCustomizados={camposCustomizados} 
+                            onChange={handleCustomFieldChange} 
+                          />
+                        </div>
+                      )}
+
                       {/* Campos customizados por grupo */}
                       {Object.keys(camposAgrupados).length > 0 ? (
                         Object.entries(camposAgrupados).map(([grupo, campos]) => (
@@ -516,12 +529,12 @@ export function OportunidadeFormSheet({
                             </div>
                           </div>
                         ))
-                      ) : (
+                      ) : !isSpotPipeline ? (
                         <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
                           <p className="text-sm">Nenhum campo customizado</p>
                           <p className="text-xs mt-1">Configure campos no pipeline para exibi-los aqui</p>
                         </div>
-                      )}
+                      ) : null}
                     </TabsContent>
 
                     <TabsContent value="notas" className="mt-0 px-6 py-4">
