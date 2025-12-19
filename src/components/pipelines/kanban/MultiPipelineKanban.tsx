@@ -223,11 +223,12 @@ export function MultiPipelineKanban({
         </div>
       </DragDropContext>
 
-      {/* Dialog para nova oportunidade */}
+      {/* Sheet para nova oportunidade */}
       <OportunidadeFormDialog
         open={showNovaOportunidade}
         onOpenChange={setShowNovaOportunidade}
         pipelineId={pipelineId}
+        variant="sheet"
       />
 
       {/* Sheet de detalhes da oportunidade */}
