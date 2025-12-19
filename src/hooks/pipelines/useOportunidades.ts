@@ -200,10 +200,10 @@ export function useCreateOportunidade() {
 
       return data as unknown as Oportunidade;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['oportunidades'] });
       queryClient.invalidateQueries({ queryKey: ['kanban-oportunidades'] });
-      toast.success('Oportunidade criada com sucesso!');
+      toast.success(`Oportunidade ${data.codigo || ''} criada com sucesso!`);
     },
     onError: (error) => {
       console.error('[useCreateOportunidade] Erro:', error);
