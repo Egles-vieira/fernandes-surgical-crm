@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { toast } from "sonner";
 import { Sheet } from "@/components/ui/sheet";
 import { ResizableSheetContent } from "@/components/ui/resizable-sheet";
 import { Button } from "@/components/ui/button";
@@ -166,7 +167,8 @@ export function OportunidadeFormSheet({
     };
 
     try {
-      await createMutation.mutateAsync(insertData);
+      const oportunidade = await createMutation.mutateAsync(insertData);
+      toast.success(`Oportunidade ${oportunidade.codigo || ''} criada com sucesso!`);
       onOpenChange(false);
     } catch (error) {
       console.error("Erro ao criar oportunidade:", error);
