@@ -333,27 +333,27 @@ export function ItensOportunidadeGrid({
             onDragEnd={handleDragEnd}
           >
             <Table>
-              <TableHeader className="sticky top-0 z-20 bg-muted/50 border-b">
-                <TableRow>
-                  <TableHead className="w-8"></TableHead>
-                  <TableHead className="w-10 text-center">#</TableHead>
-                  <TableHead>Produto</TableHead>
+              <TableHeader className="sticky top-0 z-20 bg-primary border-b">
+                <TableRow className="hover:bg-primary">
+                  <TableHead className="w-8 text-primary-foreground"></TableHead>
+                  <TableHead className="w-10 text-center text-primary-foreground">#</TableHead>
+                  <TableHead className="text-primary-foreground">Produto</TableHead>
                   {visibleColumns.precoTabela && (
-                    <TableHead className="w-28 text-right">Preço Tab.</TableHead>
+                    <TableHead className="w-28 text-right text-primary-foreground">Preço Tab.</TableHead>
                   )}
                   {visibleColumns.quantidade && (
-                    <TableHead className="w-24">Qtd</TableHead>
+                    <TableHead className="w-24 text-primary-foreground">Qtd</TableHead>
                   )}
                   {visibleColumns.desconto && (
-                    <TableHead className="w-24">Desc %</TableHead>
+                    <TableHead className="w-24 text-primary-foreground">Desc %</TableHead>
                   )}
                   {visibleColumns.precoUnit && (
-                    <TableHead className="w-28 text-right">Preço Un.</TableHead>
+                    <TableHead className="w-28 text-right text-primary-foreground">Preço Un.</TableHead>
                   )}
                   {visibleColumns.total && (
-                    <TableHead className="w-28 text-right">Total</TableHead>
+                    <TableHead className="w-28 text-right text-primary-foreground">Total</TableHead>
                   )}
-                  <TableHead className="w-20"></TableHead>
+                  <TableHead className="w-20 text-primary-foreground"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
