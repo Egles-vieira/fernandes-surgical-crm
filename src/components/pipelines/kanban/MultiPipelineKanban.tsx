@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { DragDropContext, DropResult } from "@hello-pangea/dnd";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Loader2, Plus, Settings } from "lucide-react";
@@ -29,21 +30,32 @@ export function MultiPipelineKanban({
   showNovaOportunidadeDialog,
   onShowNovaOportunidadeDialogChange,
 }: MultiPipelineKanbanProps) {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [pipelineId, setPipelineId] = useState<string | null>(pipelineIdInicial || null);
   
-  // Controle do dialog - usa props externas se fornecidas, senão estado interno
-  const isDialogControlledExternally = showNovaOportunidadeDialog !== undefined;
-  const [internalShowDialog, setInternalShowDialog] = useState(false);
+  // Controle via URL
+  const selectedOportunidadeId = searchParams.get("oportunidade");
+  const showNovaFromUrl = searchParams.get("nova") === "true";
   
-  const showNovaOportunidade = isDialogControlledExternally ? showNovaOportunidadeDialog : internalShowDialog;
+  // Controle do dialog - usa props externas se fornecidas, senão URL
+  const isDialogControlledExternally = showNovaOportunidadeDialog !== undefined;
+  
+  const showNovaOportunidade = isDialogControlledExternally ? showNovaOportunidadeDialog : showNovaFromUrl;
   const setShowNovaOportunidade = (show: boolean) => {
     if (isDialogControlledExternally && onShowNovaOportunidadeDialogChange) {
       onShowNovaOportunidadeDialogChange(show);
     } else {
-      setInternalShowDialog(show);
+      const newParams = new URLSearchParams(searchParams);
+      if (show) {
+        newParams.set("nova", "true");
+        if (pipelineId) newParams.set("pipeline", pipelineId);
+      } else {
+        newParams.delete("nova");
+        newParams.delete("pipeline");
+      }
+      setSearchParams(newParams);
     }
   };
-  const [selectedOportunidadeId, setSelectedOportunidadeId] = useState<string | null>(null);
 
   // Sincronizar estado interno quando a prop externa mudar
   useEffect(() => {
@@ -101,8 +113,24 @@ export function MultiPipelineKanban({
   };
 
   const handleViewDetails = (oportunidade: OportunidadeCard) => {
-    setSelectedOportunidadeId(oportunidade.id);
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set("oportunidade", oportunidade.id);
+    setSearchParams(newParams);
     onOportunidadeClick?.(oportunidade);
+  };
+
+  const handleCloseDetails = () => {
+    const newParams = new URLSearchParams(searchParams);
+    newParams.delete("oportunidade");
+    setSearchParams(newParams);
+  };
+
+  const handleOportunidadeCriada = (oportunidadeId: string) => {
+    const newParams = new URLSearchParams(searchParams);
+    newParams.delete("nova");
+    newParams.delete("pipeline");
+    newParams.set("oportunidade", oportunidadeId);
+    setSearchParams(newParams);
   };
 
   // Organizar dados das colunas - usar diretamente kanbanData que já vem estruturado
@@ -229,12 +257,13 @@ export function MultiPipelineKanban({
         onOpenChange={setShowNovaOportunidade}
         pipelineId={pipelineId}
         variant="sheet"
+        onSuccess={handleOportunidadeCriada}
       />
 
       {/* Sheet de detalhes da oportunidade */}
       <OportunidadeDetailsSheet
         open={!!selectedOportunidadeId}
-        onOpenChange={(open) => !open && setSelectedOportunidadeId(null)}
+        onOpenChange={(open) => !open && handleCloseDetails()}
         oportunidadeId={selectedOportunidadeId}
         pipelineId={pipelineId}
       />
