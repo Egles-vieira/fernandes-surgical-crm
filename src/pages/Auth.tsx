@@ -12,6 +12,8 @@ import { useToast } from "@/hooks/use-toast";
 import { AlertCircle, Lock, Mail, Building2, Phone, User, ArrowLeft, Send, FileText } from "lucide-react";
 import { loginSchema, LoginInput } from "@/lib/validations/auth";
 import logo from "@/assets/logo-convertiai.png";
+import heroImage from "@/assets/auth-hero-professional.jpg";
+import { TypewriterText } from "@/components/TypewriterText";
 
 // Schema para formulário de contato comercial
 const contatoComercialSchema = z.object({
@@ -138,62 +140,89 @@ export default function Auth() {
   const handleSubmit = isLogin ? loginForm.handleSubmit(handleLogin) : contatoForm.handleSubmit(handleContatoComercial);
   return (
     <div className="min-h-screen flex font-sans" style={{ fontFamily: "var(--font, Lexend, sans-serif)" }}>
-      {/* Left Side - Brand Section with Gradient */}
+      {/* Left Side - Brand Section */}
       <div className="hidden lg:flex lg:w-[62%] relative overflow-hidden">
-        {/* Base gradient - purple to electric blue (like DigitalOcean reference) */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[#5b4a99] via-[#4361c4] to-[#0066ff]" />
-        
-        {/* Soft pink/purple glow overlay in center-left */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_20%_40%,rgba(168,130,200,0.4),transparent)]" />
-        
-        {/* Blue glow on the right */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_80%_at_100%_60%,rgba(0,120,255,0.3),transparent)]" />
+        {/* Background Image */}
+        <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${heroImage})` }} />
 
-        {/* Content - centered like reference */}
-        <div className="relative z-10 text-white w-full px-16 flex flex-col justify-center items-start py-20">
-          {/* AI Sparkle Icon - simple like reference */}
-          <div className="mb-10 animate-fade-in">
-            <div className="w-14 h-14 relative">
-              <svg viewBox="0 0 56 56" className="w-full h-full" fill="none">
-                {/* Outer dashed circle */}
-                <circle cx="28" cy="28" r="24" stroke="white" strokeWidth="1" strokeDasharray="4 3" className="opacity-60" />
-                {/* Main sparkle star */}
-                <path d="M28 12L30.5 24L42 27L30.5 30L28 42L25.5 30L14 27L25.5 24L28 12Z" fill="white" />
-                {/* Small sparkles */}
-                <circle cx="44" cy="16" r="3" fill="white" />
-                <circle cx="44" cy="17" r="1.5" fill="white" className="opacity-70" />
-                <circle cx="12" cy="40" r="2" fill="white" className="opacity-50" />
-              </svg>
-            </div>
+        {/* Subtle dark gradient for text readability */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent"></div>
+
+        {/* Grid pattern overlay */}
+        <div
+          className="absolute inset-0 opacity-[0.03]"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(255,255,255,.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.1) 1px, transparent 1px)",
+            backgroundSize: "60px 60px",
+          }}
+        ></div>
+
+        {/* Floating shapes for depth */}
+        <div className="absolute top-20 right-20 w-72 h-72 bg-white/5 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-32 left-20 w-96 h-96 bg-black/10 rounded-full blur-3xl"></div>
+
+        <div className="relative z-10 text-white w-full px-16 flex flex-col justify-center py-20">
+          {/* Logo with glow effect */}
+          <div className="mb-20 animate-fade-in">
+            <img src={logo} alt="ConvertiAI" className="h-14 object-contain drop-shadow-2xl" />
           </div>
 
-          {/* Main headline with italic style - matching reference */}
-          <div className="space-y-5 mb-10">
-            <h1 className="text-[2.5rem] lg:text-[2.75rem] font-semibold leading-[1.2] tracking-tight">
-              <span className="italic text-white">
-                Apresentando ConvertiAI
-              </span>
-              <br />
-              <span className="italic text-white">
-                CRM Inteligente com IA
-              </span>
-            </h1>
-            
-            <p className="text-base text-white/75 leading-relaxed font-normal max-w-md">
-              ConvertiAI unifica gestão de vendas, cotações EDI e atendimento WhatsApp em uma única plataforma inteligente—para que você possa vender mais, automatizar processos e crescer sem limites.
+          {/* Animated Typewriter Title */}
+          <div className="space-y-8 mb-16">
+            <div>
+              <h1 className="text-4xl font-bold leading-[1.1] tracking-tight mb-5">
+                <TypewriterText
+                  texts={[
+                    "Transforme atendimento em resultado",
+                    "Gestão inteligente de vendas",
+                    "Automatize seu fluxo comercial",
+                    "WhatsApp integrado ao CRM",
+                  ]}
+                  typingSpeed={80}
+                  deletingSpeed={40}
+                  pauseDuration={3000}
+                  className="bg-gradient-to-r from-white via-white to-[#3fb39d] bg-clip-text text-transparent"
+                />
+              </h1>
+              <div className="h-1 w-24 bg-gradient-to-r from-[#3fb39d] via-[#3fb39d] to-transparent rounded-full shadow-lg shadow-[#3fb39d]/50"></div>
+            </div>
+            <p className="text-lg text-white/70 leading-relaxed font-light max-w-xl">
+              Plataforma completa de gestão comercial com IA integrada. Automatize processos, organize cotações e
+              potencialize vendas com inteligência artificial.
             </p>
           </div>
 
-          {/* CTA Button - white with blue text like reference */}
-          <div>
-            <a 
-              href="https://convertiai.com.br" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-[#0066ff] text-sm font-semibold rounded-md hover:bg-white/95 transition-all duration-200 border border-[#0066ff]/20"
-            >
-              Saiba mais
-            </a>
+          {/* Premium features grid */}
+          <div className="grid grid-cols-2 gap-5">
+            <div className="group bg-white/5 backdrop-blur-md rounded-2xl p-6 border border-white/10 hover:bg-white/10 hover:border-[#3fb39d]/30 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-[#3fb39d]/10">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#3fb39d]/20 to-[#3fb39d]/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-[#3fb39d] to-[#2a9d82] shadow-lg shadow-[#3fb39d]/50"></div>
+              </div>
+              <p className="text-base font-semibold mb-1">CRM Avançado</p>
+              <p className="text-xs text-white/60">Gestão completa de clientes</p>
+            </div>
+            <div className="group bg-white/5 backdrop-blur-md rounded-2xl p-6 border border-white/10 hover:bg-white/10 hover:border-[#3fb39d]/30 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-[#3fb39d]/10">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#3fb39d]/20 to-[#3fb39d]/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-[#3fb39d] to-[#2a9d82] shadow-lg shadow-[#3fb39d]/50"></div>
+              </div>
+              <p className="text-base font-semibold mb-1">IA & Automação</p>
+              <p className="text-xs text-white/60">Inteligência artificial integrada</p>
+            </div>
+            <div className="group bg-white/5 backdrop-blur-md rounded-2xl p-6 border border-white/10 hover:bg-white/10 hover:border-[#3fb39d]/30 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-[#3fb39d]/10">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#3fb39d]/20 to-[#3fb39d]/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-[#3fb39d] to-[#2a9d82] shadow-lg shadow-[#3fb39d]/50"></div>
+              </div>
+              <p className="text-base font-semibold mb-1">Cotações EDI</p>
+              <p className="text-xs text-white/60">Análise automática de cotações</p>
+            </div>
+            <div className="group bg-white/5 backdrop-blur-md rounded-2xl p-6 border border-white/10 hover:bg-white/10 hover:border-[#3fb39d]/30 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-[#3fb39d]/10">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#3fb39d]/20 to-[#3fb39d]/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-[#3fb39d] to-[#2a9d82] shadow-lg shadow-[#3fb39d]/50"></div>
+              </div>
+              <p className="text-base font-semibold mb-1">WhatsApp Business</p>
+              <p className="text-xs text-white/60">Vendas direto pelo WhatsApp</p>
+            </div>
           </div>
         </div>
       </div>
