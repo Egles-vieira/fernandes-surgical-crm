@@ -22,7 +22,8 @@ import {
   XCircle, 
   AlertCircle,
   Calendar,
-  Database
+  Database,
+  Info
 } from "lucide-react";
 import { useCronJobs, formatCronSchedule, formatDuration, CronJob, CronJobHistory } from "@/hooks/useCronJobs";
 import { format } from "date-fns";
@@ -33,10 +34,48 @@ export function CronJobsConfig() {
   
   const [editingJob, setEditingJob] = useState<CronJob | null>(null);
   const [historyJobId, setHistoryJobId] = useState<number | null>(null);
+  const [infoJob, setInfoJob] = useState<CronJob | null>(null);
   const [editSchedule, setEditSchedule] = useState("");
   const [editCommand, setEditCommand] = useState("");
 
   const { data: history, isLoading: isLoadingHistory } = useJobHistory(historyJobId);
+
+  // Mapeamento de documentação dos jobs
+  const jobDocumentation: Record<string, { descricao: string; tipo: string; regra: string }> = {
+    'refresh-dashboard-mvs': {
+      descricao: 'Atualiza as Materialized Views do dashboard de vendas para garantir dados atualizados sem impactar performance.',
+      tipo: 'Atualização de Cache',
+      regra: 'Executa REFRESH CONCURRENTLY nas MVs: mv_estatisticas_vendas, mv_top_vendedores, mv_atividades_prioridade. Permite leitura durante atualização.'
+    },
+    'refresh-metas-mv': {
+      descricao: 'Atualiza a Materialized View de metas com progresso para exibição nos dashboards.',
+      tipo: 'Atualização de Cache',
+      regra: 'Executa REFRESH CONCURRENTLY na MV vw_metas_com_progresso que calcula percentuais de atingimento.'
+    },
+    'processar-triagem-whatsapp': {
+      descricao: 'Processa mensagens WhatsApp pendentes de triagem utilizando IA para classificação automática.',
+      tipo: 'Processamento Assíncrono',
+      regra: 'Busca mensagens com status "pendente", envia para Edge Function de IA e atualiza classificação.'
+    },
+    'sincronizar-tokens-wppconnect': {
+      descricao: 'Mantém os tokens de autenticação do WPPConnect atualizados para garantir conexão estável.',
+      tipo: 'Manutenção de Integração',
+      regra: 'Verifica validade dos tokens e renova automaticamente antes da expiração.'
+    },
+    'processar-jobs-recalculo': {
+      descricao: 'Processa jobs de recálculo de valor de oportunidades de forma assíncrona para não travar a UI.',
+      tipo: 'Processamento Assíncrono',
+      regra: 'Busca jobs pendentes na fila jobs_recalculo_oportunidade, calcula soma dos itens e atualiza o valor total da oportunidade.'
+    },
+  };
+
+  const getJobDocumentation = (jobname: string) => {
+    return jobDocumentation[jobname] || {
+      descricao: 'Job de sistema sem documentação específica.',
+      tipo: 'Sistema',
+      regra: 'Executa o comando SQL configurado no schedule definido.'
+    };
+  };
 
   const handleEdit = (job: CronJob) => {
     setEditingJob(job);
@@ -196,6 +235,19 @@ export function CronJobsConfig() {
                         </TooltipTrigger>
                         <TooltipContent>Histórico</TooltipContent>
                       </Tooltip>
+
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            onClick={() => setInfoJob(job)}
+                          >
+                            <Info className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Informações</TooltipContent>
+                      </Tooltip>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -346,6 +398,69 @@ export function CronJobsConfig() {
               </Table>
             )}
           </ScrollArea>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de Informações do Job */}
+      <Dialog open={!!infoJob} onOpenChange={(open) => !open && setInfoJob(null)}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Info className="h-5 w-5" />
+              Informações do Job
+            </DialogTitle>
+            <DialogDescription>
+              Detalhes sobre a funcionalidade e regras do agendamento
+            </DialogDescription>
+          </DialogHeader>
+          
+          {infoJob && (
+            <div className="space-y-4 mt-4">
+              <div className="space-y-2">
+                <Label className="text-muted-foreground text-xs uppercase tracking-wider">Nome</Label>
+                <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
+                  {getJobIcon(infoJob.jobname)}
+                  <span className="font-medium">{infoJob.jobname}</span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-muted-foreground text-xs uppercase tracking-wider">Tipo</Label>
+                <Badge variant="outline" className="text-sm">
+                  {getJobDocumentation(infoJob.jobname).tipo}
+                </Badge>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-muted-foreground text-xs uppercase tracking-wider">Descrição</Label>
+                <p className="text-sm text-foreground bg-muted p-3 rounded-md">
+                  {getJobDocumentation(infoJob.jobname).descricao}
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-muted-foreground text-xs uppercase tracking-wider">Regra de Execução</Label>
+                <p className="text-sm text-foreground bg-muted p-3 rounded-md font-mono text-xs">
+                  {getJobDocumentation(infoJob.jobname).regra}
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-muted-foreground text-xs uppercase tracking-wider">Frequência</Label>
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary">{formatCronSchedule(infoJob.schedule)}</Badge>
+                  <span className="text-xs text-muted-foreground">({infoJob.schedule})</span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-muted-foreground text-xs uppercase tracking-wider">Status Atual</Label>
+                <Badge variant={infoJob.active ? "default" : "secondary"}>
+                  {infoJob.active ? "Ativo" : "Inativo"}
+                </Badge>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </TooltipProvider>
