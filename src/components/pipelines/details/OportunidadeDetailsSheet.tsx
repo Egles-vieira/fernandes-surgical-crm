@@ -351,9 +351,6 @@ export function OportunidadeDetailsSheet({
 
                     {/* Nome e código */}
                     <div>
-                      <p className="text-xs text-muted-foreground">
-                        Oportunidade #{oportunidade.codigo || oportunidade.id.slice(0, 8)}
-                      </p>
                       <h2 className="text-lg font-bold mt-1">
                         {oportunidade.conta?.nome_conta || oportunidade.nome_oportunidade}
                       </h2>
