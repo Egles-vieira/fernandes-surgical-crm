@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { 
@@ -52,6 +52,7 @@ import { ClienteSearchDialog } from "@/components/ClienteSearchDialog";
 import { SpotFieldsSection } from "./SpotFieldsSection";
 import { ContatoClienteSection } from "./ContatoClienteSection";
 import { Tables } from "@/integrations/supabase/types";
+import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
 type Cliente = Tables<"clientes">;
@@ -147,14 +148,28 @@ export function OportunidadeDetailsSheet({
       setCamposCustomizados((oportunidade.campos_customizados as Record<string, unknown>) || {});
       setHasChanges(false);
       
-      // Sincronizar cliente
+      // Sincronizar cliente - buscar cod_emitente do banco
       if ((oportunidade as any).cliente_id) {
-        setClienteSelecionado({
-          id: (oportunidade as any).cliente_id,
-          nome_emit: (oportunidade as any).cliente_nome,
-          cgc: (oportunidade as any).cliente_cnpj,
-          vendedor_id: (oportunidade as any).vendedor_id,
-        } as Cliente);
+        const fetchClienteCompleto = async () => {
+          const { data: clienteData } = await supabase
+            .from('clientes')
+            .select('id, nome_emit, cgc, cod_emitente, vendedor_id')
+            .eq('id', (oportunidade as any).cliente_id)
+            .maybeSingle();
+          
+          if (clienteData) {
+            setClienteSelecionado(clienteData as Cliente);
+          } else {
+            // Fallback se não encontrar no banco
+            setClienteSelecionado({
+              id: (oportunidade as any).cliente_id,
+              nome_emit: (oportunidade as any).cliente_nome,
+              cgc: (oportunidade as any).cliente_cnpj,
+              vendedor_id: (oportunidade as any).vendedor_id,
+            } as Cliente);
+          }
+        };
+        fetchClienteCompleto();
       } else {
         setClienteSelecionado(null);
       }
@@ -385,7 +400,7 @@ export function OportunidadeDetailsSheet({
                                 {clienteSelecionado.nome_emit}
                               </p>
                               <p className="text-xs text-muted-foreground">
-                                {clienteSelecionado.cod_emitente && `#${clienteSelecionado.cod_emitente} · `}{clienteSelecionado.cgc}
+                                {clienteSelecionado.cod_emitente != null && `#${clienteSelecionado.cod_emitente} · `}{clienteSelecionado.cgc}
                               </p>
                             </div>
                           </div>
