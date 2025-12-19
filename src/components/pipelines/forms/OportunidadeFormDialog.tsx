@@ -21,6 +21,7 @@ interface OportunidadeFormDialogProps {
   contaId?: string | null;
   contatoId?: string | null;
   variant?: "dialog" | "sheet";
+  onSuccess?: (oportunidadeId: string) => void;
 }
 
 export function OportunidadeFormDialog({
@@ -31,6 +32,7 @@ export function OportunidadeFormDialog({
   contaId,
   contatoId,
   variant = "dialog",
+  onSuccess,
 }: OportunidadeFormDialogProps) {
   const isEditing = !!oportunidade;
   
@@ -48,6 +50,7 @@ export function OportunidadeFormDialog({
           id: oportunidade.id,
           dados: updateData,
         });
+        onSuccess?.(oportunidade.id);
       } else {
         const insertData = {
           ...data,
@@ -55,7 +58,8 @@ export function OportunidadeFormDialog({
             ? JSON.parse(JSON.stringify(data.campos_customizados)) 
             : null,
         } as any;
-        await createMutation.mutateAsync(insertData);
+        const result = await createMutation.mutateAsync(insertData);
+        onSuccess?.(result.id);
       }
       onOpenChange(false);
     } catch (error) {
@@ -76,6 +80,7 @@ export function OportunidadeFormDialog({
         pipelineId={pipelineId}
         contaId={contaId}
         contatoId={contatoId}
+        onSuccess={onSuccess}
       />
     );
   }

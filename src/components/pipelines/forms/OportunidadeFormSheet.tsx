@@ -57,6 +57,7 @@ interface OportunidadeFormSheetProps {
   pipelineId: string;
   contaId?: string | null;
   contatoId?: string | null;
+  onSuccess?: (oportunidadeId: string) => void;
 }
 
 export function OportunidadeFormSheet({
@@ -65,6 +66,7 @@ export function OportunidadeFormSheet({
   pipelineId,
   contaId: initialContaId,
   contatoId: initialContatoId,
+  onSuccess,
 }: OportunidadeFormSheetProps) {
   const { data: pipeline, isLoading: isLoadingPipeline } = usePipeline(pipelineId);
   const { data: estagios = [], isLoading: isLoadingEstagios } = useEstagiosPipeline(pipelineId);
@@ -170,6 +172,7 @@ export function OportunidadeFormSheet({
       const oportunidade = await createMutation.mutateAsync(insertData);
       toast.success(`Oportunidade ${oportunidade.codigo || ''} criada com sucesso!`);
       onOpenChange(false);
+      onSuccess?.(oportunidade.id);
     } catch (error) {
       console.error("Erro ao criar oportunidade:", error);
     }
