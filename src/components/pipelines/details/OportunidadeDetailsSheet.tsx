@@ -523,17 +523,17 @@ export function OportunidadeDetailsSheet({
               </div>
 
               {/* Coluna direita - Pipeline e abas */}
-              <div className="flex-1 flex flex-col min-w-0">
+              <div className="flex-1 flex flex-col min-w-0 bg-background">
                 {/* Header da coluna direita */}
-                <div className="px-6 py-4 border-b space-y-4">
+                <div className="px-6 py-4 border-b space-y-4 bg-card">
                   {/* Pipeline e estágio */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 text-sm">
                       <span className="text-muted-foreground">Pipeline:</span>
-                      <span className="font-medium">{oportunidade.pipeline?.nome || "—"}</span>
+                      <span className="font-medium text-foreground">{oportunidade.pipeline?.nome || "—"}</span>
                       <span className="text-muted-foreground">|</span>
                       <span className="text-muted-foreground">Etapa:</span>
-                      <span className="font-medium">{oportunidade.estagio?.nome_estagio || "—"}</span>
+                      <span className="font-medium text-foreground">{oportunidade.estagio?.nome_estagio || "—"}</span>
                     </div>
                     <div className="flex items-center gap-1 text-xs text-muted-foreground">
                       <Calendar className="h-3 w-3" />
@@ -552,10 +552,10 @@ export function OportunidadeDetailsSheet({
 
                 {/* Tabs */}
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
-                  <TabsList className="mx-6 mt-4 justify-start bg-transparent border-b rounded-none h-auto p-0 gap-4">
+                  <TabsList className="mx-6 mt-4 justify-start bg-muted/50 border rounded-lg h-auto p-1 gap-1">
                     <TabsTrigger 
                       value="itens" 
-                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent pb-2"
+                      className="rounded-md data-[state=active]:bg-card data-[state=active]:shadow-sm px-4 py-2 text-foreground"
                     >
                       Itens
                       {itensOportunidade && itensOportunidade.length > 0 && (
@@ -566,13 +566,13 @@ export function OportunidadeDetailsSheet({
                     </TabsTrigger>
                     <TabsTrigger 
                       value="atividades" 
-                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent pb-2"
+                      className="rounded-md data-[state=active]:bg-card data-[state=active]:shadow-sm px-4 py-2 text-foreground"
                     >
                       Atividades
                     </TabsTrigger>
                     <TabsTrigger 
                       value="campos" 
-                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent pb-2"
+                      className="rounded-md data-[state=active]:bg-card data-[state=active]:shadow-sm px-4 py-2 text-foreground"
                     >
                       Campos
                       {allFields && allFields.length > 0 && (
@@ -583,7 +583,7 @@ export function OportunidadeDetailsSheet({
                     </TabsTrigger>
                     <TabsTrigger 
                       value="notas" 
-                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent pb-2"
+                      className="rounded-md data-[state=active]:bg-card data-[state=active]:shadow-sm px-4 py-2 text-foreground"
                     >
                       Notas
                     </TabsTrigger>
@@ -646,37 +646,41 @@ export function OportunidadeDetailsSheet({
                       </div>
                     </TabsContent>
 
-                    <TabsContent value="campos" className="mt-0 px-6 py-4 space-y-6">
+                    <TabsContent value="campos" className="mt-0 p-4 m-4 space-y-6 bg-card rounded-lg border">
                       {/* Campos básicos */}
-                      <div className="space-y-4">
-                        <h3 className="text-sm font-medium">Informações Básicas</h3>
+                      <div className="space-y-4 p-4 bg-muted/20 rounded-lg border">
+                        <h3 className="text-sm font-semibold text-foreground">Informações Básicas</h3>
                         <div className="grid grid-cols-2 gap-4">
                           <div className="col-span-2 space-y-2">
-                            <Label>Nome da Oportunidade</Label>
+                            <Label className="text-foreground">Nome da Oportunidade</Label>
                             <Input
+                              className="bg-background"
                               value={formData.nome_oportunidade as string || ""}
                               onChange={(e) => handleFieldChange("nome_oportunidade", e.target.value)}
                             />
                           </div>
                           <div className="space-y-2">
-                            <Label>Valor</Label>
+                            <Label className="text-foreground">Valor</Label>
                             <Input
+                              className="bg-background"
                               type="number"
                               value={formData.valor as number || ""}
                               onChange={(e) => handleFieldChange("valor", parseFloat(e.target.value) || 0)}
                             />
                           </div>
                           <div className="space-y-2">
-                            <Label>Data de Fechamento</Label>
+                            <Label className="text-foreground">Data de Fechamento</Label>
                             <Input
+                              className="bg-background"
                               type="date"
                               value={formData.data_fechamento_prevista as string || ""}
                               onChange={(e) => handleFieldChange("data_fechamento_prevista", e.target.value)}
                             />
                           </div>
                           <div className="col-span-2 space-y-2">
-                            <Label>Observações</Label>
+                            <Label className="text-foreground">Observações</Label>
                             <Textarea
+                              className="bg-background"
                               value={formData.observacoes as string || ""}
                               onChange={(e) => handleFieldChange("observacoes", e.target.value)}
                               rows={3}
@@ -687,8 +691,8 @@ export function OportunidadeDetailsSheet({
 
                       {/* Campos customizados por grupo */}
                       {Object.entries(camposAgrupados).map(([grupo, campos]) => (
-                        <div key={grupo} className="space-y-4">
-                          <h3 className="text-sm font-medium">{grupo}</h3>
+                        <div key={grupo} className="space-y-4 p-4 bg-muted/20 rounded-lg border">
+                          <h3 className="text-sm font-semibold text-foreground">{grupo}</h3>
                           <div className="grid grid-cols-2 gap-4">
                             {campos?.sort((a, b) => a.ordem - b.ordem).map((campo) => (
                               <div 
@@ -725,7 +729,7 @@ export function OportunidadeDetailsSheet({
 
             {/* Footer com botão salvar */}
             {hasChanges && (
-              <div className="px-6 py-3 border-t bg-muted/30 flex justify-end gap-2">
+              <div className="px-6 py-3 border-t bg-card flex justify-end gap-2">
                 <Button 
                   variant="outline" 
                   onClick={() => {
