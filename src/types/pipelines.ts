@@ -31,7 +31,11 @@ export type CustomFieldTipo =
   | 'arquivo' 
   | 'usuario' 
   | 'cliente' 
-  | 'produto';
+  | 'produto'
+  // Tipos especiais que buscam de tabelas auxiliares
+  | 'select_tipo_pedido'
+  | 'select_condicao_pagamento'
+  | 'select_tipo_frete';
 
 // Status da Oportunidade
 export type OportunidadeStatus = 'aberto' | 'ganho' | 'perdido' | 'suspenso';

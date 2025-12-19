@@ -34,9 +34,8 @@ import {
 import { cn } from "@/lib/utils";
 
 import { DynamicFieldGroup } from "../fields/DynamicFieldGroup";
-import { SpotFieldsSection } from "../details/SpotFieldsSection";
 import { usePipelineFields } from "@/hooks/pipelines/usePipelineFields";
-import { useEstagiosPipeline, usePipeline } from "@/hooks/pipelines/usePipelines";
+import { useEstagiosPipeline } from "@/hooks/pipelines/usePipelines";
 import { 
   Oportunidade, 
   OportunidadeInsert, 
@@ -83,9 +82,7 @@ export function OportunidadeForm({
   // Buscar estágios do pipeline
   const { data: estagios, isLoading: loadingEstagios } = useEstagiosPipeline(pipelineId);
   
-  // Buscar dados do pipeline para verificar se é Spot
-  const { data: pipeline } = usePipeline(pipelineId);
-  const isSpotPipeline = pipeline?.nome === "Spot";
+  // Buscar campos customizados do pipeline
   
   // Buscar campos customizados do pipeline
   const { data: customFields, isLoading: loadingFields } = usePipelineFields({ 
@@ -336,19 +333,6 @@ export function OportunidadeForm({
             />
           </div>
         </div>
-
-        {/* Campos específicos do Pipeline Spot */}
-        {isSpotPipeline && (
-          <div className="space-y-4">
-            <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider border-b pb-2">
-              Dados do Pedido
-            </h4>
-            <SpotFieldsSection 
-              camposCustomizados={camposCustomizados} 
-              onChange={handleCustomFieldChange} 
-            />
-          </div>
-        )}
 
         {/* Campos Customizados do Pipeline */}
         {customFields && customFields.length > 0 && (
