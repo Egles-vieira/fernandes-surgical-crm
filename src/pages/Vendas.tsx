@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import type { Database } from "@/integrations/supabase/types";
 import { Search, Plus, Eye, Trash2, ShoppingCart, Save, Users, Edit, CheckCircle, Settings, Loader2, Calculator, ChevronLeft, ChevronRight, TestTube } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -84,8 +84,26 @@ export default function Vendas() {
     isCalculating
   } = useDatasulCalculaPedido();
 
-  // Estado de visualização
-  const [view, setView] = useState<VendasViewType | "nova">("pipeline");
+  // Controle de view via URL
+  const [searchParams, setSearchParams] = useSearchParams();
+  
+  // Determinar view da URL - se tem ?oportunidade=xxx, forçar view oportunidades
+  const hasOportunidade = searchParams.has("oportunidade") || searchParams.has("nova");
+  const urlView = searchParams.get("view") as VendasViewType | "nova" | null;
+  const view: VendasViewType | "nova" = hasOportunidade ? "oportunidades" : (urlView || "pipeline");
+  
+  // Função para mudar view via URL
+  const setView = useCallback((newView: VendasViewType | "nova") => {
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set("view", newView);
+    // Limpar parâmetros de oportunidade se mudar de view
+    if (newView !== "oportunidades") {
+      newParams.delete("oportunidade");
+      newParams.delete("nova");
+      newParams.delete("pipeline");
+    }
+    setSearchParams(newParams, { replace: true });
+  }, [searchParams, setSearchParams]);
   
   // Estado do pipeline selecionado para Multi-Pipeline Kanban
   const [selectedPipelineId, setSelectedPipelineId] = useState<string | null>(null);
