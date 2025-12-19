@@ -52,7 +52,9 @@ export function DynamicField({
 
   const renderField = () => {
     switch (field.tipo_campo) {
+      // Suporte para tipos em português E inglês do banco
       case "texto":
+      case "text":
         return (
           <Input
             id={field.nome_campo}
@@ -65,6 +67,7 @@ export function DynamicField({
         );
 
       case "numero":
+      case "number":
         return (
           <Input
             id={field.nome_campo}
@@ -78,6 +81,7 @@ export function DynamicField({
         );
 
       case "moeda":
+      case "currency":
         return (
           <Input
             id={field.nome_campo}
@@ -92,6 +96,7 @@ export function DynamicField({
         );
 
       case "percentual":
+      case "percentage":
         return (
           <div className="relative">
             <Input
@@ -112,6 +117,7 @@ export function DynamicField({
         );
 
       case "data":
+      case "date":
         return (
           <Popover>
             <PopoverTrigger asChild>
@@ -205,6 +211,7 @@ export function DynamicField({
         );
 
       case "boolean":
+      case "checkbox":
         return (
           <div className="flex items-center gap-2">
             <Switch
@@ -259,6 +266,7 @@ export function DynamicField({
         );
 
       case "telefone":
+      case "phone":
         return (
           <Input
             id={field.nome_campo}
