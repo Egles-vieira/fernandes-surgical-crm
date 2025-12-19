@@ -12418,6 +12418,9 @@ export type Database = {
         | "user"
         | "client"
         | "product"
+        | "select_tipo_pedido"
+        | "select_condicao_pagamento"
+        | "select_tipo_frete"
       etapa_pipeline:
         | "prospeccao"
         | "qualificacao"
@@ -12671,6 +12674,9 @@ export const Constants = {
         "user",
         "client",
         "product",
+        "select_tipo_pedido",
+        "select_condicao_pagamento",
+        "select_tipo_frete",
       ],
       etapa_pipeline: [
         "prospeccao",
