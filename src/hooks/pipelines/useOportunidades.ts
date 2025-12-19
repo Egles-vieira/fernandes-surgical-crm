@@ -274,9 +274,10 @@ export function useMoverEstagio() {
       console.error('[useMoverEstagio] Erro:', err);
       toast.error('Erro ao mover oportunidade');
     },
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['oportunidades'] });
       queryClient.invalidateQueries({ queryKey: ['kanban-oportunidades'] });
+      queryClient.invalidateQueries({ queryKey: ['oportunidade', variables.oportunidadeId] });
     },
   });
 }
