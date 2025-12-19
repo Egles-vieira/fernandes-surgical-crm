@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { PipelineKanbanColumn } from "./PipelineKanbanColumn";
 import { PipelineSelector } from "../forms/PipelineSelector";
 import { OportunidadeFormDialog } from "../forms/OportunidadeFormDialog";
+import { OportunidadeDetailsSheet } from "../details/OportunidadeDetailsSheet";
 
 import { usePipelineComEstagios } from "@/hooks/pipelines/usePipelines";
 import { useKanbanOportunidades, useMoverEstagio } from "@/hooks/pipelines/useOportunidades";
@@ -26,6 +27,7 @@ export function MultiPipelineKanban({
 }: MultiPipelineKanbanProps) {
   const [pipelineId, setPipelineId] = useState<string | null>(pipelineIdInicial || null);
   const [showNovaOportunidade, setShowNovaOportunidade] = useState(false);
+  const [selectedOportunidadeId, setSelectedOportunidadeId] = useState<string | null>(null);
 
   // Sincronizar estado interno quando a prop externa mudar
   useEffect(() => {
@@ -83,6 +85,7 @@ export function MultiPipelineKanban({
   };
 
   const handleViewDetails = (oportunidade: OportunidadeCard) => {
+    setSelectedOportunidadeId(oportunidade.id);
     onOportunidadeClick?.(oportunidade);
   };
 
@@ -205,6 +208,14 @@ export function MultiPipelineKanban({
       <OportunidadeFormDialog
         open={showNovaOportunidade}
         onOpenChange={setShowNovaOportunidade}
+        pipelineId={pipelineId}
+      />
+
+      {/* Sheet de detalhes da oportunidade */}
+      <OportunidadeDetailsSheet
+        open={!!selectedOportunidadeId}
+        onOpenChange={(open) => !open && setSelectedOportunidadeId(null)}
+        oportunidadeId={selectedOportunidadeId}
         pipelineId={pipelineId}
       />
     </div>
