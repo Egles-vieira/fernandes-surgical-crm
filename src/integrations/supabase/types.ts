@@ -4752,6 +4752,44 @@ export type Database = {
           },
         ]
       }
+      jobs_recalculo_oportunidade: {
+        Row: {
+          criado_em: string | null
+          erro: string | null
+          id: string
+          oportunidade_id: string
+          processado_em: string | null
+          status: string | null
+          tentativas: number | null
+        }
+        Insert: {
+          criado_em?: string | null
+          erro?: string | null
+          id?: string
+          oportunidade_id: string
+          processado_em?: string | null
+          status?: string | null
+          tentativas?: number | null
+        }
+        Update: {
+          criado_em?: string | null
+          erro?: string | null
+          id?: string
+          oportunidade_id?: string
+          processado_em?: string | null
+          status?: string | null
+          tentativas?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "jobs_recalculo_oportunidade_oportunidade_id_fkey"
+            columns: ["oportunidade_id"]
+            isOneToOne: false
+            referencedRelation: "oportunidades"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       logs_auditoria: {
         Row: {
           acao: string
@@ -12241,6 +12279,13 @@ export type Database = {
       pode_acessar_venda: {
         Args: { _user_id: string; _venda_id: string }
         Returns: boolean
+      }
+      processar_jobs_recalculo_oportunidade: {
+        Args: { p_limite?: number }
+        Returns: {
+          jobs_com_erro: number
+          jobs_processados: number
+        }[]
       }
       recalcular_metas_correcao: {
         Args: never
