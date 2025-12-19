@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { 
@@ -53,6 +53,28 @@ export function OportunidadeDetailsSheet({
   const [formData, setFormData] = useState<Record<string, unknown>>({});
   const [camposCustomizados, setCamposCustomizados] = useState<Record<string, unknown>>({});
   const [hasChanges, setHasChanges] = useState(false);
+  const [sheetWidth, setSheetWidth] = useState(1200);
+  const isResizing = useRef(false);
+
+  // Resize handlers
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    isResizing.current = true;
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  }, []);
+
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (!isResizing.current) return;
+    const newWidth = window.innerWidth - e.clientX;
+    setSheetWidth(Math.min(Math.max(newWidth, 600), window.innerWidth - 100));
+  }, []);
+
+  const handleMouseUp = useCallback(() => {
+    isResizing.current = false;
+    document.removeEventListener('mousemove', handleMouseMove);
+    document.removeEventListener('mouseup', handleMouseUp);
+  }, [handleMouseMove]);
 
   // Buscar dados da oportunidade
   const { data: oportunidade, isLoading } = useOportunidade(oportunidadeId);
@@ -144,9 +166,15 @@ export function OportunidadeDetailsSheet({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent 
-        className="w-full sm:max-w-[1100px] p-0 flex flex-col gap-0"
+        className="!w-auto sm:!max-w-none p-0 flex flex-col gap-0"
         side="right"
+        style={{ width: sheetWidth, maxWidth: '95vw' }}
       >
+        {/* Resize Handle */}
+        <div
+          className="absolute left-0 top-0 bottom-0 w-1 cursor-ew-resize hover:bg-primary/20 active:bg-primary/30 transition-colors z-50"
+          onMouseDown={handleMouseDown}
+        />
         {isLoading ? (
           <div className="flex items-center justify-center h-full">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
