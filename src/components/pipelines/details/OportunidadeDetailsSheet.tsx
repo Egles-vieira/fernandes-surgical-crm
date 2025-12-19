@@ -17,8 +17,11 @@ import {
   Plus,
   Trash2,
   Search,
-  Edit
+  Edit,
+  ChevronDown,
+  ChevronUp
 } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { toast } from "sonner";
 import { Sheet } from "@/components/ui/sheet";
 import { ResizableSheetContent } from "@/components/ui/resizable-sheet";
@@ -70,6 +73,7 @@ export function OportunidadeDetailsSheet({
   const [contatoSelecionadoId, setContatoSelecionadoId] = useState<string | null>(null);
   const [itemEditando, setItemEditando] = useState<ItemOportunidade | null>(null);
   const [showEditarItem, setShowEditarItem] = useState(false);
+  const [isGridExpanded, setIsGridExpanded] = useState(true);
 
   // Buscar dados da oportunidade
   const { data: oportunidade, isLoading } = useOportunidade(oportunidadeId);
@@ -547,29 +551,51 @@ export function OportunidadeDetailsSheet({
 
                   <ScrollArea className="flex-1">
                     <TabsContent value="itens" className="mt-0 px-6 py-4">
-                      {isLoadingItens ? (
-                        <div className="flex items-center justify-center py-12">
-                          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                      <Collapsible open={isGridExpanded} onOpenChange={setIsGridExpanded}>
+                        <div className="flex items-center justify-between mb-3">
+                          <h3 className="text-sm font-medium">Itens da Proposta</h3>
+                          <CollapsibleTrigger asChild>
+                            <Button variant="ghost" size="sm" className="h-7 px-2">
+                              {isGridExpanded ? (
+                                <>
+                                  <ChevronUp className="h-4 w-4 mr-1" />
+                                  Recolher
+                                </>
+                              ) : (
+                                <>
+                                  <ChevronDown className="h-4 w-4 mr-1" />
+                                  Expandir
+                                </>
+                              )}
+                            </Button>
+                          </CollapsibleTrigger>
                         </div>
-                      ) : (
-                        <ItensOportunidadeGrid
-                          itens={itensOportunidade || []}
-                          oportunidadeId={oportunidadeId!}
-                          onEdit={(item) => {
-                            setItemEditando(item);
-                            setShowEditarItem(true);
-                          }}
-                          onRemove={(itemId) => {
-                            if (oportunidadeId) {
-                              removerItemMutation.mutate({
-                                itemId,
-                                oportunidadeId,
-                              });
-                            }
-                          }}
-                          onAddItems={() => setShowItensSheet(true)}
-                        />
-                      )}
+                        <CollapsibleContent>
+                          {isLoadingItens ? (
+                            <div className="flex items-center justify-center py-12">
+                              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                            </div>
+                          ) : (
+                            <ItensOportunidadeGrid
+                              itens={itensOportunidade || []}
+                              oportunidadeId={oportunidadeId!}
+                              onEdit={(item) => {
+                                setItemEditando(item);
+                                setShowEditarItem(true);
+                              }}
+                              onRemove={(itemId) => {
+                                if (oportunidadeId) {
+                                  removerItemMutation.mutate({
+                                    itemId,
+                                    oportunidadeId,
+                                  });
+                                }
+                              }}
+                              onAddItems={() => setShowItensSheet(true)}
+                            />
+                          )}
+                        </CollapsibleContent>
+                      </Collapsible>
                     </TabsContent>
 
                     <TabsContent value="atividades" className="mt-0 px-6 py-4">
