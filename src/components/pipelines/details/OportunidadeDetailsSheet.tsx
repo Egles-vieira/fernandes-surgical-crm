@@ -143,7 +143,7 @@ export function OportunidadeDetailsSheet({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent 
-        className="w-full sm:max-w-[900px] p-0 flex flex-col gap-0"
+        className="w-full sm:max-w-[1100px] p-0 flex flex-col gap-0"
         side="right"
       >
         {isLoading ? (
@@ -177,7 +177,7 @@ export function OportunidadeDetailsSheet({
             {/* Conteúdo principal - duas colunas */}
             <div className="flex-1 flex min-h-0 overflow-hidden">
               {/* Coluna esquerda - Dados principais */}
-              <div className="w-[340px] border-r flex flex-col bg-background">
+              <div className="w-[380px] border-r flex flex-col bg-background">
                 <ScrollArea className="flex-1">
                   <div className="p-4 space-y-4">
                     {/* Badge de status */}
