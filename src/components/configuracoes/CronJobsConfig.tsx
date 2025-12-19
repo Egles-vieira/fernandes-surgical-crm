@@ -42,30 +42,77 @@ export function CronJobsConfig() {
 
   // Mapeamento de documentação dos jobs
   const jobDocumentation: Record<string, { descricao: string; tipo: string; regra: string }> = {
+    // === JOBS DE CACHE / MATERIALIZED VIEWS ===
     'refresh-dashboard-mvs': {
-      descricao: 'Atualiza as Materialized Views do dashboard de vendas para garantir dados atualizados sem impactar performance.',
+      descricao: 'Atualiza as Materialized Views do dashboard de vendas para garantir dados atualizados sem impactar performance. Essencial para métricas de vendas, ranking de vendedores e atividades prioritárias.',
       tipo: 'Atualização de Cache',
-      regra: 'Executa REFRESH CONCURRENTLY nas MVs: mv_estatisticas_vendas, mv_top_vendedores, mv_atividades_prioridade. Permite leitura durante atualização.'
+      regra: 'Executa REFRESH CONCURRENTLY nas MVs: mv_estatisticas_vendas (métricas de vendas consolidadas), mv_top_vendedores (ranking por performance), mv_atividades_prioridade (atividades ordenadas por score). Permite leitura durante atualização para não travar dashboards.'
     },
     'refresh-metas-mv': {
-      descricao: 'Atualiza a Materialized View de metas com progresso para exibição nos dashboards.',
+      descricao: 'Atualiza a Materialized View de metas com progresso calculado para exibição nos dashboards de gestão. Fundamental para acompanhamento de KPIs e metas da equipe.',
       tipo: 'Atualização de Cache',
-      regra: 'Executa REFRESH CONCURRENTLY na MV vw_metas_com_progresso que calcula percentuais de atingimento.'
+      regra: 'Executa REFRESH CONCURRENTLY na MV vw_metas_com_progresso que calcula: valor_atingido / valor_meta * 100 para cada meta, consolidando vendas do período e comparando com targets definidos.'
+    },
+    
+    // === JOBS DE PROCESSAMENTO ASSÍNCRONO ===
+    'processar-jobs-recalculo': {
+      descricao: 'Processa a fila de jobs de recálculo de valor de oportunidades de forma assíncrona. Criado para não travar a UI durante atualizações em massa de itens de oportunidade.',
+      tipo: 'Processamento Assíncrono (Fire-and-Forget)',
+      regra: 'Busca até 50 jobs pendentes na tabela jobs_recalculo_oportunidade, para cada um calcula SUM(quantidade * preco_unitario - valor_desconto) de todos os itens da oportunidade e atualiza o campo valor na tabela oportunidades. Jobs com falha são re-tentados até 3x.'
     },
     'processar-triagem-whatsapp': {
-      descricao: 'Processa mensagens WhatsApp pendentes de triagem utilizando IA para classificação automática.',
-      tipo: 'Processamento Assíncrono',
-      regra: 'Busca mensagens com status "pendente", envia para Edge Function de IA e atualiza classificação.'
+      descricao: 'Processa mensagens WhatsApp pendentes de triagem utilizando IA para classificação automática. Essencial para organização do atendimento e priorização de conversas.',
+      tipo: 'Processamento Assíncrono com IA',
+      regra: 'Busca mensagens na tabela whatsapp_mensagens com status "pendente_triagem", envia contexto para Edge Function de IA (DeepSeek), recebe classificação (urgência, tipo, sentimento) e atualiza metadados da mensagem. Limite de 20 mensagens por execução para controle de custo.'
+    },
+    
+    // === JOBS DE INTEGRAÇÃO / SINCRONIZAÇÃO ===
+    'sync-whatsapp-templates': {
+      descricao: 'Sincroniza templates de mensagem do Meta Business Suite para uso no WhatsApp Business API. Mantém templates atualizados para envio de mensagens HSM.',
+      tipo: 'Sincronização de Integração',
+      regra: 'Chama a Edge Function meta-api-sync-templates que: (1) Autentica com Meta Graph API, (2) Lista todos templates aprovados da conta WABA, (3) Insere/Atualiza na tabela whatsapp_templates. Executado a cada 6 horas.'
     },
     'sincronizar-tokens-wppconnect': {
-      descricao: 'Mantém os tokens de autenticação do WPPConnect atualizados para garantir conexão estável.',
+      descricao: 'Mantém os tokens de autenticação do WPPConnect Server atualizados para garantir conexão estável com sessões WhatsApp. Previne desconexões por expiração de token.',
       tipo: 'Manutenção de Integração',
-      regra: 'Verifica validade dos tokens e renova automaticamente antes da expiração.'
+      regra: 'Verifica validade dos tokens na tabela wppconnect_sessions, para tokens próximos de expirar (< 1 hora) faz refresh via API do WPPConnect Server e atualiza o token armazenado.'
     },
-    'processar-jobs-recalculo': {
-      descricao: 'Processa jobs de recálculo de valor de oportunidades de forma assíncrona para não travar a UI.',
+    
+    // === JOBS DE MANUTENÇÃO / LIMPEZA ===
+    'limpar-logs-antigos': {
+      descricao: 'Remove logs e registros de auditoria antigos para manter performance do banco de dados. Essencial para gestão de espaço e compliance com LGPD.',
+      tipo: 'Manutenção de Banco de Dados',
+      regra: 'Deleta registros com mais de 90 dias das tabelas: cliente_api_logs, atividades_historico (soft delete já realizado), cron.job_run_details. Executa em horário de baixo uso.'
+    },
+    'verificar-vencimentos': {
+      descricao: 'Verifica atividades e follow-ups vencidos e envia notificações para responsáveis. Importante para gestão de SLA e acompanhamento de clientes.',
+      tipo: 'Notificação Automática',
+      regra: 'Busca atividades com data_vencimento < NOW() e status != "concluida", gera alertas na tabela notificacoes para cada responsável. Também verifica oportunidades sem atividade há mais de X dias.'
+    },
+    'atualizar-scores-leads': {
+      descricao: 'Recalcula scores de priorização de leads e contatos baseado em engajamento recente. Alimenta a fila de trabalho inteligente dos vendedores.',
+      tipo: 'Processamento de Machine Learning',
+      regra: 'Para cada lead/contato ativo calcula: score_engajamento (interações 7 dias), score_recencia (último contato), score_valor (oportunidades abertas), score_fit (match com ICP). Atualiza campos score_* na tabela atividades.'
+    },
+    'backup-incremental': {
+      descricao: 'Executa backup incremental de tabelas críticas de negócio para bucket de storage. Complementa backups automáticos do Supabase.',
+      tipo: 'Backup e Recuperação',
+      regra: 'Exporta registros modificados nas últimas 24h das tabelas: vendas, oportunidades, clientes para formato JSON compactado no storage bucket "backups". Mantém 30 dias de histórico.'
+    },
+    'processar-fila-emails': {
+      descricao: 'Processa fila de emails pendentes de envio (follow-ups, notificações, relatórios). Evita timeout em envios em massa.',
       tipo: 'Processamento Assíncrono',
-      regra: 'Busca jobs pendentes na fila jobs_recalculo_oportunidade, calcula soma dos itens e atualiza o valor total da oportunidade.'
+      regra: 'Busca até 100 registros pendentes na tabela email_queue, envia via Edge Function (Resend/SendGrid), atualiza status para "enviado" ou "erro" com detalhes. Implementa rate limiting de 10 emails/segundo.'
+    },
+    'gerar-relatorios-diarios': {
+      descricao: 'Gera relatórios consolidados diários e envia para gestores. Inclui resumo de vendas, atividades e indicadores.',
+      tipo: 'Relatórios Automáticos',
+      regra: 'Consolida dados do dia anterior: total vendas, oportunidades criadas/fechadas, atividades realizadas. Gera PDF via Edge Function e envia por email para usuários com role "manager" ou "admin".'
+    },
+    'sincronizar-erp': {
+      descricao: 'Sincroniza dados com ERP externo (produtos, preços, estoque, pedidos). Mantém CRM atualizado com dados fiscais.',
+      tipo: 'Integração ERP',
+      regra: 'Chama API do ERP para: (1) Importar novos produtos/preços, (2) Atualizar estoque disponível, (3) Exportar pedidos aprovados. Usa fila de jobs para operações pesadas. Conflitos são logados para revisão manual.'
     },
   };
 
