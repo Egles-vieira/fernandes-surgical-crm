@@ -390,16 +390,6 @@ export function OportunidadeDetailsSheet({
                             </div>
                           </div>
 
-                          <div className="space-y-2 text-sm">
-                            <div className="flex items-center gap-2 text-muted-foreground">
-                              <Mail className="h-4 w-4" />
-                              <span>{clienteSelecionado.e_mail || "—"}</span>
-                            </div>
-                            <div className="flex items-center gap-2 text-muted-foreground">
-                              <Phone className="h-4 w-4" />
-                              <span>{clienteSelecionado.telefone1 || "—"}</span>
-                            </div>
-                          </div>
                         </>
                       ) : (
                         <div className="p-4 border border-dashed border-border rounded-lg text-center bg-card">
