@@ -58,38 +58,41 @@ export function OportunidadeDetailsSheet({
   const [isResizingState, setIsResizingState] = useState(false);
   const isResizing = useRef(false);
 
-  // Resize handlers usando useEffect para cleanup adequado
+  // Resize (mesma lógica de drag, mas com Pointer Events para funcionar em mouse/touch)
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
+    const handlePointerMove = (e: PointerEvent) => {
       if (!isResizing.current) return;
       const newWidth = window.innerWidth - e.clientX;
       setSheetWidth(Math.min(Math.max(newWidth, 600), window.innerWidth - 100));
     };
 
-    const handleMouseUp = () => {
+    const endResize = () => {
       isResizing.current = false;
       setIsResizingState(false);
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
     };
 
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
+    window.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointerup", endResize);
+    window.addEventListener("pointercancel", endResize);
 
     return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", endResize);
+      window.removeEventListener("pointercancel", endResize);
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
     };
   }, []);
 
-  const handleMouseDown = (e: React.MouseEvent) => {
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     e.preventDefault();
+    e.currentTarget.setPointerCapture(e.pointerId);
     isResizing.current = true;
     setIsResizingState(true);
-    document.body.style.cursor = 'ew-resize';
-    document.body.style.userSelect = 'none';
+    document.body.style.cursor = "ew-resize";
+    document.body.style.userSelect = "none";
   };
 
   // Buscar dados da oportunidade
@@ -186,10 +189,10 @@ export function OportunidadeDetailsSheet({
         side="right"
         style={{ width: sheetWidth, maxWidth: '95vw' }}
       >
-        {/* Resize Handle - mesmo estilo do ResizableHandle */}
+        {/* Resize Handle - mesmo estilo do ResizableHandle (com hitbox maior) */}
         <div
-          className="absolute left-0 top-0 bottom-0 w-px flex items-center justify-center bg-border cursor-ew-resize z-[60] group after:absolute after:inset-y-0 after:left-1/2 after:w-1 after:-translate-x-1/2 hover:bg-primary/50 transition-colors"
-          onMouseDown={handleMouseDown}
+          className="absolute left-0 top-0 bottom-0 w-px flex items-center justify-center bg-border cursor-ew-resize z-[60] group touch-none select-none after:absolute after:inset-y-0 after:left-1/2 after:w-4 after:-translate-x-1/2 hover:bg-primary/50 transition-colors"
+          onPointerDown={handlePointerDown}
         >
           <div className="z-10 flex h-4 w-3 items-center justify-center rounded-sm border bg-border">
             <GripVertical className="h-2.5 w-2.5" />
