@@ -12,7 +12,8 @@ import {
   Phone, 
   Calendar,
   Clock,
-  Save
+  Save,
+  Check
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -298,22 +299,38 @@ export function OportunidadeDetailsSheet({
                     </div>
                   </div>
 
-                  {/* Navegação de estágios */}
-                  <div className="flex gap-1 overflow-x-auto pb-1">
-                    {estagios?.map((estagio) => (
-                      <Badge
-                        key={estagio.id}
-                        variant={estagio.id === oportunidade.estagio_id ? "default" : "outline"}
-                        className={cn(
-                          "whitespace-nowrap cursor-pointer transition-colors",
-                          estagio.id === oportunidade.estagio_id 
-                            ? "bg-primary text-primary-foreground" 
-                            : "hover:bg-muted"
-                        )}
-                      >
-                        {estagio.nome_estagio}
-                      </Badge>
-                    ))}
+                  {/* Navegação de estágios - Stepper com setas */}
+                  <div className="flex overflow-x-auto">
+                    {estagios?.map((estagio, index) => {
+                      const currentIndex = estagios.findIndex(e => e.id === oportunidade.estagio_id);
+                      const isCompleted = index < currentIndex;
+                      const isCurrent = estagio.id === oportunidade.estagio_id;
+                      const isFuture = index > currentIndex;
+                      const isLast = index === estagios.length - 1;
+
+                      return (
+                        <div key={estagio.id} className="flex items-center">
+                          <div
+                            className={cn(
+                              "relative flex items-center gap-2 px-4 py-2 text-sm font-medium whitespace-nowrap cursor-pointer transition-colors",
+                              isCompleted && "bg-emerald-600 text-white",
+                              isCurrent && "bg-blue-600 text-white",
+                              isFuture && "bg-muted text-muted-foreground",
+                              !isLast && "pr-6"
+                            )}
+                            style={{
+                              clipPath: isLast 
+                                ? "polygon(0 0, 100% 0, 100% 100%, 0 100%, 8px 50%)"
+                                : "polygon(0 0, calc(100% - 8px) 0, 100% 50%, calc(100% - 8px) 100%, 0 100%, 8px 50%)",
+                              marginLeft: index === 0 ? 0 : "-8px"
+                            }}
+                          >
+                            {isCompleted && <Check className="h-4 w-4" />}
+                            <span>{estagio.nome_estagio}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
 
