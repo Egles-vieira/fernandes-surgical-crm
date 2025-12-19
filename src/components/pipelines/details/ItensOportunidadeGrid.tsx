@@ -333,7 +333,7 @@ export function ItensOportunidadeGrid({
             onDragEnd={handleDragEnd}
           >
             <Table>
-              <TableHeader className="sticky top-0 z-20 bg-muted/50 border-b">
+              <TableHeader className="sticky top-0 z-20 bg-background border-b shadow-sm">
                 <TableRow>
                   <TableHead className="w-8"></TableHead>
                   <TableHead className="w-10 text-center">#</TableHead>

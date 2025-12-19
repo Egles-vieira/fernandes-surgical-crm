@@ -122,13 +122,8 @@ export function SortableItemOportunidadeRow({
       </TableCell>
 
       {/* Nome do produto */}
-      <TableCell className={cn(paddingClass, textSize)}>
-        <div>
-          <p className="font-medium">{item.nome_produto || "—"}</p>
-          {item.produto_id && (
-            <p className="text-muted-foreground text-xs">{item.produto_id.slice(0, 8)}</p>
-          )}
-        </div>
+      <TableCell className={cn(paddingClass, "font-medium", textSize)}>
+        {item.nome_produto || "—"}
       </TableCell>
 
       {/* Preço Tabela (original) */}
