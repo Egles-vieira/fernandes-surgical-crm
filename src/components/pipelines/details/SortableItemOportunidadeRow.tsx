@@ -101,7 +101,10 @@ export function SortableItemOportunidadeRow({
     <TableRow
       ref={setNodeRef}
       style={style}
-      className={cn(isDragging && "relative z-50 bg-muted")}
+      className={cn(
+        isDragging && "relative z-50 bg-muted",
+        index % 2 === 0 ? "bg-background" : "bg-muted/30"
+      )}
     >
       {/* Grip para arrastar */}
       <TableCell className={cn(paddingClass, "w-8")}>
@@ -142,7 +145,11 @@ export function SortableItemOportunidadeRow({
             data-column="quantidade"
             onChange={(e) => onQuantidadeChange(item.id, parseFloat(e.target.value) || 0)}
             onKeyDown={(e) => handleKeyDown(e, "quantidade")}
-            className={cn("w-20 text-center", inputHeight, textSize)}
+            className={cn(
+              "w-20 text-center border-amber-400 bg-amber-50 dark:bg-amber-900/30 dark:border-amber-600 font-medium",
+              inputHeight,
+              textSize
+            )}
             min={0}
           />
         </TableCell>
@@ -158,10 +165,10 @@ export function SortableItemOportunidadeRow({
             onChange={(e) => onDescontoChange(item.id, parseFloat(e.target.value) || 0)}
             onKeyDown={(e) => handleKeyDown(e, "desconto")}
             className={cn(
-              "w-20 text-center",
+              "w-20 text-center border-rose-400 bg-rose-50 dark:bg-rose-900/30 dark:border-rose-600 font-medium",
               inputHeight,
               textSize,
-              localDesconto > 59.9999 && "border-destructive bg-destructive/10 text-destructive"
+              localDesconto > 59.9999 && "border-destructive bg-destructive/20 text-destructive"
             )}
             min={0}
             max={100}
