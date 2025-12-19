@@ -3,7 +3,6 @@ import { DragDropContext, DropResult } from "@hello-pangea/dnd";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Loader2, Plus, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 
 import { PipelineKanbanColumn } from "./PipelineKanbanColumn";
 import { PipelineSelector } from "../forms/PipelineSelector";
@@ -143,95 +142,82 @@ export function MultiPipelineKanban({
     );
   }
 
-  const isDetailsOpen = !!selectedOportunidadeId;
-
   return (
-    <ResizablePanelGroup direction="horizontal" className="h-full">
-      <ResizablePanel
-        defaultSize={isDetailsOpen ? 65 : 100}
-        minSize={40}
-        className="min-w-0"
-      >
-        <div className="flex flex-col h-full">
-          {/* Header do Kanban */}
-          <div className="flex items-center justify-between px-4 py-3 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <div className="flex items-center gap-4">
-              <div className="w-56">
-                <PipelineSelector
-                  value={pipelineId}
-                  onChange={handlePipelineChange}
-                  showLabel={false}
-                />
-              </div>
-              {pipeline && (
-                <div className="flex items-center gap-2">
-                  {pipeline.cor && (
-                    <div
-                      className="w-3 h-3 rounded-full"
-                      style={{ backgroundColor: pipeline.cor }}
-                    />
-                  )}
-                  <span className="text-sm text-muted-foreground">
-                    {pipeline.descricao}
-                  </span>
-                </div>
-              )}
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Button onClick={() => setShowNovaOportunidade(true)} size="sm">
-                <Plus className="h-4 w-4 mr-1" />
-                Nova Oportunidade
-              </Button>
-            </div>
-          </div>
-
-          {/* Área do Kanban */}
-          <DragDropContext onDragEnd={handleDragEnd}>
-            <div className="flex-1 min-h-0 overflow-hidden bg-muted/20">
-              <ScrollArea className="h-full w-full">
-                <div className="flex gap-3 p-4 min-w-max">
-                  {colunas.map(({ estagio, oportunidades, valorTotal, totalOportunidades }) => (
-                    <PipelineKanbanColumn
-                      key={estagio.id}
-                      estagio={estagio}
-                      oportunidades={oportunidades}
-                      valorTotal={valorTotal}
-                      totalReal={totalOportunidades}
-                      pipelineId={pipelineId}
-                      onViewDetails={handleViewDetails}
-                      onCarregarMais={() => carregarMais(estagio.id)}
-                      isLoadingMore={estagioCarregando === estagio.id}
-                    />
-                  ))}
-                </div>
-                <ScrollBar orientation="horizontal" />
-              </ScrollArea>
-            </div>
-          </DragDropContext>
-
-          {/* Dialog para nova oportunidade */}
-          <OportunidadeFormDialog
-            open={showNovaOportunidade}
-            onOpenChange={setShowNovaOportunidade}
-            pipelineId={pipelineId}
-          />
-        </div>
-      </ResizablePanel>
-
-      {isDetailsOpen && (
-        <>
-          <ResizableHandle withHandle />
-          <ResizablePanel defaultSize={35} minSize={25} maxSize={60} className="min-w-0">
-            <OportunidadeDetailsSheet
-              open={isDetailsOpen}
-              onOpenChange={(open) => !open && setSelectedOportunidadeId(null)}
-              oportunidadeId={selectedOportunidadeId}
-              pipelineId={pipelineId}
+    <div className="flex flex-col h-full">
+      {/* Header do Kanban */}
+      <div className="flex items-center justify-between px-4 py-3 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="flex items-center gap-4">
+          <div className="w-56">
+            <PipelineSelector
+              value={pipelineId}
+              onChange={handlePipelineChange}
+              showLabel={false}
             />
-          </ResizablePanel>
-        </>
-      )}
-    </ResizablePanelGroup>
+          </div>
+          {pipeline && (
+            <div className="flex items-center gap-2">
+              {pipeline.cor && (
+                <div 
+                  className="w-3 h-3 rounded-full" 
+                  style={{ backgroundColor: pipeline.cor }}
+                />
+              )}
+              <span className="text-sm text-muted-foreground">
+                {pipeline.descricao}
+              </span>
+            </div>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={() => setShowNovaOportunidade(true)}
+            size="sm"
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            Nova Oportunidade
+          </Button>
+        </div>
+      </div>
+
+      {/* Área do Kanban */}
+      <DragDropContext onDragEnd={handleDragEnd}>
+        <div className="flex-1 min-h-0 overflow-hidden bg-muted/20">
+          <ScrollArea className="h-full w-full">
+            <div className="flex gap-3 p-4 min-w-max">
+              {colunas.map(({ estagio, oportunidades, valorTotal, totalOportunidades }) => (
+                <PipelineKanbanColumn
+                  key={estagio.id}
+                  estagio={estagio}
+                  oportunidades={oportunidades}
+                  valorTotal={valorTotal}
+                  totalReal={totalOportunidades}
+                  pipelineId={pipelineId}
+                  onViewDetails={handleViewDetails}
+                  onCarregarMais={() => carregarMais(estagio.id)}
+                  isLoadingMore={estagioCarregando === estagio.id}
+                />
+              ))}
+            </div>
+            <ScrollBar orientation="horizontal" />
+          </ScrollArea>
+        </div>
+      </DragDropContext>
+
+      {/* Dialog para nova oportunidade */}
+      <OportunidadeFormDialog
+        open={showNovaOportunidade}
+        onOpenChange={setShowNovaOportunidade}
+        pipelineId={pipelineId}
+      />
+
+      {/* Sheet de detalhes da oportunidade */}
+      <OportunidadeDetailsSheet
+        open={!!selectedOportunidadeId}
+        onOpenChange={(open) => !open && setSelectedOportunidadeId(null)}
+        oportunidadeId={selectedOportunidadeId}
+        pipelineId={pipelineId}
+      />
+    </div>
   );
 }
