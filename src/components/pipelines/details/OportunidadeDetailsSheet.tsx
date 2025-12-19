@@ -25,10 +25,11 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import { useOportunidade, useUpdateOportunidade } from "@/hooks/pipelines/useOportunidades";
+import { useOportunidade, useUpdateOportunidade, useMoverEstagio } from "@/hooks/pipelines/useOportunidades";
 import { usePipelineFields } from "@/hooks/pipelines/usePipelineFields";
 import { usePipelineComEstagios } from "@/hooks/pipelines/usePipelines";
 import { DynamicField } from "@/components/pipelines/fields/DynamicField";
+import { PipelineStagesBar } from "./PipelineStagesBar";
 import { cn } from "@/lib/utils";
 
 interface OportunidadeDetailsSheetProps {
@@ -62,6 +63,22 @@ export function OportunidadeDetailsSheet({
 
   // Mutation para atualizar
   const updateMutation = useUpdateOportunidade();
+  const moverEstagioMutation = useMoverEstagio();
+
+  // Handler para mudar estágio
+  const handleEstagioChange = async (novoEstagioId: string) => {
+    if (!oportunidade || novoEstagioId === oportunidade.estagio_id) return;
+    
+    try {
+      await moverEstagioMutation.mutateAsync({
+        oportunidadeId: oportunidade.id,
+        novoEstagioId,
+      });
+      toast.success("Estágio atualizado");
+    } catch (error) {
+      toast.error("Erro ao atualizar estágio");
+    }
+  };
 
   // Sincronizar dados quando oportunidade carregar
   useEffect(() => {
@@ -298,22 +315,12 @@ export function OportunidadeDetailsSheet({
                   </div>
 
                   {/* Navegação de estágios */}
-                  <div className="flex gap-1 overflow-x-auto pb-1">
-                    {estagios?.map((estagio) => (
-                      <Badge
-                        key={estagio.id}
-                        variant={estagio.id === oportunidade.estagio_id ? "default" : "outline"}
-                        className={cn(
-                          "whitespace-nowrap cursor-pointer transition-colors",
-                          estagio.id === oportunidade.estagio_id 
-                            ? "bg-primary text-primary-foreground" 
-                            : "hover:bg-muted"
-                        )}
-                      >
-                        {estagio.nome_estagio}
-                      </Badge>
-                    ))}
-                  </div>
+                  <PipelineStagesBar
+                    estagios={estagios || []}
+                    estagioAtualId={oportunidade.estagio_id}
+                    onEstagioClick={handleEstagioChange}
+                    disabled={moverEstagioMutation.isPending}
+                  />
                 </div>
 
                 {/* Tabs */}
