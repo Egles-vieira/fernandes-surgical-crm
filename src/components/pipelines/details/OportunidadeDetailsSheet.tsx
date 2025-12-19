@@ -552,38 +552,38 @@ export function OportunidadeDetailsSheet({
 
                 {/* Tabs */}
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
-                  <TabsList className="mx-6 mt-4 justify-start bg-muted/50 border rounded-lg h-auto p-1 gap-1">
+                  <TabsList className="mx-6 mt-4 justify-start bg-transparent border-b rounded-none h-auto p-0 gap-0">
                     <TabsTrigger 
                       value="itens" 
-                      className="rounded-md data-[state=active]:bg-card data-[state=active]:shadow-sm px-4 py-2 text-foreground"
+                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-2 text-muted-foreground data-[state=active]:text-foreground"
                     >
                       Itens
                       {itensOportunidade && itensOportunidade.length > 0 && (
-                        <Badge variant="secondary" className="ml-2 h-5 px-1.5">
+                        <Badge variant="secondary" className="ml-2 h-5 px-1.5 bg-primary/10 text-primary">
                           {itensOportunidade.length}
                         </Badge>
                       )}
                     </TabsTrigger>
                     <TabsTrigger 
                       value="atividades" 
-                      className="rounded-md data-[state=active]:bg-card data-[state=active]:shadow-sm px-4 py-2 text-foreground"
+                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-2 text-muted-foreground data-[state=active]:text-foreground"
                     >
                       Atividades
                     </TabsTrigger>
                     <TabsTrigger 
                       value="campos" 
-                      className="rounded-md data-[state=active]:bg-card data-[state=active]:shadow-sm px-4 py-2 text-foreground"
+                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-2 text-muted-foreground data-[state=active]:text-foreground"
                     >
                       Campos
                       {allFields && allFields.length > 0 && (
-                        <Badge variant="secondary" className="ml-2 h-5 px-1.5">
+                        <Badge variant="secondary" className="ml-2 h-5 px-1.5 bg-primary/10 text-primary">
                           {allFields.length}
                         </Badge>
                       )}
                     </TabsTrigger>
                     <TabsTrigger 
                       value="notas" 
-                      className="rounded-md data-[state=active]:bg-card data-[state=active]:shadow-sm px-4 py-2 text-foreground"
+                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-2 text-muted-foreground data-[state=active]:text-foreground"
                     >
                       Notas
                     </TabsTrigger>
