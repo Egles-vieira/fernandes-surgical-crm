@@ -47,45 +47,47 @@ export function ItensOportunidadeGrid({
   onEdit,
   onRemove,
 }: ItensOportunidadeGridProps) {
+  // === TODOS OS HOOKS NO TOPO, SEM CONDICIONAL ===
+  
   // Estado local para ordem dos itens (drag-and-drop)
-  const [orderedItems, setOrderedItems] = useState<ItemOportunidade[]>(itens);
+  const [orderedItems, setOrderedItems] = useState<ItemOportunidade[]>([]);
 
   // Estado local para valores editáveis (quantidade e desconto)
-  const [localState, setLocalState] = useState<Map<string, LocalItemState>>(
-    new Map()
-  );
+  const [localState, setLocalState] = useState<Record<string, LocalItemState>>({});
 
+  // Hook de debounce
   const { debouncedUpdate } = useDebouncedItemUpdate(oportunidadeId);
+
+  // Sensors para drag-and-drop - SEPARADOS
+  const pointerSensor = useSensor(PointerSensor, {
+    activationConstraint: {
+      distance: 8,
+    },
+  });
+  
+  const keyboardSensor = useSensor(KeyboardSensor, {
+    coordinateGetter: sortableKeyboardCoordinates,
+  });
+  
+  const sensors = useSensors(pointerSensor, keyboardSensor);
 
   // Sincronizar com prop quando itens mudam
   useEffect(() => {
     setOrderedItems(itens);
 
     // Inicializar estado local com valores do banco
-    const newState = new Map<string, LocalItemState>();
+    const newState: Record<string, LocalItemState> = {};
     itens.forEach((item) => {
-      newState.set(item.id, {
+      newState[item.id] = {
         quantidade: item.quantidade,
         desconto: item.percentual_desconto || 0,
-      });
+      };
     });
     setLocalState(newState);
   }, [itens]);
 
-  // Sensors para drag-and-drop
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
-
   // Handler de drag end
-  const handleDragEnd = useCallback(async (event: DragEndEvent) => {
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
@@ -118,31 +120,29 @@ export function ItensOportunidadeGrid({
   // Handler para mudança de quantidade
   const handleQuantidadeChange = useCallback(
     (itemId: string, valor: number) => {
-      // Encontrar item e estado local atual
-      const item = orderedItems.find((i) => i.id === itemId);
-      if (!item) return;
-
-      const currentLocal = localState.get(itemId) || {
-        quantidade: item.quantidade,
-        desconto: item.percentual_desconto || 0,
-      };
-
-      // Atualizar estado local imediatamente
       setLocalState((prev) => {
-        const newState = new Map(prev);
-        newState.set(itemId, { ...currentLocal, quantidade: valor });
-        return newState;
+        const current = prev[itemId];
+        if (!current) return prev;
+        
+        return {
+          ...prev,
+          [itemId]: { ...current, quantidade: valor },
+        };
       });
 
-      // Disparar debounced update
-      debouncedUpdate(
-        itemId,
-        "quantidade",
-        valor,
-        item.preco_unitario,
-        valor,
-        currentLocal.desconto
-      );
+      // Encontrar item para pegar preço unitário
+      const item = orderedItems.find((i) => i.id === itemId);
+      if (item) {
+        const currentDesconto = localState[itemId]?.desconto ?? item.percentual_desconto ?? 0;
+        debouncedUpdate(
+          itemId,
+          "quantidade",
+          valor,
+          item.preco_unitario,
+          valor,
+          currentDesconto
+        );
+      }
     },
     [orderedItems, localState, debouncedUpdate]
   );
@@ -150,31 +150,29 @@ export function ItensOportunidadeGrid({
   // Handler para mudança de desconto
   const handleDescontoChange = useCallback(
     (itemId: string, valor: number) => {
-      // Encontrar item e estado local atual
-      const item = orderedItems.find((i) => i.id === itemId);
-      if (!item) return;
-
-      const currentLocal = localState.get(itemId) || {
-        quantidade: item.quantidade,
-        desconto: item.percentual_desconto || 0,
-      };
-
-      // Atualizar estado local imediatamente
       setLocalState((prev) => {
-        const newState = new Map(prev);
-        newState.set(itemId, { ...currentLocal, desconto: valor });
-        return newState;
+        const current = prev[itemId];
+        if (!current) return prev;
+        
+        return {
+          ...prev,
+          [itemId]: { ...current, desconto: valor },
+        };
       });
 
-      // Disparar debounced update
-      debouncedUpdate(
-        itemId,
-        "percentual_desconto",
-        valor,
-        item.preco_unitario,
-        currentLocal.quantidade,
-        valor
-      );
+      // Encontrar item para pegar preço unitário
+      const item = orderedItems.find((i) => i.id === itemId);
+      if (item) {
+        const currentQuantidade = localState[itemId]?.quantidade ?? item.quantidade;
+        debouncedUpdate(
+          itemId,
+          "percentual_desconto",
+          valor,
+          item.preco_unitario,
+          currentQuantidade,
+          valor
+        );
+      }
     },
     [orderedItems, localState, debouncedUpdate]
   );
@@ -183,7 +181,7 @@ export function ItensOportunidadeGrid({
   const totais = useMemo(() => {
     return orderedItems.reduce(
       (acc, item) => {
-        const local = localState.get(item.id) || {
+        const local = localState[item.id] || {
           quantidade: item.quantidade,
           desconto: item.percentual_desconto || 0,
         };
@@ -198,6 +196,12 @@ export function ItensOportunidadeGrid({
       { quantidade: 0, valor: 0 }
     );
   }, [orderedItems, localState]);
+
+  // === RENDER ===
+  
+  if (orderedItems.length === 0) {
+    return null;
+  }
 
   return (
     <div className="space-y-4">
@@ -225,7 +229,7 @@ export function ItensOportunidadeGrid({
               strategy={verticalListSortingStrategy}
             >
               {orderedItems.map((item, index) => {
-                const local = localState.get(item.id) || {
+                const local = localState[item.id] || {
                   quantidade: item.quantidade,
                   desconto: item.percentual_desconto || 0,
                 };
