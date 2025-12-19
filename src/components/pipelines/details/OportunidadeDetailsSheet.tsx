@@ -398,9 +398,9 @@ export function OportunidadeDetailsSheet({
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-medium truncate">{clienteSelecionado.nome_emit}</p>
                               <p className="text-xs text-muted-foreground">
-                                Cod:{" "}
+                                <span className="font-semibold">Cod:</span>{" "}
                                 {clienteSelecionado.cod_emitente != null && `#${clienteSelecionado.cod_emitente} · `}{" "}
-                                CNPJ:
+                                <span className="font-semibold">CNPJ:</span>{" "}
                                 {clienteSelecionado.cgc}
                               </p>
                             </div>
