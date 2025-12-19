@@ -287,6 +287,19 @@ export function OportunidadeDetailsSheet({
             {/* Header com título e código */}
             <div className="flex items-center justify-between px-6 py-4 border-b bg-card">
               <div className="flex items-center gap-3">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => setIsFullscreen(!isFullscreen)}
+                  title={isFullscreen ? "Recolher" : "Expandir"}
+                >
+                  {isFullscreen ? (
+                    <ChevronRight className="h-4 w-4" />
+                  ) : (
+                    <ChevronLeft className="h-4 w-4" />
+                  )}
+                </Button>
                 <span className="text-lg font-semibold">
                   {oportunidade.codigo ? `Oportunidade #${oportunidade.codigo}` : "Oportunidade"}
                 </span>
@@ -323,20 +336,6 @@ export function OportunidadeDetailsSheet({
                 )}
               </Button>
 
-              {/* Botão lateral para expandir/recolher fullscreen */}
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute -left-3 top-1/4 z-20 h-12 w-6 rounded-r-md bg-card hover:bg-accent border border-l-0 shadow-sm"
-                onClick={() => setIsFullscreen(!isFullscreen)}
-                title={isFullscreen ? "Recolher" : "Expandir"}
-              >
-                {isFullscreen ? (
-                  <ChevronRight className="h-4 w-4" />
-                ) : (
-                  <ChevronLeft className="h-4 w-4" />
-                )}
-              </Button>
 
               {/* Coluna esquerda - Dados principais */}
               <div className={cn(
