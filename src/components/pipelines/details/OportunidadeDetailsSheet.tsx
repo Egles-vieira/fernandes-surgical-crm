@@ -1,28 +1,22 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { 
-  ExternalLink, 
-  Mail, 
-  Copy, 
-  Loader2, 
-  X, 
-  Building2, 
-  User, 
-  Phone, 
+import {
+  ExternalLink,
+  Mail,
+  Copy,
+  Loader2,
+  X,
+  Building2,
+  User,
+  Phone,
   Calendar,
   Clock,
   Save,
   Check,
-  GripVertical
 } from "lucide-react";
 import { toast } from "sonner";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -31,6 +25,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
+
 import { useOportunidade, useUpdateOportunidade } from "@/hooks/pipelines/useOportunidades";
 import { usePipelineFields } from "@/hooks/pipelines/usePipelineFields";
 import { usePipelineComEstagios } from "@/hooks/pipelines/usePipelines";
@@ -54,46 +49,6 @@ export function OportunidadeDetailsSheet({
   const [formData, setFormData] = useState<Record<string, unknown>>({});
   const [camposCustomizados, setCamposCustomizados] = useState<Record<string, unknown>>({});
   const [hasChanges, setHasChanges] = useState(false);
-  const [sheetWidth, setSheetWidth] = useState(1200);
-  const [isResizingState, setIsResizingState] = useState(false);
-  const isResizing = useRef(false);
-
-  // Resize (mesma lógica de drag, mas com Pointer Events para funcionar em mouse/touch)
-  useEffect(() => {
-    const handlePointerMove = (e: PointerEvent) => {
-      if (!isResizing.current) return;
-      const newWidth = window.innerWidth - e.clientX;
-      setSheetWidth(Math.min(Math.max(newWidth, 600), window.innerWidth - 100));
-    };
-
-    const endResize = () => {
-      isResizing.current = false;
-      setIsResizingState(false);
-      document.body.style.cursor = "";
-      document.body.style.userSelect = "";
-    };
-
-    window.addEventListener("pointermove", handlePointerMove);
-    window.addEventListener("pointerup", endResize);
-    window.addEventListener("pointercancel", endResize);
-
-    return () => {
-      window.removeEventListener("pointermove", handlePointerMove);
-      window.removeEventListener("pointerup", endResize);
-      window.removeEventListener("pointercancel", endResize);
-      document.body.style.cursor = "";
-      document.body.style.userSelect = "";
-    };
-  }, []);
-
-  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.currentTarget.setPointerCapture(e.pointerId);
-    isResizing.current = true;
-    setIsResizingState(true);
-    document.body.style.cursor = "ew-resize";
-    document.body.style.userSelect = "none";
-  };
 
   // Buscar dados da oportunidade
   const { data: oportunidade, isLoading } = useOportunidade(oportunidadeId);
@@ -182,360 +137,366 @@ export function OportunidadeDetailsSheet({
     return acc;
   }, {} as Record<string, typeof allFields>) || {};
 
+  if (!open) return null;
+
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent 
-        className="!w-auto sm:!max-w-none p-0 flex flex-col gap-0"
-        side="right"
-        style={{ width: sheetWidth, maxWidth: '95vw' }}
-      >
-        {/* Resize Handle - mesmo estilo do ResizableHandle (com hitbox maior) */}
-        <div
-          className="absolute left-0 top-0 bottom-0 w-px flex items-center justify-center bg-border cursor-ew-resize z-[60] group touch-none select-none after:absolute after:inset-y-0 after:left-1/2 after:w-4 after:-translate-x-1/2 hover:bg-primary/50 transition-colors"
-          onPointerDown={handlePointerDown}
-        >
-          <div className="z-10 flex h-4 w-3 items-center justify-center rounded-sm border bg-border">
-            <GripVertical className="h-2.5 w-2.5" />
-          </div>
+    <div className="h-full border-l bg-card p-0 flex flex-col gap-0">
+      {isLoading ? (
+        <div className="flex items-center justify-center h-full">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
-        {isLoading ? (
-          <div className="flex items-center justify-center h-full">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-          </div>
-        ) : oportunidade ? (
-          <>
-            {/* Header com título e código */}
-            <div className="flex items-center justify-between px-6 py-4 border-b bg-muted/30">
-              <div className="flex items-center gap-3">
-                <span className="text-lg font-semibold">
-                  {oportunidade.codigo ? `Oportunidade #${oportunidade.codigo}` : "Oportunidade"}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button variant="ghost" size="sm" onClick={handleCopyLink}>
-                  <Copy className="h-4 w-4 mr-1" />
-                  Copiar Link
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="icon"
-                  onClick={() => onOpenChange(false)}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
+      ) : oportunidade ? (
+        <>
+          {/* Header com título e código */}
+          <div className="flex items-center justify-between px-6 py-4 border-b bg-muted/30">
+            <div className="flex items-center gap-3">
+              <span className="text-lg font-semibold">
+                {oportunidade.codigo
+                  ? `Oportunidade #${oportunidade.codigo}`
+                  : "Oportunidade"}
+              </span>
             </div>
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="sm" onClick={handleCopyLink}>
+                <Copy className="h-4 w-4 mr-1" />
+                Copiar Link
+              </Button>
+              <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
 
-            {/* Conteúdo principal - duas colunas */}
-            <div className="flex-1 flex min-h-0 overflow-hidden">
-              {/* Coluna esquerda - Dados principais */}
-              <div className="w-[380px] border-r flex flex-col bg-background">
-                <ScrollArea className="flex-1">
-                  <div className="p-4 space-y-4">
-                    {/* Badge de status */}
-                    <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
-                      Cliente Ativo
-                    </Badge>
+          {/* Conteúdo principal - duas colunas */}
+          <div className="flex-1 flex min-h-0 overflow-hidden">
+            {/* Coluna esquerda - Dados principais */}
+            <div className="w-[380px] border-r flex flex-col bg-background">
+              <ScrollArea className="flex-1">
+                <div className="p-4 space-y-4">
+                  {/* Badge de status */}
+                  <Badge
+                    variant="outline"
+                    className="bg-primary/10 text-primary border-primary/20"
+                  >
+                    Cliente Ativo
+                  </Badge>
 
-                    {/* Nome e código */}
-                    <div>
-                      <p className="text-xs text-muted-foreground">
-                        Oportunidade #{oportunidade.codigo || oportunidade.id.slice(0, 8)}
-                      </p>
-                      <h2 className="text-lg font-bold mt-1">
-                        {oportunidade.conta?.nome_conta || oportunidade.nome_oportunidade}
-                      </h2>
-                    </div>
+                  {/* Nome e código */}
+                  <div>
+                    <p className="text-xs text-muted-foreground">
+                      Oportunidade #{oportunidade.codigo || oportunidade.id.slice(0, 8)}
+                    </p>
+                    <h2 className="text-lg font-bold mt-1">
+                      {oportunidade.conta?.nome_conta || oportunidade.nome_oportunidade}
+                    </h2>
+                  </div>
 
-                    {/* Botões de ação */}
-                    <div className="flex gap-2">
-                      <Button className="flex-1" size="sm">
-                        <ExternalLink className="h-4 w-4 mr-2" />
-                        Ver Detalhes
+                  {/* Botões de ação */}
+                  <div className="flex gap-2">
+                    <Button className="flex-1" size="sm">
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      Ver Detalhes
+                    </Button>
+                    <Button variant="outline" size="icon" onClick={handleCopyLink}>
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+
+                  <Separator />
+
+                  {/* Valor */}
+                  <div className="bg-muted/50 rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Proposta</span>
+                      <Button
+                        variant="link"
+                        size="sm"
+                        className="h-auto p-0 text-primary"
+                      >
+                        Ver
                       </Button>
-                      <Button variant="outline" size="icon" onClick={handleCopyLink}>
-                        <Copy className="h-4 w-4" />
-                      </Button>
                     </div>
-
-                    <Separator />
-
-                    {/* Valor */}
-                    <div className="bg-muted/50 rounded-lg p-4">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">Proposta</span>
-                        <Button variant="link" size="sm" className="h-auto p-0 text-primary">
-                          Ver
-                        </Button>
-                      </div>
-                      <div className="text-2xl font-bold text-foreground mt-1">
-                        {formatCurrency(oportunidade.valor)}
-                      </div>
+                    <div className="text-2xl font-bold text-foreground mt-1">
+                      {formatCurrency(oportunidade.valor)}
                     </div>
+                  </div>
 
-                    <Separator />
+                  <Separator />
 
-                    {/* Detalhes do Cliente */}
-                    <div className="space-y-3">
-                      <h3 className="text-sm font-medium">Detalhes do Cliente</h3>
-                      
-                      <div className="flex items-start gap-3">
-                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-medium text-primary">
-                          {(oportunidade.conta?.nome_conta || "?").substring(0, 2).toUpperCase()}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">
-                            {oportunidade.conta?.nome_conta || "Sem conta vinculada"}
-                          </p>
-                          <p className="text-xs text-muted-foreground">Cliente</p>
-                        </div>
+                  {/* Detalhes do Cliente */}
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-medium">Detalhes do Cliente</h3>
+
+                    <div className="flex items-start gap-3">
+                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-medium text-primary">
+                        {(oportunidade.conta?.nome_conta || "?")
+                          .substring(0, 2)
+                          .toUpperCase()}
                       </div>
-
-                      <div className="space-y-2 text-sm">
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <Mail className="h-4 w-4" />
-                          <span>{(oportunidade.contato as any)?.email || "—"}</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <Phone className="h-4 w-4" />
-                          <span>{(oportunidade.contato as any)?.telefone || "—"}</span>
-                        </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">
+                          {oportunidade.conta?.nome_conta || "Sem conta vinculada"}
+                        </p>
+                        <p className="text-xs text-muted-foreground">Cliente</p>
                       </div>
                     </div>
 
-                    <Separator />
-
-                    {/* Vendedor */}
-                    <div className="space-y-3">
-                      <h3 className="text-sm font-medium">Vendedor</h3>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <User className="h-4 w-4" />
-                        <span>Vendedor Responsável</span>
-                      </div>
-                      <p className="text-sm">—</p>
-                    </div>
-
-                    {/* Datas */}
-                    <Separator />
                     <div className="space-y-2 text-sm">
                       <div className="flex items-center gap-2 text-muted-foreground">
-                        <Calendar className="h-4 w-4" />
-                        <span>Criado em {formatDate(oportunidade.criado_em)}</span>
+                        <Mail className="h-4 w-4" />
+                        <span>{(oportunidade.contato as any)?.email || "—"}</span>
                       </div>
                       <div className="flex items-center gap-2 text-muted-foreground">
-                        <Clock className="h-4 w-4" />
-                        <span>{oportunidade.dias_no_estagio || 0} dias no estágio</span>
+                        <Phone className="h-4 w-4" />
+                        <span>{(oportunidade.contato as any)?.telefone || "—"}</span>
                       </div>
                     </div>
                   </div>
-                </ScrollArea>
-              </div>
 
-              {/* Coluna direita - Pipeline e abas */}
-              <div className="flex-1 flex flex-col min-w-0">
-                {/* Header da coluna direita */}
-                <div className="px-6 py-4 border-b space-y-4">
-                  {/* Pipeline e estágio */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-sm">
-                      <span className="text-muted-foreground">Pipeline:</span>
-                      <span className="font-medium">{oportunidade.pipeline?.nome || "—"}</span>
-                      <span className="text-muted-foreground">|</span>
-                      <span className="text-muted-foreground">Etapa:</span>
-                      <span className="font-medium">{oportunidade.estagio?.nome_estagio || "—"}</span>
+                  <Separator />
+
+                  {/* Vendedor */}
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-medium">Vendedor</h3>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <User className="h-4 w-4" />
+                      <span>Vendedor Responsável</span>
                     </div>
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <Calendar className="h-3 w-3" />
-                      {formatDate(oportunidade.criado_em)}
-                    </div>
+                    <p className="text-sm">—</p>
                   </div>
 
-                  {/* Navegação de estágios - Stepper com setas */}
-                  <div className="flex overflow-x-auto">
-                    {estagios?.map((estagio, index) => {
-                      const currentIndex = estagios.findIndex(e => e.id === oportunidade.estagio_id);
-                      const isCompleted = index < currentIndex;
-                      const isCurrent = estagio.id === oportunidade.estagio_id;
-                      const isFuture = index > currentIndex;
-                      const isLast = index === estagios.length - 1;
+                  {/* Datas */}
+                  <Separator />
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <Calendar className="h-4 w-4" />
+                      <span>Criado em {formatDate(oportunidade.criado_em)}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <Clock className="h-4 w-4" />
+                      <span>{oportunidade.dias_no_estagio || 0} dias no estágio</span>
+                    </div>
+                  </div>
+                </div>
+              </ScrollArea>
+            </div>
 
-                      return (
-                        <div key={estagio.id} className="flex items-center">
-                          <div
-                            className={cn(
-                              "relative flex items-center gap-1.5 px-3 py-1 text-xs font-medium whitespace-nowrap cursor-pointer transition-colors",
-                              isCompleted && "bg-emerald-600 text-white",
-                              isCurrent && "bg-blue-600 text-white",
-                              isFuture && "bg-muted text-muted-foreground",
-                              !isLast && "pr-6"
-                            )}
-                            style={{
-                              clipPath: isLast 
-                                ? "polygon(0 0, 100% 0, 100% 100%, 0 100%, 8px 50%)"
-                                : "polygon(0 0, calc(100% - 8px) 0, 100% 50%, calc(100% - 8px) 100%, 0 100%, 8px 50%)",
-                              marginLeft: index === 0 ? 0 : "-8px"
-                            }}
-                          >
-                            {isCompleted && <Check className="h-3 w-3" />}
-                            <span>{estagio.nome_estagio}</span>
-                          </div>
-                        </div>
-                      );
-                    })}
+            {/* Coluna direita - Pipeline e abas */}
+            <div className="flex-1 flex flex-col min-w-0">
+              {/* Header da coluna direita */}
+              <div className="px-6 py-4 border-b space-y-4">
+                {/* Pipeline e estágio */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-sm">
+                    <span className="text-muted-foreground">Pipeline:</span>
+                    <span className="font-medium">{oportunidade.pipeline?.nome || "—"}</span>
+                    <span className="text-muted-foreground">|</span>
+                    <span className="text-muted-foreground">Etapa:</span>
+                    <span className="font-medium">{oportunidade.estagio?.nome_estagio || "—"}</span>
+                  </div>
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <Calendar className="h-3 w-3" />
+                    {formatDate(oportunidade.criado_em)}
                   </div>
                 </div>
 
-                {/* Tabs */}
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
-                  <TabsList className="mx-6 mt-4 justify-start bg-transparent border-b rounded-none h-auto p-0 gap-4">
-                    <TabsTrigger 
-                      value="atividades" 
-                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent pb-2"
-                    >
-                      Atividades
-                    </TabsTrigger>
-                    <TabsTrigger 
-                      value="campos" 
-                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent pb-2"
-                    >
-                      Campos
-                      {allFields && allFields.length > 0 && (
-                        <Badge variant="secondary" className="ml-2 h-5 px-1.5">
-                          {allFields.length}
-                        </Badge>
-                      )}
-                    </TabsTrigger>
-                    <TabsTrigger 
-                      value="notas" 
-                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent pb-2"
-                    >
-                      Notas
-                    </TabsTrigger>
-                  </TabsList>
+                {/* Navegação de estágios - Stepper com setas */}
+                <div className="flex overflow-x-auto">
+                  {estagios?.map((estagio, index) => {
+                    const currentIndex = estagios.findIndex(
+                      (e) => e.id === oportunidade.estagio_id,
+                    );
+                    const isCompleted = index < currentIndex;
+                    const isCurrent = estagio.id === oportunidade.estagio_id;
+                    const isFuture = index > currentIndex;
+                    const isLast = index === estagios.length - 1;
 
-                  <ScrollArea className="flex-1">
-                    <TabsContent value="atividades" className="mt-0 px-6 py-4">
-                      <h3 className="text-sm font-medium mb-4">Últimas Atividades</h3>
-                      <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-                        <Calendar className="h-12 w-12 mb-4 opacity-50" />
-                        <p>Nenhuma atividade registrada</p>
+                    return (
+                      <div key={estagio.id} className="flex items-center">
+                        <div
+                          className={cn(
+                            "relative flex items-center gap-1.5 px-3 py-1 text-xs font-medium whitespace-nowrap cursor-pointer transition-colors",
+                            isCompleted && "bg-emerald-600 text-white",
+                            isCurrent && "bg-blue-600 text-white",
+                            isFuture && "bg-muted text-muted-foreground",
+                            !isLast && "pr-6",
+                          )}
+                          style={{
+                            clipPath: isLast
+                              ? "polygon(0 0, 100% 0, 100% 100%, 0 100%, 8px 50%)"
+                              : "polygon(0 0, calc(100% - 8px) 0, 100% 50%, calc(100% - 8px) 100%, 0 100%, 8px 50%)",
+                            marginLeft: index === 0 ? 0 : "-8px",
+                          }}
+                        >
+                          {isCompleted && <Check className="h-3 w-3" />}
+                          <span>{estagio.nome_estagio}</span>
+                        </div>
                       </div>
-                    </TabsContent>
+                    );
+                  })}
+                </div>
+              </div>
 
-                    <TabsContent value="campos" className="mt-0 px-6 py-4 space-y-6">
-                      {/* Campos básicos */}
-                      <div className="space-y-4">
-                        <h3 className="text-sm font-medium">Informações Básicas</h3>
+              {/* Tabs */}
+              <Tabs
+                value={activeTab}
+                onValueChange={setActiveTab}
+                className="flex-1 flex flex-col min-h-0"
+              >
+                <TabsList className="mx-6 mt-4 justify-start bg-transparent border-b rounded-none h-auto p-0 gap-4">
+                  <TabsTrigger
+                    value="atividades"
+                    className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent pb-2"
+                  >
+                    Atividades
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="campos"
+                    className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent pb-2"
+                  >
+                    Campos
+                    {allFields && allFields.length > 0 && (
+                      <Badge variant="secondary" className="ml-2 h-5 px-1.5">
+                        {allFields.length}
+                      </Badge>
+                    )}
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="notas"
+                    className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent pb-2"
+                  >
+                    Notas
+                  </TabsTrigger>
+                </TabsList>
+
+                <ScrollArea className="flex-1">
+                  <TabsContent value="atividades" className="mt-0 px-6 py-4">
+                    <h3 className="text-sm font-medium mb-4">Últimas Atividades</h3>
+                    <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                      <Calendar className="h-12 w-12 mb-4 opacity-50" />
+                      <p>Nenhuma atividade registrada</p>
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="campos" className="mt-0 px-6 py-4 space-y-6">
+                    {/* Campos básicos */}
+                    <div className="space-y-4">
+                      <h3 className="text-sm font-medium">Informações Básicas</h3>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="col-span-2 space-y-2">
+                          <Label>Nome da Oportunidade</Label>
+                          <Input
+                            value={(formData.nome_oportunidade as string) || ""}
+                            onChange={(e) =>
+                              handleFieldChange("nome_oportunidade", e.target.value)
+                            }
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Valor</Label>
+                          <Input
+                            type="number"
+                            value={(formData.valor as number) || ""}
+                            onChange={(e) =>
+                              handleFieldChange("valor", parseFloat(e.target.value) || 0)
+                            }
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Data de Fechamento</Label>
+                          <Input
+                            type="date"
+                            value={(formData.data_fechamento as string) || ""}
+                            onChange={(e) =>
+                              handleFieldChange("data_fechamento", e.target.value)
+                            }
+                          />
+                        </div>
+                        <div className="col-span-2 space-y-2">
+                          <Label>Observações</Label>
+                          <Textarea
+                            value={(formData.observacoes as string) || ""}
+                            onChange={(e) => handleFieldChange("observacoes", e.target.value)}
+                            rows={3}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Campos customizados por grupo */}
+                    {Object.entries(camposAgrupados).map(([grupo, campos]) => (
+                      <div key={grupo} className="space-y-4">
+                        <h3 className="text-sm font-medium">{grupo}</h3>
                         <div className="grid grid-cols-2 gap-4">
-                          <div className="col-span-2 space-y-2">
-                            <Label>Nome da Oportunidade</Label>
-                            <Input
-                              value={formData.nome_oportunidade as string || ""}
-                              onChange={(e) => handleFieldChange("nome_oportunidade", e.target.value)}
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label>Valor</Label>
-                            <Input
-                              type="number"
-                              value={formData.valor as number || ""}
-                              onChange={(e) => handleFieldChange("valor", parseFloat(e.target.value) || 0)}
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label>Data de Fechamento</Label>
-                            <Input
-                              type="date"
-                              value={formData.data_fechamento as string || ""}
-                              onChange={(e) => handleFieldChange("data_fechamento", e.target.value)}
-                            />
-                          </div>
-                          <div className="col-span-2 space-y-2">
-                            <Label>Observações</Label>
-                            <Textarea
-                              value={formData.observacoes as string || ""}
-                              onChange={(e) => handleFieldChange("observacoes", e.target.value)}
-                              rows={3}
-                            />
-                          </div>
+                          {campos?.sort((a, b) => a.ordem - b.ordem).map((campo) => (
+                            <div
+                              key={campo.id}
+                              className={campo.largura === "full" ? "col-span-2" : ""}
+                            >
+                              <DynamicField
+                                field={campo}
+                                value={camposCustomizados[campo.nome_campo]}
+                                onChange={(value) =>
+                                  handleCustomFieldChange(campo.nome_campo, value)
+                                }
+                              />
+                            </div>
+                          ))}
                         </div>
                       </div>
+                    ))}
+                  </TabsContent>
 
-                      {/* Campos customizados por grupo */}
-                      {Object.entries(camposAgrupados).map(([grupo, campos]) => (
-                        <div key={grupo} className="space-y-4">
-                          <h3 className="text-sm font-medium">{grupo}</h3>
-                          <div className="grid grid-cols-2 gap-4">
-                            {campos?.sort((a, b) => a.ordem - b.ordem).map((campo) => (
-                              <div 
-                                key={campo.id} 
-                                className={campo.largura === "full" ? "col-span-2" : ""}
-                              >
-                                <DynamicField
-                                  field={campo}
-                                  value={camposCustomizados[campo.nome_campo]}
-                                  onChange={(value) => handleCustomFieldChange(campo.nome_campo, value)}
-                                />
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </TabsContent>
-
-                    <TabsContent value="notas" className="mt-0 px-6 py-4">
-                      <h3 className="text-sm font-medium mb-4">Notas</h3>
-                      <Textarea
-                        placeholder="Adicione uma nota..."
-                        rows={4}
-                        className="mb-4"
-                      />
-                      <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
-                        <p>Nenhuma nota registrada</p>
-                      </div>
-                    </TabsContent>
-                  </ScrollArea>
-                </Tabs>
-              </div>
+                  <TabsContent value="notas" className="mt-0 px-6 py-4">
+                    <h3 className="text-sm font-medium mb-4">Notas</h3>
+                    <Textarea placeholder="Adicione uma nota..." rows={4} className="mb-4" />
+                    <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
+                      <p>Nenhuma nota registrada</p>
+                    </div>
+                  </TabsContent>
+                </ScrollArea>
+              </Tabs>
             </div>
-
-            {/* Footer com botão salvar */}
-            {hasChanges && (
-              <div className="px-6 py-3 border-t bg-muted/30 flex justify-end gap-2">
-                <Button 
-                  variant="outline" 
-                  onClick={() => {
-                    if (oportunidade) {
-                      setFormData({
-                        nome_oportunidade: oportunidade.nome_oportunidade,
-                        valor: oportunidade.valor,
-                        data_fechamento: oportunidade.data_fechamento_prevista,
-                        observacoes: oportunidade.observacoes,
-                      });
-                      setCamposCustomizados((oportunidade.campos_customizados as Record<string, unknown>) || {});
-                      setHasChanges(false);
-                    }
-                  }}
-                >
-                  Cancelar
-                </Button>
-                <Button onClick={handleSave} disabled={updateMutation.isPending}>
-                  {updateMutation.isPending ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  ) : (
-                    <Save className="h-4 w-4 mr-2" />
-                  )}
-                  Salvar Alterações
-                </Button>
-              </div>
-            )}
-          </>
-        ) : (
-          <div className="flex items-center justify-center h-full">
-            <p className="text-muted-foreground">Oportunidade não encontrada</p>
           </div>
-        )}
-      </SheetContent>
-    </Sheet>
+
+          {/* Footer com botão salvar */}
+          {hasChanges && (
+            <div className="px-6 py-3 border-t bg-muted/30 flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  if (oportunidade) {
+                    setFormData({
+                      nome_oportunidade: oportunidade.nome_oportunidade,
+                      valor: oportunidade.valor,
+                      data_fechamento: oportunidade.data_fechamento_prevista,
+                      observacoes: oportunidade.observacoes,
+                    });
+                    setCamposCustomizados(
+                      (oportunidade.campos_customizados as Record<string, unknown>) || {},
+                    );
+                    setHasChanges(false);
+                  }
+                }}
+              >
+                Cancelar
+              </Button>
+              <Button onClick={handleSave} disabled={updateMutation.isPending}>
+                {updateMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Save className="h-4 w-4 mr-2" />
+                )}
+                Salvar Alterações
+              </Button>
+            </div>
+          )}
+        </>
+      ) : (
+        <div className="flex items-center justify-center h-full">
+          <p className="text-muted-foreground">Oportunidade não encontrada</p>
+        </div>
+      )}
+    </div>
   );
 }
