@@ -333,27 +333,27 @@ export function ItensOportunidadeGrid({
             onDragEnd={handleDragEnd}
           >
             <Table>
-              <TableHeader className="sticky top-0 z-20 bg-primary shadow-sm">
-                <TableRow className="hover:bg-primary border-none">
-                  <TableHead className="w-8 text-primary-foreground"></TableHead>
-                  <TableHead className="w-10 text-center text-primary-foreground font-medium">#</TableHead>
-                  <TableHead className="text-primary-foreground font-medium">Produto</TableHead>
+              <TableHeader className="sticky top-0 z-20 bg-background border-b shadow-sm">
+                <TableRow>
+                  <TableHead className="w-8"></TableHead>
+                  <TableHead className="w-10 text-center">#</TableHead>
+                  <TableHead>Produto</TableHead>
                   {visibleColumns.precoTabela && (
-                    <TableHead className="w-28 text-right text-primary-foreground font-medium">Preço Tab.</TableHead>
+                    <TableHead className="w-28 text-right">Preço Tab.</TableHead>
                   )}
                   {visibleColumns.quantidade && (
-                    <TableHead className="w-24 text-primary-foreground font-medium">Qtd</TableHead>
+                    <TableHead className="w-24">Qtd</TableHead>
                   )}
                   {visibleColumns.desconto && (
-                    <TableHead className="w-24 text-primary-foreground font-medium">Desc %</TableHead>
+                    <TableHead className="w-24">Desc %</TableHead>
                   )}
                   {visibleColumns.precoUnit && (
-                    <TableHead className="w-28 text-right text-primary-foreground font-medium">Preço Un.</TableHead>
+                    <TableHead className="w-28 text-right">Preço Un.</TableHead>
                   )}
                   {visibleColumns.total && (
-                    <TableHead className="w-28 text-right text-primary-foreground font-medium">Total</TableHead>
+                    <TableHead className="w-28 text-right">Total</TableHead>
                   )}
-                  <TableHead className="w-20 text-primary-foreground"></TableHead>
+                  <TableHead className="w-20"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
