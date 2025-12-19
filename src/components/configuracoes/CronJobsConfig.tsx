@@ -60,6 +60,11 @@ export function CronJobsConfig() {
       tipo: 'Processamento Assíncrono (Fire-and-Forget)',
       regra: 'Busca até 50 jobs pendentes na tabela jobs_recalculo_oportunidade, para cada um calcula SUM(quantidade * preco_unitario - valor_desconto) de todos os itens da oportunidade e atualiza o campo valor na tabela oportunidades. Jobs com falha são re-tentados até 3x.'
     },
+    'processar-jobs-recalculo-oportunidade': {
+      descricao: 'Job dedicado ao recálculo automático do valor total das oportunidades. Disparado quando itens são adicionados, editados ou removidos de uma oportunidade.',
+      tipo: 'Processamento Assíncrono (Fire-and-Forget)',
+      regra: 'Consome a fila jobs_recalculo_oportunidade: (1) Busca jobs com status "pending", (2) Marca como "processing", (3) Calcula SUM(quantidade * preco_unitario - valor_desconto) dos itens, (4) Atualiza oportunidades.valor, (5) Marca job como "completed". Em caso de erro, incrementa tentativas (máx 3) e registra mensagem de erro.'
+    },
     'processar-triagem-whatsapp': {
       descricao: 'Processa mensagens WhatsApp pendentes de triagem utilizando IA para classificação automática. Essencial para organização do atendimento e priorização de conversas.',
       tipo: 'Processamento Assíncrono com IA',
