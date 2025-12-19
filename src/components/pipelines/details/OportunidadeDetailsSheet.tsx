@@ -34,6 +34,7 @@ import { useOportunidade, useUpdateOportunidade, useMoverEstagio } from "@/hooks
 import { usePipelineFields } from "@/hooks/pipelines/usePipelineFields";
 import { usePipelineComEstagios } from "@/hooks/pipelines/usePipelines";
 import { useItensOportunidade, useRemoverItemOportunidade } from "@/hooks/pipelines/useItensOportunidade";
+import { useContatosCliente, ContatoCliente } from "@/hooks/useContatosCliente";
 import { DynamicField } from "@/components/pipelines/fields/DynamicField";
 import { PipelineStagesBar } from "./PipelineStagesBar";
 import { ItensOportunidadeSheet } from "./ItensOportunidadeSheet";
@@ -63,6 +64,7 @@ export function OportunidadeDetailsSheet({
   const [showItensSheet, setShowItensSheet] = useState(false);
   const [showClienteSearch, setShowClienteSearch] = useState(false);
   const [clienteSelecionado, setClienteSelecionado] = useState<Cliente | null>(null);
+  const [contatoSelecionadoId, setContatoSelecionadoId] = useState<string | null>(null);
 
   // Buscar dados da oportunidade
   const { data: oportunidade, isLoading } = useOportunidade(oportunidadeId);
@@ -82,6 +84,9 @@ export function OportunidadeDetailsSheet({
   // Mutation para atualizar
   const updateMutation = useUpdateOportunidade();
   const moverEstagioMutation = useMoverEstagio();
+
+  // Buscar contatos do cliente selecionado
+  const { contatos: contatosCliente } = useContatosCliente(clienteSelecionado?.id);
 
   // IDs dos itens existentes para excluir da busca
   const itensExistentesIds = useMemo(() => {
@@ -130,10 +135,14 @@ export function OportunidadeDetailsSheet({
           id: (oportunidade as any).cliente_id,
           nome_emit: (oportunidade as any).cliente_nome,
           cgc: (oportunidade as any).cliente_cnpj,
+          vendedor_id: (oportunidade as any).vendedor_id,
         } as Cliente);
       } else {
         setClienteSelecionado(null);
       }
+      
+      // Sincronizar contato selecionado
+      setContatoSelecionadoId((oportunidade as any).contato_id || null);
     }
   }, [oportunidade]);
 
@@ -141,6 +150,7 @@ export function OportunidadeDetailsSheet({
   const handleSelecionarCliente = async (cliente: Cliente) => {
     setClienteSelecionado(cliente);
     setShowClienteSearch(false);
+    setContatoSelecionadoId(null); // Reset contato ao trocar cliente
     
     if (!oportunidade) return;
     
@@ -151,8 +161,30 @@ export function OportunidadeDetailsSheet({
           cliente_id: cliente.id,
           cliente_nome: cliente.nome_emit,
           cliente_cnpj: cliente.cgc,
+          vendedor_id: cliente.vendedor_id || null,
+          contato_id: null, // Reset contato ao trocar cliente
         },
       });
+      toast.success("Cliente vinculado com sucesso");
+    } catch (error) {
+      // Error handled by mutation
+    }
+  };
+
+  // Handler para selecionar contato
+  const handleSelecionarContato = async (contatoId: string | null) => {
+    setContatoSelecionadoId(contatoId);
+    
+    if (!oportunidade) return;
+    
+    try {
+      await updateMutation.mutateAsync({
+        id: oportunidade.id,
+        dados: {
+          contato_id: contatoId,
+        },
+      });
+      toast.success(contatoId ? "Contato vinculado" : "Contato removido");
     } catch (error) {
       // Error handled by mutation
     }
@@ -366,14 +398,62 @@ export function OportunidadeDetailsSheet({
 
                     <Separator />
 
+                    {/* Contatos do Cliente */}
+                    {clienteSelecionado && contatosCliente.length > 0 && (
+                      <>
+                        <Separator />
+                        <div className="space-y-3">
+                          <h3 className="text-sm font-medium">Contato do Cliente</h3>
+                          <div className="space-y-2">
+                            {contatosCliente.map((contato) => (
+                              <div 
+                                key={contato.id}
+                                className={cn(
+                                  "flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors",
+                                  contatoSelecionadoId === contato.id 
+                                    ? "bg-primary/10 border border-primary/20" 
+                                    : "hover:bg-muted/50"
+                                )}
+                                onClick={() => handleSelecionarContato(
+                                  contatoSelecionadoId === contato.id ? null : contato.id
+                                )}
+                              >
+                                <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
+                                  {contato.primeiro_nome.substring(0, 1).toUpperCase()}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium truncate">
+                                    {contato.nome_completo}
+                                  </p>
+                                  {contato.cargo && (
+                                    <p className="text-xs text-muted-foreground truncate">
+                                      {contato.cargo}
+                                    </p>
+                                  )}
+                                </div>
+                                {contatoSelecionadoId === contato.id && (
+                                  <Badge variant="secondary" className="text-xs">
+                                    Selecionado
+                                  </Badge>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+
                     {/* Vendedor */}
+                    <Separator />
                     <div className="space-y-3">
                       <h3 className="text-sm font-medium">Vendedor</h3>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <User className="h-4 w-4" />
-                        <span>Vendedor Responsável</span>
+                      <div className="flex items-center gap-2 text-sm">
+                        <User className="h-4 w-4 text-muted-foreground" />
+                        <span>
+                          {(oportunidade as any)?.vendedor?.nome_completo || 
+                           (clienteSelecionado?.vendedor_id ? "Vendedor vinculado" : "Nenhum vendedor")}
+                        </span>
                       </div>
-                      <p className="text-sm">—</p>
                     </div>
 
                     {/* Datas */}
