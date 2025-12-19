@@ -140,29 +140,35 @@ export default function Auth() {
     <div className="min-h-screen flex font-sans" style={{ fontFamily: "var(--font, Lexend, sans-serif)" }}>
       {/* Left Side - Brand Section with Gradient */}
       <div className="hidden lg:flex lg:w-[62%] relative overflow-hidden">
-        {/* Modern gradient background similar to reference */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[#1e3a5f] via-[#2a5080] to-[#3fb39d]" />
+        {/* Modern gradient background - purple to blue like reference */}
+        <div className="absolute inset-0 bg-gradient-to-br from-[#6366f1] via-[#4f46e5] to-[#0ea5e9]" />
         
-        {/* Subtle overlay for depth */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
+        {/* Secondary gradient overlay for depth */}
+        <div className="absolute inset-0 bg-gradient-to-tr from-[#7c3aed]/40 via-transparent to-[#06b6d4]/30" />
+        
+        {/* Subtle noise texture for premium feel */}
+        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.8\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\'/%3E%3C/svg%3E")' }} />
 
-        {/* Animated floating orbs */}
-        <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-[#3fb39d]/20 rounded-full blur-[120px] animate-pulse" />
-        <div className="absolute bottom-1/4 left-1/4 w-80 h-80 bg-white/10 rounded-full blur-[100px]" />
-        <div className="absolute top-1/2 right-1/3 w-64 h-64 bg-[#1e3a5f]/30 rounded-full blur-[80px]" />
+        {/* Animated floating orbs with glow */}
+        <div className="absolute top-[15%] right-[20%] w-[500px] h-[500px] bg-[#818cf8]/30 rounded-full blur-[150px] animate-pulse" style={{ animationDuration: '4s' }} />
+        <div className="absolute bottom-[10%] left-[10%] w-[400px] h-[400px] bg-[#22d3ee]/25 rounded-full blur-[120px] animate-pulse" style={{ animationDuration: '6s' }} />
+        <div className="absolute top-[40%] left-[30%] w-[300px] h-[300px] bg-white/10 rounded-full blur-[100px]" />
 
         {/* Content */}
         <div className="relative z-10 text-white w-full px-16 flex flex-col justify-center py-20">
-          {/* AI Sparkle Icon */}
+          {/* AI Sparkle Icon - enhanced glow */}
           <div className="mb-12 animate-fade-in">
-            <div className="w-16 h-16 relative">
+            <div className="w-20 h-20 relative">
+              {/* Outer glow ring */}
+              <div className="absolute inset-0 bg-white/20 rounded-full blur-xl animate-pulse" style={{ animationDuration: '3s' }} />
               {/* Sparkle effect */}
-              <svg viewBox="0 0 64 64" className="w-full h-full" fill="none">
-                <circle cx="32" cy="32" r="24" stroke="white" strokeWidth="2" strokeDasharray="4 4" className="opacity-40" />
-                <circle cx="32" cy="32" r="16" fill="white" fillOpacity="0.1" />
-                <path d="M32 20L34 28L42 30L34 32L32 40L30 32L22 30L30 28L32 20Z" fill="white" />
-                <circle cx="44" cy="20" r="3" fill="white" className="animate-pulse" />
-                <circle cx="20" cy="44" r="2" fill="white" fillOpacity="0.6" />
+              <svg viewBox="0 0 80 80" className="w-full h-full relative z-10" fill="none">
+                <circle cx="40" cy="40" r="32" stroke="white" strokeWidth="1.5" strokeDasharray="6 4" className="opacity-50" />
+                <circle cx="40" cy="40" r="22" fill="white" fillOpacity="0.15" />
+                <path d="M40 22L43 34L55 37L43 40L40 52L37 40L25 37L37 34L40 22Z" fill="white" className="drop-shadow-lg" />
+                <circle cx="56" cy="24" r="4" fill="white" className="animate-pulse" />
+                <circle cx="24" cy="56" r="2.5" fill="white" fillOpacity="0.7" />
+                <circle cx="58" cy="50" r="2" fill="white" fillOpacity="0.5" className="animate-pulse" style={{ animationDelay: '1s' }} />
               </svg>
             </div>
           </div>
@@ -170,37 +176,46 @@ export default function Auth() {
           {/* Main headline with italic style */}
           <div className="space-y-6 mb-12">
             <h1 className="text-4xl lg:text-5xl font-bold leading-[1.15] tracking-tight">
-              <span className="italic bg-gradient-to-r from-white to-white/90 bg-clip-text text-transparent">
+              <span className="italic text-white drop-shadow-lg">
                 Apresentando ConvertiAI
               </span>
               <br />
-              <span className="italic text-white/95">
+              <span className="italic bg-gradient-to-r from-white via-cyan-200 to-white bg-clip-text text-transparent">
                 CRM Inteligente com IA
               </span>
             </h1>
             
-            <p className="text-lg text-white/70 leading-relaxed font-light max-w-lg">
+            <p className="text-lg text-white/80 leading-relaxed font-light max-w-lg drop-shadow-sm">
               ConvertiAI unifica gestão de vendas, cotações EDI e atendimento WhatsApp em uma única plataforma inteligente—para que você possa vender mais, automatizar processos e crescer sem limites.
             </p>
           </div>
 
-          {/* CTA Button */}
+          {/* CTA Button - matching reference style */}
           <div className="mb-16">
             <a 
               href="https://convertiai.com.br" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-white text-[#1e3a5f] font-semibold rounded-lg hover:bg-white/90 transition-all duration-300 hover:shadow-xl hover:shadow-white/20 hover:scale-105"
+              className="inline-flex items-center gap-2 px-7 py-3.5 bg-white text-[#4f46e5] font-semibold rounded-lg hover:bg-white/95 transition-all duration-300 hover:shadow-2xl hover:shadow-white/25 hover:scale-105 border border-white/20"
             >
               Saiba mais
             </a>
           </div>
 
-          {/* Decorative element at bottom right */}
-          <div className="absolute bottom-8 right-8 w-24 h-24 opacity-20">
-            <svg viewBox="0 0 100 100" fill="none" className="w-full h-full">
-              <circle cx="50" cy="50" r="45" stroke="white" strokeWidth="1" strokeDasharray="8 4" />
-              <circle cx="50" cy="50" r="30" stroke="white" strokeWidth="1" />
+          {/* Decorative element at bottom right - enhanced */}
+          <div className="absolute bottom-8 right-8 w-32 h-32 opacity-30">
+            <svg viewBox="0 0 100 100" fill="none" className="w-full h-full animate-[spin_20s_linear_infinite]">
+              <circle cx="50" cy="50" r="45" stroke="white" strokeWidth="0.5" strokeDasharray="8 6" />
+              <circle cx="50" cy="50" r="30" stroke="white" strokeWidth="0.5" strokeDasharray="4 4" />
+              <circle cx="50" cy="50" r="15" stroke="white" strokeWidth="0.5" />
+            </svg>
+          </div>
+          
+          {/* Additional decorative element top left */}
+          <div className="absolute top-12 left-12 w-20 h-20 opacity-20">
+            <svg viewBox="0 0 80 80" fill="none" className="w-full h-full">
+              <circle cx="40" cy="40" r="35" stroke="white" strokeWidth="0.5" />
+              <circle cx="40" cy="40" r="20" stroke="white" strokeWidth="0.5" strokeDasharray="3 3" />
             </svg>
           </div>
         </div>
