@@ -17,9 +17,7 @@ import {
   Plus,
   Trash2,
   Search,
-  Edit,
-  ChevronDown,
-  ChevronRight
+  Edit
 } from "lucide-react";
 import { toast } from "sonner";
 import { Sheet } from "@/components/ui/sheet";
@@ -44,7 +42,6 @@ import { PipelineStagesBar } from "./PipelineStagesBar";
 import { ItensOportunidadeSheet } from "./ItensOportunidadeSheet";
 import { ItensOportunidadeGrid } from "./ItensOportunidadeGrid";
 import { ClienteSearchDialog } from "@/components/ClienteSearchDialog";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Tables } from "@/integrations/supabase/types";
 import { cn } from "@/lib/utils";
 
@@ -73,7 +70,6 @@ export function OportunidadeDetailsSheet({
   const [contatoSelecionadoId, setContatoSelecionadoId] = useState<string | null>(null);
   const [itemEditando, setItemEditando] = useState<ItemOportunidade | null>(null);
   const [showEditarItem, setShowEditarItem] = useState(false);
-  const [isClienteSectionOpen, setIsClienteSectionOpen] = useState(true);
 
   // Buscar dados da oportunidade
   const { data: oportunidade, isLoading } = useOportunidade(oportunidadeId);
@@ -345,140 +341,126 @@ export function OportunidadeDetailsSheet({
 
                     <Separator />
 
-                    {/* Detalhes do Cliente - Collapsible */}
-                    <Collapsible open={isClienteSectionOpen} onOpenChange={setIsClienteSectionOpen}>
+                    {/* Detalhes do Cliente */}
+                    <div className="space-y-3">
                       <div className="flex items-center justify-between">
-                        <h3 className="text-sm font-medium">Detalhes do Cliente</h3>
-                        <CollapsibleTrigger asChild>
-                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
-                            {isClienteSectionOpen ? (
-                              <ChevronDown className="h-4 w-4" />
-                            ) : (
-                              <ChevronRight className="h-4 w-4" />
-                            )}
-                          </Button>
-                        </CollapsibleTrigger>
+                        <h3 className="text-sm font-medium">Cliente Vinculado</h3>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-7 px-2 text-xs"
+                          onClick={() => setShowClienteSearch(true)}
+                        >
+                          <Search className="h-3 w-3 mr-1" />
+                          {clienteSelecionado ? "Trocar" : "Vincular"}
+                        </Button>
                       </div>
                       
-                      <CollapsibleContent className="space-y-4 mt-3">
-                        {/* Cliente Vinculado */}
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs text-muted-foreground">Cliente Vinculado</span>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="h-7 px-2 text-xs"
-                              onClick={() => setShowClienteSearch(true)}
-                            >
-                              <Search className="h-3 w-3 mr-1" />
-                              {clienteSelecionado ? "Trocar" : "Vincular"}
-                            </Button>
+                      {clienteSelecionado ? (
+                        <>
+                          <div className="flex items-start gap-3">
+                            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-medium text-primary">
+                              {(clienteSelecionado.nome_emit || "?").substring(0, 2).toUpperCase()}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium truncate">
+                                {clienteSelecionado.nome_emit}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {clienteSelecionado.cgc}
+                              </p>
+                            </div>
                           </div>
-                          
-                          {clienteSelecionado ? (
-                            <>
-                              <div className="flex items-start gap-3">
-                                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-medium text-primary">
-                                  {(clienteSelecionado.nome_emit || "?").substring(0, 2).toUpperCase()}
+
+                          <div className="space-y-2 text-sm">
+                            <div className="flex items-center gap-2 text-muted-foreground">
+                              <Mail className="h-4 w-4" />
+                              <span>{clienteSelecionado.e_mail || "—"}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-muted-foreground">
+                              <Phone className="h-4 w-4" />
+                              <span>{clienteSelecionado.telefone1 || "—"}</span>
+                            </div>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="p-4 border border-dashed rounded-lg text-center">
+                          <Building2 className="h-8 w-8 mx-auto text-muted-foreground/50 mb-2" />
+                          <p className="text-sm text-muted-foreground">
+                            Nenhum cliente vinculado
+                          </p>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="mt-2"
+                            onClick={() => setShowClienteSearch(true)}
+                          >
+                            <Search className="h-4 w-4 mr-2" />
+                            Buscar Cliente
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+
+                    <Separator />
+
+                    {/* Contatos do Cliente */}
+                    {clienteSelecionado && contatosCliente.length > 0 && (
+                      <>
+                        <Separator />
+                        <div className="space-y-3">
+                          <h3 className="text-sm font-medium">Contato do Cliente</h3>
+                          <div className="space-y-2">
+                            {contatosCliente.map((contato) => (
+                              <div 
+                                key={contato.id}
+                                className={cn(
+                                  "flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors",
+                                  contatoSelecionadoId === contato.id 
+                                    ? "bg-primary/10 border border-primary/20" 
+                                    : "hover:bg-muted/50"
+                                )}
+                                onClick={() => handleSelecionarContato(
+                                  contatoSelecionadoId === contato.id ? null : contato.id
+                                )}
+                              >
+                                <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
+                                  {contato.primeiro_nome.substring(0, 1).toUpperCase()}
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <p className="text-sm font-medium truncate">
-                                    {clienteSelecionado.nome_emit}
+                                    {contato.nome_completo}
                                   </p>
-                                  <p className="text-xs text-muted-foreground">
-                                    {clienteSelecionado.cgc}
-                                  </p>
-                                </div>
-                              </div>
-
-                              <div className="space-y-2 text-sm">
-                                <div className="flex items-center gap-2 text-muted-foreground">
-                                  <Mail className="h-4 w-4" />
-                                  <span>{clienteSelecionado.e_mail || "—"}</span>
-                                </div>
-                                <div className="flex items-center gap-2 text-muted-foreground">
-                                  <Phone className="h-4 w-4" />
-                                  <span>{clienteSelecionado.telefone1 || "—"}</span>
-                                </div>
-                              </div>
-                            </>
-                          ) : (
-                            <div className="p-4 border border-dashed rounded-lg text-center">
-                              <Building2 className="h-8 w-8 mx-auto text-muted-foreground/50 mb-2" />
-                              <p className="text-sm text-muted-foreground">
-                                Nenhum cliente vinculado
-                              </p>
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                className="mt-2"
-                                onClick={() => setShowClienteSearch(true)}
-                              >
-                                <Search className="h-4 w-4 mr-2" />
-                                Buscar Cliente
-                              </Button>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Contatos do Cliente */}
-                        {clienteSelecionado && contatosCliente.length > 0 && (
-                          <div className="space-y-3">
-                            <Separator />
-                            <span className="text-xs text-muted-foreground">Contato do Cliente</span>
-                            <div className="space-y-2">
-                              {contatosCliente.map((contato) => (
-                                <div 
-                                  key={contato.id}
-                                  className={cn(
-                                    "flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors",
-                                    contatoSelecionadoId === contato.id 
-                                      ? "bg-primary/10 border border-primary/20" 
-                                      : "hover:bg-muted/50"
-                                  )}
-                                  onClick={() => handleSelecionarContato(
-                                    contatoSelecionadoId === contato.id ? null : contato.id
-                                  )}
-                                >
-                                  <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
-                                    {contato.primeiro_nome.substring(0, 1).toUpperCase()}
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-medium truncate">
-                                      {contato.nome_completo}
+                                  {contato.cargo && (
+                                    <p className="text-xs text-muted-foreground truncate">
+                                      {contato.cargo}
                                     </p>
-                                    {contato.cargo && (
-                                      <p className="text-xs text-muted-foreground truncate">
-                                        {contato.cargo}
-                                      </p>
-                                    )}
-                                  </div>
-                                  {contatoSelecionadoId === contato.id && (
-                                    <Badge variant="secondary" className="text-xs">
-                                      Selecionado
-                                    </Badge>
                                   )}
                                 </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Vendedor */}
-                        <div className="space-y-3">
-                          <Separator />
-                          <span className="text-xs text-muted-foreground">Vendedor</span>
-                          <div className="flex items-center gap-2 text-sm">
-                            <User className="h-4 w-4 text-muted-foreground" />
-                            <span>
-                              {(oportunidade as any)?.vendedor?.nome_completo || 
-                               (clienteSelecionado?.vendedor_id ? "Vendedor vinculado" : "Nenhum vendedor")}
-                            </span>
+                                {contatoSelecionadoId === contato.id && (
+                                  <Badge variant="secondary" className="text-xs">
+                                    Selecionado
+                                  </Badge>
+                                )}
+                              </div>
+                            ))}
                           </div>
                         </div>
-                      </CollapsibleContent>
-                    </Collapsible>
+                      </>
+                    )}
+
+                    {/* Vendedor */}
+                    <Separator />
+                    <div className="space-y-3">
+                      <h3 className="text-sm font-medium">Vendedor</h3>
+                      <div className="flex items-center gap-2 text-sm">
+                        <User className="h-4 w-4 text-muted-foreground" />
+                        <span>
+                          {(oportunidade as any)?.vendedor?.nome_completo || 
+                           (clienteSelecionado?.vendedor_id ? "Vendedor vinculado" : "Nenhum vendedor")}
+                        </span>
+                      </div>
+                    </div>
 
                     {/* Datas */}
                     <Separator />
