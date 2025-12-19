@@ -189,7 +189,8 @@ export function ItensOportunidadeGrid({
           valor,
           item.preco_unitario,
           valor,
-          currentDesconto
+          currentDesconto,
+          item.atualizado_em ?? undefined
         );
       }
     },
@@ -219,7 +220,8 @@ export function ItensOportunidadeGrid({
           valor,
           item.preco_unitario,
           currentQuantidade,
-          valor
+          valor,
+          item.atualizado_em ?? undefined
         );
       }
     },
