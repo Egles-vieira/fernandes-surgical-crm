@@ -140,83 +140,60 @@ export default function Auth() {
     <div className="min-h-screen flex font-sans" style={{ fontFamily: "var(--font, Lexend, sans-serif)" }}>
       {/* Left Side - Brand Section with Gradient */}
       <div className="hidden lg:flex lg:w-[62%] relative overflow-hidden">
-        {/* Modern gradient background - purple to blue like reference */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[#6366f1] via-[#4f46e5] to-[#0ea5e9]" />
+        {/* Base gradient - purple to electric blue (like DigitalOcean reference) */}
+        <div className="absolute inset-0 bg-gradient-to-br from-[#5b4a99] via-[#4361c4] to-[#0066ff]" />
         
-        {/* Secondary gradient overlay for depth */}
-        <div className="absolute inset-0 bg-gradient-to-tr from-[#7c3aed]/40 via-transparent to-[#06b6d4]/30" />
+        {/* Soft pink/purple glow overlay in center-left */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_20%_40%,rgba(168,130,200,0.4),transparent)]" />
         
-        {/* Subtle noise texture for premium feel */}
-        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.8\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\'/%3E%3C/svg%3E")' }} />
+        {/* Blue glow on the right */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_80%_at_100%_60%,rgba(0,120,255,0.3),transparent)]" />
 
-        {/* Animated floating orbs with glow */}
-        <div className="absolute top-[15%] right-[20%] w-[500px] h-[500px] bg-[#818cf8]/30 rounded-full blur-[150px] animate-pulse" style={{ animationDuration: '4s' }} />
-        <div className="absolute bottom-[10%] left-[10%] w-[400px] h-[400px] bg-[#22d3ee]/25 rounded-full blur-[120px] animate-pulse" style={{ animationDuration: '6s' }} />
-        <div className="absolute top-[40%] left-[30%] w-[300px] h-[300px] bg-white/10 rounded-full blur-[100px]" />
-
-        {/* Content */}
-        <div className="relative z-10 text-white w-full px-16 flex flex-col justify-center py-20">
-          {/* AI Sparkle Icon - enhanced glow */}
-          <div className="mb-12 animate-fade-in">
-            <div className="w-20 h-20 relative">
-              {/* Outer glow ring */}
-              <div className="absolute inset-0 bg-white/20 rounded-full blur-xl animate-pulse" style={{ animationDuration: '3s' }} />
-              {/* Sparkle effect */}
-              <svg viewBox="0 0 80 80" className="w-full h-full relative z-10" fill="none">
-                <circle cx="40" cy="40" r="32" stroke="white" strokeWidth="1.5" strokeDasharray="6 4" className="opacity-50" />
-                <circle cx="40" cy="40" r="22" fill="white" fillOpacity="0.15" />
-                <path d="M40 22L43 34L55 37L43 40L40 52L37 40L25 37L37 34L40 22Z" fill="white" className="drop-shadow-lg" />
-                <circle cx="56" cy="24" r="4" fill="white" className="animate-pulse" />
-                <circle cx="24" cy="56" r="2.5" fill="white" fillOpacity="0.7" />
-                <circle cx="58" cy="50" r="2" fill="white" fillOpacity="0.5" className="animate-pulse" style={{ animationDelay: '1s' }} />
+        {/* Content - centered like reference */}
+        <div className="relative z-10 text-white w-full px-16 flex flex-col justify-center items-start py-20">
+          {/* AI Sparkle Icon - simple like reference */}
+          <div className="mb-10 animate-fade-in">
+            <div className="w-14 h-14 relative">
+              <svg viewBox="0 0 56 56" className="w-full h-full" fill="none">
+                {/* Outer dashed circle */}
+                <circle cx="28" cy="28" r="24" stroke="white" strokeWidth="1" strokeDasharray="4 3" className="opacity-60" />
+                {/* Main sparkle star */}
+                <path d="M28 12L30.5 24L42 27L30.5 30L28 42L25.5 30L14 27L25.5 24L28 12Z" fill="white" />
+                {/* Small sparkles */}
+                <circle cx="44" cy="16" r="3" fill="white" />
+                <circle cx="44" cy="17" r="1.5" fill="white" className="opacity-70" />
+                <circle cx="12" cy="40" r="2" fill="white" className="opacity-50" />
               </svg>
             </div>
           </div>
 
-          {/* Main headline with italic style */}
-          <div className="space-y-6 mb-12">
-            <h1 className="text-4xl lg:text-5xl font-bold leading-[1.15] tracking-tight">
-              <span className="italic text-white drop-shadow-lg">
+          {/* Main headline with italic style - matching reference */}
+          <div className="space-y-5 mb-10">
+            <h1 className="text-[2.5rem] lg:text-[2.75rem] font-semibold leading-[1.2] tracking-tight">
+              <span className="italic text-white">
                 Apresentando ConvertiAI
               </span>
               <br />
-              <span className="italic bg-gradient-to-r from-white via-cyan-200 to-white bg-clip-text text-transparent">
+              <span className="italic text-white">
                 CRM Inteligente com IA
               </span>
             </h1>
             
-            <p className="text-lg text-white/80 leading-relaxed font-light max-w-lg drop-shadow-sm">
+            <p className="text-base text-white/75 leading-relaxed font-normal max-w-md">
               ConvertiAI unifica gestão de vendas, cotações EDI e atendimento WhatsApp em uma única plataforma inteligente—para que você possa vender mais, automatizar processos e crescer sem limites.
             </p>
           </div>
 
-          {/* CTA Button - matching reference style */}
-          <div className="mb-16">
+          {/* CTA Button - white with blue text like reference */}
+          <div>
             <a 
               href="https://convertiai.com.br" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-7 py-3.5 bg-white text-[#4f46e5] font-semibold rounded-lg hover:bg-white/95 transition-all duration-300 hover:shadow-2xl hover:shadow-white/25 hover:scale-105 border border-white/20"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-[#0066ff] text-sm font-semibold rounded-md hover:bg-white/95 transition-all duration-200 border border-[#0066ff]/20"
             >
               Saiba mais
             </a>
-          </div>
-
-          {/* Decorative element at bottom right - enhanced */}
-          <div className="absolute bottom-8 right-8 w-32 h-32 opacity-30">
-            <svg viewBox="0 0 100 100" fill="none" className="w-full h-full animate-[spin_20s_linear_infinite]">
-              <circle cx="50" cy="50" r="45" stroke="white" strokeWidth="0.5" strokeDasharray="8 6" />
-              <circle cx="50" cy="50" r="30" stroke="white" strokeWidth="0.5" strokeDasharray="4 4" />
-              <circle cx="50" cy="50" r="15" stroke="white" strokeWidth="0.5" />
-            </svg>
-          </div>
-          
-          {/* Additional decorative element top left */}
-          <div className="absolute top-12 left-12 w-20 h-20 opacity-20">
-            <svg viewBox="0 0 80 80" fill="none" className="w-full h-full">
-              <circle cx="40" cy="40" r="35" stroke="white" strokeWidth="0.5" />
-              <circle cx="40" cy="40" r="20" stroke="white" strokeWidth="0.5" strokeDasharray="3 3" />
-            </svg>
           </div>
         </div>
       </div>
