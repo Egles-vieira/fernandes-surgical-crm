@@ -15,12 +15,8 @@ import {
   Save
 } from "lucide-react";
 import { toast } from "sonner";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+import { Sheet } from "@/components/ui/sheet";
+import { ResizableSheetContent } from "@/components/ui/resizable-sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -142,9 +138,12 @@ export function OportunidadeDetailsSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent 
-        className="w-full sm:max-w-[900px] p-0 flex flex-col gap-0"
-        side="right"
+      <ResizableSheetContent 
+        className="p-0 flex flex-col gap-0"
+        defaultWidth={900}
+        minWidth={600}
+        maxWidth={1400}
+        storageKey="oportunidade-sheet-width"
       >
         {isLoading ? (
           <div className="flex items-center justify-center h-full">
@@ -467,7 +466,7 @@ export function OportunidadeDetailsSheet({
             <p className="text-muted-foreground">Oportunidade não encontrada</p>
           </div>
         )}
-      </SheetContent>
+      </ResizableSheetContent>
     </Sheet>
   );
 }
