@@ -1,15 +1,15 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { 
-  ExternalLink, 
-  Mail, 
-  Copy, 
-  Loader2, 
-  X, 
-  Building2, 
-  User, 
-  Phone, 
+import {
+  ExternalLink,
+  Mail,
+  Copy,
+  Loader2,
+  X,
+  Building2,
+  User,
+  Phone,
   Calendar,
   Clock,
   Save,
@@ -23,7 +23,7 @@ import {
   ChevronLeft,
   ChevronRight,
   PanelLeftClose,
-  PanelLeft
+  PanelLeft,
 } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { toast } from "sonner";
@@ -41,7 +41,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useOportunidade, useUpdateOportunidade, useMoverEstagio } from "@/hooks/pipelines/useOportunidades";
 import { usePipelineFields } from "@/hooks/pipelines/usePipelineFields";
 import { usePipelineComEstagios } from "@/hooks/pipelines/usePipelines";
-import { useItensOportunidade, useRemoverItemOportunidade, useAtualizarItemOportunidade, ItemOportunidade } from "@/hooks/pipelines/useItensOportunidade";
+import {
+  useItensOportunidade,
+  useRemoverItemOportunidade,
+  useAtualizarItemOportunidade,
+  ItemOportunidade,
+} from "@/hooks/pipelines/useItensOportunidade";
 import { EditarItemOportunidadeDialog } from "./EditarItemOportunidadeDialog";
 import { useContatosCliente, ContatoCliente } from "@/hooks/useContatosCliente";
 import { DynamicField } from "@/components/pipelines/fields/DynamicField";
@@ -86,7 +91,7 @@ export function OportunidadeDetailsSheet({
 
   // Buscar dados da oportunidade
   const { data: oportunidade, isLoading } = useOportunidade(oportunidadeId);
-  
+
   // Buscar pipeline com estágios
   const { estagios } = usePipelineComEstagios(pipelineId);
 
@@ -109,22 +114,25 @@ export function OportunidadeDetailsSheet({
 
   // IDs dos itens existentes para excluir da busca
   const itensExistentesIds = useMemo(() => {
-    return itensOportunidade?.map(item => item.produto_id).filter(Boolean) as string[] || [];
+    return (itensOportunidade?.map((item) => item.produto_id).filter(Boolean) as string[]) || [];
   }, [itensOportunidade]);
 
   // Totais dos itens
   const totaisItens = useMemo(() => {
     if (!itensOportunidade) return { quantidade: 0, valor: 0 };
-    return itensOportunidade.reduce((acc, item) => ({
-      quantidade: acc.quantidade + item.quantidade,
-      valor: acc.valor + (item.preco_total || 0),
-    }), { quantidade: 0, valor: 0 });
+    return itensOportunidade.reduce(
+      (acc, item) => ({
+        quantidade: acc.quantidade + item.quantidade,
+        valor: acc.valor + (item.preco_total || 0),
+      }),
+      { quantidade: 0, valor: 0 },
+    );
   }, [itensOportunidade]);
 
   // Handler para mudar estágio
   const handleEstagioChange = async (novoEstagioId: string) => {
     if (!oportunidade || novoEstagioId === oportunidade.estagio_id) return;
-    
+
     try {
       await moverEstagioMutation.mutateAsync({
         oportunidadeId: oportunidade.id,
@@ -147,16 +155,16 @@ export function OportunidadeDetailsSheet({
       });
       setCamposCustomizados((oportunidade.campos_customizados as Record<string, unknown>) || {});
       setHasChanges(false);
-      
+
       // Sincronizar cliente - buscar cod_emitente do banco
       if ((oportunidade as any).cliente_id) {
         const fetchClienteCompleto = async () => {
           const { data: clienteData } = await supabase
-            .from('clientes')
-            .select('id, nome_emit, cgc, cod_emitente, vendedor_id')
-            .eq('id', (oportunidade as any).cliente_id)
+            .from("clientes")
+            .select("id, nome_emit, cgc, cod_emitente, vendedor_id")
+            .eq("id", (oportunidade as any).cliente_id)
             .maybeSingle();
-          
+
           if (clienteData) {
             setClienteSelecionado(clienteData as Cliente);
           } else {
@@ -173,7 +181,7 @@ export function OportunidadeDetailsSheet({
       } else {
         setClienteSelecionado(null);
       }
-      
+
       // Sincronizar contato selecionado
       setContatoSelecionadoId((oportunidade as any).contato_id || null);
     }
@@ -184,9 +192,9 @@ export function OportunidadeDetailsSheet({
     setClienteSelecionado(cliente);
     setShowClienteSearch(false);
     setContatoSelecionadoId(null); // Reset contato ao trocar cliente
-    
+
     if (!oportunidade) return;
-    
+
     try {
       await updateMutation.mutateAsync({
         id: oportunidade.id,
@@ -207,9 +215,9 @@ export function OportunidadeDetailsSheet({
   // Handler para selecionar contato
   const handleSelecionarContato = async (contatoId: string | null) => {
     setContatoSelecionadoId(contatoId);
-    
+
     if (!oportunidade) return;
-    
+
     try {
       await updateMutation.mutateAsync({
         id: oportunidade.id,
@@ -224,18 +232,18 @@ export function OportunidadeDetailsSheet({
   };
 
   const handleFieldChange = (field: string, value: unknown) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
     setHasChanges(true);
   };
 
   const handleCustomFieldChange = (field: string, value: unknown) => {
-    setCamposCustomizados(prev => ({ ...prev, [field]: value }));
+    setCamposCustomizados((prev) => ({ ...prev, [field]: value }));
     setHasChanges(true);
   };
 
   const handleSave = async () => {
     if (!oportunidade) return;
-    
+
     try {
       await updateMutation.mutateAsync({
         id: oportunidade.id,
@@ -275,16 +283,20 @@ export function OportunidadeDetailsSheet({
   };
 
   // Agrupar campos por grupo
-  const camposAgrupados = allFields?.reduce((acc, campo) => {
-    const grupo = campo.grupo || "Outros";
-    if (!acc[grupo]) acc[grupo] = [];
-    acc[grupo].push(campo);
-    return acc;
-  }, {} as Record<string, typeof allFields>) || {};
+  const camposAgrupados =
+    allFields?.reduce(
+      (acc, campo) => {
+        const grupo = campo.grupo || "Outros";
+        if (!acc[grupo]) acc[grupo] = [];
+        acc[grupo].push(campo);
+        return acc;
+      },
+      {} as Record<string, typeof allFields>,
+    ) || {};
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <ResizableSheetContent 
+      <ResizableSheetContent
         className="p-0 flex flex-col gap-0"
         defaultWidth={900}
         minWidth={600}
@@ -309,11 +321,7 @@ export function OportunidadeDetailsSheet({
                   onClick={() => setIsFullscreen(!isFullscreen)}
                   title={isFullscreen ? "Recolher" : "Expandir"}
                 >
-                  {isFullscreen ? (
-                    <ChevronRight className="h-4 w-4" />
-                  ) : (
-                    <ChevronLeft className="h-4 w-4" />
-                  )}
+                  {isFullscreen ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
                 </Button>
                 <span className="text-lg font-semibold">
                   {oportunidade.codigo ? `Oportunidade #${oportunidade.codigo}` : "Oportunidade"}
@@ -324,11 +332,7 @@ export function OportunidadeDetailsSheet({
                   <Copy className="h-4 w-4 mr-1" />
                   Copiar Link
                 </Button>
-                <Button 
-                  variant="ghost" 
-                  size="icon"
-                  onClick={() => onOpenChange(false)}
-                >
+                <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)}>
                   <X className="h-4 w-4" />
                 </Button>
               </div>
@@ -341,22 +345,19 @@ export function OportunidadeDetailsSheet({
                 variant="ghost"
                 size="icon"
                 className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-8 w-6 rounded-l-none rounded-r-md bg-card hover:bg-accent border border-l-0"
-                style={{ left: isLeftPanelExpanded ? '340px' : '0' }}
+                style={{ left: isLeftPanelExpanded ? "340px" : "0" }}
                 onClick={() => setIsLeftPanelExpanded(!isLeftPanelExpanded)}
               >
-                {isLeftPanelExpanded ? (
-                  <ChevronLeft className="h-4 w-4" />
-                ) : (
-                  <ChevronRight className="h-4 w-4" />
-                )}
+                {isLeftPanelExpanded ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
               </Button>
 
-
               {/* Coluna esquerda - Dados principais */}
-              <div className={cn(
-                "border-r flex flex-col bg-card transition-all duration-300",
-                isLeftPanelExpanded ? "w-[340px]" : "w-0 overflow-hidden"
-              )}>
+              <div
+                className={cn(
+                  "border-r flex flex-col bg-card transition-all duration-300",
+                  isLeftPanelExpanded ? "w-[340px]" : "w-0 overflow-hidden",
+                )}
+              >
                 <ScrollArea className="flex-1">
                   <div className="p-4 space-y-4">
                     {/* Badge de status */}
@@ -371,16 +372,15 @@ export function OportunidadeDetailsSheet({
                       </h2>
                     </div>
 
-
                     <Separator />
 
                     {/* Detalhes do Cliente */}
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
                         <h3 className="text-sm font-medium">Cliente Vinculado</h3>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           className="h-7 px-2 text-xs"
                           onClick={() => setShowClienteSearch(true)}
                         >
@@ -388,7 +388,7 @@ export function OportunidadeDetailsSheet({
                           {clienteSelecionado ? "Trocar" : "Vincular"}
                         </Button>
                       </div>
-                      
+
                       {clienteSelecionado ? (
                         <>
                           <div className="flex items-start gap-3">
@@ -396,25 +396,22 @@ export function OportunidadeDetailsSheet({
                               {(clienteSelecionado.nome_emit || "?").substring(0, 2).toUpperCase()}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium truncate">
-                                {clienteSelecionado.nome_emit}
-                              </p>
+                              <p className="text-sm font-medium truncate">{clienteSelecionado.nome_emit}</p>
                               <p className="text-xs text-muted-foreground">
-                                {clienteSelecionado.cod_emitente != null && `#${clienteSelecionado.cod_emitente} · `}{clienteSelecionado.cgc}
+                                Cod:{" "}
+                                {clienteSelecionado.cod_emitente != null && `#${clienteSelecionado.cod_emitente} · `}
+                                {clienteSelecionado.cgc}
                               </p>
                             </div>
                           </div>
-
                         </>
                       ) : (
                         <div className="p-4 border border-dashed border-border rounded-lg text-center bg-card">
                           <Building2 className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-                          <p className="text-sm text-muted-foreground">
-                            Nenhum cliente vinculado
-                          </p>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
+                          <p className="text-sm text-muted-foreground">Nenhum cliente vinculado</p>
+                          <Button
+                            variant="outline"
+                            size="sm"
                             className="mt-2"
                             onClick={() => setShowClienteSearch(true)}
                           >
@@ -441,13 +438,10 @@ export function OportunidadeDetailsSheet({
                     )}
 
                     {/* Campos específicos do Pipeline Spot */}
-                    {oportunidade.pipeline?.nome === 'Spot' && (
+                    {oportunidade.pipeline?.nome === "Spot" && (
                       <>
                         <Separator />
-                        <SpotFieldsSection
-                          camposCustomizados={camposCustomizados}
-                          onChange={handleCustomFieldChange}
-                        />
+                        <SpotFieldsSection camposCustomizados={camposCustomizados} onChange={handleCustomFieldChange} />
                       </>
                     )}
 
@@ -458,8 +452,8 @@ export function OportunidadeDetailsSheet({
                       <div className="flex items-center gap-2 text-sm">
                         <User className="h-4 w-4 text-muted-foreground" />
                         <span>
-                          {(oportunidade as any)?.vendedor?.nome_completo || 
-                           (clienteSelecionado?.vendedor_id ? "Vendedor vinculado" : "Nenhum vendedor")}
+                          {(oportunidade as any)?.vendedor?.nome_completo ||
+                            (clienteSelecionado?.vendedor_id ? "Vendedor vinculado" : "Nenhum vendedor")}
                         </span>
                       </div>
                     </div>
@@ -511,8 +505,8 @@ export function OportunidadeDetailsSheet({
                 {/* Tabs */}
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
                   <TabsList className="mx-6 mt-4 justify-start bg-transparent border-b rounded-none h-auto p-0 gap-0">
-                    <TabsTrigger 
-                      value="itens" 
+                    <TabsTrigger
+                      value="itens"
                       className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-2 text-muted-foreground data-[state=active]:text-foreground"
                     >
                       Itens
@@ -522,14 +516,14 @@ export function OportunidadeDetailsSheet({
                         </Badge>
                       )}
                     </TabsTrigger>
-                    <TabsTrigger 
-                      value="atividades" 
+                    <TabsTrigger
+                      value="atividades"
                       className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-2 text-muted-foreground data-[state=active]:text-foreground"
                     >
                       Atividades
                     </TabsTrigger>
-                    <TabsTrigger 
-                      value="campos" 
+                    <TabsTrigger
+                      value="campos"
                       className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-2 text-muted-foreground data-[state=active]:text-foreground"
                     >
                       Campos
@@ -539,8 +533,8 @@ export function OportunidadeDetailsSheet({
                         </Badge>
                       )}
                     </TabsTrigger>
-                    <TabsTrigger 
-                      value="notas" 
+                    <TabsTrigger
+                      value="notas"
                       className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-2 text-muted-foreground data-[state=active]:text-foreground"
                     >
                       Notas
@@ -613,7 +607,7 @@ export function OportunidadeDetailsSheet({
                             <Label className="text-foreground">Nome da Oportunidade</Label>
                             <Input
                               className="bg-background"
-                              value={formData.nome_oportunidade as string || ""}
+                              value={(formData.nome_oportunidade as string) || ""}
                               onChange={(e) => handleFieldChange("nome_oportunidade", e.target.value)}
                             />
                           </div>
@@ -622,7 +616,7 @@ export function OportunidadeDetailsSheet({
                             <Input
                               className="bg-background"
                               type="number"
-                              value={formData.valor as number || ""}
+                              value={(formData.valor as number) || ""}
                               onChange={(e) => handleFieldChange("valor", parseFloat(e.target.value) || 0)}
                             />
                           </div>
@@ -631,7 +625,7 @@ export function OportunidadeDetailsSheet({
                             <Input
                               className="bg-background"
                               type="date"
-                              value={formData.data_fechamento_prevista as string || ""}
+                              value={(formData.data_fechamento_prevista as string) || ""}
                               onChange={(e) => handleFieldChange("data_fechamento_prevista", e.target.value)}
                             />
                           </div>
@@ -639,7 +633,7 @@ export function OportunidadeDetailsSheet({
                             <Label className="text-foreground">Observações</Label>
                             <Textarea
                               className="bg-background"
-                              value={formData.observacoes as string || ""}
+                              value={(formData.observacoes as string) || ""}
                               onChange={(e) => handleFieldChange("observacoes", e.target.value)}
                               rows={3}
                             />
@@ -652,18 +646,17 @@ export function OportunidadeDetailsSheet({
                         <div key={grupo} className="space-y-4 p-4 bg-muted/20 rounded-lg border">
                           <h3 className="text-sm font-semibold text-foreground">{grupo}</h3>
                           <div className="grid grid-cols-2 gap-4">
-                            {campos?.sort((a, b) => a.ordem - b.ordem).map((campo) => (
-                              <div 
-                                key={campo.id} 
-                                className={campo.largura === "full" ? "col-span-2" : ""}
-                              >
-                                <DynamicField
-                                  field={campo}
-                                  value={camposCustomizados[campo.nome_campo]}
-                                  onChange={(value) => handleCustomFieldChange(campo.nome_campo, value)}
-                                />
-                              </div>
-                            ))}
+                            {campos
+                              ?.sort((a, b) => a.ordem - b.ordem)
+                              .map((campo) => (
+                                <div key={campo.id} className={campo.largura === "full" ? "col-span-2" : ""}>
+                                  <DynamicField
+                                    field={campo}
+                                    value={camposCustomizados[campo.nome_campo]}
+                                    onChange={(value) => handleCustomFieldChange(campo.nome_campo, value)}
+                                  />
+                                </div>
+                              ))}
                           </div>
                         </div>
                       ))}
@@ -671,11 +664,7 @@ export function OportunidadeDetailsSheet({
 
                     <TabsContent value="notas" className="mt-0 px-6 py-4">
                       <h3 className="text-sm font-medium mb-4">Notas</h3>
-                      <Textarea
-                        placeholder="Adicione uma nota..."
-                        rows={4}
-                        className="mb-4"
-                      />
+                      <Textarea placeholder="Adicione uma nota..." rows={4} className="mb-4" />
                       <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
                         <p>Nenhuma nota registrada</p>
                       </div>
@@ -688,8 +677,8 @@ export function OportunidadeDetailsSheet({
             {/* Footer com botão salvar */}
             {hasChanges && (
               <div className="px-6 py-3 border-t bg-card flex justify-end gap-2">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={() => {
                     if (oportunidade) {
                       setFormData({
