@@ -599,14 +599,16 @@ export function OportunidadeDetailsSheet({
                       <div className="space-y-4 p-4 bg-muted/20 rounded-lg border">
                         <h3 className="text-sm font-semibold text-foreground">Informações Básicas</h3>
                         <div className="grid grid-cols-2 gap-4">
-                          <div className="col-span-2 space-y-2">
-                            <Label className="text-foreground">Nome da Oportunidade</Label>
-                            <Input
-                              className="bg-background"
-                              value={(formData.nome_oportunidade as string) || ""}
-                              onChange={(e) => handleFieldChange("nome_oportunidade", e.target.value)}
-                            />
-                          </div>
+                          {oportunidade.pipeline?.nome !== "Spot" && (
+                            <div className="col-span-2 space-y-2">
+                              <Label className="text-foreground">Nome da Oportunidade</Label>
+                              <Input
+                                className="bg-background"
+                                value={(formData.nome_oportunidade as string) || ""}
+                                onChange={(e) => handleFieldChange("nome_oportunidade", e.target.value)}
+                              />
+                            </div>
+                          )}
                           <div className="space-y-2">
                             <Label className="text-foreground">Valor</Label>
                             <Input
