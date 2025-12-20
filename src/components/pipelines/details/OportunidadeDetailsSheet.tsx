@@ -28,6 +28,7 @@ import { ItensOportunidadeGrid } from "./ItensOportunidadeGrid";
 import { ClienteSearchDialog } from "@/components/ClienteSearchDialog";
 import { SpotFieldsSection } from "./SpotFieldsSection";
 import { ContatoClienteSection } from "./ContatoClienteSection";
+import { OportunidadeDetailsSheetSkeleton } from "./OportunidadeDetailsSheetSkeleton";
 import { Tables } from "@/integrations/supabase/types";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -270,9 +271,7 @@ export function OportunidadeDetailsSheet({
   }, {} as Record<string, typeof allFields>) || {};
   return <Sheet open={open} onOpenChange={onOpenChange}>
       <ResizableSheetContent className="p-0 flex flex-col gap-0" defaultWidth={900} minWidth={600} maxWidth={1400} storageKey="oportunidade-sheet-width" isFullscreen={isFullscreen} overlayClassName="bg-background/60 backdrop-blur-sm">
-        {isLoading ? <div className="flex items-center justify-center h-full">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-          </div> : oportunidade ? <>
+        {isLoading ? <OportunidadeDetailsSheetSkeleton /> : oportunidade ? <>
             {/* Header com título e código */}
             <div className="flex items-center justify-between px-6 border-b bg-card py-[10px]">
               <div className="flex items-center gap-3">
@@ -454,7 +453,7 @@ export function OportunidadeDetailsSheet({
                             oportunidadeId
                           });
                         }
-                      }} onAddItems={() => setShowItensSheet(true)} className="bg-primary-foreground" />}
+                      }} onAddItems={() => setShowItensSheet(true)} />}
                         </CollapsibleContent>
                       </Collapsible>
                     </TabsContent>

@@ -204,7 +204,7 @@ export function MultiPipelineKanban({
               oportunidades,
               valorTotal,
               totalOportunidades
-            }) => <PipelineKanbanColumn key={estagio.id} estagio={estagio} oportunidades={oportunidades} valorTotal={valorTotal} totalReal={totalOportunidades} pipelineId={pipelineId} onViewDetails={handleViewDetails} onCarregarMais={() => carregarMais(estagio.id)} isLoadingMore={estagioCarregando === estagio.id} className="bg-neutral-100" />)}
+            }) => <PipelineKanbanColumn key={estagio.id} estagio={estagio} oportunidades={oportunidades} valorTotal={valorTotal} totalReal={totalOportunidades} pipelineId={pipelineId} onViewDetails={handleViewDetails} onCarregarMais={() => carregarMais(estagio.id)} isLoadingMore={estagioCarregando === estagio.id} />)}
             </div>
             <ScrollBar orientation="horizontal" />
           </ScrollArea>
