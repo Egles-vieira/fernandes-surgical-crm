@@ -411,7 +411,12 @@ export function OportunidadeDetailsSheet({
                     </div>
                     <div className="flex items-center gap-1 text-xs text-muted-foreground">
                       <Calendar className="h-3 w-3" />
-                      {formatDate(oportunidade.criado_em)}
+                      <span>Validade:</span>
+                      <span className={oportunidade.validade_proposta && new Date(oportunidade.validade_proposta) < new Date() ? "text-destructive font-medium" : ""}>
+                        {oportunidade.validade_proposta 
+                          ? formatDate(oportunidade.validade_proposta) 
+                          : "Não definida"}
+                      </span>
                     </div>
                   </div>
 

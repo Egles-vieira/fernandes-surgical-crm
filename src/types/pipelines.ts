@@ -164,6 +164,7 @@ export interface Oportunidade {
   observacoes?: string | null;
   criado_em?: string | null;
   atualizado_em?: string | null;
+  validade_proposta?: string | null;
   // Relacionamentos expandidos
   pipeline?: Pipeline | null;
   estagio?: EstagioPipeline | null;
