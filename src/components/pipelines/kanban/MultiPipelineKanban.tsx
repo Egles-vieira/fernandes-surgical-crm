@@ -170,7 +170,7 @@ export function MultiPipelineKanban({
   }
   return <div className="flex flex-col h-full">
       {/* Header do Kanban */}
-      <div className="flex items-center justify-between px-4 py-3 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="flex items-center justify-between px-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-[5px]">
         <div className="flex items-center gap-4">
           <div className="w-56">
             <PipelineSelector value={pipelineId} onChange={handlePipelineChange} showLabel={false} />
