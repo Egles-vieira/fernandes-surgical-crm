@@ -278,7 +278,7 @@ export default function Layout({
                           ${isAnyChildActive ? "bg-white/20" : "hover:bg-white/10"}`}>
                             {isAnyChildActive && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-10 rounded-r-full bg-secondary" />}
                             <item.icon size={24} className="mb-1.5 transition-transform duration-200 group-hover:scale-110 menu-icon" />
-                            <span className="text-[10px] font-medium text-center leading-tight menu-text">{item.label}</span>
+                            <span className="text-[10px] text-center leading-tight menu-text font-light">{item.label}</span>
                           </div>
                         </HoverCardTrigger>
                         <HoverCardContent side="right" align="start" className="w-48 bg-card border-border p-2 ml-2">
