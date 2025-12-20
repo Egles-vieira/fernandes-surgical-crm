@@ -437,7 +437,7 @@ export function OportunidadeDetailsSheet({
                     {oportunidade.pipeline?.nome === "Spot" && (
                       <>
                         <Separator />
-                        <SpotFieldsSection camposCustomizados={camposCustomizados} onChange={handleCustomFieldChange} />
+                        <SpotFieldsSection camposCustomizados={camposCustomizados} onChange={handleCustomFieldChange} clienteId={clienteSelecionado?.id} />
                       </>
                     )}
 

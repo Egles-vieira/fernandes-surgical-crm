@@ -11,24 +11,29 @@ import { cn } from "@/lib/utils";
 import { useTiposPedido } from "@/hooks/useTiposPedido";
 import { useCondicoesPagamento } from "@/hooks/useCondicoesPagamento";
 import { useTiposFrete } from "@/hooks/useTiposFrete";
+import { useEnderecosCliente } from "@/hooks/useEnderecosCliente";
 
 interface SpotFieldsSectionProps {
   camposCustomizados: Record<string, unknown>;
   onChange: (field: string, value: unknown) => void;
+  clienteId?: string | null;
 }
 
 export function SpotFieldsSection({ 
   camposCustomizados, 
-  onChange 
+  onChange,
+  clienteId 
 }: SpotFieldsSectionProps) {
   const { tipos: tiposPedido, isLoading: isLoadingTipos } = useTiposPedido();
   const { condicoes, isLoading: isLoadingCondicoes } = useCondicoesPagamento();
   const { tipos: tiposFrete, isLoading: isLoadingFrete } = useTiposFrete();
+  const { enderecos, isLoading: isLoadingEnderecos } = useEnderecosCliente(clienteId);
 
   const tipoPedidoId = camposCustomizados?.tipo_pedido_id as string | undefined;
   const condicaoPagamentoId = camposCustomizados?.condicao_pagamento_id as string | undefined;
   const faturamentoProgramado = camposCustomizados?.faturamento_programado as string | undefined;
   const tipoFreteId = camposCustomizados?.tipo_frete_id as string | undefined;
+  const enderecoEntregaId = camposCustomizados?.endereco_entrega_id as string | undefined;
   const faturamentoParcial = camposCustomizados?.faturamento_parcial as boolean | undefined;
 
   return (
@@ -123,6 +128,34 @@ export function SpotFieldsSection({
             {tiposFrete.map((tipo) => (
               <SelectItem key={tipo.id} value={tipo.id}>
                 {tipo.nome}
+              </SelectItem>
+            ))}
+          </SelectContent>
+      </Select>
+      </div>
+
+      {/* Endereço de Entrega */}
+      <div className="space-y-2">
+        <Label className="text-xs text-muted-foreground">Endereço de Entrega</Label>
+        <Select
+          value={enderecoEntregaId || ""}
+          onValueChange={(value) => onChange("endereco_entrega_id", value || null)}
+          disabled={isLoadingEnderecos || !clienteId}
+        >
+          <SelectTrigger className="w-full bg-background">
+            <SelectValue placeholder={
+              !clienteId ? "Selecione um cliente" :
+              isLoadingEnderecos ? "Carregando..." : 
+              enderecos.length === 0 ? "Nenhum endereço" : "Selecione..."
+            } />
+          </SelectTrigger>
+          <SelectContent className="bg-popover">
+            {enderecos.map((endereco) => (
+              <SelectItem key={endereco.id} value={endereco.id}>
+                {endereco.is_principal && "⭐ "}
+                {endereco.endereco}, {endereco.cidade}/{endereco.estado}
+                {endereco.tipo === "entrega" && " (Entrega)"}
+                {endereco.tipo === "cobranca" && " (Cobrança)"}
               </SelectItem>
             ))}
           </SelectContent>
