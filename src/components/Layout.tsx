@@ -335,7 +335,7 @@ export default function Layout({
                                 {item.badge}
                               </span>}
                           </div>
-                          <span className="text-[10px] font-medium text-center leading-tight px-1 menu-text">{item.label}</span>
+                          <span className="text-[10px] text-center leading-tight px-1 menu-text font-light">{item.label}</span>
                         </>}
                     </NavLink>;
               }
