@@ -115,15 +115,28 @@ export function ItensOportunidadeGrid({
   useEffect(() => {
     setOrderedItems(itens);
 
-    // Inicializar estado local com valores do banco
-    const newState: Record<string, LocalItemState> = {};
-    itens.forEach((item) => {
-      newState[item.id] = {
-        quantidade: item.quantidade,
-        desconto: item.percentual_desconto || 0,
-      };
+    // Sincronizar estado local, mas PRESERVAR valores que já existem
+    // Isso evita sobrescrever valores que o usuário acabou de digitar
+    setLocalState((prevState) => {
+      const newState: Record<string, LocalItemState> = {};
+      
+      itens.forEach((item) => {
+        const existing = prevState[item.id];
+        
+        // Se já existe um estado local, manter os valores locais
+        if (existing) {
+          newState[item.id] = existing;
+        } else {
+          // Novo item - inicializar com valores do banco
+          newState[item.id] = {
+            quantidade: item.quantidade,
+            desconto: item.percentual_desconto || 0,
+          };
+        }
+      });
+      
+      return newState;
     });
-    setLocalState(newState);
   }, [itens]);
 
   // Filtrar itens pela busca
