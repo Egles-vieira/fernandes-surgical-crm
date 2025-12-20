@@ -5382,6 +5382,7 @@ export type Database = {
           receita_esperada: number | null
           tipo: string | null
           ultima_mudanca_estagio_em: string | null
+          validade_proposta: string | null
           valor: number | null
           venda_id: string | null
           vendedor_id: string | null
@@ -5420,6 +5421,7 @@ export type Database = {
           receita_esperada?: number | null
           tipo?: string | null
           ultima_mudanca_estagio_em?: string | null
+          validade_proposta?: string | null
           valor?: number | null
           venda_id?: string | null
           vendedor_id?: string | null
@@ -5458,6 +5460,7 @@ export type Database = {
           receita_esperada?: number | null
           tipo?: string | null
           ultima_mudanca_estagio_em?: string | null
+          validade_proposta?: string | null
           valor?: number | null
           venda_id?: string | null
           vendedor_id?: string | null
