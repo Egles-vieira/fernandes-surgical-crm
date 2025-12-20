@@ -69,7 +69,7 @@ export function ContatoClienteSection({
                   Selecionado
                 </Badge>
               </div>
-              {contatoSelecionado.cargo && <p className="text-xs mt-0.5 text-card-foreground">
+              {contatoSelecionado.cargo && <p className="text-xs mt-0.5 text-card-foreground bg-slate-300 my-px">
                   {contatoSelecionado.cargo}
                 </p>}
             </div>
