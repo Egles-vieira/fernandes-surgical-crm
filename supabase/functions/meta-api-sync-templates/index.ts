@@ -44,7 +44,7 @@ serve(async (req) => {
       const { data, error } = await supabase
         .from('whatsapp_contas')
         .select('id, meta_waba_id, meta_access_token')
-        .eq('ativo', true)
+        .eq('status', 'ativo')
         .not('meta_waba_id', 'is', null)
         .not('meta_access_token', 'is', null);
 
