@@ -307,9 +307,9 @@ export function OportunidadeDetailsSheet({
             {/* Conteúdo principal - duas colunas */}
             <div className="flex-1 flex min-h-0 overflow-hidden relative">
               {/* Botão de colapsar painel lateral */}
-              <Button variant="ghost" size="icon" className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-8 w-6 rounded-l-none rounded-r-md bg-card hover:bg-accent border border-l-0" style={{
+              <Button variant="ghost" size="icon" style={{
             left: isLeftPanelExpanded ? "340px" : "0"
-          }} onClick={() => setIsLeftPanelExpanded(!isLeftPanelExpanded)}>
+          }} onClick={() => setIsLeftPanelExpanded(!isLeftPanelExpanded)} className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-8 w-6 rounded-l-none rounded-r-md border border-l-0 bg-slate-300 hover:bg-slate-200">
                 {isLeftPanelExpanded ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
               </Button>
 
