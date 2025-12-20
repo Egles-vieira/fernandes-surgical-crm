@@ -480,6 +480,18 @@ export function ChatPanel({
           queryClient.invalidateQueries({ queryKey: ['whatsapp-mensagens', conversaId] });
         }
       )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'whatsapp_mensagens',
+          filter: `conversa_id=eq.${conversaId}`,
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['whatsapp-mensagens', conversaId] });
+        }
+      )
       .subscribe();
 
     return () => {

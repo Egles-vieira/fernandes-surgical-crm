@@ -257,7 +257,7 @@ export function useSendTemplateFromChat() {
       return data;
     },
     onSuccess: (data, variables) => {
-      toast.success('Template enviado com sucesso! A janela de 24h foi reaberta.');
+      toast.success('Template enviado para processamento. Aguardando confirmação de entrega.');
       // Invalidar queries de mensagens e janela
       queryClient.invalidateQueries({ queryKey: ['whatsapp-mensagens', variables.conversaId] });
       queryClient.invalidateQueries({ queryKey: ['janela-24h', variables.conversaId] });
