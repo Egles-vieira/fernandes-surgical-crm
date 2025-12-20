@@ -52,12 +52,14 @@ export function OportunidadeDetailsSheet({
   const [showItensSheet, setShowItensSheet] = useState(false);
   const [showClienteSearch, setShowClienteSearch] = useState(false);
   const [clienteSelecionado, setClienteSelecionado] = useState<Cliente | null>(null);
+  const [isLoadingCliente, setIsLoadingCliente] = useState(false);
   const [contatoSelecionadoId, setContatoSelecionadoId] = useState<string | null>(null);
   const [itemEditando, setItemEditando] = useState<ItemOportunidade | null>(null);
   const [showEditarItem, setShowEditarItem] = useState(false);
   const [isGridExpanded, setIsGridExpanded] = useState(true);
   const [isLeftPanelExpanded, setIsLeftPanelExpanded] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isDataReady, setIsDataReady] = useState(false);
 
   // Buscar dados da oportunidade
   const {
@@ -143,29 +145,38 @@ export function OportunidadeDetailsSheet({
 
       // Sincronizar cliente - buscar cod_emitente do banco
       if ((oportunidade as any).cliente_id) {
+        setIsLoadingCliente(true);
         const fetchClienteCompleto = async () => {
-          const {
-            data: clienteData
-          } = await supabase.from("clientes").select("id, nome_emit, cgc, cod_emitente, vendedor_id").eq("id", (oportunidade as any).cliente_id).maybeSingle();
-          if (clienteData) {
-            setClienteSelecionado(clienteData as Cliente);
-          } else {
-            // Fallback se não encontrar no banco
-            setClienteSelecionado({
-              id: (oportunidade as any).cliente_id,
-              nome_emit: (oportunidade as any).cliente_nome,
-              cgc: (oportunidade as any).cliente_cnpj,
-              vendedor_id: (oportunidade as any).vendedor_id
-            } as Cliente);
+          try {
+            const {
+              data: clienteData
+            } = await supabase.from("clientes").select("id, nome_emit, cgc, cod_emitente, vendedor_id").eq("id", (oportunidade as any).cliente_id).maybeSingle();
+            if (clienteData) {
+              setClienteSelecionado(clienteData as Cliente);
+            } else {
+              // Fallback se não encontrar no banco
+              setClienteSelecionado({
+                id: (oportunidade as any).cliente_id,
+                nome_emit: (oportunidade as any).cliente_nome,
+                cgc: (oportunidade as any).cliente_cnpj,
+                vendedor_id: (oportunidade as any).vendedor_id
+              } as Cliente);
+            }
+          } finally {
+            setIsLoadingCliente(false);
+            setIsDataReady(true);
           }
         };
         fetchClienteCompleto();
       } else {
         setClienteSelecionado(null);
+        setIsDataReady(true);
       }
 
       // Sincronizar contato selecionado
       setContatoSelecionadoId((oportunidade as any).contato_id || null);
+    } else {
+      setIsDataReady(false);
     }
   }, [oportunidade]);
 
@@ -271,7 +282,7 @@ export function OportunidadeDetailsSheet({
   }, {} as Record<string, typeof allFields>) || {};
   return <Sheet open={open} onOpenChange={onOpenChange}>
       <ResizableSheetContent className="p-0 flex flex-col gap-0" defaultWidth={900} minWidth={600} maxWidth={1400} storageKey="oportunidade-sheet-width" isFullscreen={isFullscreen} overlayClassName="bg-background/60 backdrop-blur-sm">
-        {isLoading ? <OportunidadeDetailsSheetSkeleton /> : oportunidade ? <>
+        {(isLoading || !isDataReady) ? <OportunidadeDetailsSheetSkeleton /> : oportunidade ? <>
             {/* Header com título e código */}
             <div className="flex items-center justify-between px-6 border-b bg-card py-[10px]">
               <div className="flex items-center gap-3">
