@@ -172,24 +172,35 @@ Deno.serve(async (req) => {
 
     // Create message record if conversaId and contatoId provided
     if (conversaId && contatoId) {
-      await supabase
+      const messageExternalId = responseData.messages?.[0]?.id || null;
+
+      const { error: insertMsgError } = await supabase
         .from('whatsapp_mensagens')
         .insert({
-          whatsapp_conversa_id: conversaId,
+          conversa_id: conversaId,
           whatsapp_conta_id: contaId,
           whatsapp_contato_id: contatoId,
           direcao: 'enviada',
-          tipo: 'template',
+          tipo_mensagem: 'template',
           corpo: `[Template: ${templateName}]`,
-          mensagem_externa_id: responseData.messages?.[0]?.id || null,
+          mensagem_externa_id: messageExternalId,
           status: 'enviada',
           status_enviada_em: new Date().toISOString(),
-          metadados: {
+          metadata: {
             template_name: templateName,
             language_code: languageCode,
-            components: components,
+            components,
           },
         });
+
+      if (insertMsgError) {
+        console.error('❌ Falha ao salvar mensagem de template no banco:', insertMsgError);
+        // Se não persistir, a UI não vai exibir; portanto retornamos erro.
+        return new Response(
+          JSON.stringify({ error: 'Falha ao registrar template enviado no chat.' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
     }
 
     // Log template usage for analytics
