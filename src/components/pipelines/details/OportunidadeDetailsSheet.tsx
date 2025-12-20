@@ -274,7 +274,7 @@ export function OportunidadeDetailsSheet({
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div> : oportunidade ? <>
             {/* Header com título e código */}
-            <div className="flex items-center justify-between px-6 py-4 border-b bg-card">
+            <div className="flex items-center justify-between px-6 border-b bg-card py-[10px]">
               <div className="flex items-center gap-3">
                 <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsFullscreen(!isFullscreen)} title={isFullscreen ? "Recolher" : "Expandir"}>
                   {isFullscreen ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
