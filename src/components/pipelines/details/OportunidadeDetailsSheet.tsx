@@ -438,15 +438,7 @@ export function OportunidadeDetailsSheet({
                         <div className="flex items-center justify-between mb-3">
                           <h3 className="text-sm font-medium">Itens da Proposta</h3>
                           <CollapsibleTrigger asChild>
-                            <Button variant="ghost" size="sm" className="h-7 px-2">
-                              {isGridExpanded ? <>
-                                  <ChevronUp className="h-4 w-4 mr-1" />
-                                  Recolher
-                                </> : <>
-                                  <ChevronDown className="h-4 w-4 mr-1" />
-                                  Expandir
-                                </>}
-                            </Button>
+                            
                           </CollapsibleTrigger>
                         </div>
                         <CollapsibleContent>
