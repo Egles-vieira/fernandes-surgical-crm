@@ -454,7 +454,7 @@ export function OportunidadeDetailsSheet({
                             oportunidadeId
                           });
                         }
-                      }} onAddItems={() => setShowItensSheet(true)} />}
+                      }} onAddItems={() => setShowItensSheet(true)} className="bg-primary-foreground" />}
                         </CollapsibleContent>
                       </Collapsible>
                     </TabsContent>
