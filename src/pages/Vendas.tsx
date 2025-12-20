@@ -31,6 +31,7 @@ import { VendasActionBar } from "@/components/VendasActionBar";
 import { VendasFilters, VendasViewType } from "@/components/vendas/VendasFilters";
 import { PipelineKanban, EtapaPipeline } from "@/components/vendas/PipelineKanban";
 import { MultiPipelineKanban } from "@/components/pipelines/kanban";
+import { usePipelines } from "@/hooks/pipelines";
 import { PropostaQuickViewSheet } from "@/components/vendas/PropostaQuickViewSheet";
 import { AprovarVendaDialog } from "@/components/vendas/AprovarVendaDialog";
 import { IntegracaoDatasulLog } from "@/components/IntegracaoDatasulLog";
@@ -105,8 +106,21 @@ export default function Vendas() {
     setSearchParams(newParams, { replace: true });
   }, [searchParams, setSearchParams]);
   
+  // Buscar pipelines para definir Spot como padrão
+  const { data: pipelines } = usePipelines();
+  
   // Estado do pipeline selecionado para Multi-Pipeline Kanban
   const [selectedPipelineId, setSelectedPipelineId] = useState<string | null>(null);
+  
+  // Definir pipeline Spot como padrão quando carregar
+  useEffect(() => {
+    if (pipelines && pipelines.length > 0 && !selectedPipelineId) {
+      const spotPipeline = pipelines.find(p => p.nome?.toLowerCase() === "spot");
+      if (spotPipeline) {
+        setSelectedPipelineId(spotPipeline.id);
+      }
+    }
+  }, [pipelines, selectedPipelineId]);
   
   // Estado para controlar o dialog de nova oportunidade no MultiPipelineKanban
   const [showNovaOportunidadeDialog, setShowNovaOportunidadeDialog] = useState(false);
