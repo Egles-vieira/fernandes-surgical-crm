@@ -54,7 +54,7 @@ export function ContatoClienteSection({
           </Button>
         </div>
 
-        <div className="border border-border/50 rounded-lg p-4 space-y-3 bg-[sidebar-primary-foreground] bg-indigo-100 text-primary">
+        <div className="border border-border/50 rounded-lg p-4 space-y-3 bg-[sidebar-primary-foreground] bg-slate-300 text-popover-foreground">
           {/* Header com avatar, nome e badge */}
           <div className="flex items-start gap-3">
             <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-sm font-semibold text-primary shrink-0">
@@ -62,7 +62,7 @@ export function ContatoClienteSection({
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <p className="text-sm font-semibold truncate">
+                <p className="text-sm truncate font-bold">
                   {contatoSelecionado.nome_completo}
                 </p>
                 <Badge variant="secondary" className="text-[10px] bg-green-500/10 text-green-600 border-green-500/20">
