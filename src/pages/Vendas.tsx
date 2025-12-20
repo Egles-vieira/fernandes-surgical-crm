@@ -222,7 +222,7 @@ export default function Vendas() {
   const [currentItemsPage, setCurrentItemsPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
   const [searchItemTerm, setSearchItemTerm] = useState("");
-  const [density, setDensity] = useState<"compact" | "normal" | "comfortable">("normal");
+  const [density, setDensity] = useState<"compact" | "normal" | "comfortable">("compact");
 
   // Nova venda state
   const [numeroVenda, setNumeroVenda] = useState("");
