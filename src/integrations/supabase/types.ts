@@ -10569,7 +10569,7 @@ export type Database = {
           components_meta: Json | null
           corpo: string
           criado_em: string | null
-          criado_por: string
+          criado_por: string | null
           excluido_em: string | null
           id: string
           idioma: string | null
@@ -10611,7 +10611,7 @@ export type Database = {
           components_meta?: Json | null
           corpo: string
           criado_em?: string | null
-          criado_por: string
+          criado_por?: string | null
           excluido_em?: string | null
           id?: string
           idioma?: string | null
@@ -10653,7 +10653,7 @@ export type Database = {
           components_meta?: Json | null
           corpo?: string
           criado_em?: string | null
-          criado_por?: string
+          criado_por?: string | null
           excluido_em?: string | null
           id?: string
           idioma?: string | null
