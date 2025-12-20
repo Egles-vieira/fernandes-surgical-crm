@@ -282,7 +282,7 @@ export function OportunidadeDetailsSheet({
   }, {} as Record<string, typeof allFields>) || {};
   return <Sheet open={open} onOpenChange={onOpenChange}>
       <ResizableSheetContent className="p-0 flex flex-col gap-0" defaultWidth={900} minWidth={600} maxWidth={1400} storageKey="oportunidade-sheet-width" isFullscreen={isFullscreen} overlayClassName="bg-background/60 backdrop-blur-sm">
-        {(isLoading || !isDataReady) ? <OportunidadeDetailsSheetSkeleton /> : oportunidade ? <>
+        {isLoading || !isDataReady ? <OportunidadeDetailsSheetSkeleton /> : oportunidade ? <>
             {/* Header com título e código */}
             <div className="flex items-center justify-between px-6 border-b bg-card py-[10px]">
               <div className="flex items-center gap-3">
@@ -420,7 +420,7 @@ export function OportunidadeDetailsSheet({
                 </div>
 
                 {/* Tabs */}
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0 bg-primary-foreground">
                   <TabsList className="mx-6 mt-4 justify-start bg-transparent border-b rounded-none h-auto p-0 gap-0">
                     <TabsTrigger value="itens" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-2 text-muted-foreground data-[state=active]:text-foreground">
                       Itens
