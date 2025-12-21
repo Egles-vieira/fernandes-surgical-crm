@@ -46,6 +46,9 @@ const COLUMN_LABELS: Record<string, string> = {
   desconto: "Desc %",
   precoUnit: "Preço Unit",
   total: "Total",
+  custo: "Custo",
+  divisao: "Divisão",
+  loteMultiplo: "Lote Múlt.",
 };
 
 // Colunas padrão visíveis
@@ -55,6 +58,9 @@ const DEFAULT_COLUMNS = {
   desconto: true,
   precoUnit: true,
   total: true,
+  custo: false,
+  divisao: false,
+  loteMultiplo: false,
 };
 
 interface ItensOportunidadeGridProps {
@@ -410,6 +416,15 @@ export function ItensOportunidadeGrid({
                   )}
                   {visibleColumns.total && (
                     <TableHead className="w-28 text-right">Total</TableHead>
+                  )}
+                  {visibleColumns.custo && (
+                    <TableHead className="w-24 text-right">Custo</TableHead>
+                  )}
+                  {visibleColumns.divisao && (
+                    <TableHead className="w-24 text-right">Divisão</TableHead>
+                  )}
+                  {visibleColumns.loteMultiplo && (
+                    <TableHead className="w-20 text-center">Lote Múlt.</TableHead>
                   )}
                   <TableHead className="w-20"></TableHead>
                 </TableRow>
