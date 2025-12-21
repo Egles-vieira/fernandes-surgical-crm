@@ -119,7 +119,19 @@ export function ItensOportunidadeGrid({
   );
 
   // Hook de debounce
-  const { debouncedUpdate } = useDebouncedItemUpdate(oportunidadeId);
+  const { debouncedUpdate, flushUpdates, isPending: isSavingItens } = useDebouncedItemUpdate(oportunidadeId);
+
+  const handleCalcularDatasul = useCallback(async () => {
+    // Garantir que quantidade/desconto foram persistidos antes de recalcular no Datasul
+    try {
+      await flushUpdates();
+    } catch {
+      // Erro já é tratado/toastado pelo hook
+      return;
+    }
+
+    await calcularOportunidade(oportunidadeId);
+  }, [flushUpdates, calcularOportunidade, oportunidadeId]);
 
   // Sensors para drag-and-drop - SEPARADOS
   const pointerSensor = useSensor(PointerSensor, {
@@ -351,23 +363,24 @@ export function ItensOportunidadeGrid({
           <Button 
             size="sm" 
             variant="outline"
-            onClick={() => calcularOportunidade(oportunidadeId)}
-            disabled={isCalculating || !clienteCodEmitente || !tipoPedidoId || !condicaoPagamentoId || itens.length === 0}
+            onClick={handleCalcularDatasul}
+            disabled={isCalculating || isSavingItens || !clienteCodEmitente || !tipoPedidoId || !condicaoPagamentoId || itens.length === 0}
             className="h-9"
             title={
               !clienteCodEmitente ? "Cliente sem código emitente" :
               !tipoPedidoId ? "Selecione o tipo de pedido" :
               !condicaoPagamentoId ? "Selecione a condição de pagamento" :
               itens.length === 0 ? "Adicione itens primeiro" :
+              isSavingItens ? "Salvando alterações antes do cálculo" :
               "Calcular no Datasul"
             }
           >
-            {isCalculating ? (
+            {isCalculating || isSavingItens ? (
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
             ) : (
               <Calculator className="h-4 w-4 mr-2" />
             )}
-            {isCalculating ? "Calculando..." : "Calcular Datasul"}
+            {isCalculating ? "Calculando..." : isSavingItens ? "Salvando..." : "Calcular Datasul"}
           </Button>
 
           {/* Botão adicionar */}
