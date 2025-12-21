@@ -26,7 +26,7 @@ const formatDesconto = (value: number | null | undefined) => {
   }).format(value);
 };
 
-const formatNumber = (value: number | null | undefined, decimals = 4) => {
+const formatNumber = (value: number | null | undefined, decimals = 5) => {
   if (value === null || value === undefined) return "—";
   return new Intl.NumberFormat("pt-BR", {
     minimumFractionDigits: decimals,
