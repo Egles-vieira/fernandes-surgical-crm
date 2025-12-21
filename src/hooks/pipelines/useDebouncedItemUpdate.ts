@@ -175,7 +175,7 @@ export function useDebouncedItemUpdate(oportunidadeId: string | null) {
     [oportunidadeId, batchMutation]
   );
 
-  const flushUpdates = useCallback(() => {
+  const flushUpdates = useCallback(async () => {
     if (!oportunidadeId || pendingUpdates.current.size === 0) return;
 
     // Cancelar timeout pendente
@@ -199,8 +199,8 @@ export function useDebouncedItemUpdate(oportunidadeId: string | null) {
     pendingUpdates.current.clear();
     itemTimestamps.current.clear();
 
-    // Enviar imediatamente
-    batchMutation.mutate({
+    // Enviar imediatamente (aguardar para garantir persistência antes do cálculo Datasul)
+    await batchMutation.mutateAsync({
       oportunidadeId,
       itens,
     });
