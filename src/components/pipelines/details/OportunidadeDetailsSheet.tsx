@@ -29,6 +29,7 @@ import { ClienteSearchDialog } from "@/components/ClienteSearchDialog";
 import { SpotFieldsSection } from "./SpotFieldsSection";
 import { ContatoClienteSection } from "./ContatoClienteSection";
 import { OportunidadeDetailsSheetSkeleton } from "./OportunidadeDetailsSheetSkeleton";
+import { IntegracaoOportunidadeLog } from "./IntegracaoOportunidadeLog";
 import { Tables } from "@/integrations/supabase/types";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -445,6 +446,9 @@ export function OportunidadeDetailsSheet({
                     <TabsTrigger value="notas" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-2 text-muted-foreground data-[state=active]:text-foreground">
                       Notas
                     </TabsTrigger>
+                    <TabsTrigger value="logs" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-2 text-muted-foreground data-[state=active]:text-foreground">
+                      Logs
+                    </TabsTrigger>
                   </TabsList>
 
                   <ScrollArea className="flex-1">
@@ -532,6 +536,10 @@ export function OportunidadeDetailsSheet({
                       <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
                         <p>Nenhuma nota registrada</p>
                       </div>
+                    </TabsContent>
+
+                    <TabsContent value="logs" className="mt-0 px-6 py-4">
+                      <IntegracaoOportunidadeLog oportunidadeId={oportunidadeId!} />
                     </TabsContent>
                   </ScrollArea>
                 </Tabs>
