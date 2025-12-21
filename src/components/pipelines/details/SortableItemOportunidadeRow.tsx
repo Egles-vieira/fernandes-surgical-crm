@@ -8,12 +8,21 @@ import { ItemOportunidade } from "@/hooks/pipelines/useItensOportunidade";
 import { cn } from "@/lib/utils";
 import type { DensityType } from "./ItensOportunidadeGrid";
 
-const formatCurrency = (value: number) => {
+// Formata preços com 5 casas decimais (sem arredondar)
+const formatPreco = (value: number | null | undefined) => {
+  if (value === null || value === undefined) return "—";
   return new Intl.NumberFormat("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
+    minimumFractionDigits: 5,
+    maximumFractionDigits: 5,
+  }).format(value);
+};
+
+// Formata desconto com 7 casas decimais
+const formatDesconto = (value: number | null | undefined) => {
+  if (value === null || value === undefined) return "—";
+  return new Intl.NumberFormat("pt-BR", {
+    minimumFractionDigits: 7,
+    maximumFractionDigits: 7,
   }).format(value);
 };
 
@@ -134,10 +143,10 @@ export function SortableItemOportunidadeRow({
         {item.nome_produto || "—"}
       </TableCell>
 
-      {/* Preço Tabela (original) */}
+      {/* Preço Tabela (original) - 5 casas decimais */}
       {visibleColumns.precoTabela && (
-        <TableCell className={cn(paddingClass, "text-right w-28 text-muted-foreground", textSize)}>
-          {formatCurrency(item.preco_unitario)}
+        <TableCell className={cn(paddingClass, "text-right w-32 text-muted-foreground", textSize)}>
+          {formatPreco(item.preco_unitario)}
         </TableCell>
       )}
 
@@ -177,17 +186,17 @@ export function SortableItemOportunidadeRow({
         </TableCell>
       )}
 
-      {/* Preço Unitário com desconto */}
+      {/* Preço Unitário com desconto - 5 casas decimais */}
       {visibleColumns.precoUnit && (
-        <TableCell className={cn(paddingClass, "text-right w-28", textSize)}>
-          {formatCurrency(precoComDesconto)}
+        <TableCell className={cn(paddingClass, "text-right w-32", textSize)}>
+          {formatPreco(precoComDesconto)}
         </TableCell>
       )}
 
-      {/* Total */}
+      {/* Total - 5 casas decimais */}
       {visibleColumns.total && (
-        <TableCell className={cn(paddingClass, "text-right font-medium w-28", textSize)}>
-          {formatCurrency(valorTotal)}
+        <TableCell className={cn(paddingClass, "text-right font-medium w-32", textSize)}>
+          {formatPreco(valorTotal)}
         </TableCell>
       )}
 
