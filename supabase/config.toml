@@ -173,3 +173,6 @@ verify_jwt = false
 
 [functions.processar-jobs-recalculo]
 verify_jwt = false
+
+[functions.calcular-oportunidade-datasul]
+verify_jwt = true

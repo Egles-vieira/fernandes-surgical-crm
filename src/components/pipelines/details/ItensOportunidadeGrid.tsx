@@ -14,7 +14,9 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { Search, Package, Settings2 } from "lucide-react";
+import { Search, Package, Settings2, Calculator, Loader2 } from "lucide-react";
+import { useDatasulCalculaOportunidade } from "@/hooks/pipelines/useDatasulCalculaOportunidade";
+import { DatasulErrorDialog } from "@/components/vendas/DatasulErrorDialog";
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -58,6 +60,9 @@ const DEFAULT_COLUMNS = {
 interface ItensOportunidadeGridProps {
   itens: ItemOportunidade[];
   oportunidadeId: string;
+  clienteCodEmitente?: number | null;
+  tipoPedidoId?: string | null;
+  condicaoPagamentoId?: string | null;
   onEdit: (item: ItemOportunidade) => void;
   onRemove: (itemId: string) => void;
   onAddItems: () => void;
@@ -73,11 +78,23 @@ export type DensityType = "compact" | "normal" | "comfortable";
 export function ItensOportunidadeGrid({
   itens,
   oportunidadeId,
+  clienteCodEmitente,
+  tipoPedidoId,
+  condicaoPagamentoId,
   onEdit,
   onRemove,
   onAddItems,
 }: ItensOportunidadeGridProps) {
   // === TODOS OS HOOKS NO TOPO, SEM CONDICIONAL ===
+  
+  // Hook para calcular no Datasul
+  const { 
+    calcularOportunidade, 
+    isCalculating, 
+    errorData, 
+    showErrorDialog, 
+    closeErrorDialog 
+  } = useDatasulCalculaOportunidade();
   
   // Estado local para ordem dos itens (drag-and-drop)
   const [orderedItems, setOrderedItems] = useState<ItemOportunidade[]>([]);
@@ -322,11 +339,37 @@ export function ItensOportunidadeGrid({
           </Popover>
         </div>
 
-        {/* Botão adicionar */}
-        <Button size="sm" onClick={onAddItems} className="h-9">
-          <Package className="h-4 w-4 mr-2" />
-          Adicionar Produtos
-        </Button>
+        {/* Botões de ação */}
+        <div className="flex items-center gap-2">
+          {/* Botão Calcular Datasul */}
+          <Button 
+            size="sm" 
+            variant="outline"
+            onClick={() => calcularOportunidade(oportunidadeId)}
+            disabled={isCalculating || !clienteCodEmitente || !tipoPedidoId || !condicaoPagamentoId || itens.length === 0}
+            className="h-9"
+            title={
+              !clienteCodEmitente ? "Cliente sem código emitente" :
+              !tipoPedidoId ? "Selecione o tipo de pedido" :
+              !condicaoPagamentoId ? "Selecione a condição de pagamento" :
+              itens.length === 0 ? "Adicione itens primeiro" :
+              "Calcular no Datasul"
+            }
+          >
+            {isCalculating ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Calculator className="h-4 w-4 mr-2" />
+            )}
+            {isCalculating ? "Calculando..." : "Calcular Datasul"}
+          </Button>
+
+          {/* Botão adicionar */}
+          <Button size="sm" onClick={onAddItems} className="h-9">
+            <Package className="h-4 w-4 mr-2" />
+            Adicionar Produtos
+          </Button>
+        </div>
       </div>
 
       {/* Container com scroll e altura fixa */}
@@ -416,6 +459,13 @@ export function ItensOportunidadeGrid({
           </div>
         </div>
       )}
+
+      {/* Dialog de erro Datasul */}
+      <DatasulErrorDialog
+        open={showErrorDialog}
+        onOpenChange={closeErrorDialog}
+        error={errorData}
+      />
     </div>
   );
 }
