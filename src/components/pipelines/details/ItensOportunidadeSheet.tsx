@@ -38,6 +38,14 @@ const formatCurrency = (value: number) =>
     minimumFractionDigits: 2,
   }).format(value);
 
+const formatPreco = (value: number) =>
+  new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+    minimumFractionDigits: 5,
+    maximumFractionDigits: 5,
+  }).format(value);
+
 type SortField = "nome" | "referencia_interna" | "preco_venda" | "quantidade_em_maos";
 type SortDirection = "asc" | "desc";
 
@@ -318,7 +326,7 @@ export function ItensOportunidadeSheet({
                           <TableCell className="text-center text-xs">{produto.unidade_medida}</TableCell>
                           <TableCell className="text-right text-sm">{produto.quantidade_em_maos || 0}</TableCell>
                           <TableCell className="text-right text-sm font-medium">
-                            {formatCurrency(produto.preco_venda || 0)}
+                            {formatPreco(produto.preco_venda || 0)}
                           </TableCell>
                           <TableCell>
                             <Input
