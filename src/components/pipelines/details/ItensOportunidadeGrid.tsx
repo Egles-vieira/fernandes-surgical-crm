@@ -58,9 +58,9 @@ const DEFAULT_COLUMNS = {
   desconto: true,
   precoUnit: true,
   total: true,
-  custo: false,
-  divisao: false,
-  loteMultiplo: false,
+  custo: true,
+  divisao: true,
+  loteMultiplo: true,
 };
 
 interface ItensOportunidadeGridProps {
