@@ -4520,10 +4520,12 @@ export type Database = {
       }
       integracoes_totvs_calcula_pedido: {
         Row: {
+          codigo_oportunidade: string | null
           created_at: string | null
           error_message: string | null
           id: string
           numero_venda: string
+          oportunidade_id: string | null
           request_payload: string
           response_payload: string | null
           status: string
@@ -4534,10 +4536,12 @@ export type Database = {
           venda_id: string | null
         }
         Insert: {
+          codigo_oportunidade?: string | null
           created_at?: string | null
           error_message?: string | null
           id?: string
           numero_venda: string
+          oportunidade_id?: string | null
           request_payload: string
           response_payload?: string | null
           status: string
@@ -4548,10 +4552,12 @@ export type Database = {
           venda_id?: string | null
         }
         Update: {
+          codigo_oportunidade?: string | null
           created_at?: string | null
           error_message?: string | null
           id?: string
           numero_venda?: string
+          oportunidade_id?: string | null
           request_payload?: string
           response_payload?: string | null
           status?: string
@@ -4562,6 +4568,13 @@ export type Database = {
           venda_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "integracoes_totvs_calcula_pedido_oportunidade_id_fkey"
+            columns: ["oportunidade_id"]
+            isOneToOne: false
+            referencedRelation: "oportunidades"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "integracoes_totvs_calcula_pedido_venda_id_fkey"
             columns: ["venda_id"]
@@ -4683,6 +4696,12 @@ export type Database = {
         Row: {
           atualizado_em: string | null
           criado_em: string | null
+          datasul_custo: number | null
+          datasul_dep_exp: number | null
+          datasul_divisao: number | null
+          datasul_lote_mulven: number | null
+          datasul_vl_merc_liq: number | null
+          datasul_vl_tot_item: number | null
           descricao: string | null
           id: string
           nome_produto: string | null
@@ -4699,6 +4718,12 @@ export type Database = {
         Insert: {
           atualizado_em?: string | null
           criado_em?: string | null
+          datasul_custo?: number | null
+          datasul_dep_exp?: number | null
+          datasul_divisao?: number | null
+          datasul_lote_mulven?: number | null
+          datasul_vl_merc_liq?: number | null
+          datasul_vl_tot_item?: number | null
           descricao?: string | null
           id?: string
           nome_produto?: string | null
@@ -4715,6 +4740,12 @@ export type Database = {
         Update: {
           atualizado_em?: string | null
           criado_em?: string | null
+          datasul_custo?: number | null
+          datasul_dep_exp?: number | null
+          datasul_divisao?: number | null
+          datasul_lote_mulven?: number | null
+          datasul_vl_merc_liq?: number | null
+          datasul_vl_tot_item?: number | null
           descricao?: string | null
           id?: string
           nome_produto?: string | null
@@ -11903,6 +11934,10 @@ export type Database = {
       auth_is_admin: { Args: never; Returns: boolean }
       auth_is_manager: { Args: never; Returns: boolean }
       batch_insert_vendas_itens: { Args: { p_items: Json }; Returns: number }
+      batch_update_itens_oportunidade: {
+        Args: { p_items: Json; p_oportunidade_id: string }
+        Returns: number
+      }
       batch_update_vendas_itens: {
         Args: { p_items: Json; p_venda_id: string }
         Returns: number

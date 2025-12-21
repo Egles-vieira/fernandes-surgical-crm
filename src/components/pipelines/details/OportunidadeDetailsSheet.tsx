@@ -459,17 +459,26 @@ export function OportunidadeDetailsSheet({
                         <CollapsibleContent>
                           {isLoadingItens ? <div className="flex items-center justify-center py-12">
                               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                            </div> : <ItensOportunidadeGrid itens={itensOportunidade || []} oportunidadeId={oportunidadeId!} onEdit={item => {
-                        setItemEditando(item);
-                        setShowEditarItem(true);
-                      }} onRemove={itemId => {
-                        if (oportunidadeId) {
-                          removerItemMutation.mutate({
-                            itemId,
-                            oportunidadeId
-                          });
-                        }
-                      }} onAddItems={() => setShowItensSheet(true)} />}
+                            </div> : <ItensOportunidadeGrid 
+                              itens={itensOportunidade || []} 
+                              oportunidadeId={oportunidadeId!}
+                              clienteCodEmitente={clienteSelecionado?.cod_emitente}
+                              tipoPedidoId={(oportunidade as any).tipo_pedido_id || (camposCustomizados.tipo_pedido_id as string)}
+                              condicaoPagamentoId={(oportunidade as any).condicao_pagamento_id || (camposCustomizados.condicao_pagamento_id as string)}
+                              onEdit={item => {
+                                setItemEditando(item);
+                                setShowEditarItem(true);
+                              }} 
+                              onRemove={itemId => {
+                                if (oportunidadeId) {
+                                  removerItemMutation.mutate({
+                                    itemId,
+                                    oportunidadeId
+                                  });
+                                }
+                              }} 
+                              onAddItems={() => setShowItensSheet(true)} 
+                            />}
                         </CollapsibleContent>
                       </Collapsible>
                     </TabsContent>
