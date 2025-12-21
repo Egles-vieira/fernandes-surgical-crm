@@ -302,6 +302,7 @@ Deno.serve(async (req) => {
         // Salvar log
         await supabase.from("integracoes_totvs_calcula_pedido").insert({
           oportunidade_id,
+          numero_venda: oportunidade.codigo || null,
           codigo_oportunidade: oportunidade.codigo,
           request_payload: payloadOrdenado,
           response_payload: response.ok ? text : null,

@@ -4524,7 +4524,7 @@ export type Database = {
           created_at: string | null
           error_message: string | null
           id: string
-          numero_venda: string
+          numero_venda: string | null
           oportunidade_id: string | null
           request_payload: string
           response_payload: string | null
@@ -4540,7 +4540,7 @@ export type Database = {
           created_at?: string | null
           error_message?: string | null
           id?: string
-          numero_venda: string
+          numero_venda?: string | null
           oportunidade_id?: string | null
           request_payload: string
           response_payload?: string | null
@@ -4556,7 +4556,7 @@ export type Database = {
           created_at?: string | null
           error_message?: string | null
           id?: string
-          numero_venda?: string
+          numero_venda?: string | null
           oportunidade_id?: string | null
           request_payload?: string
           response_payload?: string | null
