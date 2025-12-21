@@ -15,6 +15,13 @@ export interface ItemOportunidade {
   ordem_linha: number | null;
   criado_em: string | null;
   atualizado_em: string | null;
+  // Campos Datasul
+  datasul_dep_exp: number | null;
+  datasul_custo: number | null;
+  datasul_divisao: number | null;
+  datasul_vl_tot_item: number | null;
+  datasul_vl_merc_liq: number | null;
+  datasul_lote_mulven: number | null;
 }
 
 export function useItensOportunidade(oportunidadeId: string | null) {

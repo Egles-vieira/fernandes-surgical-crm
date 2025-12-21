@@ -17,6 +17,14 @@ const formatCurrency = (value: number) => {
   }).format(value);
 };
 
+const formatNumber = (value: number | null | undefined, decimals = 4) => {
+  if (value === null || value === undefined) return "—";
+  return new Intl.NumberFormat("pt-BR", {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  }).format(value);
+};
+
 interface SortableItemOportunidadeRowProps {
   item: ItemOportunidade;
   index: number;
@@ -180,6 +188,27 @@ export function SortableItemOportunidadeRow({
       {visibleColumns.total && (
         <TableCell className={cn(paddingClass, "text-right font-medium w-28", textSize)}>
           {formatCurrency(valorTotal)}
+        </TableCell>
+      )}
+
+      {/* Custo (Datasul) */}
+      {visibleColumns.custo && (
+        <TableCell className={cn(paddingClass, "text-right w-24 text-muted-foreground", textSize)}>
+          {formatNumber(item.datasul_custo)}
+        </TableCell>
+      )}
+
+      {/* Divisão (Datasul) */}
+      {visibleColumns.divisao && (
+        <TableCell className={cn(paddingClass, "text-right w-24 text-muted-foreground", textSize)}>
+          {formatNumber(item.datasul_divisao)}
+        </TableCell>
+      )}
+
+      {/* Lote Múltiplo (Datasul) */}
+      {visibleColumns.loteMultiplo && (
+        <TableCell className={cn(paddingClass, "text-center w-20 text-muted-foreground", textSize)}>
+          {item.datasul_lote_mulven ?? "—"}
         </TableCell>
       )}
 
