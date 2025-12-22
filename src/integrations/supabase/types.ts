@@ -6442,6 +6442,7 @@ export type Database = {
           id: string
           iniciado_em: string | null
           ip_hash: string | null
+          oportunidade_id: string | null
           os_name: string | null
           os_version: string | null
           pais: string | null
@@ -6452,7 +6453,7 @@ export type Database = {
           session_id: string
           tempo_total_segundos: number | null
           ultima_atividade_em: string | null
-          venda_id: string
+          venda_id: string | null
         }
         Insert: {
           browser_name?: string | null
@@ -6464,6 +6465,7 @@ export type Database = {
           id?: string
           iniciado_em?: string | null
           ip_hash?: string | null
+          oportunidade_id?: string | null
           os_name?: string | null
           os_version?: string | null
           pais?: string | null
@@ -6474,7 +6476,7 @@ export type Database = {
           session_id: string
           tempo_total_segundos?: number | null
           ultima_atividade_em?: string | null
-          venda_id: string
+          venda_id?: string | null
         }
         Update: {
           browser_name?: string | null
@@ -6486,6 +6488,7 @@ export type Database = {
           id?: string
           iniciado_em?: string | null
           ip_hash?: string | null
+          oportunidade_id?: string | null
           os_name?: string | null
           os_version?: string | null
           pais?: string | null
@@ -6496,9 +6499,16 @@ export type Database = {
           session_id?: string
           tempo_total_segundos?: number | null
           ultima_atividade_em?: string | null
-          venda_id?: string
+          venda_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "propostas_analytics_oportunidade_id_fkey"
+            columns: ["oportunidade_id"]
+            isOneToOne: false
+            referencedRelation: "oportunidades"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "propostas_analytics_proposta_token_id_fkey"
             columns: ["proposta_token_id"]
@@ -6618,12 +6628,13 @@ export type Database = {
           mensagem_personalizada: string | null
           mostrar_descontos: boolean | null
           mostrar_precos: boolean | null
+          oportunidade_id: string | null
           permitir_aceitar: boolean | null
           permitir_download_pdf: boolean | null
           permitir_recusar: boolean | null
           public_token: string
           senha_hash: string | null
-          venda_id: string
+          venda_id: string | null
         }
         Insert: {
           ativo?: boolean | null
@@ -6635,12 +6646,13 @@ export type Database = {
           mensagem_personalizada?: string | null
           mostrar_descontos?: boolean | null
           mostrar_precos?: boolean | null
+          oportunidade_id?: string | null
           permitir_aceitar?: boolean | null
           permitir_download_pdf?: boolean | null
           permitir_recusar?: boolean | null
           public_token: string
           senha_hash?: string | null
-          venda_id: string
+          venda_id?: string | null
         }
         Update: {
           ativo?: boolean | null
@@ -6652,12 +6664,13 @@ export type Database = {
           mensagem_personalizada?: string | null
           mostrar_descontos?: boolean | null
           mostrar_precos?: boolean | null
+          oportunidade_id?: string | null
           permitir_aceitar?: boolean | null
           permitir_download_pdf?: boolean | null
           permitir_recusar?: boolean | null
           public_token?: string
           senha_hash?: string | null
-          venda_id?: string
+          venda_id?: string | null
         }
         Relationships: [
           {
@@ -6689,6 +6702,13 @@ export type Database = {
             referencedColumns: ["user_id"]
           },
           {
+            foreignKeyName: "propostas_publicas_tokens_oportunidade_id_fkey"
+            columns: ["oportunidade_id"]
+            isOneToOne: false
+            referencedRelation: "oportunidades"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "propostas_publicas_tokens_venda_id_fkey"
             columns: ["venda_id"]
             isOneToOne: false
@@ -6707,12 +6727,13 @@ export type Database = {
           ip_assinatura: string | null
           motivo_recusa: string | null
           nome_respondente: string | null
+          oportunidade_id: string | null
           proposta_token_id: string
           respondido_em: string | null
           telefone_respondente: string | null
           tipo_resposta: string
           user_agent_assinatura: string | null
-          venda_id: string
+          venda_id: string | null
         }
         Insert: {
           analytics_id?: string | null
@@ -6723,12 +6744,13 @@ export type Database = {
           ip_assinatura?: string | null
           motivo_recusa?: string | null
           nome_respondente?: string | null
+          oportunidade_id?: string | null
           proposta_token_id: string
           respondido_em?: string | null
           telefone_respondente?: string | null
           tipo_resposta: string
           user_agent_assinatura?: string | null
-          venda_id: string
+          venda_id?: string | null
         }
         Update: {
           analytics_id?: string | null
@@ -6739,12 +6761,13 @@ export type Database = {
           ip_assinatura?: string | null
           motivo_recusa?: string | null
           nome_respondente?: string | null
+          oportunidade_id?: string | null
           proposta_token_id?: string
           respondido_em?: string | null
           telefone_respondente?: string | null
           tipo_resposta?: string
           user_agent_assinatura?: string | null
-          venda_id?: string
+          venda_id?: string | null
         }
         Relationships: [
           {
@@ -6752,6 +6775,13 @@ export type Database = {
             columns: ["analytics_id"]
             isOneToOne: false
             referencedRelation: "propostas_analytics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "propostas_respostas_oportunidade_id_fkey"
+            columns: ["oportunidade_id"]
+            isOneToOne: false
+            referencedRelation: "oportunidades"
             referencedColumns: ["id"]
           },
           {
