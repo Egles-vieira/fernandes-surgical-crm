@@ -953,38 +953,22 @@ export async function executarAdicionarAoCarrinhoV4(
       produtoReferencia = produto.referencia_interna;
     }
     
-    // Buscar carrinho atual da conversa
-    const { data: conversa } = await supabase
-      .from("whatsapp_conversas")
-      .select("produtos_carrinho")
-      .eq("id", conversaId)
-      .single();
+    // ✅ ATÔMICO: Usar RPC para evitar race condition quando múltiplas tool calls rodam em paralelo
+    const { data: resultado, error: rpcError } = await supabase.rpc("adicionar_item_carrinho", {
+      p_conversa_id: conversaId,
+      p_produto_id: produtoId,
+      p_quantidade: args.quantidade,
+      p_produto_nome: produtoNome,
+      p_produto_referencia: produtoReferencia,
+      p_preco_unitario: null
+    });
     
-    const carrinhoAtual: Array<{ id: string; quantidade: number; nome?: string }> = 
-      conversa?.produtos_carrinho || [];
-    
-    // Verificar se produto já está no carrinho
-    const itemExistente = carrinhoAtual.find((item: any) => item.id === produtoId);
-    
-    if (itemExistente) {
-      itemExistente.quantidade = args.quantidade;
-      console.log(`📝 Quantidade atualizada: ${produtoNome} → ${args.quantidade}`);
-    } else {
-      carrinhoAtual.push({ 
-        id: produtoId, 
-        quantidade: args.quantidade,
-        nome: produtoNome
-      });
-      console.log(`➕ Novo item adicionado: ${produtoNome} (${args.quantidade})`);
+    if (rpcError) {
+      console.error("❌ Erro ao adicionar ao carrinho (RPC):", rpcError);
+      return { sucesso: false, erro: "erro_banco", mensagem: "Erro ao adicionar ao carrinho" };
     }
     
-    // Salvar carrinho na conversa
-    await supabase
-      .from("whatsapp_conversas")
-      .update({ produtos_carrinho: carrinhoAtual })
-      .eq("id", conversaId);
-    
-    console.log(`🛒 Carrinho atualizado: ${carrinhoAtual.length} item(ns)`);
+    console.log(`🛒 Carrinho atualizado atomicamente: ${resultado?.carrinho_total_itens || 0} item(ns)`);
     
     return { 
       sucesso: true, 
@@ -992,7 +976,7 @@ export async function executarAdicionarAoCarrinhoV4(
       produto_nome: produtoNome,
       produto_referencia: produtoReferencia,
       quantidade: args.quantidade,
-      carrinho_total_itens: carrinhoAtual.length,
+      carrinho_total_itens: resultado?.carrinho_total_itens || 1,
       mensagem: `${args.quantidade}x ${produtoNome} adicionado ao carrinho`
     };
     
