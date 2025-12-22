@@ -310,6 +310,35 @@ export async function executarCriarOportunidadeSpot(
       return { sucesso: false, erro: "itens_obrigatorios", mensagem: "Preciso de pelo menos um produto" };
     }
     
+    // ========================================
+    // FALLBACK: Se produto_ids não são UUIDs válidos, usar carrinho da conversa
+    // O LLM às vezes passa códigos de produto ao invés de UUIDs
+    // ========================================
+    let itensParaProcessar = args.itens;
+    const primeiroProdutoId = args.itens?.[0]?.produto_id;
+    
+    if (primeiroProdutoId && !isValidUUID(primeiroProdutoId)) {
+      console.warn(`⚠️ [FALLBACK ITENS] produto_id "${primeiroProdutoId}" não é UUID. Buscando do carrinho...`);
+      
+      const { data: conversaCarrinho } = await supabase
+        .from("whatsapp_conversas")
+        .select("produtos_carrinho")
+        .eq("id", conversaId)
+        .single();
+      
+      if (conversaCarrinho?.produtos_carrinho?.length > 0) {
+        itensParaProcessar = conversaCarrinho.produtos_carrinho.map((item: any) => ({
+          produto_id: item.id,
+          quantidade: item.quantidade || 1,
+          preco_unitario: item.preco_unitario || null
+        }));
+        console.log(`✅ [FALLBACK ITENS] Usando ${itensParaProcessar.length} itens do carrinho da conversa`);
+      } else {
+        console.error("❌ [FALLBACK ITENS] Carrinho da conversa vazio");
+        return { sucesso: false, erro: "carrinho_vazio", mensagem: "Não encontrei produtos no carrinho. Adicione produtos primeiro." };
+      }
+    }
+    
     // Buscar dados do cliente
     const { data: cliente } = await supabase
       .from("clientes")
@@ -322,8 +351,8 @@ export async function executarCriarOportunidadeSpot(
       return { sucesso: false, erro: "cliente_nao_encontrado", mensagem: "Cliente não encontrado. Vou identificar novamente." };
     }
     
-    // Buscar produtos para calcular valor estimado
-    const produtoIds = args.itens.map(i => i.produto_id);
+    // Buscar produtos para calcular valor estimado (usando itensParaProcessar que já tem UUIDs)
+    const produtoIds = itensParaProcessar.map((i: any) => i.produto_id);
     const { data: produtos } = await supabase
       .from("produtos")
       .select("id, nome, preco_venda, referencia_interna")
@@ -331,7 +360,7 @@ export async function executarCriarOportunidadeSpot(
     
     // Calcular valor estimado
     let valorEstimado = 0;
-    const itensComPreco = args.itens.map(item => {
+    const itensComPreco = itensParaProcessar.map((item: any) => {
       const produto = produtos?.find((p: any) => p.id === item.produto_id);
       const preco = item.preco_unitario || produto?.preco_venda || 0;
       valorEstimado += preco * item.quantidade;
@@ -352,11 +381,13 @@ export async function executarCriarOportunidadeSpot(
         estagio_id: ESTAGIO_PROPOSTA_ID,
         cliente_id: clienteId,
         vendedor_id: cliente.vendedor_id,
-        valor: valorEstimado,                    // ✅ Coluna correta (era valor_estimado)
+        valor: valorEstimado,
         percentual_probabilidade: 50,
         origem_lead: "whatsapp_agente",
-        descricao: args.observacoes || null,     // ✅ Coluna correta (era observacoes)
-        data_entrada_estagio: new Date().toISOString()
+        descricao: args.observacoes || null,
+        data_entrada_estagio: new Date().toISOString(),
+        tipo_pedido: "Normal",                   // ✅ Default para cálculo Datasul
+        condicao_pagamento_id: null              // ✅ Será selecionado depois
       })
       .select("id, codigo")
       .single();
