@@ -85,6 +85,8 @@ const ETAPAS_ATIVAS: EtapaPipeline[] = [
   "negociacao",
   "followup_cliente",
   "fechamento",
+  "ganho",
+  "perdido",
 ];
 
 export function KanbanBoard({ vendas, totaisPorEtapa, etapaCarregando, onDragEnd, onViewDetails, onDuplicar, onQuickView, onCarregarMais }: KanbanBoardProps) {
