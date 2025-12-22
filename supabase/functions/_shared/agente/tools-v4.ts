@@ -258,7 +258,17 @@ export async function executarIdentificarCliente(
 }
 
 /**
+ * Validar se é um UUID válido
+ */
+function isValidUUID(str: string): boolean {
+  if (!str || typeof str !== 'string') return false;
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(str);
+}
+
+/**
  * Criar oportunidade no Pipeline Spot com itens
+ * INCLUI FALLBACK: Se cliente_id não for UUID válido, busca da sessão
  */
 export async function executarCriarOportunidadeSpot(
   args: { cliente_id: string; itens: any[]; observacoes?: string },
@@ -268,8 +278,32 @@ export async function executarCriarOportunidadeSpot(
   console.log("📦 [Tool] criar_oportunidade_spot", { cliente_id: args.cliente_id, qtd_itens: args.itens?.length });
   
   try {
-    if (!args.cliente_id) {
-      return { sucesso: false, erro: "cliente_obrigatorio", mensagem: "Preciso identificar o cliente antes" };
+    let clienteId = args.cliente_id;
+    
+    // FALLBACK: Se cliente_id não for UUID válido, buscar da sessão
+    if (!isValidUUID(clienteId)) {
+      console.warn(`⚠️ [FALLBACK] cliente_id "${clienteId}" não é UUID válido. Buscando da sessão...`);
+      
+      const { data: sessaoAtual } = await supabase
+        .from("whatsapp_agente_sessoes")
+        .select("cliente_identificado_id")
+        .eq("conversa_id", conversaId)
+        .gte("expira_em", new Date().toISOString())
+        .order("criado_em", { ascending: false })
+        .limit(1)
+        .single();
+      
+      if (sessaoAtual?.cliente_identificado_id) {
+        clienteId = sessaoAtual.cliente_identificado_id;
+        console.log(`✅ [FALLBACK] Usando cliente_id da sessão: ${clienteId}`);
+      } else {
+        console.error("❌ [FALLBACK] Não encontrou cliente_id na sessão");
+        return { 
+          sucesso: false, 
+          erro: "cliente_obrigatorio", 
+          mensagem: "Preciso identificar o cliente primeiro. Use identificar_cliente antes." 
+        };
+      }
     }
     
     if (!args.itens || args.itens.length === 0) {
@@ -280,11 +314,12 @@ export async function executarCriarOportunidadeSpot(
     const { data: cliente } = await supabase
       .from("clientes")
       .select("id, nome_emit, nome_fantasia, vendedor_id, cod_emitente")
-      .eq("id", args.cliente_id)
+      .eq("id", clienteId)
       .single();
     
     if (!cliente) {
-      return { sucesso: false, erro: "cliente_nao_encontrado", mensagem: "Cliente não encontrado" };
+      console.error(`❌ Cliente não encontrado para ID: ${clienteId}`);
+      return { sucesso: false, erro: "cliente_nao_encontrado", mensagem: "Cliente não encontrado. Vou identificar novamente." };
     }
     
     // Buscar produtos para calcular valor estimado
@@ -315,7 +350,7 @@ export async function executarCriarOportunidadeSpot(
         nome_oportunidade: `Spot WhatsApp - ${cliente.nome_fantasia || cliente.nome_emit}`,
         pipeline_id: PIPELINE_SPOT_ID,
         estagio_id: ESTAGIO_PROPOSTA_ID,
-        cliente_id: args.cliente_id,
+        cliente_id: clienteId, // Usar variável corrigida
         vendedor_id: cliente.vendedor_id,
         valor_estimado: valorEstimado,
         percentual_probabilidade: 50,
