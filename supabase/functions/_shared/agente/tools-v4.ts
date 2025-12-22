@@ -411,12 +411,68 @@ export async function executarCriarOportunidadeSpot(
       tool_resultado: { oportunidade_id: oportunidade.id, codigo: oportunidade.codigo }
     });
     
+    // ========================================
+    // FIRE-AND-FORGET: Enfileirar job de cálculo
+    // Isso garante que o cálculo continue mesmo sem nova mensagem do cliente
+    // ========================================
+    try {
+      const { data: job, error: jobError } = await supabase
+        .from("whatsapp_jobs_queue")
+        .insert({
+          conversa_id: conversaId,
+          tipo: "calcular_datasul_e_responder",
+          payload: {
+            oportunidade_id: oportunidade.id,
+            oportunidade_codigo: oportunidade.codigo,
+            cliente_id: clienteId,
+            valor_estimado: valorEstimado,
+            total_itens: itensComPreco.length
+          },
+          status: "pending"
+        })
+        .select("id")
+        .single();
+      
+      if (jobError) {
+        console.error("⚠️ Erro ao enfileirar job (não-crítico):", jobError);
+      } else {
+        console.log(`📋 Job enfileirado: ${job.id} (calcular_datasul_e_responder)`);
+        
+        // Log do enfileiramento
+        await supabase.from("whatsapp_agente_logs").insert({
+          conversa_id: conversaId,
+          tipo_evento: "job_enfileirado",
+          tool_name: "criar_oportunidade_spot",
+          tool_resultado: { job_id: job.id, tipo: "calcular_datasul_e_responder" }
+        });
+        
+        // Disparar processador de jobs em background (Fire-and-Forget)
+        const supabaseUrl = Deno.env.get("SUPABASE_URL");
+        const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+        
+        fetch(`${supabaseUrl}/functions/v1/processar-whatsapp-jobs`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${supabaseKey}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ job_id: job.id })
+        }).catch(err => {
+          console.error("⚠️ Erro ao disparar processador (não-crítico):", err);
+        });
+      }
+    } catch (jobEnqueueError) {
+      console.error("⚠️ Erro ao enfileirar job:", jobEnqueueError);
+      // Não falhar a criação da oportunidade por causa disso
+    }
+    
     return {
       sucesso: true,
       oportunidade_id: oportunidade.id,
       codigo: oportunidade.codigo,
       valor_estimado: valorEstimado,
       total_itens: itensComPreco.length,
+      job_enfileirado: true, // Indica que o cálculo será feito automaticamente
       itens: itensComPreco.map(i => ({
         produto: i.produto_nome,
         ref: i.produto_referencia,
