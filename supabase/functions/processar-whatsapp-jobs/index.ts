@@ -200,7 +200,7 @@ async function processarCalculoDatasulEResponder(
     mensagem += `\n💵 *Valor Total:* R$ ${valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}\n\n`;
     mensagem += `Posso gerar o link da proposta para você revisar e confirmar?`;
     
-    // Enviar mensagem
+    // Enviar mensagem - CRÍTICO: só marca sucesso se realmente enviou
     const enviou = await enviarMensagemWhatsApp(supabase, job.conversa_id, mensagem);
     
     if (enviou) {
@@ -208,17 +208,31 @@ async function processarCalculoDatasulEResponder(
         job_id: job.id,
         oportunidade_id,
         valor_total: valorTotal,
-        tempo_ms: tempoMs
+        tempo_ms: tempoMs,
+        mensagem_enviada: true
       });
       
       // Atualizar sessão para aguardar resposta sobre proposta
       await supabase
         .from("whatsapp_agente_sessoes")
-        .update({ estado_atual: "proposta" })
+        .update({ estado_atual: "calculo" }) // ← Estado "calculo" = valores calculados
         .eq("conversa_id", job.conversa_id);
+      
+      return { sucesso: true, resultado: { valor_total: valorTotal, mensagem_enviada: true } };
+    } else {
+      // Falhou ao enviar - job deve retry
+      console.error("❌ Falha ao enviar mensagem final - job entrará em retry");
+      
+      await logEvento(supabase, job.conversa_id, "calculo_datasul_msg_falhou", {
+        job_id: job.id,
+        oportunidade_id,
+        valor_total: valorTotal,
+        tempo_ms: tempoMs,
+        mensagem_enviada: false
+      });
+      
+      return { sucesso: false, erro: "Cálculo OK, mas falha ao enviar mensagem" };
     }
-    
-    return { sucesso: true, resultado: { valor_total: valorTotal, mensagem_enviada: enviou } };
     
   } catch (fetchError) {
     const erro = fetchError instanceof Error ? fetchError.message : "Erro de conexão";
