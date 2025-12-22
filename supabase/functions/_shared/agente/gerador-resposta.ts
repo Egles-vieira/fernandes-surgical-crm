@@ -119,6 +119,11 @@ FERRAMENTAS DISPONÍVEIS (TOOLS)
 REGRAS CRÍTICAS
 ═══════════════════════════════════════════════════════
 
+🚨 QUANDO CLIENTE MENCIONA PRODUTO, USE buscar_produtos IMEDIATAMENTE
+→ Palavras-chave: cotar, quero, preciso, unidades, cx, caixa, produtos
+→ NÃO responda "vou verificar" sem chamar a tool
+→ NÃO pergunte mais detalhes antes de buscar
+
 ⚠️ NUNCA PERGUNTE O CNPJ - a tool identificar_cliente JÁ BUSCA automaticamente
 ⚠️ NUNCA apresente valores sem calcular no Datasul - os preços podem estar errados
 ⚠️ SEMPRE crie oportunidade ANTES de calcular
@@ -128,7 +133,7 @@ REGRAS CRÍTICAS
 COMPORTAMENTO INTELIGENTE:
 - Analise o CONTEXTO COMPLETO da conversa
 - Se cliente já forneceu informações, NÃO pergunte de novo
-- Use ferramentas quando APROPRIADO, não em toda mensagem
+- PRIORIZE usar ferramentas quando cliente pede algo concreto
 - Converse naturalmente, siga o fluxo de vendas`;
 }
 
@@ -225,7 +230,34 @@ export async function gerarRespostaInteligente(
       lovableApiKey
     );
 
-    console.log(`✅ Resposta ${provider} recebida | Tools: ${toolCalls.length}`);
+    console.log(`✅ Resposta ${provider} recebida | Tools: ${toolCalls.length} | Tokens: ${tokens_entrada || 0}/${tokens_saida || 0}`);
+
+    // Logar chamada LLM no banco (primeira chamada)
+    if (supabase) {
+      try {
+        // Buscar sessão atual para obter sessao_id
+        const { data: sessaoData } = await supabase
+          .from("whatsapp_agente_sessoes")
+          .select("id")
+          .eq("conversa_id", historicoCompleto[0]?.conversa_id || "unknown")
+          .order("criado_em", { ascending: false })
+          .limit(1)
+          .single();
+
+        await supabase.from("whatsapp_agente_logs").insert({
+          conversa_id: historicoCompleto[0]?.conversa_id || null,
+          sessao_id: sessaoData?.id || null,
+          tipo_evento: "chamada_llm",
+          llm_provider: provider,
+          tokens_entrada: tokens_entrada,
+          tokens_saida: tokens_saida,
+          tool_name: toolCalls.length > 0 ? toolCalls.map((t: any) => t.function?.name).join(", ") : null,
+          tool_args: toolCalls.length > 0 ? { tool_calls_count: toolCalls.length } : null
+        });
+      } catch (logError) {
+        console.warn("⚠️ Erro ao logar chamada LLM:", logError);
+      }
+    }
 
     return {
       resposta: sanitizarResposta(resposta),
