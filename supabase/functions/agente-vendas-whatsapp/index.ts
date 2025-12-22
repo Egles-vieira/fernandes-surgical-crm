@@ -245,24 +245,45 @@ Deno.serve(async (req) => {
         // === HANDLERS ESPECÍFICOS POR TOOL ===
 
         // BUSCAR PRODUTOS (legacy)
+        // NÃO ATUALIZA MAIS O CARRINHO - sugestões de busca NÃO são itens selecionados
         if (functionName === "buscar_produtos" && resultado.produtos) {
           produtosEncontrados = resultado.produtos;
 
-          const produtosCarrinho = resultado.produtos.map((p: any) => ({
-            id: p.id,
-            quantidade: 1,
-          }));
-
+          // Salvar sugestões na sessão para referência posterior (NÃO no carrinho)
           await supabase
-            .from("whatsapp_conversas")
-            .update({ produtos_carrinho: produtosCarrinho })
-            .eq("id", conversaId);
+            .from("whatsapp_agente_sessoes")
+            .update({ 
+              carrinho_itens: resultado.produtos.map((p: any, idx: number) => ({
+                numero: idx + 1,
+                id: p.id,
+                nome: p.nome,
+                referencia: p.referencia,
+                preco: p.preco,
+                tipo: "sugestao" // Marcador para diferenciar de itens selecionados
+              }))
+            })
+            .eq("conversa_id", conversaId)
+            .gte("expira_em", new Date().toISOString());
+
+          console.log(`📋 ${resultado.produtos.length} produtos salvos como SUGESTÕES (não carrinho)`);
 
           await salvarMemoria(
             supabase,
             conversaId,
-            `Produtos encontrados: ${resultado.produtos.map((p: any) => p.nome).slice(0, 3).join(", ")}`,
+            `Produtos sugeridos: ${resultado.produtos.map((p: any) => p.nome).slice(0, 3).join(", ")}`,
             "produtos_sugeridos",
+            openAiApiKey,
+          );
+        }
+        
+        // ADICIONAR AO CARRINHO V4 - quando cliente seleciona item específico
+        if (functionName === "adicionar_ao_carrinho_v4" && resultado.sucesso) {
+          console.log(`🛒 Item adicionado ao carrinho: ${resultado.produto_nome} (qtd: ${resultado.quantidade})`);
+          await salvarMemoria(
+            supabase,
+            conversaId,
+            `Adicionado ao carrinho: ${resultado.quantidade}x ${resultado.produto_nome}`,
+            "item_adicionado",
             openAiApiKey,
           );
         }

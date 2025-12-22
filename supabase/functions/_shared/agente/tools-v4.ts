@@ -123,6 +123,42 @@ RETORNA: URL do link público da proposta`,
         required: ["oportunidade_id"]
       }
     }
+  },
+  {
+    type: "function",
+    function: {
+      name: "adicionar_ao_carrinho_v4",
+      description: `Adiciona um item ao carrinho de compras com a quantidade especificada.
+Use quando:
+1) Cliente escolheu um produto da lista de sugestões (ex: "quero o número 2")
+2) Cliente confirmou que quer adicionar um produto específico
+3) Cliente informou quantidade para um produto
+
+IMPORTANTE: 
+- Se cliente disse "número X", buscar o item X das últimas sugestões
+- SEMPRE pedir/confirmar a quantidade antes de adicionar
+- O carrinho é SEPARADO das sugestões de busca
+
+RETORNA: confirmação do item adicionado + total de itens no carrinho`,
+      parameters: {
+        type: "object",
+        properties: {
+          produto_id: {
+            type: "string",
+            description: "UUID do produto a adicionar"
+          },
+          numero_sugestao: {
+            type: "number",
+            description: "Número da sugestão escolhida (1, 2, 3...) - alternativa ao produto_id"
+          },
+          quantidade: {
+            type: "number",
+            description: "Quantidade a adicionar - OBRIGATÓRIO perguntar ao cliente"
+          }
+        },
+        required: ["quantidade"]
+      }
+    }
   }
 ];
 
@@ -787,6 +823,134 @@ export async function executarGerarLinkProposta(
 }
 
 /**
+ * Adicionar item ao carrinho V4
+ * Suporta seleção por número da sugestão OU produto_id direto
+ */
+export async function executarAdicionarAoCarrinhoV4(
+  args: { produto_id?: string; numero_sugestao?: number; quantidade: number },
+  supabase: any,
+  conversaId: string
+): Promise<any> {
+  console.log("🛒 [Tool] adicionar_ao_carrinho_v4", args);
+  
+  try {
+    let produtoId = args.produto_id;
+    let produtoNome = "";
+    let produtoReferencia = "";
+    
+    // Se passou numero_sugestao, buscar da sessão
+    if (args.numero_sugestao && !produtoId) {
+      const { data: sessao } = await supabase
+        .from("whatsapp_agente_sessoes")
+        .select("carrinho_itens")
+        .eq("conversa_id", conversaId)
+        .gte("expira_em", new Date().toISOString())
+        .order("criado_em", { ascending: false })
+        .limit(1)
+        .single();
+      
+      const sugestoes = (sessao?.carrinho_itens || []).filter((i: any) => i.tipo === "sugestao");
+      const sugestaoEscolhida = sugestoes.find((s: any) => s.numero === args.numero_sugestao);
+      
+      if (!sugestaoEscolhida) {
+        console.warn(`⚠️ Sugestão número ${args.numero_sugestao} não encontrada`);
+        return { 
+          sucesso: false, 
+          erro: "sugestao_nao_encontrada", 
+          mensagem: `Não encontrei a opção número ${args.numero_sugestao}. Pode repetir qual produto deseja?` 
+        };
+      }
+      
+      produtoId = sugestaoEscolhida.id;
+      produtoNome = sugestaoEscolhida.nome;
+      produtoReferencia = sugestaoEscolhida.referencia;
+      console.log(`✅ Sugestão ${args.numero_sugestao} resolvida: ${produtoNome}`);
+    }
+    
+    // Validar produto_id
+    if (!produtoId) {
+      return { 
+        sucesso: false, 
+        erro: "produto_obrigatorio", 
+        mensagem: "Qual produto você gostaria de adicionar?" 
+      };
+    }
+    
+    // Validar quantidade
+    if (!args.quantidade || args.quantidade < 1) {
+      return { 
+        sucesso: false, 
+        erro: "quantidade_obrigatoria", 
+        mensagem: "Qual a quantidade que você precisa?" 
+      };
+    }
+    
+    // Se não temos o nome ainda, buscar do banco
+    if (!produtoNome) {
+      const { data: produto } = await supabase
+        .from("produtos")
+        .select("id, nome, referencia_interna, preco_venda")
+        .eq("id", produtoId)
+        .single();
+      
+      if (!produto) {
+        return { sucesso: false, erro: "produto_nao_encontrado", mensagem: "Produto não encontrado" };
+      }
+      
+      produtoNome = produto.nome;
+      produtoReferencia = produto.referencia_interna;
+    }
+    
+    // Buscar carrinho atual da conversa
+    const { data: conversa } = await supabase
+      .from("whatsapp_conversas")
+      .select("produtos_carrinho")
+      .eq("id", conversaId)
+      .single();
+    
+    const carrinhoAtual: Array<{ id: string; quantidade: number; nome?: string }> = 
+      conversa?.produtos_carrinho || [];
+    
+    // Verificar se produto já está no carrinho
+    const itemExistente = carrinhoAtual.find((item: any) => item.id === produtoId);
+    
+    if (itemExistente) {
+      itemExistente.quantidade = args.quantidade;
+      console.log(`📝 Quantidade atualizada: ${produtoNome} → ${args.quantidade}`);
+    } else {
+      carrinhoAtual.push({ 
+        id: produtoId, 
+        quantidade: args.quantidade,
+        nome: produtoNome
+      });
+      console.log(`➕ Novo item adicionado: ${produtoNome} (${args.quantidade})`);
+    }
+    
+    // Salvar carrinho na conversa
+    await supabase
+      .from("whatsapp_conversas")
+      .update({ produtos_carrinho: carrinhoAtual })
+      .eq("id", conversaId);
+    
+    console.log(`🛒 Carrinho atualizado: ${carrinhoAtual.length} item(ns)`);
+    
+    return { 
+      sucesso: true, 
+      produto_id: produtoId,
+      produto_nome: produtoNome,
+      produto_referencia: produtoReferencia,
+      quantidade: args.quantidade,
+      carrinho_total_itens: carrinhoAtual.length,
+      mensagem: `${args.quantidade}x ${produtoNome} adicionado ao carrinho`
+    };
+    
+  } catch (error) {
+    console.error("❌ Erro em adicionar_ao_carrinho_v4:", error);
+    return { sucesso: false, erro: "erro_interno", mensagem: "Erro ao adicionar ao carrinho" };
+  }
+}
+
+/**
  * Dispatcher para executar tool V4 pelo nome
  */
 export async function executarToolV4(
@@ -808,6 +972,9 @@ export async function executarToolV4(
     case "gerar_link_proposta":
       return executarGerarLinkProposta(args, supabase, conversaId);
     
+    case "adicionar_ao_carrinho_v4":
+      return executarAdicionarAoCarrinhoV4(args, supabase, conversaId);
+    
     default:
       return null; // Tool não é V4, deixar para o executor original
   }
@@ -817,5 +984,5 @@ export async function executarToolV4(
  * Verificar se é uma tool V4
  */
 export function isToolV4(nomeTool: string): boolean {
-  return ["identificar_cliente", "criar_oportunidade_spot", "calcular_cesta_datasul", "gerar_link_proposta"].includes(nomeTool);
+  return ["identificar_cliente", "criar_oportunidade_spot", "calcular_cesta_datasul", "gerar_link_proposta", "adicionar_ao_carrinho_v4"].includes(nomeTool);
 }
