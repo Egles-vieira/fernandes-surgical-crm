@@ -82,21 +82,45 @@ export function useContatos(clienteId?: string) {
 
   const deleteContato = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from("contatos")
-        .delete()
-        .eq("id", id);
+      // Verificar se há oportunidades vinculadas
+      const { data: oportunidades } = await supabase
+        .from("oportunidades")
+        .select("id")
+        .eq("contato_id", id)
+        .limit(1);
 
-      if (error) throw error;
+      if (oportunidades && oportunidades.length > 0) {
+        // Soft delete - marcar como inativo (há dependências)
+        const { error } = await supabase
+          .from("contatos")
+          .update({ esta_ativo: false })
+          .eq("id", id);
+
+        if (error) throw error;
+        return { softDeleted: true };
+      } else {
+        // Exclusão física - sem dependências
+        const { error } = await supabase
+          .from("contatos")
+          .delete()
+          .eq("id", id);
+
+        if (error) throw error;
+        return { softDeleted: false };
+      }
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       if (clienteId) {
         queryClient.invalidateQueries({ queryKey: ["cliente", clienteId] });
       }
       queryClient.invalidateQueries({ queryKey: ["contatos"] });
       toast({
-        title: "Contato excluído!",
-        description: "O contato foi removido com sucesso.",
+        title: result.softDeleted 
+          ? "Contato desativado!" 
+          : "Contato excluído!",
+        description: result.softDeleted
+          ? "O contato foi desativado pois possui oportunidades vinculadas."
+          : "O contato foi removido com sucesso.",
       });
     },
     onError: (error: any) => {
