@@ -1,44 +1,57 @@
 /**
  * ============================================
  * PROVIDER LLM COM FALLBACK
- * DeepSeek -> Lovable AI (sem tools)
+ * OpenAI (GPT-4o-mini) -> DeepSeek -> Lovable AI
  * ============================================
  */
 
 interface LLMResponse {
   resposta: string | null;
   toolCalls: any[];
-  provider: "deepseek" | "lovable_ai";
+  provider: "openai" | "deepseek" | "lovable_ai";
   tokens_entrada?: number;
   tokens_saida?: number;
 }
 
 /**
  * Chamar LLM com fallback automático
- * Tenta DeepSeek primeiro, se falhar usa Lovable AI
+ * Ordem: OpenAI -> DeepSeek -> Lovable AI
  */
 export async function chamarLLMComFallback(
   messages: any[],
   tools: any[] | null,
   deepseekApiKey: string,
-  lovableApiKey: string | null
+  lovableApiKey: string | null,
+  openaiApiKey?: string | null
 ): Promise<LLMResponse> {
   
-  // Tentar DeepSeek primeiro
+  // 1. Tentar OpenAI (GPT-4o-mini) PRIMEIRO
+  if (openaiApiKey) {
+    try {
+      console.log("🚀 Tentando OpenAI (GPT-4o-mini)...");
+      const resultado = await chamarOpenAI(messages, tools, openaiApiKey);
+      return { ...resultado, provider: "openai" };
+    } catch (error) {
+      console.warn("⚠️ OpenAI falhou, tentando DeepSeek:", error);
+    }
+  }
+  
+  // 2. Fallback para DeepSeek
   try {
+    console.log("🔄 Tentando DeepSeek...");
     const resultado = await chamarDeepSeek(messages, tools, deepseekApiKey);
     return { ...resultado, provider: "deepseek" };
   } catch (error) {
     console.warn("⚠️ DeepSeek falhou, tentando Lovable AI:", error);
     
-    // Fallback para Lovable AI
+    // 3. Fallback final para Lovable AI
     if (lovableApiKey) {
       try {
         const resultado = await chamarLovableAI(messages, lovableApiKey);
         return { ...resultado, provider: "lovable_ai" };
       } catch (lovableError) {
         console.error("❌ Lovable AI também falhou:", lovableError);
-        throw new Error("Ambos os provedores de IA falharam");
+        throw new Error("Todos os provedores de IA falharam");
       }
     }
     
@@ -81,6 +94,69 @@ function detectarIntencaoTool(messages: any[]): string | null {
 }
 
 /**
+ * Chamar OpenAI (GPT-4o-mini) com tool calling
+ */
+async function chamarOpenAI(
+  messages: any[],
+  tools: any[] | null,
+  apiKey: string
+): Promise<{ resposta: string | null; toolCalls: any[]; tokens_entrada?: number; tokens_saida?: number }> {
+  
+  const messagesLimpos = messages.filter(m => m.content && m.content.trim() !== '');
+  
+  const body: any = {
+    model: "gpt-4o-mini",
+    messages: messagesLimpos,
+    temperature: 0.5,
+    max_tokens: 500
+  };
+  
+  if (tools && tools.length > 0) {
+    body.tools = tools;
+    
+    // Detectar intenção para forçar uso de tools
+    const intencao = detectarIntencaoTool(messagesLimpos);
+    
+    if (intencao) {
+      body.tool_choice = { type: "function", function: { name: intencao } };
+      console.log(`🔧 OpenAI: Forçando tool_choice: ${intencao}`);
+    } else {
+      body.tool_choice = "auto";
+    }
+  }
+  
+  console.log(`📤 OpenAI request | Model: gpt-4o-mini | Tools: ${tools?.length || 0} | tool_choice: ${JSON.stringify(body.tool_choice || 'none')}`);
+  
+  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(body),
+    signal: AbortSignal.timeout(30000) // 30s timeout
+  });
+  
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("❌ Erro OpenAI:", response.status, errorText);
+    throw new Error(`OpenAI API error: ${response.status}`);
+  }
+  
+  const data = await response.json();
+  const assistantMessage = data.choices[0].message;
+  
+  console.log(`📥 OpenAI response | Tool calls: ${assistantMessage.tool_calls?.length || 0} | Tokens: ${data.usage?.prompt_tokens}/${data.usage?.completion_tokens}`);
+  
+  return {
+    resposta: assistantMessage.content,
+    toolCalls: assistantMessage.tool_calls || [],
+    tokens_entrada: data.usage?.prompt_tokens,
+    tokens_saida: data.usage?.completion_tokens
+  };
+}
+
+/**
  * Chamar DeepSeek com tool calling
  */
 async function chamarDeepSeek(
@@ -94,7 +170,7 @@ async function chamarDeepSeek(
   const body: any = {
     model: "deepseek-chat",
     messages: messagesLimpos,
-    temperature: 0.5, // Reduzido para respostas mais focadas
+    temperature: 0.5,
     max_tokens: 500
   };
   
@@ -105,11 +181,9 @@ async function chamarDeepSeek(
     const intencao = detectarIntencaoTool(messagesLimpos);
     
     if (intencao) {
-      // Forçar uso de tool específica quando intenção clara
       body.tool_choice = { type: "function", function: { name: intencao } };
-      console.log(`🔧 Forçando tool_choice: ${intencao}`);
+      console.log(`🔧 DeepSeek: Forçando tool_choice: ${intencao}`);
     } else {
-      // Modo auto - LLM decide, mas tools estão disponíveis
       body.tool_choice = "auto";
     }
   }
@@ -226,7 +300,8 @@ export async function chamarLLMComResultadosTools(
   toolCalls: any[],
   resultadosFerramentas: any[],
   deepseekApiKey: string,
-  lovableApiKey: string | null
+  lovableApiKey: string | null,
+  openaiApiKey?: string | null
 ): Promise<LLMResponse> {
   
   const messages = [
@@ -237,7 +312,45 @@ export async function chamarLLMComResultadosTools(
     ...resultadosFerramentas
   ];
   
-  // Tentar DeepSeek primeiro
+  // 1. Tentar OpenAI primeiro (se tiver chave)
+  if (openaiApiKey) {
+    try {
+      console.log("🚀 Segunda chamada: OpenAI (GPT-4o-mini)...");
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${openaiApiKey}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model: "gpt-4o-mini",
+          messages,
+          temperature: 0.7,
+          max_tokens: 400
+        }),
+        signal: AbortSignal.timeout(30000)
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log(`📥 OpenAI (2ª chamada) | Tokens: ${data.usage?.prompt_tokens}/${data.usage?.completion_tokens}`);
+        
+        return {
+          resposta: data.choices[0].message.content,
+          toolCalls: [],
+          provider: "openai",
+          tokens_entrada: data.usage?.prompt_tokens,
+          tokens_saida: data.usage?.completion_tokens
+        };
+      }
+      
+      console.warn("⚠️ OpenAI falhou na segunda chamada, tentando DeepSeek...");
+    } catch (error) {
+      console.warn("⚠️ OpenAI erro na segunda chamada:", error);
+    }
+  }
+  
+  // 2. Fallback DeepSeek
   try {
     const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
       method: "POST",
@@ -271,7 +384,7 @@ export async function chamarLLMComResultadosTools(
   } catch (error) {
     console.warn("⚠️ DeepSeek falhou na segunda chamada:", error);
     
-    // Fallback: gerar resposta baseada nos resultados das tools
+    // 3. Fallback: gerar resposta baseada nos resultados das tools
     return gerarRespostaFallback(resultadosFerramentas);
   }
 }
