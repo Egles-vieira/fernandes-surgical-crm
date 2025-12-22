@@ -45,6 +45,14 @@ RETORNA: cliente_id, nome, cnpj, cod_emitente, endereços cadastrados`,
 
 ⚠️ IMPORTANTE: NÃO passe os itens manualmente! Eles são lidos AUTOMATICAMENTE do carrinho.
 
+QUANDO VOCÊ DEVE CHAMAR ESTA FERRAMENTA (OBRIGATÓRIO):
+- Cliente confirmou o CNPJ para faturamento (ex: "sim, esse mesmo", "isso", "pode ser")
+- Cliente disse "pode fechar", "fecha o pedido", "confirmo"
+- Você já identificou o cliente E o carrinho tem itens
+
+⛔ NUNCA DIGA "criei a oportunidade" SEM CHAMAR ESTA FERRAMENTA!
+Se você disser que criou sem chamar, o sistema detecta e dá erro.
+
 Use quando:
 - Cliente confirmou que quer fechar o pedido
 - Você já identificou o cliente (identificar_cliente)
