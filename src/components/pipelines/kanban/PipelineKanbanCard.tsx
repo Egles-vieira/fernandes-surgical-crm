@@ -78,7 +78,7 @@ export function PipelineKanbanCard({
           className={cn(
             "cursor-pointer transition-all hover:shadow-md",
             "border border-border/50 bg-background",
-            "w-full max-w-full overflow-hidden",
+            "w-full min-w-0 max-w-full overflow-hidden",
             snapshot.isDragging && "shadow-lg ring-2 ring-primary/20",
             oportunidade.estaEstagnado && "border-l-4 border-l-amber-500"
           )}
@@ -91,7 +91,7 @@ export function PipelineKanbanCard({
             />
           </div>
 
-          <div className="p-3 bg-secondary-foreground overflow-hidden">
+          <div className="p-3 bg-secondary-foreground overflow-hidden min-w-0">
             {/* Header: Nome + Valor */}
             <div className="flex items-start justify-between gap-2 mb-2 overflow-hidden">
               <div className="flex-1 min-w-0 overflow-hidden">

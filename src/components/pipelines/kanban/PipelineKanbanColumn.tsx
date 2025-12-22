@@ -51,7 +51,7 @@ export function PipelineKanbanColumn({
   return (
     <div 
       className={cn(
-        "flex flex-col w-80 shrink-0 rounded-lg border",
+        "flex flex-col w-80 min-w-80 max-w-80 shrink-0 rounded-lg border overflow-hidden",
         "bg-card border-border/50",
         isGanho && "border-green-500/30 bg-green-50/30 dark:bg-green-950/20",
         isPerdido && "border-red-500/30 bg-red-50/30 dark:bg-red-950/20"
