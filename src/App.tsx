@@ -52,6 +52,7 @@ import SolicitacoesCadastro from "./pages/SolicitacoesCadastro";
 import Configuracoes from "./pages/Configuracoes";
 import PerfilVendedor from "./pages/PerfilVendedor";
 import PropostaPublica from "./pages/PropostaPublica";
+import PropostaPublicaOportunidade from "./pages/PropostaPublicaOportunidade";
 import Documentos from "./pages/Documentos";
 import Atividades from "./pages/Atividades";
 import FocusZone from "./pages/FocusZone";
@@ -65,8 +66,11 @@ const PublicRoutes = () => (
   <QueryClientProvider client={publicQueryClient}>
     <BrowserRouter>
       <Routes>
-        {/* Rota pública para proposta comercial - completamente isolada */}
+        {/* Rota pública para proposta comercial de vendas */}
         <Route path="/proposal/:token" element={<PropostaPublica />} />
+        
+        {/* Rota pública para proposta comercial de oportunidades */}
+        <Route path="/proposal-oportunidade/:token" element={<PropostaPublicaOportunidade />} />
         
         {/* Todas as outras rotas vão para o app principal com ThemeProvider */}
         <Route path="/*" element={<MainApp />} />

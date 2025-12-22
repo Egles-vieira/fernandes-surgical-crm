@@ -30,6 +30,7 @@ import { SpotFieldsSection } from "./SpotFieldsSection";
 import { ContatoClienteSection } from "./ContatoClienteSection";
 import { OportunidadeDetailsSheetSkeleton } from "./OportunidadeDetailsSheetSkeleton";
 import { IntegracaoOportunidadeLog } from "./IntegracaoOportunidadeLog";
+import { PropostaQuickActionsBarOportunidade } from "./PropostaQuickActionsBarOportunidade";
 import { Tables } from "@/integrations/supabase/types";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -295,6 +296,10 @@ export function OportunidadeDetailsSheet({
                 </span>
               </div>
               <div className="flex items-center gap-2">
+                {/* Ações de proposta inteligente */}
+                {oportunidadeId && (
+                  <PropostaQuickActionsBarOportunidade oportunidadeId={oportunidadeId} />
+                )}
                 <Button variant="ghost" size="sm" onClick={handleCopyLink}>
                   <Copy className="h-4 w-4 mr-1" />
                   Copiar Link
