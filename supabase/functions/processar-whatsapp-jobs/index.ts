@@ -78,7 +78,7 @@ async function enviarMensagemWhatsApp(
         whatsapp_conta_id: conversa.whatsapp_conta_id,
         whatsapp_contato_id: conversa.whatsapp_contato_id,
         direcao: "enviada",
-        tipo_mensagem: "text",             // ✅ Coluna correta (era "tipo")
+        tipo_mensagem: "texto",            // ✅ Valor correto do enum
         corpo: corpo,
         status: "pendente",
         enviada_por_bot: true,             // ✅ Indica mensagem automática
