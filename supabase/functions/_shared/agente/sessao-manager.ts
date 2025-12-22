@@ -180,20 +180,25 @@ export async function registrarLogAgente(
 
 /**
  * Buscar contexto da sessão para o prompt
+ * IMPORTANTE: Inclui IDs explícitos para o LLM usar nas tool calls
  */
 export function construirContextoSessao(sessao: SessaoAgente): string {
   const partes: string[] = [];
   
   partes.push(`ESTADO DA NEGOCIAÇÃO: ${traduzirEstado(sessao.estado_atual)}`);
   
+  // CRÍTICO: Incluir o cliente_id explicitamente para o LLM usar
   if (sessao.cliente_identificado_id) {
     partes.push("✅ Cliente já identificado");
+    partes.push(`   ➡️ CLIENTE_ID PARA USAR NAS TOOLS: ${sessao.cliente_identificado_id}`);
   } else {
-    partes.push("⚠️ Cliente ainda NÃO identificado");
+    partes.push("⚠️ Cliente ainda NÃO identificado - use identificar_cliente primeiro");
   }
   
+  // CRÍTICO: Incluir o oportunidade_id explicitamente
   if (sessao.oportunidade_spot_id) {
     partes.push("✅ Oportunidade criada no Pipeline Spot");
+    partes.push(`   ➡️ OPORTUNIDADE_ID PARA USAR NAS TOOLS: ${sessao.oportunidade_spot_id}`);
   }
   
   if (sessao.carrinho_itens && sessao.carrinho_itens.length > 0) {
