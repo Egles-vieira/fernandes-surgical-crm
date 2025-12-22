@@ -43,26 +43,32 @@ const DEVICE_ICONS: Record<string, typeof Monitor> = {
   tablet: Tablet,
 };
 
-// Indicador de interesse baseado no score
+// Indicador de interesse baseado no score - Quente/Morno/Frio
 function InterestIndicator({ score }: { score: number }) {
-  let label = "Baixo";
-  let color = "text-muted-foreground";
+  const level = score >= 80 ? 'quente' : score >= 50 ? 'morno' : 'frio';
   
-  if (score >= 70) {
-    label = "Alto";
-    color = "text-green-600";
-  } else if (score >= 40) {
-    label = "Médio";
-    color = "text-yellow-600";
-  }
-
   return (
-    <div className="space-y-1">
-      <div className="flex items-center justify-between text-xs">
-        <span className="text-muted-foreground">Interesse do Cliente</span>
-        <span className={`font-medium ${color}`}>{label}</span>
+    <div className="rounded-lg border bg-card p-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-medium">Temperatura do Lead</span>
+        <Badge className={
+          level === 'quente' ? 'bg-red-500 hover:bg-red-600' : 
+          level === 'morno' ? 'bg-amber-500 hover:bg-amber-600' : 
+          'bg-blue-400 hover:bg-blue-500'
+        }>
+          {level === 'quente' && '🔥 Quente'}
+          {level === 'morno' && '⚡ Morno'}
+          {level === 'frio' && '❄️ Frio'}
+        </Badge>
       </div>
+      
       <Progress value={score} className="h-2" />
+      
+      <p className="text-xs text-muted-foreground">
+        {score >= 80 && "Cliente muito interessado! Múltiplas visualizações e tempo significativo na proposta."}
+        {score >= 50 && score < 80 && "Interesse moderado. Cliente visualizou a proposta com atenção."}
+        {score < 50 && "Baixo engajamento. Considere fazer um follow-up."}
+      </p>
     </div>
   );
 }

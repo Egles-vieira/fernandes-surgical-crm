@@ -35,7 +35,7 @@ export function usePropostaActivityOportunidade(oportunidadeId: string | null) {
         .from("propostas_analytics")
         .select("*")
         .eq("oportunidade_id", oportunidadeId)
-        .order("started_at", { ascending: false });
+        .order("iniciado_em", { ascending: false });
       
       if (error) throw error;
       return data || [];
@@ -54,7 +54,7 @@ export function usePropostaActivityOportunidade(oportunidadeId: string | null) {
         .from("propostas_analytics_cliques")
         .select("*")
         .in("analytics_id", analyticsIds)
-        .order("clicked_at", { ascending: false });
+        .order("clicado_em", { ascending: false });
       
       if (error) throw error;
       return data || [];
@@ -72,7 +72,7 @@ export function usePropostaActivityOportunidade(oportunidadeId: string | null) {
         .from("propostas_analytics_secoes")
         .select("*")
         .in("analytics_id", analyticsIds)
-        .order("first_viewed_at", { ascending: false });
+        .order("primeira_visualizacao_em", { ascending: false });
       
       if (error) throw error;
       return data || [];

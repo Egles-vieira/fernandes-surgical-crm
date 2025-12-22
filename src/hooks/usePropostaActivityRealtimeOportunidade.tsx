@@ -44,7 +44,7 @@ export function usePropostaActivityRealtimeOportunidade(oportunidadeId: string |
           queryClient.invalidateQueries({ queryKey: ["proposta-analytics-oportunidade", oportunidadeId] });
         }
       )
-      // Cliques
+      // Cliques - precisa usar filter sem oportunidade_id pois a tabela não tem esse campo
       .on(
         'postgres_changes',
         {
@@ -53,14 +53,15 @@ export function usePropostaActivityRealtimeOportunidade(oportunidadeId: string |
           table: 'propostas_analytics_cliques'
         },
         (payload) => {
-          const newClique = payload.new as { tipo_clique?: string };
+          const newClique = payload.new as { tipo_acao?: string };
+          // Invalidar e deixar a query filtrar pelos analytics_ids corretos
           queryClient.invalidateQueries({ queryKey: ["proposta-cliques-oportunidade"] });
           
-          if (newClique?.tipo_clique === 'aceitar') {
+          if (newClique?.tipo_acao === 'aceitar') {
             toast.success("🎯 Cliente clicou em Aceitar!", {
               description: "O cliente demonstrou interesse em aceitar a proposta"
             });
-          } else if (newClique?.tipo_clique === 'recusar') {
+          } else if (newClique?.tipo_acao === 'recusar') {
             toast.warning("⚠️ Cliente clicou em Recusar", {
               description: "O cliente está considerando recusar a proposta"
             });
