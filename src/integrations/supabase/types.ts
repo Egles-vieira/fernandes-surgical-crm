@@ -12178,6 +12178,17 @@ export type Database = {
       }
     }
     Functions: {
+      adicionar_item_carrinho: {
+        Args: {
+          p_conversa_id: string
+          p_preco_unitario?: number
+          p_produto_id: string
+          p_produto_nome?: string
+          p_produto_referencia?: string
+          p_quantidade: number
+        }
+        Returns: Json
+      }
       ajustar_score_aprendizado: {
         Args: {
           p_feedback_tipo: string
