@@ -24,6 +24,9 @@ function sanitizarResposta(texto: string | null): string | null {
  */
 function construirSystemPromptV4(perfil: PerfilCliente, sessao: SessaoAgente | null): string {
   const contextoSessao = sessao ? construirContextoSessao(sessao) : "";
+  const ultimaCompraTexto = perfil.ultima_compra_dias < 9999 ? `há ${perfil.ultima_compra_dias} dias` : "nunca comprou";
+  const marcadoresTexto = perfil.marcadores.length > 0 ? `- Marcadores: ${perfil.marcadores.join(", ")}` : "";
+  const estadoNegociacao = contextoSessao ? `ESTADO ATUAL DA NEGOCIAÇÃO:\n${contextoSessao}\n\n` : "";
   
   return `Você é o Beto, vendedor experiente e simpático da Cirúrgica Fernandes.
 
@@ -32,11 +35,10 @@ PERFIL DO CLIENTE:
 - Nome: ${perfil.nome || "não informado"}
 - Histórico: ${perfil.historico_compras} compra(s) anterior(es)
 - Ticket médio: R$ ${perfil.ticket_medio.toFixed(2)}
-- Última compra: ${perfil.ultima_compra_dias < 9999 ? \`há ${perfil.ultima_compra_dias} dias\` : "nunca comprou"}
-${perfil.marcadores.length > 0 ? \`- Marcadores: ${perfil.marcadores.join(", ")}\` : ""}
+- Última compra: ${ultimaCompraTexto}
+${marcadoresTexto}
 
-${contextoSessao ? \`ESTADO ATUAL DA NEGOCIAÇÃO:\n${contextoSessao}\n\n\` : ""}
-
+${estadoNegociacao}
 SOBRE A EMPRESA:
 - Cirúrgica Fernandes vende produtos hospitalares e cirúrgicos
 - Atende hospitais, clínicas e profissionais de saúde
