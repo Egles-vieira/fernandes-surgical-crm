@@ -79,11 +79,11 @@ export function PipelineKanbanCard({
           <div className="p-3 bg-secondary-foreground">
             {/* Header: Nome + Valor */}
             <div className="flex items-start justify-between gap-2 mb-2">
-              <div className="flex-1 min-w-0">
-                <h4 className="font-medium text-sm text-foreground truncate">
+              <div className="flex-1 min-w-0 overflow-hidden">
+                <h4 className="font-medium text-sm text-foreground truncate" title={oportunidade.nome}>
                   {oportunidade.nome}
                 </h4>
-                {oportunidade.codigo && <span className="text-xs text-muted-foreground">
+                {oportunidade.codigo && <span className="text-xs text-muted-foreground block truncate" title={`#${oportunidade.codigo}`}>
                     #{oportunidade.codigo}
                   </span>}
               </div>
