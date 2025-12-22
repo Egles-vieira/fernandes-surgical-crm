@@ -9908,6 +9908,56 @@ export type Database = {
           },
         ]
       }
+      whatsapp_jobs_queue: {
+        Row: {
+          conversa_id: string
+          criado_em: string
+          erro_mensagem: string | null
+          id: string
+          max_tentativas: number
+          payload: Json
+          processado_em: string | null
+          proximo_retry_em: string | null
+          status: string
+          tentativas: number
+          tipo: string
+        }
+        Insert: {
+          conversa_id: string
+          criado_em?: string
+          erro_mensagem?: string | null
+          id?: string
+          max_tentativas?: number
+          payload?: Json
+          processado_em?: string | null
+          proximo_retry_em?: string | null
+          status?: string
+          tentativas?: number
+          tipo: string
+        }
+        Update: {
+          conversa_id?: string
+          criado_em?: string
+          erro_mensagem?: string | null
+          id?: string
+          max_tentativas?: number
+          payload?: Json
+          processado_em?: string | null
+          proximo_retry_em?: string | null
+          status?: string
+          tentativas?: number
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_jobs_queue_conversa_id_fkey"
+            columns: ["conversa_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_conversas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       whatsapp_log_atribuicoes: {
         Row: {
           conversa_id: string

@@ -182,3 +182,6 @@ verify_jwt = false
 
 [functions.calcular-oportunidade-datasul]
 verify_jwt = true
+
+[functions.processar-whatsapp-jobs]
+verify_jwt = false
