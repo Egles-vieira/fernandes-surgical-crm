@@ -221,56 +221,38 @@ export async function gerarRespostaInteligente(
   // Construir system prompt V4
   const systemPrompt = construirSystemPromptV4(perfil, sessao || null);
 
-  // Combinar tools existentes com novas V4
-  const toolsLegacy = [
-    {
-      type: "function",
-      function: {
-        name: "buscar_produtos",
-        description:
-          "Busca produtos no catálogo da Cirúrgica Fernandes. Use quando o cliente menciona um produto específico ou quer ver opções disponíveis.",
-        parameters: {
-          type: "object",
-          properties: {
-            termo_busca: {
-              type: "string",
-              description:
-                "Termo de busca (nome do produto, categoria, uso). Ex: 'luvas', 'sonda vesical', 'máscara N95'",
-            },
-            contexto_adicional: {
-              type: "string",
-              description: "Contexto da necessidade do cliente (procedimento, quantidade estimada, urgência)",
-            },
+  // ═══════════════════════════════════════════════════════
+  // TOOLS V4 APENAS - Legacy tools desativadas para reduzir confusão
+  // ═══════════════════════════════════════════════════════
+  const toolBuscarProdutos = {
+    type: "function",
+    function: {
+      name: "buscar_produtos",
+      description:
+        "Busca produtos no catálogo. Use quando o cliente menciona um produto ou quer ver opções. Retorna SUGESTÕES, não adiciona ao carrinho automaticamente.",
+      parameters: {
+        type: "object",
+        properties: {
+          termo_busca: {
+            type: "string",
+            description:
+              "Termo de busca (nome do produto, categoria). Ex: 'luvas', 'scalp', 'abaixador'",
           },
-          required: ["termo_busca"],
+          contexto_adicional: {
+            type: "string",
+            description: "Contexto adicional (procedimento, urgência)",
+          },
         },
+        required: ["termo_busca"],
       },
     },
-    {
-      type: "function",
-      function: {
-        name: "adicionar_ao_carrinho",
-        description:
-          "Adiciona um produto ao carrinho do cliente. Use APENAS quando o cliente confirmou explicitamente que quer o produto.",
-        parameters: {
-          type: "object",
-          properties: {
-            produto_id: {
-              type: "string",
-              description: "ID do produto a adicionar",
-            },
-            quantidade: {
-              type: "number",
-              description: "Quantidade desejada",
-            },
-          },
-          required: ["produto_id", "quantidade"],
-        },
-      },
-    },
-  ];
+  };
 
-  const allTools = [...toolsLegacy, ...TOOLS_V4];
+  // ⚠️ TOOLS LEGACY DESATIVADAS:
+  // - adicionar_ao_carrinho (substituída por adicionar_ao_carrinho_v4)
+  // - criar_proposta (substituída por criar_oportunidade_spot)
+  
+  const allTools = [toolBuscarProdutos, ...TOOLS_V4];
 
   // Obter chaves de API para fallback
   const lovableApiKey = Deno.env.get("LOVABLE_API_KEY") || null;

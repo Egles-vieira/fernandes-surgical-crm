@@ -33,17 +33,41 @@ function sanitizarResposta(texto: string | null): string | null {
 /**
  * Construir system prompt V4 para segunda chamada
  */
-function construirSystemPromptV4Resumido(perfilCliente: any, sessao: any): string {
+function construirSystemPromptV4Resumido(perfilCliente: any, sessao: any, carrinhoAtual: any[]): string {
   const ultimaCompraTexto = perfilCliente.ultima_compra_dias < 9999 ? `há ${perfilCliente.ultima_compra_dias} dias` : "nunca comprou";
   const marcadoresTexto = perfilCliente.marcadores?.length > 0 ? `- Marcadores: ${perfilCliente.marcadores.join(", ")}` : "";
   const estadoSessao = sessao?.estado_atual || "coleta";
+  
+  // Construir bloco de carrinho
+  let blocoCarrinho = "";
+  if (carrinhoAtual && carrinhoAtual.length > 0) {
+    blocoCarrinho = `\n\n🛒 CARRINHO ATUAL (${carrinhoAtual.length} itens):
+${carrinhoAtual.map((item: any, idx: number) => 
+  `${idx + 1}. ${item.quantidade}x ${item.nome || item.produto_nome} (${item.referencia || 'sem ref'})`
+).join('\n')}
+⚠️ NUNCA pergunte quantidade/produto novamente se já está no carrinho acima!`;
+  }
+
+  // Bloco de cliente identificado
+  let blocoCliente = "";
+  if (sessao?.cliente_identificado_id) {
+    blocoCliente = `\n\nCLIENTE_ID: ${sessao.cliente_identificado_id}
+⚠️ Cliente JÁ IDENTIFICADO - use este ID diretamente nas tools!`;
+  }
+
+  // Bloco de oportunidade existente
+  let blocoOportunidade = "";
+  if (sessao?.oportunidade_ativa_id) {
+    blocoOportunidade = `\n\nOPORTUNIDADE_ID: ${sessao.oportunidade_ativa_id}
+⚠️ Oportunidade JÁ CRIADA - NÃO chame criar_oportunidade_spot novamente!`;
+  }
   
   return `Você é o Beto, vendedor da Cirúrgica Fernandes.
 
 CLIENTE: ${perfilCliente.nome || "não identificado"} | Tipo: ${perfilCliente.tipo} | Última compra: ${ultimaCompraTexto}
 ${marcadoresTexto}
 
-ESTADO: ${estadoSessao}
+ESTADO: ${estadoSessao}${blocoCarrinho}${blocoCliente}${blocoOportunidade}
 
 ESTILO OBRIGATÓRIO:
 - Tudo minúsculo, sem pontuação final, abreviações (vc, pra, tbm)
@@ -57,7 +81,8 @@ REGRAS DE RESPOSTA POR TOOL:
 - Se gerar_link_proposta retornou link: "aqui está sua proposta: [link]"
 - Se adicionar_ao_carrinho_v4 retornou sucesso: "beleza, adicionei X unidades de [produto] no carrinho"
 
-🔴 REGRA CRÍTICA: Se cliente escolheu número (ex: "pode ser o 2"), use adicionar_ao_carrinho_v4!`;
+🔴 REGRA CRÍTICA: Se cliente escolheu número (ex: "pode ser o 2"), use adicionar_ao_carrinho_v4!
+⛔ NUNCA pergunte informações que já estão no contexto acima!`;
 }
 
 // === HANDLER PRINCIPAL ===
@@ -175,7 +200,7 @@ Deno.serve(async (req) => {
       .select("tipo_interacao, conteudo_resumido, criado_em")
       .eq("conversa_id", conversaId)
       .order("criado_em", { ascending: true })
-      .limit(20);
+      .limit(60);
 
     const historicoMensagens = (memorias || []).map((m) => {
       const isBot = m.tipo_interacao.includes("resposta") || m.tipo_interacao.includes("pergunta");
@@ -252,7 +277,7 @@ Deno.serve(async (req) => {
         await supabase.from("whatsapp_mensagens").insert({
           conversa_id: conversaId,
           direcao: "enviada",
-          tipo_mensagem: "text",
+          tipo_mensagem: "texto",
           corpo: respostaDireta,
           status: "pendente",
           enviada_por_bot: true,
@@ -494,7 +519,7 @@ Deno.serve(async (req) => {
       // === SEGUNDA CHAMADA COM FALLBACK DeepSeek → Lovable AI ===
       console.log("🔄 Gerando resposta final com resultados das ferramentas");
 
-      const systemPromptCompleto = construirSystemPromptV4Resumido(perfilCliente, sessao);
+      const systemPromptCompleto = construirSystemPromptV4Resumido(perfilCliente, sessao, carrinhoAtual);
 
       try {
         const { resposta, provider, tokens_entrada, tokens_saida } = await chamarLLMComResultadosTools(

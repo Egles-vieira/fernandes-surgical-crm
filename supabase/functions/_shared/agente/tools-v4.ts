@@ -464,6 +464,24 @@ export async function executarCriarOportunidadeSpot(
       };
     }
     
+    // ========================================
+    // 📸 LOG: Snapshot do carrinho antes de criar oportunidade
+    // ========================================
+    await supabase.from("whatsapp_agente_logs").insert({
+      conversa_id: conversaId,
+      tipo_evento: "snapshot_carrinho_pre_oportunidade",
+      tool_name: "criar_oportunidade_spot",
+      tool_args: { 
+        cliente_id: clienteId,
+        total_itens: itensParaProcessar.length 
+      },
+      tool_resultado: { 
+        carrinho_real: carrinhoReal,
+        itens_llm: args.itens || [],
+        itens_finais: itensParaProcessar
+      }
+    });
+    
     console.log("📋 [DEBUG] Itens finais para gravar:", JSON.stringify(itensParaProcessar, null, 2));
     
     // Buscar dados do cliente
@@ -969,6 +987,24 @@ export async function executarAdicionarAoCarrinhoV4(
     }
     
     console.log(`🛒 Carrinho atualizado atomicamente: ${resultado?.carrinho_total_itens || 0} item(ns)`);
+    
+    // ========================================
+    // 📸 LOG: Snapshot do carrinho após adicionar item
+    // ========================================
+    await supabase.from("whatsapp_agente_logs").insert({
+      conversa_id: conversaId,
+      tipo_evento: "snapshot_carrinho_pos_adicao",
+      tool_name: "adicionar_ao_carrinho_v4",
+      tool_args: { 
+        numero_sugestao: args.numero_sugestao,
+        produto_id: produtoId,
+        quantidade: args.quantidade 
+      },
+      tool_resultado: { 
+        carrinho_total_itens: resultado?.carrinho_total_itens || 1,
+        produto_nome: produtoNome
+      }
+    });
     
     return { 
       sucesso: true, 

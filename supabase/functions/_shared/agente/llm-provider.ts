@@ -1,27 +1,29 @@
 /**
  * ============================================
  * PROVIDER LLM COM FALLBACK
- * OpenAI (GPT-4o-mini) -> DeepSeek -> Lovable AI
+ * OpenAI (GPT-4o-mini) -> DeepSeek (SEM Lovable AI!)
+ * 
+ * ⚠️ LOVABLE AI REMOVIDO para evitar consumo de créditos
  * ============================================
  */
 
 interface LLMResponse {
   resposta: string | null;
   toolCalls: any[];
-  provider: "openai" | "deepseek" | "lovable_ai";
+  provider: "openai" | "deepseek" | "error_fallback";
   tokens_entrada?: number;
   tokens_saida?: number;
 }
 
 /**
  * Chamar LLM com fallback automático
- * Ordem: OpenAI -> DeepSeek -> Lovable AI
+ * Ordem: OpenAI -> DeepSeek (sem Lovable AI!)
  */
 export async function chamarLLMComFallback(
   messages: any[],
   tools: any[] | null,
   deepseekApiKey: string,
-  lovableApiKey: string | null,
+  lovableApiKey: string | null, // Mantido para compatibilidade, mas NÃO usado
   openaiApiKey?: string | null
 ): Promise<LLMResponse> {
   
@@ -42,20 +44,16 @@ export async function chamarLLMComFallback(
     const resultado = await chamarDeepSeek(messages, tools, deepseekApiKey);
     return { ...resultado, provider: "deepseek" };
   } catch (error) {
-    console.warn("⚠️ DeepSeek falhou, tentando Lovable AI:", error);
+    console.error("❌ DeepSeek também falhou:", error);
     
-    // 3. Fallback final para Lovable AI
-    if (lovableApiKey) {
-      try {
-        const resultado = await chamarLovableAI(messages, lovableApiKey);
-        return { ...resultado, provider: "lovable_ai" };
-      } catch (lovableError) {
-        console.error("❌ Lovable AI também falhou:", lovableError);
-        throw new Error("Todos os provedores de IA falharam");
-      }
-    }
+    // ⛔ NÃO usar Lovable AI - retornar erro controlado
+    console.error("⛔ [SEM LOVABLE AI] Retornando erro controlado para evitar consumo de créditos");
     
-    throw error;
+    return {
+      resposta: "opa, estou com instabilidade momentânea. pode tentar de novo em alguns segundos?",
+      toolCalls: [],
+      provider: "error_fallback"
+    };
   }
 }
 
@@ -384,50 +382,59 @@ export async function chamarLLMComResultadosTools(
   } catch (error) {
     console.warn("⚠️ DeepSeek falhou na segunda chamada:", error);
     
-    // 3. Fallback: gerar resposta baseada nos resultados das tools
+    // 3. Fallback: gerar resposta baseada nos resultados das tools (SEM Lovable AI!)
+    console.log("📋 Gerando resposta fallback manual (sem consumir créditos Lovable)");
     return gerarRespostaFallback(resultadosFerramentas);
   }
 }
 
 /**
- * Gerar resposta fallback quando LLM falha
+ * Gerar resposta fallback quando LLM falha (SEM usar Lovable AI!)
  */
 function gerarRespostaFallback(resultadosFerramentas: any[]): LLMResponse {
   let resposta = "opa, deixa eu ver aqui o que consegui...";
   
   for (const resultado of resultadosFerramentas) {
-    const dados = typeof resultado.content === "string" ? JSON.parse(resultado.content) : resultado.content;
-    
-    if (resultado.name === "buscar_produtos" && dados.produtos?.length > 0) {
-      resposta = `achei essas opções:\n\n` +
-        dados.produtos.slice(0, 3).map((p: any, i: number) => 
-          `${i + 1}. ${p.nome}\n   cód: ${p.referencia} - R$ ${p.preco?.toFixed(2) || '0.00'}`
-        ).join("\n\n") +
-        `\n\nqual te interessou?`;
-    }
-    
-    if (resultado.name === "identificar_cliente" && dados.sucesso) {
-      resposta = `encontrei seu cadastro: ${dados.cliente_nome}\ncnpj: ${dados.cnpj}\n\né esse mesmo?`;
-    }
-    
-    if (resultado.name === "criar_oportunidade_spot" && dados.sucesso) {
-      resposta = `blz, criei a oportunidade ${dados.codigo} com ${dados.total_itens} itens.\nvou calcular os valores no sistema, um momento...`;
-    }
-    
-    if (resultado.name === "calcular_cesta_datasul" && dados.sucesso) {
-      resposta = `pronto! calculei tudo aqui:\n\n` +
-        `total: R$ ${dados.resumo?.valor_total?.toFixed(2) || '0.00'}\n\n` +
-        `quer que eu gere o link da proposta?`;
-    }
-    
-    if (resultado.name === "gerar_link_proposta" && dados.sucesso) {
-      resposta = `aqui está o link da sua proposta:\n\n${dados.link}\n\npode acessar pra ver todos os detalhes e confirmar 👆`;
+    try {
+      const dados = typeof resultado.content === "string" ? JSON.parse(resultado.content) : resultado.content;
+      
+      if (resultado.name === "buscar_produtos" && dados.produtos?.length > 0) {
+        resposta = `achei essas opções:\n\n` +
+          dados.produtos.slice(0, 3).map((p: any, i: number) => 
+            `${i + 1}. ${p.nome}\n   cód: ${p.referencia} - R$ ${p.preco?.toFixed(2) || '0.00'}`
+          ).join("\n\n") +
+          `\n\nqual te interessou?`;
+      }
+      
+      if (resultado.name === "identificar_cliente" && dados.sucesso) {
+        resposta = `encontrei seu cadastro: ${dados.cliente_nome}\ncnpj: ${dados.cnpj}\n\né esse mesmo?`;
+      }
+      
+      if (resultado.name === "criar_oportunidade_spot" && dados.sucesso) {
+        resposta = `blz, criei a oportunidade ${dados.codigo} com ${dados.total_itens} itens.\nvou calcular os valores no sistema, um momento...`;
+      }
+      
+      if (resultado.name === "calcular_cesta_datasul" && dados.sucesso) {
+        resposta = `pronto! calculei tudo aqui:\n\n` +
+          `total: R$ ${dados.resumo?.valor_total?.toFixed(2) || '0.00'}\n\n` +
+          `quer que eu gere o link da proposta?`;
+      }
+      
+      if (resultado.name === "gerar_link_proposta" && dados.sucesso) {
+        resposta = `aqui está o link da sua proposta:\n\n${dados.link}\n\npode acessar pra ver todos os detalhes e confirmar 👆`;
+      }
+      
+      if (resultado.name === "adicionar_ao_carrinho_v4" && dados.sucesso) {
+        resposta = `beleza, adicionei ${dados.quantidade}x ${dados.produto_nome} no carrinho\n\nquer adicionar mais algum produto ou posso identificar pra fechar?`;
+      }
+    } catch (parseError) {
+      console.warn("⚠️ Erro ao parsear resultado de tool:", parseError);
     }
   }
   
   return {
     resposta,
     toolCalls: [],
-    provider: "lovable_ai"
+    provider: "error_fallback" // NÃO é lovable_ai!
   };
 }
