@@ -11,10 +11,29 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { tokenId, vendaId, tipoResposta, nome, email, cargo, telefone, comentario, motivoRecusa, analyticsId } = await req.json();
+    // Suporte a vendaId OU oportunidadeId
+    const { 
+      tokenId, 
+      vendaId, 
+      oportunidadeId,
+      tipoResposta, 
+      nome, 
+      email, 
+      cargo, 
+      telefone, 
+      comentario, 
+      motivoRecusa, 
+      analyticsId 
+    } = await req.json();
 
-    if (!tokenId || !vendaId || !tipoResposta) {
-      return new Response(JSON.stringify({ error: 'Campos obrigatórios faltando' }),
+    if (!tokenId || !tipoResposta) {
+      return new Response(JSON.stringify({ error: 'tokenId e tipoResposta são obrigatórios' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
+    // Deve ter vendaId OU oportunidadeId
+    if (!vendaId && !oportunidadeId) {
+      return new Response(JSON.stringify({ error: 'vendaId ou oportunidadeId é obrigatório' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
@@ -23,9 +42,9 @@ Deno.serve(async (req) => {
     const clientIP = req.headers.get('x-forwarded-for')?.split(',')[0] || 'unknown';
     const userAgent = req.headers.get('user-agent') || '';
 
-    const { data: resposta, error: insertError } = await supabase.from('propostas_respostas').insert({
+    // Montar dados de inserção
+    const insertData: Record<string, unknown> = {
       proposta_token_id: tokenId,
-      venda_id: vendaId,
       analytics_id: analyticsId || null,
       tipo_resposta: tipoResposta,
       nome_respondente: nome || null,
@@ -36,12 +55,106 @@ Deno.serve(async (req) => {
       motivo_recusa: motivoRecusa || null,
       ip_assinatura: clientIP,
       user_agent_assinatura: userAgent
-    }).select().single();
+    };
 
-    if (insertError) throw insertError;
+    // Adicionar venda_id OU oportunidade_id
+    if (vendaId) {
+      insertData.venda_id = vendaId;
+    } else {
+      insertData.oportunidade_id = oportunidadeId;
+    }
 
-    if (tipoResposta === 'aceita') {
-      await supabase.from('vendas').update({ etapa_pipeline: 'fechamento', status: 'aprovada' }).eq('id', vendaId);
+    const { data: resposta, error: insertError } = await supabase
+      .from('propostas_respostas')
+      .insert(insertData)
+      .select()
+      .single();
+
+    if (insertError) {
+      console.error('Erro ao inserir resposta:', insertError);
+      throw insertError;
+    }
+
+    // Atualizar entidade conforme tipo de resposta
+    if (vendaId) {
+      // Lógica para vendas (existente)
+      if (tipoResposta === 'aceita') {
+        await supabase.from('vendas').update({ 
+          etapa_pipeline: 'fechamento', 
+          status: 'aprovada' 
+        }).eq('id', vendaId);
+        console.log('✅ Venda atualizada para aprovada:', vendaId);
+      }
+    } else if (oportunidadeId) {
+      // Lógica para oportunidades
+      if (tipoResposta === 'aceita') {
+        await supabase.from('oportunidades').update({ 
+          foi_ganha: true,
+          esta_fechada: true,
+          fechada_em: new Date().toISOString()
+        }).eq('id', oportunidadeId);
+        console.log('✅ Oportunidade marcada como ganha:', oportunidadeId);
+
+        // Criar notificação para o vendedor
+        const { data: oportunidade } = await supabase
+          .from('oportunidades')
+          .select('codigo, nome_oportunidade, proprietario_id, vendedor_id')
+          .eq('id', oportunidadeId)
+          .single();
+
+        if (oportunidade) {
+          const vendedorId = oportunidade.proprietario_id || oportunidade.vendedor_id;
+          if (vendedorId) {
+            await supabase.from('notificacoes').insert({
+              usuario_id: vendedorId,
+              titulo: '🎉 Proposta aceita!',
+              descricao: `O cliente aceitou a proposta da oportunidade "${oportunidade.codigo || oportunidade.nome_oportunidade}"`,
+              tipo: 'proposta_aceita',
+              entidade_id: oportunidadeId,
+              entidade_tipo: 'oportunidade',
+              metadata: {
+                nome_respondente: nome,
+                email_respondente: email,
+                tipo_resposta: tipoResposta
+              }
+            });
+          }
+        }
+      } else if (tipoResposta === 'recusada') {
+        await supabase.from('oportunidades').update({ 
+          foi_ganha: false,
+          esta_fechada: true,
+          fechada_em: new Date().toISOString(),
+          motivo_perda: motivoRecusa || 'Proposta recusada pelo cliente'
+        }).eq('id', oportunidadeId);
+        console.log('❌ Oportunidade marcada como perdida:', oportunidadeId);
+
+        // Criar notificação para o vendedor
+        const { data: oportunidade } = await supabase
+          .from('oportunidades')
+          .select('codigo, nome_oportunidade, proprietario_id, vendedor_id')
+          .eq('id', oportunidadeId)
+          .single();
+
+        if (oportunidade) {
+          const vendedorId = oportunidade.proprietario_id || oportunidade.vendedor_id;
+          if (vendedorId) {
+            await supabase.from('notificacoes').insert({
+              usuario_id: vendedorId,
+              titulo: '😔 Proposta recusada',
+              descricao: `O cliente recusou a proposta da oportunidade "${oportunidade.codigo || oportunidade.nome_oportunidade}"`,
+              tipo: 'proposta_recusada',
+              entidade_id: oportunidadeId,
+              entidade_tipo: 'oportunidade',
+              metadata: {
+                nome_respondente: nome,
+                motivo_recusa: motivoRecusa,
+                tipo_resposta: tipoResposta
+              }
+            });
+          }
+        }
+      }
     }
 
     return new Response(JSON.stringify({ success: true, resposta: { id: resposta.id, tipo: tipoResposta } }),
@@ -49,6 +162,7 @@ Deno.serve(async (req) => {
 
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Erro';
+    console.error('Erro em proposta-responder:', message);
     return new Response(JSON.stringify({ error: message }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   }

@@ -99,6 +99,12 @@ verify_jwt = false
 [functions.gerar-link-proposta]
 verify_jwt = true
 
+[functions.gerar-link-proposta-oportunidade]
+verify_jwt = true
+
+[functions.buscar-proposta-publica-oportunidade]
+verify_jwt = false
+
 [functions.proposta-analytics-beacon]
 verify_jwt = false
 
