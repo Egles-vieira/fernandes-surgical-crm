@@ -95,11 +95,13 @@ export function PipelineKanbanCard({
             {/* Header: Nome + Valor */}
             <div className="flex items-start justify-between gap-2 mb-2 overflow-hidden">
               <div className="flex-1 min-w-0 overflow-hidden">
-                <h4
+              <h4
                   className="font-medium text-sm text-foreground truncate"
                   title={oportunidade.nome}
                 >
-                  {oportunidade.nome}
+                  {oportunidade.nome.length > 25 
+                    ? `${oportunidade.nome.substring(0, 25)}...` 
+                    : oportunidade.nome}
                 </h4>
                 {oportunidade.codigo && (
                   <span
