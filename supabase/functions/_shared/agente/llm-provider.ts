@@ -47,6 +47,40 @@ export async function chamarLLMComFallback(
 }
 
 /**
+ * Detectar se mensagem indica necessidade de tool
+ */
+function detectarIntencaoTool(messages: any[]): string | null {
+  // Pegar última mensagem do usuário
+  const ultimaMensagemUser = [...messages].reverse().find(m => m.role === "user");
+  if (!ultimaMensagemUser?.content) return null;
+  
+  const texto = ultimaMensagemUser.content.toLowerCase();
+  
+  // Padrões que indicam busca de produto (alta prioridade)
+  const padroesProduto = [
+    /\bquero\b.*\b(cotar|comprar|pedir|encomendar|produto)/,
+    /\bpreciso\b.*\b(de|comprar|cotar)/,
+    /\b(cotar|cotação|orçamento|orcamento)\b/,
+    /\b(unidade|unidades|cx|caixa|pacote|pct)\b/,
+    /\b(abaixador|scalp|luva|seringa|agulha|sonda|gaze|algodão|mascara|máscara)\b/,
+    /\btem\b.*\b(em estoque|disponível|disponivel)\b/,
+    /\bpreço\b.*\bde?\b/,
+    /\bquanto\b.*\b(custa|fica|sai)\b/,
+    /\bme\s+(manda|envia|passa).*\b(preço|valor|cotação)/,
+    /\d+\s*(un|unid|unidade|cx|caixa|pct|pacote)/i
+  ];
+  
+  for (const padrao of padroesProduto) {
+    if (padrao.test(texto)) {
+      console.log(`🎯 Intenção detectada: buscar_produtos (padrão: ${padrao})`);
+      return "buscar_produtos";
+    }
+  }
+  
+  return null;
+}
+
+/**
  * Chamar DeepSeek com tool calling
  */
 async function chamarDeepSeek(
@@ -55,16 +89,32 @@ async function chamarDeepSeek(
   apiKey: string
 ): Promise<{ resposta: string | null; toolCalls: any[]; tokens_entrada?: number; tokens_saida?: number }> {
   
+  const messagesLimpos = messages.filter(m => m.content && m.content.trim() !== '');
+  
   const body: any = {
     model: "deepseek-chat",
-    messages: messages.filter(m => m.content && m.content.trim() !== ''),
-    temperature: 0.7,
+    messages: messagesLimpos,
+    temperature: 0.5, // Reduzido para respostas mais focadas
     max_tokens: 500
   };
   
   if (tools && tools.length > 0) {
     body.tools = tools;
+    
+    // Detectar intenção para forçar uso de tools
+    const intencao = detectarIntencaoTool(messagesLimpos);
+    
+    if (intencao) {
+      // Forçar uso de tool específica quando intenção clara
+      body.tool_choice = { type: "function", function: { name: intencao } };
+      console.log(`🔧 Forçando tool_choice: ${intencao}`);
+    } else {
+      // Modo auto - LLM decide, mas tools estão disponíveis
+      body.tool_choice = "auto";
+    }
   }
+  
+  console.log(`📤 DeepSeek request | Tools: ${tools?.length || 0} | tool_choice: ${JSON.stringify(body.tool_choice || 'none')}`);
   
   const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
     method: "POST",
@@ -84,6 +134,8 @@ async function chamarDeepSeek(
   
   const data = await response.json();
   const assistantMessage = data.choices[0].message;
+  
+  console.log(`📥 DeepSeek response | Tool calls: ${assistantMessage.tool_calls?.length || 0} | Tokens: ${data.usage?.prompt_tokens}/${data.usage?.completion_tokens}`);
   
   return {
     resposta: sanitizarResposta(assistantMessage.content),
