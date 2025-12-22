@@ -67,65 +67,102 @@ export function PipelineKanbanCard({
   // Barra de progresso baseada na probabilidade
   const probabilidade = oportunidade.probabilidade || 0;
   const progressColor = probabilidade >= 70 ? "bg-green-500" : probabilidade >= 40 ? "bg-amber-500" : "bg-red-500";
-  return <Draggable draggableId={oportunidade.id} index={index}>
-      {(provided, snapshot) => <Card ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} onClick={onClick} className={cn("cursor-pointer transition-all hover:shadow-md overflow-hidden", "border border-border/50 bg-background", snapshot.isDragging && "shadow-lg ring-2 ring-primary/20", oportunidade.estaEstagnado && "border-l-4 border-l-amber-500")}>
+  return (
+    <Draggable draggableId={oportunidade.id} index={index}>
+      {(provided, snapshot) => (
+        <Card
+          ref={provided.innerRef}
+          {...provided.draggableProps}
+          {...provided.dragHandleProps}
+          onClick={onClick}
+          className={cn(
+            "cursor-pointer transition-all hover:shadow-md",
+            "border border-border/50 bg-background",
+            "w-full max-w-full overflow-hidden",
+            snapshot.isDragging && "shadow-lg ring-2 ring-primary/20",
+            oportunidade.estaEstagnado && "border-l-4 border-l-amber-500"
+          )}
+        >
           {/* Barra de probabilidade no topo */}
           <div className="h-1 w-full bg-muted">
-            <div className={cn("h-full transition-all", progressColor)} style={{
-          width: `${probabilidade}%`
-        }} />
+            <div
+              className={cn("h-full transition-all", progressColor)}
+              style={{ width: `${probabilidade}%` }}
+            />
           </div>
 
-          <div className="p-3 bg-secondary-foreground">
+          <div className="p-3 bg-secondary-foreground overflow-hidden">
             {/* Header: Nome + Valor */}
-            <div className="flex items-start justify-between gap-2 mb-2">
+            <div className="flex items-start justify-between gap-2 mb-2 overflow-hidden">
               <div className="flex-1 min-w-0 overflow-hidden">
-                <h4 className="font-medium text-sm text-foreground truncate w-full" title={oportunidade.nome}>
+                <h4
+                  className="font-medium text-sm text-foreground truncate"
+                  title={oportunidade.nome}
+                >
                   {oportunidade.nome}
                 </h4>
-                {oportunidade.codigo && <span className="text-xs text-muted-foreground block truncate" title={`#${oportunidade.codigo}`}>
+                {oportunidade.codigo && (
+                  <span
+                    className="text-xs text-muted-foreground block truncate"
+                    title={`#${oportunidade.codigo}`}
+                  >
                     #{oportunidade.codigo}
-                  </span>}
+                  </span>
+                )}
               </div>
             </div>
 
             {/* Valor em destaque */}
-            {oportunidade.valor != null && oportunidade.valor > 0 && <div className="flex items-center gap-1.5 mb-2 p-1.5 rounded bg-primary/10">
-                <DollarSign className="h-3.5 w-3.5 text-primary" />
-                <span className="text-sm font-bold text-primary">
+            {oportunidade.valor != null && oportunidade.valor > 0 && (
+              <div className="flex items-center gap-1.5 mb-2 p-1.5 rounded bg-primary/10 overflow-hidden">
+                <DollarSign className="h-3.5 w-3.5 text-primary shrink-0" />
+                <span className="text-sm font-bold text-primary truncate">
                   {formatCurrency(oportunidade.valor)}
                 </span>
-                {oportunidade.valorPonderado != null && <span className="text-xs text-muted-foreground ml-auto">
+                {oportunidade.valorPonderado != null && (
+                  <span className="text-xs text-muted-foreground ml-auto shrink-0">
                     Pond: {formatCurrency(oportunidade.valorPonderado)}
-                  </span>}
-              </div>}
+                  </span>
+                )}
+              </div>
+            )}
 
             {/* Info: Conta, Contato, Data */}
-            <div className="space-y-1 text-xs text-muted-foreground">
-              {oportunidade.conta && <div className="flex items-center gap-1.5 min-w-0 overflow-hidden">
+            <div className="space-y-1 text-xs text-muted-foreground overflow-hidden">
+              {oportunidade.conta && (
+                <div className="flex items-center gap-1.5 min-w-0 overflow-hidden">
                   <Building2 className="h-3 w-3 shrink-0" />
-                  <span className="truncate min-w-0">{oportunidade.conta}</span>
-                </div>}
-              {oportunidade.contato && <div className="flex items-center gap-1.5 min-w-0 overflow-hidden">
+                  <span className="truncate flex-1 min-w-0">{oportunidade.conta}</span>
+                </div>
+              )}
+              {oportunidade.contato && (
+                <div className="flex items-center gap-1.5 min-w-0 overflow-hidden">
                   <User className="h-3 w-3 shrink-0" />
-                  <span className="truncate min-w-0">{oportunidade.contato}</span>
-                </div>}
-              {oportunidade.dataFechamento && <div className="flex items-center gap-1.5">
+                  <span className="truncate flex-1 min-w-0">{oportunidade.contato}</span>
+                </div>
+              )}
+              {oportunidade.dataFechamento && (
+                <div className="flex items-center gap-1.5">
                   <Calendar className="h-3 w-3 shrink-0" />
                   <span>{formatDate(oportunidade.dataFechamento)}</span>
-                </div>}
+                </div>
+              )}
             </div>
 
             {/* Footer: Probabilidade + Dias no estágio */}
             <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/50">
               <div className="flex items-center gap-2">
-                {probabilidade > 0 && <Badge variant="secondary" className="text-xs px-1.5 py-0">
+                {probabilidade > 0 && (
+                  <Badge variant="secondary" className="text-xs px-1.5 py-0">
                     {probabilidade}%
-                  </Badge>}
-                {oportunidade.estaEstagnado && <div className="flex items-center gap-1 text-amber-600">
+                  </Badge>
+                )}
+                {oportunidade.estaEstagnado && (
+                  <div className="flex items-center gap-1 text-amber-600">
                     <AlertTriangle className="h-3 w-3" />
                     <span className="text-xs">Estagnado</span>
-                  </div>}
+                  </div>
+                )}
               </div>
               <span className="text-xs text-muted-foreground">
                 {oportunidade.diasNoEstagio}d
@@ -133,17 +170,28 @@ export function PipelineKanbanCard({
             </div>
 
             {/* Campos customizados visíveis no Kanban */}
-            {Object.keys(oportunidade.camposKanban).length > 0 && <div className="mt-2 pt-2 border-t border-border/50 space-y-1">
-                {Object.entries(oportunidade.camposKanban).slice(0, 3).map(([key, value]) => <div key={key} className="flex items-center justify-between text-xs gap-2 min-w-0">
-                    <span className="text-muted-foreground capitalize truncate">
-                      {key.replace(/_/g, ' ')}
-                    </span>
-                    <span className="font-medium text-foreground truncate max-w-[120px]">
-                      {formatFieldValue(value)}
-                    </span>
-                  </div>)}
-              </div>}
+            {Object.keys(oportunidade.camposKanban).length > 0 && (
+              <div className="mt-2 pt-2 border-t border-border/50 space-y-1 overflow-hidden">
+                {Object.entries(oportunidade.camposKanban)
+                  .slice(0, 3)
+                  .map(([key, value]) => (
+                    <div
+                      key={key}
+                      className="flex items-center justify-between text-xs gap-2 min-w-0 overflow-hidden"
+                    >
+                      <span className="text-muted-foreground capitalize truncate flex-1 min-w-0">
+                        {key.replace(/_/g, " ")}
+                      </span>
+                      <span className="font-medium text-foreground truncate shrink-0 max-w-[50%]">
+                        {formatFieldValue(value)}
+                      </span>
+                    </div>
+                  ))}
+              </div>
+            )}
           </div>
-        </Card>}
-    </Draggable>;
+        </Card>
+      )}
+    </Draggable>
+  );
 }
