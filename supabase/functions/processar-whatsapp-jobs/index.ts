@@ -70,7 +70,7 @@ async function enviarMensagemWhatsApp(
       return false;
     }
     
-    // Criar mensagem pendente
+    // Criar mensagem pendente (usando colunas corretas da tabela)
     const { data: mensagem, error: msgError } = await supabase
       .from("whatsapp_mensagens")
       .insert({
@@ -78,10 +78,11 @@ async function enviarMensagemWhatsApp(
         whatsapp_conta_id: conversa.whatsapp_conta_id,
         whatsapp_contato_id: conversa.whatsapp_contato_id,
         direcao: "saida",
-        tipo: "text",
+        tipo_mensagem: "text",             // ✅ Coluna correta (era "tipo")
         corpo: corpo,
         status: "pendente",
-        remetente_tipo: "sistema"
+        enviada_por_bot: true,             // ✅ Indica mensagem automática
+        enviada_automaticamente: true      // ✅ Indica processamento automático
       })
       .select("id")
       .single();
