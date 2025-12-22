@@ -77,7 +77,7 @@ async function enviarMensagemWhatsApp(
         conversa_id: conversaId,
         whatsapp_conta_id: conversa.whatsapp_conta_id,
         whatsapp_contato_id: conversa.whatsapp_contato_id,
-        direcao: "saida",
+        direcao: "enviada",
         tipo_mensagem: "text",             // ✅ Coluna correta (era "tipo")
         corpo: corpo,
         status: "pendente",
