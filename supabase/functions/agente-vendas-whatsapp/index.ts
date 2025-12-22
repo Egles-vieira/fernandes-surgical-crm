@@ -5,6 +5,9 @@ import { buscarPerfilCliente } from "../_shared/agente/perfil-cliente.ts";
 import { gerarRespostaInteligente, executarFerramenta } from "../_shared/agente/gerador-resposta.ts";
 import { transcreverAudio, salvarMemoria } from "../_shared/agente/utils.ts";
 import { formatarPropostaWhatsApp } from "../_shared/agente/proposta-handler.ts";
+import { obterOuCriarSessao, registrarLogAgente } from "../_shared/agente/sessao-manager.ts";
+import { chamarLLMComResultadosTools } from "../_shared/agente/llm-provider.ts";
+import { isToolV4 } from "../_shared/agente/tools-v4.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -13,26 +16,43 @@ const corsHeaders = {
 
 /**
  * Sanitiza a resposta removendo textos de function calls vazados do DeepSeek
- * O DeepSeek às vezes retorna texto bruto <｜DSML｜...> no content
  */
 function sanitizarResposta(texto: string | null): string | null {
   if (!texto) return texto;
   
-  // Remove blocos DSML completos (function_calls)
   let limpo = texto.replace(/<｜DSML｜function_calls>[\s\S]*?<\/｜DSML｜function_calls>/g, '');
-  
-  // Remove tags DSML órfãs e parciais
   limpo = limpo.replace(/<｜DSML｜[^>]*>[\s\S]*?<\/｜DSML｜[^>]*>/g, '');
   limpo = limpo.replace(/<｜DSML｜[^>]*>/g, '');
   limpo = limpo.replace(/<\/｜DSML｜[^>]*>/g, '');
-  
-  // Remove padrões de function call em texto (fallback)
   limpo = limpo.replace(/\[function_call:[\s\S]*?\]/g, '');
-  
-  // Limpa espaços múltiplos e linhas em branco excessivas
   limpo = limpo.replace(/\n{3,}/g, '\n\n').trim();
   
   return limpo || null;
+}
+
+/**
+ * Construir system prompt V4 para segunda chamada
+ */
+function construirSystemPromptV4Resumido(perfilCliente: any, sessao: any): string {
+  const ultimaCompraTexto = perfilCliente.ultima_compra_dias < 9999 ? `há ${perfilCliente.ultima_compra_dias} dias` : "nunca comprou";
+  const marcadoresTexto = perfilCliente.marcadores?.length > 0 ? `- Marcadores: ${perfilCliente.marcadores.join(", ")}` : "";
+  const estadoSessao = sessao?.estado_atual || "coleta";
+  
+  return `Você é o Beto, vendedor da Cirúrgica Fernandes.
+
+CLIENTE: ${perfilCliente.nome || "não identificado"} | Tipo: ${perfilCliente.tipo} | Última compra: ${ultimaCompraTexto}
+${marcadoresTexto}
+
+ESTADO: ${estadoSessao}
+
+ESTILO OBRIGATÓRIO:
+- Tudo minúsculo, sem pontuação final, abreviações (vc, pra, tbm)
+- Seja breve e direto, máximo 3 linhas por resposta
+- Use os resultados das ferramentas para montar a resposta
+- Se identificar_cliente retornou cliente, confirme: "é pra faturar no cnpj XX?"
+- Se criar_oportunidade_spot retornou, diga: "criei a oportunidade, vou calcular..."
+- Se calcular_cesta_datasul retornou valores, apresente o total
+- Se gerar_link_proposta retornou link, envie: "aqui está sua proposta: [link]"`;
 }
 
 // === HANDLER PRINCIPAL ===
@@ -42,15 +62,18 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const startTime = Date.now();
+
   try {
     let { mensagemTexto, conversaId, tipoMensagem, urlMidia, clienteId, mensagemId } = await req.json();
 
-    console.log("🤖 Agente Vendas Inteligente v3 - Iniciando", { conversaId, tipoMensagem, clienteId, mensagemId });
+    console.log("🤖 Agente Vendas V4 - Iniciando", { conversaId, tipoMensagem, clienteId, mensagemId });
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const deepseekApiKey = Deno.env.get("DEEPSEEK_API_KEY");
     const openAiApiKey = Deno.env.get("OPENAI_API_KEY");
+    const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
 
     if (!deepseekApiKey || !openAiApiKey) {
       throw new Error("Chaves de API faltando");
@@ -63,6 +86,10 @@ Deno.serve(async (req) => {
         detectSessionInUrl: false,
       },
     });
+
+    // === OBTER/CRIAR SESSÃO V4 ===
+    const sessao = await obterOuCriarSessao(supabase, conversaId);
+    console.log("📋 Sessão:", sessao.id, "| Estado:", sessao.estado_atual);
 
     // === FALLBACK: Buscar mensagemTexto pelo mensagemId se não veio no body ===
     if (!mensagemTexto && mensagemId) {
@@ -143,9 +170,8 @@ Deno.serve(async (req) => {
       .select("tipo_interacao, conteudo_resumido, criado_em")
       .eq("conversa_id", conversaId)
       .order("criado_em", { ascending: true })
-      .limit(20); // Últimas 20 interações
+      .limit(20);
 
-    // Construir histórico no formato de mensagens
     const historicoMensagens = (memorias || []).map((m) => {
       const isBot = m.tipo_interacao.includes("resposta") || m.tipo_interacao.includes("pergunta");
       return {
@@ -169,7 +195,7 @@ Deno.serve(async (req) => {
     // === SALVAR MENSAGEM DO CLIENTE NA MEMÓRIA ===
     await salvarMemoria(supabase, conversaId, `Cliente: ${mensagemTexto}`, "mensagem_recebida", openAiApiKey);
 
-    // === GERAR RESPOSTA INTELIGENTE COM TOOL CALLING ===
+    // === GERAR RESPOSTA INTELIGENTE COM TOOL CALLING V4 ===
     const { resposta: respostaInicial, toolCalls } = await gerarRespostaInteligente(
       mensagemTexto,
       historicoMensagens,
@@ -177,6 +203,7 @@ Deno.serve(async (req) => {
       carrinhoAtual,
       deepseekApiKey!,
       supabase,
+      sessao, // ← Passa sessão para contexto V4
     );
 
     console.log("🔧 Tool calls:", toolCalls.length);
@@ -186,16 +213,27 @@ Deno.serve(async (req) => {
     let respostaFinal = sanitizarResposta(respostaInicial);
 
     if (toolCalls.length > 0) {
-      // Executar todas as ferramentas
       const resultadosFerramentas: any[] = [];
 
       for (const toolCall of toolCalls) {
         const functionName = toolCall.function.name;
         const args = JSON.parse(toolCall.function.arguments);
+        const toolStartTime = Date.now();
 
         console.log(`⚙️ Executando: ${functionName}`);
 
         const resultado = await executarFerramenta(functionName, args, supabase, conversaId, openAiApiKey);
+
+        const toolDuration = Date.now() - toolStartTime;
+
+        // Log da execução da tool
+        await registrarLogAgente(supabase, conversaId, sessao.id !== "virtual" ? sessao.id : null, {
+          tipo_evento: "tool_executada",
+          tool_name: functionName,
+          tool_args: args,
+          tool_resultado: resultado,
+          tempo_execucao_ms: toolDuration,
+        });
 
         resultadosFerramentas.push({
           tool_call_id: toolCall.id,
@@ -204,64 +242,105 @@ Deno.serve(async (req) => {
           content: JSON.stringify(resultado),
         });
 
-        // Processar produtos encontrados
+        // === HANDLERS ESPECÍFICOS POR TOOL ===
+
+        // BUSCAR PRODUTOS (legacy)
         if (functionName === "buscar_produtos" && resultado.produtos) {
           produtosEncontrados = resultado.produtos;
 
-          // Atualizar carrinho com formato correto: [{ id, quantidade }]
           const produtosCarrinho = resultado.produtos.map((p: any) => ({
             id: p.id,
-            quantidade: 1, // quantidade padrão inicial
+            quantidade: 1,
           }));
-
-          console.log(
-            "🛒 Atualizando carrinho com:",
-            produtosCarrinho.map((p: any) => `${p.id} (${p.quantidade}x)`),
-          );
 
           await supabase
             .from("whatsapp_conversas")
             .update({ produtos_carrinho: produtosCarrinho })
             .eq("id", conversaId);
 
-          // Salvar na memória
           await salvarMemoria(
             supabase,
             conversaId,
-            `Produtos encontrados: ${resultado.produtos
-              .map((p: any) => p.nome)
-              .slice(0, 3)
-              .join(", ")}`,
+            `Produtos encontrados: ${resultado.produtos.map((p: any) => p.nome).slice(0, 3).join(", ")}`,
             "produtos_sugeridos",
             openAiApiKey,
           );
         }
 
-        // Processar proposta criada
-        if (functionName === "criar_proposta") {
-          console.log("🔍 Proposta criada detectada. Resultado:", JSON.stringify(resultado));
-          
+        // IDENTIFICAR CLIENTE (V4)
+        if (functionName === "identificar_cliente") {
           if (resultado.sucesso) {
-            console.log("✅ Resultado com sucesso. Buscando proposta ID:", resultado.proposta_id);
-            
-            const { data: proposta, error: propostaError } = await supabase
-              .from("whatsapp_propostas_comerciais")
-              .select("*")
-              .eq("id", resultado.proposta_id)
-              .single();
+            console.log(`✅ Cliente identificado: ${resultado.cliente_nome} (${resultado.cnpj})`);
+            await salvarMemoria(
+              supabase,
+              conversaId,
+              `Cliente identificado: ${resultado.cliente_nome} | CNPJ: ${resultado.cnpj} | ${resultado.enderecos?.length || 0} endereço(s)`,
+              "cliente_identificado",
+              openAiApiKey,
+            );
+          } else {
+            console.warn("⚠️ Cliente não identificado:", resultado.erro);
+          }
+        }
 
-            if (propostaError) {
-              console.error("❌ Erro ao buscar proposta:", propostaError);
-            }
-            
-            console.log("📋 Proposta encontrada:", proposta ? "sim" : "não");
+        // CRIAR OPORTUNIDADE SPOT (V4)
+        if (functionName === "criar_oportunidade_spot") {
+          if (resultado.sucesso) {
+            console.log(`✅ Oportunidade Spot criada: ${resultado.codigo}`);
+            await salvarMemoria(
+              supabase,
+              conversaId,
+              `Oportunidade ${resultado.codigo} criada com ${resultado.total_itens} itens - R$ ${resultado.valor_estimado?.toFixed(2)}`,
+              "oportunidade_criada",
+              openAiApiKey,
+            );
+          } else {
+            console.warn("⚠️ Erro ao criar oportunidade:", resultado.erro);
+          }
+        }
 
-            if (proposta) {
-            const { data: itens } = await supabase
-              .from("whatsapp_propostas_itens")
-              .select("*, produtos:produto_id (nome, referencia_interna)")
-              .eq("proposta_id", proposta.id);
+        // CALCULAR CESTA DATASUL (V4)
+        if (functionName === "calcular_cesta_datasul") {
+          if (resultado.sucesso) {
+            console.log(`✅ Cálculo Datasul: R$ ${resultado.resumo?.valor_total?.toFixed(2)} em ${resultado.tempo_calculo_ms}ms`);
+            await salvarMemoria(
+              supabase,
+              conversaId,
+              `Valores calculados no ERP: ${resultado.resumo?.total_itens} itens - Total R$ ${resultado.resumo?.valor_total?.toFixed(2)}`,
+              "calculo_datasul",
+              openAiApiKey,
+            );
+          } else {
+            console.warn("⚠️ Erro no cálculo Datasul:", resultado.erro);
+            // Não bloquear fluxo, agente vai lidar
+          }
+        }
 
+        // GERAR LINK PROPOSTA (V4)
+        if (functionName === "gerar_link_proposta") {
+          if (resultado.sucesso) {
+            console.log(`✅ Link proposta gerado: ${resultado.link}`);
+            await salvarMemoria(
+              supabase,
+              conversaId,
+              `Link de proposta gerado: ${resultado.link} (validade: ${resultado.validade_dias} dias)`,
+              "link_proposta",
+              openAiApiKey,
+            );
+          } else {
+            console.warn("⚠️ Erro ao gerar link:", resultado.erro);
+          }
+        }
+
+        // CRIAR PROPOSTA (legacy)
+        if (functionName === "criar_proposta" && resultado.sucesso) {
+          const { data: proposta } = await supabase
+            .from("whatsapp_propostas_comerciais")
+            .select("*")
+            .eq("id", resultado.proposta_id)
+            .single();
+
+          if (proposta) {
             await supabase
               .from("whatsapp_conversas")
               .update({
@@ -278,171 +357,117 @@ Deno.serve(async (req) => {
               openAiApiKey,
             );
 
-            // AUTOMÁTICO: Validar dados do cliente imediatamente após criar proposta
-            console.log("🔍 Auto-validando dados do cliente...");
-            const dadosCliente = await executarFerramenta(
-              "validar_dados_cliente",
-              {},
-              supabase,
-              conversaId,
-              openAiApiKey,
-            );
-
-            // Adicionar resultado da validação aos resultados das ferramentas
+            // Auto-validar cliente
+            const dadosCliente = await executarFerramenta("validar_dados_cliente", {}, supabase, conversaId, openAiApiKey);
             resultadosFerramentas.push({
               tool_call_id: "auto_validacao_" + Date.now(),
               role: "tool",
               name: "validar_dados_cliente",
               content: JSON.stringify(dadosCliente),
             });
-
-            console.log("✅ Validação automática concluída:", dadosCliente.sucesso ? "sucesso" : "erro");
-          } else {
-            console.warn("⚠️ Proposta não encontrada no banco. Pulando validação automática.");
-          }
-        } else {
-          console.warn("⚠️ criar_proposta falhou. Resultado.sucesso:", resultado.sucesso);
-        }
-        }
-
-        // Processar validação de dados do cliente
-        if (functionName === "validar_dados_cliente") {
-          if (resultado.sucesso) {
-            console.log("✅ Dados validados:", resultado.cnpj);
-            await salvarMemoria(
-              supabase,
-              conversaId,
-              `Cliente validado: ${resultado.cliente_nome} | CNPJ: ${resultado.cnpj} | ${resultado.enderecos?.length || 0} endereço(s)`,
-              "dados_validados",
-              openAiApiKey,
-            );
-          } else if (resultado.erro) {
-            console.warn("⚠️ Erro na validação:", resultado.erro);
           }
         }
 
-        // Processar finalização de pedido
-        if (functionName === "finalizar_pedido") {
-          if (resultado.sucesso) {
-            console.log("✅ Pedido finalizado:", resultado.numero_pedido);
-            await salvarMemoria(
-              supabase,
-              conversaId,
-              `Pedido ${resultado.numero_pedido} finalizado - R$ ${resultado.valor_total}`,
-              "pedido_finalizado",
-              openAiApiKey,
-            );
-          }
+        // VALIDAR DADOS CLIENTE (legacy)
+        if (functionName === "validar_dados_cliente" && resultado.sucesso) {
+          await salvarMemoria(
+            supabase,
+            conversaId,
+            `Cliente validado: ${resultado.cliente_nome} | CNPJ: ${resultado.cnpj}`,
+            "dados_validados",
+            openAiApiKey,
+          );
+        }
+
+        // FINALIZAR PEDIDO (legacy)
+        if (functionName === "finalizar_pedido" && resultado.sucesso) {
+          await salvarMemoria(
+            supabase,
+            conversaId,
+            `Pedido ${resultado.numero_pedido} finalizado - R$ ${resultado.valor_total}`,
+            "pedido_finalizado",
+            openAiApiKey,
+          );
         }
       }
 
-      // Segunda chamada ao DeepSeek com resultados das ferramentas
+      // === SEGUNDA CHAMADA COM FALLBACK DeepSeek → Lovable AI ===
       console.log("🔄 Gerando resposta final com resultados das ferramentas");
 
-      // Construir system prompt completo (mesmo da primeira chamada)
-      const systemPromptCompleto = `Você é o Beto, vendedor experiente e simpático da Cirúrgica Fernandes.
+      const systemPromptCompleto = construirSystemPromptV4Resumido(perfilCliente, sessao);
 
-PERFIL DO CLIENTE:
-- Tipo: ${perfilCliente.tipo}
-- Nome: ${perfilCliente.nome || "não informado"}
-- Histórico: ${perfilCliente.historico_compras} compra(s) anterior(es)
-- Ticket médio: R$ ${perfilCliente.ticket_medio.toFixed(2)}
-- Última compra: ${perfilCliente.ultima_compra_dias < 9999 ? `há ${perfilCliente.ultima_compra_dias} dias` : "nunca comprou"}
-${perfilCliente.marcadores.length > 0 ? `- Marcadores: ${perfilCliente.marcadores.join(", ")}` : ""}
+      try {
+        const { resposta, provider, tokens_entrada, tokens_saida } = await chamarLLMComResultadosTools(
+          systemPromptCompleto,
+          historicoMensagens,
+          mensagemTexto,
+          toolCalls,
+          resultadosFerramentas,
+          deepseekApiKey!,
+          lovableApiKey || null,
+        );
 
-SOBRE A EMPRESA:
-- Cirúrgica Fernandes vende produtos hospitalares e cirúrgicos
-- Atende hospitais, clínicas e profissionais de saúde
-- Grande variedade em estoque, diversas marcas reconhecidas
+        respostaFinal = sanitizarResposta(resposta);
+        console.log(`✅ Resposta final via ${provider} | Tokens: ${tokens_entrada || 0}/${tokens_saida || 0}`);
 
-SUA PERSONALIDADE:
-- Simpático e profissional
-- Direto ao ponto, sem enrolação
-- Usa linguagem natural e informal (você, não "senhor/senhora")
-- Máximo 2 emojis por mensagem (use com moderação)
-- NÃO siga script rígido - seja contextual e inteligente
-- Se o cliente já deu informações, NÃO pergunte novamente
-- Seja proativo mas não robotizado
+        // Log da resposta LLM
+        await registrarLogAgente(supabase, conversaId, sessao.id !== "virtual" ? sessao.id : null, {
+          tipo_evento: "resposta_gerada",
+          llm_provider: provider,
+          tokens_entrada,
+          tokens_saida,
+          tempo_execucao_ms: Date.now() - startTime,
+        });
 
-INSTRUÇÕES CRÍTICAS:
-- Você tem acesso ao HISTÓRICO COMPLETO da conversa
-- Consulte as mensagens anteriores para entender o contexto
-- Se o cliente mencionar algo que já foi discutido, relembre e use esse contexto
-- NÃO diga que não tem acesso ao histórico - você TEM e deve usar
-- Apresente os produtos encontrados de forma natural, destacando 2-3 melhores opções
-- Seja direto e persuasivo mas não robotizado`;
-
-      const response2 = await fetch("https://api.deepseek.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${deepseekApiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "deepseek-chat",
-          messages: [
-            { role: "system", content: systemPromptCompleto },
-            ...historicoMensagens.map((msg) => ({
-              role: msg.role,
-              content: msg.content,
-            })),
-            { role: "user", content: mensagemTexto },
-            { role: "assistant", content: null, tool_calls: toolCalls },
-            ...resultadosFerramentas,
-          ],
-          temperature: 0.7,
-          max_tokens: 400,
-        }),
-      });
-
-      if (response2.ok) {
-        const data2 = await response2.json();
-        respostaFinal = sanitizarResposta(data2.choices[0].message.content);
-        console.log("✅ Resposta final gerada:", respostaFinal ? "com conteúdo" : "vazia após sanitização");
+      } catch (llmError) {
+        console.error("❌ Erro em ambos LLMs, usando fallback manual");
         
-        // Fallback se sanitização removeu tudo
-        if (!respostaFinal && produtosEncontrados.length > 0) {
-          console.log("⚠️ Resposta vazia após sanitização, gerando fallback com produtos");
-          respostaFinal =
-            `opa, achei essas opções aqui:\n\n` +
-            produtosEncontrados
-              .slice(0, 3)
-              .map(
-                (p, i) =>
-                  `${i + 1}. ${p.nome}\n   cód: ${p.referencia} - R$ ${p.preco?.toFixed(2) || '0.00'} - estoque: ${p.estoque || 0} un`,
-              )
-              .join("\n\n") +
-            `\n\nqual vc quer?`;
-        } else if (!respostaFinal) {
-          respostaFinal = "opa, deixa eu ver aqui... pode me dar mais detalhes do que vc precisa?";
-        }
-      } else {
-        console.error("❌ Erro na segunda chamada DeepSeek");
-        // Fallback: apresentar produtos manualmente
+        // Fallback manual baseado nos resultados
         if (produtosEncontrados.length > 0) {
           respostaFinal =
             `opa, achei essas opções:\n\n` +
             produtosEncontrados
               .slice(0, 3)
-              .map(
-                (p, i) =>
-                  `${i + 1}. ${p.nome}\n   cód: ${p.referencia} - R$ ${p.preco?.toFixed(2) || '0.00'} - estoque: ${p.estoque || 0} un`,
-              )
+              .map((p, i) => `${i + 1}. ${p.nome}\n   cód: ${p.referencia} - R$ ${p.preco?.toFixed(2) || '0.00'}`)
               .join("\n\n") +
             `\n\nqual te interessou?`;
+        } else {
+          respostaFinal = "opa, tive um probleminha técnico. pode repetir?";
         }
+
+        // Log do erro
+        await registrarLogAgente(supabase, conversaId, sessao.id !== "virtual" ? sessao.id : null, {
+          tipo_evento: "erro_llm",
+          erro_mensagem: llmError instanceof Error ? llmError.message : String(llmError),
+        });
+      }
+
+      // Fallback se resposta vazia
+      if (!respostaFinal && produtosEncontrados.length > 0) {
+        respostaFinal =
+          `achei essas opções:\n\n` +
+          produtosEncontrados
+            .slice(0, 3)
+            .map((p, i) => `${i + 1}. ${p.nome}\n   cód: ${p.referencia} - R$ ${p.preco?.toFixed(2) || '0.00'}`)
+            .join("\n\n") +
+          `\n\nqual vc quer?`;
+      } else if (!respostaFinal) {
+        respostaFinal = "opa, deixa eu ver aqui... pode me dar mais detalhes?";
       }
     }
 
     // === SALVAR RESPOSTA NA MEMÓRIA ===
     if (respostaFinal) {
-      await salvarMemoria(supabase, conversaId, ` ${respostaFinal}`, "resposta_enviada", openAiApiKey);
+      await salvarMemoria(supabase, conversaId, respostaFinal, "resposta_enviada", openAiApiKey);
     }
+
+    const totalTime = Date.now() - startTime;
+    console.log(`✅ Agente V4 concluído em ${totalTime}ms`);
 
     // === RETORNAR RESPOSTA ===
     return new Response(
       JSON.stringify({
-        resposta: respostaFinal || "Desculpa, tive um probleminha. Pode repetir?",
+        resposta: respostaFinal || "desculpa, tive um probleminha. pode repetir?",
         produtos_encontrados: produtosEncontrados.length > 0 ? produtosEncontrados : undefined,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
@@ -451,7 +476,7 @@ INSTRUÇÕES CRÍTICAS:
     console.error("❌ Erro Geral:", error);
     return new Response(
       JSON.stringify({
-        resposta: "Opa, deu um probleminha técnico. Pode repetir?",
+        resposta: "opa, deu um probleminha técnico. pode repetir?",
         error: String(error),
       }),
       {
