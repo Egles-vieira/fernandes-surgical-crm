@@ -56,12 +56,12 @@ RETORNA: oportunidade_id, codigo da oportunidade`,
           },
           itens: {
             type: "array",
-            description: "Lista de produtos com quantidade",
+            description: "Lista de produtos com quantidade. IMPORTANTE: SEMPRE extrair a quantidade que o cliente informou na mensagem!",
             items: {
               type: "object",
               properties: {
-                produto_id: { type: "string", description: "UUID do produto" },
-                quantidade: { type: "number", description: "Quantidade desejada" },
+                produto_id: { type: "string", description: "Código do produto ou UUID" },
+                quantidade: { type: "number", description: "Quantidade solicitada pelo cliente - OBRIGATÓRIO extrair da mensagem" },
                 preco_unitario: { type: "number", description: "Preço unitário sugerido" }
               },
               required: ["produto_id", "quantidade"]
@@ -311,33 +311,84 @@ export async function executarCriarOportunidadeSpot(
     }
     
     // ========================================
-    // FALLBACK: Se produto_ids não são UUIDs válidos, usar carrinho da conversa
-    // O LLM às vezes passa códigos de produto ao invés de UUIDs
+    // LOG: Mostrar exatamente o que o LLM passou
+    // ========================================
+    console.log("📋 [DEBUG] Itens recebidos do LLM:", JSON.stringify(args.itens, null, 2));
+    
+    // ========================================
+    // VALIDAÇÃO: Garantir que todas as quantidades são válidas
+    // ========================================
+    const itensComQuantidadeInvalida = args.itens.filter((i: any) => !i.quantidade || i.quantidade < 1);
+    if (itensComQuantidadeInvalida.length > 0) {
+      console.warn("⚠️ [VALIDAÇÃO] Itens sem quantidade válida:", JSON.stringify(itensComQuantidadeInvalida));
+      // Forçar quantidade 1 como mínimo para não falhar
+      args.itens = args.itens.map((i: any) => ({
+        ...i,
+        quantidade: i.quantidade && i.quantidade >= 1 ? i.quantidade : 1
+      }));
+    }
+    
+    // ========================================
+    // RESOLUÇÃO: Converter códigos de produto para UUIDs
+    // NÃO usa mais o carrinho antigo - resolve pelo código/referência
     // ========================================
     let itensParaProcessar = args.itens;
     const primeiroProdutoId = args.itens?.[0]?.produto_id;
     
     if (primeiroProdutoId && !isValidUUID(primeiroProdutoId)) {
-      console.warn(`⚠️ [FALLBACK ITENS] produto_id "${primeiroProdutoId}" não é UUID. Buscando do carrinho...`);
+      console.log(`🔍 [RESOLUÇÃO] produto_id "${primeiroProdutoId}" não é UUID. Buscando por código/referência...`);
       
-      const { data: conversaCarrinho } = await supabase
-        .from("whatsapp_conversas")
-        .select("produtos_carrinho")
-        .eq("id", conversaId)
-        .single();
+      // Extrair todos os códigos de produto passados pelo LLM
+      const codigosProdutos = args.itens.map((i: any) => String(i.produto_id));
+      console.log(`🔍 [RESOLUÇÃO] Códigos a resolver: ${codigosProdutos.join(", ")}`);
       
-      if (conversaCarrinho?.produtos_carrinho?.length > 0) {
-        itensParaProcessar = conversaCarrinho.produtos_carrinho.map((item: any) => ({
-          produto_id: item.id,
-          quantidade: item.quantidade || 1,
-          preco_unitario: item.preco_unitario || null
-        }));
-        console.log(`✅ [FALLBACK ITENS] Usando ${itensParaProcessar.length} itens do carrinho da conversa`);
+      // Buscar produtos pelo código/referência
+      const { data: produtosEncontrados } = await supabase
+        .from("produtos")
+        .select("id, referencia_interna, nome")
+        .in("referencia_interna", codigosProdutos);
+      
+      if (produtosEncontrados && produtosEncontrados.length > 0) {
+        console.log(`✅ [RESOLUÇÃO] Encontrados ${produtosEncontrados.length} produtos por referência`);
+        
+        // Mapear códigos para UUIDs MANTENDO AS QUANTIDADES DO LLM
+        itensParaProcessar = args.itens.map((item: any) => {
+          const produtoEncontrado = produtosEncontrados.find(
+            (p: any) => String(p.referencia_interna) === String(item.produto_id)
+          );
+          
+          if (produtoEncontrado) {
+            console.log(`  ✓ ${item.produto_id} → ${produtoEncontrado.id} (${produtoEncontrado.nome}) | QTD: ${item.quantidade}`);
+            return {
+              produto_id: produtoEncontrado.id,
+              quantidade: item.quantidade, // MANTER A QUANTIDADE PASSADA PELO LLM
+              preco_unitario: item.preco_unitario || null
+            };
+          } else {
+            console.warn(`  ✗ ${item.produto_id} não encontrado`);
+            return null;
+          }
+        }).filter(Boolean);
+        
+        if (itensParaProcessar.length === 0) {
+          console.error("❌ [RESOLUÇÃO] Nenhum produto foi resolvido");
+          return { 
+            sucesso: false, 
+            erro: "produtos_nao_encontrados", 
+            mensagem: "Não encontrei os produtos informados. Pode confirmar os códigos?" 
+          };
+        }
       } else {
-        console.error("❌ [FALLBACK ITENS] Carrinho da conversa vazio");
-        return { sucesso: false, erro: "carrinho_vazio", mensagem: "Não encontrei produtos no carrinho. Adicione produtos primeiro." };
+        console.error("❌ [RESOLUÇÃO] Nenhum produto encontrado por referência");
+        return { 
+          sucesso: false, 
+          erro: "produtos_nao_encontrados", 
+          mensagem: "Não encontrei os produtos informados. Pode confirmar os códigos?" 
+        };
       }
     }
+    
+    console.log("📋 [DEBUG] Itens processados para gravar:", JSON.stringify(itensParaProcessar, null, 2));
     
     // Buscar dados do cliente
     const { data: cliente } = await supabase
