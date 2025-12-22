@@ -505,6 +505,7 @@ Deno.serve(async (req) => {
           resultadosFerramentas,
           deepseekApiKey!,
           lovableApiKey || null,
+          openAiApiKey || null,
         );
 
         respostaFinal = sanitizarResposta(resposta);

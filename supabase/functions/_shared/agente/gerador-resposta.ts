@@ -272,11 +272,12 @@ export async function gerarRespostaInteligente(
 
   const allTools = [...toolsLegacy, ...TOOLS_V4];
 
-  // Obter chave Lovable AI para fallback
+  // Obter chaves de API para fallback
   const lovableApiKey = Deno.env.get("LOVABLE_API_KEY") || null;
+  const openaiApiKey = Deno.env.get("OPENAI_API_KEY") || null;
 
   try {
-    // Chamar LLM com fallback
+    // Chamar LLM com fallback: OpenAI -> DeepSeek -> Lovable AI
     const { resposta, toolCalls, provider, tokens_entrada, tokens_saida } = await chamarLLMComFallback(
       [
         { role: "system", content: systemPrompt },
@@ -290,7 +291,8 @@ export async function gerarRespostaInteligente(
       ],
       allTools,
       deepseekApiKey,
-      lovableApiKey
+      lovableApiKey,
+      openaiApiKey
     );
 
     console.log(`✅ Resposta ${provider} recebida | Tools: ${toolCalls.length} | Tokens: ${tokens_entrada || 0}/${tokens_saida || 0}`);
