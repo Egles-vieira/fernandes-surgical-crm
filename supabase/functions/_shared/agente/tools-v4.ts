@@ -314,6 +314,35 @@ export async function executarCriarOportunidadeSpot(
   console.log("📦 [Tool] criar_oportunidade_spot", { cliente_id: args.cliente_id, itens_llm: args.itens?.length || 0 });
   
   try {
+    // ========================================
+    // 🛡️ GUARDRAIL: Verificar se já existe oportunidade para esta conversa
+    // Previne recriação quando o LLM "insiste" em chamar a tool novamente
+    // ========================================
+    const { data: conversaAtual } = await supabase
+      .from("whatsapp_conversas")
+      .select("oportunidade_spot_id")
+      .eq("id", conversaId)
+      .single();
+    
+    if (conversaAtual?.oportunidade_spot_id) {
+      // Já existe! Buscar código para retornar mensagem informativa
+      const { data: opExistente } = await supabase
+        .from("oportunidades")
+        .select("codigo, valor")
+        .eq("id", conversaAtual.oportunidade_spot_id)
+        .single();
+      
+      console.log(`⚠️ [GUARDRAIL] Oportunidade já existe: ${opExistente?.codigo}`);
+      
+      return {
+        sucesso: false,
+        erro: "oportunidade_ja_criada",
+        codigo: opExistente?.codigo,
+        oportunidade_id: conversaAtual.oportunidade_spot_id,
+        mensagem: `Oportunidade ${opExistente?.codigo || ""} já foi criada para esta conversa. Use calcular_cesta_datasul ou gerar_link_proposta.`
+      };
+    }
+    
     let clienteId = args.cliente_id;
     
     // FALLBACK: Se cliente_id não for UUID válido, buscar da sessão
@@ -526,11 +555,13 @@ export async function executarCriarOportunidadeSpot(
     
     console.log("🧹 Carrinho limpo após criar oportunidade");
     
+    // Atualizar sessão com estado "calculo" (pós-criação, não "criacao")
+    // Isso evita que o LLM tente recriar a oportunidade
     await supabase
       .from("whatsapp_agente_sessoes")
       .update({ 
         oportunidade_spot_id: oportunidade.id,
-        estado_atual: "criacao",
+        estado_atual: "calculo", // ← Mudança: "calculo" ao invés de "criacao"
         carrinho_itens: itensComPreco
       })
       .eq("conversa_id", conversaId);

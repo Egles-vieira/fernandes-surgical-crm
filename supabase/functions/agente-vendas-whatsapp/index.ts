@@ -187,15 +187,89 @@ Deno.serve(async (req) => {
 
     console.log("📜 Histórico:", historicoMensagens.length, "mensagens");
 
-    // === BUSCAR CARRINHO ATUAL ===
+    // === BUSCAR CARRINHO E ESTADO DA CONVERSA ===
     const { data: conversa } = await supabase
       .from("whatsapp_conversas")
-      .select("produtos_carrinho, proposta_ativa_id")
+      .select("produtos_carrinho, proposta_ativa_id, oportunidade_spot_id")
       .eq("id", conversaId)
       .single();
 
     const carrinhoAtual = conversa?.produtos_carrinho || [];
+    const oportunidadeExistente = conversa?.oportunidade_spot_id;
     console.log("🛒 Carrinho:", carrinhoAtual.length, "produtos");
+    console.log("📦 Oportunidade existente:", oportunidadeExistente || "nenhuma");
+
+    // ========================================
+    // 🛡️ GUARDRAIL: Resposta direta para perguntas de STATUS pós-criação
+    // Evita que o LLM re-chame criar_oportunidade_spot desnecessariamente
+    // ========================================
+    if (oportunidadeExistente && carrinhoAtual.length === 0) {
+      const msgLower = mensagemTexto.toLowerCase().trim();
+      const perguntasStatus = [
+        "deu certo", "deu certo?", "criou", "criou?", "funcionou", "funcionou?",
+        "e aí", "e ai", "e aí?", "e ai?", "status", "qual o status",
+        "conseguiu", "conseguiu?", "foi", "foi?", "e então", "e entao"
+      ];
+      
+      const ehPerguntaStatus = perguntasStatus.some(p => 
+        msgLower === p || msgLower.includes(p)
+      );
+      
+      if (ehPerguntaStatus) {
+        console.log("🛡️ [GUARDRAIL] Pergunta de status detectada - respondendo sem LLM");
+        
+        // Buscar dados da oportunidade e do job
+        const { data: oportunidade } = await supabase
+          .from("oportunidades")
+          .select("codigo, valor")
+          .eq("id", oportunidadeExistente)
+          .single();
+        
+        const { data: ultimoJob } = await supabase
+          .from("whatsapp_jobs_queue")
+          .select("status, tipo, processado_em, erro_mensagem")
+          .eq("conversa_id", conversaId)
+          .order("criado_em", { ascending: false })
+          .limit(1)
+          .single();
+        
+        let respostaDireta = "";
+        
+        if (ultimoJob?.status === "completed") {
+          respostaDireta = `sim, deu certo! oportunidade ${oportunidade?.codigo || ""} criada e calculada. quer que eu gere o link da proposta pra você aprovar?`;
+        } else if (ultimoJob?.status === "processing" || ultimoJob?.status === "pending") {
+          respostaDireta = `a oportunidade ${oportunidade?.codigo || ""} foi criada, tô calculando os valores no sistema... já te retorno com o total certinho`;
+        } else if (ultimoJob?.status === "error") {
+          respostaDireta = `a oportunidade ${oportunidade?.codigo || ""} foi criada, mas tive um problema no cálculo. quer que eu tente de novo?`;
+        } else {
+          respostaDireta = `sim, a oportunidade ${oportunidade?.codigo || ""} tá criada! aguarda que vou calcular os valores...`;
+        }
+        
+        // Salvar resposta na memória
+        await salvarMemoria(supabase, conversaId, `Beto: ${respostaDireta}`, "resposta_status_guardrail", openAiApiKey);
+        
+        // Salvar mensagem na tabela de mensagens
+        await supabase.from("whatsapp_mensagens").insert({
+          conversa_id: conversaId,
+          direcao: "enviada",
+          tipo_mensagem: "text",
+          corpo: respostaDireta,
+          status: "pendente",
+          enviada_por_bot: true,
+          enviada_automaticamente: true
+        });
+        
+        console.log("🛡️ [GUARDRAIL] Resposta direta enviada, bypassing LLM");
+        
+        return new Response(JSON.stringify({ 
+          resposta: respostaDireta,
+          fonte: "guardrail_status",
+          oportunidade_codigo: oportunidade?.codigo
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
 
     // === SALVAR MENSAGEM DO CLIENTE NA MEMÓRIA ===
     await salvarMemoria(supabase, conversaId, `Cliente: ${mensagemTexto}`, "mensagem_recebida", openAiApiKey);
