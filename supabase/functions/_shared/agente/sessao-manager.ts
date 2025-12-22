@@ -56,6 +56,13 @@ export async function obterOuCriarSessao(
   // Criar nova sessão
   console.log("🆕 Criando nova sessão");
   
+  // IMPORTANTE: Limpar carrinho da conversa para evitar usar produtos de sessões anteriores
+  await supabase
+    .from("whatsapp_conversas")
+    .update({ produtos_carrinho: [] })
+    .eq("id", conversaId);
+  console.log("🗑️ Carrinho da conversa limpo para nova sessão");
+  
   const { data: novaSessao, error } = await supabase
     .from("whatsapp_agente_sessoes")
     .insert({
