@@ -80,7 +80,7 @@ export function PipelineKanbanCard({
             {/* Header: Nome + Valor */}
             <div className="flex items-start justify-between gap-2 mb-2">
               <div className="flex-1 min-w-0 overflow-hidden">
-                <h4 className="font-medium text-sm text-foreground truncate" title={oportunidade.nome}>
+                <h4 className="font-medium text-sm text-foreground truncate w-full" title={oportunidade.nome}>
                   {oportunidade.nome}
                 </h4>
                 {oportunidade.codigo && <span className="text-xs text-muted-foreground block truncate" title={`#${oportunidade.codigo}`}>
@@ -102,13 +102,13 @@ export function PipelineKanbanCard({
 
             {/* Info: Conta, Contato, Data */}
             <div className="space-y-1 text-xs text-muted-foreground">
-              {oportunidade.conta && <div className="flex items-center gap-1.5">
+              {oportunidade.conta && <div className="flex items-center gap-1.5 min-w-0 overflow-hidden">
                   <Building2 className="h-3 w-3 shrink-0" />
-                  <span className="truncate">{oportunidade.conta}</span>
+                  <span className="truncate min-w-0">{oportunidade.conta}</span>
                 </div>}
-              {oportunidade.contato && <div className="flex items-center gap-1.5">
+              {oportunidade.contato && <div className="flex items-center gap-1.5 min-w-0 overflow-hidden">
                   <User className="h-3 w-3 shrink-0" />
-                  <span className="truncate">{oportunidade.contato}</span>
+                  <span className="truncate min-w-0">{oportunidade.contato}</span>
                 </div>}
               {oportunidade.dataFechamento && <div className="flex items-center gap-1.5">
                   <Calendar className="h-3 w-3 shrink-0" />
@@ -134,7 +134,7 @@ export function PipelineKanbanCard({
 
             {/* Campos customizados visíveis no Kanban */}
             {Object.keys(oportunidade.camposKanban).length > 0 && <div className="mt-2 pt-2 border-t border-border/50 space-y-1">
-                {Object.entries(oportunidade.camposKanban).slice(0, 3).map(([key, value]) => <div key={key} className="flex items-center justify-between text-xs gap-2">
+                {Object.entries(oportunidade.camposKanban).slice(0, 3).map(([key, value]) => <div key={key} className="flex items-center justify-between text-xs gap-2 min-w-0">
                     <span className="text-muted-foreground capitalize truncate">
                       {key.replace(/_/g, ' ')}
                     </span>
