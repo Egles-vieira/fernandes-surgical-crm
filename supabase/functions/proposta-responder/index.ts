@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { z } from 'https://esm.sh/zod@3.25.76';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -11,30 +12,51 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Suporte a vendaId OU oportunidadeId
-    const { 
-      tokenId, 
-      vendaId, 
-      oportunidadeId,
-      tipoResposta, 
-      nome, 
-      email, 
-      cargo, 
-      telefone, 
-      comentario, 
-      motivoRecusa, 
-      analyticsId 
-    } = await req.json();
+    // Suporte a vendaId OU oportunidadeId (validado com Zod)
+    const BodySchema = z.object({
+      tokenId: z.string().min(1),
+      vendaId: z.string().uuid().optional(),
+      oportunidadeId: z.string().uuid().optional(),
+      tipoResposta: z.enum(['aceita', 'recusada']),
+      nome: z.string().min(1).optional(),
+      email: z.string().email().optional(),
+      cargo: z.string().min(1).optional(),
+      telefone: z.string().min(1).optional(),
+      comentario: z.string().min(1).optional(),
+      motivoRecusa: z.string().min(1).optional(),
+      analyticsId: z.string().min(1).optional(),
+    });
 
-    if (!tokenId || !tipoResposta) {
-      return new Response(JSON.stringify({ error: 'tokenId e tipoResposta são obrigatórios' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    const rawBody = await req.json().catch(() => null);
+    const parsed = BodySchema.safeParse(rawBody);
+
+    if (!parsed.success) {
+      return new Response(
+        JSON.stringify({ error: 'Payload inválido', details: parsed.error.flatten() }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
     }
+
+    const {
+      tokenId,
+      vendaId,
+      oportunidadeId,
+      tipoResposta,
+      nome,
+      email,
+      cargo,
+      telefone,
+      comentario,
+      motivoRecusa,
+      analyticsId,
+    } = parsed.data;
 
     // Deve ter vendaId OU oportunidadeId
     if (!vendaId && !oportunidadeId) {
-      return new Response(JSON.stringify({ error: 'vendaId ou oportunidadeId é obrigatório' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      return new Response(
+        JSON.stringify({ error: 'vendaId ou oportunidadeId é obrigatório' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
     }
 
     const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
@@ -88,12 +110,55 @@ Deno.serve(async (req) => {
     } else if (oportunidadeId) {
       // Lógica para oportunidades
       if (tipoResposta === 'aceita') {
-        await supabase.from('oportunidades').update({ 
-          foi_ganha: true,
-          esta_fechada: true,
-          fechada_em: new Date().toISOString()
-        }).eq('id', oportunidadeId);
-        console.log('✅ Oportunidade marcada como ganha:', oportunidadeId);
+        // Regra: aceite do cliente move a oportunidade para o estágio "Fechamento"
+        // (não marca como ganha/fechada automaticamente)
+        const { data: opp, error: oppError } = await supabase
+          .from('oportunidades')
+          .select('pipeline_id')
+          .eq('id', oportunidadeId)
+          .single();
+
+        if (oppError) {
+          console.error('Erro ao carregar oportunidade:', oppError);
+          throw oppError;
+        }
+
+        const { data: estagioFechamento, error: estagioError } = await supabase
+          .from('estagios_pipeline')
+          .select('id, percentual_probabilidade')
+          .eq('pipeline_id', opp.pipeline_id)
+          .eq('nome_estagio', 'Fechamento')
+          .maybeSingle();
+
+        if (estagioError) {
+          console.error('Erro ao buscar estágio Fechamento:', estagioError);
+          throw estagioError;
+        }
+
+        if (!estagioFechamento) {
+          throw new Error('Estágio "Fechamento" não encontrado para o pipeline da oportunidade');
+        }
+
+        const nowIso = new Date().toISOString();
+        const { error: updateOppError } = await supabase
+          .from('oportunidades')
+          .update({
+            estagio_id: estagioFechamento.id,
+            percentual_probabilidade: estagioFechamento.percentual_probabilidade ?? null,
+            esta_fechada: false,
+            foi_ganha: false,
+            fechada_em: null,
+            ultima_mudanca_estagio_em: nowIso,
+            data_entrada_estagio: nowIso,
+          })
+          .eq('id', oportunidadeId);
+
+        if (updateOppError) {
+          console.error('Erro ao mover oportunidade para Fechamento:', updateOppError);
+          throw updateOppError;
+        }
+
+        console.log('✅ Oportunidade movida para Fechamento:', oportunidadeId);
 
         // Criar notificação para o vendedor
         const { data: oportunidade } = await supabase
