@@ -350,12 +350,12 @@ export async function executarCriarOportunidadeSpot(
         nome_oportunidade: `Spot WhatsApp - ${cliente.nome_fantasia || cliente.nome_emit}`,
         pipeline_id: PIPELINE_SPOT_ID,
         estagio_id: ESTAGIO_PROPOSTA_ID,
-        cliente_id: clienteId, // Usar variável corrigida
+        cliente_id: clienteId,
         vendedor_id: cliente.vendedor_id,
-        valor_estimado: valorEstimado,
+        valor: valorEstimado,                    // ✅ Coluna correta (era valor_estimado)
         percentual_probabilidade: 50,
         origem_lead: "whatsapp_agente",
-        observacoes: args.observacoes || null,
+        descricao: args.observacoes || null,     // ✅ Coluna correta (era observacoes)
         data_entrada_estagio: new Date().toISOString()
       })
       .select("id, codigo")
