@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { LayoutDashboard, DollarSign, FileSpreadsheet, Gavel, MessageCircle, Package, Headphones, Users, Activity } from "lucide-react";
+import { LayoutDashboard, DollarSign, FileSpreadsheet, Gavel, MessageCircle, Package, Headphones, Users, Activity, Bot } from "lucide-react";
 import { ResultadoGeralPanel } from "./panels/ResultadoGeralPanel";
 import { VendasPanel } from "./panels/VendasPanel";
 import { PlataformasPanel } from "./panels/PlataformasPanel";
@@ -11,6 +11,7 @@ import { ProdutosPanel } from "./panels/ProdutosPanel";
 import { ServicesPanel } from "./panels/ServicesPanel";
 import { ClientePanel } from "./panels/ClientePanel";
 import { PerformanceMonitorPanel } from "./panels/PerformanceMonitorPanel";
+import { AgenteIAPanel } from "./panels/AgenteIAPanel";
 
 const panels = [{
   id: "resultado-geral",
@@ -57,6 +58,11 @@ const panels = [{
   label: "Performance",
   icon: Activity,
   description: "Monitoramento de performance do sistema"
+}, {
+  id: "agente-ia",
+  label: "Agente IA",
+  icon: Bot,
+  description: "Performance do agente de vendas WhatsApp V4"
 }];
 
 export function DashboardPaginator() {
@@ -130,6 +136,10 @@ export function DashboardPaginator() {
 
         <TabsContent value="performance" className="mt-6">
           <PerformanceMonitorPanel isActive={activeTab === "performance"} />
+        </TabsContent>
+
+        <TabsContent value="agente-ia" className="mt-6">
+          <AgenteIAPanel isActive={activeTab === "agente-ia"} />
         </TabsContent>
       </Tabs>
     </div>
