@@ -554,6 +554,54 @@ Deno.serve(async (req) => {
       } else if (!respostaFinal) {
         respostaFinal = "opa, deixa eu ver aqui... pode me dar mais detalhes?";
       }
+      
+      // ========================================
+      // 🛡️ VALIDAÇÃO PÓS-RESPOSTA: Detectar alucinação de criação de oportunidade
+      // Se LLM disse que criou mas não chamou a tool, é alucinação
+      // ========================================
+      const toolsExecutadas = toolCalls.map((tc: any) => tc.function?.name);
+      const chamouCriarOportunidade = toolsExecutadas.includes("criar_oportunidade_spot");
+      
+      // Verificar se resposta menciona criação de oportunidade
+      const respostaLower = (respostaFinal || "").toLowerCase();
+      const mencionaCriacao = 
+        respostaLower.includes("criei a oportunidade") ||
+        respostaLower.includes("oportunidade criada") ||
+        respostaLower.includes("criei o pedido") ||
+        respostaLower.includes("pedido criado") ||
+        respostaLower.includes("registrei o pedido");
+      
+      if (mencionaCriacao && !chamouCriarOportunidade) {
+        // Verificar se realmente existe oportunidade no banco
+        const { data: conversaCheck } = await supabase
+          .from("whatsapp_conversas")
+          .select("oportunidade_spot_id")
+          .eq("id", conversaId)
+          .single();
+        
+        if (!conversaCheck?.oportunidade_spot_id) {
+          console.warn("⚠️ [ALUCINAÇÃO DETECTADA] LLM disse que criou oportunidade, mas oportunidade_spot_id é NULL!");
+          console.warn("⚠️ Tools executadas:", toolsExecutadas);
+          
+          // Log do evento de alucinação
+          await registrarLogAgente(supabase, conversaId, sessao.id !== "virtual" ? sessao.id : null, {
+            tipo_evento: "alucinacao_detectada",
+            erro_mensagem: "LLM alegou criar oportunidade sem chamar a tool",
+            tool_args: { tools_executadas: toolsExecutadas, resposta_llm: respostaFinal?.substring(0, 200) }
+          });
+          
+          // Substituir resposta por uma mais segura
+          respostaFinal = "opa, deixa eu confirmar aqui... pra criar a oportunidade, me confirma: é pra faturar nesse cnpj mesmo?";
+        }
+      }
+      
+      // Log resumo de execução
+      console.log("📊 [RESUMO EXECUÇÃO]", {
+        tools_chamadas: toolsExecutadas,
+        chamou_criar_oportunidade: chamouCriarOportunidade,
+        carrinho_items: carrinhoAtual.length,
+        oportunidade_existente: oportunidadeExistente || "nenhuma"
+      });
     }
 
     // === SALVAR RESPOSTA NA MEMÓRIA ===
