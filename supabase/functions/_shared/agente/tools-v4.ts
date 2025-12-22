@@ -128,32 +128,40 @@ RETORNA: URL do link público da proposta`,
     type: "function",
     function: {
       name: "adicionar_ao_carrinho_v4",
-      description: `Adiciona um item ao carrinho de compras com a quantidade especificada.
-Use quando:
-1) Cliente escolheu um produto da lista de sugestões (ex: "quero o número 2")
-2) Cliente confirmou que quer adicionar um produto específico
-3) Cliente informou quantidade para um produto
+      description: `🛒 FERRAMENTA OBRIGATÓRIA quando cliente ESCOLHE um produto da lista!
 
-IMPORTANTE: 
-- Se cliente disse "número X", buscar o item X das últimas sugestões
-- SEMPRE pedir/confirmar a quantidade antes de adicionar
-- O carrinho é SEPARADO das sugestões de busca
+QUANDO USAR (use IMEDIATAMENTE se cliente disser):
+- "quero o número 2"
+- "pode ser o 3"
+- "esse mesmo"
+- "o segundo"
+- "vou querer esse"
+- "manda o primeiro"
 
-RETORNA: confirmação do item adicionado + total de itens no carrinho`,
+COMO USAR:
+1. numero_sugestao = o número que o cliente falou (1, 2, 3...)
+2. quantidade = a quantidade que o cliente informou ANTES na conversa
+   → Se cliente disse "100 unidades de luva" e depois "quero o 2", use quantidade: 100
+   → Se não informou quantidade, NÃO chame a tool - pergunte primeiro!
+
+⚠️ NUNCA pergunte "pode me dar mais detalhes" se cliente escolheu número!
+⚠️ O carrinho é SEPARADO das sugestões de busca
+
+RETORNA: confirmação do item adicionado + total no carrinho`,
       parameters: {
         type: "object",
         properties: {
-          produto_id: {
-            type: "string",
-            description: "UUID do produto a adicionar"
-          },
           numero_sugestao: {
             type: "number",
-            description: "Número da sugestão escolhida (1, 2, 3...) - alternativa ao produto_id"
+            description: "Número da sugestão que o cliente escolheu (1, 2, 3...) - USE ESTE quando cliente fala 'número X' ou 'o X'"
+          },
+          produto_id: {
+            type: "string",
+            description: "UUID do produto (alternativa ao numero_sugestao, use se tiver o ID direto)"
           },
           quantidade: {
             type: "number",
-            description: "Quantidade a adicionar - OBRIGATÓRIO perguntar ao cliente"
+            description: "Quantidade que o cliente quer - SE NÃO SOUBER, não chame a tool, pergunte ao cliente primeiro!"
           }
         },
         required: ["quantidade"]
@@ -831,7 +839,12 @@ export async function executarAdicionarAoCarrinhoV4(
   supabase: any,
   conversaId: string
 ): Promise<any> {
-  console.log("🛒 [Tool] adicionar_ao_carrinho_v4", args);
+  console.log("🛒🛒🛒 [Tool] adicionar_ao_carrinho_v4 CHAMADO!", {
+    numero_sugestao: args.numero_sugestao,
+    produto_id: args.produto_id,
+    quantidade: args.quantidade,
+    conversaId
+  });
   
   try {
     let produtoId = args.produto_id;
