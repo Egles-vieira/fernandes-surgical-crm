@@ -56,7 +56,7 @@ Deno.serve(async (req) => {
       .select(`
         *,
         pipeline:pipeline_id(nome),
-        estagio:estagio_id(nome, cor)
+        estagio:estagio_id(nome_estagio, cor)
       `)
       .eq('id', tokenData.oportunidade_id)
       .single();
