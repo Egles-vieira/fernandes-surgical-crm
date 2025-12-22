@@ -1,4 +1,7 @@
 import type { PerfilCliente } from "./types.ts";
+import { TOOLS_V4, executarToolV4, isToolV4 } from "./tools-v4.ts";
+import { chamarLLMComFallback, chamarLLMComResultadosTools } from "./llm-provider.ts";
+import { construirContextoSessao, type SessaoAgente } from "./sessao-manager.ts";
 
 /**
  * Sanitiza a resposta removendo textos de function calls vazados do DeepSeek
@@ -17,32 +20,22 @@ function sanitizarResposta(texto: string | null): string | null {
 }
 
 /**
- * Gerar resposta inteligente usando DeepSeek com Tool Calling
- * O agente decide quando buscar produtos, criar proposta, etc.
+ * Construir System Prompt V4 com novo fluxo de vendas
  */
-export async function gerarRespostaInteligente(
-  mensagemCliente: string,
-  historicoCompleto: any[],
-  perfil: PerfilCliente,
-  carrinhoAtual: string[],
-  deepseekApiKey: string,
-  supabase: any,
-): Promise<{
-  resposta: string | null;
-  toolCalls: any[];
-}> {
-  console.log("🧠 Gerando resposta inteligente | Perfil:", perfil.tipo, "| Carrinho:", carrinhoAtual.length);
-
-  // Construir system prompt com contexto do cliente
-  const systemPrompt = `Você é o Beto, vendedor experiente e simpático da Cirúrgica Fernandes.
+function construirSystemPromptV4(perfil: PerfilCliente, sessao: SessaoAgente | null): string {
+  const contextoSessao = sessao ? construirContextoSessao(sessao) : "";
+  
+  return `Você é o Beto, vendedor experiente e simpático da Cirúrgica Fernandes.
 
 PERFIL DO CLIENTE:
 - Tipo: ${perfil.tipo}
 - Nome: ${perfil.nome || "não informado"}
 - Histórico: ${perfil.historico_compras} compra(s) anterior(es)
 - Ticket médio: R$ ${perfil.ticket_medio.toFixed(2)}
-- Última compra: ${perfil.ultima_compra_dias < 9999 ? `há ${perfil.ultima_compra_dias} dias` : "nunca comprou"}
-${perfil.marcadores.length > 0 ? `- Marcadores: ${perfil.marcadores.join(", ")}` : ""}
+- Última compra: ${perfil.ultima_compra_dias < 9999 ? \`há ${perfil.ultima_compra_dias} dias\` : "nunca comprou"}
+${perfil.marcadores.length > 0 ? \`- Marcadores: ${perfil.marcadores.join(", ")}\` : ""}
+
+${contextoSessao ? \`ESTADO ATUAL DA NEGOCIAÇÃO:\n${contextoSessao}\n\n\` : ""}
 
 SOBRE A EMPRESA:
 - Cirúrgica Fernandes vende produtos hospitalares e cirúrgicos
@@ -59,105 +52,107 @@ SUA PERSONALIDADE (ESTILO DE ESCRITA OBRIGATÓRIO):
 - Seja breve. Ninguém lê textão no zap.
 - Use gírias leves de ambiente de trabalho: "show", "beleza", "fechado", "tranquilo".
 
-EXEMPLOS DE COMO FALAR:
-Robô: "Olá, senhor. Segue a lista de produtos encontrados." (NÃO FAÇA ISSO)
-Beto: "opa, achei esses aqui ó:"
+═══════════════════════════════════════════════════════
+FLUXO DE VENDA SPOT - 5 ETAPAS OBRIGATÓRIAS
+═══════════════════════════════════════════════════════
 
-Robô: "Gostaria de adicionar algo mais ao carrinho?" (NÃO FAÇA ISSO)
-Beto: "vai querer mais alguma coisa ou fecho esse?"
+1️⃣ COLETA: Cliente informa produtos desejados
+   → Use buscar_produtos para encontrar itens
+   → Monte lista de produtos no carrinho mental
+   → Confirme: "achei esses produtos, é isso mesmo?"
 
-Robô: "O endereço selecionado foi o número 1." (NÃO FAÇA ISSO)
-Beto: "blz, vai pro endereço 1 então. vou gerar o pedido"
+2️⃣ IDENTIFICAÇÃO: Antes de criar proposta
+   → Use identificar_cliente (código Datasul, CNPJ ou vínculo WhatsApp)
+   → Confirme: "é pra faturar no CNPJ XX.XXX.XXX/XXXX-XX da [Empresa]?"
+   → Aguarde confirmação do cliente
 
-INSTRUÇÕES CRÍTICAS SOBRE CONTEXTO:
-- Você TEM acesso ao histórico completo da conversa (mensagens anteriores estão disponíveis)
-- SEMPRE consulte as mensagens anteriores antes de responder
-- Se o cliente mencionar produtos ou informações já discutidas, USE ESSE CONTEXTO
-- NÃO diga "não tenho acesso ao histórico" - você TEM e DEVE usar
-- Se houver produtos no carrinho, considere isso na resposta
-- Mantenha continuidade: se já discutiram algo, não reinicie a conversa
+3️⃣ CRIAÇÃO: Monte a cesta completa
+   → Use criar_oportunidade_spot com TODOS os itens de uma vez
+   → NÃO chame item por item, envie tudo junto
+   → Confirme: "criei a oportunidade, vou calcular os valores..."
 
-FERRAMENTAS DISPONÍVEIS:
-Use-as APENAS quando necessário e fizer sentido no contexto:
+4️⃣ CÁLCULO: Obtenha valores oficiais do ERP
+   → Use calcular_cesta_datasul (OBRIGATÓRIO para preços corretos)
+   → Aguarde retorno (pode demorar alguns segundos)
+   → Apresente valores COM impostos: "total ficou R$ X.XXX,XX"
 
-1. buscar_produtos: Para buscar produtos no catálogo
-   - Use quando: cliente menciona produto específico OU quer ver opções
-   - NÃO use se: cliente está apenas cumprimentando, tirando dúvida genérica
+5️⃣ FECHAMENTO: Finalize a venda
+   → Use gerar_link_proposta para criar link público
+   → Envie link formatado: "aqui está sua proposta: [URL]"
+   → O cliente pode aceitar ou recusar online
+   → Quando aceitar, a oportunidade vai automaticamente para Fechamento
 
-2. adicionar_ao_carrinho: Para adicionar produto ao carrinho
-   - Use quando: cliente escolheu produto específico e quantidade
-   - NÃO use sem confirmação explícita do cliente
+═══════════════════════════════════════════════════════
+FERRAMENTAS DISPONÍVEIS (TOOLS)
+═══════════════════════════════════════════════════════
 
-3. criar_proposta: Para gerar proposta comercial com os produtos do carrinho
-   - Use quando: cliente confirmou TODOS os itens que deseja comprar
-   - Requer: carrinho com produtos + confirmação do cliente
-   - IMPORTANTE: criar_proposta NÃO finaliza o pedido, apenas GERA a proposta
-   - APÓS CRIAR: apresente a proposta formatada e PERGUNTE se o cliente quer FINALIZAR
-   - Exemplo: "proposta gerada! são 3 itens por R$ 1.250,00. quer que eu feche esse pedido?"
+1. buscar_produtos: Busca produtos no catálogo
+   - Use quando: cliente menciona produto ou quer ver opções
+   - Retorna: lista de produtos com preço e estoque
 
-4. validar_dados_cliente: CRÍTICO - busca AUTOMATICAMENTE o CNPJ e endereços do cliente
-   - Use quando: cliente ACEITAR/CONFIRMAR a proposta (ex: "pode fechar", "confirmo", "quero")
-   - ⚠️ NUNCA PERGUNTE O CNPJ: esta ferramenta JÁ BUSCA automaticamente o CNPJ vinculado ao contato WhatsApp
-   - Retorna: CNPJ do cliente + lista completa de endereços cadastrados
-   - Você DEVE APRESENTAR o CNPJ encontrado e perguntar confirmação
-   - Depois MOSTRAR TODOS os endereços numerados para escolha
-   - Esta é a ÚNICA forma de obter CNPJ - NÃO existe outra ferramenta para isso
+2. identificar_cliente: Identifica o cliente para faturamento
+   - Use quando: cliente informar código/CNPJ OU antes de criar proposta
+   - BUSCA AUTOMÁTICA pelo vínculo WhatsApp se nenhum dado for informado
+   - Retorna: cliente_id, nome, cnpj, cod_emitente, endereços
 
-5. finalizar_pedido: Cria a venda no sistema (última etapa)
-   - Use APENAS após: 1) validar_dados_cliente, 2) cliente confirmar CNPJ, 3) cliente escolher endereço
-   - Requer: cliente_id + cnpj_confirmado + endereco_id (UUID do endereço escolhido)
-   - Após finalizar: informe o número do pedido gerado com entusiasmo
+3. criar_oportunidade_spot: Cria oportunidade no Pipeline Spot
+   - Use quando: cliente confirmou produtos E você identificou o cliente
+   - ENVIE TODOS OS ITENS DE UMA VEZ (não faça item por item!)
+   - Retorna: oportunidade_id, código
 
-⚠️ REGRA CRÍTICA - NUNCA PERGUNTE O CNPJ:
-- A ferramenta validar_dados_cliente JÁ BUSCA o CNPJ automaticamente do sistema
-- Você NUNCA deve escrever: "qual seu cnpj?", "precisa de cnpj?", "me passa o cnpj"
-- FLUXO CORRETO quando cliente aceitar proposta:
-  1. Você chama validar_dados_cliente (ela busca CNPJ sozinha)
-  2. Você APRESENTA o resultado: "achei seu cnpj aqui: 07.501.860/0001-58. é nesse mesmo o faturamento?"
-  3. Cliente confirma ("sim", "esse mesmo", "confirma")
-  4. Você mostra endereços numerados
-  5. Cliente escolhe endereço
-  6. Você finaliza com finalizar_pedido
+4. calcular_cesta_datasul: Calcula valores no ERP Datasul
+   - Use APENAS após criar_oportunidade_spot
+   - OBRIGATÓRIO para ter preços corretos com impostos
+   - Retorna: valores calculados por item + total
 
-FLUXO DE FECHAMENTO DE PEDIDO - 4 ETAPAS OBRIGATÓRIAS:
+5. gerar_link_proposta: Gera link público da proposta
+   - Use após calcular no Datasul
+   - Cliente pode aceitar/recusar online
+   - Retorna: URL do link
 
-ETAPA 1 - CRIAR PROPOSTA:
-- Cliente confirma produtos: "só isso", "pode gerar", "é isso mesmo"
-- Você chama criar_proposta
-- Você APRESENTA a proposta formatada com itens e valor total
-- Você PERGUNTA: "quer que eu feche esse pedido?" ou "confirma pra eu processar?"
-- ⚠️ NÃO considere fechado ainda - apenas apresentou a proposta
+6. adicionar_ao_carrinho: Adiciona produto ao carrinho temporário
+   - Use para gerenciar itens antes de criar proposta
 
-ETAPA 2 - VALIDAR DADOS (CNPJ + ENDEREÇOS):
-- Cliente confirma fechamento: "pode fechar", "sim", "quero", "confirma"
-- Você chama validar_dados_cliente (NÃO pergunte CNPJ!)
-- Sistema retorna CNPJ + lista de endereços
-- Você APRESENTA: "é nesse cnpj (XX.XXX.XXX/XXXX-XX) o faturamento?"
-- ⚠️ AGUARDE confirmação do CNPJ antes de prosseguir
+═══════════════════════════════════════════════════════
+REGRAS CRÍTICAS
+═══════════════════════════════════════════════════════
 
-ETAPA 3 - SELECIONAR ENDEREÇO:
-- Cliente confirma CNPJ: "sim", "esse mesmo", "confirma"
-- Você mostra TODOS os endereços em formato numerado claro:
-  "1️⃣ Av. Brigadeiro, 321, Jardins, São Paulo/SP - CEP: 01451-000
-   2️⃣ Rua Augusta, 500, Consolação, São Paulo/SP - CEP: 01305-000
-   qual endereço vc quer pra entrega? digita o número"
-- ⚠️ AGUARDE cliente escolher o endereço
-
-ETAPA 4 - FINALIZAR PEDIDO:
-- Cliente escolhe endereço: "1", "o primeiro", "numero 2"
-- Você identifica o UUID do endereço escolhido
-- Você chama finalizar_pedido com cliente_id, cnpj_confirmado, endereco_id
-- Você informa: "fechado! pedido {numero} criado. vamos processar e enviar em breve 🎉"
+⚠️ NUNCA PERGUNTE O CNPJ - a tool identificar_cliente JÁ BUSCA automaticamente
+⚠️ NUNCA apresente valores sem calcular no Datasul - os preços podem estar errados
+⚠️ SEMPRE crie oportunidade ANTES de calcular
+⚠️ SEMPRE gere o link da proposta ao final - é assim que o cliente aceita
+⚠️ Se o cliente já está identificado (na sessão), não precisa identificar de novo
 
 COMPORTAMENTO INTELIGENTE:
 - Analise o CONTEXTO COMPLETO da conversa
-- Se cliente já forneceu informações (tipo de produto, quantidade, urgência), NÃO pergunte de novo
-- Seja inteligente: se ele disse "preciso de 50 luvas de procedimento para UTI amanhã", você já tem TUDO
+- Se cliente já forneceu informações, NÃO pergunte de novo
 - Use ferramentas quando APROPRIADO, não em toda mensagem
-- Converse naturalmente, mas SIGA O FLUXO DE FECHAMENTO quando cliente aceitar proposta`;
+- Converse naturalmente, siga o fluxo de vendas`;
+}
 
-  // Definir ferramentas disponíveis
-  const tools = [
+/**
+ * Gerar resposta inteligente usando DeepSeek com Tool Calling
+ * Versão 4 com novas tools para Pipeline Spot
+ */
+export async function gerarRespostaInteligente(
+  mensagemCliente: string,
+  historicoCompleto: any[],
+  perfil: PerfilCliente,
+  carrinhoAtual: string[],
+  deepseekApiKey: string,
+  supabase: any,
+  sessao?: SessaoAgente | null,
+): Promise<{
+  resposta: string | null;
+  toolCalls: any[];
+}> {
+  console.log("🧠 Gerando resposta inteligente V4 | Perfil:", perfil.tipo, "| Sessão:", sessao?.estado_atual || "sem sessão");
+
+  // Construir system prompt V4
+  const systemPrompt = construirSystemPromptV4(perfil, sessao || null);
+
+  // Combinar tools existentes com novas V4
+  const toolsLegacy = [
     {
       type: "function",
       function: {
@@ -203,110 +198,41 @@ COMPORTAMENTO INTELIGENTE:
         },
       },
     },
-    {
-      type: "function",
-      function: {
-        name: "criar_proposta",
-        description:
-          "Cria uma proposta comercial com os produtos do carrinho. Use quando o cliente confirmou TODOS os itens desejados. ATENÇÃO: Isso NÃO finaliza o pedido, apenas gera a proposta. Após criar, você DEVE apresentar a proposta ao cliente e PERGUNTAR se ele quer finalizar (ex: 'quer que eu feche esse pedido?'). O fechamento real ocorre com validar_dados_cliente + finalizar_pedido.",
-        parameters: {
-          type: "object",
-          properties: {
-            observacoes: {
-              type: "string",
-              description: "Observações adicionais para a proposta",
-            },
-          },
-        },
-      },
-    },
-    {
-      type: "function",
-      function: {
-        name: "validar_dados_cliente",
-        description:
-          "⚠️ CRÍTICO - BUSCA AUTOMÁTICA DE CNPJ: Esta ferramenta BUSCA AUTOMATICAMENTE o CNPJ e endereços do cliente vinculados ao contato WhatsApp. Use quando cliente ACEITAR/CONFIRMAR a proposta (ex: 'pode fechar', 'confirmo', 'quero finalizar'). NUNCA PERGUNTE O CNPJ AO CLIENTE - a ferramenta já retorna o CNPJ encontrado no sistema. Você deve APRESENTAR o CNPJ retornado e pedir confirmação (ex: 'é nesse cnpj (XX.XXX.XXX/XXXX-XX) o faturamento?'). Depois, APRESENTAR todos os endereços numerados para escolha.",
-        parameters: {
-          type: "object",
-          properties: {},
-        },
-      },
-    },
-    {
-      type: "function",
-      function: {
-        name: "finalizar_pedido",
-        description:
-          "ÚLTIMA ETAPA: Finaliza o pedido e cria a venda no sistema. Use APENAS após: 1) ter chamado validar_dados_cliente, 2) cliente confirmar o CNPJ, 3) cliente escolher o endereço. Esta ferramenta cria o pedido oficial no sistema.",
-        parameters: {
-          type: "object",
-          properties: {
-            cliente_id: {
-              type: "string",
-              description: "UUID do cliente retornado por validar_dados_cliente",
-            },
-            cnpj_confirmado: {
-              type: "string",
-              description: "CNPJ que o cliente confirmou (ex: '12.345.678/0001-90')",
-            },
-            endereco_id: {
-              type: "string",
-              description: "UUID do endereço que o cliente escolheu da lista apresentada",
-            },
-          },
-          required: ["cliente_id", "cnpj_confirmado", "endereco_id"],
-        },
-      },
-    },
   ];
 
+  const allTools = [...toolsLegacy, ...TOOLS_V4];
+
+  // Obter chave Lovable AI para fallback
+  const lovableApiKey = Deno.env.get("LOVABLE_API_KEY") || null;
+
   try {
-    // Chamar DeepSeek com histórico completo e tools
-    const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${deepseekApiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "deepseek-chat",
-        messages: [
-          { role: "system", content: systemPrompt },
-          // Filtrar mensagens com content vazio/null para evitar erro "missing field content"
-          ...historicoCompleto
-            .filter((msg) => msg.content && msg.content.trim() !== '')
-            .map((msg) => ({
-              role: msg.role,
-              content: msg.content,
-            })),
-          { role: "user", content: mensagemCliente },
-        ],
-        tools,
-        temperature: 0.7,
-        max_tokens: 500,
-      }),
-    });
+    // Chamar LLM com fallback
+    const { resposta, toolCalls, provider, tokens_entrada, tokens_saida } = await chamarLLMComFallback(
+      [
+        { role: "system", content: systemPrompt },
+        ...historicoCompleto
+          .filter((msg) => msg.content && msg.content.trim() !== '')
+          .map((msg) => ({
+            role: msg.role,
+            content: msg.content,
+          })),
+        { role: "user", content: mensagemCliente },
+      ],
+      allTools,
+      deepseekApiKey,
+      lovableApiKey
+    );
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("❌ Erro na API DeepSeek:", response.status, errorText);
-      throw new Error(`Falha na API: ${response.status}`);
-    }
+    console.log(`✅ Resposta ${provider} recebida | Tools: ${toolCalls.length}`);
 
-    const data = await response.json();
-    const assistantMessage = data.choices[0].message;
-
-    console.log("✅ Resposta DeepSeek recebida");
-
-    // Retornar resposta e tool calls (não executar aqui)
     return {
-      resposta: sanitizarResposta(assistantMessage.content),
-      toolCalls: assistantMessage.tool_calls || [],
+      resposta: sanitizarResposta(resposta),
+      toolCalls: toolCalls || [],
     };
   } catch (error) {
     console.error("❌ Erro ao gerar resposta:", error);
     return {
-      resposta: "Desculpa, tive um problema técnico. Pode repetir?",
+      resposta: "opa, tive um probleminha técnico aqui. pode repetir?",
       toolCalls: [],
     };
   }
@@ -314,6 +240,7 @@ COMPORTAMENTO INTELIGENTE:
 
 /**
  * Executar ferramenta solicitada pelo agente
+ * Suporta tools legacy + V4
  */
 export async function executarFerramenta(
   nomeFerramenta: string,
@@ -324,6 +251,12 @@ export async function executarFerramenta(
 ): Promise<any> {
   console.log(`⚙️ Executando ferramenta: ${nomeFerramenta}`);
 
+  // Verificar se é uma tool V4
+  if (isToolV4(nomeFerramenta)) {
+    return executarToolV4(nomeFerramenta, argumentos, supabase, conversaId);
+  }
+
+  // Tools legacy
   switch (nomeFerramenta) {
     case "buscar_produtos": {
       const { termo_busca } = argumentos;
@@ -371,19 +304,13 @@ export async function executarFerramenta(
 
       if (!produtos || produtos.length === 0) {
         console.log("⚠️ Nenhum produto encontrado na base de dados");
-        console.log("📊 Detalhes da busca:", { termo_busca, match_threshold: 0.5, match_count: 5 });
         return {
           produtos: [],
           mensagem: `Não encontrei produtos em estoque para "${termo_busca}". Vou verificar alternativas.`,
         };
       }
 
-      console.log(`✅ ${produtos.length} produto(s) encontrado(s):`);
-      produtos.forEach((p: any, i: number) => {
-        console.log(
-          `   ${i + 1}. ${p.nome} (${p.referencia_interna}) - R$ ${p.preco_venda} - Estoque: ${p.quantidade_em_maos}`,
-        );
-      });
+      console.log(`✅ ${produtos.length} produto(s) encontrado(s)`);
 
       return {
         produtos: produtos.map((p: any) => ({
@@ -406,17 +333,13 @@ export async function executarFerramenta(
         .eq("id", conversaId)
         .single();
 
-      // Carrinho agora é array de objetos { id, quantidade }
       const carrinhoAtual: Array<{ id: string; quantidade: number }> = conversa?.produtos_carrinho || [];
 
-      // Verificar se produto já existe no carrinho
       const itemExistente = carrinhoAtual.find((item: any) => item.id === produto_id);
 
       if (itemExistente) {
-        // Se já existe, atualizar quantidade
         itemExistente.quantidade = quantidade || 1;
       } else {
-        // Se não existe, adicionar novo item
         carrinhoAtual.push({ id: produto_id, quantidade: quantidade || 1 });
       }
 
@@ -435,15 +358,13 @@ export async function executarFerramenta(
         .eq("id", conversaId)
         .single();
 
-      // Carrinho agora é array de objetos { id, quantidade }
       const carrinho: Array<{ id: string; quantidade: number }> = conversa?.produtos_carrinho || [];
 
       if (carrinho.length === 0) {
         return { erro: "Carrinho vazio" };
       }
 
-      // Extrair apenas os IDs para buscar os produtos
-      const produtoIds = carrinho.map((item: any) => item.id).filter((id: string) => id !== undefined && id !== null); // Filtrar IDs inválidos
+      const produtoIds = carrinho.map((item: any) => item.id).filter((id: string) => id !== undefined && id !== null);
 
       if (produtoIds.length === 0) {
         console.error("❌ Carrinho não contém IDs válidos:", carrinho);
@@ -452,7 +373,6 @@ export async function executarFerramenta(
 
       console.log(`📦 Buscando ${produtoIds.length} produtos do carrinho:`, produtoIds);
 
-      // Buscar detalhes dos produtos
       const { data: produtos, error: produtosError } = await supabase.from("produtos").select("*").in("id", produtoIds);
 
       if (produtosError) {
@@ -467,10 +387,8 @@ export async function executarFerramenta(
 
       console.log(`✅ ${produtos.length} produtos encontrados`);
 
-      // Importar função de criar proposta
       const { criarProposta } = await import("./proposta-handler.ts");
 
-      // Mapear produtos com suas quantidades do carrinho
       const produtosComQtd = produtos.map((p: any) => {
         const itemCarrinho = carrinho.find((item: any) => item.id === p.id);
         return {
@@ -478,11 +396,6 @@ export async function executarFerramenta(
           quantidade: itemCarrinho?.quantidade || 1,
         };
       });
-
-      console.log(
-        `📦 Produtos com quantidades:`,
-        produtosComQtd.map((p: any) => `${p.referencia_interna}: ${p.quantidade}x`),
-      );
 
       const proposta = await criarProposta(supabase, conversaId, produtosComQtd, null);
 
@@ -497,11 +410,9 @@ export async function executarFerramenta(
     case "validar_dados_cliente": {
       console.log("🔍 Validando dados do cliente");
 
-      // Buscar contato e cliente vinculado
       const { data: conversa } = await supabase
         .from("whatsapp_conversas")
-        .select(
-          `
+        .select(`
           whatsapp_contato_id,
           whatsapp_contatos (
             nome_whatsapp,
@@ -517,8 +428,7 @@ export async function executarFerramenta(
               )
             )
           )
-        `,
-        )
+        `)
         .eq("id", conversaId)
         .single();
 
@@ -542,15 +452,13 @@ export async function executarFerramenta(
       if (!contato.cliente_id || !contato.clientes) {
         return {
           erro: "cliente_nao_vinculado",
-          mensagem:
-            "Você ainda não está cadastrado como cliente em nosso sistema. Vou precisar de alguns dados antes de finalizar.",
+          mensagem: "Você ainda não está cadastrado como cliente em nosso sistema.",
         };
       }
 
       const clienteData = contato.clientes;
       const cliente = Array.isArray(clienteData) ? clienteData[0] : clienteData;
 
-      // Buscar endereços na tabela correta (enderecos_clientes)
       const { data: enderecos, error: enderecosError } = await supabase
         .from("enderecos_clientes")
         .select("id, tipo, endereco, cep, bairro, cidade, estado, numero")
@@ -558,21 +466,13 @@ export async function executarFerramenta(
 
       if (enderecosError) {
         console.error("❌ Erro ao buscar endereços:", enderecosError);
-        return {
-          erro: "erro_buscar_enderecos",
-          mensagem: "Erro ao consultar endereços cadastrados",
-        };
+        return { erro: "erro_buscar_enderecos", mensagem: "Erro ao consultar endereços" };
       }
 
       if (!enderecos || enderecos.length === 0) {
-        return {
-          erro: "sem_enderecos",
-          cnpj: cliente.cgc,
-          mensagem: "Cliente encontrado mas sem endereços cadastrados",
-        };
+        return { erro: "sem_enderecos", cnpj: cliente.cgc, mensagem: "Cliente sem endereços cadastrados" };
       }
 
-      // Formatar endereços para o agente apresentar ao cliente
       const enderecosFormatados = enderecos.map((e: any, idx: number) => ({
         id: e.id,
         numero: idx + 1,
@@ -581,7 +481,6 @@ export async function executarFerramenta(
       }));
 
       console.log(`✅ Cliente validado: ${cliente.nome_emit} (${cliente.cgc})`);
-      console.log(`📍 ${enderecosFormatados.length} endereço(s) encontrado(s)`);
 
       return {
         sucesso: true,
@@ -594,12 +493,8 @@ export async function executarFerramenta(
 
     case "finalizar_pedido": {
       const { cliente_id, cnpj_confirmado, endereco_id } = argumentos;
-      console.log("🎯 Finalizando pedido e criando venda no sistema");
-      console.log(`   Cliente ID: ${cliente_id}`);
-      console.log(`   CNPJ: ${cnpj_confirmado}`);
-      console.log(`   Endereço ID: ${endereco_id}`);
+      console.log("🎯 Finalizando pedido");
 
-      // Buscar proposta ativa da conversa
       const { data: conversa } = await supabase
         .from("whatsapp_conversas")
         .select("proposta_ativa_id")
@@ -611,7 +506,6 @@ export async function executarFerramenta(
         return { erro: "Nenhuma proposta ativa para finalizar" };
       }
 
-      // Chamar edge function para converter proposta em venda
       const supabaseUrl = Deno.env.get("SUPABASE_URL");
       const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
@@ -640,7 +534,6 @@ export async function executarFerramenta(
         const resultado = await response.json();
         console.log("✅ Pedido finalizado:", resultado.venda.numero_venda);
 
-        // Limpar carrinho e atualizar estágio
         await supabase
           .from("whatsapp_conversas")
           .update({

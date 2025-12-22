@@ -8046,6 +8046,143 @@ export type Database = {
           },
         ]
       }
+      whatsapp_agente_logs: {
+        Row: {
+          conversa_id: string
+          criado_em: string | null
+          erro_mensagem: string | null
+          erro_stack: string | null
+          id: string
+          llm_provider: string | null
+          sessao_id: string | null
+          tempo_execucao_ms: number | null
+          tipo_evento: string
+          tokens_entrada: number | null
+          tokens_saida: number | null
+          tool_args: Json | null
+          tool_name: string | null
+          tool_resultado: Json | null
+        }
+        Insert: {
+          conversa_id: string
+          criado_em?: string | null
+          erro_mensagem?: string | null
+          erro_stack?: string | null
+          id?: string
+          llm_provider?: string | null
+          sessao_id?: string | null
+          tempo_execucao_ms?: number | null
+          tipo_evento: string
+          tokens_entrada?: number | null
+          tokens_saida?: number | null
+          tool_args?: Json | null
+          tool_name?: string | null
+          tool_resultado?: Json | null
+        }
+        Update: {
+          conversa_id?: string
+          criado_em?: string | null
+          erro_mensagem?: string | null
+          erro_stack?: string | null
+          id?: string
+          llm_provider?: string | null
+          sessao_id?: string | null
+          tempo_execucao_ms?: number | null
+          tipo_evento?: string
+          tokens_entrada?: number | null
+          tokens_saida?: number | null
+          tool_args?: Json | null
+          tool_name?: string | null
+          tool_resultado?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_agente_logs_conversa_id_fkey"
+            columns: ["conversa_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_conversas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_agente_logs_sessao_id_fkey"
+            columns: ["sessao_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_agente_sessoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_agente_sessoes: {
+        Row: {
+          atualizado_em: string | null
+          carrinho_itens: Json | null
+          cliente_identificado_id: string | null
+          conversa_id: string
+          criado_em: string | null
+          estado_atual: string | null
+          expira_em: string | null
+          id: string
+          oportunidade_spot_id: string | null
+          total_mensagens: number | null
+          total_tools_executadas: number | null
+        }
+        Insert: {
+          atualizado_em?: string | null
+          carrinho_itens?: Json | null
+          cliente_identificado_id?: string | null
+          conversa_id: string
+          criado_em?: string | null
+          estado_atual?: string | null
+          expira_em?: string | null
+          id?: string
+          oportunidade_spot_id?: string | null
+          total_mensagens?: number | null
+          total_tools_executadas?: number | null
+        }
+        Update: {
+          atualizado_em?: string | null
+          carrinho_itens?: Json | null
+          cliente_identificado_id?: string | null
+          conversa_id?: string
+          criado_em?: string | null
+          estado_atual?: string | null
+          expira_em?: string | null
+          id?: string
+          oportunidade_spot_id?: string | null
+          total_mensagens?: number | null
+          total_tools_executadas?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_agente_sessoes_cliente_identificado_id_fkey"
+            columns: ["cliente_identificado_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_agente_sessoes_cliente_identificado_id_fkey"
+            columns: ["cliente_identificado_id"]
+            isOneToOne: false
+            referencedRelation: "vw_clientes_completo"
+            referencedColumns: ["cliente_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_agente_sessoes_conversa_id_fkey"
+            columns: ["conversa_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_conversas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_agente_sessoes_oportunidade_spot_id_fkey"
+            columns: ["oportunidade_spot_id"]
+            isOneToOne: false
+            referencedRelation: "oportunidades"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       whatsapp_aprovacoes_diretoria: {
         Row: {
           aprovado_em: string | null
@@ -8946,6 +9083,7 @@ export type Database = {
           nps_score: number | null
           numero_protocolo: string | null
           oportunidade_id: string | null
+          oportunidade_spot_id: string | null
           origem: string | null
           origem_atendimento: string | null
           prioridade: string | null
@@ -9012,6 +9150,7 @@ export type Database = {
           nps_score?: number | null
           numero_protocolo?: string | null
           oportunidade_id?: string | null
+          oportunidade_spot_id?: string | null
           origem?: string | null
           origem_atendimento?: string | null
           prioridade?: string | null
@@ -9078,6 +9217,7 @@ export type Database = {
           nps_score?: number | null
           numero_protocolo?: string | null
           oportunidade_id?: string | null
+          oportunidade_spot_id?: string | null
           origem?: string | null
           origem_atendimento?: string | null
           prioridade?: string | null
@@ -9144,6 +9284,13 @@ export type Database = {
           {
             foreignKeyName: "whatsapp_conversas_oportunidade_id_fkey"
             columns: ["oportunidade_id"]
+            isOneToOne: false
+            referencedRelation: "oportunidades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_conversas_oportunidade_spot_id_fkey"
+            columns: ["oportunidade_spot_id"]
             isOneToOne: false
             referencedRelation: "oportunidades"
             referencedColumns: ["id"]
