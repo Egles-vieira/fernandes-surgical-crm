@@ -11431,6 +11431,64 @@ export type Database = {
       }
     }
     Views: {
+      mv_agente_ia_resumo: {
+        Row: {
+          oportunidades_criadas: number | null
+          sessoes_ativas: number | null
+          tempo_medio_tools_ms: number | null
+          total_erros: number | null
+          total_sessoes: number | null
+          total_tokens_entrada: number | null
+          total_tokens_saida: number | null
+          total_tools_executadas: number | null
+          ultima_atualizacao: string | null
+        }
+        Relationships: []
+      }
+      mv_agente_por_dia: {
+        Row: {
+          data: string | null
+          erros: number | null
+          oportunidades: number | null
+          sessoes: number | null
+          tokens_total: number | null
+          tools_executadas: number | null
+        }
+        Relationships: []
+      }
+      mv_agente_providers_uso: {
+        Row: {
+          provider: string | null
+          tempo_medio_ms: number | null
+          tokens_entrada: number | null
+          tokens_saida: number | null
+          total_chamadas: number | null
+        }
+        Relationships: []
+      }
+      mv_agente_sessoes_por_estado: {
+        Row: {
+          estado_atual: string | null
+          media_mensagens: number | null
+          media_tools: number | null
+          primeira_sessao: string | null
+          quantidade: number | null
+          ultima_sessao: string | null
+        }
+        Relationships: []
+      }
+      mv_agente_tools_performance: {
+        Row: {
+          max_ms: number | null
+          p95_ms: number | null
+          taxa_erro_percent: number | null
+          tempo_medio_ms: number | null
+          tool_name: string | null
+          total_chamadas: number | null
+          total_erros: number | null
+        }
+        Relationships: []
+      }
       mv_atividades_prioridade: {
         Row: {
           calculado_em: string | null
@@ -12546,6 +12604,7 @@ export type Database = {
       refresh_all_dashboard_mvs: { Args: never; Returns: undefined }
       refresh_dashboard_views: { Args: never; Returns: undefined }
       refresh_ged_mvs: { Args: never; Returns: undefined }
+      refresh_mv_agente_ia: { Args: never; Returns: undefined }
       refresh_mv_atividades_prioridade: { Args: never; Returns: undefined }
       refresh_whatsapp_bam_dashboard: { Args: never; Returns: undefined }
       registrar_feedback_ia: {
