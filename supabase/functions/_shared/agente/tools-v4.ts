@@ -373,6 +373,7 @@ export async function executarCriarOportunidadeSpot(
     });
     
     // Criar oportunidade no Pipeline Spot
+    // NOTA: tipo_pedido e condicao_pagamento ficam em itens_linha_oportunidade ou são definidos depois
     const { data: oportunidade, error: opError } = await supabase
       .from("oportunidades")
       .insert({
@@ -385,9 +386,7 @@ export async function executarCriarOportunidadeSpot(
         percentual_probabilidade: 50,
         origem_lead: "whatsapp_agente",
         descricao: args.observacoes || null,
-        data_entrada_estagio: new Date().toISOString(),
-        tipo_pedido: "Normal",                   // ✅ Default para cálculo Datasul
-        condicao_pagamento_id: null              // ✅ Será selecionado depois
+        data_entrada_estagio: new Date().toISOString()
       })
       .select("id, codigo")
       .single();
