@@ -372,8 +372,11 @@ export async function executarCriarOportunidadeSpot(
       };
     });
     
+    // IDs padrão para cálculo Datasul
+    const TIPO_PEDIDO_NORMAL_ID = "2ad4bdc8-580e-4a8d-b5de-39499f665bab";
+    const CONDICAO_PAGAMENTO_10_DIAS_ID = "fe1b192f-8176-44cf-b932-4f9293114419";
+    
     // Criar oportunidade no Pipeline Spot
-    // NOTA: tipo_pedido e condicao_pagamento ficam em itens_linha_oportunidade ou são definidos depois
     const { data: oportunidade, error: opError } = await supabase
       .from("oportunidades")
       .insert({
@@ -386,7 +389,11 @@ export async function executarCriarOportunidadeSpot(
         percentual_probabilidade: 50,
         origem_lead: "whatsapp_agente",
         descricao: args.observacoes || null,
-        data_entrada_estagio: new Date().toISOString()
+        data_entrada_estagio: new Date().toISOString(),
+        campos_customizados: {
+          tipo_pedido_id: TIPO_PEDIDO_NORMAL_ID,
+          condicao_pagamento_id: CONDICAO_PAGAMENTO_10_DIAS_ID
+        }
       })
       .select("id, codigo")
       .single();
