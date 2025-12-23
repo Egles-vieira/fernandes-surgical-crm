@@ -652,7 +652,7 @@ export function ChatPanel({
           const showDateDivider = !prevMsgDate || !isSameDay(msgDate, prevMsgDate);
           return <div key={msg.id}>
                   {showDateDivider && <DateDivider date={msgDate} />}
-                  <MessageBubble mensagem={msg} contato={contato} showSender={showSender} operadorNome={msg.operador_nome || currentUserProfile?.nome_completo} reacoes={msgReacoes} currentUserId={currentUser?.id} replyMessage={replyMessage} onReply={() => handleReply(msg)} onReact={emoji => handleReact(msg.id, emoji)} onRemoveReaction={() => handleRemoveReaction(msg.id)} onMarkAsRead={() => markAsRead(msg.id)} />
+                  <MessageBubble mensagem={msg} contato={contato} showSender={showSender} operadorNome={msg.operador_nome || currentUserProfile?.nome_completo} reacoes={msgReacoes} currentUserId={currentUser?.id} replyMessage={replyMessage} onReply={() => handleReply(msg)} onReact={emoji => handleReact(msg.id, emoji)} onRemoveReaction={() => handleRemoveReaction(msg.id)} onMarkAsRead={() => markAsRead(msg.id)} className="bg-[#f2f2f2]" />
                 </div>;
         })}
             <div ref={scrollRef} />
