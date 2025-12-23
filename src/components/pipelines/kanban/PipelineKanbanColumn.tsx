@@ -2,7 +2,7 @@ import { Droppable } from "@hello-pangea/dnd";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Loader2, Plus } from "lucide-react";
-import { EstagioPipeline, OportunidadeCard } from "@/types/pipelines";
+import { EstagioPipeline, OportunidadeCard, PipelineCustomField } from "@/types/pipelines";
 import { PipelineKanbanCard } from "./PipelineKanbanCard";
 import { QuickOportunidadeForm } from "../forms/QuickOportunidadeForm";
 import { cn } from "@/lib/utils";
@@ -13,6 +13,7 @@ interface PipelineKanbanColumnProps {
   valorTotal: number;
   totalReal?: number;
   pipelineId: string;
+  kanbanFields?: PipelineCustomField[];
   isLoadingMore?: boolean;
   onViewDetails: (oportunidade: OportunidadeCard) => void;
   onCarregarMais?: () => void;
@@ -25,6 +26,7 @@ export function PipelineKanbanColumn({
   valorTotal,
   totalReal,
   pipelineId,
+  kanbanFields = [],
   isLoadingMore,
   onViewDetails,
   onCarregarMais,
@@ -103,6 +105,7 @@ export function PipelineKanbanColumn({
                     key={oportunidade.id}
                     oportunidade={oportunidade}
                     index={index}
+                    kanbanFields={kanbanFields}
                     onClick={() => onViewDetails(oportunidade)}
                   />
                 ))}
