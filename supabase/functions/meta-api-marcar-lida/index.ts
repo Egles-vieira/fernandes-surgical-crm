@@ -35,7 +35,7 @@ Deno.serve(async (req) => {
 
     console.log(`👁️ [meta-api-marcar-lida] mensagemId: ${mensagemId}`);
 
-    // Buscar mensagem com conta
+    // Buscar mensagem com conta - usar maybeSingle para evitar erro quando não encontra
     const { data: mensagem, error: mensagemError } = await supabase
       .from('whatsapp_mensagens')
       .select(`
@@ -48,13 +48,22 @@ Deno.serve(async (req) => {
         )
       `)
       .eq('id', mensagemId)
-      .single();
+      .maybeSingle();
 
-    if (mensagemError || !mensagem) {
-      console.error('❌ Mensagem não encontrada:', mensagemError);
+    if (mensagemError) {
+      console.error('❌ Erro ao buscar mensagem:', mensagemError);
       return new Response(
-        JSON.stringify({ error: 'Mensagem não encontrada' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: 'Erro ao buscar mensagem' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Se mensagem não encontrada, retornar sucesso silencioso (não é erro crítico)
+    if (!mensagem) {
+      console.warn('⚠️ Mensagem não encontrada, ignorando:', mensagemId);
+      return new Response(
+        JSON.stringify({ success: true, message: 'Mensagem não encontrada, ignorada' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
