@@ -639,7 +639,7 @@ export function ChatPanel({
               </div>)}
           </div> : mensagens.length === 0 ? <div className="text-center text-muted-foreground py-8">
             <p>Nenhuma mensagem ainda</p>
-          </div> : <div className="space-y-4">
+          </div> : <div className="space-y-4 bg-[#f2f2f2]">
             {mensagens.map((msg, index) => {
           const prevMsg = mensagens[index - 1];
           const showSender = !prevMsg || prevMsg.direcao !== msg.direcao;
