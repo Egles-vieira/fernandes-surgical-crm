@@ -220,15 +220,6 @@ export default function Layout({
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Atualizar favicon dinamicamente quando o logo da empresa mudar
-  useEffect(() => {
-    if (empresa?.url_logo) {
-      const link = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
-      if (link) {
-        link.href = empresa.url_logo;
-      }
-    }
-  }, [empresa?.url_logo]);
   const toggleMenu = (label: string) => {
     setOpenMenus(prev => prev.includes(label) ? prev.filter(l => l !== label) : [...prev, label]);
   };
