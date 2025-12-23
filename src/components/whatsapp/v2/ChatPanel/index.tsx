@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Send, Paperclip, Phone, Video, MoreVertical, Image as ImageIcon, FileText, Mic, PanelRightOpen, CheckCheck, Check, Clock, Reply, CornerDownLeft, X, Download, UserPlus, AlertCircle, Play, Bot, MessageSquareText } from 'lucide-react';
+import { Send, Paperclip, Phone, Video, MoreVertical, Image as ImageIcon, FileText, Mic, PanelRightOpen, CheckCheck, Check, Clock, Reply, CornerDownLeft, X, Download, UserPlus, AlertCircle, Play, Bot, MessageSquareText, ShoppingCart } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
@@ -31,6 +31,7 @@ import { useWhatsAppDistribuicao } from '@/hooks/useWhatsAppDistribuicao';
 import { useJanela24h } from '@/hooks/whatsapp/useJanela24h';
 import { JanelaStatusBadge } from './JanelaStatusBadge';
 import { TemplateSelectorModal } from './TemplateSelectorModal';
+import { CartPanel } from './CartPanel';
 interface Contato {
   id: string;
   nome_whatsapp: string;
@@ -95,6 +96,7 @@ export function ChatPanel({
   const [showAudioRecorder, setShowAudioRecorder] = useState(false);
   const [showTemplateSelector, setShowTemplateSelector] = useState(false);
   const [mediaType, setMediaType] = useState<'image' | 'video' | 'document'>('image');
+  const [showCart, setShowCart] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const queryClient = useQueryClient();
@@ -582,6 +584,25 @@ export function ChatPanel({
               <Bot className="h-3 w-3 mr-1" />
               IA Ativo
             </Badge>}
+          
+          {/* Botão do Carrinho em tempo real */}
+          <div className="relative">
+            <CartPanel
+              conversaId={conversaId!}
+              collapsed={!showCart}
+              onToggle={() => setShowCart(!showCart)}
+            />
+            {showCart && (
+              <div className="absolute top-10 right-0 z-50">
+                <CartPanel
+                  conversaId={conversaId!}
+                  collapsed={false}
+                  onToggle={() => setShowCart(false)}
+                />
+              </div>
+            )}
+          </div>
+          
           <Button variant="ghost" size="icon" className="h-8 w-8 ml-1">
             <Phone className="h-4 w-4" />
           </Button>
