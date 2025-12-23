@@ -1,4 +1,4 @@
-import logo from "@/assets/logo-cfernandes.webp";
+import logo from "@/assets/logo-proposta.avif";
 import { Badge } from "@/components/ui/badge";
 
 interface PropostaHeaderProps {
