@@ -141,7 +141,7 @@ export function ChatPanel({
       if (!user) return null;
       const {
         data
-      } = await supabase.from('perfis_usuario').select('id, nome_completo').eq('id', user.id).single();
+      } = await supabase.from('perfis_usuario').select('id, nome_completo, foto_perfil_url').eq('id', user.id).single();
       return data;
     },
     staleTime: 5 * 60 * 1000
@@ -652,7 +652,7 @@ export function ChatPanel({
           const showDateDivider = !prevMsgDate || !isSameDay(msgDate, prevMsgDate);
           return <div key={msg.id}>
                   {showDateDivider && <DateDivider date={msgDate} />}
-                  <MessageBubble mensagem={msg} contato={contato} showSender={showSender} operadorNome={msg.operador_nome || currentUserProfile?.nome_completo} reacoes={msgReacoes} currentUserId={currentUser?.id} replyMessage={replyMessage} onReply={() => handleReply(msg)} onReact={emoji => handleReact(msg.id, emoji)} onRemoveReaction={() => handleRemoveReaction(msg.id)} onMarkAsRead={() => markAsRead(msg.id)} className="bg-[#f2f2f2]" />
+                  <MessageBubble mensagem={msg} contato={contato} showSender={showSender} operadorNome={msg.operador_nome || currentUserProfile?.nome_completo} reacoes={msgReacoes} currentUserId={currentUser?.id} currentUserProfile={currentUserProfile} replyMessage={replyMessage} onReply={() => handleReply(msg)} onReact={emoji => handleReact(msg.id, emoji)} onRemoveReaction={() => handleRemoveReaction(msg.id)} onMarkAsRead={() => markAsRead(msg.id)} />
                 </div>;
         })}
             <div ref={scrollRef} />
@@ -752,6 +752,11 @@ interface MessageBubbleProps {
   operadorNome?: string;
   reacoes: Reacao[];
   currentUserId?: string;
+  currentUserProfile?: {
+    id: string;
+    nome_completo: string | null;
+    foto_perfil_url: string | null;
+  } | null;
   replyMessage?: Mensagem | null;
   onReply: () => void;
   onReact: (emoji: string) => void;
@@ -765,6 +770,7 @@ function MessageBubble({
   operadorNome,
   reacoes,
   currentUserId,
+  currentUserProfile,
   replyMessage,
   onReply,
   onReact,
@@ -837,9 +843,12 @@ function MessageBubble({
   return <div ref={messageRef} className={cn("flex gap-3 group", isOutgoing ? "flex-row-reverse" : "flex-row")}>
       {/* Avatar */}
       <Avatar className="h-8 w-8 shrink-0 mt-1 ring-2 ring-background shadow-sm">
-        {isOutgoing ? <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground text-xs font-medium">
-            Eu
-          </AvatarFallback> : <>
+        {isOutgoing ? <>
+            <AvatarImage src={currentUserProfile?.foto_perfil_url} />
+            <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground text-xs font-medium">
+              {currentUserProfile?.nome_completo ? getInitials(currentUserProfile.nome_completo) : 'Eu'}
+            </AvatarFallback>
+          </> : <>
             <AvatarImage src={contato?.foto_url} />
             <AvatarFallback className="bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-600 dark:to-slate-700 text-slate-700 dark:text-slate-200 text-xs font-medium">
               {getInitials(contato?.nome_whatsapp || 'CL')}
