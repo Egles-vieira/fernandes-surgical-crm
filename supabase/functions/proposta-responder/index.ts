@@ -110,11 +110,11 @@ Deno.serve(async (req) => {
     } else if (oportunidadeId) {
       // Lógica para oportunidades
       if (tipoResposta === 'aceita') {
-        // Regra: aceite do cliente move a oportunidade para o estágio "Fechamento"
-        // (não marca como ganha/fechada automaticamente)
+        // Regra: aceite do cliente move a oportunidade para o estágio mais avançado
+        // (antes de Ganho/Perdido) - geralmente "Negociação", "Contrato" ou "Fechamento"
         const { data: opp, error: oppError } = await supabase
           .from('oportunidades')
-          .select('pipeline_id')
+          .select('pipeline_id, estagio_id')
           .eq('id', oportunidadeId)
           .single();
 
@@ -123,42 +123,68 @@ Deno.serve(async (req) => {
           throw oppError;
         }
 
-        const { data: estagioFechamento, error: estagioError } = await supabase
+        // Buscar todos os estágios do pipeline ordenados
+        const { data: estagios, error: estagiosError } = await supabase
           .from('estagios_pipeline')
-          .select('id, percentual_probabilidade')
+          .select('id, nome_estagio, percentual_probabilidade, ordem_estagio, eh_ganho_fechado, eh_perdido_fechado')
           .eq('pipeline_id', opp.pipeline_id)
-          .eq('nome_estagio', 'Fechamento')
-          .maybeSingle();
+          .order('ordem_estagio', { ascending: true });
 
-        if (estagioError) {
-          console.error('Erro ao buscar estágio Fechamento:', estagioError);
-          throw estagioError;
+        if (estagiosError) {
+          console.error('Erro ao buscar estágios:', estagiosError);
+          throw estagiosError;
         }
 
-        if (!estagioFechamento) {
-          throw new Error('Estágio "Fechamento" não encontrado para o pipeline da oportunidade');
+        // Encontrar estágio mais avançado que não seja final (ganho/perdido)
+        // Priorizar: Fechamento > Negociação > Contrato > último antes de ganho/perdido
+        const estagiosFiltrados = estagios?.filter(e => !e.eh_ganho_fechado && !e.eh_perdido_fechado) || [];
+        
+        let estagioDestino = estagiosFiltrados.find(e => 
+          e.nome_estagio.toLowerCase().includes('fechamento')
+        );
+        
+        if (!estagioDestino) {
+          estagioDestino = estagiosFiltrados.find(e => 
+            e.nome_estagio.toLowerCase().includes('negociação') || 
+            e.nome_estagio.toLowerCase().includes('negociacao')
+          );
+        }
+        
+        if (!estagioDestino) {
+          estagioDestino = estagiosFiltrados.find(e => 
+            e.nome_estagio.toLowerCase().includes('contrato')
+          );
+        }
+        
+        // Se não encontrou nenhum específico, pegar o último estágio não-final
+        if (!estagioDestino && estagiosFiltrados.length > 0) {
+          estagioDestino = estagiosFiltrados[estagiosFiltrados.length - 1];
         }
 
-        const nowIso = new Date().toISOString();
-        const { error: updateOppError } = await supabase
-          .from('oportunidades')
-          .update({
-            estagio_id: estagioFechamento.id,
-            percentual_probabilidade: estagioFechamento.percentual_probabilidade ?? null,
-            esta_fechada: false,
-            foi_ganha: false,
-            fechada_em: null,
-            ultima_mudanca_estagio_em: nowIso,
-            data_entrada_estagio: nowIso,
-          })
-          .eq('id', oportunidadeId);
+        if (!estagioDestino) {
+          console.warn('Nenhum estágio adequado encontrado, mantendo estágio atual');
+        } else {
+          const nowIso = new Date().toISOString();
+          const { error: updateOppError } = await supabase
+            .from('oportunidades')
+            .update({
+              estagio_id: estagioDestino.id,
+              percentual_probabilidade: estagioDestino.percentual_probabilidade ?? null,
+              esta_fechada: false,
+              foi_ganha: false,
+              fechada_em: null,
+              ultima_mudanca_estagio_em: nowIso,
+              data_entrada_estagio: nowIso,
+            })
+            .eq('id', oportunidadeId);
 
-        if (updateOppError) {
-          console.error('Erro ao mover oportunidade para Fechamento:', updateOppError);
-          throw updateOppError;
+          if (updateOppError) {
+            console.error('Erro ao mover oportunidade:', updateOppError);
+            throw updateOppError;
+          }
+
+          console.log('✅ Oportunidade movida para:', estagioDestino.nome_estagio, oportunidadeId);
         }
-
-        console.log('✅ Oportunidade movida para Fechamento:', oportunidadeId);
 
         // Criar notificação para o vendedor
         const { data: oportunidade } = await supabase
