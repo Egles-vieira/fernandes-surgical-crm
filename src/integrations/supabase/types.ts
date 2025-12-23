@@ -12632,13 +12632,11 @@ export type Database = {
         Args: {
           match_count?: number
           match_threshold?: number
-          query_embedding: string
+          query_embedding?: string
           query_text: string
         }
         Returns: {
           id: string
-          match_type: string
-          narrativa: string
           nome: string
           preco_venda: number
           quantidade_em_maos: number
