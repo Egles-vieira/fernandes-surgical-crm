@@ -110,8 +110,8 @@ Deno.serve(async (req) => {
     } else if (oportunidadeId) {
       // Lógica para oportunidades
       if (tipoResposta === 'aceita') {
-        // Regra: aceite do cliente move a oportunidade para o estágio mais avançado
-        // (antes de Ganho/Perdido) - geralmente "Negociação", "Contrato" ou "Fechamento"
+        // Regra: aceite do cliente move a oportunidade para o estágio "Fechamento"
+        // Se não existir, tenta Negociação/Contrato/último antes de ganho-perdido
         const { data: opp, error: oppError } = await supabase
           .from('oportunidades')
           .select('pipeline_id, estagio_id')
@@ -122,6 +122,12 @@ Deno.serve(async (req) => {
           console.error('Erro ao carregar oportunidade:', oppError);
           throw oppError;
         }
+
+        console.log('[proposta-responder] Oportunidade carregada:', {
+          oportunidadeId,
+          pipeline_id: opp.pipeline_id,
+          estagio_atual: opp.estagio_id,
+        });
 
         // Buscar todos os estágios do pipeline ordenados
         const { data: estagios, error: estagiosError } = await supabase
@@ -135,14 +141,23 @@ Deno.serve(async (req) => {
           throw estagiosError;
         }
 
-        // Encontrar estágio mais avançado que não seja final (ganho/perdido)
-        // Priorizar: Fechamento > Negociação > Contrato > último antes de ganho/perdido
+        console.log('[proposta-responder] Estágios do pipeline:', estagios?.map(e => ({
+          id: e.id,
+          nome: e.nome_estagio,
+          ordem: e.ordem_estagio,
+          eh_ganho: e.eh_ganho_fechado,
+          eh_perdido: e.eh_perdido_fechado,
+        })));
+
+        // Filtrar estágios que não são finais (ganho/perdido)
         const estagiosFiltrados = estagios?.filter(e => !e.eh_ganho_fechado && !e.eh_perdido_fechado) || [];
         
+        // PRIORIDADE 1: Procurar estágio com nome contendo "fechamento" (case-insensitive)
         let estagioDestino = estagiosFiltrados.find(e => 
           e.nome_estagio.toLowerCase().includes('fechamento')
         );
         
+        // PRIORIDADE 2: Negociação
         if (!estagioDestino) {
           estagioDestino = estagiosFiltrados.find(e => 
             e.nome_estagio.toLowerCase().includes('negociação') || 
@@ -150,19 +165,29 @@ Deno.serve(async (req) => {
           );
         }
         
+        // PRIORIDADE 3: Contrato
         if (!estagioDestino) {
           estagioDestino = estagiosFiltrados.find(e => 
             e.nome_estagio.toLowerCase().includes('contrato')
           );
         }
         
-        // Se não encontrou nenhum específico, pegar o último estágio não-final
+        // FALLBACK: último estágio não-final
         if (!estagioDestino && estagiosFiltrados.length > 0) {
           estagioDestino = estagiosFiltrados[estagiosFiltrados.length - 1];
         }
 
-        if (!estagioDestino) {
-          console.warn('Nenhum estágio adequado encontrado, mantendo estágio atual');
+        console.log('[proposta-responder] Estágio destino escolhido:', estagioDestino ? {
+          id: estagioDestino.id,
+          nome: estagioDestino.nome_estagio,
+          ordem: estagioDestino.ordem_estagio,
+        } : null);
+
+        // Verificar se já está no estágio destino
+        if (estagioDestino && opp.estagio_id === estagioDestino.id) {
+          console.log('[proposta-responder] Oportunidade já está no estágio destino, não movendo');
+        } else if (!estagioDestino) {
+          console.warn('[proposta-responder] Nenhum estágio adequado encontrado, mantendo estágio atual');
         } else {
           const nowIso = new Date().toISOString();
           const { error: updateOppError } = await supabase
@@ -179,11 +204,16 @@ Deno.serve(async (req) => {
             .eq('id', oportunidadeId);
 
           if (updateOppError) {
-            console.error('Erro ao mover oportunidade:', updateOppError);
+            console.error('[proposta-responder] Erro ao mover oportunidade:', updateOppError);
             throw updateOppError;
           }
 
-          console.log('✅ Oportunidade movida para:', estagioDestino.nome_estagio, oportunidadeId);
+          console.log('[proposta-responder] ✅ Oportunidade movida com sucesso:', {
+            oportunidadeId,
+            de: opp.estagio_id,
+            para: estagioDestino.id,
+            nomeEstagioDestino: estagioDestino.nome_estagio,
+          });
         }
 
         // Criar notificação para o vendedor

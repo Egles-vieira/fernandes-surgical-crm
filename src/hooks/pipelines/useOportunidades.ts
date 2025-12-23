@@ -1,8 +1,9 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { Json } from '@/integrations/supabase/types';
+import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import type { 
   Oportunidade, 
   MoverEstagioParams,
@@ -451,6 +452,64 @@ export function useKanbanOportunidades(
     gcTime: 5 * 60 * 1000,
     placeholderData: (previousData) => previousData, // keepPreviousData
   });
+
+  // Realtime: escutar mudanças na tabela oportunidades FILTRADO por pipeline_id
+  useEffect(() => {
+    if (!pipelineId) return;
+
+    const channelName = `kanban-oportunidades:${pipelineId}`;
+    
+    const channel = supabase
+      .channel(channelName)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'oportunidades',
+          filter: `pipeline_id=eq.${pipelineId}`,
+        },
+        (payload: RealtimePostgresChangesPayload<{ [key: string]: unknown }>) => {
+          console.log('[Kanban Realtime] UPDATE detectado:', payload);
+          // Invalidar queries para refresh automático
+          queryClient.invalidateQueries({ queryKey: ['kanban-oportunidades', pipelineId] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'oportunidades',
+          filter: `pipeline_id=eq.${pipelineId}`,
+        },
+        (payload: RealtimePostgresChangesPayload<{ [key: string]: unknown }>) => {
+          console.log('[Kanban Realtime] INSERT detectado:', payload);
+          queryClient.invalidateQueries({ queryKey: ['kanban-oportunidades', pipelineId] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'oportunidades',
+          filter: `pipeline_id=eq.${pipelineId}`,
+        },
+        (payload: RealtimePostgresChangesPayload<{ [key: string]: unknown }>) => {
+          console.log('[Kanban Realtime] DELETE detectado:', payload);
+          queryClient.invalidateQueries({ queryKey: ['kanban-oportunidades', pipelineId] });
+        }
+      )
+      .subscribe((status) => {
+        console.log('[Kanban Realtime] Subscription status:', status, 'pipeline:', pipelineId);
+      });
+
+    return () => {
+      console.log('[Kanban Realtime] Removendo channel:', channelName);
+      supabase.removeChannel(channel);
+    };
+  }, [pipelineId, queryClient]);
 
   // Função para carregar mais oportunidades de um estágio
   const carregarMais = useCallback((estagioId: string) => {
