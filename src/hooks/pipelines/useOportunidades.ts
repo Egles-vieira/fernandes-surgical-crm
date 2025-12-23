@@ -410,6 +410,7 @@ export function useKanbanOportunidades(
             proprietario: null,
             camposKanban: camposCustom,
             estaEstagnado: alertaDias !== null && diasNoEstagio >= alertaDias,
+            origemLead: op.origem_lead || null,
           };
         });
 

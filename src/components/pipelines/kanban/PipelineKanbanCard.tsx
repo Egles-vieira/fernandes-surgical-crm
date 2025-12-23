@@ -1,7 +1,7 @@
 import { Draggable } from "@hello-pangea/dnd";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Building2, User, Calendar, AlertTriangle, DollarSign } from "lucide-react";
+import { Building2, User, Calendar, AlertTriangle, DollarSign, MessageCircle } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { OportunidadeCard, PipelineCustomField } from "@/types/pipelines";
@@ -203,7 +203,14 @@ export function PipelineKanbanCard({
 
             {/* Footer: Probabilidade + Dias no estágio */}
             <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/50">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
+                {/* Tag WhatsApp */}
+                {oportunidade.origemLead?.toLowerCase().includes("whatsapp") && (
+                  <Badge className="text-xs px-1.5 py-0 bg-green-500 hover:bg-green-600 text-white">
+                    <MessageCircle className="h-3 w-3 mr-1" />
+                    WhatsApp
+                  </Badge>
+                )}
                 {probabilidade > 0 && (
                   <Badge variant="secondary" className="text-xs px-1.5 py-0">
                     {probabilidade}%
