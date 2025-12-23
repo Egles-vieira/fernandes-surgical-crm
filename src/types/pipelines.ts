@@ -251,6 +251,7 @@ export interface OportunidadeCard {
   proprietario?: string | null;
   camposKanban: Record<string, unknown>;
   estaEstagnado: boolean;
+  origemLead?: string | null;
 }
 
 // =============================================================================
