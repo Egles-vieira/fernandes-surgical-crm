@@ -939,7 +939,7 @@ export async function executarGerarLinkProposta(
     
     // Montar URL completa
     // A origem depende do ambiente - usar variável ou inferir
-    const appOrigin = Deno.env.get("APP_ORIGIN") || "https://rzzzfprgnoywmmjwepzm.lovableproject.com";
+    const appOrigin = Deno.env.get("APP_ORIGIN") || "https://convertiai.online";
     const linkProposta = `${appOrigin}/proposal-oportunidade/${resultado.token}`;
     
     console.log(`✅ Link gerado: ${linkProposta}`);
