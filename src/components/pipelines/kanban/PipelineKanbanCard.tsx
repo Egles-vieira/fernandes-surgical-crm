@@ -4,16 +4,21 @@ import { Badge } from "@/components/ui/badge";
 import { Building2, User, Calendar, AlertTriangle, DollarSign } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { OportunidadeCard } from "@/types/pipelines";
+import { OportunidadeCard, PipelineCustomField } from "@/types/pipelines";
+import { parseFieldOptions } from "@/hooks/pipelines/usePipelineFields";
 import { cn } from "@/lib/utils";
+
 interface PipelineKanbanCardProps {
   oportunidade: OportunidadeCard;
   index: number;
+  kanbanFields?: PipelineCustomField[];
   onClick: () => void;
 }
+
 export function PipelineKanbanCard({
   oportunidade,
   index,
+  kanbanFields = [],
   onClick
 }: PipelineKanbanCardProps) {
   const formatCurrency = (value: number) => {
@@ -34,9 +39,31 @@ export function PipelineKanbanCard({
     }
   };
 
-  // Formatar valor de campo customizado baseado no tipo inferido
-  const formatFieldValue = (value: unknown): string => {
+  // Formatar valor de campo customizado baseado no tipo inferido e metadados
+  const formatFieldValue = (key: string, value: unknown): string => {
     if (value === null || value === undefined) return "-";
+    
+    // Tentar encontrar o campo nos metadados para resolver selects
+    const field = kanbanFields.find(f => f.nome_campo === key);
+    
+    if (field) {
+      // Para campos select, resolver ID para label
+      if (field.tipo_campo === "select") {
+        const options = parseFieldOptions(field.opcoes);
+        const option = options.find(o => o.value === value);
+        return option?.label || String(value);
+      }
+      
+      // Para campos multiselect
+      if (field.tipo_campo === "multiselect" && Array.isArray(value)) {
+        const options = parseFieldOptions(field.opcoes);
+        return value.map((v: string) => {
+          const opt = options.find(o => o.value === v);
+          return opt?.label || v;
+        }).join(", ");
+      }
+    }
+    
     if (typeof value === "boolean") return value ? "Sim" : "Não";
     if (typeof value === "number") {
       // Verifica se parece ser moeda (valores altos)
@@ -176,19 +203,25 @@ export function PipelineKanbanCard({
               <div className="mt-2 pt-2 border-t border-border/50 space-y-1 overflow-hidden">
                 {Object.entries(oportunidade.camposKanban)
                   .slice(0, 3)
-                  .map(([key, value]) => (
-                    <div
-                      key={key}
-                      className="flex items-center justify-between text-xs gap-2 min-w-0 overflow-hidden"
-                    >
-                      <span className="text-muted-foreground capitalize truncate flex-1 min-w-0">
-                        {key.replace(/_/g, " ")}
-                      </span>
-                      <span className="font-medium text-foreground truncate shrink-0 max-w-[50%]">
-                        {formatFieldValue(value)}
-                      </span>
-                    </div>
-                  ))}
+                  .map(([key, value]) => {
+                    // Buscar label do campo nos metadados
+                    const field = kanbanFields.find(f => f.nome_campo === key);
+                    const displayLabel = field?.label || key.replace(/_/g, " ");
+                    
+                    return (
+                      <div
+                        key={key}
+                        className="flex items-center justify-between text-xs gap-2 min-w-0 overflow-hidden"
+                      >
+                        <span className="text-muted-foreground capitalize truncate flex-1 min-w-0">
+                          {displayLabel}
+                        </span>
+                        <span className="font-medium text-foreground truncate shrink-0 max-w-[50%]">
+                          {formatFieldValue(key, value)}
+                        </span>
+                      </div>
+                    );
+                  })}
               </div>
             )}
           </div>
