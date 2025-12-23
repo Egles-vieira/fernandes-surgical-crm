@@ -394,6 +394,9 @@ export function useKanbanOportunidades(
             ? op.campos_customizados as Record<string, unknown>
             : {};
           
+          // Type assertion para origem_lead (campo adicionado via RPC atualizada)
+          const origemLead = (op as unknown as { origem_lead?: string | null }).origem_lead || null;
+          
           return {
             id: op.id,
             codigo: op.codigo,
@@ -410,7 +413,7 @@ export function useKanbanOportunidades(
             proprietario: null,
             camposKanban: camposCustom,
             estaEstagnado: alertaDias !== null && diasNoEstagio >= alertaDias,
-            origemLead: op.origem_lead || null,
+            origemLead,
           };
         });
 

@@ -12386,6 +12386,7 @@ export type Database = {
           estagio_id: string
           id: string
           nome_oportunidade: string
+          origem_lead: string
           percentual_probabilidade: number
           proprietario_id: string
           total_estagio: number
