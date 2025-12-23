@@ -390,6 +390,7 @@ export async function chamarLLMComResultadosTools(
 
 /**
  * Gerar resposta fallback quando LLM falha (SEM usar Lovable AI!)
+ * MELHORADO: Respostas mais naturais, estilo humano
  */
 function gerarRespostaFallback(resultadosFerramentas: any[]): LLMResponse {
   let resposta = "opa, deixa eu ver aqui o que consegui...";
@@ -399,33 +400,43 @@ function gerarRespostaFallback(resultadosFerramentas: any[]): LLMResponse {
       const dados = typeof resultado.content === "string" ? JSON.parse(resultado.content) : resultado.content;
       
       if (resultado.name === "buscar_produtos" && dados.produtos?.length > 0) {
-        resposta = `achei essas opções:\n\n` +
-          dados.produtos.slice(0, 3).map((p: any, i: number) => 
-            `${i + 1}. ${p.nome}\n   cód: ${p.referencia} - R$ ${p.preco?.toFixed(2) || '0.00'}`
+        const prods = dados.produtos.slice(0, 3);
+        resposta = `achei ${prods.length} opções pra vc:\n\n` +
+          prods.map((p: any, i: number) => 
+            `${i + 1}. ${p.nome?.toLowerCase() || 'produto'}\n` +
+            `   ref ${p.referencia || 'n/a'} • R$ ${p.preco?.toFixed(2).replace('.', ',') || '0,00'}`
           ).join("\n\n") +
-          `\n\nqual te interessou?`;
+          `\n\nqual desses te interessou?`;
       }
       
       if (resultado.name === "identificar_cliente" && dados.sucesso) {
-        resposta = `encontrei seu cadastro: ${dados.cliente_nome}\ncnpj: ${dados.cnpj}\n\né esse mesmo?`;
+        resposta = `encontrei teu cadastro:\n${dados.cliente_nome}\ncnpj ${dados.cnpj}\n\né esse mesmo?`;
       }
       
       if (resultado.name === "criar_oportunidade_spot" && dados.sucesso) {
-        resposta = `blz, criei a oportunidade ${dados.codigo} com ${dados.total_itens} itens.\nvou calcular os valores no sistema, um momento...`;
+        resposta = `blz, criei a oportunidade ${dados.codigo} com ${dados.total_itens} itens\nvou calcular os valores, um momento`;
       }
       
       if (resultado.name === "calcular_cesta_datasul" && dados.sucesso) {
-        resposta = `pronto! calculei tudo aqui:\n\n` +
-          `total: R$ ${dados.resumo?.valor_total?.toFixed(2) || '0.00'}\n\n` +
+        resposta = `pronto, calculei tudo:\n\n` +
+          `total R$ ${dados.resumo?.valor_total?.toFixed(2).replace('.', ',') || '0,00'}\n\n` +
           `quer que eu gere o link da proposta?`;
       }
       
       if (resultado.name === "gerar_link_proposta" && dados.sucesso) {
-        resposta = `aqui está o link da sua proposta:\n\n${dados.link}\n\npode acessar pra ver todos os detalhes e confirmar 👆`;
+        resposta = `aqui o link da proposta:\n\n${dados.link}\n\npode acessar pra ver os detalhes e confirmar`;
       }
       
       if (resultado.name === "adicionar_ao_carrinho_v4" && dados.sucesso) {
-        resposta = `beleza, adicionei ${dados.quantidade}x ${dados.produto_nome} no carrinho\n\nquer adicionar mais algum produto ou posso identificar pra fechar?`;
+        resposta = `beleza, adicionei ${dados.quantidade}x ${dados.produto_nome?.toLowerCase() || 'produto'} no carrinho\n\nquer mais alguma coisa ou posso identificar pra fechar?`;
+      }
+      
+      if (resultado.name === "alterar_quantidade_item" && dados.sucesso) {
+        resposta = `pronto, alterei pra ${dados.nova_quantidade} unidades${dados.precisa_recalcular ? '\nquer que eu recalcule os valores?' : ''}`;
+      }
+      
+      if (resultado.name === "remover_item" && dados.sucesso) {
+        resposta = `beleza, tirei do carrinho${dados.precisa_recalcular ? '\nquer que eu recalcule os valores?' : ''}`;
       }
     } catch (parseError) {
       console.warn("⚠️ Erro ao parsear resultado de tool:", parseError);

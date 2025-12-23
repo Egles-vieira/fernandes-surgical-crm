@@ -166,6 +166,92 @@ RETORNA: confirmação do item adicionado + total no carrinho`,
         required: ["quantidade"]
       }
     }
+  },
+  // === NOVAS TOOLS DE EDIÇÃO ===
+  {
+    type: "function",
+    function: {
+      name: "alterar_quantidade_item",
+      description: `Altera a quantidade de um item no carrinho ou oportunidade.
+
+Use quando cliente disser:
+- "muda pra 200 unidades"
+- "na verdade quero 50"
+- "aumenta pra 100"
+- "diminui pra 30"
+- "altera a quantidade do primeiro"
+
+RETORNA: confirmação da alteração + novo total`,
+      parameters: {
+        type: "object",
+        properties: {
+          produto_id: {
+            type: "string",
+            description: "UUID do produto (se souber)"
+          },
+          numero_item: {
+            type: "number",
+            description: "Número do item no carrinho (1, 2, 3...)"
+          },
+          nova_quantidade: {
+            type: "number",
+            description: "Nova quantidade desejada"
+          }
+        },
+        required: ["nova_quantidade"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "remover_item",
+      description: `Remove um item do carrinho ou oportunidade.
+
+Use quando cliente disser:
+- "tira o primeiro"
+- "remove as luvas"
+- "não quero mais esse"
+- "cancela o item 2"
+- "tira fora"
+
+RETORNA: confirmação da remoção + itens restantes`,
+      parameters: {
+        type: "object",
+        properties: {
+          produto_id: {
+            type: "string",
+            description: "UUID do produto (se souber)"
+          },
+          numero_item: {
+            type: "number",
+            description: "Número do item no carrinho (1, 2, 3...)"
+          }
+        }
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "recalcular_proposta",
+      description: `Recalcula valores da proposta após alterações.
+
+Use APÓS alterar_quantidade_item ou remover_item.
+Chama o Datasul novamente para atualizar impostos e valores.
+
+RETORNA: novos valores calculados`,
+      parameters: {
+        type: "object",
+        properties: {
+          oportunidade_id: {
+            type: "string",
+            description: "UUID da oportunidade"
+          }
+        },
+        required: ["oportunidade_id"]
+      }
+    }
   }
 ];
 
@@ -908,33 +994,33 @@ export async function executarAdicionarAoCarrinhoV4(
     let produtoNome = "";
     let produtoReferencia = "";
     
-    // Se passou numero_sugestao, buscar da sessão
+    // Se passou numero_sugestao, buscar da coluna sugestoes_busca (CORRIGIDO!)
     if (args.numero_sugestao && !produtoId) {
       const { data: sessao } = await supabase
         .from("whatsapp_agente_sessoes")
-        .select("carrinho_itens")
+        .select("sugestoes_busca") // ← CORRIGIDO: busca de sugestoes_busca, não carrinho_itens
         .eq("conversa_id", conversaId)
         .gte("expira_em", new Date().toISOString())
         .order("criado_em", { ascending: false })
         .limit(1)
         .single();
       
-      const sugestoes = (sessao?.carrinho_itens || []).filter((i: any) => i.tipo === "sugestao");
+      const sugestoes = sessao?.sugestoes_busca || [];
       const sugestaoEscolhida = sugestoes.find((s: any) => s.numero === args.numero_sugestao);
       
       if (!sugestaoEscolhida) {
-        console.warn(`⚠️ Sugestão número ${args.numero_sugestao} não encontrada`);
+        console.warn(`⚠️ Sugestão número ${args.numero_sugestao} não encontrada em sugestoes_busca`);
         return { 
           sucesso: false, 
           erro: "sugestao_nao_encontrada", 
-          mensagem: `Não encontrei a opção número ${args.numero_sugestao}. Pode repetir qual produto deseja?` 
+          mensagem: `não encontrei a opção ${args.numero_sugestao}. pode repetir qual produto quer?` 
         };
       }
       
       produtoId = sugestaoEscolhida.id;
       produtoNome = sugestaoEscolhida.nome;
       produtoReferencia = sugestaoEscolhida.referencia;
-      console.log(`✅ Sugestão ${args.numero_sugestao} resolvida: ${produtoNome}`);
+      console.log(`✅ Sugestão ${args.numero_sugestao} resolvida de sugestoes_busca: ${produtoNome}`);
     }
     
     // Validar produto_id
@@ -1023,6 +1109,191 @@ export async function executarAdicionarAoCarrinhoV4(
 }
 
 /**
+ * Alterar quantidade de item no carrinho ou oportunidade
+ */
+export async function executarAlterarQuantidadeItem(
+  args: { produto_id?: string; numero_item?: number; nova_quantidade: number },
+  supabase: any,
+  conversaId: string
+): Promise<any> {
+  console.log("🔄 [Tool] alterar_quantidade_item", args);
+  
+  try {
+    // Buscar sessão para verificar se tem oportunidade
+    const { data: sessao } = await supabase
+      .from("whatsapp_agente_sessoes")
+      .select("oportunidade_spot_id, carrinho_itens")
+      .eq("conversa_id", conversaId)
+      .gte("expira_em", new Date().toISOString())
+      .order("criado_em", { ascending: false })
+      .limit(1)
+      .single();
+    
+    // Se tem oportunidade criada, alterar na oportunidade
+    if (sessao?.oportunidade_spot_id) {
+      let query = supabase
+        .from("itens_linha_oportunidade")
+        .update({ quantidade: args.nova_quantidade })
+        .eq("oportunidade_id", sessao.oportunidade_spot_id);
+      
+      if (args.produto_id) {
+        query = query.eq("produto_id", args.produto_id);
+      } else if (args.numero_item) {
+        query = query.eq("ordem_linha", args.numero_item);
+      } else {
+        return { sucesso: false, erro: "parametro_obrigatorio", mensagem: "Qual item você quer alterar?" };
+      }
+      
+      const { error } = await query;
+      
+      if (error) {
+        console.error("❌ Erro ao alterar item na oportunidade:", error);
+        return { sucesso: false, erro: "erro_banco", mensagem: "Não consegui alterar o item" };
+      }
+      
+      console.log(`✅ Item alterado na oportunidade para ${args.nova_quantidade} unidades`);
+      
+      return {
+        sucesso: true,
+        nova_quantidade: args.nova_quantidade,
+        precisa_recalcular: true,
+        oportunidade_id: sessao.oportunidade_spot_id,
+        mensagem: `quantidade alterada pra ${args.nova_quantidade}. quer que eu recalcule os valores?`
+      };
+    }
+    
+    // Se não tem oportunidade, usar RPC do carrinho
+    const { data: resultado, error: rpcError } = await supabase.rpc("alterar_quantidade_item_carrinho", {
+      p_conversa_id: conversaId,
+      p_produto_id: args.produto_id || null,
+      p_numero_item: args.numero_item || null,
+      p_nova_quantidade: args.nova_quantidade
+    });
+    
+    if (rpcError) {
+      console.error("❌ Erro ao alterar quantidade (RPC):", rpcError);
+      return { sucesso: false, erro: "erro_banco", mensagem: "Não consegui alterar a quantidade" };
+    }
+    
+    if (!resultado?.sucesso) {
+      return resultado;
+    }
+    
+    console.log(`✅ Quantidade alterada no carrinho: ${args.nova_quantidade}`);
+    
+    return {
+      sucesso: true,
+      nova_quantidade: args.nova_quantidade,
+      carrinho_total_itens: resultado.carrinho_total_itens,
+      item_alterado: resultado.item_alterado,
+      mensagem: `beleza, alterei pra ${args.nova_quantidade} unidades`
+    };
+    
+  } catch (error) {
+    console.error("❌ Erro em alterar_quantidade_item:", error);
+    return { sucesso: false, erro: "erro_interno", mensagem: "Erro ao alterar quantidade" };
+  }
+}
+
+/**
+ * Remover item do carrinho ou oportunidade
+ */
+export async function executarRemoverItem(
+  args: { produto_id?: string; numero_item?: number },
+  supabase: any,
+  conversaId: string
+): Promise<any> {
+  console.log("🗑️ [Tool] remover_item", args);
+  
+  try {
+    // Buscar sessão para verificar se tem oportunidade
+    const { data: sessao } = await supabase
+      .from("whatsapp_agente_sessoes")
+      .select("oportunidade_spot_id")
+      .eq("conversa_id", conversaId)
+      .gte("expira_em", new Date().toISOString())
+      .order("criado_em", { ascending: false })
+      .limit(1)
+      .single();
+    
+    // Se tem oportunidade criada, remover da oportunidade
+    if (sessao?.oportunidade_spot_id) {
+      let query = supabase
+        .from("itens_linha_oportunidade")
+        .delete()
+        .eq("oportunidade_id", sessao.oportunidade_spot_id);
+      
+      if (args.produto_id) {
+        query = query.eq("produto_id", args.produto_id);
+      } else if (args.numero_item) {
+        query = query.eq("ordem_linha", args.numero_item);
+      } else {
+        return { sucesso: false, erro: "parametro_obrigatorio", mensagem: "Qual item você quer remover?" };
+      }
+      
+      const { error } = await query;
+      
+      if (error) {
+        console.error("❌ Erro ao remover item da oportunidade:", error);
+        return { sucesso: false, erro: "erro_banco", mensagem: "Não consegui remover o item" };
+      }
+      
+      console.log(`✅ Item removido da oportunidade`);
+      
+      return {
+        sucesso: true,
+        precisa_recalcular: true,
+        oportunidade_id: sessao.oportunidade_spot_id,
+        mensagem: "pronto, tirei o item. quer que eu recalcule os valores?"
+      };
+    }
+    
+    // Se não tem oportunidade, usar RPC do carrinho
+    const { data: resultado, error: rpcError } = await supabase.rpc("remover_item_carrinho", {
+      p_conversa_id: conversaId,
+      p_produto_id: args.produto_id || null,
+      p_numero_item: args.numero_item || null
+    });
+    
+    if (rpcError) {
+      console.error("❌ Erro ao remover item (RPC):", rpcError);
+      return { sucesso: false, erro: "erro_banco", mensagem: "Não consegui remover o item" };
+    }
+    
+    if (!resultado?.sucesso) {
+      return resultado;
+    }
+    
+    console.log(`✅ Item removido do carrinho`);
+    
+    return {
+      sucesso: true,
+      carrinho_total_itens: resultado.carrinho_total_itens,
+      item_removido: resultado.item_removido,
+      mensagem: `beleza, tirei do carrinho. ${resultado.carrinho_total_itens > 0 ? `ainda tem ${resultado.carrinho_total_itens} item(ns)` : 'carrinho ficou vazio'}`
+    };
+    
+  } catch (error) {
+    console.error("❌ Erro em remover_item:", error);
+    return { sucesso: false, erro: "erro_interno", mensagem: "Erro ao remover item" };
+  }
+}
+
+/**
+ * Recalcular proposta após alterações
+ */
+export async function executarRecalcularProposta(
+  args: { oportunidade_id: string },
+  supabase: any,
+  conversaId: string
+): Promise<any> {
+  console.log("🔄 [Tool] recalcular_proposta", args);
+  
+  // Reutilizar a lógica de calcular_cesta_datasul
+  return executarCalcularCestaDatasul(args, supabase, conversaId);
+}
+
+/**
  * Dispatcher para executar tool V4 pelo nome
  */
 export async function executarToolV4(
@@ -1047,6 +1318,15 @@ export async function executarToolV4(
     case "adicionar_ao_carrinho_v4":
       return executarAdicionarAoCarrinhoV4(args, supabase, conversaId);
     
+    case "alterar_quantidade_item":
+      return executarAlterarQuantidadeItem(args, supabase, conversaId);
+    
+    case "remover_item":
+      return executarRemoverItem(args, supabase, conversaId);
+    
+    case "recalcular_proposta":
+      return executarRecalcularProposta(args, supabase, conversaId);
+    
     default:
       return null; // Tool não é V4, deixar para o executor original
   }
@@ -1056,5 +1336,14 @@ export async function executarToolV4(
  * Verificar se é uma tool V4
  */
 export function isToolV4(nomeTool: string): boolean {
-  return ["identificar_cliente", "criar_oportunidade_spot", "calcular_cesta_datasul", "gerar_link_proposta", "adicionar_ao_carrinho_v4"].includes(nomeTool);
+  return [
+    "identificar_cliente", 
+    "criar_oportunidade_spot", 
+    "calcular_cesta_datasul", 
+    "gerar_link_proposta", 
+    "adicionar_ao_carrinho_v4",
+    "alterar_quantidade_item",
+    "remover_item",
+    "recalcular_proposta"
+  ].includes(nomeTool);
 }

@@ -194,13 +194,13 @@ Deno.serve(async (req) => {
       console.log("🎤 Áudio transcrito:", transcricao.substring(0, 50) + "...");
     }
 
-    // === BUSCAR HISTÓRICO COMPLETO DA CONVERSA ===
+    // === BUSCAR HISTÓRICO COMPLETO DA CONVERSA (aumentado para 100) ===
     const { data: memorias } = await supabase
       .from("whatsapp_conversas_memoria")
       .select("tipo_interacao, conteudo_resumido, criado_em")
       .eq("conversa_id", conversaId)
       .order("criado_em", { ascending: true })
-      .limit(60);
+      .limit(100);
 
     const historicoMensagens = (memorias || []).map((m) => {
       const isBot = m.tipo_interacao.includes("resposta") || m.tipo_interacao.includes("pergunta");
@@ -349,27 +349,29 @@ Deno.serve(async (req) => {
         // === HANDLERS ESPECÍFICOS POR TOOL ===
 
         // BUSCAR PRODUTOS (legacy)
-        // NÃO ATUALIZA MAIS O CARRINHO - sugestões de busca NÃO são itens selecionados
+        // CORRIGIDO: Salva em sugestoes_busca, NÃO em carrinho_itens
         if (functionName === "buscar_produtos" && resultado.produtos) {
           produtosEncontrados = resultado.produtos;
 
-          // Salvar sugestões na sessão para referência posterior (NÃO no carrinho)
+          // Salvar sugestões na coluna CORRETA (sugestoes_busca, não carrinho_itens!)
+          const sugestoes = resultado.produtos.map((p: any, idx: number) => ({
+            numero: idx + 1,
+            id: p.id,
+            nome: p.nome,
+            referencia: p.referencia,
+            preco: p.preco,
+            estoque: p.estoque
+          }));
+
           await supabase
             .from("whatsapp_agente_sessoes")
             .update({ 
-              carrinho_itens: resultado.produtos.map((p: any, idx: number) => ({
-                numero: idx + 1,
-                id: p.id,
-                nome: p.nome,
-                referencia: p.referencia,
-                preco: p.preco,
-                tipo: "sugestao" // Marcador para diferenciar de itens selecionados
-              }))
+              sugestoes_busca: sugestoes // ← CORRIGIDO: agora usa sugestoes_busca
             })
             .eq("conversa_id", conversaId)
             .gte("expira_em", new Date().toISOString());
 
-          console.log(`📋 ${resultado.produtos.length} produtos salvos como SUGESTÕES (não carrinho)`);
+          console.log(`📋 ${resultado.produtos.length} produtos salvos em SUGESTÕES (não carrinho)`);
 
           await salvarMemoria(
             supabase,

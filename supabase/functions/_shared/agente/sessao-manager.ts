@@ -12,6 +12,8 @@ export interface SessaoAgente {
   cliente_identificado_id: string | null;
   oportunidade_spot_id: string | null;
   carrinho_itens: any[];
+  sugestoes_busca: any[]; // Sugestões de buscar_produtos - separado do carrinho
+  contexto_resumido: string | null; // Memória de longo prazo
   criado_em: string;
   atualizado_em: string;
   expira_em: string;
@@ -69,6 +71,7 @@ export async function obterOuCriarSessao(
       conversa_id: conversaId,
       estado_atual: "coleta",
       carrinho_itens: [],
+      sugestoes_busca: [],
       total_mensagens: 1,
       total_tools_executadas: 0
     })
@@ -85,6 +88,8 @@ export async function obterOuCriarSessao(
       cliente_identificado_id: null,
       oportunidade_spot_id: null,
       carrinho_itens: [],
+      sugestoes_busca: [],
+      contexto_resumido: null,
       criado_em: new Date().toISOString(),
       atualizado_em: new Date().toISOString(),
       expira_em: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
@@ -208,8 +213,28 @@ export function construirContextoSessao(sessao: SessaoAgente): string {
     partes.push(`   ➡️ OPORTUNIDADE_ID PARA USAR NAS TOOLS: ${sessao.oportunidade_spot_id}`);
   }
   
-  if (sessao.carrinho_itens && sessao.carrinho_itens.length > 0) {
-    partes.push(`🛒 Carrinho: ${sessao.carrinho_itens.length} item(ns)`);
+  // CARRINHO REAL (itens confirmados pelo cliente)
+  const itensCarrinho = (sessao.carrinho_itens || []).filter((i: any) => i.tipo !== "sugestao");
+  if (itensCarrinho.length > 0) {
+    partes.push(`🛒 CARRINHO (${itensCarrinho.length} itens confirmados):`);
+    itensCarrinho.forEach((item: any, idx: number) => {
+      partes.push(`   ${idx + 1}. ${item.quantidade || 1}x ${item.nome || item.produto_nome || 'Produto'} (${item.referencia || 'sem ref'})`);
+    });
+  }
+  
+  // SUGESTÕES DE BUSCA (separado do carrinho)
+  const sugestoes = sessao.sugestoes_busca || [];
+  if (sugestoes.length > 0) {
+    partes.push(`📋 SUGESTÕES DA ÚLTIMA BUSCA (${sugestoes.length} opções):`);
+    sugestoes.slice(0, 5).forEach((sug: any, idx: number) => {
+      partes.push(`   ${idx + 1}. ${sug.nome} (${sug.referencia || 'sem ref'}) - R$ ${sug.preco?.toFixed(2) || '0.00'}`);
+    });
+    partes.push("   ⚠️ Use adicionar_ao_carrinho_v4 quando cliente escolher número!");
+  }
+  
+  // CONTEXTO RESUMIDO (memória de longo prazo)
+  if (sessao.contexto_resumido) {
+    partes.push(`📝 CONTEXTO ANTERIOR: ${sessao.contexto_resumido}`);
   }
   
   return partes.join("\n");

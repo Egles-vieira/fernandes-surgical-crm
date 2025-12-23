@@ -8117,12 +8117,14 @@ export type Database = {
           atualizado_em: string | null
           carrinho_itens: Json | null
           cliente_identificado_id: string | null
+          contexto_resumido: string | null
           conversa_id: string
           criado_em: string | null
           estado_atual: string | null
           expira_em: string | null
           id: string
           oportunidade_spot_id: string | null
+          sugestoes_busca: Json | null
           total_mensagens: number | null
           total_tools_executadas: number | null
         }
@@ -8130,12 +8132,14 @@ export type Database = {
           atualizado_em?: string | null
           carrinho_itens?: Json | null
           cliente_identificado_id?: string | null
+          contexto_resumido?: string | null
           conversa_id: string
           criado_em?: string | null
           estado_atual?: string | null
           expira_em?: string | null
           id?: string
           oportunidade_spot_id?: string | null
+          sugestoes_busca?: Json | null
           total_mensagens?: number | null
           total_tools_executadas?: number | null
         }
@@ -8143,12 +8147,14 @@ export type Database = {
           atualizado_em?: string | null
           carrinho_itens?: Json | null
           cliente_identificado_id?: string | null
+          contexto_resumido?: string | null
           conversa_id?: string
           criado_em?: string | null
           estado_atual?: string | null
           expira_em?: string | null
           id?: string
           oportunidade_spot_id?: string | null
+          sugestoes_busca?: Json | null
           total_mensagens?: number | null
           total_tools_executadas?: number | null
         }
@@ -12178,17 +12184,29 @@ export type Database = {
       }
     }
     Functions: {
-      adicionar_item_carrinho: {
-        Args: {
-          p_conversa_id: string
-          p_preco_unitario?: number
-          p_produto_id: string
-          p_produto_nome?: string
-          p_produto_referencia?: string
-          p_quantidade: number
-        }
-        Returns: Json
-      }
+      adicionar_item_carrinho:
+        | {
+            Args: {
+              p_conversa_id: string
+              p_preco_unitario?: number
+              p_produto_id: string
+              p_produto_nome: string
+              p_produto_referencia?: string
+              p_quantidade: number
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_conversa_id: string
+              p_preco_unitario?: number
+              p_produto_id: string
+              p_produto_nome?: string
+              p_produto_referencia?: string
+              p_quantidade: number
+            }
+            Returns: Json
+          }
       ajustar_score_aprendizado: {
         Args: {
           p_feedback_tipo: string
@@ -12196,6 +12214,15 @@ export type Database = {
           p_score_original: number
         }
         Returns: undefined
+      }
+      alterar_quantidade_item_carrinho: {
+        Args: {
+          p_conversa_id: string
+          p_nova_quantidade?: number
+          p_numero_item?: number
+          p_produto_id?: string
+        }
+        Returns: Json
       }
       atribuir_conversas_em_fila: { Args: never; Returns: number }
       atualizar_cron_job: {
@@ -12545,6 +12572,10 @@ export type Database = {
           username: string
         }[]
       }
+      increment_sessao_tools: {
+        Args: { sessao_id: string }
+        Returns: undefined
+      }
       inserir_itens_oportunidade_bulk: {
         Args: { p_itens: Json; p_oportunidade_id: string }
         Returns: undefined
@@ -12616,6 +12647,10 @@ export type Database = {
         }[]
       }
       normalizar_telefone: { Args: { telefone: string }; Returns: string }
+      obter_carrinho_completo: {
+        Args: { p_conversa_id: string }
+        Returns: Json
+      }
       pode_acessar_cliente: {
         Args: { _cliente_id: string; _user_id: string }
         Returns: boolean
@@ -12678,6 +12713,14 @@ export type Database = {
           p_score_ia: number
         }
         Returns: undefined
+      }
+      remover_item_carrinho: {
+        Args: {
+          p_conversa_id: string
+          p_numero_item?: number
+          p_produto_id?: string
+        }
+        Returns: Json
       }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
