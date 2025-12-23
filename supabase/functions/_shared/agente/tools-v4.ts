@@ -174,14 +174,24 @@ RETORNA: confirmação do item adicionado + total no carrinho`,
       name: "alterar_quantidade_item",
       description: `Altera a quantidade de um item no carrinho ou oportunidade.
 
+⚠️ CENÁRIO CRÍTICO: Se você ACABOU de adicionar 1 item e o cliente diz uma quantidade, USE ESTA TOOL!
+Exemplo: Você adicionou 1 kit → Cliente responde "quero 100 unidades" → Chame alterar_quantidade_item
+
 Use quando cliente disser:
 - "muda pra 200 unidades"
 - "na verdade quero 50"
 - "aumenta pra 100"
 - "diminui pra 30"
-- "altera a quantidade do primeiro"
+- "quero 100 unidades" (após você adicionar item)
+- "100 unidades por favor"
+- "preciso de X"
+- "50 caixas"
+- "200 por favor"
+- "quero X desse"
 
-RETORNA: confirmação da alteração + novo total`,
+⚠️ NÃO confunda com buscar_produtos! Se já tem item no carrinho e cliente fala quantidade, é ALTERAÇÃO!
+
+RETORNA: confirmação da alteração + aviso para recalcular se houver oportunidade`,
       parameters: {
         type: "object",
         properties: {
