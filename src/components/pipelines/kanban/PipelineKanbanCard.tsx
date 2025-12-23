@@ -12,6 +12,11 @@ interface PipelineKanbanCardProps {
   oportunidade: OportunidadeCard;
   index: number;
   kanbanFields?: PipelineCustomField[];
+  kanbanLookups?: {
+    condicoesPagamento?: Record<string, string>;
+    tiposPedido?: Record<string, string>;
+    tiposFrete?: Record<string, string>;
+  };
   onClick: () => void;
 }
 
@@ -19,6 +24,7 @@ export function PipelineKanbanCard({
   oportunidade,
   index,
   kanbanFields = [],
+  kanbanLookups,
   onClick
 }: PipelineKanbanCardProps) {
   const formatCurrency = (value: number) => {
@@ -44,23 +50,40 @@ export function PipelineKanbanCard({
     if (value === null || value === undefined) return "-";
     
     // Tentar encontrar o campo nos metadados para resolver selects
-    const field = kanbanFields.find(f => f.nome_campo === key);
-    
+    const field = kanbanFields.find((f) => f.nome_campo === key);
+
     if (field) {
-      // Para campos select, resolver ID para label
+      // Select comum (opções embutidas)
       if (field.tipo_campo === "select") {
         const options = parseFieldOptions(field.opcoes);
-        const option = options.find(o => o.value === value);
+        const option = options.find((o) => String(o.value) === String(value));
         return option?.label || String(value);
       }
-      
-      // Para campos multiselect
+
+      // Selects especiais (lookup via tabelas auxiliares)
+      if (field.tipo_campo === "select_condicao_pagamento") {
+        return (
+          kanbanLookups?.condicoesPagamento?.[String(value)] ?? String(value)
+        );
+      }
+
+      if (field.tipo_campo === "select_tipo_pedido") {
+        return kanbanLookups?.tiposPedido?.[String(value)] ?? String(value);
+      }
+
+      if (field.tipo_campo === "select_tipo_frete") {
+        return kanbanLookups?.tiposFrete?.[String(value)] ?? String(value);
+      }
+
+      // Multiselect comum (opções embutidas)
       if (field.tipo_campo === "multiselect" && Array.isArray(value)) {
         const options = parseFieldOptions(field.opcoes);
-        return value.map((v: string) => {
-          const opt = options.find(o => o.value === v);
-          return opt?.label || v;
-        }).join(", ");
+        return value
+          .map((v: string) => {
+            const opt = options.find((o) => String(o.value) === String(v));
+            return opt?.label || v;
+          })
+          .join(", ");
       }
     }
     

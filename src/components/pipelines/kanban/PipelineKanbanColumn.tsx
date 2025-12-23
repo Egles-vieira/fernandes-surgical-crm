@@ -14,6 +14,11 @@ interface PipelineKanbanColumnProps {
   totalReal?: number;
   pipelineId: string;
   kanbanFields?: PipelineCustomField[];
+  kanbanLookups?: {
+    condicoesPagamento?: Record<string, string>;
+    tiposPedido?: Record<string, string>;
+    tiposFrete?: Record<string, string>;
+  };
   isLoadingMore?: boolean;
   onViewDetails: (oportunidade: OportunidadeCard) => void;
   onCarregarMais?: () => void;
@@ -27,6 +32,7 @@ export function PipelineKanbanColumn({
   totalReal,
   pipelineId,
   kanbanFields = [],
+  kanbanLookups,
   isLoadingMore,
   onViewDetails,
   onCarregarMais,
@@ -106,6 +112,7 @@ export function PipelineKanbanColumn({
                     oportunidade={oportunidade}
                     index={index}
                     kanbanFields={kanbanFields}
+                    kanbanLookups={kanbanLookups}
                     onClick={() => onViewDetails(oportunidade)}
                   />
                 ))}

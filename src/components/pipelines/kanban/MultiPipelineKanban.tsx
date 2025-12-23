@@ -11,6 +11,9 @@ import { OportunidadeDetailsSheet } from "../details/OportunidadeDetailsSheet";
 import { usePipelineComEstagios } from "@/hooks/pipelines/usePipelines";
 import { useKanbanOportunidades, useMoverEstagio } from "@/hooks/pipelines/useOportunidades";
 import { usePipelineFields } from "@/hooks/pipelines/usePipelineFields";
+import { useCondicoesPagamento } from "@/hooks/useCondicoesPagamento";
+import { useTiposPedido } from "@/hooks/useTiposPedido";
+import { useTiposFrete } from "@/hooks/useTiposFrete";
 import { OportunidadeCard, EstagioPipeline } from "@/types/pipelines";
 interface MultiPipelineKanbanProps {
   pipelineIdInicial?: string | null;
@@ -75,12 +78,33 @@ export function MultiPipelineKanban({
   } = useKanbanOportunidades(pipelineId);
 
   // Buscar campos visíveis no Kanban
-  const {
-    data: kanbanFields
-  } = usePipelineFields({
+  const { data: kanbanFields } = usePipelineFields({
     pipelineId: pipelineId || "",
-    apenasVisivelKanban: true
+    apenasVisivelKanban: true,
   });
+
+  // Lookups para campos especiais (IDs -> descrição)
+  const { condicoes: condicoesPagamento } = useCondicoesPagamento();
+  const { tipos: tiposPedido } = useTiposPedido();
+  const { tipos: tiposFrete } = useTiposFrete();
+
+  const kanbanLookups = useMemo(() => {
+    const condicoes = Object.fromEntries(
+      (condicoesPagamento || []).map((c: any) => [String(c.id), String(c.nome)])
+    );
+    const pedidos = Object.fromEntries(
+      (tiposPedido || []).map((t: any) => [String(t.id), String(t.nome)])
+    );
+    const fretes = Object.fromEntries(
+      (tiposFrete || []).map((t: any) => [String(t.id), String(t.nome)])
+    );
+
+    return {
+      condicoesPagamento: condicoes,
+      tiposPedido: pedidos,
+      tiposFrete: fretes,
+    };
+  }, [condicoesPagamento, tiposPedido, tiposFrete]);
 
   // Mutation para mover estágio
   const moverEstagio = useMoverEstagio();
@@ -204,7 +228,7 @@ export function MultiPipelineKanban({
               oportunidades,
               valorTotal,
               totalOportunidades
-            }) => <PipelineKanbanColumn key={estagio.id} estagio={estagio} oportunidades={oportunidades} valorTotal={valorTotal} totalReal={totalOportunidades} pipelineId={pipelineId} kanbanFields={kanbanFields || []} onViewDetails={handleViewDetails} onCarregarMais={() => carregarMais(estagio.id)} isLoadingMore={estagioCarregando === estagio.id} />)}
+            }) => <PipelineKanbanColumn key={estagio.id} estagio={estagio} oportunidades={oportunidades} valorTotal={valorTotal} totalReal={totalOportunidades} pipelineId={pipelineId} kanbanFields={kanbanFields || []} kanbanLookups={kanbanLookups} onViewDetails={handleViewDetails} onCarregarMais={() => carregarMais(estagio.id)} isLoadingMore={estagioCarregando === estagio.id} />)}
             </div>
             <ScrollBar orientation="horizontal" />
           </ScrollArea>
