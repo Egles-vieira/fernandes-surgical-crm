@@ -217,7 +217,7 @@ async function processarCalculoDatasulEResponder(
       
       // Montar URL do link público
       // Usar domínio do projeto (pegar da oportunidade ou usar padrão)
-      const projetoDomain = Deno.env.get("PUBLIC_SITE_URL") || "https://1da8e29e-2c27-4a7d-bf39-0405ea816dd1.lovableproject.com";
+      const projetoDomain = Deno.env.get("PUBLIC_SITE_URL") || "https://convertiai.online";
       const linkProposta = `${projetoDomain}/proposal-oportunidade/${publicToken}`;
       
       console.log(`🔗 Link gerado: ${linkProposta}`);
