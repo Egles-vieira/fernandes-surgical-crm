@@ -77,7 +77,7 @@ Deno.serve(async (req) => {
         produto:produto_id(nome, referencia_interna, unidade_medida)
       `)
       .eq('oportunidade_id', tokenData.oportunidade_id)
-      .order('created_at', { ascending: true });
+      .order('ordem_linha', { ascending: true });
 
     if (itensError) {
       console.error('Erro ao buscar itens:', itensError);
