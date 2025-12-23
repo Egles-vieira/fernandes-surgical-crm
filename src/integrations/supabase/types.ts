@@ -12624,20 +12624,14 @@ export type Database = {
           query_text: string
         }
         Returns: {
-          codigo_barras: string
-          grupo_produto: string
+          custo: number
+          grupo_estoque: string
           id: string
-          marca: string
-          match_type: string
           narrativa: string
-          ncm: string
           nome: string
-          preco_custo: number
-          preco_venda: number
-          quantidade_em_maos: number
           referencia_interna: string
           similarity: number
-          unidade: string
+          unidade_medida: string
         }[]
       }
       normalizar_telefone: { Args: { telefone: string }; Returns: string }
