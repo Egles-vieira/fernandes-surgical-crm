@@ -73,6 +73,9 @@ export function MultiPipelineKanban({
   const {
     data: kanbanData,
     isLoading: loadingOportunidades,
+    isError: kanbanError,
+    error: kanbanErrorData,
+    refetch: refetchKanban,
     carregarMais,
     estagioCarregando
   } = useKanbanOportunidades(pipelineId);
@@ -191,6 +194,25 @@ export function MultiPipelineKanban({
     return <div className="flex items-center justify-center h-full">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>;
+  }
+
+  // Estado de erro do Kanban
+  if (kanbanError) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full gap-4 p-8">
+        <div className="text-center">
+          <h3 className="text-lg font-medium text-destructive mb-2">
+            Erro ao carregar o Kanban
+          </h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            {(kanbanErrorData as any)?.message || 'Ocorreu um erro ao buscar as oportunidades.'}
+          </p>
+          <Button onClick={() => refetchKanban()} variant="outline">
+            Tentar novamente
+          </Button>
+        </div>
+      </div>
+    );
   }
   return <div className="flex flex-col h-full">
       {/* Header do Kanban */}

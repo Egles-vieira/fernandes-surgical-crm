@@ -329,7 +329,13 @@ interface KanbanResult {
 export function useKanbanOportunidades(
   pipelineId: string | null | undefined,
   options: UseKanbanOportunidadesOptions = {}
-): KanbanResult & { isLoading: boolean; data: { colunas: KanbanColumn[]; totalValor: number; totalOportunidades: number } | undefined } {
+): KanbanResult & { 
+  isLoading: boolean; 
+  isError: boolean;
+  error: Error | null;
+  refetch: () => void;
+  data: { colunas: KanbanColumn[]; totalValor: number; totalOportunidades: number } | undefined 
+} {
   const { limitePorEstagioInicial = 20 } = options;
   const queryClient = useQueryClient();
   const [limitesPorEstagio, setLimitesPorEstagio] = useState<LimitesPorEstagio>({});
@@ -465,6 +471,9 @@ export function useKanbanOportunidades(
   return {
     data: query.data,
     isLoading: query.isLoading,
+    isError: query.isError,
+    error: query.error as Error | null,
+    refetch: query.refetch,
     colunas,
     totalValor,
     totalOportunidades,
