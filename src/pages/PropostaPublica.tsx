@@ -137,7 +137,7 @@ export default function PropostaPublica() {
               itens={itens as any}
               mostrarDescontos={propostaData.mostrar_descontos}
               valorFrete={venda?.frete_valor}
-              valorTotal={venda?.valor_final}
+              valorTotal={null}
             />
           </section>
         )}

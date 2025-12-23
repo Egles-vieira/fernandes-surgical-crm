@@ -150,7 +150,7 @@ export default function PropostaPublicaOportunidade() {
               itens={itens}
               mostrarDescontos={propostaData.mostrar_descontos}
               valorFrete={0}
-              valorTotal={oportunidade?.valor || venda?.valor_total}
+              valorTotal={null}
             />
           </section>
         )}
