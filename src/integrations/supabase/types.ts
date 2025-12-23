@@ -12371,23 +12371,27 @@ export type Database = {
       }
       get_nivel_hierarquico: { Args: { _user_id: string }; Returns: number }
       get_oportunidades_pipeline_paginado: {
-        Args: {
-          p_limite_default?: number
-          p_limites_por_estagio?: Json
-          p_pipeline_id: string
-        }
+        Args: { p_filtros?: Json; p_limit?: number; p_pipeline_id: string }
         Returns: {
+          atualizado_em: string
           campos_customizados: Json
           codigo: string
+          conta_id: string
           conta_nome: string
+          contato_id: string
           contato_nome: string
-          data_fechamento: string
-          dias_no_estagio: number
+          criado_em: string
+          data_fechamento_prevista: string
+          esta_estagnada: boolean
+          estagio_cor: string
           estagio_id: string
-          id: string
+          estagio_nome: string
+          estagio_ordem: number
           nome_oportunidade: string
+          oportunidade_id: string
           origem_lead: string
-          percentual_probabilidade: number
+          probabilidade: number
+          proprietario_id: string
           row_num: number
           total_estagio: number
           valor: number
