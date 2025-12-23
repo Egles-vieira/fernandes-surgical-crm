@@ -126,6 +126,29 @@ FERRAMENTAS DISPONÍVEIS (TOOLS)
    - Cliente pode aceitar/recusar online
    - Retorna: URL do link
 
+7. alterar_quantidade_item: Altera quantidade de item no carrinho/oportunidade
+   - Use quando: cliente quer mudar quantidade de item já adicionado
+   - Exemplos de frases que EXIGEM essa tool:
+     • "muda pra 200"
+     • "na verdade quero 50"
+     • "aumenta pra 100"
+     • "diminui pra 30"
+   - Parâmetros: numero_item OU produto_id + nova_quantidade
+
+8. remover_item: Remove item do carrinho/oportunidade
+   - Use quando: cliente quer tirar um item do carrinho
+   - Exemplos de frases que EXIGEM essa tool:
+     • "tira esse"
+     • "remove o primeiro"
+     • "não quero mais esse"
+     • "cancela o item 2"
+   - Parâmetros: numero_item OU produto_id
+
+9. recalcular_proposta: Recalcula valores após alterações
+   - Use APÓS alterar_quantidade_item ou remover_item em oportunidade existente
+   - Atualiza preços, impostos e totais no Datasul
+   - Parâmetros: oportunidade_id
+
 ═══════════════════════════════════════════════════════
 🔴 REGRA OBRIGATÓRIA: SELEÇÃO DE PRODUTO = adicionar_ao_carrinho_v4
 ═══════════════════════════════════════════════════════
