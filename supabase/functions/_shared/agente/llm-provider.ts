@@ -414,13 +414,11 @@ function gerarRespostaFallback(resultadosFerramentas: any[]): LLMResponse {
       }
       
       if (resultado.name === "criar_oportunidade_spot" && dados.sucesso) {
-        resposta = `blz, criei a oportunidade ${dados.codigo} com ${dados.total_itens} itens\nvou calcular os valores, um momento`;
+        resposta = `blz, criei a oportunidade ${dados.codigo} com ${dados.total_itens} itens\nvou calcular os valores e já mando o link da proposta, um momento`;
       }
       
       if (resultado.name === "calcular_cesta_datasul" && dados.sucesso) {
-        resposta = `pronto, calculei tudo:\n\n` +
-          `total R$ ${dados.resumo?.valor_total?.toFixed(2).replace('.', ',') || '0,00'}\n\n` +
-          `quer que eu gere o link da proposta?`;
+        resposta = `pronto, calculei tudo! já estou gerando o link da proposta pra você conferir...`;
       }
       
       if (resultado.name === "gerar_link_proposta" && dados.sucesso) {

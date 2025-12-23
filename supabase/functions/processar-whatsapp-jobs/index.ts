@@ -178,60 +178,121 @@ async function processarCalculoDatasulEResponder(
       return { sucesso: false, erro: erroMsg };
     }
     
-    // Sucesso! Montar mensagem com valores calculados
+    // Sucesso! Gerar link da proposta automaticamente (sem mostrar totais)
     const resumo = resultado.resumo || {};
     const valorTotal = resumo.valor_total || valor_estimado || 0;
-    const descontoTotal = resumo.desconto_total || 0;
-    const impostoTotal = resumo.imposto_total || 0;
     
-    // Montar mensagem de resposta
-    let mensagem = `✅ *Proposta calculada com sucesso!*\n\n`;
-    mensagem += `📋 *Código:* ${oportunidade_codigo}\n`;
-    mensagem += `📦 *Itens:* ${total_itens}\n\n`;
+    console.log(`🔗 Gerando link da proposta automaticamente...`);
     
-    if (descontoTotal > 0) {
-      mensagem += `💰 *Desconto:* R$ ${descontoTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}\n`;
-    }
-    
-    if (impostoTotal > 0) {
-      mensagem += `📊 *Impostos:* R$ ${impostoTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}\n`;
-    }
-    
-    mensagem += `\n💵 *Valor Total:* R$ ${valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}\n\n`;
-    mensagem += `Posso gerar o link da proposta para você revisar e confirmar?`;
-    
-    // Enviar mensagem - CRÍTICO: só marca sucesso se realmente enviou
-    const enviou = await enviarMensagemWhatsApp(supabase, job.conversa_id, mensagem);
-    
-    if (enviou) {
-      await logEvento(supabase, job.conversa_id, "calculo_datasul_sucesso", {
+    // ======================================================
+    // GERAR LINK DA PROPOSTA AUTOMATICAMENTE
+    // ======================================================
+    try {
+      // Calcular data de expiração (30 dias)
+      const validadeDias = 30;
+      const dataExpiracao = new Date();
+      dataExpiracao.setDate(dataExpiracao.getDate() + validadeDias);
+      
+      // Gerar token único
+      const publicToken = crypto.randomUUID();
+      
+      // Inserir token público
+      const { data: tokenData, error: tokenError } = await supabase
+        .from("propostas_publicas_tokens")
+        .insert({
+          oportunidade_id: oportunidade_id,
+          public_token: publicToken,
+          expira_em: dataExpiracao.toISOString(),
+          ativo: true
+        })
+        .select("id, public_token")
+        .single();
+      
+      if (tokenError) {
+        console.error("❌ Erro ao gerar token da proposta:", tokenError);
+        throw new Error(`Erro ao gerar token: ${tokenError.message}`);
+      }
+      
+      console.log(`✅ Token gerado: ${publicToken}`);
+      
+      // Montar URL do link público
+      // Usar domínio do projeto (pegar da oportunidade ou usar padrão)
+      const projetoDomain = Deno.env.get("PUBLIC_SITE_URL") || "https://1da8e29e-2c27-4a7d-bf39-0405ea816dd1.lovableproject.com";
+      const linkProposta = `${projetoDomain}/proposal-oportunidade/${publicToken}`;
+      
+      console.log(`🔗 Link gerado: ${linkProposta}`);
+      
+      // Montar mensagem com link (SEM MOSTRAR TOTAIS)
+      const mensagem = `✅ *Proposta pronta!*\n\n` +
+        `📋 *Código:* ${oportunidade_codigo}\n` +
+        `📦 *Itens:* ${total_itens}\n\n` +
+        `Acesse o link abaixo para conferir os detalhes e confirmar:\n\n` +
+        `👉 ${linkProposta}\n\n` +
+        `O link é válido por ${validadeDias} dias.`;
+      
+      // Enviar mensagem com link
+      const enviou = await enviarMensagemWhatsApp(supabase, job.conversa_id, mensagem);
+      
+      if (enviou) {
+        await logEvento(supabase, job.conversa_id, "proposta_link_enviado", {
+          job_id: job.id,
+          oportunidade_id,
+          link: linkProposta,
+          valor_total: valorTotal,
+          tempo_ms: tempoMs,
+          mensagem_enviada: true
+        });
+        
+        // Atualizar sessão para estado "proposta_enviada"
+        await supabase
+          .from("whatsapp_agente_sessoes")
+          .update({ estado_atual: "proposta_enviada" })
+          .eq("conversa_id", job.conversa_id);
+        
+        return { 
+          sucesso: true, 
+          resultado: { 
+            valor_total: valorTotal, 
+            link_proposta: linkProposta,
+            mensagem_enviada: true 
+          } 
+        };
+      } else {
+        console.error("❌ Falha ao enviar mensagem com link - job entrará em retry");
+        
+        await logEvento(supabase, job.conversa_id, "proposta_link_msg_falhou", {
+          job_id: job.id,
+          oportunidade_id,
+          link: linkProposta,
+          valor_total: valorTotal,
+          tempo_ms: tempoMs,
+          mensagem_enviada: false
+        });
+        
+        return { sucesso: false, erro: "Link gerado, mas falha ao enviar mensagem" };
+      }
+      
+    } catch (linkError) {
+      const erroLink = linkError instanceof Error ? linkError.message : "Erro ao gerar link";
+      console.error("❌ Erro ao gerar link da proposta:", erroLink);
+      
+      // Fallback: enviar mensagem simples sem link
+      const mensagemFallback = `✅ *Proposta calculada!*\n\n` +
+        `📋 *Código:* ${oportunidade_codigo}\n` +
+        `📦 *Itens:* ${total_itens}\n\n` +
+        `Não consegui gerar o link agora. Um vendedor entrará em contato em breve com a proposta completa.`;
+      
+      await enviarMensagemWhatsApp(supabase, job.conversa_id, mensagemFallback);
+      
+      await logEvento(supabase, job.conversa_id, "proposta_link_erro", {
         job_id: job.id,
         oportunidade_id,
-        valor_total: valorTotal,
-        tempo_ms: tempoMs,
-        mensagem_enviada: true
+        erro: erroLink,
+        tempo_ms: tempoMs
       });
       
-      // Atualizar sessão para aguardar resposta sobre proposta
-      await supabase
-        .from("whatsapp_agente_sessoes")
-        .update({ estado_atual: "calculo" }) // ← Estado "calculo" = valores calculados
-        .eq("conversa_id", job.conversa_id);
-      
-      return { sucesso: true, resultado: { valor_total: valorTotal, mensagem_enviada: true } };
-    } else {
-      // Falhou ao enviar - job deve retry
-      console.error("❌ Falha ao enviar mensagem final - job entrará em retry");
-      
-      await logEvento(supabase, job.conversa_id, "calculo_datasul_msg_falhou", {
-        job_id: job.id,
-        oportunidade_id,
-        valor_total: valorTotal,
-        tempo_ms: tempoMs,
-        mensagem_enviada: false
-      });
-      
-      return { sucesso: false, erro: "Cálculo OK, mas falha ao enviar mensagem" };
+      // Ainda retorna sucesso pois o cálculo funcionou
+      return { sucesso: true, resultado: { valor_total: valorTotal, link_erro: erroLink } };
     }
     
   } catch (fetchError) {
