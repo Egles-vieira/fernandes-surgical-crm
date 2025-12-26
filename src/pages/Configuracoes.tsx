@@ -10,7 +10,7 @@ import WABAConfig from "@/pages/whatsapp/WABAConfig";
 
 export default function Configuracoes() {
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className="py-6 space-y-6">
       <Card className="p-6">
         <Tabs defaultValue="empresa" className="space-y-6">
           <TabsList className="grid w-full max-w-6xl grid-cols-6">
