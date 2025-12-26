@@ -257,10 +257,16 @@ export function useSendTemplateFromChat() {
       return data;
     },
     onSuccess: (data, variables) => {
-      toast.success('Template enviado para processamento. Aguardando confirmação de entrega.');
-      // Invalidar queries de mensagens e janela
-      queryClient.invalidateQueries({ queryKey: ['whatsapp-mensagens', variables.conversaId] });
+      toast.success('Template enviado com sucesso!');
+      
+      // Refetch imediato para mostrar a mensagem no chat
+      queryClient.refetchQueries({ queryKey: ['whatsapp-mensagens', variables.conversaId] });
       queryClient.invalidateQueries({ queryKey: ['janela-24h', variables.conversaId] });
+      
+      // Refetch adicional após pequeno delay para garantir que o banco processou
+      setTimeout(() => {
+        queryClient.refetchQueries({ queryKey: ['whatsapp-mensagens', variables.conversaId] });
+      }, 500);
     },
     onError: (error: Error) => {
       // Tratar erros específicos da Meta
