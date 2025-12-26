@@ -8652,13 +8652,16 @@ export type Database = {
           id: string
           max_atendimentos_simultaneos: number | null
           mensagem_encerramento_inatividade: string | null
+          mensagem_fora_expediente: string | null
           modo_carteirizacao: string | null
           nivel: string | null
           notificar_antes_encerramento_minutos: number | null
           sla_inatividade_horas: number | null
           tabulacao_padrao_inatividade: string | null
+          template_fora_expediente: string | null
           tempo_max_aceite_segundos: number | null
           tipo_distribuicao: string | null
+          verificar_expediente_ativo: boolean | null
         }
         Insert: {
           apenas_operadores_online?: boolean | null
@@ -8674,13 +8677,16 @@ export type Database = {
           id?: string
           max_atendimentos_simultaneos?: number | null
           mensagem_encerramento_inatividade?: string | null
+          mensagem_fora_expediente?: string | null
           modo_carteirizacao?: string | null
           nivel?: string | null
           notificar_antes_encerramento_minutos?: number | null
           sla_inatividade_horas?: number | null
           tabulacao_padrao_inatividade?: string | null
+          template_fora_expediente?: string | null
           tempo_max_aceite_segundos?: number | null
           tipo_distribuicao?: string | null
+          verificar_expediente_ativo?: boolean | null
         }
         Update: {
           apenas_operadores_online?: boolean | null
@@ -8696,13 +8702,16 @@ export type Database = {
           id?: string
           max_atendimentos_simultaneos?: number | null
           mensagem_encerramento_inatividade?: string | null
+          mensagem_fora_expediente?: string | null
           modo_carteirizacao?: string | null
           nivel?: string | null
           notificar_antes_encerramento_minutos?: number | null
           sla_inatividade_horas?: number | null
           tabulacao_padrao_inatividade?: string | null
+          template_fora_expediente?: string | null
           tempo_max_aceite_segundos?: number | null
           tipo_distribuicao?: string | null
+          verificar_expediente_ativo?: boolean | null
         }
         Relationships: [
           {
