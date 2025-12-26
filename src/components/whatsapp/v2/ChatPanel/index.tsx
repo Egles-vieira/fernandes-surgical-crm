@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Send, Paperclip, Phone, Video, MoreVertical, Image as ImageIcon, FileText, Mic, PanelRightOpen, CheckCheck, Check, Clock, Reply, CornerDownLeft, X, Download, UserPlus, AlertCircle, Play, Bot, MessageSquareText, ShoppingCart } from 'lucide-react';
+import { Send, Paperclip, Phone, Video, MoreVertical, Image as ImageIcon, FileText, Mic, PanelRightOpen, CheckCheck, Check, Clock, Reply, CornerDownLeft, X, Download, UserPlus, AlertCircle, Play, Bot, MessageSquareText, ShoppingCart, MessageCircle } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
@@ -653,31 +653,71 @@ export function ChatPanel({
         </div>}
 
       {/* Messages Area */}
-      <ScrollArea className="flex-1 p-4">
-        {isLoading ? <div className="space-y-4">
-            {[1, 2, 3].map(i => <div key={i} className={cn("flex", i % 2 === 0 ? "justify-end" : "justify-start")}>
-                <Skeleton className="h-16 w-64 rounded-lg" />
-              </div>)}
-          </div> : mensagens.length === 0 ? <div className="text-center text-muted-foreground py-8">
-            <p>Nenhuma mensagem ainda</p>
-          </div> : <div className="space-y-4 bg-[#f2f2f2]">
-            {mensagens.map((msg, index) => {
-          const prevMsg = mensagens[index - 1];
-          const showSender = !prevMsg || prevMsg.direcao !== msg.direcao;
-          const msgReacoes = reacoesPorMensagem[msg.id] || [];
-          const replyMessage = getReplyMessage(msg.resposta_para_id);
+      {/* Messages Area - WhatsApp Style */}
+      <ScrollArea className="flex-1 relative">
+        <div 
+          className="min-h-full px-4 py-6" 
+          style={{
+            background: 'linear-gradient(180deg, #e8f4f6 0%, #dce8ea 50%, #d4e0e2 100%)',
+            backgroundImage: `
+              linear-gradient(180deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 100%),
+              url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.02'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")
+            `
+          }}
+        >
+          {isLoading ? (
+            <div className="space-y-4">
+              {[1, 2, 3].map(i => (
+                <div key={i} className={cn("flex", i % 2 === 0 ? "justify-end" : "justify-start")}>
+                  <Skeleton className="h-16 w-64 rounded-2xl" />
+                </div>
+              ))}
+            </div>
+          ) : mensagens.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full text-center py-16">
+              <div className="w-16 h-16 rounded-full bg-white/60 flex items-center justify-center mb-4 shadow-sm">
+                <MessageCircle className="h-8 w-8 text-slate-400" />
+              </div>
+              <p className="text-slate-500 font-medium">Nenhuma mensagem ainda</p>
+              <p className="text-sm text-slate-400 mt-1">As mensagens aparecerão aqui</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {mensagens.map((msg, index) => {
+                const prevMsg = mensagens[index - 1];
+                const showSender = !prevMsg || prevMsg.direcao !== msg.direcao;
+                const msgReacoes = reacoesPorMensagem[msg.id] || [];
+                const replyMessage = getReplyMessage(msg.resposta_para_id);
 
-          // Check if we need a date divider
-          const msgDate = new Date(msg.criado_em);
-          const prevMsgDate = prevMsg ? new Date(prevMsg.criado_em) : null;
-          const showDateDivider = !prevMsgDate || !isSameDay(msgDate, prevMsgDate);
-          return <div key={msg.id}>
-                  {showDateDivider && <DateDivider date={msgDate} />}
-                  <MessageBubble mensagem={msg} contato={contato} showSender={showSender} operadorNome={msg.operador_nome || currentUserProfile?.nome_completo} reacoes={msgReacoes} currentUserId={currentUser?.id} currentUserProfile={currentUserProfile} replyMessage={replyMessage} onReply={() => handleReply(msg)} onReact={emoji => handleReact(msg.id, emoji)} onRemoveReaction={() => handleRemoveReaction(msg.id)} onMarkAsRead={() => markAsRead(msg.id)} />
-                </div>;
-        })}
-            <div ref={scrollRef} />
-          </div>}
+                // Check if we need a date divider
+                const msgDate = new Date(msg.criado_em);
+                const prevMsgDate = prevMsg ? new Date(prevMsg.criado_em) : null;
+                const showDateDivider = !prevMsgDate || !isSameDay(msgDate, prevMsgDate);
+                
+                return (
+                  <div key={msg.id}>
+                    {showDateDivider && <DateDivider date={msgDate} />}
+                    <MessageBubble 
+                      mensagem={msg} 
+                      contato={contato} 
+                      showSender={showSender} 
+                      operadorNome={msg.operador_nome || currentUserProfile?.nome_completo} 
+                      reacoes={msgReacoes} 
+                      currentUserId={currentUser?.id} 
+                      currentUserProfile={currentUserProfile} 
+                      replyMessage={replyMessage} 
+                      onReply={() => handleReply(msg)} 
+                      onReact={emoji => handleReact(msg.id, emoji)} 
+                      onRemoveReaction={() => handleRemoveReaction(msg.id)} 
+                      onMarkAsRead={() => markAsRead(msg.id)} 
+                    />
+                  </div>
+                );
+              })}
+              <div ref={scrollRef} />
+            </div>
+          )}
+        </div>
       </ScrollArea>
 
       {/* Reply Preview */}
@@ -861,43 +901,79 @@ function MessageBubble({
     count: number;
     hasUserReacted: boolean;
   }[]);
-  return <div ref={messageRef} className={cn("flex gap-3 group", isOutgoing ? "flex-row-reverse" : "flex-row")}>
+  return (
+    <div ref={messageRef} className={cn(
+      "flex gap-3 group animate-in fade-in-0 slide-in-from-bottom-2 duration-300",
+      isOutgoing ? "flex-row-reverse" : "flex-row"
+    )}>
       {/* Avatar */}
-      <Avatar className="h-8 w-8 shrink-0 mt-1 ring-2 ring-background shadow-sm">
-        {isOutgoing ? <>
+      <Avatar className={cn(
+        "h-9 w-9 shrink-0 mt-1 shadow-lg ring-2 ring-white/80 transition-transform group-hover:scale-105",
+        isOutgoing ? "ring-primary/20" : "ring-slate-200"
+      )}>
+        {isOutgoing ? (
+          <>
             <AvatarImage src={currentUserProfile?.foto_perfil_url} />
-            <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground text-xs font-medium">
+            <AvatarFallback className="bg-gradient-to-br from-primary to-primary/70 text-primary-foreground text-xs font-bold">
               {currentUserProfile?.nome_completo ? getInitials(currentUserProfile.nome_completo) : 'Eu'}
             </AvatarFallback>
-          </> : <>
+          </>
+        ) : (
+          <>
             <AvatarImage src={contato?.foto_url} />
-            <AvatarFallback className="bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-600 dark:to-slate-700 text-slate-700 dark:text-slate-200 text-xs font-medium">
+            <AvatarFallback className="bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-600 dark:to-slate-700 text-slate-600 dark:text-slate-200 text-xs font-bold">
               {getInitials(contato?.nome_whatsapp || 'CL')}
             </AvatarFallback>
-          </>}
+          </>
+        )}
       </Avatar>
 
       {/* Message Content */}
-      <div className={cn("flex flex-col max-w-[70%]", isOutgoing ? "items-end" : "items-start")}>
+      <div className={cn("flex flex-col max-w-[75%]", isOutgoing ? "items-end" : "items-start")}>
         {/* Sender Name & Time */}
-        {showSender && <div className={cn("flex items-center gap-2 mb-1 text-xs", isOutgoing ? "flex-row-reverse" : "flex-row")}>
-            <span className="font-medium text-foreground">{senderName}</span>
-            <span className="text-muted-foreground">{formattedTime}</span>
-          </div>}
+        {showSender && (
+          <div className={cn(
+            "flex items-center gap-2 mb-1.5 text-[11px]",
+            isOutgoing ? "flex-row-reverse" : "flex-row"
+          )}>
+            <span className="font-semibold text-slate-700 dark:text-slate-200">{senderName}</span>
+            <span className="text-slate-400">{formattedTime}</span>
+          </div>
+        )}
 
         {/* Reply Reference */}
-        {replyMessage && <div className={cn("flex items-center gap-1 text-xs text-muted-foreground mb-1 px-2 py-1 bg-muted/50 rounded-md border-l-2 border-primary/50", isOutgoing ? "flex-row-reverse" : "flex-row")}>
-            <CornerDownLeft className="h-3 w-3" />
-            <span className="truncate max-w-[200px]">
+        {replyMessage && (
+          <div className={cn(
+            "flex items-center gap-1.5 text-[11px] text-slate-500 mb-2 px-3 py-1.5 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-lg border-l-3 border-primary/60 shadow-sm",
+            isOutgoing ? "flex-row-reverse border-l-0 border-r-3" : "flex-row"
+          )}>
+            <CornerDownLeft className="h-3 w-3 text-primary/70" />
+            <span className="truncate max-w-[200px] italic">
               {replyMessage.corpo}
             </span>
-          </div>}
+          </div>
+        )}
 
         {/* Message Bubble */}
-        <div className={cn("relative px-4 py-2.5 rounded-2xl shadow-md transition-all", isOutgoing ? "bg-gradient-to-br from-primary via-primary to-primary/90 text-primary-foreground rounded-tr-md" : "bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 text-slate-800 dark:text-slate-100 rounded-tl-md border border-slate-200 dark:border-slate-600")}>
-          {mensagem.enviada_por_bot && <Badge variant="secondary" className={cn("text-[10px] mb-1.5 px-1.5 py-0 font-normal", isOutgoing ? "bg-primary-foreground/20 text-primary-foreground" : "")}>
+        <div className={cn(
+          "relative px-4 py-3 rounded-2xl transition-all duration-200 group-hover:shadow-lg",
+          isOutgoing 
+            ? "bg-gradient-to-br from-primary via-primary to-primary/85 text-primary-foreground rounded-tr-sm shadow-md shadow-primary/20" 
+            : "bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-tl-sm shadow-md shadow-slate-200/50 dark:shadow-slate-900/30 border border-white/50 dark:border-slate-700/50"
+        )}>
+          {mensagem.enviada_por_bot && (
+            <Badge 
+              variant="secondary" 
+              className={cn(
+                "text-[10px] mb-2 px-2 py-0.5 font-medium rounded-full",
+                isOutgoing 
+                  ? "bg-white/20 text-white border-0" 
+                  : "bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300"
+              )}
+            >
               🤖 Bot
-            </Badge>}
+            </Badge>
+          )}
 
           {/* Render media based on type */}
           {mensagem.tipo_mensagem === 'imagem' && mensagem.url_midia && <div className="mb-2">
@@ -948,5 +1024,6 @@ function MessageBubble({
         {/* Reactions */}
         <MessageReactions reactions={groupedReactions} onReact={onReact} onRemoveReaction={onRemoveReaction} isOutgoing={isOutgoing} />
       </div>
-    </div>;
+    </div>
+  );
 }
