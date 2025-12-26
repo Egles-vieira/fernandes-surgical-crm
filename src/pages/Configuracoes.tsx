@@ -8,7 +8,7 @@ import { CronJobsConfig } from "@/components/configuracoes/CronJobsConfig";
 import { IAConfigTab } from "@/components/configuracoes/IAConfigTab";
 import WABAConfig from "@/pages/whatsapp/WABAConfig";
 export default function Configuracoes() {
-  return <div className="py-6 space-y-6 mx-[5px]">
+  return <div className="py-6 space-y-6 mx-[10px]">
       <Card className="p-6 px-[16px]">
         <Tabs defaultValue="empresa" className="space-y-6">
           <TabsList className="grid w-full max-w-6xl grid-cols-6">
