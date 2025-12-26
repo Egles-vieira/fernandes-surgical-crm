@@ -369,7 +369,7 @@ export default function Layout({
         </div>
 
         {/* Content */}
-        <main className="flex-1 overflow-auto mt-16 py-0 mx-0 px-0 my-0 transition-all duration-300" style={{
+        <main className="flex-1 overflow-auto mt-16 transition-all duration-300" style={{
           marginRight: ragAssistantOpen ? isMobile ? '0' : '600px' : '0'
         }}>
           {children}
