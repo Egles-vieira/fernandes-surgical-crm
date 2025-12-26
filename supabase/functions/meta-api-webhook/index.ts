@@ -362,12 +362,70 @@ async function processarMensagemRecebida(supabase: any, conta: any, message: any
 
   if (!conversa) {
     console.log('📝 Creating new conversation for contact:', contato.id);
+    
+    // ===== FASE 2: VERIFICAÇÃO DE EXPEDIENTE (ANTES DE CRIAR CONVERSA) =====
+    let dentroDoExpediente = true;
+    let expedienteInfo: any = null;
+    let foraDeExpedienteProcessado = false;
+    
+    try {
+      console.log('🕐 Verificando expediente para unidade:', conta.unidade_padrao_id);
+      
+      const { data: resultadoExpediente, error: expedienteError } = await supabase
+        .rpc('verificar_dentro_expediente', {
+          p_unidade_id: conta.unidade_padrao_id || null,
+          p_setor_id: null,
+          p_timestamp: new Date().toISOString()
+        });
+      
+      if (expedienteError) {
+        console.error('⚠️ Erro ao verificar expediente:', expedienteError);
+      } else if (resultadoExpediente) {
+        expedienteInfo = resultadoExpediente;
+        dentroDoExpediente = resultadoExpediente.dentro_expediente === true;
+        
+        console.log('📋 Resultado do expediente:', JSON.stringify(expedienteInfo));
+        
+        if (!dentroDoExpediente) {
+          console.log(`⏰ FORA DO EXPEDIENTE - Motivo: ${expedienteInfo.motivo}`);
+          
+          // Registrar log de fora do expediente
+          await supabase.from('whatsapp_auditoria').insert({
+            tipo_evento: 'fora_expediente',
+            descricao: `Mensagem recebida fora do expediente: ${expedienteInfo.motivo}`,
+            whatsapp_conta_id: conta.id,
+            dados_evento: {
+              motivo: expedienteInfo.motivo,
+              feriado_nome: expedienteInfo.feriado_nome,
+              comportamento: expedienteInfo.comportamento,
+              mensagem_configurada: expedienteInfo.mensagem,
+              contato_numero: message.from,
+              contato_nome: contato.nome_whatsapp,
+            },
+          });
+        }
+      }
+    } catch (expError) {
+      console.error('⚠️ Erro na verificação de expediente (não bloqueante):', expError);
+    }
+    // ===== FIM VERIFICAÇÃO DE EXPEDIENTE =====
+    
     const conversaInsert = {
       whatsapp_conta_id: conta.id,
       whatsapp_contato_id: contato.id,
       status: 'aberta',
       origem_atendimento: 'receptivo',
       unidade_id: conta.unidade_padrao_id || null,
+      // Marcar se chegou fora do expediente
+      ...((!dentroDoExpediente) && {
+        tags: ['fora_expediente'],
+        metadata: {
+          fora_expediente: true,
+          expediente_motivo: expedienteInfo?.motivo,
+          expediente_feriado: expedienteInfo?.feriado_nome,
+          expediente_comportamento: expedienteInfo?.comportamento,
+        }
+      }),
     };
     console.log('📋 Conversation insert data:', JSON.stringify(conversaInsert));
     
@@ -385,9 +443,116 @@ async function processarMensagemRecebida(supabase: any, conta: any, message: any
     conversa = novaConversa;
     console.log('✅ Conversation created:', conversa?.id);
     
+    // ===== ENVIO DE MENSAGEM AUTOMÁTICA FORA DO EXPEDIENTE =====
+    if (!dentroDoExpediente && expedienteInfo?.comportamento !== 'manter_fila') {
+      try {
+        console.log('📤 Enviando mensagem automática de fora do expediente...');
+        
+        // Buscar template configurado para fora do expediente
+        const { data: configAtendimento } = await supabase
+          .from('whatsapp_configuracoes_atendimento')
+          .select('template_fora_expediente, mensagem_fora_expediente')
+          .limit(1)
+          .single();
+        
+        const templateForaExpediente = configAtendimento?.template_fora_expediente;
+        const mensagemPadrao = expedienteInfo?.mensagem || 
+          configAtendimento?.mensagem_fora_expediente ||
+          'Olá! Obrigado por entrar em contato. No momento estamos fora do horário de atendimento. Retornaremos em breve!';
+        
+        if (templateForaExpediente) {
+          // Enviar via template (recomendado para evitar bloqueios)
+          console.log('📋 Enviando template de fora do expediente:', templateForaExpediente);
+          
+          const templateResponse = await fetch(
+            `${Deno.env.get('SUPABASE_URL')}/functions/v1/meta-api-enviar-template`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+              },
+              body: JSON.stringify({
+                contaId: conta.id,
+                numeroDestino: message.from,
+                templateName: templateForaExpediente,
+                languageCode: 'pt_BR',
+                conversaId: conversa.id,
+                contatoId: contato.id,
+              }),
+            }
+          );
+          
+          const templateResult = await templateResponse.json();
+          console.log('📋 Resultado do envio de template:', JSON.stringify(templateResult));
+          foraDeExpedienteProcessado = true;
+        } else {
+          // Enviar mensagem de texto simples (fallback)
+          console.log('📝 Enviando mensagem de texto de fora do expediente');
+          
+          // Inserir mensagem no banco para registro
+          await supabase.from('whatsapp_mensagens').insert({
+            conversa_id: conversa.id,
+            whatsapp_conta_id: conta.id,
+            whatsapp_contato_id: contato.id,
+            direcao: 'enviada',
+            tipo_mensagem: 'texto',
+            corpo: mensagemPadrao,
+            enviada_por_bot: true,
+            status: 'pendente',
+            metadata: {
+              tipo_auto: 'fora_expediente',
+              motivo: expedienteInfo?.motivo,
+            },
+          });
+          
+          // Enviar via API (será processado pelo job de envio)
+          const sendResponse = await fetch(
+            `${Deno.env.get('SUPABASE_URL')}/functions/v1/meta-api-enviar-mensagem`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+              },
+              body: JSON.stringify({
+                contaId: conta.id,
+                to: message.from,
+                type: 'text',
+                text: { body: mensagemPadrao },
+              }),
+            }
+          );
+          
+          console.log('📋 Resultado do envio de mensagem:', sendResponse.status);
+          foraDeExpedienteProcessado = true;
+        }
+        
+        // Atualizar conversa com flag de mensagem enviada
+        await supabase
+          .from('whatsapp_conversas')
+          .update({
+            metadata: {
+              ...(conversa.metadata || {}),
+              mensagem_fora_expediente_enviada: true,
+              mensagem_fora_expediente_em: new Date().toISOString(),
+            }
+          })
+          .eq('id', conversa.id);
+          
+      } catch (autoMsgError) {
+        console.error('⚠️ Erro ao enviar mensagem de fora do expediente:', autoMsgError);
+      }
+    }
+    // ===== FIM ENVIO AUTOMÁTICO =====
+    
     // ===== FASE 2: DISTRIBUIÇÃO AUTOMÁTICA =====
-    // Após criar nova conversa, enriquecer dados e distribuir automaticamente
-    try {
+    // Se fora do expediente com comportamento 'rejeitar', pular distribuição
+    if (!dentroDoExpediente && expedienteInfo?.comportamento === 'rejeitar') {
+      console.log('⏸️ Distribuição automática pulada - fora do expediente (modo rejeitar)');
+    } else {
+      // Após criar nova conversa, enriquecer dados e distribuir automaticamente
+      try {
       // Buscar dados do contato CRM vinculado (Fase 3: Enriquecimento)
       if (contato.contato_id) {
         console.log('🔗 Contato vinculado ao CRM:', contato.contato_id);
@@ -515,6 +680,7 @@ async function processarMensagemRecebida(supabase: any, conta: any, message: any
       // Não bloqueia o fluxo se a distribuição falhar
       console.error('⚠️ Erro na distribuição automática (não bloqueante):', distError);
     }
+    } // Fecha o else do if de expediente
     // ===== FIM FASE 2 =====
     
   } else {
