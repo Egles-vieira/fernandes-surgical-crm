@@ -32,6 +32,7 @@ import { useJanela24h } from '@/hooks/whatsapp/useJanela24h';
 import { JanelaStatusBadge } from './JanelaStatusBadge';
 import { TemplateSelectorModal } from './TemplateSelectorModal';
 import { CartPanel } from './CartPanel';
+import { TransferirConversaDialog } from './TransferirConversaDialog';
 interface Contato {
   id: string;
   nome_whatsapp: string;
@@ -97,6 +98,7 @@ export function ChatPanel({
   const [showTemplateSelector, setShowTemplateSelector] = useState(false);
   const [mediaType, setMediaType] = useState<'image' | 'video' | 'document'>('image');
   const [showCart, setShowCart] = useState(false);
+  const [showTransferDialog, setShowTransferDialog] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const queryClient = useQueryClient();
@@ -624,7 +626,9 @@ export function ChatPanel({
                 {conversaInfo?.agente_ia_ativo ?? true ? 'Desativar Agente IA' : 'Ativar Agente IA'}
               </DropdownMenuItem>
               <DropdownMenuItem>Fechar conversa</DropdownMenuItem>
-              <DropdownMenuItem>Transferir</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setShowTransferDialog(true)}>
+                Transferir
+              </DropdownMenuItem>
               <DropdownMenuItem>Bloquear contato</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -802,6 +806,15 @@ export function ChatPanel({
 
       {/* Modal de Seleção de Template */}
       <TemplateSelectorModal isOpen={showTemplateSelector} onClose={() => setShowTemplateSelector(false)} contaId={contaId || null} conversaId={conversaId || ''} contatoId={contato?.id || ''} numeroDestino={contato?.numero_whatsapp || ''} />
+      
+      {/* Modal de Transferência de Conversa */}
+      <TransferirConversaDialog 
+        open={showTransferDialog} 
+        onOpenChange={setShowTransferDialog} 
+        conversaId={conversaId || ''} 
+        contatoNome={contato?.nome_whatsapp || 'Desconhecido'} 
+        operadorAtualId={conversaInfo?.atribuida_para_id} 
+      />
     </div>;
 }
 interface MessageBubbleProps {
