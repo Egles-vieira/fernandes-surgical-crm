@@ -212,13 +212,16 @@ export function CartPanel({ conversaId, collapsed = false, onToggle }: CartPanel
         variant="ghost"
         size="sm"
         onClick={onToggle}
-        className="relative h-8 px-2"
+        className={cn(
+          "relative h-9 px-3 gap-2 transition-all duration-200",
+          totalItens > 0 && "bg-primary/10 hover:bg-primary/20 text-primary"
+        )}
       >
         <ShoppingCart className="h-4 w-4" />
         {totalItens > 0 && (
           <Badge 
             variant="default" 
-            className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center text-[10px] bg-primary"
+            className="h-5 min-w-5 px-1.5 flex items-center justify-center text-[11px] font-bold bg-primary animate-in zoom-in-50 duration-200"
           >
             {totalItens}
           </Badge>
@@ -228,128 +231,150 @@ export function CartPanel({ conversaId, collapsed = false, onToggle }: CartPanel
   }
 
   return (
-    <div className="bg-card border rounded-lg shadow-lg w-80 max-h-[calc(100vh-200px)] flex flex-col">
+    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl shadow-slate-200/50 dark:shadow-slate-900/50 w-80 max-h-[calc(100vh-200px)] flex flex-col overflow-hidden animate-in slide-in-from-top-2 fade-in duration-200">
       {/* Header */}
-      <div className="flex items-center justify-between px-3 py-2 border-b bg-muted/30">
-        <div className="flex items-center gap-2">
-          <ShoppingCart className="h-4 w-4 text-primary" />
-          <span className="font-medium text-sm">Carrinho</span>
-          {totalItens > 0 && (
-            <Badge variant="secondary" className="text-xs">
-              {totalItens} {totalItens === 1 ? 'item' : 'itens'}
-            </Badge>
-          )}
+      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-slate-800 bg-gradient-to-r from-primary/5 to-transparent">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+            <ShoppingCart className="h-4 w-4 text-primary" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-sm text-slate-800 dark:text-slate-100">Carrinho</h3>
+            {totalItens > 0 && (
+              <p className="text-[11px] text-slate-500">
+                {totalItens} {totalItens === 1 ? 'item' : 'itens'} • R$ {calcularTotal().toFixed(2)}
+              </p>
+            )}
+          </div>
         </div>
-        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onToggle}>
-          <X className="h-3 w-3" />
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="h-7 w-7 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800" 
+          onClick={onToggle}
+        >
+          <X className="h-4 w-4 text-slate-500" />
         </Button>
       </div>
 
       {/* Content */}
-      <ScrollArea className="flex-1 max-h-[300px]">
+      <ScrollArea className="flex-1 max-h-[350px]">
         {isLoading ? (
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+          <div className="flex flex-col items-center justify-center py-12 gap-3">
+            <div className="relative">
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                <Loader2 className="h-5 w-5 animate-spin text-primary" />
+              </div>
+            </div>
+            <p className="text-sm text-slate-500">Carregando...</p>
           </div>
         ) : produtos.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-8 px-4 text-center">
-            <Package className="h-10 w-10 text-muted-foreground/50 mb-2" />
-            <p className="text-sm text-muted-foreground">Carrinho vazio</p>
-            <p className="text-xs text-muted-foreground/70 mt-1">
-              A IA adicionará itens aqui durante a conversa
+          <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
+            <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-4">
+              <Package className="h-8 w-8 text-slate-300 dark:text-slate-600" />
+            </div>
+            <p className="text-sm font-medium text-slate-600 dark:text-slate-300">Carrinho vazio</p>
+            <p className="text-xs text-slate-400 mt-1.5 max-w-[200px]">
+              Os produtos serão adicionados automaticamente durante a conversa com o cliente
             </p>
           </div>
         ) : (
-          <div className="p-2 space-y-2">
+          <div className="p-3 space-y-2">
             {produtos.map((produto, index) => (
               <div
                 key={produto.id}
-                className="bg-background rounded-lg p-2 border text-sm"
+                className="group bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl p-3 transition-all duration-200 border border-transparent hover:border-slate-200 dark:hover:border-slate-700"
               >
-                <div className="flex items-start justify-between gap-2 mb-1">
+                {/* Product header */}
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 flex items-center justify-center shrink-0 text-xs font-bold text-primary">
+                    {index + 1}
+                  </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-xs leading-tight truncate" title={produto.nome}>
-                      {index + 1}. {produto.nome}
+                    <p className="font-medium text-sm text-slate-800 dark:text-slate-100 leading-tight line-clamp-2" title={produto.nome}>
+                      {produto.nome}
                     </p>
-                    <p className="text-[10px] text-muted-foreground">
+                    <p className="text-[11px] text-slate-400 mt-0.5 font-mono">
                       {produto.referencia_interna}
                     </p>
                   </div>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-5 w-5 text-destructive hover:text-destructive shrink-0"
+                    className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity text-slate-400 hover:text-destructive hover:bg-destructive/10 rounded-full shrink-0"
                     onClick={() => removerItemMutation.mutate(produto.id)}
                     disabled={removerItemMutation.isPending}
                   >
-                    <Trash2 className="h-3 w-3" />
+                    <Trash2 className="h-3.5 w-3.5" />
                   </Button>
                 </div>
 
-                <div className="flex items-center justify-between mt-2">
+                {/* Quantity and price row */}
+                <div className="flex items-center justify-between mt-3 pt-2 border-t border-slate-200/50 dark:border-slate-700/50">
                   {/* Controles de quantidade */}
                   {editingId === produto.id ? (
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1.5">
                       <Input
                         type="number"
                         value={editQty}
                         onChange={(e) => setEditQty(parseInt(e.target.value) || 1)}
-                        className="h-6 w-14 text-xs text-center"
+                        className="h-7 w-16 text-xs text-center rounded-lg"
                         min={1}
+                        autoFocus
                       />
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-5 w-5 text-green-600"
+                        className="h-7 w-7 rounded-lg bg-green-50 text-green-600 hover:bg-green-100 hover:text-green-700"
                         onClick={() => handleConfirmEdit(produto.id)}
                         disabled={alterarQuantidadeMutation.isPending}
                       >
-                        <Check className="h-3 w-3" />
+                        <Check className="h-3.5 w-3.5" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-5 w-5"
+                        className="h-7 w-7 rounded-lg hover:bg-slate-200"
                         onClick={() => setEditingId(null)}
                       >
-                        <X className="h-3 w-3" />
+                        <X className="h-3.5 w-3.5" />
                       </Button>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 bg-white dark:bg-slate-700 rounded-lg p-0.5 border border-slate-200 dark:border-slate-600">
                       <Button
-                        variant="outline"
+                        variant="ghost"
                         size="icon"
-                        className="h-5 w-5"
+                        className="h-6 w-6 rounded-md hover:bg-slate-100 dark:hover:bg-slate-600"
                         onClick={() => handleQuickChange(produto.id, -1, produto.quantidade)}
                         disabled={alterarQuantidadeMutation.isPending}
                       >
-                        <Minus className="h-2.5 w-2.5" />
+                        <Minus className="h-3 w-3" />
                       </Button>
                       <button
-                        className="px-2 py-0.5 text-xs font-medium hover:bg-muted rounded"
+                        className="px-3 py-1 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:text-primary transition-colors min-w-[32px]"
                         onClick={() => handleStartEdit(produto)}
                       >
                         {produto.quantidade}
                       </button>
                       <Button
-                        variant="outline"
+                        variant="ghost"
                         size="icon"
-                        className="h-5 w-5"
+                        className="h-6 w-6 rounded-md hover:bg-slate-100 dark:hover:bg-slate-600"
                         onClick={() => handleQuickChange(produto.id, 1, produto.quantidade)}
                         disabled={alterarQuantidadeMutation.isPending}
                       >
-                        <Plus className="h-2.5 w-2.5" />
+                        <Plus className="h-3 w-3" />
                       </Button>
                     </div>
                   )}
 
                   {/* Preço e subtotal */}
                   <div className="text-right">
-                    <p className="text-[10px] text-muted-foreground">
-                      R$ {produto.preco_venda.toFixed(2)} × {produto.quantidade}
+                    <p className="text-[10px] text-slate-400 tabular-nums">
+                      {produto.quantidade} × R$ {produto.preco_venda.toFixed(2)}
                     </p>
-                    <p className="text-xs font-semibold text-primary">
+                    <p className="text-sm font-bold text-primary tabular-nums">
                       R$ {(produto.preco_venda * produto.quantidade).toFixed(2)}
                     </p>
                   </div>
@@ -362,16 +387,20 @@ export function CartPanel({ conversaId, collapsed = false, onToggle }: CartPanel
 
       {/* Footer com total */}
       {produtos.length > 0 && (
-        <div className="border-t px-3 py-2 bg-muted/30">
+        <div className="border-t border-slate-100 dark:border-slate-800 px-4 py-3 bg-gradient-to-t from-slate-50/80 to-transparent dark:from-slate-800/50">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Total estimado:</span>
-            <span className="text-base font-bold text-primary">
-              R$ {calcularTotal().toFixed(2)}
-            </span>
+            <div>
+              <span className="text-xs text-slate-500 uppercase tracking-wide font-medium">Total estimado</span>
+              <p className="text-[10px] text-slate-400 mt-0.5">
+                Valores finais na proposta
+              </p>
+            </div>
+            <div className="text-right">
+              <span className="text-xl font-bold text-primary tabular-nums">
+                R$ {calcularTotal().toFixed(2)}
+              </span>
+            </div>
           </div>
-          <p className="text-[10px] text-muted-foreground mt-1">
-            * Valores finais calculados após criar proposta
-          </p>
         </div>
       )}
     </div>
