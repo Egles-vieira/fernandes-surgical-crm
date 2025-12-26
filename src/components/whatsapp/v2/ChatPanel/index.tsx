@@ -589,11 +589,11 @@ export function ChatPanel({
           <div className="relative">
             <CartPanel
               conversaId={conversaId!}
-              collapsed={!showCart}
+              collapsed={true}
               onToggle={() => setShowCart(!showCart)}
             />
             {showCart && (
-              <div className="absolute top-10 right-0 z-50">
+              <div className="absolute top-full right-0 mt-2 z-[100]">
                 <CartPanel
                   conversaId={conversaId!}
                   collapsed={false}
