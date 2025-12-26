@@ -185,3 +185,6 @@ verify_jwt = true
 
 [functions.processar-whatsapp-jobs]
 verify_jwt = false
+
+[functions.whatsapp-cleanup-sessoes]
+verify_jwt = false

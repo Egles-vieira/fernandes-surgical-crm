@@ -1,29 +1,66 @@
 /**
  * ============================================
- * PROVIDER LLM COM FALLBACK
- * OpenAI (GPT-4o-mini) -> DeepSeek (SEM Lovable AI!)
+ * PROVIDER LLM COM FALLBACK + LOVABLE AI
+ * OpenAI (GPT-4o-mini) -> DeepSeek -> Lovable AI (Gemini 2.5 Flash)
  * 
- * ⚠️ LOVABLE AI REMOVIDO para evitar consumo de créditos
+ * ✅ HARDENING: Lovable AI como fallback final para alta disponibilidade
  * ============================================
  */
 
 interface LLMResponse {
   resposta: string | null;
   toolCalls: any[];
-  provider: "openai" | "deepseek" | "error_fallback";
+  provider: "openai" | "deepseek" | "lovable_ai" | "error_fallback";
   tokens_entrada?: number;
   tokens_saida?: number;
 }
 
+// Controle de retry com exponential backoff
+const MAX_RETRIES = 3;
+const INITIAL_DELAY_MS = 1000;
+
+async function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function callWithRetry<T>(
+  fn: () => Promise<T>,
+  providerName: string,
+  maxRetries: number = MAX_RETRIES
+): Promise<T> {
+  let lastError: Error | null = null;
+  
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      
+      // Não fazer retry em erros de autenticação ou rate limit prolongado
+      if (lastError.message.includes("401") || lastError.message.includes("403")) {
+        throw lastError;
+      }
+      
+      if (attempt < maxRetries) {
+        const delayMs = INITIAL_DELAY_MS * Math.pow(2, attempt - 1);
+        console.warn(`⚠️ ${providerName} tentativa ${attempt}/${maxRetries} falhou, aguardando ${delayMs}ms...`);
+        await sleep(delayMs);
+      }
+    }
+  }
+  
+  throw lastError || new Error(`${providerName} falhou após ${maxRetries} tentativas`);
+}
+
 /**
- * Chamar LLM com fallback automático
- * Ordem: OpenAI -> DeepSeek (sem Lovable AI!)
+ * Chamar LLM com fallback automático + Lovable AI
+ * Ordem: OpenAI -> DeepSeek -> Lovable AI (Gemini 2.5 Flash)
  */
 export async function chamarLLMComFallback(
   messages: any[],
   tools: any[] | null,
   deepseekApiKey: string,
-  lovableApiKey: string | null, // Mantido para compatibilidade, mas NÃO usado
+  lovableApiKey: string | null,
   openaiApiKey?: string | null
 ): Promise<LLMResponse> {
   
@@ -31,30 +68,49 @@ export async function chamarLLMComFallback(
   if (openaiApiKey) {
     try {
       console.log("🚀 Tentando OpenAI (GPT-4o-mini)...");
-      const resultado = await chamarOpenAI(messages, tools, openaiApiKey);
+      const resultado = await callWithRetry(
+        () => chamarOpenAI(messages, tools, openaiApiKey),
+        "OpenAI"
+      );
       return { ...resultado, provider: "openai" };
     } catch (error) {
-      console.warn("⚠️ OpenAI falhou, tentando DeepSeek:", error);
+      console.warn("⚠️ OpenAI falhou após retries, tentando DeepSeek:", error);
     }
   }
   
   // 2. Fallback para DeepSeek
   try {
     console.log("🔄 Tentando DeepSeek...");
-    const resultado = await chamarDeepSeek(messages, tools, deepseekApiKey);
+    const resultado = await callWithRetry(
+      () => chamarDeepSeek(messages, tools, deepseekApiKey),
+      "DeepSeek"
+    );
     return { ...resultado, provider: "deepseek" };
   } catch (error) {
-    console.error("❌ DeepSeek também falhou:", error);
-    
-    // ⛔ NÃO usar Lovable AI - retornar erro controlado
-    console.error("⛔ [SEM LOVABLE AI] Retornando erro controlado para evitar consumo de créditos");
-    
-    return {
-      resposta: "opa, estou com instabilidade momentânea. pode tentar de novo em alguns segundos?",
-      toolCalls: [],
-      provider: "error_fallback"
-    };
+    console.warn("⚠️ DeepSeek também falhou, tentando Lovable AI:", error);
   }
+  
+  // 3. Fallback para Lovable AI (Gemini 2.5 Flash) - SEM TOOL CALLING
+  if (lovableApiKey) {
+    try {
+      console.log("🌐 Tentando Lovable AI (google/gemini-2.5-flash)...");
+      const resultado = await callWithRetry(
+        () => chamarLovableAI(messages, lovableApiKey),
+        "LovableAI"
+      );
+      return { ...resultado, provider: "lovable_ai" };
+    } catch (error) {
+      console.error("❌ Lovable AI também falhou:", error);
+    }
+  }
+  
+  // 4. Fallback final - resposta controlada
+  console.error("⛔ Todos os providers falharam, retornando erro controlado");
+  return {
+    resposta: "opa, estou com uma instabilidade momentânea aqui. pode mandar de novo daqui a pouquinho?",
+    toolCalls: [],
+    provider: "error_fallback"
+  };
 }
 
 /**
@@ -380,17 +436,42 @@ export async function chamarLLMComResultadosTools(
     };
     
   } catch (error) {
-    console.warn("⚠️ DeepSeek falhou na segunda chamada:", error);
+    console.warn("⚠️ DeepSeek falhou na segunda chamada, tentando Lovable AI:", error);
     
-    // 3. Fallback: gerar resposta baseada nos resultados das tools (SEM Lovable AI!)
-    console.log("📋 Gerando resposta fallback manual (sem consumir créditos Lovable)");
+    // 3. Fallback para Lovable AI (sem tools)
+    if (lovableApiKey) {
+      try {
+        console.log("🌐 Segunda chamada: Lovable AI (google/gemini-2.5-flash)...");
+        
+        // Para Lovable AI, simplificar mensagens sem tool results
+        const messagesSimplificadas = [
+          { role: "system", content: systemPrompt + "\n\nIMPORTANTE: Você recebeu resultados de ferramentas. Analise e responda ao cliente de forma natural." },
+          ...historicoMensagens.filter(m => m.content && m.content.trim() !== ''),
+          { role: "user", content: mensagemCliente },
+          { role: "assistant", content: `[Resultados das ferramentas: ${JSON.stringify(resultadosFerramentas.map(r => ({ nome: r.name, resultado: r.content?.substring?.(0, 200) || r.content })))}]` },
+          { role: "user", content: "Com base nos resultados acima, responda ao cliente de forma natural e amigável." }
+        ];
+        
+        const resultado = await callWithRetry(
+          () => chamarLovableAI(messagesSimplificadas, lovableApiKey),
+          "LovableAI"
+        );
+        
+        return { ...resultado, provider: "lovable_ai" };
+      } catch (lovableError) {
+        console.warn("⚠️ Lovable AI também falhou:", lovableError);
+      }
+    }
+    
+    // 4. Fallback final: gerar resposta baseada nos resultados das tools
+    console.log("📋 Gerando resposta fallback manual");
     return gerarRespostaFallback(resultadosFerramentas);
   }
 }
 
 /**
- * Gerar resposta fallback quando LLM falha (SEM usar Lovable AI!)
- * MELHORADO: Respostas mais naturais, estilo humano
+ * Gerar resposta fallback quando TODOS os LLMs falham
+ * Usado como última alternativa quando OpenAI + DeepSeek + Lovable AI estão indisponíveis
  */
 function gerarRespostaFallback(resultadosFerramentas: any[]): LLMResponse {
   let resposta = "opa, deixa eu ver aqui o que consegui...";
