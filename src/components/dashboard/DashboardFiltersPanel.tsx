@@ -155,12 +155,21 @@ const savedFiltersOptions = [
   { value: "pipeline_ativo", label: "Pipeline Ativo" },
 ];
 
+interface PipelineOption {
+  pipeline_id: string;
+  nome: string;
+  cor: string | null;
+}
+
 interface DashboardFiltersPanelProps {
   isCollapsed: boolean;
   onToggleCollapse: () => void;
   onFiltersChange?: (filters: Record<string, any>) => void;
   activePanel?: string;
   onPanelChange?: (panelId: string) => void;
+  pipelineFilter?: string | null;
+  onPipelineFilterChange?: (pipelineId: string | null) => void;
+  pipelines?: PipelineOption[];
 }
 
 export function DashboardFiltersPanel({ 
@@ -168,7 +177,10 @@ export function DashboardFiltersPanel({
   onToggleCollapse,
   onFiltersChange,
   activePanel = "resultado-geral",
-  onPanelChange
+  onPanelChange,
+  pipelineFilter,
+  onPipelineFilterChange,
+  pipelines = []
 }: DashboardFiltersPanelProps) {
   const [searchParams, setSearchParams] = useSearchParams();
   const [openSections, setOpenSections] = useState<string[]>(["periodo"]);
@@ -285,6 +297,35 @@ export function DashboardFiltersPanel({
           </SelectContent>
         </Select>
       </div>
+
+      {/* Pipeline Filter - only show on vendas panel */}
+      {activePanel === "vendas" && (
+        <div className="p-4 border-b border-border/50 space-y-2">
+          <span className="text-xs font-medium text-muted-foreground">Pipeline</span>
+          <Select 
+            value={pipelineFilter || "all"} 
+            onValueChange={(value) => onPipelineFilterChange?.(value === "all" ? null : value)}
+          >
+            <SelectTrigger className="w-full h-9 text-sm bg-background">
+              <SelectValue placeholder="Todos os Pipelines" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos os Pipelines</SelectItem>
+              {pipelines.map((p) => (
+                <SelectItem key={p.pipeline_id} value={p.pipeline_id}>
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-2.5 h-2.5 rounded-full"
+                      style={{ backgroundColor: p.cor || "#6366f1" }}
+                    />
+                    {p.nome}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
 
       {/* Saved Filters */}
       <div className="p-4 border-b border-border/50 space-y-2">

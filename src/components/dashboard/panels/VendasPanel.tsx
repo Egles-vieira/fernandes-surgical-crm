@@ -16,10 +16,11 @@ import {
 
 interface VendasPanelProps {
   isActive: boolean;
+  pipelineFilter?: string | null;
+  onPipelineFilterChange?: (pipelineId: string | null) => void;
 }
 
-export function VendasPanel({ isActive }: VendasPanelProps) {
-  const [pipelineFilter, setPipelineFilter] = useState<string | null>(null);
+export function VendasPanel({ isActive, pipelineFilter = null, onPipelineFilterChange }: VendasPanelProps) {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const {
@@ -69,33 +70,8 @@ export function VendasPanel({ isActive }: VendasPanelProps) {
 
   return (
     <div className="space-y-6">
-      {/* Header com filtros */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <Select
-            value={pipelineFilter || "all"}
-            onValueChange={(value) => setPipelineFilter(value === "all" ? null : value)}
-          >
-            <SelectTrigger className="w-[220px]">
-              <SelectValue placeholder="Todos os Pipelines" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos os Pipelines</SelectItem>
-              {pipelines.map((p) => (
-                <SelectItem key={p.pipeline_id} value={p.pipeline_id}>
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-2.5 h-2.5 rounded-full"
-                      style={{ backgroundColor: p.cor || "#6366f1" }}
-                    />
-                    {p.nome}
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
+      {/* Header com botão de refresh */}
+      <div className="flex items-center justify-end">
         <Button
           variant="outline"
           size="sm"
@@ -116,7 +92,7 @@ export function VendasPanel({ isActive }: VendasPanelProps) {
           <PipelineCard
             key={pipeline.pipeline_id}
             pipeline={pipeline}
-            onClick={() => setPipelineFilter(
+            onClick={() => onPipelineFilterChange?.(
               pipelineFilter === pipeline.pipeline_id ? null : pipeline.pipeline_id
             )}
           />

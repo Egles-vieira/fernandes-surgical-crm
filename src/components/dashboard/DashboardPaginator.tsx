@@ -13,9 +13,16 @@ import { AgenteIAPanel } from "./panels/AgenteIAPanel";
 interface DashboardPaginatorProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
+  pipelineFilter?: string | null;
+  onPipelineFilterChange?: (pipelineId: string | null) => void;
 }
 
-export function DashboardPaginator({ activeTab, onTabChange }: DashboardPaginatorProps) {
+export function DashboardPaginator({ 
+  activeTab, 
+  onTabChange,
+  pipelineFilter,
+  onPipelineFilterChange
+}: DashboardPaginatorProps) {
   return (
     <div className="space-y-6">
       <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
@@ -24,7 +31,11 @@ export function DashboardPaginator({ activeTab, onTabChange }: DashboardPaginato
         </TabsContent>
 
         <TabsContent value="vendas" className="mt-0">
-          <VendasPanel isActive={activeTab === "vendas"} />
+          <VendasPanel 
+            isActive={activeTab === "vendas"} 
+            pipelineFilter={pipelineFilter}
+            onPipelineFilterChange={onPipelineFilterChange}
+          />
         </TabsContent>
 
         <TabsContent value="plataformas" className="mt-0">
