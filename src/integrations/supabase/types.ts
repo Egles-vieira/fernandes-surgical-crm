@@ -3447,6 +3447,27 @@ export type Database = {
             foreignKeyName: "estagios_pipeline_pipeline_id_fkey"
             columns: ["pipeline_id"]
             isOneToOne: false
+            referencedRelation: "mv_evolucao_mensal_pipeline"
+            referencedColumns: ["pipeline_id"]
+          },
+          {
+            foreignKeyName: "estagios_pipeline_pipeline_id_fkey"
+            columns: ["pipeline_id"]
+            isOneToOne: false
+            referencedRelation: "mv_metricas_por_estagio"
+            referencedColumns: ["pipeline_id"]
+          },
+          {
+            foreignKeyName: "estagios_pipeline_pipeline_id_fkey"
+            columns: ["pipeline_id"]
+            isOneToOne: false
+            referencedRelation: "mv_metricas_por_pipeline"
+            referencedColumns: ["pipeline_id"]
+          },
+          {
+            foreignKeyName: "estagios_pipeline_pipeline_id_fkey"
+            columns: ["pipeline_id"]
+            isOneToOne: false
             referencedRelation: "pipelines"
             referencedColumns: ["id"]
           },
@@ -3955,11 +3976,25 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "historico_estagio_oportunidade_estagio_anterior_id_fkey"
+            columns: ["estagio_anterior_id"]
+            isOneToOne: false
+            referencedRelation: "mv_metricas_por_estagio"
+            referencedColumns: ["estagio_id"]
+          },
+          {
             foreignKeyName: "historico_estagio_oportunidade_estagio_novo_id_fkey"
             columns: ["estagio_novo_id"]
             isOneToOne: false
             referencedRelation: "estagios_pipeline"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "historico_estagio_oportunidade_estagio_novo_id_fkey"
+            columns: ["estagio_novo_id"]
+            isOneToOne: false
+            referencedRelation: "mv_metricas_por_estagio"
+            referencedColumns: ["estagio_id"]
           },
           {
             foreignKeyName: "historico_estagio_oportunidade_oportunidade_id_fkey"
@@ -5561,6 +5596,34 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "oportunidades_estagio_id_fkey"
+            columns: ["estagio_id"]
+            isOneToOne: false
+            referencedRelation: "mv_metricas_por_estagio"
+            referencedColumns: ["estagio_id"]
+          },
+          {
+            foreignKeyName: "oportunidades_pipeline_id_fkey"
+            columns: ["pipeline_id"]
+            isOneToOne: false
+            referencedRelation: "mv_evolucao_mensal_pipeline"
+            referencedColumns: ["pipeline_id"]
+          },
+          {
+            foreignKeyName: "oportunidades_pipeline_id_fkey"
+            columns: ["pipeline_id"]
+            isOneToOne: false
+            referencedRelation: "mv_metricas_por_estagio"
+            referencedColumns: ["pipeline_id"]
+          },
+          {
+            foreignKeyName: "oportunidades_pipeline_id_fkey"
+            columns: ["pipeline_id"]
+            isOneToOne: false
+            referencedRelation: "mv_metricas_por_pipeline"
+            referencedColumns: ["pipeline_id"]
+          },
+          {
             foreignKeyName: "oportunidades_pipeline_id_fkey"
             columns: ["pipeline_id"]
             isOneToOne: false
@@ -5930,6 +5993,34 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "estagios_pipeline"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pipeline_custom_fields_estagio_id_fkey"
+            columns: ["estagio_id"]
+            isOneToOne: false
+            referencedRelation: "mv_metricas_por_estagio"
+            referencedColumns: ["estagio_id"]
+          },
+          {
+            foreignKeyName: "pipeline_custom_fields_pipeline_id_fkey"
+            columns: ["pipeline_id"]
+            isOneToOne: false
+            referencedRelation: "mv_evolucao_mensal_pipeline"
+            referencedColumns: ["pipeline_id"]
+          },
+          {
+            foreignKeyName: "pipeline_custom_fields_pipeline_id_fkey"
+            columns: ["pipeline_id"]
+            isOneToOne: false
+            referencedRelation: "mv_metricas_por_estagio"
+            referencedColumns: ["pipeline_id"]
+          },
+          {
+            foreignKeyName: "pipeline_custom_fields_pipeline_id_fkey"
+            columns: ["pipeline_id"]
+            isOneToOne: false
+            referencedRelation: "mv_metricas_por_pipeline"
+            referencedColumns: ["pipeline_id"]
           },
           {
             foreignKeyName: "pipeline_custom_fields_pipeline_id_fkey"
@@ -11709,6 +11800,21 @@ export type Database = {
         }
         Relationships: []
       }
+      mv_evolucao_mensal_pipeline: {
+        Row: {
+          cor: string | null
+          ganhas: number | null
+          mes: string | null
+          mes_abrev: string | null
+          novas_oportunidades: number | null
+          ordem_mes: number | null
+          pipeline_id: string | null
+          pipeline_nome: string | null
+          valor_criado: number | null
+          valor_ganho: number | null
+        }
+        Relationships: []
+      }
       mv_ged_por_tipo: {
         Row: {
           cor: string | null
@@ -11733,6 +11839,43 @@ export type Database = {
         }
         Relationships: []
       }
+      mv_metricas_por_estagio: {
+        Row: {
+          cor: string | null
+          estagio_id: string | null
+          media_dias_estagio: number | null
+          nome_estagio: string | null
+          ordem_estagio: number | null
+          percentual_probabilidade: number | null
+          pipeline_cor: string | null
+          pipeline_id: string | null
+          pipeline_nome: string | null
+          total_oportunidades: number | null
+          valor_ponderado: number | null
+          valor_total: number | null
+        }
+        Relationships: []
+      }
+      mv_metricas_por_pipeline: {
+        Row: {
+          abertas: number | null
+          cor: string | null
+          ganhas: number | null
+          icone: string | null
+          nome: string | null
+          ordem_exibicao: number | null
+          perdidas: number | null
+          pipeline_id: string | null
+          taxa_conversao: number | null
+          tipo_pipeline: string | null
+          total_oportunidades: number | null
+          valor_aberto: number | null
+          valor_ganho: number | null
+          valor_ponderado: number | null
+          valor_total: number | null
+        }
+        Relationships: []
+      }
       mv_pipeline_por_etapa: {
         Row: {
           atualizado_em: string | null
@@ -11740,6 +11883,23 @@ export type Database = {
           etapa_label: string | null
           quantidade: number | null
           valor_total: number | null
+        }
+        Relationships: []
+      }
+      mv_pipelines_kpis: {
+        Row: {
+          atualizado_em: string | null
+          oportunidades_abertas: number | null
+          oportunidades_ganhas: number | null
+          oportunidades_perdidas: number | null
+          taxa_conversao: number | null
+          ticket_medio: number | null
+          total_oportunidades: number | null
+          total_pipelines: number | null
+          valor_em_aberto: number | null
+          valor_ganho: number | null
+          valor_ponderado: number | null
+          valor_total_pipeline: number | null
         }
         Relationships: []
       }
@@ -12700,6 +12860,7 @@ export type Database = {
       refresh_ged_mvs: { Args: never; Returns: undefined }
       refresh_mv_agente_ia: { Args: never; Returns: undefined }
       refresh_mv_atividades_prioridade: { Args: never; Returns: undefined }
+      refresh_mv_pipelines: { Args: never; Returns: undefined }
       refresh_whatsapp_bam_dashboard: { Args: never; Returns: undefined }
       registrar_feedback_ia: {
         Args: {
