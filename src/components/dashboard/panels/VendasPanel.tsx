@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { RefreshCw } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { RefreshCw, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { useDashboardPipelines } from "@/hooks/useDashboardPipelines";
 import {
@@ -13,6 +13,7 @@ import {
   PipelineFunnelChart,
   PipelineStagesTable,
 } from "../pipelines";
+import { PropostasListaTable } from "@/components/propostas/PropostasListaTable";
 
 interface VendasPanelProps {
   isActive: boolean;
@@ -126,6 +127,25 @@ export function VendasPanel({ isActive, pipelineFilter = null, onPipelineFilterC
 
       {/* Tabela de Estágios */}
       <PipelineStagesTable estagios={estagios} pipelines={pipelines} />
+
+      {/* Lista de Propostas */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg font-semibold">
+            <FileText className="h-5 w-5" />
+            Propostas Recentes
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <PropostasListaTable
+            pipelineFilter={pipelineFilter}
+            limit={10}
+            showFilters={true}
+            showPagination={true}
+            compact={false}
+          />
+        </CardContent>
+      </Card>
     </div>
   );
 }
