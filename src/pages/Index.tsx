@@ -5,10 +5,10 @@ import { DashboardFiltersPanel } from "@/components/dashboard/DashboardFiltersPa
 export default function Index() {
   const [isFilterCollapsed, setIsFilterCollapsed] = useState(false);
   const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
+  const [activePanel, setActivePanel] = useState("resultado-geral");
 
   const handleFiltersChange = (filters: Record<string, any>) => {
     setActiveFilters(filters);
-    // Aqui seria feita a integração com os hooks de dados do dashboard
     console.log("Filtros aplicados:", filters);
   };
 
@@ -19,11 +19,13 @@ export default function Index() {
         isCollapsed={isFilterCollapsed}
         onToggleCollapse={() => setIsFilterCollapsed(!isFilterCollapsed)}
         onFiltersChange={handleFiltersChange}
+        activePanel={activePanel}
+        onPanelChange={setActivePanel}
       />
 
       {/* Conteúdo do Dashboard */}
       <div className="flex-1 overflow-auto p-6">
-        <DashboardPaginator />
+        <DashboardPaginator activeTab={activePanel} onTabChange={setActivePanel} />
       </div>
     </div>
   );

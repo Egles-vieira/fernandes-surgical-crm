@@ -16,11 +16,34 @@ import {
   Calendar as CalendarIcon, 
   Save, 
   X,
-  Filter
+  Filter,
+  LayoutDashboard,
+  DollarSign,
+  FileSpreadsheet,
+  Gavel,
+  MessageCircle,
+  Package,
+  Headphones,
+  Users,
+  Activity,
+  Bot
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+
+const dashboardPanels = [
+  { id: "resultado-geral", label: "Resultado Geral", icon: LayoutDashboard },
+  { id: "vendas", label: "Vendas", icon: DollarSign },
+  { id: "plataformas", label: "Plataformas", icon: FileSpreadsheet },
+  { id: "licitacoes", label: "Licitações", icon: Gavel },
+  { id: "whatsapp", label: "WhatsApp", icon: MessageCircle },
+  { id: "produtos", label: "Produtos", icon: Package },
+  { id: "services", label: "Services", icon: Headphones },
+  { id: "cliente", label: "Cliente", icon: Users },
+  { id: "performance", label: "Performance", icon: Activity },
+  { id: "agente-ia", label: "Agente IA", icon: Bot },
+];
 
 interface FilterOption {
   value: string;
@@ -136,12 +159,16 @@ interface DashboardFiltersPanelProps {
   isCollapsed: boolean;
   onToggleCollapse: () => void;
   onFiltersChange?: (filters: Record<string, any>) => void;
+  activePanel?: string;
+  onPanelChange?: (panelId: string) => void;
 }
 
 export function DashboardFiltersPanel({ 
   isCollapsed, 
   onToggleCollapse,
-  onFiltersChange 
+  onFiltersChange,
+  activePanel = "resultado-geral",
+  onPanelChange
 }: DashboardFiltersPanelProps) {
   const [searchParams, setSearchParams] = useSearchParams();
   const [openSections, setOpenSections] = useState<string[]>(["periodo"]);
@@ -234,6 +261,29 @@ export function DashboardFiltersPanel({
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
+      </div>
+
+      {/* Dashboard Selector */}
+      <div className="p-4 border-b border-border/50 space-y-2">
+        <span className="text-xs font-medium text-muted-foreground">Dashboard</span>
+        <Select value={activePanel} onValueChange={onPanelChange}>
+          <SelectTrigger className="w-full h-9 text-sm bg-background">
+            <SelectValue placeholder="Selecionar dashboard" />
+          </SelectTrigger>
+          <SelectContent>
+            {dashboardPanels.map(panel => {
+              const Icon = panel.icon;
+              return (
+                <SelectItem key={panel.id} value={panel.id}>
+                  <div className="flex items-center gap-2">
+                    <Icon className="h-4 w-4 text-muted-foreground" />
+                    <span>{panel.label}</span>
+                  </div>
+                </SelectItem>
+              );
+            })}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Saved Filters */}
